@@ -125,10 +125,10 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
    VectorType y( m, 0 );  // TODO: This should argument maybe
 
-   this->Kz_last_iteration.setSize(N);
-   this->Kz_current.setSize(N);
-   this->Kz_averaged.setSize(N);
-   this->Kz_candidate.setSize(N);
+   this->Kz_last_iteration.setSize( N );
+   this->Kz_current.setSize( N );
+   this->Kz_averaged.setSize( N );
+   this->Kz_candidate.setSize( N );
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
    //std::cout << "Constraint matrix spectral norm: " << this->K_norm << std::endl;
@@ -143,7 +143,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    //std::cout << "Initial eta:       " << initial_eta << std::endl;
 
 #ifdef PRINTING
-   //std::cout << std::setprecision( 16 );
+   //std::cout << std::setprecision( 20 );
    /*std::cout << "q = " << q << std::endl;
    std::cout << "c = " << c << std::endl;
    std::cout << "l = " << l << std::endl;
@@ -188,9 +188,9 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    this->KxComputations = 0;
    this->KTyComputations = 0;
 
-   auto Kx_view = Kz_last_iteration.getView(0,m);
+   auto Kx_view = Kz_last_iteration.getView( 0, m );
    computeKx( x, Kx_view );
-   auto KTy_view = Kz_last_iteration.getView(m,N);
+   auto KTy_view = Kz_last_iteration.getView( m, N );
    computeKTy( y, KTy_view );
 
    KKTDataType kkt_candidate, kkt_last_restart;
@@ -222,10 +222,9 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
             t++;
 
 #ifdef PRINTING
-            std::cout << "xUpdate = " << l2Norm( z_current.getView( 0, n ) ) << std::endl;
-            std::cout << "yUpdate = " << l2Norm( z_current.getView( n, n + m1 + m2 ) ) << std::endl;
-            std::cout << "xAverage = " << l2Norm( z_averaged.getView( 0, n ) ) << std::endl;
-            std::cout << "yAverage = " << l2Norm( z_averaged.getView( n, n + m1 + m2 ) ) << std::endl;
+            std::cout << "z-current = " << l2Norm( z_current ) << std::endl;
+            std::cout << "z-averaged = " << l2Norm( z_averaged ) << std::endl;
+            std::cout << "Kz-averaged = " << l2Norm( Kz_averaged ) << std::endl;
             std::cout << "eta sum " << eta_sum << " -> " << eta_sum + current_eta << "(adding " << current_eta << ") "
                       << std::endl;
             std::cout << "Scaling by " << 1.0 / ( eta_sum + current_eta ) << std::endl;
@@ -257,11 +256,17 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                ( q, z_averaged.getView( n, N ) ) + ( filtered_l, maximum( lambda, 0 ) ) + ( filtered_u, minimum( lambda, 0 ) );
             const RealType averaged_duality_gap = averaged_primal_objective - averaged_dual_objective;
 
+#ifdef PRINTING
+            std::cout << "Current primal objective: " << current_primal_objective
+                      << " dual objective: " << current_dual_objective << " duality gap: " << current_duality_gap << std::endl;
+            std::cout << "Averaged primal objective: " << averaged_primal_objective
+                      << " dual objective: " << averaged_dual_objective << " duality gap: " << averaged_duality_gap
+                      << std::endl;
+#endif
             if( restarting != PDLPRestarting::None ) {
                RealType mu_current, mu_averaged;
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
-
                   kkt_current = KKT( z_current, Kz_current );
                   mu_current = kkt_current.getKKTError( current_omega );
 
@@ -353,7 +358,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   break;
                }
             }  // if( restarting != PDLPRestarting::None )
-            else{
+            else {
                z_candidate = z_averaged;
                Kz_candidate = Kz_averaged;
             }
@@ -437,30 +442,36 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 
 #ifdef PRINTING
       std::cout << "=====================================================================" << std::endl;
-      std::cout << this->adaptive_k - 2 << " eta: " << current_eta << " omega: " << current_omega << " primal step : " << tau
-                << " dual step : " << sigma << std::endl;
+      std::cout << "adaptiveStep: " << this->adaptive_k - 2 << " eta : " << current_eta << " omega: " << current_omega
+                << " primal step : " << tau << " dual step : " << sigma << std::endl;
 #endif
 
       computePrimalStep( in_x, Kz_last_iteration.getView( m, N ), tau, out_x );
 
-      auto Kx_view = Kz_last_iteration.getView(0, m);
-      auto Kx_new_view = Kz_current.getView(0, m);
+      auto Kx_view = Kz_last_iteration.getView( 0, m );
+      auto Kx_new_view = Kz_current.getView( 0, m );
       computeKx( out_x, Kx_new_view );
       computeDualStep( in_y, Kx_view, Kx_new_view, sigma, out_y );
 
 #ifdef PRINTING
-      std::cout << "Adpt. step       x = " << l2Norm( in_x ) << std::endl;
-      std::cout << "Adpt. step       y = " << l2Norm( in_y ) << std::endl;
-      std::cout << "Adpt. step      Kx = " << l2Norm( Kx_view ) << std::endl;
-      std::cout << "Adpt. step     KTy = " << l2Norm( Kz_last_iteration.getView( m, N ) ) << std::endl;
-      std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
-      std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
+      std::cout << "adaptiveStep:       x = " << l2Norm( in_x ) << std::endl;
+      std::cout << "adaptiveStep:       y = " << l2Norm( in_y ) << std::endl;
+      std::cout << "adaptiveStep:      Kx = " << l2Norm( Kx_view ) << std::endl;
+      std::cout << "adaptiveStep:     KTy = " << l2Norm( Kz_last_iteration.getView( m, N ) ) << std::endl;
+      std::cout << "adaptiveStep:   out_x = " << l2Norm( out_x ) << std::endl;
+      std::cout << "adaptiveStep:   out_y = " << l2Norm( out_y ) << std::endl;
 #endif
 
       // Compute new parameter eta
       delta_x = out_x - in_x;
       delta_y = out_y - in_y;
-      const RealType movement = 0.5 * ( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
+#ifdef PRINTING
+      std::cout << "adaptiveStep: delta_x = " << l2Norm( delta_x ) << " delta_y = " << l2Norm( delta_y ) << std::endl;
+#endif
+      const RealType dot_delta_x = ( delta_x, delta_x );
+      const RealType dot_delta_y = ( delta_y, delta_y );
+      //const RealType movement = 0.5 * ( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
+      const RealType movement = 0.5 * ( current_omega * dot_delta_x + dot_delta_y / current_omega );
 
       const RealType interaction = abs( dot( Kx_new_view - Kx_view, delta_y ) );
       const RealType max_eta = interaction > 0 ? movement / interaction : std::numeric_limits< RealType >::infinity();
@@ -474,11 +485,11 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       //std::cout << "   Adaptive step: k = " << this->adaptive_k << " new eta = " << new_eta << std::endl;
 
 #ifdef PRINTING
-      std::cout << "in_x = " << in_x << "\n out_x = " << out_x << std::endl;
-      std::cout << "in_y = " << in_y << "\n out_y = " << out_y << std::endl;
+      std::cout << "adaptiveStep: in_x = " << l2Norm( in_x ) << "\nadaptiveStep: out_x = " << l2Norm( out_x ) << std::endl;
+      std::cout << "adaptiveStep: in_y = " << l2Norm( in_y ) << "\nadaptiveStep: out_y = " << l2Norm( out_y ) << std::endl;
       //std::cout << "delta_x = " << delta_x << "\n   delta_y = " << delta_y << std::endl;
-      std::cout << "Movement: dX " << ( delta_x, delta_x ) << " dY " << ( delta_y, delta_y ) << std::endl;
-      std::cout << "k: " << this->adaptive_k << " movement : " << movement << " interaction : " << interaction
+      std::cout << "adaptiveStep: Movement: dX " << dot_delta_x << " dY " << dot_delta_y << std::endl;
+      std::cout << "adaptiveStep: k: " << this->adaptive_k << " movement : " << movement << " interaction : " << interaction
                 << " step limit : " << max_eta << " new eta: " << new_eta << std::endl;
 #endif
       this->adaptive_k++;
@@ -486,8 +497,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
          current_eta = new_eta;
 #ifdef PRINTING
          std::cout << "End of adaptive step." << std::endl;
-         std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
-         std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
+         std::cout << "adaptiveStep:   out_x = " << l2Norm( out_x ) << std::endl;
+         std::cout << "adaptiveStep:   out_y = " << l2Norm( out_y ) << std::endl;
 #endif
          Kz_current.getView( 0, m ) = Kx_new_view;
          auto KTy_view = Kz_current.getView( m, N );
@@ -509,6 +520,9 @@ PDLP< LPProblem_, SolverMonitor >::computeKx( const ConstVectorView& x, VectorVi
    }
    else
       K.vectorProduct( x, Kx, segmentsReductionKernel );
+#ifdef PRINTING
+   std::cout << "Kx = " << l2Norm( Kx ) << std::endl;
+#endif
    spmvTimer.stop();
    this->KxComputations++;
 }
@@ -521,8 +535,15 @@ PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y, VectorV
    if( this->useCusparse && std::is_same_v< DeviceType, Devices::Cuda > ) {
       this->cusparseKT.vectorProduct( y, KTy );
    }
-   else
+   else {
       KT.vectorProduct( y, KTy, segmentsReductionKernel );
+#ifdef PRINTING
+      std::cout << "computeKTy: y = " << l2Norm( y ) << std::endl;
+#endif
+   }
+#ifdef PRINTING
+   std::cout << "computeKTy: KTy = " << l2Norm( KTy ) << std::endl;
+#endif
    spmvTimer.stop();
    this->KTyComputations++;
 }
@@ -586,6 +607,8 @@ PDLP< LPProblem_, SolverMonitor >::computeLambda( const VectorType& c,
          }
       } );
 #ifdef PRINTING
+   std::cout << "LAMBDA: c = " << l2Norm( c ) << std::endl;
+   std::cout << "LAMBDA: KTy = " << l2Norm( KTy ) << std::endl;
    std::cout << "\nLAMBDA:c - KTy = " << l2Norm( c_view - KTy_view )  //
              << "\nLAMBDA: lambda = " << l2Norm( lambda )             //
              << std::endl;
@@ -682,9 +705,12 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorType& z, const VectorType& K
    auto lambda_view = lambda.getConstView();
    const RealType dual_objective = ( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) )
                                  + ( filtered_u, minimum( lambda_view, 0 ) );  // cuPDLP-C has + here, original paper has -
-   //std::cout << "( q, y ) = " << ( q, y ) << std::endl;
-   //std::cout << "lower filter = " << ( filtered_l, maximum( lambda_view, 0 ) ) << std::endl;
-   //std::cout << "upper filter = " << ( filtered_u, minimum( lambda_view, 0 ) ) << std::endl;
+
+#ifdef PRINTING
+   std::cout << "(q,y) = " << ( q, y ) << std::endl;
+   std::cout << "(filtered_l, max(lambda,0)) = " << ( filtered_l, maximum( lambda_view, 0 ) ) << std::endl;
+   std::cout << "(filtered_u, min(lambda,0)) = " << ( filtered_u, minimum( lambda_view, 0 ) ) << std::endl;
+#endif
 
    return { primal_feasibility, dual_feasibility, primal_objective, dual_objective };
 }
