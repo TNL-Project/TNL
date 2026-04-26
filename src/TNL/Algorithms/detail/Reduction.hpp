@@ -146,12 +146,13 @@ Reduction< Devices::Host >::reduce( const Index begin, const Index end, Fetch&& 
       // global result variable
       Result result = identity;
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads(threads)
+      Result* thread_results = new Result[ threads ];
+   #pragma omp parallel num_threads( threads )
       {
          // initialize array for thread-local results
          Result r[ 4 ] = { identity, identity, identity, identity };
 
-         #pragma omp for nowait
+   #pragma omp for nowait
          for( Index b = 0; b < blocks; b++ ) {
             const Index offset = begin + b * block_size;
             for( int i = 0; i < block_size; i += 4 ) {
@@ -162,24 +163,23 @@ Reduction< Devices::Host >::reduce( const Index begin, const Index end, Fetch&& 
             }
          }
 
-         // the first thread that reaches here processes the last, incomplete block
-         #pragma omp single nowait
-         {
-            for( Index i = begin + blocks * block_size; i < end; i++ )
-               r[ 0 ] = reduce( r[ 0 ], fetch( i ) );
-         }
-
          // local reduce of unrolled results
          r[ 0 ] = reduce( r[ 0 ], r[ 2 ] );
          r[ 1 ] = reduce( r[ 1 ], r[ 3 ] );
          r[ 0 ] = reduce( r[ 0 ], r[ 1 ] );
 
-         // inter-thread reduce of local results
-         #pragma omp critical
-         {
-            result = reduce( result, r[ 0 ] );
-         }
+         thread_results[ omp_get_thread_num() ] = r[ 0 ];
       }
+
+      // Deterministic reduce of thread-local results
+      for( int i = 0; i < threads; i++ )
+         result = reduce( result, thread_results[ i ] );
+
+      // reduce of the last, incomplete block (not unrolled)
+      for( Index i = begin + blocks * block_size; i < end; i++ )
+         result = reduce( result, fetch( i ) );
+
+      delete[] thread_results;
       return result;
    }
    else
@@ -206,14 +206,14 @@ Reduction< Devices::Host >::reduceWithArgument( const Index begin,
       // global result variable
       std::pair< Result, Index > result( identity, -1 );
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads(threads)
+   #pragma omp parallel num_threads( threads )
       {
          // initialize array for thread-local results
          Index arg[ 4 ] = { 0, 0, 0, 0 };
          Result r[ 4 ] = { identity, identity, identity, identity };
          bool initialized( false );
 
-         #pragma omp for nowait
+   #pragma omp for nowait
          for( Index b = 0; b < blocks; b++ ) {
             const Index offset = begin + b * block_size;
             for( int i = 0; i < block_size; i += 4 ) {
@@ -236,8 +236,8 @@ Reduction< Devices::Host >::reduceWithArgument( const Index begin,
             }
          }
 
-         // the first thread that reaches here processes the last, incomplete block
-         #pragma omp single nowait
+   // the first thread that reaches here processes the last, incomplete block
+   #pragma omp single nowait
          {
             for( Index i = begin + blocks * block_size; i < end; i++ )
                reduce( r[ 0 ], fetch( i ), arg[ 0 ], i );
@@ -248,8 +248,8 @@ Reduction< Devices::Host >::reduceWithArgument( const Index begin,
          reduce( r[ 1 ], r[ 3 ], arg[ 1 ], arg[ 3 ] );
          reduce( r[ 0 ], r[ 1 ], arg[ 0 ], arg[ 1 ] );
 
-         // inter-thread reduce of local results
-         #pragma omp critical
+   // inter-thread reduce of local results
+   #pragma omp critical
          {
             if( result.second == -1 )
                result.second = arg[ 0 ];
