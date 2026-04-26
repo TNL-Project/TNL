@@ -31,7 +31,7 @@ PDLP< LPProblem_, SolverMonitor >::configSetup( Config::ConfigDescription& confi
    config.addEntryEnum( "constant" );
    config.addEntryEnum( "duality-gap" );
    config.addEntryEnum( "kkt" );
-   config.addEntryEnum( "fast" );
+   config.addEntryEnum( "stochastic" );
    config.addEntry< int >(
       prefix + "max-restarting-interval", "Maximum interval without restarting interval. Zero means no limit.", 0 );
    config.addEntry< bool >( prefix + "write-convergence-graphs", "Write convergence graphs for the solver.", false );
@@ -52,8 +52,8 @@ PDLP< LPProblem_, SolverMonitor >::setup( const Config::ParameterContainer& para
       this->setRestarting( PDLPRestarting::DualityGap );
    else if( restarting == "kkt" )
       this->setRestarting( PDLPRestarting::KKT );
-   else if( restarting == "fast" )
-      this->setRestarting( PDLPRestarting::Fast );
+   else if( restarting == "stochastic" )
+      this->setRestarting( PDLPRestarting::Stochastic );
    else
       throw std::runtime_error( "Unknown restarting strategy: " + restarting );
    auto restartingInterval = parameters.getParameter< int >( prefix + "max-restarting-interval" );
@@ -396,7 +396,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   const RealType primal_diff = l2Norm( z_current.getView( 0, n ) - z_stochastic_best.getView( 0, n ) );
                   const RealType dual_diff = l2Norm( z_current.getView( n, N ) - z_stochastic_best.getView( n, N ) );
                   const RealType best_distance =
-                     sqrt( omega * primal_diff * primal_diff + ( 1.0 / omega ) * dual_diff * dual_diff );
+                     sqrt( current_omega * primal_diff * primal_diff + ( 1.0 / current_omega ) * dual_diff * dual_diff );
                   const RealType tau_best = 1;  // ???? Check this with Yassine
                   if( best_distance < tau_best )
                      p = p_low;
@@ -409,7 +409,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                             << stochastic_score << " (gap: " << gap << " primal res.: " << primal_residual
                             << " dual res.: " << dual_residual << ") and merit " << restart_merit << " (p = " << p
                             << " u = " << u << ")" << std::endl;
-                  stochasticRestarting( z_current, Kz_current );
+                  stochasticRestarting( z_current, Kz_current, z_averaged, Kz_averaged, z_candidate, Kz_candidate );
                }
                else {
                   z_candidate = z_averaged;
@@ -485,32 +485,34 @@ bool
 PDLP< LPProblem_, SolverMonitor >::stochasticRestarting( const VectorType& z_current,
                                                          const VectorType& Kz_current,
                                                          const VectorType& z_averaged,
-                                                         VectorType& z_restarted )
+                                                         const VectorType& Kz_averaged,
+                                                         VectorType& z_restarted,
+                                                         VectorType& Kz_restarted )
 {
-   VectorType z_base = z_current;
-   VectorType x_candidate( n ).Kx_candidate( n );
-   const RealType r_base = primalFeasibility( z_base.getView( n, N ) );  // TODO: Check how to compute r_p
-   const RealType epsilon_rel = 1.0e-4;                                  // TODO: Check this in Yassins code
-   const RealType epsilon_abs = 1.0e-6;                                  // TODO: Check this in Yassins code
+   VectorType z_base( z_current );
+   VectorType x_candidate( n ), Kx_candidate( n );
+   const RealType r_base = computePrimalFeasibility( q, Kz_current.getConstView( 0, n ) );  // TODO: Check how to compute r_p
+   const RealType epsilon_rel = 1.0e-4;                                                     // TODO: Check this in Yassins code
+   const RealType epsilon_abs = 1.0e-6;                                                     // TODO: Check this in Yassins code
    const RealType r_max = ( 1 + epsilon_rel ) * r_base + epsilon_abs;
    VectorType x_random( n );
-   Algorithms::fillRandom< DeviceType >( x_random.getData(), n, 0.0, 1.0 );
+   Algorithms::fillRandom< DeviceType >( x_random.getData(), n, (RealType) 0.0, (RealType) 1.0 );
    auto l_view = l.getConstView();
    auto u_view = u.getConstView();
    auto x_base_view = z_base.getConstView( 0, n );
-   Algorithms::parallelFor( 0,
-                            n,
-                            [ = ] __cuda_callable__( IndexType i ) mutable
-                            {
-                               if( l_view[ i ] > std::numeric_limits< RealType >::infinity()
-                                   && u_view[ i ] < std::numeric_limits< RealType >::infinity() )
-                                  x_random[ i ] = l_view[ i ] + x_random[ i ] * ( u_view[ i ] - l_view[ i ] );
-                               else
-                                  x_random[ i ] = x_base_view[ i ];
-                            } );
+   Algorithms::parallelFor< DeviceType >( 0,
+                                          n,
+                                          [ = ] __cuda_callable__( IndexType i ) mutable
+                                          {
+                                             if( l_view[ i ] > std::numeric_limits< RealType >::infinity()
+                                                 && u_view[ i ] < std::numeric_limits< RealType >::infinity() )
+                                                x_random[ i ] = l_view[ i ] + x_random[ i ] * ( u_view[ i ] - l_view[ i ] );
+                                             else
+                                                x_random[ i ] = x_base_view[ i ];
+                                          } );
    RealType alpha = 1.0;
    const RealType alpha_min = 1.0e-4;  // TODO: Check this in Yassins code
-   VectorType x_candidate( n );
+   const RealType gamma = 0.5;         // TODO: Check this in Yassins code
    while( alpha > alpha_min ) {
       x_candidate = ( (RealType) 1 - alpha ) * x_base_view + alpha * x_random;
       x_candidate.forAllElements(
@@ -521,12 +523,13 @@ PDLP< LPProblem_, SolverMonitor >::stochasticRestarting( const VectorType& z_cur
             else if( value > u_view[ i ] )
                value = u_view[ i ];
          } );
-      computeKx( x_candidate, Kx_candidate );
+      auto Kx_candidate_view = Kz_candidate.getView( 0, m );
+      computeKx( x_candidate, Kx_candidate_view );
       const RealType r_candidate =
-         primalFeasibility( q, Kx_candidate ) / ( epsilon_ratio + l2Norm( c ) );  // TODO: Check with Yassine
+         computePrimalFeasibility( q, Kx_candidate ) / ( epsilon_ratio + l2Norm( c ) );  // TODO: Check with Yassine
       if( r_candidate <= r_max ) {
          z_restarted.getView( 0, n ) = x_candidate;
-         z_restarted.getView( n, N ) = z_current.getView( n, N );  // = z_base.getView( n, N );
+         z_restarted.getView( n, N ) = z_current.getConstView( n, N );  // = z_base.getView( n, N );
          return true;
       }
       alpha *= gamma;
