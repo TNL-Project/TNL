@@ -12,6 +12,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <random>
 
 //#define PRINTING
 
@@ -201,6 +202,17 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    RealType eta_sum( 0 ), mu_last_restart( std::numeric_limits< RealType >::infinity() ), mu_candidate( 0 ),
       mu_last_candidate( 0 );
 
+   // Init best stochastic restarting
+   KKTDataType kkt_current = KKT( z_current, Kz_current );
+   const RealType primal_residual = kkt_current.getPrimalFeasibility() / ( 1 + l2Norm( q ) );
+   const RealType dual_residual = kkt_current.getDualFeasibility() / ( 1 + l2Norm( c ) );
+   const RealType gap = kkt_current.getRelativeDualityGap();
+   RealType best_stochastic_score = gap + primal_residual + dual_residual;
+   z_stochastic_best = z_current;
+   std::random_device rd;
+   std::mt19937 gen( rd() );
+   std::uniform_real_distribution< double > dis( std::nextafter( 0.0, 1.0 ), 1.0 );
+
    while( k < this->getMaxIterations() ) {
       IndexType t = 0;
 
@@ -263,7 +275,9 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                       << " dual objective: " << averaged_dual_objective << " duality gap: " << averaged_duality_gap
                       << std::endl;
 #endif
-            if( restarting != PDLPRestarting::None ) {
+            if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::DualityGap
+                || restarting == PDLPRestarting::Constant )
+            {
                RealType mu_current, mu_averaged;
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
@@ -357,8 +371,53 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                                                mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
                   break;
                }
-            }  // if( restarting != PDLPRestarting::None )
-            else {
+            }  // if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::DualityGap || restarting ==
+               // PDLPRestarting::Constant )
+            else if( restarting == PDLPRestarting::Stochastic ) {
+               //====================================================================================
+               KKTDataType kkt_current = KKT( z_current, Kz_current );
+               const RealType primal_residual =
+                  kkt_current.getPrimalFeasibility() / ( 1 + l2Norm( q ) );                            // TODO: Precompute norm
+               const RealType dual_residual = kkt_current.getDualFeasibility() / ( 1 + l2Norm( c ) );  // TODO: Precompute norm
+               const RealType gap = kkt_current.getRelativeDualityGap();
+               RealType stochastic_score = gap + primal_residual + dual_residual;
+               if( stochastic_score < best_stochastic_score ) {
+                  best_stochastic_score = stochastic_score;
+                  z_stochastic_best = z_current;
+               }
+               RealType restart_merit = l2Norm( z_current.getView( 0, n ) - z_last_iteration.getView( 0, n ) )
+                                      + l2Norm( z_current.getView( n, N ) - z_last_iteration.getView( n, N ) );
+               const RealType tau_merit = 1;
+               const RealType p_high = 0.03;
+               const RealType p_low = 0.0002;
+               RealType p = restart_merit > tau_merit ? p_high : p_low;
+               const bool use_best_point_gate = false;
+               if( use_best_point_gate ) {
+                  const RealType primal_diff = l2Norm( z_current.getView( 0, n ) - z_stochastic_best.getView( 0, n ) );
+                  const RealType dual_diff = l2Norm( z_current.getView( n, N ) - z_stochastic_best.getView( n, N ) );
+                  const RealType best_distance =
+                     sqrt( omega * primal_diff * primal_diff + ( 1.0 / omega ) * dual_diff * dual_diff );
+                  const RealType tau_best = 1;  // ???? Check this with Yassine
+                  if( best_distance < tau_best )
+                     p = p_low;
+               }
+               const RealType u = dis( gen );
+               if( u < p ) {
+                  //z_candidate = z_current;
+                  //Kz_candidate = Kz_current;
+                  std::cout << "STOCHASTIC restart to CURRENT at k = " << k << " t = " << t << " with score "
+                            << stochastic_score << " (gap: " << gap << " primal res.: " << primal_residual
+                            << " dual res.: " << dual_residual << ") and merit " << restart_merit << " (p = " << p
+                            << " u = " << u << ")" << std::endl;
+                  stochasticRestarting( z_current, Kz_current );
+               }
+               else {
+                  z_candidate = z_averaged;
+                  Kz_candidate = Kz_averaged;
+               }
+               //===================================================================================
+            }
+            else {  // restarting == PDLPRestarting::None
                z_candidate = z_averaged;
                Kz_candidate = Kz_averaged;
             }
@@ -419,6 +478,61 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    solverTimer.stop();
    printReport( kkt_candidate, k, false );
    return { false, 0.0, 0.0 };
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+bool
+PDLP< LPProblem_, SolverMonitor >::stochasticRestarting( const VectorType& z_current,
+                                                         const VectorType& Kz_current,
+                                                         const VectorType& z_averaged,
+                                                         VectorType& z_restarted )
+{
+   VectorType z_base = z_current;
+   VectorType x_candidate( n ).Kx_candidate( n );
+   const RealType r_base = primalFeasibility( z_base.getView( n, N ) );  // TODO: Check how to compute r_p
+   const RealType epsilon_rel = 1.0e-4;                                  // TODO: Check this in Yassins code
+   const RealType epsilon_abs = 1.0e-6;                                  // TODO: Check this in Yassins code
+   const RealType r_max = ( 1 + epsilon_rel ) * r_base + epsilon_abs;
+   VectorType x_random( n );
+   Algorithms::fillRandom< DeviceType >( x_random.getData(), n, 0.0, 1.0 );
+   auto l_view = l.getConstView();
+   auto u_view = u.getConstView();
+   auto x_base_view = z_base.getConstView( 0, n );
+   Algorithms::parallelFor( 0,
+                            n,
+                            [ = ] __cuda_callable__( IndexType i ) mutable
+                            {
+                               if( l_view[ i ] > std::numeric_limits< RealType >::infinity()
+                                   && u_view[ i ] < std::numeric_limits< RealType >::infinity() )
+                                  x_random[ i ] = l_view[ i ] + x_random[ i ] * ( u_view[ i ] - l_view[ i ] );
+                               else
+                                  x_random[ i ] = x_base_view[ i ];
+                            } );
+   RealType alpha = 1.0;
+   const RealType alpha_min = 1.0e-4;  // TODO: Check this in Yassins code
+   VectorType x_candidate( n );
+   while( alpha > alpha_min ) {
+      x_candidate = ( (RealType) 1 - alpha ) * x_base_view + alpha * x_random;
+      x_candidate.forAllElements(
+         [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
+         {
+            if( value < l_view[ i ] )
+               value = l_view[ i ];
+            else if( value > u_view[ i ] )
+               value = u_view[ i ];
+         } );
+      computeKx( x_candidate, Kx_candidate );
+      const RealType r_candidate =
+         primalFeasibility( q, Kx_candidate ) / ( epsilon_ratio + l2Norm( c ) );  // TODO: Check with Yassine
+      if( r_candidate <= r_max ) {
+         z_restarted.getView( 0, n ) = x_candidate;
+         z_restarted.getView( n, N ) = z_current.getView( n, N );  // = z_base.getView( n, N );
+         return true;
+      }
+      alpha *= gamma;
+   }
+   z_restarted = z_averaged;
+   return false;
 }
 
 template< typename LPProblem_, typename SolverMonitor >

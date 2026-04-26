@@ -20,7 +20,7 @@ enum class PDLPRestarting
    Constant,
    DualityGap,
    KKT,
-   Fast
+   Stochastic
 };
 
 /**
@@ -120,10 +120,20 @@ protected:
 
 public:  // TODO: Just because of nvcc
    void
-   computeLambda( const VectorType& c, const ConstVectorView& KTy, const VectorType& l, const VectorType& u, VectorType& lambda );
+   computeLambda( const VectorType& c,
+                  const ConstVectorView& KTy,
+                  const VectorType& l,
+                  const VectorType& u,
+                  VectorType& lambda );
 
    RealType
    computePrimalFeasibility( const VectorType& q, const ConstVectorView& Kx );
+
+   bool
+   stochasticRestarting( const VectorType& z_current,
+                         VectorType& Kz_current,
+                         const VectorType& z_averaged,
+                         VectorType& z_restarted );
 
 protected:
    RealType
@@ -162,7 +172,7 @@ protected:
    VectorType D1, D2;
 
    // Supporting vectors
-   VectorType Kz_last_iteration, Kz_current, Kz_averaged, Kz_candidate;
+   VectorType Kz_last_iteration, Kz_current, Kz_averaged, Kz_candidate, z_stochastic_best;
    VectorType lambda;
 
    RealType K_norm;
@@ -175,6 +185,9 @@ protected:
 
    // Performance measuring
    Timer solverTimer, spmvTimer;
+
+   // Stochastic restarting
+   RealType epsilon_ratio = 1.0e-5;
 
    IndexType KxComputations = 0;
    IndexType KTyComputations = 0;
