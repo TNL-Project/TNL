@@ -131,9 +131,11 @@ public:  // TODO: Just because of nvcc
 
    bool
    stochasticRestarting( const VectorType& z_current,
-                         VectorType& Kz_current,
+                         const VectorType& Kz_current,
                          const VectorType& z_averaged,
-                         VectorType& z_restarted );
+                         const VectorType& Kz_averaged,
+                         VectorType& z_restarted,
+                         VectorType& Kz_restarted );
 
 protected:
    RealType
