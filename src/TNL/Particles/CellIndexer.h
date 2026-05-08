@@ -72,6 +72,25 @@ public:
          return TNL::floor( ( r[ 1 ] - gridOrigin[ 1 ] ) / searchRadius ) + \
                 TNL::floor( ( r[ 0 ] - gridOrigin[ 0 ] ) / searchRadius ) * gridDimension[ 1 ];
    }
+
+   template< typename IndexVectorType >
+   __cuda_callable__
+   static IndexVectorType
+   GetCellCoordinates( const uint32_t idx, const IndexVectorType& gridSize )
+   {
+      IndexVectorType c;
+      if constexpr( std::is_same_v< Permutation, std::index_sequence< 0, 1 > > ) {
+         // idx = j * gridSize[0] + i
+         c[ 0 ] = idx % gridSize[ 0 ];
+         c[ 1 ] = idx / gridSize[ 0 ];
+      }
+      if constexpr( std::is_same_v< Permutation, std::index_sequence< 1, 0 > > ) {
+         // idx = i * gridSize[1] + j
+         c[ 0 ] = idx / gridSize[ 1 ];
+         c[ 1 ] = idx % gridSize[ 1 ];
+      }
+      return c;
+   }
 };
 
 template< typename Permutation >
@@ -121,6 +140,27 @@ public:
          return TNL::floor( ( r[ 2 ] - gridOrigin[ 2 ] ) / searchRadius ) +
                 TNL::floor( ( r[ 1 ] - gridOrigin[ 1 ] ) / searchRadius ) * gridDimension[ 1 ] +
                 TNL::floor( ( r[ 0 ] - gridOrigin[ 0 ] ) / searchRadius ) * gridDimension[ 1 ] * gridDimension[ 2 ];
+   }
+
+   template< typename IndexVectorType >
+   __cuda_callable__
+   static IndexVectorType
+   GetCellCoordinates( const uint32_t idx, const IndexVectorType& gridSize )
+   {
+      IndexVectorType c;
+      if constexpr( std::is_same_v< Permutation, std::index_sequence< 0, 1, 2 > > ) {
+         // idx = k * gridSize[0] * gridSize[1] + j * gridSize[0] + i
+         c[ 0 ] = idx % gridSize[ 0 ];
+         c[ 1 ] = ( idx / gridSize[ 0 ] ) % gridSize[ 1 ];
+         c[ 2 ] = idx / ( gridSize[ 0 ] * gridSize[ 1 ] );
+      }
+      if constexpr( std::is_same_v< Permutation, std::index_sequence< 2, 1, 0 > > ) {
+         // idx = i * gridSize[1] * gridSize[2] + j * gridSize[1] + k  (note: typo in original — gridSize[1] should be gridSize[2] for k)
+         c[ 2 ] = idx % gridSize[ 2 ];
+         c[ 1 ] = ( idx / gridSize[ 2 ] ) % gridSize[ 1 ];
+         c[ 0 ] = idx / ( gridSize[ 1 ] * gridSize[ 2 ] );
+      }
+      return c;
    }
 };
 
