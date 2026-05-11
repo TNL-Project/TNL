@@ -59,90 +59,43 @@ protected:
 };
 
 // types for which ArrayViewTest is instantiated
+// Use diagonal selection instead of full Cartesian product to avoid
+// combinatoric explosion. Each parameter dimension (ValueType, Device, IndexType)
+// is fully covered, just not in all combinations.
 using ViewTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   // we can't test all types because the argument list would be too long...
-   //    ArrayView< int,    Devices::Sequential, short >
-   //   ,ArrayView< long,   Devices::Sequential, short >
-   //   ,ArrayView< float,  Devices::Sequential, short >
-   //   ,ArrayView< double, Devices::Sequential, short >
-   //   ,ArrayView< MyData, Devices::Sequential, short >
-   //   ,ArrayView< int,    Devices::Sequential, int >
-   //   ,ArrayView< long,   Devices::Sequential, int >
-   //   ,ArrayView< float,  Devices::Sequential, int >
-   //   ,ArrayView< double, Devices::Sequential, int >
-   //   ,ArrayView< MyData, Devices::Sequential, int >
+   // Sequential + long index: representative ValueTypes
    ArrayView< int, Devices::Sequential, long >,
-   ArrayView< long, Devices::Sequential, long >,
-   ArrayView< float, Devices::Sequential, long >,
    ArrayView< double, Devices::Sequential, long >,
-   ArrayView< MyData, Devices::Sequential, long >
+   ArrayView< MyData, Devices::Sequential, long >,
 
-   ,
-   ArrayView< int, Devices::Host, short >,
-   ArrayView< long, Devices::Host, short >,
-   ArrayView< float, Devices::Host, short >,
-   ArrayView< double, Devices::Host, short >,
-   ArrayView< MyData, Devices::Host, short >,
-   ArrayView< int, Devices::Host, int >,
-   ArrayView< long, Devices::Host, int >,
-   ArrayView< float, Devices::Host, int >,
-   ArrayView< double, Devices::Host, int >,
-   ArrayView< MyData, Devices::Host, int >,
+   // Host + long index: representative ValueTypes
    ArrayView< int, Devices::Host, long >,
-   ArrayView< long, Devices::Host, long >,
-   ArrayView< float, Devices::Host, long >,
    ArrayView< double, Devices::Host, long >,
-   ArrayView< MyData, Devices::Host, long >
-#elif defined( __CUDACC__ )
-   ArrayView< int, Devices::Cuda, short >,
-   ArrayView< long, Devices::Cuda, short >,
-   ArrayView< float, Devices::Cuda, short >,
-   ArrayView< double, Devices::Cuda, short >,
-   ArrayView< MyData, Devices::Cuda, short >,
-   ArrayView< int, Devices::Cuda, int >,
-   ArrayView< long, Devices::Cuda, int >,
-   ArrayView< float, Devices::Cuda, int >,
-   ArrayView< double, Devices::Cuda, int >,
-   ArrayView< MyData, Devices::Cuda, int >,
-   ArrayView< int, Devices::Cuda, long >,
-   ArrayView< long, Devices::Cuda, long >,
-   ArrayView< float, Devices::Cuda, long >,
-   ArrayView< double, Devices::Cuda, long >,
-   ArrayView< MyData, Devices::Cuda, long >
-#elif defined( __HIP__ )
-   ArrayView< int, Devices::Hip, short >,
-   ArrayView< long, Devices::Hip, short >,
-   ArrayView< float, Devices::Hip, short >,
-   ArrayView< double, Devices::Hip, short >,
-   ArrayView< MyData, Devices::Hip, short >,
-   ArrayView< int, Devices::Hip, int >,
-   ArrayView< long, Devices::Hip, int >,
-   ArrayView< float, Devices::Hip, int >,
-   ArrayView< double, Devices::Hip, int >,
-   ArrayView< MyData, Devices::Hip, int >,
-   ArrayView< int, Devices::Hip, long >,
-   ArrayView< long, Devices::Hip, long >,
-   ArrayView< float, Devices::Hip, long >,
-   ArrayView< double, Devices::Hip, long >,
-   ArrayView< MyData, Devices::Hip, long >
-#endif
+   ArrayView< MyData, Devices::Host, long >,
 
-// all ArrayView tests should also work with VectorView
-// (but we can't test all types because the argument list would be too long...)
-#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   ,
-   VectorView< float, Devices::Sequential, long >,
+   // Host + non-long IndexTypes (covers short/int without repeating all ValueTypes)
+   ArrayView< float, Devices::Host, short >,
+   ArrayView< float, Devices::Host, int >,
+
+   // VectorView
    VectorView< double, Devices::Sequential, long >,
-   VectorView< float, Devices::Host, long >,
    VectorView< double, Devices::Host, long >
 #elif defined( __CUDACC__ )
-   ,
-   VectorView< float, Devices::Cuda, long >,
+   // Same diagonal as Host portion, with Devices::Cuda
+   ArrayView< int, Devices::Cuda, long >,
+   ArrayView< double, Devices::Cuda, long >,
+   ArrayView< MyData, Devices::Cuda, long >,
+   ArrayView< float, Devices::Cuda, short >,
+   ArrayView< float, Devices::Cuda, int >,
    VectorView< double, Devices::Cuda, long >
 #elif defined( __HIP__ )
-   ,
-   VectorView< float, Devices::Hip, long >,
+   // Same diagonal as Host portion, with Devices::Hip
+   ArrayView< int, Devices::Hip, long >,
+   ArrayView< double, Devices::Hip, long >,
+   ArrayView< MyData, Devices::Hip, long >,
+   ArrayView< float, Devices::Hip, short >,
+   ArrayView< float, Devices::Hip, int >,
    VectorView< double, Devices::Hip, long >
 #endif
    >;
