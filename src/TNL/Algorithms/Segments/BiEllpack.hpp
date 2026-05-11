@@ -382,11 +382,6 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmen
 {
    for( Index segmentIdx = 0; segmentIdx < this->getSegmentCount(); segmentIdx++ ) {
       const Index strip = segmentIdx / Base::getWarpSize();
-      const Index stripLength = this->getStripLength( strip );
-      const Index groupBegin = ( Base::getLogWarpSize() + 1 ) * strip;
-      const Index segmentStripPerm = this->segmentsPermutation.getElement( segmentIdx ) - strip * Base::getWarpSize();
-      const Index begin = this->groupPointers.getElement( groupBegin ) * Base::getWarpSize() + segmentStripPerm * stripLength;
-      Index elementPtr = begin;
       Index segmentLength = 0;
       const Index groupsCount = detail::BiEllpack< Index, Device, Organization, WarpSize >::getActiveGroupsCount(
          this->segmentsPermutation.getConstView(), segmentIdx );
@@ -394,12 +389,9 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmen
          const Index groupSize =
             detail::BiEllpack< Index, Device, Organization, WarpSize >::getGroupSize( this->groupPointers, strip, group );
          for( Index i = 0; i < groupSize; i++ ) {
-            Index biElementPtr = elementPtr;
             for( Index j = 0; j < discretePow( (Index) 2, group ); j++ ) {
                segmentLength++;
-               biElementPtr += discretePow( (Index) 2, Base::getLogWarpSize() - group ) * stripLength;
             }
-            elementPtr++;
          }
       }
       if( segmentsSizes.getElement( segmentIdx ) > segmentLength )
