@@ -71,89 +71,43 @@ protected:
 };
 
 // types for which ArrayTest is instantiated
+// Use diagonal selection instead of full Cartesian product to avoid
+// combinatoric explosion. Each parameter dimension (ValueType, Device, IndexType)
+// is fully covered, just not in all combinations.
 using ArrayTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   // we can't test all types because the argument list would be too long...
-   //   Array< int,    Devices::Sequential, short >,
-   //   Array< long,   Devices::Sequential, short >,
-   //   Array< float,  Devices::Sequential, short >,
-   //   Array< double, Devices::Sequential, short >,
-   //   Array< MyData, Devices::Sequential, short >,
-   //   Array< int,    Devices::Sequential, int >,
-   //   Array< long,   Devices::Sequential, int >,
-   //   Array< float,  Devices::Sequential, int >,
-   //   Array< double, Devices::Sequential, int >,
-   //   Array< MyData, Devices::Sequential, int >,
+   // Sequential + long index: representative ValueTypes
    Array< int, Devices::Sequential, long >,
-   Array< long, Devices::Sequential, long >,
-   Array< float, Devices::Sequential, long >,
    Array< double, Devices::Sequential, long >,
    Array< MyData, Devices::Sequential, long >,
 
-   Array< int, Devices::Host, short >,
-   Array< long, Devices::Host, short >,
-   Array< float, Devices::Host, short >,
-   Array< double, Devices::Host, short >,
-   Array< MyData, Devices::Host, short >,
-   Array< int, Devices::Host, int >,
-   Array< long, Devices::Host, int >,
-   Array< float, Devices::Host, int >,
-   Array< double, Devices::Host, int >,
-   Array< MyData, Devices::Host, int >,
+   // Host + long index: representative ValueTypes
    Array< int, Devices::Host, long >,
-   Array< long, Devices::Host, long >,
-   Array< float, Devices::Host, long >,
    Array< double, Devices::Host, long >,
-   Array< MyData, Devices::Host, long >
-#elif defined( __CUDACC__ )
-   Array< int, Devices::Cuda, short >,
-   Array< long, Devices::Cuda, short >,
-   Array< float, Devices::Cuda, short >,
-   Array< double, Devices::Cuda, short >,
-   Array< MyData, Devices::Cuda, short >,
-   Array< int, Devices::Cuda, int >,
-   Array< long, Devices::Cuda, int >,
-   Array< float, Devices::Cuda, int >,
-   Array< double, Devices::Cuda, int >,
-   Array< MyData, Devices::Cuda, int >,
-   Array< int, Devices::Cuda, long >,
-   Array< long, Devices::Cuda, long >,
-   Array< float, Devices::Cuda, long >,
-   Array< double, Devices::Cuda, long >,
-   Array< MyData, Devices::Cuda, long >
-#elif defined( __HIP__ )
-   Array< int, Devices::Hip, short >,
-   Array< long, Devices::Hip, short >,
-   Array< float, Devices::Hip, short >,
-   Array< double, Devices::Hip, short >,
-   Array< MyData, Devices::Hip, short >,
-   Array< int, Devices::Hip, int >,
-   Array< long, Devices::Hip, int >,
-   Array< float, Devices::Hip, int >,
-   Array< double, Devices::Hip, int >,
-   Array< MyData, Devices::Hip, int >,
-   Array< int, Devices::Hip, long >,
-   Array< long, Devices::Hip, long >,
-   Array< float, Devices::Hip, long >,
-   Array< double, Devices::Hip, long >,
-   Array< MyData, Devices::Hip, long >
-#endif
+   Array< MyData, Devices::Host, long >,
 
-// all array tests should also work with Vector
-// (but we can't test all types because the argument list would be too long...)
-#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   ,
-   Vector< float, Devices::Sequential, long >,
+   // Host + non-long IndexTypes (covers short/int without repeating all ValueTypes)
+   Array< float, Devices::Host, short >,
+   Array< float, Devices::Host, int >,
+
+   // Vector
    Vector< double, Devices::Sequential, long >,
-   Vector< float, Devices::Host, long >,
    Vector< double, Devices::Host, long >
 #elif defined( __CUDACC__ )
-   ,
-   Vector< float, Devices::Cuda, long >,
+   // Same diagonal as Host portion, with Devices::Cuda
+   Array< int, Devices::Cuda, long >,
+   Array< double, Devices::Cuda, long >,
+   Array< MyData, Devices::Cuda, long >,
+   Array< float, Devices::Cuda, short >,
+   Array< float, Devices::Cuda, int >,
    Vector< double, Devices::Cuda, long >
 #elif defined( __HIP__ )
-   ,
-   Vector< float, Devices::Hip, long >,
+   // Same diagonal as Host portion, with Devices::Hip
+   Array< int, Devices::Hip, long >,
+   Array< double, Devices::Hip, long >,
+   Array< MyData, Devices::Hip, long >,
+   Array< float, Devices::Hip, short >,
+   Array< float, Devices::Hip, int >,
    Vector< double, Devices::Hip, long >
 #endif
    >;

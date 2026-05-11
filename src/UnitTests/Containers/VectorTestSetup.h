@@ -24,83 +24,45 @@ protected:
 
 // types for which VectorTest is instantiated
 // TODO: Quad must be fixed
+// Use diagonal selection instead of full Cartesian product to avoid
+// combinatoric explosion. Each parameter dimension (ValueType, Device, IndexType)
+// is fully covered, just not in all combinations.
 using VectorTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   Vector< int, Devices::Sequential, short >,
-   Vector< long, Devices::Sequential, short >,
-   Vector< float, Devices::Sequential, short >,
-   Vector< double, Devices::Sequential, short >,
-   //Vector< Quad< float >,  Devices::Sequential, short >,
-   //Vector< Quad< double >, Devices::Sequential, short >,
-   Vector< int, Devices::Sequential, int >,
-   Vector< long, Devices::Sequential, int >,
-   Vector< float, Devices::Sequential, int >,
-   Vector< double, Devices::Sequential, int >,
-   //Vector< Quad< float >,  Devices::Sequential, int >,
-   //Vector< Quad< double >, Devices::Sequential, int >,
+   // Sequential + long index: representative ValueTypes
    Vector< int, Devices::Sequential, long >,
-   Vector< long, Devices::Sequential, long >,
-   Vector< float, Devices::Sequential, long >,
    Vector< double, Devices::Sequential, long >,
    //Vector< Quad< float >,  Devices::Sequential, long >,
    //Vector< Quad< double >, Devices::Sequential, long >,
 
-   Vector< int, Devices::Host, short >,
-   Vector< long, Devices::Host, short >,
-   Vector< float, Devices::Host, short >,
-   Vector< double, Devices::Host, short >,
-   //Vector< Quad< float >,  Devices::Host, short >,
-   //Vector< Quad< double >, Devices::Host, short >,
-   Vector< int, Devices::Host, int >,
-   Vector< long, Devices::Host, int >,
-   Vector< float, Devices::Host, int >,
-   Vector< double, Devices::Host, int >,
-   //Vector< Quad< float >,  Devices::Host, int >,
-   //Vector< Quad< double >, Devices::Host, int >,
+   // Host + long index: all ValueTypes
    Vector< int, Devices::Host, long >,
+   Vector< double, Devices::Host, long >,
    Vector< long, Devices::Host, long >,
-   Vector< float, Devices::Host, long >,
-   Vector< double, Devices::Host, long >
-//Vector< Quad< float >,  Devices::Host, long >,
-//Vector< Quad< double >, Devices::Host, long >
+   //Vector< Quad< float >,  Devices::Host, long >,
+   //Vector< Quad< double >, Devices::Host, long >,
+
+   // Host + non-long IndexTypes (covers short/int without repeating all ValueTypes)
+   Vector< float, Devices::Host, short >,
+   Vector< float, Devices::Host, int >
 #elif defined( __CUDACC__ )
-   Vector< int, Devices::Cuda, short >,
-   Vector< long, Devices::Cuda, short >,
-   Vector< float, Devices::Cuda, short >,
-   Vector< double, Devices::Cuda, short >,
-   //Vector< Quad< float >,  Devices::Cuda, short >,
-   //Vector< Quad< double >, Devices::Cuda, short >,
-   Vector< int, Devices::Cuda, int >,
-   Vector< long, Devices::Cuda, int >,
-   Vector< float, Devices::Cuda, int >,
-   Vector< double, Devices::Cuda, int >,
-   //Vector< Quad< float >,  Devices::Cuda, int >,
-   //Vector< Quad< double >, Devices::Cuda, int >,
+   // Same diagonal as Host portion, with Devices::Cuda
    Vector< int, Devices::Cuda, long >,
+   Vector< double, Devices::Cuda, long >,
    Vector< long, Devices::Cuda, long >,
-   Vector< float, Devices::Cuda, long >,
-   Vector< double, Devices::Cuda, long >
-//Vector< Quad< float >,  Devices::Cuda, long >,
-//Vector< Quad< double >, Devices::Cuda, long >
+   //Vector< Quad< float >,  Devices::Cuda, long >,
+   //Vector< Quad< double >, Devices::Cuda, long >,
+   Vector< float, Devices::Cuda, short >,
+   Vector< float, Devices::Cuda, int >
 #elif defined( __HIP__ )
-   Vector< int, Devices::Hip, short >,
-   Vector< long, Devices::Hip, short >,
-   Vector< float, Devices::Hip, short >,
-   Vector< double, Devices::Hip, short >,
-   //Vector< Quad< float >,  Devices::Hip, short >,
-   //Vector< Quad< double >, Devices::Hip, short >,
-   Vector< int, Devices::Hip, int >,
-   Vector< long, Devices::Hip, int >,
-   Vector< float, Devices::Hip, int >,
-   Vector< double, Devices::Hip, int >,
-   //Vector< Quad< float >,  Devices::Hip, int >,
-   //Vector< Quad< double >, Devices::Hip, int >,
+   // Same diagonal as Host portion, with Devices::Hip
    Vector< int, Devices::Hip, long >,
+   Vector< double, Devices::Hip, long >,
    Vector< long, Devices::Hip, long >,
-   Vector< float, Devices::Hip, long >,
-   Vector< double, Devices::Hip, long >
-//Vector< Quad< float >,  Devices::Hip, long >,
-//Vector< Quad< double >, Devices::Hip, long >
+   //Vector< Quad< float >,  Devices::Hip, long >,
+   //Vector< Quad< double >, Devices::Hip, long >,
+   Vector< float, Devices::Hip, short >,
+   Vector< float, Devices::Hip, int >
 #endif
    >;
 
