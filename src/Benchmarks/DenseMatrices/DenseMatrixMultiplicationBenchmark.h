@@ -570,15 +570,19 @@ struct DenseMatrixMultiplicationBenchmark
       }
 
       const IndexType numMatrices2 = 100;  // Number of matrices for the cycle
-      IndexType matrix1Rows2 = 1;          // Number of rows in matrix1
-      IndexType matrix1Columns2 = 1;       // Number of columns in matrix1 && rows in matrix2
-      IndexType matrix2Columns2 = 1;       // Number of columns in matrix2
+#if defined( __CUDACC__ ) || ( __HIP__ )
+      IndexType matrix1Rows2 = 1;     // Number of rows in matrix1
+      IndexType matrix1Columns2 = 1;  // Number of columns in matrix1 && rows in matrix2
+      IndexType matrix2Columns2 = 1;  // Number of columns in matrix2
+#endif
 
       for( IndexType i = 0; i < numMatrices2; ++i ) {
          // Modify the matrix sizes for each iteration
+#if defined( __CUDACC__ ) || ( __HIP__ )
          matrix1Rows2 += 2;
          matrix1Columns2 += 1;
          matrix2Columns2 += 3;
+#endif
 
          // Multiplication with TransposeState
          if( device == "cuda" || device == "hip" || device == "all" ) {
