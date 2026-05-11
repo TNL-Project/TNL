@@ -8,7 +8,7 @@
 #include <TNL/Devices/Hip.h>
 
 #include "DenseMatrix.h"
-#include "SparseOperations.h"
+#include "DenseSparseOperations.h"
 #include "DenseOperations.h"
 
 namespace TNL::Matrices {
@@ -33,71 +33,140 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix( In
                                                                               const RealAllocatorType& allocator )
 : values( allocator )
 {
-   this->setDimensions( rows, columns );
+   setDimensions( rows, columns );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Value >
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix(
    std::initializer_list< std::initializer_list< Value > > data,
+   MatrixElementsEncoding encoding,
    const RealAllocatorType& allocator )
 : values( allocator )
 {
-   this->setElements( data );
+   setElements( data, encoding );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix(
+   Index rows,
+   Index columns,
+   const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+   MatrixElementsEncoding encoding,
+   const RealAllocatorType& allocator )
+: values( allocator )
+{
+   setDimensions( rows, columns );
+   setElements( data, encoding );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+template< typename MapIndex, typename MapValue >
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix(
+   Index rows,
+   Index columns,
+   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+   MatrixElementsEncoding encoding,
+   const RealAllocatorType& allocator )
+: values( allocator )
+{
+   setDimensions( rows, columns );
+   setElements( map, encoding );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Value >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
-   std::initializer_list< std::initializer_list< Value > > data )
+   std::initializer_list< std::initializer_list< Value > > data,
+   MatrixElementsEncoding encoding )
 {
-   Index rows = data.size();
-   Index columns = 0;
-   for( auto row : data )
-      columns = max( columns, row.size() );
-   this->setDimensions( rows, columns );
-   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
-      DenseMatrix< Real, Devices::Host, Index > hostDense( rows, columns );
-      Index rowIdx = 0;
-      for( auto row : data ) {
-         Index columnIdx = 0;
-         for( auto element : row )
-            hostDense.setElement( rowIdx, columnIdx++, element );
-         rowIdx++;
-      }
-      *this = hostDense;
+   if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
+      DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
+      hostMatrix.setElements( data, encoding );
+      *this = hostMatrix;
    }
    else {
+      Index rows = data.size();
+      Index columns = 0;
+      for( const auto& row : data )
+         columns = max( columns, row.size() );
+      setDimensions( rows, columns );
       Index rowIdx = 0;
-      for( auto row : data ) {
+      for( const auto& row : data ) {
          Index columnIdx = 0;
-         for( auto element : row )
-            this->setElement( rowIdx, columnIdx++, element );
+         for( const auto& element : row ) {
+            this->setElement( rowIdx, columnIdx, element );
+            if( encoding == MatrixElementsEncoding::SymmetricLower ) {
+               if( columnIdx < rowIdx ) {
+                  const Index symmetricRow = columnIdx;
+                  const Index symmetricColumn = rowIdx;
+                  this->setElement( symmetricRow, symmetricColumn, element );
+               }
+               else if( columnIdx > rowIdx )
+                  throw std::logic_error(
+                     "The input data are supposed to be a lower part of a symmetric matrix (matrix elements encoding equals "
+                     "SymmetricLower) but it is not. The matrix element at position ("
+                     + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") is located above the diagonal." );
+            }
+            columnIdx++;
+         }
          rowIdx++;
       }
    }
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+void
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
+   const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+   MatrixElementsEncoding encoding )
+{
+   std::map< std::pair< Index, Index >, Real > map;
+   for( const auto& [ row, column, value ] : data )
+      map[ { row, column } ] = value;
+   this->setElements( map, encoding );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename MapIndex, typename MapValue >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
-   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map )
+   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+   MatrixElementsEncoding encoding )
 {
-   if constexpr( ! std::is_same_v< Device, Devices::Host > ) {
+   if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
-      hostMatrix.setElements( map );
+      hostMatrix.setElements( map, encoding );
       *this = hostMatrix;
+      return;
    }
-   else {
-      for( const auto& [ coordinates, value ] : map ) {
-         const auto& [ rowIdx, columnIdx ] = coordinates;
-         if( rowIdx >= this->getRows() )
-            throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
-         if( columnIdx >= this->getColumns() )
-            throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
-         this->setElement( rowIdx, columnIdx, value );
+   for( const auto& [ coordinates, value ] : map ) {
+      auto [ rowIdx, columnIdx ] = coordinates;
+      if( rowIdx >= this->getRows() )
+         throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
+      if( columnIdx >= this->getColumns() )
+         throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
+      if( encoding == MatrixElementsEncoding::SymmetricLower && columnIdx > rowIdx )
+         throw std::logic_error( "Only lower part of the symmetric matrix is expected." );
+      if( encoding == MatrixElementsEncoding::SymmetricUpper && rowIdx > columnIdx )
+         throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
+      if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
+         auto query = map.find( { columnIdx, rowIdx } );
+         if( query != map.end() && query->second != value )
+            throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
+                                    "SymmetricMixed) but it is not. The matrix elements at position ("
+                                    + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
+      }
+
+      this->setElement( rowIdx, columnIdx, value );
+      if( ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
+            || encoding == MatrixElementsEncoding::SymmetricUpper )
+          && rowIdx != columnIdx )
+      {
+         const Index symmetricRow = columnIdx;
+         const Index symmetricColumn = rowIdx;
+         this->setElement( symmetricRow, symmetricColumn, value );
       }
    }
 }
@@ -120,9 +189,9 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setDimensions( Index rows, Index columns )
 {
-   this->segments.setSegmentsSizes( rows, columns );
-   this->values.setSize( this->segments.getStorageSize() );
-   this->values = 0.0;
+   segments.setSegmentsSizes( rows, columns );
+   values.setSize( segments.getStorageSize() );
+   values = 0.0;
    // update the base
    Base::bind( rows, columns, values.getView(), segments.getView() );
 }
@@ -132,7 +201,7 @@ template< typename Matrix_ >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setLike( const Matrix_& matrix )
 {
-   this->setDimensions( matrix.getRows(), matrix.getColumns() );
+   setDimensions( matrix.getRows(), matrix.getColumns() );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >

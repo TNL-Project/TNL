@@ -78,6 +78,7 @@ public:
     *
     * \param matrix is the source matrix
     */
+   // TODO: make this explicit to avoid accidental copies
    DenseMatrix( const DenseMatrix& matrix );
 
    /**
@@ -105,6 +106,7 @@ public:
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
     * \param allocator is used for allocation of matrix elements values.
     *
     * \par Example
@@ -114,7 +116,61 @@ public:
     */
    template< typename Value >
    DenseMatrix( std::initializer_list< std::initializer_list< Value > > data,
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
                 const RealAllocatorType& allocator = RealAllocatorType() );
+
+   /**
+    * \brief Constructor with matrix dimensions and sparse data in initializer list.
+    *
+    * The matrix elements values are given as a list \e data of triples:
+    * { { row1, column1, value1 },
+    *   { row2, column2, value2 },
+    * ... }.
+    *
+    * \param rows is number of matrix rows.
+    * \param columns is number of matrix columns.
+    * \param data is a list of matrix elements values.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    * \param allocator is used for allocation of matrix elements.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_Constructor_sparse_init_list.cpp
+    * \par Output
+    * \include DenseMatrixExample_Constructor_sparse_init_list.out
+    */
+   explicit DenseMatrix( Index rows,
+                         Index columns,
+                         const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+                         MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+                         const RealAllocatorType& allocator = RealAllocatorType() );
+
+   /**
+    * \brief Constructor with matrix dimensions and data in std::map.
+    *
+    * The matrix elements values are given as a map \e data where keys are
+    * std::pair of matrix coordinates ( {row, column} ) and value is the
+    * matrix element value.
+    *
+    * \tparam MapIndex is a type for indexing rows and columns.
+    * \tparam MapValue is a type for matrix elements values in the map.
+    *
+    * \param rows is number of matrix rows.
+    * \param columns is number of matrix columns.
+    * \param map is std::map containing matrix elements.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    * \param allocator is used for allocation of matrix elements values.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_Constructor_std_map.cpp
+    * \par Output
+    * \include DenseMatrixExample_Constructor_std_map.out
+    */
+   template< typename MapIndex, typename MapValue >
+   explicit DenseMatrix( Index rows,
+                         Index columns,
+                         const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+                         MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+                         const RealAllocatorType& allocator = RealAllocatorType() );
 
    /**
     * \brief Returns a modifiable view of the dense matrix.
@@ -176,6 +232,15 @@ public:
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    * - if \e encoding is \ref MatrixElementsEncoding::Complete - the input data can contain any elements and is stored as is.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricLower - the input data is assumed to contain only lower part
+    * and diagonal, otherwise an exception is thrown. The upper part above the diagonal is reconstructed from the lower part.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricUpper - the input data is assumed to contain only upper part
+    * and diagonal, otherwise an exception is thrown. The lower part below the diagonal is reconstructed from the upper part.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricMixed - for each couple of non-zero elements a_ij and a_ji,
+    * at least one is provided. If both are provided, they must be equal, otherwise an exception is thrown. The missing elements
+    * are reconstructed and only the lower part and diagonal are stored.
     *
     * \par Example
     * \include Matrices/DenseMatrix/DenseMatrixExample_setElements.cpp
@@ -184,7 +249,32 @@ public:
     */
    template< typename Value >
    void
-   setElements( std::initializer_list< std::initializer_list< Value > > data );
+   setElements( std::initializer_list< std::initializer_list< Value > > data,
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
+
+   /**
+    * \brief This method sets the matrix elements from initializer list with sparse data.
+    *
+    * The number of matrix rows and columns must be set already.
+    * The matrix elements values are given as a list \e data of triples:
+    * { { row1, column1, value1 },
+    *   { row2, column2, value2 },
+    * ... }.
+    *
+    * \param data is a initializer list of initializer lists representing
+    * list of matrix rows.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    *
+    * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_setElements.cpp
+    * \par Output
+    * \include SparseMatrixExample_setElements.out
+    */
+   void
+   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief This method sets the dense matrix elements from std::map.
@@ -200,10 +290,15 @@ public:
     * \tparam MapValue is a type for matrix elements values in the map.
     *
     * \param map is std::map containing matrix elements.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    * - if \e encoding is \ref MatrixElementsEncoding::Complete - the input data can contain any elements and is stored as is.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricLower - the input data is assumed to contain only lower part
+    * and diagonal, otherwise an exception is thrown. The upper part above the diagonal is reconstructed from the lower part.
     */
    template< typename MapIndex, typename MapValue >
    void
-   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map );
+   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief Resets the matrix to zero dimensions.

@@ -209,6 +209,29 @@ struct CudaBlockReduceShfl
       }
       return threadValue;
    }
+
+   /* Helper function.
+    * Cooperative reduction in sub-groups of GroupSize threads within the warp.
+    * Each group reduces independently and simultaneously. GroupSize must be
+    * a power of two and at most Backend::getWarpSize().
+    * Only the first thread of each group will have the correct result.
+    */
+   template< int GroupSize >
+   __device__
+   static ValueType
+   warpReduce( const Reduction& reduction, ValueType threadValue )
+   {
+      static_assert( GroupSize > 0 && GroupSize <= Backend::getWarpSize(),
+                     "GroupSize must be between 1 and Backend::getWarpSize()" );
+      static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
+      #pragma unroll
+      for( int i = GroupSize / 2; i > 0; i /= 2 ) {
+         constexpr unsigned mask = 0xffffffff;
+         const ValueType otherValue = __shfl_down_sync( mask, threadValue, i );
+         threadValue = reduction( threadValue, otherValue );
+      }
+      return threadValue;
+   }
 };
 
 /* Template for cooperative reduction across the CUDA block of threads.
@@ -415,6 +438,48 @@ struct CudaBlockReduceWithArgument
 
       __syncthreads();
       return std::make_pair( storage.data[ 0 ], storage.idx[ 0 ] );
+   }
+
+   /* Helper function.
+    * Cooperative reduction across the warp - each thread will get the result
+    * of the reduction
+    */
+   __device__
+   static std::pair< ValueType, IndexType >
+   warpReduceWithArgument( const Reduction& reduction, ValueType threadValue, IndexType threadArgument )
+   {
+      #pragma unroll
+      for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
+         constexpr unsigned mask = 0xffffffff;
+         const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
+         const IndexType otherArgument = __shfl_xor_sync( mask, threadArgument, i );
+         reduction( threadValue, otherValue, threadArgument, otherArgument );
+      }
+      return std::make_pair( threadValue, threadArgument );
+   }
+
+   /* Helper function.
+    * Cooperative reduction with argument in sub-groups of GroupSize threads
+    * within the warp. Each group reduces independently and simultaneously.
+    * GroupSize must be a power of two and at most Backend::getWarpSize().
+    * Only the first thread of each group will have the correct result.
+    */
+   template< int GroupSize >
+   __device__
+   static std::pair< ValueType, IndexType >
+   warpReduceWithArgument( const Reduction& reduction, ValueType threadValue, IndexType threadArgument )
+   {
+      static_assert( GroupSize > 0 && GroupSize <= Backend::getWarpSize(),
+                     "GroupSize must be between 1 and Backend::getWarpSize()" );
+      static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
+      #pragma unroll
+      for( int i = GroupSize / 2; i > 0; i /= 2 ) {
+         constexpr unsigned mask = 0xffffffff;
+         const ValueType otherValue = __shfl_down_sync( mask, threadValue, i );
+         const IndexType otherArgument = __shfl_down_sync( mask, threadArgument, i );
+         reduction( threadValue, otherValue, threadArgument, otherArgument );
+      }
+      return std::make_pair( threadValue, threadArgument );
    }
 };
 #endif

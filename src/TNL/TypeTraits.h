@@ -6,6 +6,7 @@
 #include <complex>
 #include <type_traits>
 #include <utility>
+#include "detail/CallableTraits.h"
 
 namespace TNL {
 
@@ -142,7 +143,7 @@ public:
 
 /**
  * \brief Type trait for checking if T is a [scalar type](https://en.wikipedia.org/wiki/Scalar_(mathematics))
- * (in the mathemtatical sense). Not to be confused with \ref std::is_scalar.
+ * (in the mathematical sense). Not to be confused with \ref std::is_scalar.
  *
  * For example, \ref std::is_arithmetic "arithmetic types" as defined by the STL
  * are scalar types. \ref std::complex is also considered as scalar type.
@@ -164,10 +165,10 @@ struct IsScalarType
  */
 template< typename T >
 struct IsArrayType
-: public std::integral_constant< bool,
-            HasGetArrayDataMethod< T >::value &&
-            HasGetSizeMethod< T >::value &&
-            HasSubscriptOperator< T >::value >
+: public std::conjunction<
+            HasGetArrayDataMethod< T >,
+            HasSubscriptOperator< T >,
+            HasGetSizeMethod< T > >
 {};
 
 /**
@@ -357,5 +358,25 @@ public:
 
 template< typename T >
 using GetValueType_t = typename GetValueType< T >::type;
+
+/**
+ * \brief Returns number of arguments of a callable object.
+ */
+template< typename Callable >
+constexpr int
+callableArgumentCount()
+{
+   return detail::CallableTraits< Callable >::callableArgumentCount();
+}
+
+/**
+ * \brief Returns true if callable object is variadic.
+ */
+template< typename Callable >
+constexpr bool
+isVariadicCallable()
+{
+   return detail::CallableTraits< Callable >::isVariadicCallable();
+}
 
 }  // namespace TNL

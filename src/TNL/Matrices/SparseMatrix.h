@@ -41,22 +41,22 @@ namespace TNL::Matrices {
 template< typename Real = double,
           typename Device = Devices::Host,
           typename Index = int,
-          typename MatrixType_ = GeneralMatrix,
+          typename MatrixType = GeneralMatrix,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
-          typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
+          typename ComputeReal = std::conditional_t< std::is_same_v< Real, bool >, Index, Real >,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 class SparseMatrix : public SparseMatrixBase< Real,
                                               Device,
                                               Index,
-                                              MatrixType_,
+                                              MatrixType,
                                               typename Segments< Device, Index, IndexAllocator >::ViewType,
                                               ComputeReal >
 {
    using Base = SparseMatrixBase< Real,
                                   Device,
                                   Index,
-                                  MatrixType_,
+                                  MatrixType,
                                   typename Segments< Device, Index, IndexAllocator >::ViewType,
                                   ComputeReal >;
 
@@ -77,11 +77,6 @@ public:
    using RowCapacitiesVectorType = Containers::Vector< Index, Device, Index, IndexAllocator >;
 
    /**
-    * \brief The type of matrix - general, symmetric or binary.
-    */
-   using MatrixType = MatrixType_;
-
-   /**
     * \brief Templated type of segments, i.e. sparse matrix format.
     */
    template< typename Device_, typename Index_, typename IndexAllocator_ >
@@ -96,7 +91,7 @@ public:
     * \brief Templated view type of segments, i.e. sparse matrix format.
     */
    template< typename Device_, typename Index_ >
-   using SegmentsViewTemplate = typename SegmentsType::template ViewTemplate< Device_, Index >;
+   using SegmentsViewTemplate = typename Segments< Device_, Index_, IndexAllocator >::ViewType;
 
    /**
     * \brief The allocator for matrix elements values.
@@ -113,15 +108,28 @@ public:
     *
     * See \ref SparseMatrixView.
     */
-   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType, SegmentsViewTemplate, ComputeReal >;
+   using ViewType = SparseMatrixView< Real,
+                                      Device,
+                                      Index,
+                                      MatrixType,
+                                      // NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
+                                      // incompatibilities since the owner type is encoded in it.
+                                      Segments< Device, Index, IndexAllocator >::template ViewTemplate,
+                                      ComputeReal >;
 
    /**
     * \brief Matrix view type for constant instances.
     *
     * See \ref SparseMatrixView.
     */
-   using ConstViewType =
-      SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType, SegmentsViewTemplate, ComputeReal >;
+   using ConstViewType = SparseMatrixView< std::add_const_t< Real >,
+                                           Device,
+                                           Index,
+                                           MatrixType,
+                                           // NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
+                                           // incompatibilities since the owner type is encoded in it.
+                                           Segments< Device, Index, IndexAllocator >::template ViewTemplate,
+                                           ComputeReal >;
 
    /**
     * \brief Helper type for getting self type or its modifications.
@@ -229,7 +237,7 @@ public:
     * \param columns is number of matrix columns.
     * \param data is a list of matrix elements values.
     * \param realAllocator is used for allocation of matrix elements values.
-    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
     *
     * \par Example
@@ -240,7 +248,7 @@ public:
    explicit SparseMatrix( Index rows,
                           Index columns,
                           const std::initializer_list< std::tuple< Index, Index, Real > >& data,
-                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
+                          MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
                           const RealAllocatorType& realAllocator = RealAllocatorType(),
                           const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
@@ -257,7 +265,7 @@ public:
     * \param rows is number of matrix rows.
     * \param columns is number of matrix columns.
     * \param map is std::map containing matrix elements.
-    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
     *
@@ -270,7 +278,7 @@ public:
    explicit SparseMatrix( Index rows,
                           Index columns,
                           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
+                          MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
                           const RealAllocatorType& realAllocator = RealAllocatorType(),
                           const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
@@ -373,7 +381,9 @@ public:
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
-    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    *
+    * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_setElements.cpp
@@ -382,7 +392,7 @@ public:
     */
    void
    setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data,
-                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief This method sets the sparse matrix elements from std::map.
@@ -395,7 +405,29 @@ public:
     * \tparam MapValue is a type for matrix elements values in the map.
     *
     * \param map is std::map containing matrix elements.
-    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::SymmetricMatrixEncoding.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    *
+    * If the matrix is **symmetric**:
+    * - if \e encoding is \ref MatrixElementsEncoding::Complete - the input data needs to be symmetric as well,
+    * otherwise an exception is thrown. Only, lower part and diagonal are stored.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricLower - the input data is assumed to contain only lower part
+    * and diagonal. otherwise an exception is thrown. Only, lower part and diagonal are stored.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricUpper - the input data is assumed to contain only upper part
+    * and diagonal. otherwise an exception is thrown. The matrix elements are transposed while storing, so only lower part and
+    * diagonal are stored.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricMixed - for each couple of non-zero elements a_ij and a_ji,
+    * at least one is provided. If both are provided, they must be equal, otherwise an exception is thrown.
+    * Only, lower part and diagonal are stored.
+    *
+    * If the matrix is **general** (i.e. not symmetric), the input data is stored as is.
+    * - if \e encoding is \ref MatrixElementsEncoding::Complete - the input data can contain any elements and is stored as is.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricLower - the input data is assumed to contain only lower part
+    * and diagonal. otherwise an exception is thrown. The upper part above the diagonal is reconstructed from the lower part.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricUpper - the input data is assumed to contain only upper part
+    * and diagonal. otherwise an exception is thrown. The lower part below the diagonal is reconstructed from the upper part.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricMixed - for each couple of non-zero elements a_ij and a_ji,
+    * at least one is provided. If both are provided, they must be equal, otherwise an exception is thrown. The missing elements
+    * are reconstructed and only the lower part and diagonal are stored.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_setElements_map.cpp
@@ -405,7 +437,7 @@ public:
    template< typename MapIndex, typename MapValue >
    void
    setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief Resets the matrix to zero dimensions.

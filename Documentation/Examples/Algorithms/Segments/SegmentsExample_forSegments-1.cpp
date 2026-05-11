@@ -2,6 +2,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -9,6 +10,7 @@ template< typename Segments >
 void
 SegmentsExample()
 {
+   //! [config]
    using Device = typename Segments::DeviceType;
 
    /***
@@ -20,23 +22,27 @@ SegmentsExample()
     * Allocate array for the segments;
     */
    TNL::Containers::Array< double, Device > data( segments.getStorageSize(), 0.0 );
+   //! [config]
 
+   //! [traversing]
    /***
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
    using SegmentViewType = typename Segments::SegmentViewType;
-   segments.forAllSegments(
-      [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
-      {
-         double sum( 0.0 );
-         for( auto element : segment )
-            if( element.localIndex() <= element.segmentIndex() ) {
-               sum += element.localIndex() + 1;
-               data_view[ element.globalIndex() ] = sum;
-            }
-      } );
+   TNL::Algorithms::Segments::forAllSegments( segments,
+                                              [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
+                                              {
+                                                 double sum( 0.0 );
+                                                 for( auto element : segment )
+                                                    if( element.localIndex() <= element.segmentIndex() ) {
+                                                       sum += element.localIndex() + 1;
+                                                       data_view[ element.globalIndex() ] = sum;
+                                                    }
+                                              } );
+   //! [traversing]
 
+   //! [printing]
    /***
     * Print the data managed by the segments.
     */
@@ -44,7 +50,8 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   printSegments( std::cout, segments, fetch );
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
+   //! [printing]
 }
 
 int

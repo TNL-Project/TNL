@@ -11,8 +11,7 @@
 #include <gtest/gtest.h>
 
 template< typename Device_, typename Index_, typename IndexAllocator_ >
-using RowMajorEllpack =
-   TNL::Algorithms::Segments::Ellpack< Device_, Index_, IndexAllocator_, TNL::Algorithms::Segments::RowMajorOrder, 1 >;
+using RowMajorEllpackType = TNL::Algorithms::Segments::RowMajorEllpack< Device_, Index_, IndexAllocator_ >;
 
 // test fixture for typed tests
 template< typename Matrix >
@@ -23,49 +22,48 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-// types for which MatrixTest is instantiated
-using MatrixTypes = ::testing::Types< TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, short >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, short >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, short >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, short >,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, int >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, long >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, long >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, long >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long >
-#if defined( __CUDACC__ )
-                                      ,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, long >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, long >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, long >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long >
+using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, short >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, short >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, short >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, short >,
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, int >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, long >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, long >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, long >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long >
+#elif defined( __CUDACC__ )
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, short >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, short >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, short >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, short >,
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, int >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, long >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, long >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, long >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                                      ,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, long >,
-                                      TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, long >,
-                                      TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, long >,
-                                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, long >
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, short >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, short >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, short >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, short >,
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, int >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, int >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, long >,
+   TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, long >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, long >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, long >
 #endif
-                                      >;
+   >;
 
 TYPED_TEST_SUITE( MatrixTest, MatrixTypes );
 
@@ -78,7 +76,7 @@ TYPED_TEST( MatrixTest, WrapMatrix )
    using CSRMatrix = TNL::Matrices::
       SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
    using EllpackMatrix =
-      TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, RowMajorEllpack >;
+      TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, RowMajorEllpackType >;
 
    DenseMatrix denseMatrix{ { 1, 2, 0, 0 }, { 0, 6, 0, 0 }, { 9, 0, 0, 0 }, { 0, 0, 15, 16 } };
    IndexType rows( 4 );

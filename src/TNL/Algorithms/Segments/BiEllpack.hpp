@@ -17,12 +17,14 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( c
   groupPointers( segments.groupPointers )
 {
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
-template< typename SizesContainer >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );
@@ -43,8 +45,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( c
    this->segmentsPermutation = segments.segmentsPermutation;
    this->groupPointers = segments.groupPointers;
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
    return *this;
 }
 
@@ -55,8 +59,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( B
    this->segmentsPermutation = std::move( segments.segmentsPermutation );
    this->groupPointers = std::move( segments.groupPointers );
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
    return *this;
 }
 
@@ -69,8 +75,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=(
    this->segmentsPermutation = segments.getSegmentsPermutationView();
    this->groupPointers = segments.getGroupPointersView();
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
    return *this;
 }
 
@@ -78,14 +86,14 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::ViewType
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getView()
 {
-   return { this->getSize(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
+   return { this->getElementCount(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 auto
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
+   return { this->getElementCount(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -338,8 +346,8 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmen
    for( Index strip = 0; strip < numberOfStrips; strip++ ) {
       Index begin = strip * Base::getWarpSize();
       Index end = ( strip + 1 ) * Base::getWarpSize();
-      if( this->getSegmentsCount() < end )
-         end = this->getSegmentsCount();
+      if( this->getSegmentCount() < end )
+         end = this->getSegmentCount();
       for( Index i = begin; i < end - 1; i++ ) {
          Index permIndex1 = 0;
          Index permIndex2 = 0;
@@ -372,7 +380,7 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmentLengths( const SizesHolder& segmentsSizes )
 {
-   for( Index segmentIdx = 0; segmentIdx < this->getSegmentsCount(); segmentIdx++ ) {
+   for( Index segmentIdx = 0; segmentIdx < this->getSegmentCount(); segmentIdx++ ) {
       const Index strip = segmentIdx / Base::getWarpSize();
       const Index stripLength = this->getStripLength( strip );
       const Index groupBegin = ( Base::getLogWarpSize() + 1 ) * strip;

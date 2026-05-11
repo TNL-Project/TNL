@@ -6,7 +6,8 @@
 #include <TNL/Backend.h>
 #include "isSegmentReductionKernel.h"
 
-#include "detail/FetchLambdaAdapter.h"
+#include "../Segments/detail/FetchLambdaAdapter.h"
+#include "isSegmentsReductionKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
@@ -50,8 +51,8 @@ struct CSRLightKernel
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]] void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
                    Index end,
@@ -64,8 +65,8 @@ struct CSRLightKernel
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceAllSegments instead" )]] void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
@@ -91,10 +92,8 @@ protected:
 };
 
 template< typename Index, typename Device >
-struct isSegmentReductionKernel< CSRLightKernel< Index, Device > >
-{
-   static constexpr bool value = true;
-};
+struct isSegmentsReductionKernel< CSRLightKernel< Index, Device > > : std::true_type
+{};
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
 

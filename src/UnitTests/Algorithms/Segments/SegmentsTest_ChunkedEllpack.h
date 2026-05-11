@@ -1,50 +1,30 @@
+#pragma once
+
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
-
-#include "SegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
 
-// test fixture for typed tests
-template< typename Segments >
-class ChunkedEllpackSegmentsTest : public ::testing::Test
-{
-protected:
-   using ChunkedEllpackSegmentsType = Segments;
-};
-
-// types for which MatrixTest is instantiated
-using ChunkedEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Host, int >,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Host, long >
-#if defined( __CUDACC__ )
-                                                      ,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Cuda, int >,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Cuda, long >
+// Types for which SegmentsTest is instantiated - ChunkedEllpack segments
+using ChunkedEllpackSegmentsTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, long >,
+   TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, long >
+#elif defined( __CUDACC__ )
+   TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, long >,
+   TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                                                      ,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Hip, int >,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Hip, long >
+   TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, long >,
+   TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, long >
 #endif
-                                                      >;
+   >;
 
-TYPED_TEST_SUITE( ChunkedEllpackSegmentsTest, ChunkedEllpackSegmentsTypes );
+#include "SegmentsTestSuite.hpp"
 
-TYPED_TEST( ChunkedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
-{
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_SetSegmentsSizes_EqualSizes< ChunkedEllpackSegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
-{
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-   using Kernel =
-      TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel< typename ChunkedEllpackSegmentsType::IndexType,
-                                                                       typename ChunkedEllpackSegmentsType::DeviceType >;
-
-   test_reduceAllSegments_MaximumInSegments< ChunkedEllpackSegmentsType, Kernel >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( ChunkedEllpackSegments, SegmentsTest, ChunkedEllpackSegmentsTypes );
 
 #include "../../main.h"

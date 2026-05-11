@@ -8,12 +8,11 @@
 #include <TNL/Containers/VectorView.h>
 
 #include "SegmentView.h"
-#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e CSRBase serves as a base class for \ref CSR and \ref CSRView.
+ * \brief \e CSRBase serves as a base class for \ref TNL::Algorithms::Segments::CSR and \ref TNL::Algorithms::Segments::CSRView.
  *
  * \tparam Device is type of device where the segments will be operating.
  * \tparam Index is type for indexing of the elements managed by the segments.
@@ -28,15 +27,15 @@ public:
    //! \brief The type used for indexing of segments elements.
    using IndexType = std::remove_const_t< Index >;
 
-   //! \brief The type for representing the vector view with row offsets used
+   //! \brief The type for representing the vector view with segment offsets used
    //! in the CSR format.
    using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
 
-   //! \brief The type for representing the constant vector view with row
+   //! \brief The type for representing the constant vector view with segment
    //! offsets used in the CSR format.
    using ConstOffsetsView = typename OffsetsView::ConstViewType;
 
-   //! \brief Accessor type fro one particular segment.
+   //! \brief Accessor type for one particular segment.
    using SegmentViewType = SegmentView< IndexType, RowMajorOrder >;
 
    //! \brief Returns the data layout for the CSR format (it is always row-major order).
@@ -85,9 +84,9 @@ public:
     * \brief Returns string with the serialization type.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSerializationType.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSerializationType.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSerializationType.out
+    * \include SegmentsExample_getSerializationType.out
     */
    [[nodiscard]] static std::string
    getSerializationType();
@@ -96,15 +95,20 @@ public:
     * \brief Returns string with the segments type.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSegmentsType.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSegmentsType.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSegmentsType.out
+    * \include SegmentsExample_getSegmentsType.out
     */
    [[nodiscard]] static std::string
    getSegmentsType();
 
    //! \brief Returns the number of segments.
    [[nodiscard]] __cuda_callable__
+   IndexType
+   getSegmentCount() const;
+
+   //! \brief Returns the number of segments. Deprecated, use getSegmentCount().
+   [[deprecated( "Use getSegmentCount() instead." )]] [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentsCount() const;
 
@@ -114,9 +118,14 @@ public:
    getSegmentSize( IndexType segmentIdx ) const;
 
    //! \brief Returns the number of elements managed by all segments.
-   [[nodiscard]] __cuda_callable__
+   [[deprecated( "Use getElementCount() instead." )]] [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
+
+   //! \brief Returns the number of elements managed by all segments.
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getElementCount() const;
 
    //! \brief Returns number of elements that needs to be allocated by a
    //! container connected to this segments.
@@ -127,38 +136,37 @@ public:
    /**
     * \brief Computes the global index of an element managed by the segments.
     *
-    * The global index serves as a reference on the element in its container.
+    * The global index serves as a reference to the element within its container.
     *
-    * \param segmentIdx is index of a segment with the element.
-    * \param localIdx is the local index of the element within the segment.
-    * \return global index of the element.
+    * \param segmentIdx The index of the segment containing the element.
+    * \param localIdx The local index of the element within the segment.
+    * \return The global index of the element.
     */
    [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
    /**
-    * \brief Returns segment view (i.e. segment accessor) of segment with given
-    * index.
+    * \brief Returns a segment view (i.e., a segment accessor) for the specified segment index.
     *
-    * \param segmentIdx is index of the request segment.
-    * \return segment view of given segment.
+    * \param segmentIdx The index of the requested segment.
+    * \return The segment view of the specified segment.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSegmentView.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSegmentView.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSegmentView.out
+    * \include SegmentsExample_getSegmentView.out
     */
    [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
-   //! \brief Returns a modifiable vector view with row offsets used in the CSR format.
+   //! \brief Returns a modifiable vector view with segment offsets used in the CSR format.
    [[nodiscard]] __cuda_callable__
    OffsetsView
    getOffsets();
 
-   //! \brief Returns a constant vector view with row offsets used in the CSR format.
+   //! \brief Returns a constant vector view with segment offsets used in the CSR format.
    [[nodiscard]] __cuda_callable__
    ConstOffsetsView
    getOffsets() const;
@@ -183,14 +191,10 @@ public:
     * \e localIdx is rank of the element within the segment and \e globalIdx is
     * index of the element within the related container.
     *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_forElements.cpp
-    * \par Output
-    * \include SegmentsExample_CSR_forElements.out
     */
    template< typename Function >
-   void
-   forElements( IndexType begin, IndexType end, Function&& function ) const;
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]] void
+   forElements( IndexType begin, IndexType end, Function function ) const;
 
    /**
     * \brief Call \ref TNL::Algorithms::Segments::CSR::forElements for all
@@ -199,8 +203,24 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::forElements for more details.
     */
    template< typename Function >
-   void
-   forAllElements( Function&& function ) const;
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllElements instead." )]] void
+   forAllElements( Function function ) const;
+
+   template< typename Array, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]] void
+   forElements( const Array& segmentIndexes, Index begin, Index end, Function function ) const;
+
+   template< typename Array, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]] void
+   forElements( const Array& segmentIndexes, Function function ) const;
+
+   template< typename Condition, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]] void
+   forElementsIf( IndexType begin, IndexType end, Condition condition, Function function ) const;
+
+   template< typename Condition, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]] void
+   forAllElementsIf( Condition condition, Function function ) const;
 
    /**
     * \brief Iterate over all segments in parallel and call given lambda function.
@@ -220,13 +240,9 @@ public:
     * where \e segment represents given segment (see \ref TNL::Algorithms::Segments::SegmentView).
     * Its type is given by \ref SegmentViewType.
     *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_forSegments.cpp
-    * \par Output
-    * \include SegmentsExample_CSR_forSegments.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forSegments instead." )]] void
    forSegments( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -235,7 +251,7 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::forSegments for more details.
     */
    template< typename Function >
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllSegments instead." )]] void
    forAllSegments( Function&& function ) const;
 
    /**
@@ -253,14 +269,9 @@ public:
     * \param function is the lambda function to be applied on the elements of the segments.
     *
     * See \ref TNL::Algorithms::Segments::CSR::forSegments for more details.
-    *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_sequentialForSegments.cpp
-    * \par Output
-    * \include SegmentsExample_CSR_sequentialForSegments.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForSegments instead." )]] void
    sequentialForSegments( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -269,7 +280,7 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::sequentialForSegments for more details.
     */
    template< typename Function >
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForAllSegments instead." )]] void
    sequentialForAllSegments( Function&& function ) const;
 
 protected:
@@ -289,23 +300,7 @@ protected:
    bind( OffsetsView offsets );
 };
 
-/**
- * \brief Insertion operator of CSR segments to output stream.
- *
- * \tparam Device is the device type of the source segments.
- * \tparam Index is the index type of the source segments.
- * \tparam IndexAllocator is the index allocator of the source segments.
- * \param str is the output stream.
- * \param segments are the source segments.
- * \return reference to the output stream.
- */
-template< typename Device, typename Index >
-std::ostream&
-operator<<( std::ostream& str, const CSRBase< Device, Index >& segments )
-{
-   return printSegments( str, segments );
-}
-
 }  // namespace TNL::Algorithms::Segments
 
 #include "CSRBase.hpp"
+#include "print.h"

@@ -1,0 +1,75 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+#include <TNL/Matrices/MatrixBase.h>
+
+namespace TNL::Graphs::Writers {
+
+/**
+ * \brief Writer for graphs in edge list format.
+ *
+ * See \ref TNL::Graphs::Readers::EdgeListReader for details about the format.
+ *
+ * \tparam Graph The type of the graph to be written.
+ */
+template< typename Graph >
+struct EdgeListWriter
+{
+   using GraphType = Graph;
+   using AdjacencyMatrixType = typename GraphType::AdjacencyMatrixType;
+   using ValueType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using HostAdjacencyMatrixType = typename AdjacencyMatrixType::template Self< ValueType, Devices::Host >;
+
+   /**
+    * \brief Writes a graph to an output stream in edge list format.
+    *
+    * \param str is the output stream to write to.
+    * \param graph is the graph object to be written.
+    */
+   static void
+   write( std::ostream& str, const Graph& graph )
+   {
+      if constexpr( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Host > ) {
+         HostAdjacencyMatrixType hostMatrix;
+         hostMatrix = graph.getAdjacencyMatrix();
+         writeEdgeList( str, hostMatrix );
+      }
+      else
+         writeEdgeList( str, graph.getAdjacencyMatrix() );
+   }
+
+   /**
+    * \brief Writes a graph to a file in edge list format.
+    *
+    * \param fileName is the name of the file to write to.
+    * \param graph is the graph object to be written.
+    */
+   static void
+   write( const TNL::String& fileName, const Graph& graph )
+   {
+      std::ofstream file( fileName.getString() );
+      write( file, graph );
+   }
+
+protected:
+   template< typename Matrix >
+   static void
+   writeEdgeList( std::ostream& str, const Matrix& matrix )
+   {
+      for( IndexType rowIdx = 0; rowIdx < matrix.getRows(); rowIdx++ ) {
+         auto row = matrix.getRow( rowIdx );
+         for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+            auto columnIdx = row.getColumnIndex( localIdx );
+            if( columnIdx != Matrices::paddingIndex< IndexType > ) {
+               str << rowIdx << " " << columnIdx << " " << row.getValue( localIdx ) << '\n';
+            }
+         }
+      }
+   }
+};
+
+}  // namespace TNL::Graphs::Writers

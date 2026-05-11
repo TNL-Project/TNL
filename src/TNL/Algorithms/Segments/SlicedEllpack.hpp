@@ -8,6 +8,7 @@
 
 #include "Ellpack.h"
 #include "SlicedEllpack.h"
+#include "reduce.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -17,15 +18,15 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedE
   sliceSegmentSizes( segments.sliceSegmentSizes )
 {
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
-template< typename SizesContainer >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedEllpack( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );
@@ -46,9 +47,9 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = segments.sliceOffsets;
    this->sliceSegmentSizes = segments.sliceSegmentSizes;
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
    return *this;
@@ -61,9 +62,9 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = std::move( segments.sliceOffsets );
    this->sliceSegmentSizes = std::move( segments.sliceSegmentSizes );
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
    return *this;
@@ -78,9 +79,9 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = segments.getSliceOffsetsView();
    this->sliceSegmentSizes = segments.getSliceSegmentSizesView();
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
    return *this;
@@ -90,9 +91,9 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::ViewType
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getView()
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
-            this->getSegmentsCount(),
+            this->getSegmentCount(),
             this->getSliceOffsetsView(),
             this->getSliceSegmentSizesView() };
 }
@@ -101,9 +102,9 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 auto
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
-            this->getSegmentsCount(),
+            this->getSegmentCount(),
             this->getSliceOffsetsView(),
             this->getSliceSegmentSizesView() };
 }
@@ -130,17 +131,12 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegm
          return sizes_view[ globalIdx ];
       return 0;
    };
-   auto reduce = [] __cuda_callable__( Index a, Index b ) -> Index
-   {
-      return TNL::max( a, b );
-   };
    auto keep = [ = ] __cuda_callable__( Index i, Index res ) mutable
    {
       slices_view[ i ] = res * SliceSize;
       slice_segment_size_view[ i ] = res;
    };
-   using Kernel = SegmentsReductionKernels::EllpackKernel< Index, Device >;
-   Kernel::reduceAllSegments( ellpack, fetch, reduce, keep, std::numeric_limits< Index >::min() );
+   reduceAllSegments( ellpack, fetch, TNL::Max{}, keep );
    Algorithms::inplaceExclusiveScan( this->sliceOffsets );
 
    // update the base

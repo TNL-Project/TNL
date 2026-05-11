@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -24,11 +25,11 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forAllElements(
-      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-      {
-         data_view[ globalIdx ] = localIdx + 1;
-      } );
+   TNL::Algorithms::Segments::forAllElements( segments,
+                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+                                              {
+                                                 data_view[ globalIdx ] = localIdx + 1;
+                                              } );
 
    /***
     * Print the data by the segments.
@@ -38,31 +39,33 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   printSegments( std::cout, segments, fetch );
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 
+   //! [traversing]
    /***
     * Divide elements in each segment by a sum of all elements in the segment
     */
    using SegmentViewType = typename SegmentsType::SegmentViewType;
-   segments.forAllSegments(
-      [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
-      {
-         // Compute the sum first ...
-         double sum = 0.0;
-         for( auto element : segment )
-            if( element.localIndex() <= element.segmentIndex() )
-               sum += data_view[ element.globalIndex() ];
-         // ... divide all elements.
-         for( auto element : segment )
-            if( element.localIndex() <= element.segmentIndex() )
-               data_view[ element.globalIndex() ] /= sum;
-      } );
+   TNL::Algorithms::Segments::forAllSegments( segments,
+                                              [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
+                                              {
+                                                 // Compute the sum first ...
+                                                 double sum = 0.0;
+                                                 for( auto element : segment )
+                                                    if( element.localIndex() <= element.segmentIndex() )
+                                                       sum += data_view[ element.globalIndex() ];
+                                                 // ... divide all elements.
+                                                 for( auto element : segment )
+                                                    if( element.localIndex() <= element.segmentIndex() )
+                                                       data_view[ element.globalIndex() ] /= sum;
+                                              } );
+   //! [traversing]
 
    /***
     * Print the data managed by the segments.
     */
    std::cout << "Value of elements after dividing by sum in each segment:\n";
-   printSegments( std::cout, segments, fetch );
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 }
 
 int

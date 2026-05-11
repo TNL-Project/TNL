@@ -3,7 +3,8 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
+#include <TNL/Algorithms/Segments/traverse.h>
+#include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -12,8 +13,6 @@ void
 SegmentsExample()
 {
    using Device = typename Segments::DeviceType;
-   using SegmentsReductionKernel =
-      typename TNL::Algorithms::SegmentsReductionKernels::DefaultKernel< typename Segments::ViewType >::type;
 
    /***
     * Create segments with given segments sizes.
@@ -30,12 +29,12 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forAllElements(
-      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-      {
-         if( localIdx <= segmentIdx )
-            data_view[ globalIdx ] = segmentIdx;
-      } );
+   TNL::Algorithms::Segments::forAllElements( segments,
+                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+                                              {
+                                                 if( localIdx <= segmentIdx )
+                                                    data_view[ globalIdx ] = segmentIdx;
+                                              } );
 
    /***
     * Print the data by the segments.
@@ -45,8 +44,9 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   printSegments( std::cout, segments, fetch );
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 
+   //! [reduction]
    /***
     * Compute sums of elements in each segment.
     */
@@ -63,17 +63,16 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   auto keep = [ = ] __cuda_callable__( int globalIdx, const double& value ) mutable
+   auto store = [ = ] __cuda_callable__( int segmentIdx, const double& value ) mutable
    {
-      sums_view[ globalIdx ] = value;
+      sums_view[ segmentIdx ] = value;
    };
 
-   SegmentsReductionKernel kernel;
-   kernel.init( segments );
-   kernel.reduceAllSegments( segments, fetch_full, std::plus<>{}, keep, 0.0 );
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, store );
    std::cout << "The sums with full fetch form are: " << sums << '\n';
-   kernel.reduceAllSegments( segments, fetch_brief, std::plus<>{}, keep, 0.0 );
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, store );
    std::cout << "The sums with brief fetch form are: " << sums << "\n\n";
+   //! [reduction]
 }
 
 int

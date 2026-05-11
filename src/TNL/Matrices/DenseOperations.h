@@ -13,6 +13,10 @@ enum class TransposeState : std::uint8_t
    Transpose
 };
 
+template< typename Matrix1, typename Matrix2 >
+void
+copyDenseToDenseMatrix( Matrix1& A, const Matrix2& B );
+
 template< typename ResultMatrix, typename Matrix1, typename Matrix2, typename Real, int tileDim = 16 >
 void
 getMatrixProduct( ResultMatrix& resultMatrix,

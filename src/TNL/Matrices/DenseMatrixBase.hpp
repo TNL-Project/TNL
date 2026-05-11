@@ -7,6 +7,8 @@
 #include <functional>
 
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Algorithms/Segments/traverse.h>
+#include <TNL/Algorithms/Segments/reduce.h>
 #include "DenseMatrixBase.h"
 
 namespace TNL::Matrices {
@@ -322,7 +324,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begi
    {
       return fetch( rowIdx, columnIdx, values[ globalIdx ] );
    };
-   SegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
+   Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -367,7 +369,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forElements( IndexType beg
    {
       function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
    };
-   this->segments.forElements( begin, end, f );
+   Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -380,7 +382,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forElements( IndexType beg
    {
       function( rowIdx, columnIdx, globalIdx, values[ globalIdx ] );
    };
-   this->segments.forElements( begin, end, f );
+   Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -400,6 +402,102 @@ DenseMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&&
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                   IndexType begin,
+                                                                   IndexType end,
+                                                                   Function&& function ) const
+{
+   const auto values = this->getValues().getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                   IndexType begin,
+                                                                   IndexType end,
+                                                                   Function&& function )
+{
+   auto values = this->getValues().getView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElements( this->segments, rowIndexes.getConstView( begin, end ), f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function ) const
+{
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function )
+{
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                     IndexType end,
+                                                                     Condition&& condition,
+                                                                     Function&& function ) const
+{
+   const auto values = this->getValues().getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                     IndexType end,
+                                                                     Condition&& condition,
+                                                                     Function&& function )
+{
+   auto values = this->getValues().getView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function ) const
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function )
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, IndexType end, Function&& function )
@@ -411,7 +509,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, 
       auto rowView = RowView( segmentView, values );
       function( rowView );
    };
-   this->segments.forSegments( begin, end, f );
+   Algorithms::Segments::forSegments( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -426,7 +524,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, 
       const auto rowView = ConstRowView( segmentView, values );
       function( rowView );
    };
-   this->segments.forSegments( begin, end, f );
+   Algorithms::Segments::forSegments( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -559,19 +657,15 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
 
    if( outVectorMultiplicator == RealType{ 0 } ) {
       if( matrixMultiplicator == RealType{ 1 } )
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperDirect, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperDirect );
       else
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperMatrixMult, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperMatrixMult );
    }
    else {
       if( matrixMultiplicator == RealType{ 1 } )
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperVectorMult, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperVectorMult );
       else
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperGeneral, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperGeneral );
    }
 }
 
@@ -652,6 +746,20 @@ DenseMatrixBase< Real, Device, Index, Organization >::operator!=(
    const DenseMatrixBase< Real_, Device_, Index_, Organization >& matrix ) const
 {
    return ! ( *this == matrix );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+auto
+DenseMatrixBase< Real, Device, Index, Organization >::getSegments() -> SegmentsViewType&
+{
+   return this->segments;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+auto
+DenseMatrixBase< Real, Device, Index, Organization >::getSegments() const -> const SegmentsViewType&
+{
+   return this->segments;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

@@ -51,7 +51,16 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 std::string
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentsType()
 {
-   return "SlicedEllpack";
+   return ( getOrganization() == RowMajorOrder ? "RowMajor " : "ColumnMajor " ) + std::string( "SlicedEllpack " )
+        + std::to_string( SliceSize );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+auto
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentCount() const -> IndexType
+{
+   return this->segmentsCount;
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -59,7 +68,7 @@ __cuda_callable__
 auto
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentsCount() const -> IndexType
 {
-   return this->segmentsCount;
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -68,6 +77,7 @@ auto
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentSize( const IndexType segmentIdx ) const -> IndexType
 {
    const Index sliceIdx = segmentIdx / SliceSize;
+   TNL_ASSERT_LT( sliceIdx, this->sliceSegmentSizes.getSize(), "" );
    if constexpr( std::is_same_v< DeviceType, Devices::Host > )
       return this->sliceSegmentSizes[ sliceIdx ];
    else {
@@ -83,6 +93,14 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 __cuda_callable__
 auto
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSize() const -> IndexType
+{
+   return this->getElementCount();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+auto
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::getElementCount() const -> IndexType
 {
    return this->size;
 }
@@ -105,6 +123,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getGlobalIndex( con
    const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
    IndexType sliceOffset;
    IndexType segmentSize;
+   TNL_ASSERT_LT( sliceIdx, this->sliceOffsets.getSize(), "" );
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       sliceOffset = this->sliceOffsets[ sliceIdx ];
       segmentSize = this->sliceSegmentSizes[ sliceIdx ];
@@ -192,13 +211,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( IndexT
          const IndexType end = begin + segmentSize;
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -208,18 +221,11 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( IndexT
       {
          const IndexType sliceIdx = segmentIdx / SliceSize;
          const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-         // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
          const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
          const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -231,7 +237,112 @@ template< typename Function >
 void
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllElements( Function&& function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+template< typename Array, typename Function >
+void
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const Array& segmentIndexes,
+                                                                          Index begin,
+                                                                          Index end,
+                                                                          Function function ) const
+{
+   auto segmentIndexes_view = segmentIndexes.getConstView();
+   const auto sliceSegmentSizes_view = this->sliceSegmentSizes.getConstView();
+   const auto sliceOffsets_view = this->sliceOffsets.getConstView();
+   if constexpr( Organization == RowMajorOrder ) {
+      auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
+      {
+         const IndexType segmentIdx = segmentIndexes_view[ idx ];
+         const IndexType sliceIdx = segmentIdx / SliceSize;
+         const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
+         const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
+         const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+         const IndexType end = begin + segmentSize;
+         IndexType localIdx( 0 );
+         for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
+            function( segmentIdx, localIdx++, globalIdx );
+         }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
+   }
+   else {
+      auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
+      {
+         const IndexType segmentIdx = segmentIndexes_view[ idx ];
+         const IndexType sliceIdx = segmentIdx / SliceSize;
+         const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
+         const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
+         const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+         IndexType localIdx( 0 );
+         for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
+            function( segmentIdx, localIdx++, globalIdx );
+         }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
+   }
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+template< typename Array, typename Function >
+void
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const Array& segmentIndexes, Function function ) const
+{
+   this->forElements( segmentIndexes, 0, segmentIndexes.getSize(), function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+template< typename Condition, typename Function >
+void
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElementsIf( IndexType begin,
+                                                                            IndexType end,
+                                                                            Condition condition,
+                                                                            Function function ) const
+{
+   const auto sliceSegmentSizes_view = this->sliceSegmentSizes.getConstView();
+   const auto sliceOffsets_view = this->sliceOffsets.getConstView();
+   if constexpr( Organization == RowMajorOrder ) {
+      auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
+      {
+         if( ! condition( segmentIdx ) )
+            return;
+         const IndexType sliceIdx = segmentIdx / SliceSize;
+         const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
+         const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
+         const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+         const IndexType end = begin + segmentSize;
+         IndexType localIdx( 0 );
+         for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
+            function( segmentIdx, localIdx++, globalIdx );
+         }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
+   }
+   else {
+      auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
+      {
+         if( ! condition( segmentIdx ) )
+            return;
+         const IndexType sliceIdx = segmentIdx / SliceSize;
+         const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
+         const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
+         const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+         IndexType localIdx( 0 );
+         for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
+            function( segmentIdx, localIdx++, globalIdx );
+         }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
+   }
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+template< typename Condition, typename Function >
+void
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllElementsIf( Condition condition, Function function ) const
+{
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -255,7 +366,7 @@ template< typename Function >
 void
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 }  // namespace TNL::Algorithms::Segments

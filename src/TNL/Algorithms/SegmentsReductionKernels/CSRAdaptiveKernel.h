@@ -6,7 +6,8 @@
 #include "CSRAdaptiveKernelView.h"
 #include "isSegmentReductionKernel.h"
 
-#include "detail/FetchLambdaAdapter.h"
+#include "../Segments/detail/FetchLambdaAdapter.h"
+#include "isSegmentsReductionKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
@@ -29,7 +30,7 @@ struct CSRAdaptiveKernel
    [[nodiscard]] static int
    getSizeValueLog( const int& i )
    {
-      return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
+      return Segments::detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
    }
 
    [[nodiscard]] static std::string
@@ -54,8 +55,8 @@ struct CSRAdaptiveKernel
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]] void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
                    Index end,
@@ -68,8 +69,8 @@ struct CSRAdaptiveKernel
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceAllSegments instead" )]] void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
@@ -79,7 +80,7 @@ struct CSRAdaptiveKernel
 protected:
    template< int SizeOfValue, typename Offsets >
    Index
-   findLimit( Index start, const Offsets& offsets, Index size, detail::Type& type );
+   findLimit( Index start, const Offsets& offsets, Index size, Segments::detail::Type& type );
 
    template< int SizeOfValue, typename Offsets >
    void
@@ -94,10 +95,8 @@ protected:
 };
 
 template< typename Index, typename Device >
-struct isSegmentReductionKernel< CSRAdaptiveKernel< Index, Device > >
-{
-   static constexpr bool value = true;
-};
+struct isSegmentsReductionKernel< CSRAdaptiveKernel< Index, Device > > : std::true_type
+{};
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
 

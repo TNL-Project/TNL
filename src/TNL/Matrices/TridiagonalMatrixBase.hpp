@@ -240,7 +240,7 @@ template< typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin,
                                                                          IndexType end,
-                                                                         Function& function ) const
+                                                                         Function&& function ) const
 {
    const auto values_view = this->values.getConstView();
    const auto indexer = this->indexer;
@@ -268,7 +268,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function& function )
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function&& function )
 {
    auto values_view = this->values.getView();
    const auto indexer = this->indexer;
@@ -296,7 +296,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function& function ) const
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function ) const
 {
    this->forElements( (IndexType) 0, this->getRows(), function );
 }
@@ -304,9 +304,173 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Func
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function& function )
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function )
 {
    this->forElements( (IndexType) 0, this->getRows(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                         IndexType begin,
+                                                                         IndexType end,
+                                                                         Function&& function ) const
+{
+   const auto values_view = this->values.getConstView();
+   const auto indexer = this->indexer;
+   const auto rowIndexes_view = rowIndexes.getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+   {
+      IndexType rowIdx = rowIndexes_view[ idx ];
+      if( rowIdx == 0 ) {
+         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
+         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
+      }
+      else if( rowIdx + 1 < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
+      }
+      else if( rowIdx < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+      }
+      else
+         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                         IndexType begin,
+                                                                         IndexType end,
+                                                                         Function&& function )
+{
+   auto values_view = this->values.getView();
+   const auto indexer = this->indexer;
+   const auto rowIndexes_view = rowIndexes.getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+   {
+      IndexType rowIdx = rowIndexes_view[ idx ];
+      if( rowIdx == 0 ) {
+         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
+         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
+      }
+      else if( rowIdx + 1 < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
+      }
+      else if( rowIdx < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+      }
+      else
+         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function ) const
+{
+   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function )
+{
+   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                           IndexType end,
+                                                                           Condition&& condition,
+                                                                           Function&& function ) const
+{
+   const auto values_view = this->values.getConstView();
+   const auto indexer = this->indexer;
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+   {
+      if( ! condition( rowIdx ) )
+         return;
+      if( rowIdx == 0 ) {
+         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
+         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
+      }
+      else if( rowIdx + 1 < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
+      }
+      else if( rowIdx < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+      }
+      else
+         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                           IndexType end,
+                                                                           Condition&& condition,
+                                                                           Function&& function )
+{
+   auto values_view = this->values.getView();
+   const auto indexer = this->indexer;
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+   {
+      if( ! condition( rowIdx ) )
+         return;
+      if( rowIdx == 0 ) {
+         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
+         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
+      }
+      else if( rowIdx + 1 < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
+      }
+      else if( rowIdx < indexer.getColumns() ) {
+         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
+      }
+      else
+         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function ) const
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function )
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

@@ -1,21 +1,30 @@
 set(COMMON_EXAMPLES
     printSegmentsExample-1
     printSegmentsExample-2
-    SegmentsExample_CSR_constructor_1
-    SegmentsExample_CSR_constructor_2
-    SegmentsExample_CSR_getSerializationType
-    SegmentsExample_CSR_getSegmentsType
-    SegmentsExample_CSR_setSegmentsSizes
-    SegmentsExample_CSR_getSegmentView
-    SegmentsExample_CSR_forElements
-    SegmentsExample_CSR_forSegments
-    SegmentsExample_CSR_sequentialForAllSegments
-    SegmentsExample_CSR_sequentialForSegments
-    SegmentsExample_CSR_reduceSegments
+    SegmentsExample_constructor_1
+    SegmentsExample_constructor_2
+    SegmentsExample_getSerializationType
+    SegmentsExample_getSegmentsType
+    SegmentsExample_setSegmentsSizes
+    SegmentsExample_getSegmentView
     SegmentsExample_forElements
+    SegmentsExample_forElementsWithIndexes
+    SegmentsExample_forElementsIf
     SegmentsExample_forSegments-1
     SegmentsExample_forSegments-2
+    SegmentsExample_forSegmentsIf
+    SegmentsExample_forSegmentsWithIndexes
     SegmentsExample_reduceSegments
+    SegmentsExample_reduceSegmentsIf
+    SegmentsExample_reduceSegmentsWithArgumentIf
+    SegmentsExample_reduceSegmentsWithSegmentIndexes
+    SegmentsExample_reduceSegmentsWithArgument
+    SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument
+    SegmentsExample_reduceAll
+    SegmentsExample_find
+    SegmentsExample_scan
+    SegmentsExample_sort
+    SortedSegmentsExample_constructor
 )
 
 if(TNL_BUILD_CUDA)

@@ -94,29 +94,32 @@ CSRAdaptiveKernel< Index, Device >::reduceAllSegments( const SegmentsView& segme
 template< typename Index, typename Device >
 template< int SizeOfValue, typename Offsets >
 Index
-CSRAdaptiveKernel< Index, Device >::findLimit( const Index start, const Offsets& offsets, const Index size, detail::Type& type )
+CSRAdaptiveKernel< Index, Device >::findLimit( const Index start,
+                                               const Offsets& offsets,
+                                               const Index size,
+                                               Segments::detail::Type& type )
 {
    std::size_t sum = 0;
    for( Index current = start; current < size - 1; current++ ) {
       Index elements = offsets[ current + 1 ] - offsets[ current ];
       sum += elements;
-      if( sum > detail::CSRAdaptiveKernelParameters< SizeOfValue >::StreamedSharedElementsPerWarp() ) {
+      if( sum > Segments::detail::CSRAdaptiveKernelParameters< SizeOfValue >::StreamedSharedElementsPerWarp() ) {
          if( current - start > 0 ) {
             // extra row
-            type = detail::Type::STREAM;
+            type = Segments::detail::Type::STREAM;
             return current;
          }
          else {
             // one long row
-            if( sum <= 2 * detail::CSRAdaptiveKernelParameters< SizeOfValue >::MaxAdaptiveElementsPerWarp() )
-               type = detail::Type::VECTOR;
+            if( sum <= 2 * Segments::detail::CSRAdaptiveKernelParameters< SizeOfValue >::MaxAdaptiveElementsPerWarp() )
+               type = Segments::detail::Type::VECTOR;
             else
-               type = detail::Type::LONG;
+               type = Segments::detail::Type::LONG;
             return current + 1;
          }
       }
    }
-   type = detail::Type::STREAM;
+   type = Segments::detail::Type::STREAM;
    return size - 1;  // return last row pointer
 }
 
@@ -133,21 +136,21 @@ CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
    Index nextStart = 0;
 
    // Fill blocks
-   std::vector< detail::CSRAdaptiveKernelBlockDescriptor< Index > > inBlocks;
+   std::vector< Segments::detail::CSRAdaptiveKernelBlockDescriptor< Index > > inBlocks;
    inBlocks.reserve( rows );
 
    while( nextStart != rows - 1 ) {
-      detail::Type type;
+      Segments::detail::Type type;
       nextStart = findLimit< SizeOfValue >( start, hostOffsets, rows, type );
-      if( type == detail::Type::LONG ) {
+      if( type == Segments::detail::Type::LONG ) {
          const Index blocksCount = inBlocks.size();
          const Index warpsPerCudaBlock =
-            detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / Backend::getWarpSize();
+            Segments::detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / Backend::getWarpSize();
          Index warpsLeft = roundUpDivision( blocksCount, warpsPerCudaBlock ) * warpsPerCudaBlock - blocksCount;
          if( warpsLeft == 0 )
             warpsLeft = warpsPerCudaBlock;
          for( Index index = 0; index < warpsLeft; index++ )
-            inBlocks.emplace_back( start, detail::Type::LONG, index, warpsLeft );
+            inBlocks.emplace_back( start, Segments::detail::Type::LONG, index, warpsLeft );
       }
       else {
          inBlocks.emplace_back( start, type, nextStart, offsets.getElement( nextStart ), offsets.getElement( start ) );

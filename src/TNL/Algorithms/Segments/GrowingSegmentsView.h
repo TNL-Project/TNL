@@ -5,8 +5,7 @@
 
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/printSegments.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/detail/CheckLambdas.h>
+#include <TNL/Algorithms/Segments/print.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -60,7 +59,7 @@ struct GrowingSegmentsView : public SegmentsView_
    void
    forAllElements( Function&& f )
    {
-      forElements( 0, this->getSegmentsCount(), f );
+      forElements( 0, this->getSegmentCount(), f );
    }
 
    /*template< typename Function >
@@ -87,7 +86,7 @@ struct GrowingSegmentsView : public SegmentsView_
                    const Value& identity ) const
    {
       // NVCC does not allow if constexpr inside lambda
-      /*if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() ) {
+      /*if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          auto main_fetch_with_all_params = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType
       globalIdx, bool compute ) mutable { IndexType end = this->segmentsFilling[ segmentIdx ]; if( localIdx < end  ) { if(
       localIdx == end -1 ) compute = false; return fetch( segmentIdx, localIdx, globalIdx, compute );
@@ -112,7 +111,7 @@ struct GrowingSegmentsView : public SegmentsView_
    void
    reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Value& identity ) const
    {
-      this->reduceSegments( 0, this->segments.getSegmentsCount(), fetch, reduction, keeper, identity );
+      this->reduceSegments( 0, this->segments.getSegmentCount(), fetch, reduction, keeper, identity );
    }
 
    void

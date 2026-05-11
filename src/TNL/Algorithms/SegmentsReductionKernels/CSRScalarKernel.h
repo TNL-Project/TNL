@@ -6,7 +6,8 @@
 #include <TNL/Backend.h>
 #include "isSegmentReductionKernel.h"
 
-#include "detail/FetchLambdaAdapter.h"
+#include "../Segments/detail/FetchLambdaAdapter.h"
+#include "isSegmentsReductionKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
@@ -89,16 +90,16 @@ struct CSRScalarKernel
     *                 by the user.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_reduceSegments.cpp
+    * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
     * \par Output
-    * \include SegmentsExample_CSR_reduceSegments.out
+    * \include SegmentsExample_reduceSegments.out
     */
    template< typename SegmentsView,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   static void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]] static void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
                    Index end,
@@ -116,8 +117,8 @@ struct CSRScalarKernel
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   static void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceAllSegments instead" )]] static void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,
@@ -126,10 +127,8 @@ struct CSRScalarKernel
 };
 
 template< typename Index, typename Device >
-struct isSegmentReductionKernel< CSRScalarKernel< Index, Device > >
-{
-   static constexpr bool value = true;
-};
+struct isSegmentsReductionKernel< CSRScalarKernel< Index, Device > > : std::true_type
+{};
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
 

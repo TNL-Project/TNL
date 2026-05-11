@@ -77,9 +77,17 @@ ChunkedEllpackBase< Device, Index, Organization >::getSegmentsType()
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getSegmentsCount() const -> IndexType
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentCount() const -> IndexType
 {
    return this->segmentToChunkMapping.getSize();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentsCount() const -> IndexType
+{
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -106,6 +114,14 @@ template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
 ChunkedEllpackBase< Device, Index, Organization >::getSize() const -> IndexType
+{
+   return this->getElementCount();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackBase< Device, Index, Organization >::getElementCount() const -> IndexType
 {
    return this->size;
 }
@@ -312,7 +328,123 @@ template< typename Function >
 void
 ChunkedEllpackBase< Device, Index, Organization >::forAllElements( Function&& function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forElements( const Array& segmentIndexes,
+                                                                Index begin,
+                                                                Index end,
+                                                                Function function ) const
+{
+   const IndexType chunksInSlice = this->chunksInSlice;
+   auto segmentToChunkMapping = this->segmentToChunkMapping;
+   auto segmentToSliceMapping = this->segmentToSliceMapping;
+   auto slices = this->slices;
+   auto segmentIndexesView = segmentIndexes.getConstView();
+   auto work = [ = ] __cuda_callable__( IndexType idx ) mutable
+   {
+      const IndexType segmentIdx = segmentIndexesView[ idx ];
+      const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
+
+      IndexType firstChunkOfSegment( 0 );
+      if( segmentIdx != slices[ sliceIdx ].firstSegment ) {
+         firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
+      }
+
+      const IndexType lastChunkOfSegment = segmentToChunkMapping[ segmentIdx ];
+      const IndexType segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
+      const IndexType sliceOffset = slices[ sliceIdx ].pointer;
+      const IndexType chunkSize = slices[ sliceIdx ].chunkSize;
+
+      const IndexType segmentSize = segmentChunksCount * chunkSize;
+      if( Organization == RowMajorOrder ) {
+         IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
+         IndexType end = begin + segmentSize;
+         IndexType localIdx = 0;
+         for( IndexType j = begin; j < end; j++ )
+            function( segmentIdx, localIdx++, j );
+      }
+      else {
+         IndexType localIdx = 0;
+         for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
+            IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
+            IndexType end = begin + chunksInSlice * chunkSize;
+            for( IndexType j = begin; j < end; j += chunksInSlice ) {
+               function( segmentIdx, localIdx++, j );
+            }
+         }
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, work );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forElements( const Array& segmentIndexes, Function function ) const
+{
+   this->forElements( segmentIndexes, 0, segmentIndexes.getSize(), function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                  IndexType end,
+                                                                  Condition condition,
+                                                                  Function function ) const
+{
+   const IndexType chunksInSlice = this->chunksInSlice;
+   auto segmentToChunkMapping = this->segmentToChunkMapping;
+   auto segmentToSliceMapping = this->segmentToSliceMapping;
+   auto slices = this->slices;
+   auto work = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+   {
+      if( ! condition( segmentIdx ) )
+         return;
+      const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
+
+      IndexType firstChunkOfSegment( 0 );
+      if( segmentIdx != slices[ sliceIdx ].firstSegment ) {
+         firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
+      }
+
+      const IndexType lastChunkOfSegment = segmentToChunkMapping[ segmentIdx ];
+      const IndexType segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
+      const IndexType sliceOffset = slices[ sliceIdx ].pointer;
+      const IndexType chunkSize = slices[ sliceIdx ].chunkSize;
+
+      const IndexType segmentSize = segmentChunksCount * chunkSize;
+      if( Organization == RowMajorOrder ) {
+         IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
+         IndexType end = begin + segmentSize;
+         IndexType localIdx = 0;
+         for( IndexType j = begin; j < end; j++ )
+            function( segmentIdx, localIdx++, j );
+      }
+      else {
+         IndexType localIdx = 0;
+         for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
+            IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
+            IndexType end = begin + chunksInSlice * chunkSize;
+            for( IndexType j = begin; j < end; j += chunksInSlice ) {
+               function( segmentIdx, localIdx++, j );
+            }
+         }
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, work );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forAllElementsIf( Condition condition, Function function ) const
+{
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -334,22 +466,22 @@ template< typename Function >
 void
 ChunkedEllpackBase< Device, Index, Organization >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 void
 ChunkedEllpackBase< Device, Index, Organization >::printStructure( std::ostream& str ) const
 {
-   str << "Segments count: " << this->getSize() << std::endl << "Slices: " << this->getNumberOfSlices() << std::endl;
+   str << "Segments count: " << this->getSegmentCount() << '\n' << "Slices: " << this->getNumberOfSlices() << '\n';
    for( IndexType i = 0; i < this->getNumberOfSlices(); i++ )
       str << "   Slice " << i << " : size = " << this->slices.getElement( i ).size
           << " chunkSize = " << this->slices.getElement( i ).chunkSize
           << " firstSegment = " << this->slices.getElement( i ).firstSegment
-          << " pointer = " << this->slices.getElement( i ).pointer << std::endl;
-   for( IndexType i = 0; i < this->getSize(); i++ )
+          << " pointer = " << this->slices.getElement( i ).pointer << '\n';
+   for( IndexType i = 0; i < this->getSegmentCount(); i++ )
       str << "Segment " << i << " : slice = " << this->segmentToSliceMapping.getElement( i )
-          << " chunk = " << this->segmentToChunkMapping.getElement( i ) << std::endl;
+          << " chunk = " << this->segmentToChunkMapping.getElement( i ) << '\n';
 }
 
 }  // namespace TNL::Algorithms::Segments

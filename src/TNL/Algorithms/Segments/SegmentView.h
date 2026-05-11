@@ -29,14 +29,10 @@ template< typename Index >
 class SegmentView< Index, ColumnMajorOrder >
 {
 public:
-   /**
-    * \brief Type for indexing elements in related segments.
-    */
+   //! \brief Type for indexing elements in related segments.
    using IndexType = Index;
 
-   /**
-    * \brief Type of iterator for iterating over elements of the segment.
-    */
+   //! \brief Type of iterator for iterating over elements of the segment.
    using IteratorType = SegmentViewIterator< SegmentView >;
 
    /**
@@ -55,28 +51,20 @@ public:
      step( step )
    {}
 
-   /**
-    * \brief Copy constructor.
-    */
+   //! \brief Copy constructor.
    __cuda_callable__
    SegmentView( const SegmentView& ) = default;
 
-   /**
-    * \brief Move constructor.
-    */
+   //! \brief Move constructor.
    __cuda_callable__
    SegmentView( SegmentView&& ) noexcept = default;
 
-   /**
-    * \brief Copy assignment operator.
-    */
+   //! \brief Copy assignment operator.
    __cuda_callable__
    SegmentView&
    operator=( const SegmentView& ) = default;
 
-   /**
-    * \brief Move assignment operator.
-    */
+   //! \brief Move assignment operator.
    __cuda_callable__
    SegmentView&
    operator=( SegmentView&& ) noexcept = default;
@@ -105,6 +93,18 @@ public:
    {
       TNL_ASSERT_LT( localIndex, segmentSize, "Local index exceeds segment bounds." );
       return segmentOffset + localIndex * step;
+   }
+
+   /**
+    * \brief Set index of the segment.
+    *
+    * \param index is the of the segment.
+    */
+   __cuda_callable__
+   void
+   setSegmentIndex( IndexType index )
+   {
+      this->segmentIdx = index;
    }
 
    /**
@@ -264,6 +264,18 @@ public:
    getSegmentIndex() const
    {
       return this->segmentIdx;
+   }
+
+   /**
+    * \brief Set index of the segment.
+    *
+    * \param index is index of the segment.
+    */
+   __cuda_callable__
+   void
+   setSegmentIndex( IndexType index )
+   {
+      this->segmentIdx = index;
    }
 
    /**

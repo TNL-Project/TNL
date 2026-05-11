@@ -11,6 +11,31 @@
 namespace TNL::Algorithms::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+
+// Keeping the following storage structures outside of CudaScan objects make
+// them independent of the scan operation type. This allows to reuse the same
+// storage for both inclusive and exclusive scan.
+template< typename ValueType, int BlockSize >
+struct CudaScanStorage
+{
+   // accessed via Backend::getInterleaving()
+   ValueType chunkResults[ BlockSize + BlockSize / Backend::getNumberOfSharedMemoryBanks() ];
+   ValueType warpResults[ Backend::getWarpSize() ];
+};
+
+template< typename ValueType >
+struct CudaScanShflStorage
+{
+   ValueType warpResults[ Backend::getWarpSize() ];
+};
+
+template< typename ValueType, typename BlockStorage, int BlockSize, int ValuesPerThread >
+struct CudaTileScanStorage
+{
+   ValueType data[ BlockSize * ValuesPerThread ];
+   BlockStorage blockScanStorage;
+};
+
 /* Template for cooperative scan across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
@@ -24,12 +49,7 @@ template< ScanType scanType, int blockSize, typename Reduction, typename ValueTy
 struct CudaBlockScan
 {
    // storage to be allocated in shared memory
-   struct Storage
-   {
-      // accessed via Backend::getInterleaving()
-      ValueType chunkResults[ blockSize + blockSize / Backend::getNumberOfSharedMemoryBanks() ];
-      ValueType warpResults[ Backend::getWarpSize() ];
-   };
+   using Storage = CudaScanStorage< ValueType, blockSize >;
 
    /* Cooperative scan across the CUDA block - each thread will get the
     * result of the scan according to its ID.
@@ -118,10 +138,7 @@ template< ScanType scanType,
 struct CudaBlockScanShfl
 {
    // storage to be allocated in shared memory
-   struct Storage
-   {
-      ValueType warpResults[ Backend::getWarpSize() ];
-   };
+   using Storage = CudaScanShflStorage< ValueType >;
 
    /* Cooperative scan across the CUDA block - each thread will get the
     * result of the scan according to its ID.
@@ -253,11 +270,7 @@ struct CudaTileScan
    using BlockScan = CudaBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
 
    // storage to be allocated in shared memory
-   struct Storage
-   {
-      ValueType data[ blockSize * valuesPerThread ];
-      typename BlockScan::Storage blockScanStorage;
-   };
+   using Storage = CudaTileScanStorage< ValueType, typename BlockScan::Storage, blockSize, valuesPerThread >;
 
    /* Cooperative scan of a data tile in the global memory - each thread will
     * get the result of its chunk (i.e. the last value of the (inclusive) scan

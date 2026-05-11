@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -21,8 +22,9 @@ SegmentsExample()
     * Print the elements mapping using segment view.
     */
    std::cout << "Elements mapping:\n";
-   segments.sequentialForAllSegments(
-      [] __cuda_callable__( const SegmentView& segment )
+   TNL::Algorithms::Segments::sequentialForAllSegments(
+      segments,
+      [] __cuda_callable__( const SegmentView segment )
       {
          printf( "Segment idx. %d: \n", segment.getSegmentIndex() );  // printf works even in GPU kernels
          for( auto element : segment )

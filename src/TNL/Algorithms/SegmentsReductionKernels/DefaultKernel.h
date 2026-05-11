@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/AdaptiveCSRView.h>
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/BiEllpackView.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
@@ -19,6 +20,12 @@ namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename SegmentsView >
 struct DefaultKernel;
+
+template< typename Device, typename Index >
+struct DefaultKernel< Segments::AdaptiveCSRView< Device, Index > >
+{
+   using type = CSRScalarKernel< std::decay_t< Index >, Device >;
+};
 
 template< typename Device, typename Index >
 struct DefaultKernel< Segments::CSRView< Device, Index > >
@@ -48,6 +55,12 @@ template< typename Device, typename Index, Segments::ElementsOrganization Organi
 struct DefaultKernel< Segments::SlicedEllpackView< Device, Index, Organization, SliceSize > >
 {
    using type = SlicedEllpackKernel< std::decay_t< Index >, Device >;
+};
+
+template< typename EmbeddedSegments >
+struct DefaultKernel< Segments::SortedSegmentsView< EmbeddedSegments > >
+{
+   using type = typename DefaultKernel< EmbeddedSegments >::type;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

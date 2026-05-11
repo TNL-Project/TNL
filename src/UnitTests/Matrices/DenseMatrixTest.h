@@ -88,24 +88,219 @@ void
 test_SetElements()
 {
    using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
 
-   Matrix m( {
+   Matrix m_full( {
       { 1, 2, 3 },
       { 4, 5, 6 },
       { 7, 8, 9 },
    } );
 
-   EXPECT_EQ( m.getRows(), 3 );
-   EXPECT_EQ( m.getColumns(), 3 );
+   EXPECT_EQ( m_full.getRows(), 3 );
+   EXPECT_EQ( m_full.getColumns(), 3 );
+   EXPECT_EQ( m_full.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_full.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_full.getElement( 0, 2 ), RealType{ 3 } );
+   EXPECT_EQ( m_full.getElement( 1, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_full.getElement( 1, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_full.getElement( 1, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m_full.getElement( 2, 0 ), RealType{ 7 } );
+   EXPECT_EQ( m_full.getElement( 2, 1 ), RealType{ 8 } );
+   EXPECT_EQ( m_full.getElement( 2, 2 ), RealType{ 9 } );
+
+   // Test with symmetric matrix - the initializer list provides only the lower part
+   // clang-format off
+   Matrix m_lower( {
+      { 1 },
+      { 2, 3 },
+      { 4, 5, 6 },
+   }, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   // clang-format on
+
+   EXPECT_EQ( m_lower.getRows(), 3 );
+   EXPECT_EQ( m_lower.getColumns(), 3 );
+   EXPECT_EQ( m_lower.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_lower.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m_lower.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 2 ), RealType{ 6 } );
+
+   // Test with symmetric matrix - map provides only the lower part
+   // clang-format off
+   std::map< std::pair< IndexType, IndexType >, RealType > symmetric_map_lower{
+      { { 0, 0 }, 1 },
+      { { 1, 0 }, 2 }, { { 1, 1 }, 3 },
+      { { 2, 0 }, 4 }, { { 2, 1 }, 5 }, { { 2, 2 }, 6 },
+   };
+   // clang-format on
+   Matrix sm_lower( 3, 3 );
+   sm_lower.setElements( symmetric_map_lower, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   EXPECT_EQ( sm_lower.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( sm_lower.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( sm_lower.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( sm_lower.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( sm_lower.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( sm_lower.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( sm_lower.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( sm_lower.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( sm_lower.getElement( 2, 2 ), RealType{ 6 } );
+
+   // Test with symmetric matrix - map provides only the upper part
+   // clang-format off
+   std::map< std::pair< IndexType, IndexType >, RealType > symmetric_map_upper{
+      { { 0, 0 }, 1 }, { { 0, 1 }, 2 }, { { 0, 2 }, 4 },
+                       { { 1, 1 }, 3 }, { { 1, 2 }, 5 },
+                                        { { 2, 2 }, 6 },
+   };
+   // clang-format on
+   Matrix sm_upper( 3, 3 );
+   sm_upper.setElements( symmetric_map_upper, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper );
+   EXPECT_EQ( sm_upper.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( sm_upper.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( sm_upper.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( sm_upper.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( sm_upper.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( sm_upper.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( sm_upper.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( sm_upper.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( sm_upper.getElement( 2, 2 ), RealType{ 6 } );
+
+   // Test with symmetric matrix storing lower part - map provides full matrix
+   // clang-format off
+   std::map< std::pair< IndexType, IndexType >, RealType > symmetric_map_mixed{
+      { { 0, 0 }, 1 }, { { 0, 1 }, 2 },
+                       { { 1, 1 }, 3 },
+      { { 2, 0 }, 4 }, { { 2, 1 }, 5 }, { { 2, 2 }, 6 },
+   };
+   // clang-format on
+   Matrix sm_mixed( 3, 3 );
+   sm_mixed.setElements( symmetric_map_mixed, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   EXPECT_EQ( sm_mixed.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( sm_mixed.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( sm_mixed.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( sm_mixed.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( sm_mixed.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( sm_mixed.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( sm_mixed.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( sm_mixed.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( sm_mixed.getElement( 2, 2 ), RealType{ 6 } );
+}
+
+template< typename Matrix >
+void
+test_ConstructorWithInitializerListSparse()
+{
+   using RealType = typename Matrix::RealType;
+
+   // Test constructor with sparse data in tuple format
+   Matrix m( 4, 4, { { 0, 0, 1 }, { 0, 2, 2 }, { 1, 1, 3 }, { 1, 3, 4 }, { 2, 0, 5 }, { 2, 2, 6 }, { 3, 1, 7 }, { 3, 3, 8 } } );
+
+   EXPECT_EQ( m.getRows(), 4 );
+   EXPECT_EQ( m.getColumns(), 4 );
+
+   // Check non-zero elements
    EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 2 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 3 } );
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 4 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 5 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 6 } );
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 7 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 8 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 9 } );
+   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 2 } );
+   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 4 } );
+   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 5 } );
+   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 7 } );
+   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 8 } );
+
+   // Check zero elements
+   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 0 } );
+
+   // Test with symmetric lower encoding
+   // clang-format off
+   Matrix m_lower( 3, 3,
+      { { 0, 0, 1 },
+        { 1, 0, 2 }, { 1, 1, 3 },
+        { 2, 0, 4 }, { 2, 1, 5 }, { 2, 2, 6 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   // clang-format on
+
+   EXPECT_EQ( m_lower.getRows(), 3 );
+   EXPECT_EQ( m_lower.getColumns(), 3 );
+   EXPECT_EQ( m_lower.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_lower.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m_lower.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 2 ), RealType{ 6 } );
+}
+
+template< typename Matrix >
+void
+test_ConstructorWithStdMap()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   // Test constructor with std::map
+   // clang-format off
+   std::map< std::pair< IndexType, IndexType >, RealType > data{
+      { { 0, 0 }, 1 }, { { 0, 2 }, 2 },
+      { { 1, 1 }, 3 }, { { 1, 3 }, 4 },
+      { { 2, 0 }, 5 }, { { 2, 2 }, 6 },
+      { { 3, 1 }, 7 }, { { 3, 3 }, 8 }
+   };
+   // clang-format on
+
+   Matrix m( 4, 4, data );
+
+   EXPECT_EQ( m.getRows(), 4 );
+   EXPECT_EQ( m.getColumns(), 4 );
+
+   // Check non-zero elements
+   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 2 } );
+   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 4 } );
+   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 5 } );
+   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 7 } );
+   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 8 } );
+
+   // Check zero elements
+   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 0 } );
+
+   // Test with symmetric upper encoding
+   // clang-format off
+   std::map< std::pair< IndexType, IndexType >, RealType > symmetric_data{
+      { { 0, 0 }, 1 }, { { 0, 1 }, 2 }, { { 0, 2 }, 4 },
+                       { { 1, 1 }, 3 }, { { 1, 2 }, 5 },
+                                        { { 2, 2 }, 6 }
+   };
+   // clang-format on
+
+   Matrix m_upper( 3, 3, symmetric_data, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper );
+
+   EXPECT_EQ( m_upper.getRows(), 3 );
+   EXPECT_EQ( m_upper.getColumns(), 3 );
+   EXPECT_EQ( m_upper.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_upper.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_upper.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( m_upper.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( m_upper.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m_upper.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m_upper.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_upper.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_upper.getElement( 2, 2 ), RealType{ 6 } );
 }
 
 template< typename Matrix >
@@ -576,6 +771,99 @@ test_ForElements()
    for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
       for( IndexType colIdx = 0; colIdx < cols; colIdx++ )
          EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType( rowIdx + 1 ) );
+}
+
+template< typename Matrix >
+void
+test_ForElementsWithArray()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 8x3 sparse matrix:
+    *
+    *    /  1  1  1  \
+    *    |  2  2  2  |
+    *    |  1  1  1  |
+    *    |  4  4  4  |
+    *    |  1  1  1  |
+    *    |  6  6  6  |
+    *    |  1  1  1  |
+    *    \  8  8  8  /
+    */
+
+   const IndexType cols = 3;
+   const IndexType rows = 8;
+
+   Matrix m( rows, cols );
+   m.forAllElements(
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = 1.0;
+      } );
+
+   TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3, 5, 7 };
+   m.forElements( rowIndices,
+                  [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+                  {
+                     value = rowIdx + 1.0;
+                  } );
+
+   for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+      for( IndexType colIdx = 0; colIdx < cols; colIdx++ )
+         if( rowIdx % 2 == 1 )
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType( rowIdx + 1 ) );
+         else
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType{ 1 } );
+}
+
+template< typename Matrix >
+void
+test_ForElementsIf()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 8x3 sparse matrix:
+    *
+    *    /  1  1  1  \
+    *    |  2  2  2  |
+    *    |  1  1  1  |
+    *    |  4  4  4  |
+    *    |  1  1  1  |
+    *    |  6  6  6  |
+    *    |  1  1  1  |
+    *    \  8  8  8  /
+    */
+
+   const IndexType cols = 3;
+   const IndexType rows = 8;
+
+   Matrix m( rows, cols );
+   m.forAllElements(
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = 1.0;
+      } );
+
+   m.forAllElementsIf(
+      [] __cuda_callable__( IndexType rowIdx )
+      {
+         return rowIdx % 2 == 1;
+      },
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1.0;
+      } );
+
+   for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+      for( IndexType colIdx = 0; colIdx < cols; colIdx++ )
+         if( rowIdx % 2 == 1 )
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType( rowIdx + 1 ) );
+         else
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType{ 1 } );
 }
 
 template< typename Matrix >
@@ -1295,6 +1583,7 @@ protected:
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
@@ -1309,8 +1598,7 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< std::complex< float >, TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
@@ -1327,7 +1615,6 @@ using MatrixTypes = ::testing::Types<
    // TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
@@ -1370,6 +1657,20 @@ TYPED_TEST( MatrixTest, setElementsTest )
    using MatrixType = typename TestFixture::MatrixType;
 
    test_SetElements< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, constructorWithInitializerListSparseTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ConstructorWithInitializerListSparse< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, constructorWithStdMapTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ConstructorWithStdMap< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, getAllocatedElementsCountTest )
@@ -1433,6 +1734,20 @@ TYPED_TEST( MatrixTest, forElementsTest )
    using MatrixType = typename TestFixture::MatrixType;
 
    test_ForElements< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, forElementsWithArrayTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsWithArray< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, forElementsIfTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsIf< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, forRowsTest )

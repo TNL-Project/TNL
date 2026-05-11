@@ -54,9 +54,17 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsType()
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 auto
-BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsCount() const -> IndexType
+BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentCount() const -> IndexType
 {
    return this->segmentsPermutation.getSize();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+auto
+BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsCount() const -> IndexType
+{
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -82,6 +90,14 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 __cuda_callable__
 auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getSize() const -> IndexType
+{
+   return this->getElementCount();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+auto
+BiEllpackBase< Device, Index, Organization, WarpSize >::getElementCount() const -> IndexType
 {
    return this->size;
 }
@@ -169,7 +185,7 @@ __cuda_callable__
 auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getVirtualSegments() const -> IndexType
 {
-   return this->getVirtualSegments( this->getSegmentsCount() );
+   return this->getVirtualSegments( this->getSegmentCount() );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -225,7 +241,111 @@ template< typename Function >
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::forAllElements( Function&& function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+template< typename Array, typename Function >
+void
+BiEllpackBase< Device, Index, Organization, WarpSize >::forElements( const Array& segmentIndexes,
+                                                                     Index begin,
+                                                                     Index end,
+                                                                     Function function ) const
+{
+   const auto segmentsPermutationView = this->segmentsPermutation.getConstView();
+   const auto groupPointersView = this->groupPointers.getConstView();
+   auto segmentIndexesView = segmentIndexes.getConstView();
+   auto work =
+      [ segmentIndexesView, segmentsPermutationView, groupPointersView, function ] __cuda_callable__( IndexType idx ) mutable
+   {
+      const IndexType segmentIdx = segmentIndexesView[ idx ];
+      const IndexType strip = segmentIdx / getWarpSize();
+      const IndexType firstGroupInStrip = strip * ( getLogWarpSize() + 1 );
+      const IndexType segmentStripPerm = segmentsPermutationView[ segmentIdx ] - strip * getWarpSize();
+      const IndexType groupsCount =
+         detail::BiEllpack< IndexType, DeviceType, Organization, getWarpSize() >::getActiveGroupsCountDirect(
+            segmentsPermutationView, segmentIdx );
+      IndexType groupHeight = getWarpSize();
+      IndexType localIdx = 0;
+      for( IndexType groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+         IndexType groupOffset = groupPointersView[ groupIdx ];
+         const IndexType groupSize = groupPointersView[ groupIdx + 1 ] - groupOffset;
+         if( groupSize ) {
+            const IndexType groupWidth = groupSize / groupHeight;
+            for( IndexType i = 0; i < groupWidth; i++ ) {
+               if constexpr( Organization == RowMajorOrder ) {
+                  function( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i );
+               }
+               else {
+                  function( segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight );
+               }
+               localIdx++;
+            }
+         }
+         groupHeight /= 2;
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, work );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+template< typename Array, typename Function >
+void
+BiEllpackBase< Device, Index, Organization, WarpSize >::forElements( const Array& segmentIndexes, Function function ) const
+{
+   this->forElements( segmentIndexes, 0, segmentIndexes.getSize(), function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+template< typename Condition, typename Function >
+void
+BiEllpackBase< Device, Index, Organization, WarpSize >::forElementsIf( IndexType begin,
+                                                                       IndexType end,
+                                                                       Condition condition,
+                                                                       Function function ) const
+{
+   const auto segmentsPermutationView = this->segmentsPermutation.getConstView();
+   const auto groupPointersView = this->groupPointers.getConstView();
+   auto work =
+      [ segmentsPermutationView, groupPointersView, condition, function ] __cuda_callable__( IndexType segmentIdx ) mutable
+   {
+      if( ! condition( segmentIdx ) )
+         return;
+      const IndexType strip = segmentIdx / getWarpSize();
+      const IndexType firstGroupInStrip = strip * ( getLogWarpSize() + 1 );
+      const IndexType segmentStripPerm = segmentsPermutationView[ segmentIdx ] - strip * getWarpSize();
+      const IndexType groupsCount =
+         detail::BiEllpack< IndexType, DeviceType, Organization, getWarpSize() >::getActiveGroupsCountDirect(
+            segmentsPermutationView, segmentIdx );
+      IndexType groupHeight = getWarpSize();
+      IndexType localIdx = 0;
+      for( IndexType groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+         IndexType groupOffset = groupPointersView[ groupIdx ];
+         const IndexType groupSize = groupPointersView[ groupIdx + 1 ] - groupOffset;
+         if( groupSize ) {
+            const IndexType groupWidth = groupSize / groupHeight;
+            for( IndexType i = 0; i < groupWidth; i++ ) {
+               if constexpr( Organization == RowMajorOrder ) {
+                  function( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i );
+               }
+               else {
+                  function( segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight );
+               }
+               localIdx++;
+            }
+         }
+         groupHeight /= 2;
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, work );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+template< typename Condition, typename Function >
+void
+BiEllpackBase< Device, Index, Organization, WarpSize >::forAllElementsIf( Condition condition, Function function ) const
+{
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -247,7 +367,7 @@ template< typename Function >
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -256,7 +376,7 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::printStructure( std::ost
 {
    const IndexType stripsCount = roundUpDivision( this->getSize(), static_cast< IndexType >( getWarpSize() ) );
    for( IndexType stripIdx = 0; stripIdx < stripsCount; stripIdx++ ) {
-      str << "Strip: " << stripIdx << std::endl;
+      str << "Strip: " << stripIdx << '\n';
       const IndexType firstGroupIdx = stripIdx * ( getLogWarpSize() + 1 );
       const IndexType lastGroupIdx = firstGroupIdx + getLogWarpSize() + 1;
       IndexType groupHeight = getWarpSize();
@@ -264,7 +384,7 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::printStructure( std::ost
          const IndexType groupSize = groupPointers.getElement( groupIdx + 1 ) - groupPointers.getElement( groupIdx );
          const IndexType groupWidth = groupSize / groupHeight;
          str << "\tGroup: " << groupIdx << " size = " << groupSize << " width = " << groupWidth << " height = " << groupHeight
-             << " offset = " << groupPointers.getElement( groupIdx ) << std::endl;
+             << " offset = " << groupPointers.getElement( groupIdx ) << '\n';
          groupHeight /= 2;
       }
    }

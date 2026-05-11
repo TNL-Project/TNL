@@ -3,9 +3,16 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/CSR.h>
+
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Matrices/DenseMatrixBase.h>
+#include <TNL/Matrices/DenseMatrixView.h>
 #include <TNL/Matrices/SparseMatrixBase.h>
+#include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Matrices/SparseMatrixView.h>
+#include <TNL/Matrices/MultidiagonalMatrixView.h>
+#include <TNL/Matrices/TridiagonalMatrixView.h>
 
 namespace TNL::Matrices {
 
@@ -32,6 +39,54 @@ template< typename T >
 constexpr bool is_matrix_v = is_matrix< T >::value;
 
 /**
+ * \brief This checks if given type is matrix view.
+ */
+[[nodiscard]] constexpr std::false_type
+isMatrixView( ... )  // NOLINT(modernize-avoid-variadic-functions)
+{
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const DenseMatrixView< Real, Device, Index, Organization >& )
+{
+   return {};
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename > typename SegmentsView,
+          typename ComputeReal >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& )
+{
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const MultidiagonalMatrixView< Real, Device, Index, Organization >& )
+{
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const TridiagonalMatrixView< Real, Device, Index, Organization >& )
+{
+   return {};
+}
+
+template< typename T >
+using is_matrix_view = decltype( isMatrixView( std::declval< T >() ) );
+
+template< typename T >
+constexpr bool is_matrix_view_v = is_matrix_view< T >::value;
+
+/**
  * \brief This checks if the matrix is dense matrix.
  */
 [[nodiscard]] constexpr std::false_type
@@ -53,7 +108,7 @@ template< typename T >
 constexpr bool is_dense_matrix_v = is_dense_matrix< T >::value;
 
 /**
- * \brief This checks if the sparse matrix is stored in CSR format.
+ * \brief This checks if the type is sparse matrix.
  */
 [[nodiscard]] constexpr std::false_type
 isSparseMatrix( ... )  // NOLINT(modernize-avoid-variadic-functions)
@@ -69,9 +124,45 @@ isSparseMatrix( const SparseMatrixBase< Real, Device, Index, MatrixType, Segment
 }
 
 template< typename Matrix >
-using is_sparse_csr_matrix = decltype( isSparseMatrix( std::declval< Matrix >() ) );
+using is_sparse_matrix = decltype( isSparseMatrix( std::declval< Matrix >() ) );
 
 template< typename Matrix >
-constexpr bool is_sparse_csr_matrix_v = is_sparse_csr_matrix< Matrix >::value;
+constexpr bool is_sparse_matrix_v = is_sparse_matrix< Matrix >::value;
+
+/**
+ * \brief This checks if the sparse matrix is in CSR format.
+ */
+template< typename Matrix >
+struct isSparseCSRMatrix : public std::false_type
+{};
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename > class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+struct isSparseCSRMatrix<
+   SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator > >
+: public Algorithms::Segments::isCSRSegments< Segments< Device, Index, IndexAllocator > >::type
+{};
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename > class SegmentsView,
+          typename ComputeReal >
+struct isSparseCSRMatrix< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal > >
+: public Algorithms::Segments::isCSRSegments< SegmentsView< Device, Index > >::type
+{};
+
+template< typename Matrix >
+using is_sparse_csr_matrix = isSparseCSRMatrix< Matrix >;
+
+template< typename Matrix >
+constexpr bool is_sparse_csr_matrix_v = isSparseCSRMatrix< Matrix >::value;
 
 }  // namespace TNL::Matrices

@@ -5,6 +5,7 @@
 
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "MatrixBase.h"
 #include "SparseMatrixRowView.h"
 
@@ -38,20 +39,22 @@ namespace TNL::Matrices {
  * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it
  *         is set to \e Index type. This can be changed by the user, of course.
  */
-template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType, SegmentsView::getOrganization() >
+template< typename Real, typename Device, typename Index, typename MatrixType_, typename SegmentsView, typename ComputeReal >
+class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType_, SegmentsView::getOrganization() >
 {
    static_assert(
-      ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
+      ! MatrixType_::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
          || (std::is_same_v< std::decay_t< Real >, float > || std::is_same_v< std::decay_t< Real >, double >
              || std::is_same_v< std::decay_t< Real >, int > || std::is_same_v< std::decay_t< Real >, long long int >
              || std::is_same_v< std::decay_t< Real >, bool >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
-   using Base = MatrixBase< Real, Device, Index, MatrixType, SegmentsView::getOrganization() >;
+   using Base = MatrixBase< Real, Device, Index, MatrixType_, SegmentsView::getOrganization() >;
 
 public:
-   // TODO: add documentation for this type
+   /**
+    * \brief Type of the container view for matrix element column indexes.
+    */
    using ColumnIndexesViewType =
       Containers::VectorView< typename TNL::copy_const< Index >::template from< Real >::type, Device, Index >;
 
@@ -83,6 +86,11 @@ public:
     * \brief The type used for matrix elements indexing.
     */
    using IndexType = Index;
+
+   /**
+    * \brief The type of matrix - general or symmetric.
+    */
+   using MatrixType = MatrixType_;
 
    /**
     * \brief Type of segments view used by this matrix. It represents the sparse matrix format.
@@ -357,27 +365,48 @@ public:
     * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
     *                 for the reduction operation, i.e. element which does not
     *                 change the result of the reduction.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
-    *
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_reduceRows.cpp
     * \par Output
     * \include SparseMatrixExample_reduceRows.out
     */
+   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
+   void
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename Fetch, typename Reduce, typename Keep >
+   void
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
    template< typename Fetch,
              typename Reduce,
              typename Keep,
              typename FetchValue,
-             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   [[deprecated( "Use reduceRows without segments reduction kernel instead" )]] void
    reduceRows( IndexType begin,
                IndexType end,
                Fetch&& fetch,
                const Reduce& reduce,
                Keep&& keep,
                const FetchValue& identity,
-               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+               const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for performing general reduction on matrix rows for constant instances with function object
@@ -413,14 +442,19 @@ public:
     * \par Output
     * \include SparseMatrixExample_reduceRows.out
     */
-   template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+   template< typename Fetch,
+             typename Reduce,
+             typename Keep,
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   [[deprecated( "Use reduceRows without segments reduction kernel instead" )]] void
    reduceRows( IndexType begin,
                IndexType end,
                Fetch&& fetch,
                const Reduce& reduce,
                Keep&& keep,
-               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+               const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances.
@@ -453,67 +487,46 @@ public:
     * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
     *                 for the reduction operation, i.e. element which does not
     *                 change the result of the reduction.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_reduceAllRows.cpp
     * \par Output
     * \include SparseMatrixExample_reduceAllRows.out
     */
+   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
+   void
+   reduceAllRows(
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename Fetch, typename Reduce, typename Keep >
+   void
+   reduceAllRows(
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
    template< typename Fetch,
              typename Reduce,
              typename Keep,
              typename FetchValue,
-             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   [[deprecated( "Use reduceAllRows without segments reduction kernel instead" )]] void
    reduceAllRows( Fetch&& fetch,
                   const Reduce& reduce,
                   Keep&& keep,
                   const FetchValue& identity,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+                  const SegmentsReductionKernel& kernel ) const;
 
    /**
-    * \brief Method for performing general reduction on all matrix rows for constant instances
-    * with function object instead of lambda function for reduction.
-    *
-    * \tparam Fetch is a type of lambda function for data fetch declared as
-    *
-    * ```
-    * auto fetch = [] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue
-    * { ... };
-    * ```
-    *
-    * The return type of this lambda can be any non void.
-    * \tparam Reduce is a function object for reduction (some of \ref ReductionFunctionObjects).
-    * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
-    *
-    * ```
-    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
-    * ```
-    *
-    * \tparam FetchValue is type returned by the Fetch lambda function.
-    *
-    * \param fetch is an instance of lambda function for data fetch.
-    * \param reduce is an instance of function object for reduction.
-    * \param keep in an instance of lambda function for storing results.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceAllRowsWithFunctional.cpp
-    * \par Output
-    * \include SparseMatrixExample_reduceAllRows.out
-    */
-   template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
-   reduceAllRows( Fetch&& fetch,
-                  const Reduce& reduce,
-                  Keep&& keep,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
-
-   /**
-    * \brief Method for iteration over all matrix rows for constant instances.
+    * \brief Method for iteration over all matrix elements for (constant instances).
     *
     * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
@@ -527,14 +540,14 @@ public:
     *
     * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
     * \param end defines ending of the range `[begin, end)` of rows to be processed.
-    * \param function is an instance of the lambda function to be called in each row.
+    * \param function is an instance of the lambda function to be called for each matrix element.
     */
    template< typename Function >
    void
    forElements( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
-    * \brief Method for iteration over all matrix rows for non-constant instances.
+    * \brief Method for iteration over all matrix elements (for non-constant instances).
     *
     * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
@@ -547,7 +560,7 @@ public:
     *
     * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
     * \param end defines ending of the range `[begin, end)` of rows to be processed.
-    * \param function is an instance of the lambda function to be called in each row.
+    * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_forElements.cpp
@@ -559,7 +572,7 @@ public:
    forElements( IndexType begin, IndexType end, Function&& function );
 
    /**
-    * \brief This method calls \e forElements for all matrix rows (for constant instances).
+    * \brief This method calls \e forElements for all matrix matrix elements (for constant instances).
     *
     * See \ref SparseMatrix::forElements.
     *
@@ -571,7 +584,7 @@ public:
    forAllElements( Function&& function ) const;
 
    /**
-    * \brief This method calls \e forElements for all matrix rows.
+    * \brief This method calls \e forElements for all matrix rows. This is variant for non-constant instances.
     *
     * See \ref SparseMatrix::forElements.
     *
@@ -586,6 +599,226 @@ public:
    template< typename Function >
    void
    forAllElements( Function&& function );
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes,
+                IndexType begin,
+                IndexType end,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes,
+                IndexType begin,
+                IndexType end,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant
+    * for constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function );
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for constant instances).
+    *
+    * See \ref SparseMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for non-constant instances).
+    *
+    * See \ref SparseMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function );
 
    /**
     * \brief Method for parallel iteration over matrix rows from interval `[begin, end)`.
@@ -771,25 +1004,47 @@ public:
     *    is computed. It is zero by default.
     * \param end is the end of the rows range for which the vector product
     *    is computed. It is number if the matrix rows by default.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
+    * \param launchConfig is an instance of the launch configurations allowing to control the threads mapping.
     */
-   template< typename InVector, typename OutVector, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
+   template< typename InVector, typename OutVector >
+   void
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      ComputeRealType matrixMultiplicator = 1.0,
+      ComputeRealType outVectorMultiplicator = 0.0,
+      IndexType begin = 0,
+      IndexType end = 0,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename InVector, typename OutVector >
    void
    vectorProduct( const InVector& inVector,
                   OutVector& outVector,
-                  ComputeRealType matrixMultiplicator = 1.0,
-                  ComputeRealType outVectorMultiplicator = 0.0,
-                  IndexType begin = 0,
-                  IndexType end = 0,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+                  const Algorithms::Segments::LaunchConfiguration& launchConfig ) const;
+
+   template< typename InVector,
+             typename OutVector,
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > > >
+   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]] void
+   vectorProduct( const InVector& inVector,
+                  OutVector& outVector,
+                  ComputeRealType matrixMultiplicator,
+                  ComputeRealType outVectorMultiplicator,
+                  IndexType begin,
+                  IndexType end,
+                  const SegmentsReductionKernel& kernel ) const;
 
    template< typename InVector,
              typename OutVector,
              typename SegmentsReductionKernel,
              typename...,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > >,
              std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
-   void
+   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]] void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
    /**
@@ -877,7 +1132,8 @@ public:
     *
     * \return Non-constant reference to segments.
     */
-   [[nodiscard]] SegmentsViewType&
+   [[nodiscard]] __cuda_callable__
+   SegmentsViewType&
    getSegments();
 
    /**
@@ -888,7 +1144,8 @@ public:
     *
     * \return Constant reference to segments.
     */
-   [[nodiscard]] const SegmentsViewType&
+   [[nodiscard]] __cuda_callable__
+   const SegmentsViewType&
    getSegments() const;
 
    /**
@@ -896,7 +1153,8 @@ public:
     *
     * \return Constant reference to a vector with matrix elements column indexes.
     */
-   [[nodiscard]] const ColumnIndexesViewType&
+   [[nodiscard]] __cuda_callable__
+   const ColumnIndexesViewType&
    getColumnIndexes() const;
 
    /**
@@ -904,7 +1162,8 @@ public:
     *
     * \return Reference to a vector with matrix elements column indexes.
     */
-   [[nodiscard]] ColumnIndexesViewType&
+   [[nodiscard]] __cuda_callable__
+   ColumnIndexesViewType&
    getColumnIndexes();
 
 protected:

@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/printSegments.h>
+#include <TNL/Algorithms/Segments/print.h>
 #include <TNL/Algorithms/Segments/GrowingSegmentsView.h>
 
 namespace TNL::Algorithms::Segments {
@@ -72,7 +72,7 @@ struct GrowingSegments : public Segments
    void
    forAllElements( Function&& f )
    {
-      forElements( 0, this->getSegmentsCount(), f );
+      forElements( 0, this->getSegmentCount(), f );
    }
 
    /*template< typename Function >
@@ -105,7 +105,7 @@ struct GrowingSegments : public Segments
    void
    reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Value& identity ) const
    {
-      this->reduceSegments( (IndexType) 0, this->getSegmentsCount(), fetch, reduction, keeper, identity );
+      this->reduceSegments( (IndexType) 0, this->getSegmentCount(), fetch, reduction, keeper, identity );
    }
 
    void
