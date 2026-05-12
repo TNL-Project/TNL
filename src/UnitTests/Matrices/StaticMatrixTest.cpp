@@ -296,7 +296,7 @@ TEST( StaticNDArrayTest, 2x2_determinant )
 
    float det = determinant( M );
 
-   EXPECT_EQ( -29, det );
+   EXPECT_FLOAT_EQ( -29, det );
 }
 
 TEST( StaticNDArrayTest, 3x3_determinant )
@@ -309,7 +309,7 @@ TEST( StaticNDArrayTest, 3x3_determinant )
 
    float det = determinant( M );
 
-   EXPECT_EQ( 132, det );
+   EXPECT_FLOAT_EQ( 132, det );
 }
 
 TEST( StaticNDArrayTest, 4x4_determinant )
@@ -322,7 +322,7 @@ TEST( StaticNDArrayTest, 4x4_determinant )
 
    float det = determinant( M );
 
-   EXPECT_EQ( 723.25, det );
+   EXPECT_FLOAT_EQ( 723.25f, det );
 }
 
 TEST( StaticNDArrayTest, 2x2_linear_system )
