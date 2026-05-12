@@ -44,7 +44,7 @@ struct ParallelFor3D< Devices::Host >
 #ifdef HAVE_OPENMP
       // Benchmarks show that this is significantly faster compared
       // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
-      if( Devices::Host::isOMPEnabled() ) {
+      if( Devices::Host::isOMPEnabled() && begin.x() < end.x() && begin.y() < end.y() && begin.z() < end.z() ) {
          using Index = typename MultiIndex::ValueType;
          #pragma omp parallel for collapse( 2 )
          for( Index z = begin.z(); z < end.z(); z++ )
