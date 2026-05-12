@@ -1195,7 +1195,7 @@ Similar and even a bit simpler way of setting the matrix elements is offered by 
 
 In this case, we need to provide a lambda function `f` (lines 27-43) which is called for each matrix row just by the method `forElements` (line 44). The lambda function `f` provides the following parameters
 
-* `rowIdx` is an index iof the matrix row.
+* `rowIdx` is an index of the matrix row.
 * `localIdx` is in index of the matrix subdiagonal.
 * `columnIdx` is a column index of the matrix element.
 * `value` is a reference to the matrix element value. It can be used even for changing the value.
