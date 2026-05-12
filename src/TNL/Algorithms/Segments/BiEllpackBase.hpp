@@ -374,7 +374,7 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::printStructure( std::ostream& str ) const
 {
-   const IndexType stripsCount = roundUpDivision( this->getSize(), static_cast< IndexType >( getWarpSize() ) );
+   const IndexType stripsCount = roundUpDivision( this->getElementCount(), static_cast< IndexType >( getWarpSize() ) );
    for( IndexType stripIdx = 0; stripIdx < stripsCount; stripIdx++ ) {
       str << "Strip: " << stripIdx << '\n';
       const IndexType firstGroupIdx = stripIdx * ( getLogWarpSize() + 1 );
