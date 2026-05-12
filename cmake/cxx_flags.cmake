@@ -67,6 +67,17 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     # avoid warning: explicit comparison with NaN in fast floating point mode [-Wtautological-constant-compare]
     # see https://github.com/mfem/mfem/issues/3655#issuecomment-1569294763
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities -fhonor-nans")
+    # Workaround for icpx 2026.0 ICE at -O3 (segfault in the clang frontend
+    # during inlining of deeply nested template instantiations).
+    # Reducing the inline threshold avoids the crash while preserving -O3 optimizations.
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 2026.0.0)
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mllvm -inline-threshold=10")
+        set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -mllvm -inline-threshold=10")
+        # CMake propagates CXX flags to the linker, where -mllvm options are unused and
+        # -Werror makes it fatal. Suppress the warning.
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wno-unused-command-line-argument")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wno-unused-command-line-argument")
+    endif()
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled
