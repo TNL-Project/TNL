@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
     cuda_samples
     GIT_REPOSITORY https://github.com/NVIDIA/cuda-samples.git
-    GIT_TAG v13.1
+    GIT_TAG v13.2
     SYSTEM
     EXCLUDE_FROM_ALL
 )
