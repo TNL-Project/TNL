@@ -23,20 +23,18 @@ class PVTUReader : public XMLVTK
       return path.string();
    }
 
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
    void
    readParallelUnstructuredGrid()
    {
-      using namespace tinyxml2;
-
       // read GhostLevel attribute
       ghostLevels = getAttributeInteger( datasetElement, "GhostLevel" );
       // read MinCommonVertices attribute (TNL-specific, optional)
       minCommonVertices = getAttributeInteger( datasetElement, "MinCommonVertices", 0 );
 
       // read points info
-      const XMLElement* points = getChildSafe( datasetElement, "PPoints" );
-      const XMLElement* pointsData = verifyHasOnlyOneChild( points, "PDataArray" );
+      pugi::xml_node points = getChildSafe( datasetElement, "PPoints" );
+      pugi::xml_node pointsData = verifyHasOnlyOneChild( points, "PDataArray" );
       verifyDataArray( pointsData, "PDataArray" );
       const std::string pointsDataName = getAttributeString( pointsData, "Name" );
       if( pointsDataName != "Points" )
@@ -45,15 +43,15 @@ class PVTUReader : public XMLVTK
       pointsType = VTKDataTypes.at( getAttributeString( pointsData, "type" ) );
 
       // read pieces info
-      const XMLElement* piece = getChildSafe( datasetElement, "Piece" );
-      while( piece != nullptr ) {
+      pugi::xml_node piece = getChildSafe( datasetElement, "Piece" );
+      while( ! piece.empty() ) {
          const std::string source = getAttributeString( piece, "Source" );
          if( ! source.empty() )
             pieceSources.push_back( getSourcePath( source ) );
          else
             throw MeshReaderError( "PVTUReader", "the Source attribute of a <Piece> element was found empty." );
          // find next
-         piece = piece->NextSiblingElement( "Piece" );
+         piece = piece.next_sibling( "Piece" );
       }
       if( pieceSources.empty() )
          throw MeshReaderError( "PVTUReader", "the file does not contain any <Piece> element." );
@@ -110,7 +108,7 @@ public:
    void
    detectMesh() override
    {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
       reset();
       try {
          openVTKFile();
@@ -130,7 +128,7 @@ public:
       // indicate success by setting the mesh type
       meshType = "Meshes::DistributedMesh";
 #else
-      throw_no_tinyxml();
+      throw_no_xml();
 #endif
    }
 

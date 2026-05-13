@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdlib>
 #include <map>
 #include <set>
 #include <filesystem>
@@ -15,8 +16,8 @@
    #include <TNL/zlib_compression.h>
 #endif
 
-#ifdef HAVE_TINYXML2
-   #include <tinyxml2.h>
+#ifdef HAVE_PUGIXML
+   #include <pugixml.hpp>
 #endif
 
 namespace TNL::Meshes::Readers {
@@ -30,77 +31,85 @@ static const std::map< std::string, std::string > VTKDataTypes{ { "Int8", "std::
 class XMLVTK : public MeshReader
 {
 protected:
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
    static void
-   verifyElement( const tinyxml2::XMLElement* elem, const std::string& name )
+   verifyElement( const pugi::xml_node& elem, const std::string& name )
    {
-      if( elem == nullptr )
+      if( elem.empty() )
          throw MeshReaderError( "XMLVTK", "tag <" + name + "> not found" );
-      if( elem->Name() != name )
-         throw MeshReaderError(
-            "XMLVTK", "invalid XML format - expected a <" + name + "> element, got <" + elem->Name() + ">" );
+      if( elem.name() != name )
+         throw MeshReaderError( "XMLVTK", "invalid XML format - expected a <" + name + "> element, got <" + elem.name() + ">" );
    }
 
-   static const tinyxml2::XMLElement*
-   verifyHasOnlyOneChild( const tinyxml2::XMLElement* parent, const std::string& childName = "" )
+   static pugi::xml_node
+   verifyHasOnlyOneChild( const pugi::xml_node& parent, const std::string& childName = "" )
    {
-      const std::string parentName = parent->Name();
-      const tinyxml2::XMLElement* elem = parent->FirstChildElement();
+      const std::string parentName = parent.name();
+      pugi::xml_node elem = parent.first_child();
       if( ! childName.empty() )
          verifyElement( elem, childName );
-      else if( elem == nullptr )
+      else if( elem.empty() )
          throw MeshReaderError( "XMLVTK", "element " + parentName + " does not contain any child" );
-      if( elem->NextSibling() != nullptr )
+      if( ! elem.next_sibling().empty() )
          throw MeshReaderError( "XMLVTK", "<" + childName + "> is not the only element in <" + parentName + ">" );
       return elem;
    }
 
    static std::string
-   getAttributeString( const tinyxml2::XMLElement* elem, const std::string& name, std::string defaultValue = "" )
+   getAttributeString( const pugi::xml_node& elem, const std::string& name, std::string defaultValue = "" )
    {
-      const char* attribute = nullptr;
-      attribute = elem->Attribute( name.c_str() );
-      if( attribute != nullptr )
-         return attribute;
+      pugi::xml_attribute attr = elem.attribute( name.c_str() );
+      if( ! attr.empty() )
+         return attr.value();
       if( ! defaultValue.empty() )
          return defaultValue;
       throw MeshReaderError(
-         "XMLVTK", "element <" + std::string( elem->Name() ) + "> does not have the attribute '" + name + "'" );
+         "XMLVTK", "element <" + std::string( elem.name() ) + "> does not have the attribute '" + name + "'" );
    }
 
    static std::int64_t
-   getAttributeInteger( const tinyxml2::XMLElement* elem, const std::string& name )
+   getAttributeInteger( const pugi::xml_node& elem, const std::string& name )
    {
-      std::int64_t value;
-      tinyxml2::XMLError status = elem->QueryInt64Attribute( name.c_str(), &value );
-      if( status != tinyxml2::XML_SUCCESS )
+      pugi::xml_attribute attr = elem.attribute( name.c_str() );
+      if( attr.empty() )
+         throw MeshReaderError(
+            "XMLVTK", "element <" + std::string( elem.name() ) + "> does not have the attribute '" + name + "'" );
+      // parse with strtoll: end points past the last parsed character
+      char* end = nullptr;
+      const std::int64_t value = std::strtoll( attr.value(), &end, 10 );
+      // end == attr.value() means no digits were parsed, *end != '\0' means trailing junk
+      if( end == attr.value() || *end != '\0' )
          throw MeshReaderError(
             "XMLVTK",
-            "element <" + std::string( elem->Name() ) + "> does not have the attribute '" + name
-               + "' or it could not be converted to int64_t" );
+            "attribute '" + name + "' of element <" + std::string( elem.name() )
+               + "> could not be converted to int64_t (value is '" + attr.value() + "')" );
       return value;
    }
 
    static std::int64_t
-   getAttributeInteger( const tinyxml2::XMLElement* elem, const std::string& name, int64_t defaultValue )
+   getAttributeInteger( const pugi::xml_node& elem, const std::string& name, int64_t defaultValue )
    {
-      std::int64_t value;
-      tinyxml2::XMLError status = elem->QueryInt64Attribute( name.c_str(), &value );
-      if( status != tinyxml2::XML_SUCCESS )
+      pugi::xml_attribute attr = elem.attribute( name.c_str() );
+      if( attr.empty() )
+         return defaultValue;
+      // same strtoll parsing as above, but returns defaultValue on failure
+      char* end = nullptr;
+      const std::int64_t value = std::strtoll( attr.value(), &end, 10 );
+      if( end == attr.value() || *end != '\0' )
          return defaultValue;
       return value;
    }
 
-   [[nodiscard]] static const tinyxml2::XMLElement*
-   getChildSafe( const tinyxml2::XMLElement* parent, const std::string& name )
+   [[nodiscard]] static pugi::xml_node
+   getChildSafe( const pugi::xml_node& parent, const std::string& name )
    {
-      const tinyxml2::XMLElement* child = parent->FirstChildElement( name.c_str() );
+      pugi::xml_node child = parent.child( name.c_str() );
       verifyElement( child, name );
       return child;
    }
 
    static void
-   verifyDataArray( const tinyxml2::XMLElement* elem, const std::string& elemName = "DataArray" )
+   verifyDataArray( const pugi::xml_node& elem, const std::string& elemName = "DataArray" )
    {
       // the elemName parameter is necessary due to parallel formats using "PDataArray"
       verifyElement( elem, elemName );
@@ -123,12 +132,12 @@ protected:
          throw MeshReaderError( "XMLVTK", "unsupported NumberOfComponents in " + elemName + ": " + NumberOfComponents );
    }
 
-   [[nodiscard]] static const tinyxml2::XMLElement*
-   getDataArrayByName( const tinyxml2::XMLElement* parent, const std::string& name )
+   [[nodiscard]] static pugi::xml_node
+   getDataArrayByName( const pugi::xml_node& parent, const std::string& name )
    {
-      const tinyxml2::XMLElement* found = nullptr;
-      const tinyxml2::XMLElement* child = parent->FirstChildElement( "DataArray" );
-      while( child != nullptr ) {
+      pugi::xml_node found;
+      pugi::xml_node child = parent.child( "DataArray" );
+      while( ! child.empty() ) {
          verifyElement( child, "DataArray" );
          std::string arrayName;
          try {
@@ -137,20 +146,20 @@ protected:
          catch( const MeshReaderError& ) {
          }
          if( arrayName == name ) {
-            if( found == nullptr )
+            if( found.empty() )
                found = child;
             else
                throw MeshReaderError(
                   "XMLVTK",
-                  "the <" + std::string( parent->Name() ) + "> tag contains multiple <DataArray> tags with the Name=\"" + name
+                  "the <" + std::string( parent.name() ) + "> tag contains multiple <DataArray> tags with the Name=\"" + name
                      + "\" attribute" );
          }
-         child = child->NextSiblingElement( "DataArray" );
+         child = child.next_sibling( "DataArray" );
       }
-      if( found == nullptr )
+      if( found.empty() )
          throw MeshReaderError(
             "XMLVTK",
-            "the <" + std::string( parent->Name() ) + "> tag does not contain any <DataArray> tag with the Name=\"" + name
+            "the <" + std::string( parent.name() ) + "> tag does not contain any <DataArray> tag with the Name=\"" + name
                + "\" attribute" );
       verifyDataArray( found );
       return found;
@@ -161,7 +170,7 @@ protected:
    readAsciiBlock( const char* block ) const
    {
       // handle empty array
-      if( ! block )
+      if( ! block || block[ 0 ] == '\0' )
          return std::vector< T >{};
 
       // creating a copy of the block is rather costly, but so is ASCII parsing
@@ -186,7 +195,7 @@ protected:
    readBinaryBlock( const char* block ) const
    {
       // handle empty array
-      if( ! block )
+      if( ! block || block[ 0 ] == '\0' )
          return std::vector< T >{};
 
       // skip whitespace at the beginning
@@ -262,10 +271,10 @@ protected:
    }
 
    [[nodiscard]] VariantVector
-   readDataArray( const tinyxml2::XMLElement* elem, const std::string& arrayName ) const
+   readDataArray( const pugi::xml_node& elem, const std::string& arrayName ) const
    {
       verifyElement( elem, "DataArray" );
-      const char* block = elem->GetText();
+      const char* block = elem.child_value();
       const std::string type = getAttributeString( elem, "type" );
       const std::string format = getAttributeString( elem, "format" );
       if( format == "ascii" ) {
@@ -324,24 +333,24 @@ protected:
    [[nodiscard]] VariantVector
    readPointOrCellData( const std::string& sectionName, const std::string& arrayName ) const
    {
-      const tinyxml2::XMLElement* piece = getChildSafe( datasetElement, "Piece" );
-      if( piece->NextSiblingElement( "Piece" ) != nullptr )
+      pugi::xml_node piece = getChildSafe( datasetElement, "Piece" );
+      if( ! piece.next_sibling( "Piece" ).empty() )
          // ambiguity - throw error, we don't know which piece to parse
          throw MeshReaderError( "XMLVTK", "the dataset element <" + fileType + "> contains more than one <Piece> element" );
-      const tinyxml2::XMLElement* pointData = getChildSafe( piece, sectionName );
-      if( pointData->NextSiblingElement( sectionName.c_str() ) != nullptr )
+      pugi::xml_node pointData = getChildSafe( piece, sectionName );
+      if( ! pointData.next_sibling( sectionName.c_str() ).empty() )
          throw MeshReaderError( "XMLVTK", "the <Piece> element contains more than one <" + sectionName + "> element" );
-      const tinyxml2::XMLElement* dataArray = getDataArrayByName( pointData, arrayName );
+      pugi::xml_node dataArray = getDataArrayByName( pointData, arrayName );
       return readDataArray( dataArray, arrayName );
    }
 #endif
 
    [[noreturn]] static void
-   throw_no_tinyxml()
+   throw_no_xml()
    {
       throw std::runtime_error(
-         "The program was compiled without XML parsing. Make sure that TinyXML-2 is "
-         "installed and recompile the program with -DHAVE_TINYXML2." );
+         "The program was compiled without XML parsing. Make sure that pugixml is "
+         "installed and recompile the program with -DHAVE_PUGIXML." );
    }
 
 public:
@@ -354,8 +363,7 @@ public:
    void
    openVTKFile()
    {
-#ifdef HAVE_TINYXML2
-      using namespace tinyxml2;
+#ifdef HAVE_PUGIXML
       namespace fs = std::filesystem;
 
       if( ! fs::exists( fileName ) )
@@ -364,14 +372,14 @@ public:
          throw MeshReaderError( "XMLVTK", "path '" + fileName + "' is a directory" );
 
       // load and verify XML
-      tinyxml2::XMLError status = dom.LoadFile( fileName.c_str() );
-      if( status != XML_SUCCESS )
+      pugi::xml_parse_result result = doc.load_file( fileName.c_str() );
+      if( ! result )
          throw MeshReaderError( "XMLVTK", "failed to parse the file " + fileName + " as an XML document." );
 
       // verify root element
-      const XMLElement* elem = dom.FirstChildElement();
+      pugi::xml_node elem = doc.child( "VTKFile" );
       verifyElement( elem, "VTKFile" );
-      if( elem->NextSibling() != nullptr )
+      if( ! elem.next_sibling().empty() )
          throw MeshReaderError( "XMLVTK", "<VTKFile> is not the only element in the file " + fileName );
 
       // verify byte order
@@ -401,27 +409,27 @@ public:
       fileType = getAttributeString( elem, "type" );
       datasetElement = verifyHasOnlyOneChild( elem, fileType );
 #else
-      throw_no_tinyxml();
+      throw_no_xml();
 #endif
    }
 
    [[nodiscard]] VariantVector
    readPointData( const std::string& arrayName ) const override
    {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
       return readPointOrCellData( "PointData", arrayName );
 #else
-      throw_no_tinyxml();
+      throw_no_xml();
 #endif
    }
 
    [[nodiscard]] VariantVector
    readCellData( const std::string& arrayName ) const override
    {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
       return readPointOrCellData( "CellData", arrayName );
 #else
-      throw_no_tinyxml();
+      throw_no_xml();
 #endif
    }
 
@@ -431,9 +439,9 @@ public:
       resetBase();
       fileType = "";
       byteOrder = compressor = headerType = "";
-#ifdef HAVE_TINYXML2
-      dom.Clear();
-      datasetElement = nullptr;
+#ifdef HAVE_PUGIXML
+      doc.reset();
+      datasetElement = pugi::xml_node();
 #endif
    }
 
@@ -444,12 +452,12 @@ protected:
    // other attributes parsed from the <VTKFile> element
    std::string byteOrder, compressor, headerType;
 
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
    // internal attribute representing the whole XML file
-   tinyxml2::XMLDocument dom;
+   pugi::xml_document doc;
 
    // pointer to the main XML element (e.g. <UnstructuredGrid>)
-   const tinyxml2::XMLElement* datasetElement = nullptr;
+   pugi::xml_node datasetElement;
 #endif
 };
 

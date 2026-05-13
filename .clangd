@@ -7,7 +7,7 @@ CompileFlags:
     - "-DHAVE_HYPRE"
     - "-DHAVE_OPENMP"
     - "-DHAVE_MPI"
-    - "-DHAVE_TINYXML2"
+    - "-DHAVE_PUGIXML"
     - "-DHAVE_ZLIB"
     - "-xcu"
   Remove:

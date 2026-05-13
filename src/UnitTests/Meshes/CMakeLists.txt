@@ -52,9 +52,9 @@ if(DEFINED ENV{GITLAB_CI} AND CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")
 endif()
 
 find_package(ZLIB)
-find_package(tinyxml2)
+find_package(pugixml)
 
-if(ZLIB_FOUND AND tinyxml2_FOUND)
+if(ZLIB_FOUND AND pugixml_FOUND)
     foreach(target IN ITEMS ${SPECIAL_TESTS})
         add_executable(${target} ${target}.cpp)
         target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
@@ -64,8 +64,8 @@ if(ZLIB_FOUND AND tinyxml2_FOUND)
         target_compile_definitions(${target} PUBLIC "-DHAVE_ZLIB")
         target_link_libraries(${target} PUBLIC ZLIB::ZLIB)
 
-        target_compile_definitions(${target} PUBLIC "-DHAVE_TINYXML2")
-        target_link_libraries(${target} PUBLIC tinyxml2::tinyxml2)
+        target_compile_definitions(${target} PUBLIC "-DHAVE_PUGIXML")
+        target_link_libraries(${target} PUBLIC pugixml::pugixml)
 
         # configure path to the data directory
         target_compile_definitions(${target} PUBLIC "-DTNL_MESH_TESTS_DATA_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/data\"")

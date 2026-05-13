@@ -11,7 +11,7 @@ namespace TNL::Meshes::Readers {
 
 class VTIReader : public XMLVTK
 {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
    void
    readImageData()
    {
@@ -21,9 +21,8 @@ class VTIReader : public XMLVTK
       const std::string spacing = getAttributeString( datasetElement, "Spacing" );
 
       // check the <Piece> tag
-      using namespace tinyxml2;
-      const XMLElement* piece = getChildSafe( datasetElement, "Piece" );
-      if( piece->NextSiblingElement( "Piece" ) != nullptr )
+      pugi::xml_node piece = getChildSafe( datasetElement, "Piece" );
+      if( ! piece.next_sibling( "Piece" ).empty() )
          // ambiguity - throw error, we don't know which piece to parse (or all of them?)
          throw MeshReaderError( "VTIReader", "the serial ImageData file contains more than one <Piece> element" );
       const std::string pieceExtent = getAttributeString( piece, "Extent" );
@@ -121,7 +120,7 @@ public:
    void
    detectMesh() override
    {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
       reset();
       try {
          openVTKFile();
@@ -141,7 +140,7 @@ public:
       // indicate success by setting the mesh type
       meshType = "Meshes::Grid";
 #else
-      throw_no_tinyxml();
+      throw_no_xml();
 #endif
    }
 };

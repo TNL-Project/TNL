@@ -249,11 +249,11 @@ computing platform, and (optionally) some libraries.
       <td> `-DHAVE_ZLIB -lz` </td>
       <td> </td>
   </tr>
-  <tr><td> [TinyXML2](https://github.com/leethomason/tinyxml2/) </td>
+  <tr><td> [pugixml](https://github.com/zeux/pugixml/) </td>
       <td> \ref TNL::Meshes::Readers "XML-based mesh readers" </td>
-      <td> `-DHAVE_TINYXML2 -ltinyxml2` </td>
-      <td> If TinyXML2 is not found as a system library, CMake
-           will download, compile and install TinyXML2 along with TNL. </td>
+      <td> `-DHAVE_PUGIXML -lpugixml` </td>
+      <td> If pugixml is not found as a system library, CMake
+           will download, compile and install pugixml along with TNL. </td>
   </tr>
   <tr><td> [CGAL](https://github.com/CGAL/cgal/) </td>
       <td> Additional mesh ordering algorithms for `tnl-reorder-mesh` and `tnl-plot-mesh-ordering` </td>

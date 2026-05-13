@@ -22,12 +22,10 @@ class PVTIReader : public XMLVTK
       return path.string();
    }
 
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
    void
    readParallelImageData()
    {
-      using namespace tinyxml2;
-
       // read the required attributes
       const std::string extent = getAttributeString( datasetElement, "WholeExtent" );
       const std::string origin = getAttributeString( datasetElement, "Origin" );
@@ -117,15 +115,15 @@ class PVTIReader : public XMLVTK
       minCommonVertices = getAttributeInteger( datasetElement, "MinCommonVertices", 0 );
 
       // read pieces info
-      const XMLElement* piece = getChildSafe( datasetElement, "Piece" );
-      while( piece != nullptr ) {
+      pugi::xml_node piece = getChildSafe( datasetElement, "Piece" );
+      while( ! piece.empty() ) {
          const std::string source = getAttributeString( piece, "Source" );
          if( ! source.empty() )
             pieceSources.push_back( getSourcePath( source ) );
          else
             throw MeshReaderError( "PVTIReader", "the Source attribute of a <Piece> element was found empty." );
          // find next
-         piece = piece->NextSiblingElement( "Piece" );
+         piece = piece.next_sibling( "Piece" );
       }
       if( pieceSources.empty() )
          throw MeshReaderError( "PVTIReader", "the file does not contain any <Piece> element." );
@@ -183,7 +181,7 @@ public:
    void
    detectMesh() override
    {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
       reset();
       try {
          openVTKFile();
@@ -203,7 +201,7 @@ public:
       // indicate success by setting the mesh type
       meshType = "Meshes::DistributedGrid";
 #else
-      throw_no_tinyxml();
+      throw_no_xml();
 #endif
    }
 

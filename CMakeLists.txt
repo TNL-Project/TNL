@@ -208,7 +208,7 @@ endif()
 
 # Optionally bundled dependencies (system packages are preferred)
 # Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
-include(FetchTinyXML2)
+include(FetchPugiXML)
 
 # Fetch CUDA samples for reference sorting algorithms (only if building CUDA)
 if(TNL_BUILD_CUDA AND TNL_FETCH_CUDA_SAMPLES)

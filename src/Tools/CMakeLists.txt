@@ -1,4 +1,4 @@
-# Mesh tools: will link to zlib and tinyxml2
+# Mesh tools: will link to zlib and pugixml
 set(MESH_TOOLS
     tnl-decompose-grid
     tnl-grid-to-mesh
@@ -42,15 +42,15 @@ foreach(target IN ITEMS ${CUDA_MESH_TOOLS})
 endforeach()
 
 find_package(ZLIB)
-find_package(tinyxml2)
+find_package(pugixml)
 foreach(target IN ITEMS ${MESH_TOOLS})
     if(ZLIB_FOUND)
         target_compile_definitions(${target} PUBLIC "-DHAVE_ZLIB")
         target_link_libraries(${target} PUBLIC ZLIB::ZLIB)
     endif()
-    if(tinyxml2_FOUND)
-        target_compile_definitions(${target} PUBLIC "-DHAVE_TINYXML2")
-        target_link_libraries(${target} PUBLIC tinyxml2::tinyxml2)
+    if(pugixml_FOUND)
+        target_compile_definitions(${target} PUBLIC "-DHAVE_PUGIXML")
+        target_link_libraries(${target} PUBLIC pugixml::pugixml)
     endif()
     install(TARGETS ${target} DESTINATION bin COMPONENT tools)
 endforeach()
@@ -83,9 +83,9 @@ if(TNL_BUILD_CPP_TARGETS AND METIS_FOUND)
         target_compile_definitions(tnl-decompose-mesh PUBLIC "-DHAVE_ZLIB")
         target_link_libraries(tnl-decompose-mesh PUBLIC ZLIB::ZLIB)
     endif()
-    if(tinyxml2_FOUND)
-        target_compile_definitions(tnl-decompose-mesh PUBLIC "-DHAVE_TINYXML2")
-        target_link_libraries(tnl-decompose-mesh PUBLIC tinyxml2::tinyxml2)
+    if(pugixml_FOUND)
+        target_compile_definitions(tnl-decompose-mesh PUBLIC "-DHAVE_PUGIXML")
+        target_link_libraries(tnl-decompose-mesh PUBLIC pugixml::pugixml)
     endif()
     install(TARGETS tnl-decompose-mesh DESTINATION bin COMPONENT tools)
 endif()

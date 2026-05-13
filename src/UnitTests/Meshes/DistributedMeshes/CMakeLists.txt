@@ -69,17 +69,17 @@ if(TNL_BUILD_MPI)
 
     # external libraries for tests which use mesh readers
     find_package(ZLIB)
-    find_package(tinyxml2)
+    find_package(pugixml)
 
-    if(ZLIB_FOUND AND tinyxml2_FOUND)
+    if(ZLIB_FOUND AND pugixml_FOUND)
         # TODO: Fix distributed grid.
         # foreach( target IN ITEMS DistributedGridTest_1D DistributedGridTest_2D DistributedGridTest_3D DistributedMeshTest )
         foreach(target IN ITEMS DistributedMeshTest)
             target_compile_definitions(${target} PUBLIC "-DHAVE_ZLIB")
             target_link_libraries(${target} PUBLIC ZLIB::ZLIB)
 
-            target_compile_definitions(${target} PUBLIC "-DHAVE_TINYXML2")
-            target_link_libraries(${target} PUBLIC tinyxml2::tinyxml2)
+            target_compile_definitions(${target} PUBLIC "-DHAVE_PUGIXML")
+            target_link_libraries(${target} PUBLIC pugixml::pugixml)
         endforeach()
     endif()
 

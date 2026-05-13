@@ -10,31 +10,30 @@ namespace TNL::Meshes::Readers {
 
 class VTUReader : public XMLVTK
 {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
    void
    readUnstructuredGrid()
    {
-      using namespace tinyxml2;
-      const XMLElement* piece = getChildSafe( datasetElement, "Piece" );
-      if( piece->NextSiblingElement( "Piece" ) != nullptr )
+      pugi::xml_node piece = getChildSafe( datasetElement, "Piece" );
+      if( ! piece.next_sibling( "Piece" ).empty() )
          // ambiguity - throw error, we don't know which piece to parse (or all of them?)
          throw MeshReaderError( "VTUReader", "the serial UnstructuredGrid file contains more than one <Piece> element" );
       NumberOfPoints = getAttributeInteger( piece, "NumberOfPoints" );
       NumberOfCells = getAttributeInteger( piece, "NumberOfCells" );
 
       // verify points
-      const XMLElement* points = getChildSafe( piece, "Points" );
-      const XMLElement* pointsData = verifyHasOnlyOneChild( points, "DataArray" );
+      pugi::xml_node points = getChildSafe( piece, "Points" );
+      pugi::xml_node pointsData = verifyHasOnlyOneChild( points, "DataArray" );
       verifyDataArray( pointsData );
       const std::string pointsDataName = getAttributeString( pointsData, "Name" );
       if( pointsDataName != "Points" )
          throw MeshReaderError( "VTUReader", "the <Points> tag does not contain a <DataArray> with Name=\"Points\" attribute" );
 
       // verify cells
-      const XMLElement* cells = getChildSafe( piece, "Cells" );
-      const XMLElement* connectivity = getDataArrayByName( cells, "connectivity" );
-      const XMLElement* offsets = getDataArrayByName( cells, "offsets" );
-      const XMLElement* types = getDataArrayByName( cells, "types" );
+      pugi::xml_node cells = getChildSafe( piece, "Cells" );
+      pugi::xml_node connectivity = getDataArrayByName( cells, "connectivity" );
+      pugi::xml_node offsets = getDataArrayByName( cells, "offsets" );
+      pugi::xml_node types = getDataArrayByName( cells, "types" );
 
       // read the points, connectivity, offsets and types into intermediate arrays
       pointsArray = readDataArray( pointsData, "Points" );
@@ -149,8 +148,8 @@ class VTUReader : public XMLVTK
          // - https://github.com/nschloe/meshio/pull/916
          // - https://github.com/nschloe/meshio/blob/b358a88b7c1158d5ee2b2c873f67ba1cb0647686/src/meshio/vtu/_vtu.py#L33-L102
 
-         const XMLElement* faces = getDataArrayByName( cells, "faces" );
-         const XMLElement* faceOffsets = getDataArrayByName( cells, "faceoffsets" );
+         pugi::xml_node faces = getDataArrayByName( cells, "faces" );
+         pugi::xml_node faceOffsets = getDataArrayByName( cells, "faceoffsets" );
          const VariantVector vtk_facesArray = readDataArray( faces, "faces" );
          const VariantVector vtk_faceOffsetsArray = readDataArray( faceOffsets, "faceoffsets" );
          const std::string facesType = VTKDataTypes.at( getAttributeString( faces, "type" ) );
@@ -252,7 +251,7 @@ public:
    void
    detectMesh() override
    {
-#ifdef HAVE_TINYXML2
+#ifdef HAVE_PUGIXML
       reset();
       try {
          openVTKFile();
@@ -272,7 +271,7 @@ public:
       // indicate success by setting the mesh type
       meshType = "Meshes::Mesh";
 #else
-      throw_no_tinyxml();
+      throw_no_xml();
 #endif
    }
 };
