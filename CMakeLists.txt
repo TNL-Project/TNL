@@ -208,7 +208,21 @@ endif()
 
 # Optionally bundled dependencies (system packages are preferred)
 # Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
+include(FetchContent)
 include(FetchPugiXML)
+
+# nlohmann_json (JSON for Modern C++)
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.12.0
+    SYSTEM
+    FIND_PACKAGE_ARGS
+)
+set(JSON_Install ON)  # needed for adding to the interface target
+set(JSON_SystemInclude ON)
+FetchContent_MakeAvailable(nlohmann_json)
+target_link_libraries(TNL INTERFACE nlohmann_json::nlohmann_json)
 
 # Fetch CUDA samples for reference sorting algorithms (only if building CUDA)
 if(TNL_BUILD_CUDA AND TNL_FETCH_CUDA_SAMPLES)

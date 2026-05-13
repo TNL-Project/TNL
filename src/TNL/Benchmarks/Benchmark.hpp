@@ -19,7 +19,7 @@ void
 Benchmark::configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name for JSON output.", "" );
+   config.addEntry< String >( "log-file", "Log file name for JSONL output.", "" );
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );

@@ -7,6 +7,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include <nlohmann/json.hpp>
+
 #include <TNL/Timer.h>
 #include <TNL/PerformanceCounters.h>
 #include <TNL/Devices/Cuda.h>
@@ -183,17 +185,10 @@ getHardwareMetadata()
 inline void
 writeMapAsJson( const std::map< std::string, std::string >& data, std::ostream& out )
 {
-   out << "{\n";
-   for( auto it = data.begin(); it != data.end(); ) {
-      out << "\t\"" << it->first << "\": \"" << it->second << "\"";
-      // increment the iterator now to peek at the next element
-      it++;
-      // write a comma if there are still elements remaining
-      if( it != data.end() )
-         out << ",";
-      out << "\n";
-   }
-   out << "}\n" << std::flush;
+   nlohmann::json record;
+   for( const auto& [ key, value ] : data )
+      record[ key ] = value;
+   out << record.dump( 4 ) << "\n" << std::flush;
 }
 
 inline void

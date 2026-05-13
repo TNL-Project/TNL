@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <sstream>
-#include <iomanip>
+#include <nlohmann/json.hpp>
 
 #include "Logging.h"
 
@@ -60,30 +59,19 @@ public:
          throw std::invalid_argument( ss.str() );
       }
 
-      log << "{";
+      nlohmann::json record;
 
-      // write common logs
-      int idx( 0 );
-      for( const auto& lg : this->metadataColumns ) {
-         if( idx++ > 0 )
-            log << ", ";
-         log << "\"" << lg.first << "\": \"" << lg.second << "\"";
-      }
+      for( const auto& lg : this->metadataColumns )
+         record[ lg.first ] = lg.second;
 
       std::size_t i = 0;
-      for( const auto& el : rowElements ) {
-         if( idx++ > 0 )
-            log << ", ";
-         log << "\"" << headerElements[ i ] << "\": \"" << el << "\"";
-         i++;
-      }
-      if( ! errorMessage.empty() ) {
-         if( idx++ > 0 )
-            log << ", ";
-         log << "\"error\": \"" << escape_json( errorMessage ) << "\"";
-      }
-      log << "}\n";
-      log << std::flush;
+      for( const auto& el : rowElements )
+         record[ headerElements[ i++ ] ] = el;
+
+      if( ! errorMessage.empty() )
+         record[ "error" ] = errorMessage;
+
+      log << record.dump() << "\n" << std::flush;
    }
 
    /**
@@ -117,61 +105,14 @@ public:
    void
    writeErrorMessage( const std::string& message ) override
    {
-      log << "{";
+      nlohmann::json record;
 
-      // write common logs
-      int idx( 0 );
-      for( const auto& lg : this->metadataColumns ) {
-         if( idx++ > 0 )
-            log << ", ";
-         log << "\"" << lg.first << "\": \"" << lg.second << "\"";
-      }
+      for( const auto& lg : this->metadataColumns )
+         record[ lg.first ] = lg.second;
 
-      if( idx++ > 0 )
-         log << ", ";
-      log << "\"error\": \"" << escape_json( message ) << "\"";
+      record[ "error" ] = message;
 
-      log << "}\n";
-      log << std::flush;
-   }
-
-protected:
-   // https://stackoverflow.com/a/33799784
-   static std::string
-   escape_json( const std::string& s )
-   {
-      std::ostringstream o;
-      for( auto c : s ) {
-         switch( c ) {
-            case '"':
-               o << "\\\"";
-               break;
-            case '\\':
-               o << "\\\\";
-               break;
-            case '\b':
-               o << "\\b";
-               break;
-            case '\f':
-               o << "\\f";
-               break;
-            case '\n':
-               o << "\\n";
-               break;
-            case '\r':
-               o << "\\r";
-               break;
-            case '\t':
-               o << "\\t";
-               break;
-            default:
-               if( '\x00' <= c && c <= '\x1f' )
-                  o << "\\u" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << static_cast< int >( c );
-               else
-                  o << c;
-         }
-      }
-      return o.str();
+      log << record.dump() << "\n" << std::flush;
    }
 };
 
