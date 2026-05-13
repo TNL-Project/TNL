@@ -30,10 +30,11 @@ namespace TNL::Matrices {
  * \par Output
  * \include DenseMatrixViewExample_wrap.out
  */
-template< typename Device,
-          typename Real,
-          typename Index,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Device,
+   typename Real,
+   typename Index,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 [[nodiscard]] DenseMatrixView< Real, Device, Index, Organization >
 wrapDenseMatrix( const Index& rows, const Index& columns, Real* values )
 {
@@ -132,11 +133,12 @@ struct EllpackMatrixWrapper
 template< typename Device, ElementsOrganization Organization, typename Real, typename Index, int Alignment = 1 >
 [[nodiscard]] auto
 wrapEllpackMatrix( const Index rows, const Index columns, const Index nonzerosPerRow, Real* values, Index* columnIndexes )
-   -> decltype( EllpackMatrixWrapper< Device, Organization, Real, Index, Alignment >::wrap( rows,
-                                                                                            columns,
-                                                                                            nonzerosPerRow,
-                                                                                            values,
-                                                                                            columnIndexes ) )
+   -> decltype( EllpackMatrixWrapper< Device, Organization, Real, Index, Alignment >::wrap(
+      rows,
+      columns,
+      nonzerosPerRow,
+      values,
+      columnIndexes ) )
 {
    return EllpackMatrixWrapper< Device, Organization, Real, Index, Alignment >::wrap(
       rows, columns, nonzerosPerRow, values, columnIndexes );

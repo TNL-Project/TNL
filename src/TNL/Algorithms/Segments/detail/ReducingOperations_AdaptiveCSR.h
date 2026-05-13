@@ -24,21 +24,23 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
    using CSRViewType = CSRView< Device, Index >;
    using ReducingOperationsCSR = ReducingOperations< CSRViewType >;
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
-   reduceSegments( const ConstViewType& segments,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   const Value& identity,
-                   const LaunchConfiguration& launchConfig )
+   reduceSegments(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
@@ -75,13 +77,14 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
                using BlocksView = typename SegmentsViewType::BlocksView;
 
-               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernel< BlocksView,
-                                                                        OffsetsView,
-                                                                        IndexType,
-                                                                        std::remove_reference_t< Fetch >,
-                                                                        std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultStorer >,
-                                                                        Value >;
+               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernel<
+                  BlocksView,
+                  OffsetsView,
+                  IndexType,
+                  std::remove_reference_t< Fetch >,
+                  std::remove_reference_t< Reduction >,
+                  std::remove_reference_t< ResultStorer >,
+                  Value >;
                Backend::launchKernelAsync(
                   kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
             }
@@ -92,21 +95,23 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
          ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithArgument( const ConstViewType& segments,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               const Value& identity,
-                               const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithArgument(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
@@ -146,13 +151,14 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                using BlocksView = typename SegmentsViewType::BlocksView;
                //OffsetsView offsets = segments.getOffsets();
 
-               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument< BlocksView,
-                                                                                    OffsetsView,
-                                                                                    IndexType,
-                                                                                    std::remove_reference_t< Fetch >,
-                                                                                    std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultStorer >,
-                                                                                    Value >;
+               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument<
+                  BlocksView,
+                  OffsetsView,
+                  IndexType,
+                  std::remove_reference_t< Fetch >,
+                  std::remove_reference_t< Reduction >,
+                  std::remove_reference_t< ResultStorer >,
+                  Value >;
                Backend::launchKernelAsync(
                   kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
             }

@@ -44,10 +44,11 @@ namespace TNL::Solvers::Eigen::experimental {
  */
 template< typename MatrixType >
 std::tuple< MatrixType, MatrixType, int >
-QRAlgorithm( MatrixType matrix,
-             const typename MatrixType::RealType& epsilon,
-             const TNL::Matrices::Factorization::QR::FactorizationMethod& QRMethod,
-             const int& maxIterations = 10000 )
+QRAlgorithm(
+   MatrixType matrix,
+   const typename MatrixType::RealType& epsilon,
+   const TNL::Matrices::Factorization::QR::FactorizationMethod& QRMethod,
+   const int& maxIterations = 10000 )
 {
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Power iteration is possible only for square matrices" );

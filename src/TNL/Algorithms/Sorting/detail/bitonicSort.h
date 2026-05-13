@@ -55,10 +55,11 @@ bitonicMergeGlobal( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
 template< typename Value, typename CMP >
 __global__
 void
-bitonicMergeSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
-                          CMP Cmp,
-                          int monotonicSeqLen,
-                          int bitonicLen )
+bitonicMergeSharedMemory(
+   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
+   CMP Cmp,
+   int monotonicSeqLen,
+   int bitonicLen )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
@@ -169,12 +170,13 @@ bitoniSort1stStepSharedMemory( TNL::Containers::ArrayView< Value, TNL::Devices::
 
 template< typename Value, typename CMP >
 void
-bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > view,
-                       const CMP& Cmp,
-                       int gridDim,
-                       int blockDim,
-                       int sharedMemLen,
-                       int sharedMemSize )
+bitonicSortWithShared(
+   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > view,
+   const CMP& Cmp,
+   int gridDim,
+   int blockDim,
+   int sharedMemLen,
+   int sharedMemSize )
 {
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = blockDim;
@@ -269,13 +271,14 @@ template< typename Value, typename CMP >
 void
 bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr, int begin, int end )
 {
-   bitonicSort( arr,
-                begin,
-                end,
-                [] __cuda_callable__( const Value& a, const Value& b )
-                {
-                   return a < b;
-                } );
+   bitonicSort(
+      arr,
+      begin,
+      end,
+      [] __cuda_callable__( const Value& a, const Value& b )
+      {
+         return a < b;
+      } );
 }
 
 template< typename Value, typename CMP >
@@ -289,11 +292,12 @@ template< typename Value >
 void
 bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr )
 {
-   bitonicSort( arr,
-                [] __cuda_callable__( const Value& a, const Value& b )
-                {
-                   return a < b;
-                } );
+   bitonicSort(
+      arr,
+      [] __cuda_callable__( const Value& a, const Value& b )
+      {
+         return a < b;
+      } );
 }
 
 //---------------------------------------------
@@ -312,13 +316,14 @@ template< typename Value >
 void
 bitonicSort( std::vector< Value >& vec, int begin, int end )
 {
-   bitonicSort( vec,
-                begin,
-                end,
-                [] __cuda_callable__( const Value& a, const Value& b )
-                {
-                   return a < b;
-                } );
+   bitonicSort(
+      vec,
+      begin,
+      end,
+      [] __cuda_callable__( const Value& a, const Value& b )
+      {
+         return a < b;
+      } );
 }
 
 template< typename Value, typename CMP >
@@ -332,22 +337,24 @@ template< typename Value >
 void
 bitonicSort( std::vector< Value >& vec )
 {
-   bitonicSort( vec,
-                [] __cuda_callable__( const Value& a, const Value& b )
-                {
-                   return a < b;
-                } );
+   bitonicSort(
+      vec,
+      [] __cuda_callable__( const Value& a, const Value& b )
+      {
+         return a < b;
+      } );
 }
 
 template< typename Value >
 void
 bitonicSort( TNL::Containers::Array< Value, TNL::Devices::Host >& vec )
 {
-   bitonicSort( vec,
-                [] __cuda_callable__( const Value& a, const Value& b )
-                {
-                   return a < b;
-                } );
+   bitonicSort(
+      vec,
+      [] __cuda_callable__( const Value& a, const Value& b )
+      {
+         return a < b;
+      } );
 }
 
 //---------------------------------------------

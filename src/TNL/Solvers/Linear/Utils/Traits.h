@@ -79,9 +79,10 @@ struct Traits< Matrices::DistributedMatrix< Matrix > >
       Containers::DistributedVector< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType >;
    using VectorViewType =
       Containers::DistributedVectorView< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType >;
-   using ConstVectorViewType = Containers::DistributedVectorView< std::add_const_t< typename Matrix::RealType >,
-                                                                  typename Matrix::DeviceType,
-                                                                  typename Matrix::IndexType >;
+   using ConstVectorViewType = Containers::DistributedVectorView<
+      std::add_const_t< typename Matrix::RealType >,
+      typename Matrix::DeviceType,
+      typename Matrix::IndexType >;
 
    using LocalVectorType =
       Containers::Vector< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType >;

@@ -73,10 +73,12 @@ TYPED_TEST( DistributedArrayTest, checkLocalSizes )
 {
    EXPECT_EQ( this->distributedArray.getLocalView().getSize(), this->distributedArray.getLocalRange().getSize() );
    EXPECT_EQ( this->distributedArray.getConstLocalView().getSize(), this->distributedArray.getLocalRange().getSize() );
-   EXPECT_EQ( this->distributedArray.getLocalViewWithGhosts().getSize(),
-              this->distributedArray.getLocalRange().getSize() + this->ghosts );
-   EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getSize(),
-              this->distributedArray.getLocalRange().getSize() + this->ghosts );
+   EXPECT_EQ(
+      this->distributedArray.getLocalViewWithGhosts().getSize(),
+      this->distributedArray.getLocalRange().getSize() + this->ghosts );
+   EXPECT_EQ(
+      this->distributedArray.getConstLocalViewWithGhosts().getSize(),
+      this->distributedArray.getLocalRange().getSize() + this->ghosts );
 }
 
 TYPED_TEST( DistributedArrayTest, checkSumOfLocalSizes )
@@ -113,8 +115,8 @@ TYPED_TEST( DistributedArrayTest, copyFromGlobal )
       EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getElement( left_i ), globalArray.getElement( left_gi ) );
       const int right_i = localRange.getSize() + this->ghosts / 2 + o;
       const int right_gi = ( ( this->rank < this->nproc - 1 ) ? localRange.getEnd() : 0 ) + o;
-      EXPECT_EQ( this->distributedArray.getConstLocalViewWithGhosts().getElement( right_i ),
-                 globalArray.getElement( right_gi ) );
+      EXPECT_EQ(
+         this->distributedArray.getConstLocalViewWithGhosts().getElement( right_i ), globalArray.getElement( right_gi ) );
    }
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S just --working-directory . --justfile
 
-set dotenv-load := true
+set dotenv-load
 
 # Flags for tools that do not respect the FORCE_COLOR environment variable
 
@@ -92,7 +92,7 @@ check-typos:
     just _ensure-command typos
     typos {{ color_always }} --sort
 
-# Checks the code formatting using clang-format and ruff
+# Checks the code formatting using clang-format, gersemi, and ruff
 check-format:
     just --unstable --fmt --check
     just _ensure-command clang-format
@@ -101,6 +101,16 @@ check-format:
     gersemi {{ color }} --diff --check .
     just _ensure-command ruff
     ruff format --diff
+
+# Reformats supported files using clang-format, gersemi, and ruff
+format:
+    just --unstable --fmt
+    just _ensure-command clang-format
+    ./scripts/run-clang-format.py {{ color_always }} --style file --in-place --exclude "src/TNL/3rdparty/*" --recursive Documentation src
+    just _ensure-command gersemi
+    gersemi {{ color }} --in-place .
+    just _ensure-command ruff
+    ruff format .
 
 # Checks justfile recipe for shell issues using shellcheck
 _check-recipe recipe:

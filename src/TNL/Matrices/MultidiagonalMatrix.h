@@ -53,12 +53,13 @@ namespace TNL::Matrices {
  * \tparam RealAllocator is allocator for the matrix elements.
  * \tparam IndexAllocator is allocator for the matrix elements offsets.
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 class MultidiagonalMatrix : public MultidiagonalMatrixBase< Real, Device, Index, Organization >
 {
    using Base = MultidiagonalMatrixBase< Real, Device, Index, Organization >;
@@ -100,12 +101,13 @@ public:
    /**
     * \brief Helper type for getting self type or its modifications.
     */
-   template< typename _Real = Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             ElementsOrganization _Organization = Organization,
-             typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
-             typename _IndexAllocator = typename Allocators::Default< _Device >::template Allocator< _Index > >
+   template<
+      typename _Real = Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      ElementsOrganization _Organization = Organization,
+      typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
+      typename _IndexAllocator = typename Allocators::Default< _Device >::template Allocator< _Index > >
    using Self = MultidiagonalMatrix< _Real, _Device, _Index, _Organization, _RealAllocator, _IndexAllocator >;
 
    /**
@@ -172,9 +174,10 @@ public:
     * \include MultidiagonalMatrixExample_Constructor_init_list_2.out
     */
    template< typename ListIndex, typename ListReal >
-   MultidiagonalMatrix( Index columns,
-                        std::initializer_list< ListIndex > diagonalOffsets,
-                        const std::initializer_list< std::initializer_list< ListReal > >& data );
+   MultidiagonalMatrix(
+      Index columns,
+      std::initializer_list< ListIndex > diagonalOffsets,
+      const std::initializer_list< std::initializer_list< ListReal > >& data );
 
    /**
     * \brief Copy constructor.
@@ -255,12 +258,13 @@ public:
     *
     * \param matrix is the source matrix.
     */
-   template< typename Real_,
-             typename Device_,
-             typename Index_,
-             ElementsOrganization Organization_,
-             typename RealAllocator_,
-             typename IndexAllocator_ >
+   template<
+      typename Real_,
+      typename Device_,
+      typename Index_,
+      ElementsOrganization Organization_,
+      typename RealAllocator_,
+      typename IndexAllocator_ >
    void
    setLike( const MultidiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_, IndexAllocator_ >& matrix );
 
@@ -325,12 +329,13 @@ public:
     * \param matrix is input matrix for the assignment.
     * \return reference to this matrix.
     */
-   template< typename Real_,
-             typename Device_,
-             typename Index_,
-             ElementsOrganization Organization_,
-             typename RealAllocator_,
-             typename IndexAllocator_ >
+   template<
+      typename Real_,
+      typename Device_,
+      typename Index_,
+      ElementsOrganization Organization_,
+      typename RealAllocator_,
+      typename IndexAllocator_ >
    MultidiagonalMatrix&
    operator=( const MultidiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_, IndexAllocator_ >& matrix );
 
@@ -362,21 +367,23 @@ protected:
 /**
  * \brief Deserialization of multidiagonal matrices from binary files.
  */
-template< typename Real,
-          typename Device,
-          typename Index,
-          ElementsOrganization Organization,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization,
+   typename RealAllocator,
+   typename IndexAllocator >
 File&
 operator>>( File& file, MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >& matrix );
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          ElementsOrganization Organization,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization,
+   typename RealAllocator,
+   typename IndexAllocator >
 File&
 operator>>( File&& file, MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >& matrix );
 

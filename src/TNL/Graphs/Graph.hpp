@@ -8,48 +8,52 @@
 
 namespace TNL::Graphs {
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( IndexType nodesCount )
 : adjacencyMatrix( nodesCount, nodesCount )
 {
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( const AdjacencyMatrixType& matrix )
 {
    this->adjacencyMatrix = matrix;
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( AdjacencyMatrixType&& matrix )
 {
    adjacencyMatrix = std::forward< AdjacencyMatrixType >( matrix );
    Base::adjacencyMatrixView.bind( adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename OtherGraph >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( const OtherGraph& other )
 {
@@ -64,12 +68,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( co
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename OtherGraph >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( const OtherGraph&& other )
 {
@@ -84,12 +89,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( co
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
    IndexType vertexCount,
    const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
@@ -99,12 +105,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
    setEdges( data, encoding );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename T, typename C >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
    const std::initializer_list< std::initializer_list< ValueType > >& data,
@@ -114,12 +121,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
    setDenseEdges( data, encoding );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename MapIndex, typename MapValue >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
    IndexType vertexCount,
@@ -130,12 +138,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
    setEdges( map, encoding );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::reset()
 {
@@ -143,12 +152,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::reset()
    Base::adjacencyMatrixView.bind( adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >&
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=( const Graph& other )
 {
@@ -157,12 +167,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=
    return *this;
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename OtherGraph, std::enable_if_t< isGraph< OtherGraph >( std::declval< OtherGraph >() ) > >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >&
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=( const OtherGraph& other )
@@ -172,12 +183,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=
    return *this;
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >&
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=( Graph&& other ) noexcept
 {
@@ -186,36 +198,39 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=
    return *this;
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 auto
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::getView() -> ViewType
 {
    return ViewType( this->adjacencyMatrixView );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 auto
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::getConstView() const -> ConstViewType
 {
    return ConstViewType( this->adjacencyMatrix.getConstView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setVertexCount( IndexType nodesCount )
 {
@@ -223,12 +238,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setVertex
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename Vector >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdgeCounts( const Vector& edgeCounts )
@@ -237,12 +253,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdgeCo
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
    const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
@@ -276,12 +293,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename T, typename C >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setDenseEdges(
@@ -292,12 +310,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setDenseE
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename MapIndex, typename MapValue >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
@@ -318,12 +337,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename Vector >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setVertexCapacities( const Vector& nodeCapacities )
@@ -332,36 +352,39 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setVertex
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 [[nodiscard]] auto
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::getAdjacencyMatrix() const -> const AdjacencyMatrixType&
 {
    return adjacencyMatrix;
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 [[nodiscard]] auto
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::getAdjacencyMatrix() -> AdjacencyMatrixType&
 {
    return adjacencyMatrix;
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setAdjacencyMatrix( const AdjacencyMatrixType& matrix )
 {
@@ -371,12 +394,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setAdjace
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setAdjacencyMatrix( AdjacencyMatrixType&& matrix )
 {
@@ -386,12 +410,13 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setAdjace
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 template< typename Matrix_ >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setAdjacencyMatrix( const Matrix_& matrix )
@@ -402,32 +427,34 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setAdjace
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 File&
 operator>>( File& file, Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >& graph )
 {
    const std::string type = getObjectType( file );
    if( type != graph.getSerializationType() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + graph.getSerializationType()
-                                                     + ", found " + type + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "object type does not match (expected " + graph.getSerializationType() + ", found " + type + ")." );
    AdjacencyMatrix adjacencyMatrix;
    file >> adjacencyMatrix;
    graph.setAdjacencyMatrix( std::move( adjacencyMatrix ) );
    return file;
 }
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 File&
 operator>>( File&& file, Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >& graph )
 {

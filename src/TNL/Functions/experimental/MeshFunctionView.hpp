@@ -25,14 +25,16 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::MeshFunctionView( const Mes
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 template< typename Vector >
-MeshFunctionView< Mesh, MeshEntityDimension, Real >::MeshFunctionView( const MeshPointer& meshPointer,
-                                                                       Vector& data,
-                                                                       const IndexType& offset )
+MeshFunctionView< Mesh, MeshEntityDimension, Real >::MeshFunctionView(
+   const MeshPointer& meshPointer,
+   Vector& data,
+   const IndexType& offset )
 //: meshPointer( meshPointer )
 {
-   TNL_ASSERT_GE( data.getSize(),
-                  meshPointer->template getEntitiesCount< typename MeshType::template EntityType< MeshEntityDimension > >(),
-                  "The input vector is not large enough for binding to the mesh function." );
+   TNL_ASSERT_GE(
+      data.getSize(),
+      meshPointer->template getEntitiesCount< typename MeshType::template EntityType< MeshEntityDimension > >(),
+      "The input vector is not large enough for binding to the mesh function." );
 
    this->meshPointer = meshPointer;
    this->data.bind(
@@ -41,9 +43,10 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::MeshFunctionView( const Mes
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 template< typename Vector >
-MeshFunctionView< Mesh, MeshEntityDimension, Real >::MeshFunctionView( const MeshPointer& meshPointer,
-                                                                       Pointers::SharedPointer< Vector >& data,
-                                                                       const IndexType& offset )
+MeshFunctionView< Mesh, MeshEntityDimension, Real >::MeshFunctionView(
+   const MeshPointer& meshPointer,
+   Pointers::SharedPointer< Vector >& data,
+   const IndexType& offset )
 //: meshPointer( meshPointer )
 {
    TNL_ASSERT_GE(
@@ -66,9 +69,10 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::configSetup( Config::Config
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 bool
-MeshFunctionView< Mesh, MeshEntityDimension, Real >::setup( const MeshPointer& meshPointer,
-                                                            const Config::ParameterContainer& parameters,
-                                                            const String& prefix )
+MeshFunctionView< Mesh, MeshEntityDimension, Real >::setup(
+   const MeshPointer& meshPointer,
+   const Config::ParameterContainer& parameters,
+   const String& prefix )
 {
    this->setMesh( meshPointer );
    const String fileName = parameters.getParameter< String >( prefix + "file" );
@@ -93,16 +97,18 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind( Vector& data, const I
       data.getSize(),
       offset + meshPointer->template getEntitiesCount< typename MeshType::template EntityType< MeshEntityDimension > >(),
       "The input vector is not large enough for binding to the mesh function." );
-   this->data.bind( data.getData() + offset,
-                    getMesh().template getEntitiesCount< typename Mesh::template EntityType< MeshEntityDimension > >() );
+   this->data.bind(
+      data.getData() + offset,
+      getMesh().template getEntitiesCount< typename Mesh::template EntityType< MeshEntityDimension > >() );
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 template< typename Vector >
 void
-MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind( const MeshPointer& meshPointer,
-                                                           Vector& data,
-                                                           const IndexType& offset )
+MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind(
+   const MeshPointer& meshPointer,
+   Vector& data,
+   const IndexType& offset )
 {
    TNL_ASSERT_GE(
       data.getSize(),
@@ -110,16 +116,18 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind( const MeshPointer& me
       "The input vector is not large enough for binding to the mesh function." );
 
    this->meshPointer = meshPointer;
-   this->data.bind( data.getData() + offset,
-                    getMesh().template getEntitiesCount< typename Mesh::template EntityType< MeshEntityDimension > >() );
+   this->data.bind(
+      data.getData() + offset,
+      getMesh().template getEntitiesCount< typename Mesh::template EntityType< MeshEntityDimension > >() );
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 template< typename Vector >
 void
-MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind( const MeshPointer& meshPointer,
-                                                           Pointers::SharedPointer< Vector >& data,
-                                                           const IndexType& offset )
+MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind(
+   const MeshPointer& meshPointer,
+   Pointers::SharedPointer< Vector >& data,
+   const IndexType& offset )
 {
    TNL_ASSERT_GE(
       data->getSize(),
@@ -128,8 +136,8 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::bind( const MeshPointer& me
    static_assert( std::is_same_v< typename Vector::RealType, RealType >, "Cannot bind Vector with different Real type." );
 
    this->meshPointer = meshPointer;
-   this->data.bind( *data + offset,
-                    getMesh().template getEntitiesCount< typename Mesh::template EntityType< MeshEntityDimension > >() );
+   this->data.bind(
+      *data + offset, getMesh().template getEntitiesCount< typename Mesh::template EntityType< MeshEntityDimension > >() );
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
@@ -205,8 +213,9 @@ template< typename EntityType >
 typename MeshFunctionView< Mesh, MeshEntityDimension, Real >::RealType
 MeshFunctionView< Mesh, MeshEntityDimension, Real >::getValue( const EntityType& meshEntity ) const
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    return this->data.getElement( meshEntity.getIndex() );
 }
 
@@ -215,8 +224,9 @@ template< typename EntityType >
 void
 MeshFunctionView< Mesh, MeshEntityDimension, Real >::setValue( const EntityType& meshEntity, const RealType& value )
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    this->data.setElement( meshEntity.getIndex(), value );
 }
 
@@ -226,8 +236,9 @@ __cuda_callable__
 typename MeshFunctionView< Mesh, MeshEntityDimension, Real >::RealType&
 MeshFunctionView< Mesh, MeshEntityDimension, Real >::operator()( const EntityType& meshEntity, const RealType& time )
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    return this->data[ meshEntity.getIndex() ];
 }
 
@@ -237,8 +248,9 @@ __cuda_callable__
 const typename MeshFunctionView< Mesh, MeshEntityDimension, Real >::RealType&
 MeshFunctionView< Mesh, MeshEntityDimension, Real >::operator()( const EntityType& meshEntity, const RealType& time ) const
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    return this->data[ meshEntity.getIndex() ];
 }
 
@@ -316,9 +328,10 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::getMaxNorm() const
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 void
-MeshFunctionView< Mesh, MeshEntityDimension, Real >::write( const std::string& functionName,
-                                                            const std::string& fileName,
-                                                            const std::string& fileFormat ) const
+MeshFunctionView< Mesh, MeshEntityDimension, Real >::write(
+   const std::string& functionName,
+   const std::string& fileName,
+   const std::string& fileFormat ) const
 {
    writeMeshFunction( *this, functionName, fileName, fileFormat );
 }

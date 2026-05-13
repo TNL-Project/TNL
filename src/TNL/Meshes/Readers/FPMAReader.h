@@ -67,9 +67,10 @@ public:
             PointType aux = readValue< PointType >( inputFile );
             if( ! inputFile ) {
                reset();
-               throw MeshReaderError( "FPMAReader",
-                                      "unable to read " + std::to_string( i ) + "th component of the vertex number "
-                                         + std::to_string( pointIndex ) + "." );
+               throw MeshReaderError(
+                  "FPMAReader",
+                  "unable to read " + std::to_string( i ) + "th component of the vertex number " + std::to_string( pointIndex )
+                     + "." );
             }
             pointsArray.emplace_back( aux );
          }
@@ -98,9 +99,10 @@ public:
             const auto pointIndex = readValue< std::size_t >( inputFile );
             if( ! inputFile ) {
                reset();
-               throw MeshReaderError( "FPMAReader",
-                                      "unable to read " + std::to_string( i ) + "th component of the face number "
-                                         + std::to_string( faceIndex ) + "." );
+               throw MeshReaderError(
+                  "FPMAReader",
+                  "unable to read " + std::to_string( i ) + "th component of the face number " + std::to_string( faceIndex )
+                     + "." );
             }
             faceConnectivityArray.emplace_back( pointIndex );
          }
@@ -131,9 +133,10 @@ public:
             const auto faceIndex = readValue< std::uint32_t >( inputFile );
             if( ! iss ) {
                reset();
-               throw MeshReaderError( "FPMAReader",
-                                      "unable to read " + std::to_string( i ) + "th component of the cell number "
-                                         + std::to_string( cellIndex ) + "." );
+               throw MeshReaderError(
+                  "FPMAReader",
+                  "unable to read " + std::to_string( i ) + "th component of the cell number " + std::to_string( cellIndex )
+                     + "." );
             }
             cellConnectivityArray.emplace_back( faceIndex );
          }

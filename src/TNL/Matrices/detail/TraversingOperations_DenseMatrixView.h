@@ -22,11 +22,12 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( MatrixView& matrix,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       auto columns = matrix.getColumns();
@@ -40,11 +41,12 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstMatrixView& matrix,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       auto columns = matrix.getColumns();
@@ -58,12 +60,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( MatrixView& matrix,
-                const Array& rowIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       auto columns = matrix.getColumns();
@@ -77,12 +80,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstMatrixView& matrix,
-                const Array& rowIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       auto columns = matrix.getColumns();
@@ -96,12 +100,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( MatrixView& matrix,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElementsIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       auto columns = matrix.getColumns();
@@ -116,12 +121,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstMatrixView& matrix,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElementsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       auto columns = matrix.getColumns();
@@ -135,11 +141,12 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( MatrixView& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -153,11 +160,12 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( const ConstMatrixView& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -171,12 +179,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( MatrixView& matrix,
-            const Array& rowIndexes,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -190,12 +199,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( const ConstMatrixView& matrix,
-            const Array& rowIndexes,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -209,12 +219,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
    static void
-   forRowsIf( MatrixView& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              RowCondition&& rowCondition,
-              Function&& function,
-              Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRowsIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      RowCondition&& rowCondition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -228,12 +239,13 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
    static void
-   forRowsIf( const ConstMatrixView& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              RowCondition&& rowCondition,
-              Function&& function,
-              Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRowsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      RowCondition&& rowCondition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;

@@ -19,10 +19,11 @@ namespace TNL::Functions::experimental {
 
 template< typename MeshFunction >
 void
-readMeshFunction( MeshFunction& function,
-                  const std::string& functionName,
-                  const std::string& fileName,
-                  const std::string& fileFormat = "auto" )
+readMeshFunction(
+   MeshFunction& function,
+   const std::string& functionName,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto" )
 {
    std::shared_ptr< Meshes::Readers::MeshReader > reader = Meshes::Readers::getMeshReader( fileName, fileFormat );
    if( reader == nullptr )
@@ -40,8 +41,9 @@ readMeshFunction( MeshFunction& function,
    else if( function.getEntitiesDimension() == function.getMeshDimension() )
       data = reader->readCellData( functionName );
    else
-      throw std::runtime_error( "The mesh function with entities dimension " + std::to_string( function.getEntitiesDimension() )
-                                + " cannot be read from the file " + fileName );
+      throw std::runtime_error(
+         "The mesh function with entities dimension " + std::to_string( function.getEntitiesDimension() )
+         + " cannot be read from the file " + fileName );
 
    visit(
       [ & ]( auto&& array )
@@ -51,21 +53,22 @@ readMeshFunction( MeshFunction& function,
             Algorithms::copy< typename MeshFunction::VectorType::DeviceType, Devices::Host >(
                function.getData().getData(), array.data(), array.size() );
          else
-            throw Exceptions::FileDeserializationError( fileName,
-                                                        "mesh function data size does not match the mesh size (expected "
-                                                           + std::to_string( entitiesCount ) + ", got "
-                                                           + std::to_string( array.size() ) + ")." );
+            throw Exceptions::FileDeserializationError(
+               fileName,
+               "mesh function data size does not match the mesh size (expected " + std::to_string( entitiesCount ) + ", got "
+                  + std::to_string( array.size() ) + ")." );
       },
       data );
 }
 
 template< typename MeshFunction >
 void
-readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typename MeshFunction::MeshType >& distributedMesh,
-                             MeshFunction& function,
-                             const std::string& functionName,
-                             const std::string& fileName,
-                             const std::string& fileFormat = "auto" )
+readDistributedMeshFunction(
+   Meshes::DistributedMeshes::DistributedMesh< typename MeshFunction::MeshType >& distributedMesh,
+   MeshFunction& function,
+   const std::string& functionName,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto" )
 {
    std::shared_ptr< Meshes::Readers::MeshReader > reader = Meshes::Readers::getMeshReader( fileName, fileFormat );
    if( reader == nullptr )
@@ -95,8 +98,9 @@ readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typenam
    else if( function.getEntitiesDimension() == function.getMeshDimension() )
       data = reader->readCellData( functionName );
    else
-      throw std::runtime_error( "The mesh function with entities dimension " + std::to_string( function.getEntitiesDimension() )
-                                + " cannot be read from the file " + fileName );
+      throw std::runtime_error(
+         "The mesh function with entities dimension " + std::to_string( function.getEntitiesDimension() )
+         + " cannot be read from the file " + fileName );
 
    visit(
       [ & ]( auto&& array )
@@ -106,10 +110,10 @@ readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typenam
             Algorithms::copy< typename MeshFunction::VectorType::DeviceType, Devices::Host >(
                function.getData().getData(), array.data(), array.size() );
          else
-            throw Exceptions::FileDeserializationError( fileName,
-                                                        "mesh function data size does not match the mesh size (expected "
-                                                           + std::to_string( entitiesCount ) + ", got "
-                                                           + std::to_string( array.size() ) + ")." );
+            throw Exceptions::FileDeserializationError(
+               fileName,
+               "mesh function data size does not match the mesh size (expected " + std::to_string( entitiesCount ) + ", got "
+                  + std::to_string( array.size() ) + ")." );
       },
       data );
 }
@@ -117,10 +121,11 @@ readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typenam
 // specialization for grids
 template< typename MeshFunction >
 std::enable_if_t< Meshes::isGrid< typename MeshFunction::MeshType >::value >
-writeMeshFunction( const MeshFunction& function,
-                   const std::string& functionName,
-                   const std::string& fileName,
-                   const std::string& fileFormat = "auto" )
+writeMeshFunction(
+   const MeshFunction& function,
+   const std::string& functionName,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto" )
 {
    std::ofstream file;
    // enable exceptions
@@ -149,21 +154,23 @@ writeMeshFunction( const MeshFunction& function,
       MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
    else {
       if( fileFormat == "auto" )
-         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
-                                   + ". Supported formats are: 'vti', 'gnuplot', 'gplt' and 'plt'." );
+         throw std::runtime_error(
+            "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+            + ". Supported formats are: 'vti', 'gnuplot', 'gplt' and 'plt'." );
       else
-         throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
-                                      + "'. Supported formats are: 'vti', 'gnuplot', 'gplt' and 'plt'." );
+         throw std::invalid_argument(
+            "Invalid fileFormat parameter: '" + fileFormat + "'. Supported formats are: 'vti', 'gnuplot', 'gplt' and 'plt'." );
    }
 }
 
 // specialization for meshes
 template< typename MeshFunction >
 std::enable_if_t< ! Meshes::isGrid< typename MeshFunction::MeshType >::value >
-writeMeshFunction( const MeshFunction& function,
-                   const std::string& functionName,
-                   const std::string& fileName,
-                   const std::string& fileFormat = "auto" )
+writeMeshFunction(
+   const MeshFunction& function,
+   const std::string& functionName,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto" )
 {
    std::ofstream file;
    // enable exceptions
@@ -200,11 +207,13 @@ writeMeshFunction( const MeshFunction& function,
       MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
    else {
       if( fileFormat == "auto" )
-         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
-                                   + ". Supported formats are: 'vtk', 'vtu', 'gnuplot', 'gplt' and 'plt'." );
+         throw std::runtime_error(
+            "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+            + ". Supported formats are: 'vtk', 'vtu', 'gnuplot', 'gplt' and 'plt'." );
       else
-         throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
-                                      + "'. Supported formats are: 'vtk', 'vtu', 'gnuplot', 'gplt' and 'plt'." );
+         throw std::invalid_argument(
+            "Invalid fileFormat parameter: '" + fileFormat
+            + "'. Supported formats are: 'vtk', 'vtu', 'gnuplot', 'gplt' and 'plt'." );
    }
 }
 
@@ -257,11 +266,11 @@ writeDistributedMeshFunction(
       // NOTE: passing the local mesh to writeImageData does not work correctly, just like meshFunction->write(...)
       //       (it does not write the correct extent of the subdomain - globalBegin is only in the distributed grid)
       // NOTE: globalBegin and globalEnd here are without overlaps
-      writer.writeImageData( distributedMesh.getGlobalGrid().getOrigin(),
-                             distributedMesh.getGlobalBegin() - distributedMesh.getLowerOverlap(),
-                             distributedMesh.getGlobalBegin() + distributedMesh.getLocalSize()
-                                + distributedMesh.getUpperOverlap(),
-                             distributedMesh.getGlobalGrid().getSpaceSteps() );
+      writer.writeImageData(
+         distributedMesh.getGlobalGrid().getOrigin(),
+         distributedMesh.getGlobalBegin() - distributedMesh.getLowerOverlap(),
+         distributedMesh.getGlobalBegin() + distributedMesh.getLocalSize() + distributedMesh.getUpperOverlap(),
+         distributedMesh.getGlobalGrid().getSpaceSteps() );
       if( function.getEntitiesDimension() == 0 )
          writer.writePointData( function.getData(), functionName );
       else
@@ -274,8 +283,9 @@ writeDistributedMeshFunction(
    }
    else {
       if( fileFormat == "auto" )
-         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
-                                   + ". Supported formats are: 'pvti'." );
+         throw std::runtime_error(
+            "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+            + ". Supported formats are: 'pvti'." );
       else
          throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat + "'. Supported formats are: 'pvti'." );
    }

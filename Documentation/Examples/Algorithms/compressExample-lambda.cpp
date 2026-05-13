@@ -14,12 +14,13 @@ compressExample()
    // clang-format on
    auto v1_view = v1.getView();
    auto v2_view = v2.getView();
-   auto compressed_v = TNL::Algorithms::compress< Vector >( 0,
-                                                            v1.getSize(),
-                                                            [ = ] __cuda_callable__( int i )
-                                                            {
-                                                               return v1_view[ i ] > 0;
-                                                            } );
+   auto compressed_v = TNL::Algorithms::compress< Vector >(
+      0,
+      v1.getSize(),
+      [ = ] __cuda_callable__( int i )
+      {
+         return v1_view[ i ] > 0;
+      } );
    std::cout << "v1 = " << v1 << '\n';
    std::cout << "Positions of positive numbers in v1 are: " << compressed_v << '\n';
 

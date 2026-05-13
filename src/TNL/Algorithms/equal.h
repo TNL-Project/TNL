@@ -23,11 +23,12 @@ namespace TNL::Algorithms {
  * \param size is the size of the data.
  * \returns `true` if all elements are equal, `false` otherwise.
  */
-template< typename DestinationDevice,
-          typename SourceDevice = DestinationDevice,
-          typename DestinationElement,
-          typename SourceElement,
-          typename Index >
+template<
+   typename DestinationDevice,
+   typename SourceDevice = DestinationDevice,
+   typename DestinationElement,
+   typename SourceElement,
+   typename Index >
 bool
 equal( DestinationElement* destination, const SourceElement* source, Index size )
 {

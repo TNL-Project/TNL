@@ -9,23 +9,25 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-EllpackCudaReductionKernel( const Segments segments,
-                            IndexBegin begin,
-                            IndexEnd end,
-                            Fetch fetch,
-                            Reduction reduce,
-                            ResultStorer store,
-                            const Value identity )
+EllpackCudaReductionKernel(
+   const Segments segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch fetch,
+   Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Index = typename Segments::IndexType;
@@ -68,21 +70,23 @@ EllpackCudaReductionKernel( const Segments segments,
 #endif
 }
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename ArrayView,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename ArrayView,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
-                                              const ArrayView segmentIndexes,
-                                              Fetch fetch,
-                                              Reduction reduce,
-                                              ResultStorer store,
-                                              const Value identity )
+EllpackCudaReductionKernelWithSegmentIndexes(
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Index = typename Segments::IndexType;
@@ -127,23 +131,25 @@ EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
 #endif
 }
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithArgument( const Segments segments,
-                                        IndexBegin begin,
-                                        IndexEnd end,
-                                        Fetch fetch,
-                                        Reduction reduce,
-                                        ResultStorer store,
-                                        const Value identity )
+EllpackCudaReductionKernelWithArgument(
+   const Segments segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch fetch,
+   Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Index = typename Segments::IndexType;
@@ -189,21 +195,23 @@ EllpackCudaReductionKernelWithArgument( const Segments segments,
 #endif
 }
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename ArrayView,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename ArrayView,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments,
-                                                         const ArrayView segmentIndexes,
-                                                         Fetch fetch,
-                                                         Reduction reduce,
-                                                         ResultStorer store,
-                                                         const Value identity )
+EllpackCudaReductionKernelWithSegmentIndexesAndArgument(
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Index = typename Segments::IndexType;

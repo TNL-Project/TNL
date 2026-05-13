@@ -92,35 +92,37 @@ hipblasGscal( hipblasHandle_t handle, int n, const double* alpha, double* x, int
 }
 
 inline hipblasStatus_t
-hipblasGemv( hipblasHandle_t handle,
-             hipblasOperation_t trans,
-             int m,
-             int n,
-             const float* alpha,
-             const float* A,
-             int lda,
-             const float* x,
-             int incx,
-             const float* beta,
-             float* y,
-             int incy )
+hipblasGemv(
+   hipblasHandle_t handle,
+   hipblasOperation_t trans,
+   int m,
+   int n,
+   const float* alpha,
+   const float* A,
+   int lda,
+   const float* x,
+   int incx,
+   const float* beta,
+   float* y,
+   int incy )
 {
    return hipblasSgemv( handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy );
 }
 
 inline hipblasStatus_t
-hipblasGemv( hipblasHandle_t handle,
-             hipblasOperation_t trans,
-             int m,
-             int n,
-             const double* alpha,
-             const double* A,
-             int lda,
-             const double* x,
-             int incx,
-             const double* beta,
-             double* y,
-             int incy )
+hipblasGemv(
+   hipblasHandle_t handle,
+   hipblasOperation_t trans,
+   int m,
+   int n,
+   const double* alpha,
+   const double* A,
+   int lda,
+   const double* x,
+   int incx,
+   const double* beta,
+   double* y,
+   int incy )
 {
    return hipblasDgemv( handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy );
 }

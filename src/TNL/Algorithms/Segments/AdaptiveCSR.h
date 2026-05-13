@@ -31,9 +31,10 @@ namespace TNL::Algorithms::Segments {
  * \tparam Index The type used for indexing the elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 class AdaptiveCSR : public CSR< Device, Index, IndexAllocator >
 {
    using Base = CSR< Device, Index, IndexAllocator >;
@@ -73,9 +74,10 @@ public:
     * \tparam Index_ is alternative index type.
     * \tparam IndexAllocator_ is alternative index allocator type.
     */
-   template< typename Device_ = Device,
-             typename Index_ = Index,
-             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ > >
+   template<
+      typename Device_ = Device,
+      typename Index_ = Index,
+      typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ > >
    using Self = AdaptiveCSR< Device_, Index_, IndexAllocator_ >;
 
    //! \brief Constructor with no parameters to create empty segments.
@@ -255,9 +257,10 @@ protected:
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 using SortedAdaptiveCSR = SortedSegments< AdaptiveCSR< Device, Index, IndexAllocator > >;
 
 template< typename Segments >

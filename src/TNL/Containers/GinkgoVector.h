@@ -54,15 +54,17 @@ public:
     */
    template< typename Vector >
    GinkgoVector( std::shared_ptr< const gko::Executor > exec, Vector&& vector, bool ownership = false )
-   : gko::matrix::Dense< ValueType >( exec,
-                                      gko::dim< 2 >{ static_cast< std::size_t >( vector.getSize() ), 1 },
-                                      gko::make_array_view( exec, vector.getSize(), vector.getData() ),
-                                      1 ),  // stride
+   : gko::matrix::Dense< ValueType >(
+        exec,
+        gko::dim< 2 >{ static_cast< std::size_t >( vector.getSize() ), 1 },
+        gko::make_array_view( exec, vector.getSize(), vector.getData() ),
+        1 ),  // stride
      wrapped_view( ViewType{ vector.getData(), static_cast< IndexType >( vector.getSize() ) } ),
      ownership( ownership )
    {
-      static_assert( std::is_same_v< typename std::decay_t< Vector >::DeviceType, DeviceType >,
-                     "the DeviceType passed to the constructor does not match the GinkgoVector type" );
+      static_assert(
+         std::is_same_v< typename std::decay_t< Vector >::DeviceType, DeviceType >,
+         "the DeviceType passed to the constructor does not match the GinkgoVector type" );
    }
 
    ~GinkgoVector() override
@@ -78,8 +80,9 @@ public:
    [[nodiscard]] static std::unique_ptr< GinkgoVector >
    create( std::shared_ptr< const gko::Executor > exec, Vector&& vector, bool ownership = false )
    {
-      static_assert( std::is_same_v< typename std::decay_t< Vector >::DeviceType, DeviceType >,
-                     "the DeviceType passed to the create function does not match the GinkgoVector type" );
+      static_assert(
+         std::is_same_v< typename std::decay_t< Vector >::DeviceType, DeviceType >,
+         "the DeviceType passed to the create function does not match the GinkgoVector type" );
       return std::unique_ptr< GinkgoVector >( new GinkgoVector( exec, std::forward< Vector >( vector ), ownership ) );
    }
 
@@ -118,9 +121,8 @@ public:
     * size[0] * size[1], since MFEM Vectors only have one dimension.
     */
    [[nodiscard]] std::unique_ptr< gko::matrix::Dense< ValueType > >
-   create_with_type_of_impl( std::shared_ptr< const gko::Executor > exec,
-                             const gko::dim< 2 >& size,
-                             gko::size_type stride ) const override
+   create_with_type_of_impl( std::shared_ptr< const gko::Executor > exec, const gko::dim< 2 >& size, gko::size_type stride )
+      const override
    {
       // Only stride of 1 is allowed for VectorWrapper type
       if( stride > 1 )
@@ -150,13 +152,14 @@ public:
       // Check that we only have one column, and that the stride = 1
       // (only allowed value for VectorWrappers).
       if( num_cols > 1 || stride > 1 )
-         throw gko::BadDimension( __FILE__,
-                                  __LINE__,
-                                  __func__,
-                                  "new_submatrix",
-                                  num_rows,
-                                  num_cols,
-                                  "GinkgoVector submatrix must have one column and stride = 1" );
+         throw gko::BadDimension(
+            __FILE__,
+            __LINE__,
+            __func__,
+            "new_submatrix",
+            num_rows,
+            num_cols,
+            "GinkgoVector submatrix must have one column and stride = 1" );
 
       // Create a view for the sub-vector
       ViewType view = wrapped_view.getView( rows.begin, rows.end );

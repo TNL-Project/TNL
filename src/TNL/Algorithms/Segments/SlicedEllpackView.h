@@ -17,10 +17,11 @@ namespace TNL::Algorithms::Segments {
  * \tparam Organization is the organization of the elements in the segments—either row-major or column-major order.
  * \tparam SliceSize is the size of each slice.
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int SliceSize = 32 >
 class SlicedEllpackView : public SlicedEllpackBase< Device, Index, Organization, SliceSize >
 {
    using Base = SlicedEllpackBase< Device, Index, Organization, SliceSize >;
@@ -55,11 +56,12 @@ public:
 
    //! \brief Constructor that initializes segments based all necessary data.
    __cuda_callable__
-   SlicedEllpackView( Index size,
-                      Index alignedSize,
-                      Index segmentsCount,
-                      typename Base::OffsetsView sliceOffsets,
-                      typename Base::OffsetsView sliceSegmentSizes );
+   SlicedEllpackView(
+      Index size,
+      Index alignedSize,
+      Index segmentsCount,
+      typename Base::OffsetsView sliceOffsets,
+      typename Base::OffsetsView sliceSegmentSizes );
 
    //! \brief Copy-assignment operator.
    SlicedEllpackView&
@@ -140,10 +142,11 @@ using ColumnMajorSlicedEllpackView = SlicedEllpackView< Device, Index, ColumnMaj
  * \tparam SliceSize The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int SliceSize = 32 >
 using SortedSlicedEllpackView = SortedSegmentsView< SlicedEllpackView< Device, Index, Organization, SliceSize > >;
 
 /**

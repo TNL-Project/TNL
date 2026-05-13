@@ -15,9 +15,8 @@ public:
    using Coordinate = TNL::Containers::StaticVector< GridDimension, Index >;
    using OrientationNormalsContainer =
       TNL::Containers::StaticVector< combinationsCount( EntityDimension, GridDimension ), Coordinate >;
-   using Permutations =
-      Templates::make_int_permutations< GridDimension,
-                                        Templates::build_ones_pack< GridDimension - EntityDimension, GridDimension > >;
+   using Permutations = Templates::
+      make_int_permutations< GridDimension, Templates::build_ones_pack< GridDimension - EntityDimension, GridDimension > >;
 
    template<
       int Orientation,

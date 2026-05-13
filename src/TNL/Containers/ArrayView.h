@@ -227,9 +227,10 @@ public:
     * \param data Reference to the source array or value.
     * \return Reference to this array view.
     */
-   template< typename T,
-             typename...,
-             typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsArrayType< T >::value > >
+   template<
+      typename T,
+      typename...,
+      typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsArrayType< T >::value > >
    ArrayView&
    operator=( const T& data );
 

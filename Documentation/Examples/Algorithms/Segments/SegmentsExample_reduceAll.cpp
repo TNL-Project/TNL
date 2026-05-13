@@ -38,21 +38,22 @@ reduceAllExample()
    Containers::Vector< ValueType, Device, IndexType > values( segments.getStorageSize(), -1 );
    auto valuesView = values.getView();
    auto segmentsSizesView = segmentsSizes.getView();
-   forAllElements( segments,
-                   [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
-                   {
-                      if( localIdx < segmentsSizesView[ segmentIdx ] )
-                         valuesView[ globalIdx ] = segmentIdx + localIdx;
-                   } );
+   forAllElements(
+      segments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizesView[ segmentIdx ] )
+            valuesView[ globalIdx ] = segmentIdx + localIdx;
+      } );
 
    // Print the initial data
    std::cout << "Segments sizes: " << segmentsSizes << "\n";
-   std::cout << Segments::print( segments,
-                                 [ = ] __cuda_callable__( IndexType idx )
-                                 {
-                                    return valuesView[ idx ];
-                                 } )
-             << "\n";
+   std::cout << Segments::print(
+      segments,
+      [ = ] __cuda_callable__( IndexType idx )
+      {
+         return valuesView[ idx ];
+      } ) << "\n";
 
    //! [reduction]
    // Perform complete reduction:

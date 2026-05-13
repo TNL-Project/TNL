@@ -107,8 +107,9 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
    // Test setting other tags
    for( int boundaryCell : boundaryCells ) {
       mesh.template addEntityTag< 2 >( boundaryCell, Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 2 >( boundaryCell ),
-                 Meshes::EntityTags::BoundaryEntity | Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ(
+         mesh.template getEntityTag< 2 >( boundaryCell ),
+         Meshes::EntityTags::BoundaryEntity | Meshes::EntityTags::GhostEntity );
       EXPECT_TRUE( mesh.template isBoundaryEntity< 2 >( boundaryCell ) );
       mesh.template removeEntityTag< 2 >( boundaryCell, Meshes::EntityTags::GhostEntity );
       EXPECT_EQ( mesh.template getEntityTag< 2 >( boundaryCell ), Meshes::EntityTags::BoundaryEntity );
@@ -140,8 +141,9 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
    // Test setting other tags
    for( int boundaryFace : boundaryFaces ) {
       mesh.template addEntityTag< 1 >( boundaryFace, Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 1 >( boundaryFace ),
-                 Meshes::EntityTags::BoundaryEntity | Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ(
+         mesh.template getEntityTag< 1 >( boundaryFace ),
+         Meshes::EntityTags::BoundaryEntity | Meshes::EntityTags::GhostEntity );
       EXPECT_TRUE( mesh.template isBoundaryEntity< 1 >( boundaryFace ) );
       mesh.template removeEntityTag< 1 >( boundaryFace, Meshes::EntityTags::GhostEntity );
       EXPECT_EQ( mesh.template getEntityTag< 1 >( boundaryFace ), Meshes::EntityTags::BoundaryEntity );

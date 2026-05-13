@@ -8,10 +8,11 @@
 
 namespace TNL::Containers {
 
-template< class Key,
-          class Index,
-          class Compare = std::less< Key >,
-          class Allocator = std::allocator< std::pair< const Key, Index > > >
+template<
+   class Key,
+   class Index,
+   class Compare = std::less< Key >,
+   class Allocator = std::allocator< std::pair< const Key, Index > > >
 class IndexedSet
 {
 protected:

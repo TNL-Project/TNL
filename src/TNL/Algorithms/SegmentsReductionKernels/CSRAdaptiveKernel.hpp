@@ -68,13 +68,14 @@ CSRAdaptiveKernel< Index, Device >::getConstView() const -> ConstViewType
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                    Index begin,
-                                                    Index end,
-                                                    Fetch& fetch,
-                                                    const Reduction& reduction,
-                                                    ResultKeeper& keeper,
-                                                    const Value& identity ) const
+CSRAdaptiveKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    view.reduceSegments( segments, begin, end, fetch, reduction, keeper, identity );
 }
@@ -82,11 +83,12 @@ CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                       Fetch& fetch,
-                                                       const Reduction& reduction,
-                                                       ResultKeeper& keeper,
-                                                       const Value& identity ) const
+CSRAdaptiveKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    view.reduceAllSegments( segments, fetch, reduction, keeper, identity );
 }
@@ -94,10 +96,11 @@ CSRAdaptiveKernel< Index, Device >::reduceAllSegments( const SegmentsView& segme
 template< typename Index, typename Device >
 template< int SizeOfValue, typename Offsets >
 Index
-CSRAdaptiveKernel< Index, Device >::findLimit( const Index start,
-                                               const Offsets& offsets,
-                                               const Index size,
-                                               Segments::detail::Type& type )
+CSRAdaptiveKernel< Index, Device >::findLimit(
+   const Index start,
+   const Offsets& offsets,
+   const Index size,
+   Segments::detail::Type& type )
 {
    std::size_t sum = 0;
    for( Index current = start; current < size - 1; current++ ) {

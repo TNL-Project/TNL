@@ -38,8 +38,9 @@ using MatrixTypesTemplate = ::testing::Types<
 #endif
    >;
 
-template< template< typename Device, typename Index, typename IndexAllocator > class RowMajorSegments,
-          template< typename Device, typename Index, typename IndexAllocator > class ColMajorSegments >
+template<
+   template< typename Device, typename Index, typename IndexAllocator > class RowMajorSegments,
+   template< typename Device, typename Index, typename IndexAllocator > class ColMajorSegments >
 using MatrixTypesTemplateMixed = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, ColMajorSegments >,

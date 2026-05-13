@@ -69,8 +69,9 @@ template< typename Type, typename SourceType, typename Allocator >
 void
 File::load( Type* destination, std::streamsize elements )
 {
-   static_assert( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >,
-                  "Allocator::value_type must be the same as Type." );
+   static_assert(
+      std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >,
+      "Allocator::value_type must be the same as Type." );
    if( elements < 0 )
       throw std::invalid_argument( "File::load: number of elements to load must be non-negative." );
    else if( elements > 0 )
@@ -136,8 +137,9 @@ template< typename Type, typename TargetType, typename Allocator >
 void
 File::save( const Type* source, std::streamsize elements )
 {
-   static_assert( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >,
-                  "Allocator::value_type must be the same as Type." );
+   static_assert(
+      std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< typename Allocator::value_type > >,
+      "Allocator::value_type must be the same as Type." );
    if( elements < 0 )
       throw std::invalid_argument( "File::save: number of elements to save must be non-negative." );
    else if( elements > 0 )

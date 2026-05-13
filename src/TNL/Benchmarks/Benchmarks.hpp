@@ -107,10 +107,11 @@ Benchmark< Logger >::setOperation( const std::string& operation, double datasetS
 template< typename Logger >
 template< typename Device, typename ResetFunction, typename ComputeFunction >
 void
-Benchmark< Logger >::time( ResetFunction reset,
-                           const std::string& performer,
-                           ComputeFunction& compute,
-                           BenchmarkResult& result )
+Benchmark< Logger >::time(
+   ResetFunction reset,
+   const std::string& performer,
+   ComputeFunction& compute,
+   BenchmarkResult& result )
 {
    result.time = std::numeric_limits< double >::quiet_NaN();
    result.time_stddev = std::numeric_limits< double >::quiet_NaN();

@@ -169,8 +169,9 @@ test_forElements()
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
                << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx )
                << " segment size = " << segments.getSegmentSize( segmentIdx );
-            EXPECT_EQ( host_globalIdx_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ],
-                       segments.getGlobalIndex( segmentIdx, localIdx ) )
+            EXPECT_EQ(
+               host_globalIdx_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ],
+               segments.getGlobalIndex( segmentIdx, localIdx ) )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
                << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx )
                << " segment size = " << segments.getSegmentSize( segmentIdx );
@@ -353,12 +354,13 @@ test_forElementsWithSegmentIndexes_EmptySegments()
 
       VectorType v( segments.getStorageSize(), -1 );
       VectorType segmentIndexes( segmentsCount, 0 );
-      segmentIndexes.forElements( 0,
-                                  segmentsCount / 2,
-                                  [ = ] __cuda_callable__( IndexType idx, IndexType & value )
-                                  {
-                                     value = 2 * idx;
-                                  } );
+      segmentIndexes.forElements(
+         0,
+         segmentsCount / 2,
+         [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+         {
+            value = 2 * idx;
+         } );
       auto v_view = v.getView();
       TNL::Algorithms::Segments::forElements(
          segments,
@@ -425,12 +427,13 @@ test_forElementsWithSegmentIndexes()
       VectorType v( segments.getStorageSize(), -1 );
       VectorType segmentIndexes( segmentsCount, 0 );
       HostVectorType host_v;
-      segmentIndexes.forElements( 0,
-                                  segmentsCount / 2,
-                                  [ = ] __cuda_callable__( IndexType idx, IndexType & value )
-                                  {
-                                     value = 2 * idx;
-                                  } );
+      segmentIndexes.forElements(
+         0,
+         segmentsCount / 2,
+         [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+         {
+            value = 2 * idx;
+         } );
       auto v_view = v.getView();
       TNL::Algorithms::Segments::forElements(
          segments,
@@ -527,14 +530,15 @@ test_forSegments()
    VectorType v( segments.getStorageSize() );
    HostVectorType host_v;
    auto v_view = v.getView();
-   TNL::Algorithms::Segments::forAllSegments( segments,
-                                              [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
-                                              {
-                                                 for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
-                                                    const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
-                                                    v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
-                                                 }
-                                              } );
+   TNL::Algorithms::Segments::forAllSegments(
+      segments,
+      [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
+      {
+         for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
+            const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
+            v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
+         }
+      } );
 
    host_v = v;
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
@@ -546,14 +550,15 @@ test_forSegments()
 
    // Test with segments view
    v = 0;
-   TNL::Algorithms::Segments::forAllSegments( segments.getView(),
-                                              [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
-                                              {
-                                                 for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
-                                                    const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
-                                                    v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
-                                                 }
-                                              } );
+   TNL::Algorithms::Segments::forAllSegments(
+      segments.getView(),
+      [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
+      {
+         for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
+            const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
+            v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
+         }
+      } );
 
    host_v = v;
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
@@ -595,15 +600,16 @@ test_forSegmentsWithIndexes()
       } );
 
    v = 0;
-   TNL::Algorithms::Segments::forSegments( segments,
-                                           segmentIndexes,
-                                           [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
-                                           {
-                                              for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
-                                                 const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
-                                                 v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
-                                              }
-                                           } );
+   TNL::Algorithms::Segments::forSegments(
+      segments,
+      segmentIndexes,
+      [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
+      {
+         for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
+            const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
+            v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
+         }
+      } );
    host_v = v;
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {

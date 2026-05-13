@@ -83,8 +83,8 @@ Euler< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction
             continue;
          }
       }
-      this->setResidue( addAndReduceAbs( u, currentTau * k1, TNL::Plus(), static_cast< RealType >( 0 ) )
-                        / ( currentTau * u.getSize() ) );
+      this->setResidue(
+         addAndReduceAbs( u, currentTau * k1, TNL::Plus(), static_cast< RealType >( 0 ) ) / ( currentTau * u.getSize() ) );
 
       /////
       // When time is close to stopTime the new residue may be inaccurate significantly.

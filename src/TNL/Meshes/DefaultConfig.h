@@ -10,11 +10,12 @@ namespace TNL::Meshes {
 /****
  * Basic structure for mesh configuration.
  */
-template< typename Cell,
-          int SpaceDimension = Cell::dimension,
-          typename Real = double,
-          typename GlobalIndex = int,
-          typename LocalIndex = short int >
+template<
+   typename Cell,
+   int SpaceDimension = Cell::dimension,
+   typename Real = double,
+   typename GlobalIndex = int,
+   typename LocalIndex = short int >
 struct DefaultConfig
 {
    using CellTopology = Cell;

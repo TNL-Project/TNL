@@ -95,12 +95,13 @@ public:
    NDArrayStorage&
    operator=( const OtherArray& other )
    {
-      static_assert( std::is_same_v< PermutationType, typename OtherArray::PermutationType >,
-                     "Arrays must have the same permutation of indices." );
+      static_assert(
+         std::is_same_v< PermutationType, typename OtherArray::PermutationType >,
+         "Arrays must have the same permutation of indices." );
       // update sizes and strides
       detail::SetSizesCopyHelper< SizesHolderType, typename OtherArray::SizesHolderType >::copy( getSizes(), other.getSizes() );
-      detail::SetSizesCopyHelper< StridesHolderType, typename OtherArray::StridesHolderType >::copy( getStrides(),
-                                                                                                     other.getStrides() );
+      detail::SetSizesCopyHelper< StridesHolderType, typename OtherArray::StridesHolderType >::copy(
+         getStrides(), other.getStrides() );
       // (re)allocate storage if necessary
       array.setSize( getStorageSize() );
       // copy data
@@ -342,8 +343,8 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forAll( Func f,
-           const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
+   forAll( Func f, const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} )
+      const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
@@ -527,22 +528,23 @@ protected:
  *
  * See also the \ref ug_NDArrays "Users' Guide".
  */
-template< typename Value,
-          typename SizesHolder,
-          typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
-          typename Device = Devices::Host,
-          typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
-          typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
-class NDArray
-: public NDArrayStorage< Array< Value, Device, Index, Allocator >,
-                         NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps >,
-                         Permutation >
+template<
+   typename Value,
+   typename SizesHolder,
+   typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
+   typename Device = Devices::Host,
+   typename Index = typename SizesHolder::IndexType,
+   typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
+   typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
+class NDArray : public NDArrayStorage<
+                   Array< Value, Device, Index, Allocator >,
+                   NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps >,
+                   Permutation >
 {
-   using Base =
-      NDArrayStorage< Array< Value, Device, Index, Allocator >,
-                      NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps >,
-                      Permutation >;
+   using Base = NDArrayStorage<
+      Array< Value, Device, Index, Allocator >,
+      NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps >,
+      Permutation >;
 
 public:
    // inherit all constructors and assignment operators
@@ -592,20 +594,22 @@ public:
  *
  * See also the \ref ug_NDArrays "Users' Guide".
  */
-template< typename Value,
-          typename SizesHolder,
-          typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
-          typename Index = typename SizesHolder::IndexType >
-class StaticNDArray
-: public NDArrayStorage< StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
+template<
+   typename Value,
+   typename SizesHolder,
+   typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
+   typename Index = typename SizesHolder::IndexType >
+class StaticNDArray : public NDArrayStorage<
+                         StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
                          NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder > >,
                          Permutation,
                          Devices::Sequential >
 {
-   using Base = NDArrayStorage< StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
-                                NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder > >,
-                                Permutation,
-                                Devices::Sequential >;
+   using Base = NDArrayStorage<
+      StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
+      NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder > >,
+      Permutation,
+      Devices::Sequential >;
    static_assert( detail::getStaticStorageSize( SizesHolder{} ) > 0, "All dimensions of a static array must be positive." );
 
 public:

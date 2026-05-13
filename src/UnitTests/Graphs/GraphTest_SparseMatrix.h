@@ -15,18 +15,20 @@ class GraphBasicTest : public ::testing::Test
 {
 protected:
    using AdjacencyMatrixType = Matrix;
-   using DirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
-                                                 typename Matrix::DeviceType,
-                                                 typename Matrix::IndexType,
-                                                 TNL::Graphs::DirectedGraph,
-                                                 TNL::Algorithms::Segments::CSR,
-                                                 AdjacencyMatrixType >;
-   using UndirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
-                                                   typename Matrix::DeviceType,
-                                                   typename Matrix::IndexType,
-                                                   TNL::Graphs::UndirectedGraph,
-                                                   TNL::Algorithms::Segments::CSR,
-                                                   AdjacencyMatrixType >;
+   using DirectedGraphType = TNL::Graphs::Graph<
+      typename Matrix::RealType,
+      typename Matrix::DeviceType,
+      typename Matrix::IndexType,
+      TNL::Graphs::DirectedGraph,
+      TNL::Algorithms::Segments::CSR,
+      AdjacencyMatrixType >;
+   using UndirectedGraphType = TNL::Graphs::Graph<
+      typename Matrix::RealType,
+      typename Matrix::DeviceType,
+      typename Matrix::IndexType,
+      TNL::Graphs::UndirectedGraph,
+      TNL::Algorithms::Segments::CSR,
+      AdjacencyMatrixType >;
 };
 
 // types for which GraphBasicTest is instantiated
@@ -888,17 +890,18 @@ TYPED_TEST( GraphBasicTest, LargerGraph )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
 
-   GraphType graph( 10,
-                    { { 0, 1, 1.0 },
-                      { 1, 2, 1.0 },
-                      { 2, 3, 1.0 },
-                      { 3, 4, 1.0 },
-                      { 4, 5, 1.0 },
-                      { 5, 6, 1.0 },
-                      { 6, 7, 1.0 },
-                      { 7, 8, 1.0 },
-                      { 8, 9, 1.0 },
-                      { 0, 9, 1.0 } } );
+   GraphType graph(
+      10,
+      { { 0, 1, 1.0 },
+        { 1, 2, 1.0 },
+        { 2, 3, 1.0 },
+        { 3, 4, 1.0 },
+        { 4, 5, 1.0 },
+        { 5, 6, 1.0 },
+        { 6, 7, 1.0 },
+        { 7, 8, 1.0 },
+        { 8, 9, 1.0 },
+        { 0, 9, 1.0 } } );
 
    EXPECT_EQ( graph.getVertexCount(), 10 );
    EXPECT_EQ( graph.getEdgeCount(), 10 );
@@ -933,17 +936,18 @@ TYPED_TEST( GraphBasicTest, LargerGraph )
          TNL::Algorithms::Segments::CSR,
          TNL::Matrices::
             SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > >;
-      SymmetricGraphType symmetricGraph( 10,
-                                         { { 0, 1, 1.0 },
-                                           { 1, 2, 1.0 },
-                                           { 2, 3, 1.0 },
-                                           { 3, 4, 1.0 },
-                                           { 4, 5, 1.0 },
-                                           { 5, 6, 1.0 },
-                                           { 6, 7, 1.0 },
-                                           { 7, 8, 1.0 },
-                                           { 8, 9, 1.0 },
-                                           { 0, 9, 1.0 } } );
+      SymmetricGraphType symmetricGraph(
+         10,
+         { { 0, 1, 1.0 },
+           { 1, 2, 1.0 },
+           { 2, 3, 1.0 },
+           { 3, 4, 1.0 },
+           { 4, 5, 1.0 },
+           { 5, 6, 1.0 },
+           { 6, 7, 1.0 },
+           { 7, 8, 1.0 },
+           { 8, 9, 1.0 },
+           { 0, 9, 1.0 } } );
 
       EXPECT_EQ( symmetricGraph.getVertexCount(), 10 );
       EXPECT_EQ( symmetricGraph.getEdgeCount(), 10 );

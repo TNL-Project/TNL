@@ -97,13 +97,14 @@ public:
          kokkos_x( "x", b.getSize(), 1 ),                    // solution multivector
          kokkos_t( "t", b.getSize(), 1 );                    // temp workspace (store permuted rhs)
 
-      TNL::Algorithms::parallelFor< DeviceType >( 0,
-                                                  b.getSize(),
-                                                  [ = ] __cuda_callable__( IndexType i )
-                                                  {
-                                                     kokkos_b( i, 0 ) = b[ i ];
-                                                     kokkos_x( i, 0 ) = x[ i ];
-                                                  } );
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         b.getSize(),
+         [ = ] __cuda_callable__( IndexType i )
+         {
+            kokkos_b( i, 0 ) = b[ i ];
+            kokkos_x( i, 0 ) = x[ i ];
+         } );
       this->solver.solve( kokkos_x, kokkos_b, kokkos_t );
       return true;
 #else

@@ -326,20 +326,20 @@ private:
       if( faceSeeds.empty() ) {
          // no face seeds - cell seeds refer to points
          if( cellSeeds.getMatrix().getColumns() != points.getSize() )
-            throw MeshBuilderError( "Inconsistent size of the cellSeeds matrix (it has "
-                                    + std::to_string( cellSeeds.getMatrix().getColumns() ) + " columns, but there are "
-                                    + std::to_string( points.getSize() ) + " points)." );
+            throw MeshBuilderError(
+               "Inconsistent size of the cellSeeds matrix (it has " + std::to_string( cellSeeds.getMatrix().getColumns() )
+               + " columns, but there are " + std::to_string( points.getSize() ) + " points)." );
       }
       else {
          // cell seeds refer to faces and face seeds refer to points
          if( cellSeeds.getMatrix().getColumns() != faceSeeds.getMatrix().getRows() )
-            throw MeshBuilderError( "Inconsistent size of the cellSeeds matrix (it has "
-                                    + std::to_string( cellSeeds.getMatrix().getColumns() ) + " columns, but there are "
-                                    + std::to_string( faceSeeds.getMatrix().getRows() ) + " faces)." );
+            throw MeshBuilderError(
+               "Inconsistent size of the cellSeeds matrix (it has " + std::to_string( cellSeeds.getMatrix().getColumns() )
+               + " columns, but there are " + std::to_string( faceSeeds.getMatrix().getRows() ) + " faces)." );
          if( faceSeeds.getMatrix().getColumns() != points.getSize() )
-            throw MeshBuilderError( "Inconsistent size of the faceSeeds matrix (it has "
-                                    + std::to_string( faceSeeds.getMatrix().getColumns() ) + " columns, but there are "
-                                    + std::to_string( points.getSize() ) + " points)." );
+            throw MeshBuilderError(
+               "Inconsistent size of the faceSeeds matrix (it has " + std::to_string( faceSeeds.getMatrix().getColumns() )
+               + " columns, but there are " + std::to_string( points.getSize() ) + " points)." );
       }
 
       if( ! min( pointsSet ) )
@@ -356,8 +356,8 @@ private:
                const GlobalIndexType cornerId = cellSeed.getCornerId( j );
                assignedPoints[ cornerId ] = true;
                if( cornerId < 0 || getPointsCount() <= cornerId )
-                  throw MeshBuilderError( "Cell seed " + std::to_string( i ) + " is referencing unavailable point "
-                                          + std::to_string( cornerId ) );
+                  throw MeshBuilderError(
+                     "Cell seed " + std::to_string( i ) + " is referencing unavailable point " + std::to_string( cornerId ) );
             }
          }
 
@@ -370,8 +370,8 @@ private:
             for( LocalIndexType j = 0; j < faceSeed.getCornersCount(); j++ ) {
                const GlobalIndexType cornerId = faceSeed.getCornerId( j );
                if( cornerId < 0 || getPointsCount() <= cornerId )
-                  throw MeshBuilderError( "Face seed " + std::to_string( i ) + " is referencing unavailable point "
-                                          + std::to_string( cornerId ) );
+                  throw MeshBuilderError(
+                     "Face seed " + std::to_string( i ) + " is referencing unavailable point " + std::to_string( cornerId ) );
                assignedPoints[ cornerId ] = true;
             }
          }
@@ -388,8 +388,8 @@ private:
             for( LocalIndexType j = 0; j < cellSeed.getCornersCount(); j++ ) {
                const GlobalIndexType cornerId = cellSeed.getCornerId( j );
                if( cornerId < 0 || getFacesCount() <= cornerId )
-                  throw MeshBuilderError( "Cell seed " + std::to_string( i ) + " is referencing unavailable face "
-                                          + std::to_string( cornerId ) );
+                  throw MeshBuilderError(
+                     "Cell seed " + std::to_string( i ) + " is referencing unavailable face " + std::to_string( cornerId ) );
                assignedFaces[ cornerId ] = true;
             }
          }

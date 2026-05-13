@@ -59,9 +59,10 @@ protected:
    };
 };
 
-template< typename MeshFunction,
-          typename Mesh = typename MeshFunction::MeshType,
-          int EntitiesDimension = MeshFunction::getEntitiesDimension() >
+template<
+   typename MeshFunction,
+   typename Mesh = typename MeshFunction::MeshType,
+   int EntitiesDimension = MeshFunction::getEntitiesDimension() >
 class MeshFunctionGnuplotWriter : public MeshFunctionGnuplotWriterBase
 {
 public:

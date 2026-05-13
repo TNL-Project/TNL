@@ -90,12 +90,13 @@ struct SegmentedScan< Devices::Sequential, Type >
     */
    template< typename Vector, typename Reduction, typename Flags >
    static void
-   perform( Vector& v,
-            Flags& flags,
-            typename Vector::IndexType begin,
-            typename Vector::IndexType end,
-            const Reduction& reduction,
-            typename Vector::ValueType identity );
+   perform(
+      Vector& v,
+      Flags& flags,
+      typename Vector::IndexType begin,
+      typename Vector::IndexType end,
+      const Reduction& reduction,
+      typename Vector::ValueType identity );
 };
 
 template< detail::ScanType Type >
@@ -133,12 +134,13 @@ struct SegmentedScan< Devices::Host, Type >
     */
    template< typename Vector, typename Reduction, typename Flags >
    static void
-   perform( Vector& v,
-            Flags& flags,
-            typename Vector::IndexType begin,
-            typename Vector::IndexType end,
-            const Reduction& reduction,
-            typename Vector::ValueType identity );
+   perform(
+      Vector& v,
+      Flags& flags,
+      typename Vector::IndexType begin,
+      typename Vector::IndexType end,
+      const Reduction& reduction,
+      typename Vector::ValueType identity );
 };
 
 template< detail::ScanType Type >
@@ -178,12 +180,13 @@ struct SegmentedScan< Devices::Cuda, Type >
     */
    template< typename Vector, typename Reduction, typename Flags >
    static void
-   perform( Vector& v,
-            Flags& flags,
-            typename Vector::IndexType begin,
-            typename Vector::IndexType end,
-            const Reduction& reduction,
-            typename Vector::ValueType identity );
+   perform(
+      Vector& v,
+      Flags& flags,
+      typename Vector::IndexType begin,
+      typename Vector::IndexType end,
+      const Reduction& reduction,
+      typename Vector::ValueType identity );
 };
 
 }  // namespace TNL::Algorithms

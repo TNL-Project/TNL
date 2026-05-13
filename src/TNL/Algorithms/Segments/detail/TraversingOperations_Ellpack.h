@@ -22,11 +22,12 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElementsSequential( const ViewType& segments,
-                          IndexBegin begin,
-                          IndexEnd end,
-                          Function&& function,
-                          const LaunchConfiguration& launchConfig )
+   forElementsSequential(
+      const ViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       const IndexType segmentSize = segments.getSegmentSize();
       const IndexType storageSize = segments.getStorageSize();
@@ -68,11 +69,12 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                LaunchConfiguration launchConfig )  // TODO: Function&& does not work here - why???
+   forElements(
+      const ViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      LaunchConfiguration launchConfig )  // TODO: Function&& does not work here - why???
    {
       if( end <= begin )
          return;
@@ -105,36 +107,39 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                   {
                      return true;
                   };
-                  constexpr auto kernel = forElementsIfKernel_Ellpack< ViewType,
-                                                                       IndexType,
-                                                                       decltype( condition ),
-                                                                       std::remove_reference_t< Function >,
-                                                                       Organization >;
-                  Backend::launchKernelAsync( kernel,
-                                              launchConfig,
-                                              gridIdx,
-                                              totalThreadsCount,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments,
-                                              begin,
-                                              end,
-                                              condition,
-                                              function );
+                  constexpr auto kernel = forElementsIfKernel_Ellpack<
+                     ViewType,
+                     IndexType,
+                     decltype( condition ),
+                     std::remove_reference_t< Function >,
+                     Organization >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launchConfig,
+                     gridIdx,
+                     totalThreadsCount,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments,
+                     begin,
+                     end,
+                     condition,
+                     function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsBlockMergeKernel_Ellpack< ViewType,
-                                                                               IndexType,
-                                                                               std::remove_reference_t< Function >,
-                                                                               Organization,
-                                                                               256 >;
+                  constexpr auto kernel = forElementsBlockMergeKernel_Ellpack<
+                     ViewType,
+                     IndexType,
+                     std::remove_reference_t< Function >,
+                     Organization,
+                     256 >;
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
                         Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
                         break;
                      default:
-                        throw std::invalid_argument( "Unsupported threads per segment ( "
-                                                     + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                                                     + " ) count for Ellpack segments." );
+                        throw std::invalid_argument(
+                           "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                           + " ) count for Ellpack segments." );
                   }
                }
                else
@@ -150,10 +155,11 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
    template< typename Array, typename Function >
    static void
-   forElementsSequential( const ViewType& segments,
-                          const Array& segmentIndexes,
-                          Function&& function,
-                          const LaunchConfiguration& launchConfig )
+   forElementsSequential(
+      const ViewType& segments,
+      const Array& segmentIndexes,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       auto segmentIndexesView = segmentIndexes.getConstView();
       const IndexType segmentSize = segments.getSegmentSize();
@@ -224,38 +230,40 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel = forElementsWithSegmentIndexesKernel_Ellpack< ViewType,
-                                                                                       typename Array::ConstViewType,
-                                                                                       IndexType,
-                                                                                       std::remove_reference_t< Function >,
-                                                                                       Organization >;
-                  Backend::launchKernelAsync( kernel,
-                                              launchConfig,
-                                              gridIdx,
-                                              totalThreadsCount,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments,
-                                              segmentIndexesView,
-                                              function );
+                  constexpr auto kernel = forElementsWithSegmentIndexesKernel_Ellpack<
+                     ViewType,
+                     typename Array::ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Function >,
+                     Organization >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launchConfig,
+                     gridIdx,
+                     totalThreadsCount,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments,
+                     segmentIndexesView,
+                     function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel =
-                     forElementsWithSegmentIndexesBlockMergeKernel_Ellpack< ViewType,
-                                                                            typename Array::ConstViewType,
-                                                                            IndexType,
-                                                                            std::remove_reference_t< Function >,
-                                                                            Organization,
-                                                                            256,    // SegmentsPerBlock
-                                                                            256 >;  // BlockSize
+                  constexpr auto kernel = forElementsWithSegmentIndexesBlockMergeKernel_Ellpack<
+                     ViewType,
+                     typename Array::ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Function >,
+                     Organization,
+                     256,    // SegmentsPerBlock
+                     256 >;  // BlockSize
 
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
                         Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
                         break;
                      default:
-                        throw std::invalid_argument( "Unsupported threads per segment ( "
-                                                     + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                                                     + " ) count for Ellpack segments." );
+                        throw std::invalid_argument(
+                           "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                           + " ) count for Ellpack segments." );
                   }
                }
                else
@@ -271,12 +279,13 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIfSequential( const ViewType& segments,
-                            IndexBegin begin,
-                            IndexEnd end,
-                            Condition condition,
-                            Function&& function,
-                            const LaunchConfiguration& launchConfig )
+   forElementsIfSequential(
+      const ViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition condition,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       const IndexType segmentSize = segments.getSegmentSize();
       const IndexType storageSize = segments.getStorageSize();
@@ -321,12 +330,13 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  LaunchConfiguration launchConfig )
+   forElementsIf(
+      const ViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          if( end <= begin )
@@ -352,30 +362,33 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel = forElementsIfKernel_Ellpack< ViewType,
-                                                                       IndexType,
-                                                                       std::remove_reference_t< Condition >,
-                                                                       std::remove_reference_t< Function >,
-                                                                       Organization >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              totalThreadsCount,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments,
-                                              begin,
-                                              end,
-                                              condition,
-                                              function );
+                  constexpr auto kernel = forElementsIfKernel_Ellpack<
+                     ViewType,
+                     IndexType,
+                     std::remove_reference_t< Condition >,
+                     std::remove_reference_t< Function >,
+                     Organization >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     totalThreadsCount,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments,
+                     begin,
+                     end,
+                     condition,
+                     function );
                }
                else {  // BlockMerge mapping - this mapping is currently the default one
-                  constexpr auto kernel = forElementsIfBlockMergeKernel_Ellpack< ViewType,
-                                                                                 IndexType,
-                                                                                 std::remove_reference_t< Condition >,
-                                                                                 std::remove_reference_t< Function >,
-                                                                                 Organization,
-                                                                                 256,
-                                                                                 256 >;
+                  constexpr auto kernel = forElementsIfBlockMergeKernel_Ellpack<
+                     ViewType,
+                     IndexType,
+                     std::remove_reference_t< Condition >,
+                     std::remove_reference_t< Function >,
+                     Organization,
+                     256,
+                     256 >;
                   Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
                }
             }

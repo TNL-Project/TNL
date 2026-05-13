@@ -14,9 +14,9 @@ void
 Givens( const MatrixType& A, MatrixType& Q, MatrixType& R )
 {
    if( A.getColumns() > A.getRows() )
-      throw std::invalid_argument( "The input matrix must be square or have more rows than columns. It has "
-                                   + std::to_string( A.getRows() ) + " rows and " + std::to_string( A.getColumns() )
-                                   + " columns." );
+      throw std::invalid_argument(
+         "The input matrix must be square or have more rows than columns. It has " + std::to_string( A.getRows() )
+         + " rows and " + std::to_string( A.getColumns() ) + " columns." );
 
    using RealType = typename MatrixType::RealType;
    using IndexType = typename MatrixType::IndexType;

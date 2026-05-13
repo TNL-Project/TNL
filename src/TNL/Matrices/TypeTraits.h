@@ -54,12 +54,13 @@ isMatrixView( const DenseMatrixView< Real, Device, Index, Organization >& )
    return {};
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > typename SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > typename SegmentsView,
+   typename ComputeReal >
 [[nodiscard]] constexpr std::true_type
 isMatrixView( const SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& )
 {
@@ -136,25 +137,27 @@ template< typename Matrix >
 struct isSparseCSRMatrix : public std::false_type
 {};
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 struct isSparseCSRMatrix<
    SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator > >
 : public Algorithms::Segments::isCSRSegments< Segments< Device, Index, IndexAllocator > >::type
 {};
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 struct isSparseCSRMatrix< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal > >
 : public Algorithms::Segments::isCSRSegments< SegmentsView< Device, Index > >::type
 {};

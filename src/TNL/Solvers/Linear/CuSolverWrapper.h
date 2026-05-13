@@ -29,8 +29,9 @@ class CuSolverWrapper : public LinearSolver< Matrix >
 {
    static_assert( Matrices::is_dense_matrix_v< Matrix >, "The CuSolverWrapper solver is available only for dense matrices." );
    static_assert( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda >, "CuSolverWrapper is available only on CUDA" );
-   static_assert( std::is_same_v< typename Matrix::RealType, float > || std::is_same_v< typename Matrix::RealType, double >,
-                  "unsupported RealType" );
+   static_assert(
+      std::is_same_v< typename Matrix::RealType, float > || std::is_same_v< typename Matrix::RealType, double >,
+      "unsupported RealType" );
 
    using Base = LinearSolver< Matrix >;
 

@@ -15,8 +15,9 @@ void
 PVTUWriter< Mesh >::writeMetadata( int cycle, double time )
 {
    if( ! vtkfileOpen )
-      throw std::logic_error( "writeMetadata has to be called after writeEntities in case of the PVTU format, otherwise header "
-                              "attributes would be left unset." );
+      throw std::logic_error(
+         "writeMetadata has to be called after writeEntities in case of the PVTU format, otherwise header "
+         "attributes would be left unset." );
 
    if( cycle >= 0 || time >= 0 )
       str << "<FieldData>\n";
@@ -99,8 +100,9 @@ PVTUWriter< Mesh >::addPiece( const std::string& mainFileName, const unsigned su
    const fs::path mainPath = mainFileName;
    const fs::path basename = mainPath.stem();
    if( mainPath.extension() != ".pvtu" )
-      throw std::logic_error( "The mainFileName parameter must be the name of the "
-                              ".pvtu file (i.e., it must have the .pvtu suffix)." );
+      throw std::logic_error(
+         "The mainFileName parameter must be the name of the "
+         ".pvtu file (i.e., it must have the .pvtu suffix)." );
 
    // close PCellData and PPointData sections
    closePCellData();

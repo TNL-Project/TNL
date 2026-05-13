@@ -99,11 +99,12 @@ getRoot( const Vector& parent, Index source )
    return source;
 }
 
-template< typename InGraph,
-          typename OutGraph = InGraph,
-          typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
-          typename Real = typename InGraph::ValueType,
-          typename Index = typename InGraph::IndexType >
+template<
+   typename InGraph,
+   typename OutGraph = InGraph,
+   typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
+   typename Real = typename InGraph::ValueType,
+   typename Index = typename InGraph::IndexType >
 void
 kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roots )
 {
@@ -153,10 +154,11 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
    roots = RootsVector( roots_ );
 }
 
-template< typename InGraph,
-          typename OutGraph = InGraph,
-          typename Real = typename InGraph::ValueType,
-          typename Index = typename InGraph::IndexType >
+template<
+   typename InGraph,
+   typename OutGraph = InGraph,
+   typename Real = typename InGraph::ValueType,
+   typename Index = typename InGraph::IndexType >
 void
 parallelMST( const InGraph& graph, OutGraph& tree )
 {
@@ -321,10 +323,11 @@ parallelMST( const InGraph& graph, OutGraph& tree )
          //star_slots_view[ p_old_view[ value.second ] ]++; //TODO: makes this atomic
          //star_slots_view[ p_old_view[ value.third ] ]++; //TODO: makes this atomic
       };
-      hook_candidates.reduceAllSegments( hook_candidates_fetch,
-                                         hook_candidates_reduction,
-                                         hook_candidates_keep,
-                                         AuxType( std::numeric_limits< RealType >::max(), -1, -1 ) );
+      hook_candidates.reduceAllSegments(
+         hook_candidates_fetch,
+         hook_candidates_reduction,
+         hook_candidates_keep,
+         AuxType( std::numeric_limits< RealType >::max(), -1, -1 ) );
       /*for( Index i = 0; i < hook_sources.getSize(); i++ ) {
          if( hook_sources_view[ i ] != -1 )
             std::cout << " > Best hook: " << hook_sources[ i ] << " -> " << i << " @ " << hook_weights[ i ] << '\n';

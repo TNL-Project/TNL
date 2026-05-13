@@ -13,11 +13,12 @@ namespace TNL::Benchmarks::DenseMatrices {
 
 template< typename DenseMatrix >
 void
-matrixMultiplicationMAGMA( const DenseMatrix& matrix1,
-                           const DenseMatrix& matrix2,
-                           DenseMatrix& resultMatrix,
-                           bool transposeA,
-                           bool transposeB )
+matrixMultiplicationMAGMA(
+   const DenseMatrix& matrix1,
+   const DenseMatrix& matrix2,
+   DenseMatrix& resultMatrix,
+   bool transposeA,
+   bool transposeB )
 {
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
@@ -45,36 +46,38 @@ matrixMultiplicationMAGMA( const DenseMatrix& matrix1,
    magma_trans_t transB = transposeB ? MagmaTrans : MagmaNoTrans;
 
    if constexpr( std::is_same_v< RealType, float > ) {
-      magma_sgemm( transA,
-                   transB,
-                   m,
-                   n,
-                   k,
-                   alpha,
-                   matrix1.getValues().getData(),
-                   lda,
-                   matrix2.getValues().getData(),
-                   ldb,
-                   beta,
-                   resultMatrix.getValues().getData(),
-                   ldc,
-                   queue );
+      magma_sgemm(
+         transA,
+         transB,
+         m,
+         n,
+         k,
+         alpha,
+         matrix1.getValues().getData(),
+         lda,
+         matrix2.getValues().getData(),
+         ldb,
+         beta,
+         resultMatrix.getValues().getData(),
+         ldc,
+         queue );
    }
    else if constexpr( std::is_same_v< RealType, double > ) {
-      magma_dgemm( transA,
-                   transB,
-                   m,
-                   n,
-                   k,
-                   alpha,
-                   matrix1.getValues().getData(),
-                   lda,
-                   matrix2.getValues().getData(),
-                   ldb,
-                   beta,
-                   resultMatrix.getValues().getData(),
-                   ldc,
-                   queue );
+      magma_dgemm(
+         transA,
+         transB,
+         m,
+         n,
+         k,
+         alpha,
+         matrix1.getValues().getData(),
+         lda,
+         matrix2.getValues().getData(),
+         ldb,
+         beta,
+         resultMatrix.getValues().getData(),
+         ldc,
+         queue );
    }
 
    magma_queue_destroy( queue );
@@ -84,8 +87,9 @@ matrixMultiplicationMAGMA( const DenseMatrix& matrix1,
 
 template< typename RealType, typename DeviceType, typename IndexType >
 void
-denseMatrixTransposeMAGMA( const TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >& inputMatrix,
-                           TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >& transposedMatrix )
+denseMatrixTransposeMAGMA(
+   const TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >& inputMatrix,
+   TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >& transposedMatrix )
 {
    magma_init();
 

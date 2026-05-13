@@ -37,13 +37,13 @@ public:
       return { entity.getMesh(), coordinate, normals, orientation };
    }
 
-   template< class Grid,
-             int Orientation,
-             std::enable_if_t< Templates::isInLeftClosedRightOpenInterval(
-                                  0,
-                                  Orientation,
-                                  combinationsCount( NeighbourEntityDimension, GridDimension ) ),
-                               bool > = true >
+   template<
+      class Grid,
+      int Orientation,
+      std::enable_if_t<
+         Templates::
+            isInLeftClosedRightOpenInterval( 0, Orientation, combinationsCount( NeighbourEntityDimension, GridDimension ) ),
+         bool > = true >
    [[nodiscard]] __cuda_callable__
    static GridEntity< Grid, NeighbourEntityDimension >
    getEntity( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::CoordinatesType& offset )

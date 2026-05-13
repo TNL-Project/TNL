@@ -440,14 +440,15 @@ reduceAllVertices(
  * \par Output
  * \include GraphExample_reduceVertices.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVertices(
    Graph& graph,
@@ -490,14 +491,15 @@ reduceVertices(
  * \par Output
  * \include GraphExample_reduceVertices.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVertices(
    const Graph& graph,
@@ -539,13 +541,14 @@ reduceVertices(
  * \par Output
  * \include GraphExample_reduceVertices.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVertices(
    Graph& graph,
@@ -586,13 +589,14 @@ reduceVertices(
  * \par Output
  * \include GraphExample_reduceVertices.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVertices(
    const Graph& graph,
@@ -632,13 +636,14 @@ reduceVertices(
  * \par Output
  * \include GraphExample_reduceVerticesWithIndexes.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVertices(
    Graph& graph,
@@ -674,13 +679,14 @@ reduceVertices(
  * \par Output
  * \include GraphExample_reduceVerticesWithIndexes.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVertices(
    const Graph& graph,
@@ -715,12 +721,13 @@ reduceVertices(
  * \par Output
  * \include GraphExample_reduceVerticesWithIndexes.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVertices(
    Graph& graph,
@@ -754,12 +761,13 @@ reduceVertices(
  * \par Output
  * \include GraphExample_reduceVerticesWithIndexes.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVertices(
    const Graph& graph,
@@ -950,14 +958,15 @@ reduceAllVerticesIf(
  * \par Output
  * \include GraphExample_reduceVerticesIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue >
 typename Graph::IndexType
 reduceVerticesIf(
    Graph& graph,
@@ -1004,14 +1013,15 @@ reduceVerticesIf(
  * \par Output
  * \include GraphExample_reduceVerticesIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue >
 typename Graph::IndexType
 reduceVerticesIf(
    const Graph& graph,
@@ -1056,13 +1066,14 @@ reduceVerticesIf(
  * \par Output
  * \include GraphExample_reduceVerticesIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Graph::IndexType
 reduceVerticesIf(
    Graph& graph,
@@ -1106,13 +1117,14 @@ reduceVerticesIf(
  * \par Output
  * \include GraphExample_reduceVerticesIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Graph::IndexType
 reduceVerticesIf(
    const Graph& graph,
@@ -1279,14 +1291,15 @@ reduceAllVerticesWithArgument(
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVerticesWithArgument(
    Graph& graph,
@@ -1323,14 +1336,15 @@ reduceVerticesWithArgument(
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVerticesWithArgument(
    const Graph& graph,
@@ -1365,13 +1379,14 @@ reduceVerticesWithArgument(
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVerticesWithArgument(
    Graph& graph,
@@ -1405,13 +1420,14 @@ reduceVerticesWithArgument(
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceVerticesWithArgument(
    const Graph& graph,
@@ -1448,13 +1464,14 @@ reduceVerticesWithArgument(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVerticesWithArgument(
    Graph& graph,
@@ -1491,13 +1508,14 @@ reduceVerticesWithArgument(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVerticesWithArgument(
    const Graph& graph,
@@ -1532,12 +1550,13 @@ reduceVerticesWithArgument(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVerticesWithArgument(
    Graph& graph,
@@ -1571,12 +1590,13 @@ reduceVerticesWithArgument(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
-template< typename Graph,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Graph,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceVerticesWithArgument(
    const Graph& graph,
@@ -1614,12 +1634,13 @@ reduceVerticesWithArgument(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
-template< typename Graph,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
+template<
+   typename Graph,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
 typename Graph::IndexType
 reduceAllVerticesWithArgumentIf(
    Graph& graph,
@@ -1658,12 +1679,13 @@ reduceAllVerticesWithArgumentIf(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
-template< typename Graph,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
+template<
+   typename Graph,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
 typename Graph::IndexType
 reduceAllVerticesWithArgumentIf(
    const Graph& graph,
@@ -1780,14 +1802,15 @@ reduceAllVerticesWithArgumentIf(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
 typename Graph::IndexType
 reduceVerticesWithArgumentIf(
    Graph& graph,
@@ -1834,14 +1857,15 @@ reduceVerticesWithArgumentIf(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Graph::RealType >() ) ) >
 typename Graph::IndexType
 reduceVerticesWithArgumentIf(
    const Graph& graph,
@@ -1886,13 +1910,14 @@ reduceVerticesWithArgumentIf(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Graph::IndexType
 reduceVerticesWithArgumentIf(
    Graph& graph,
@@ -1936,13 +1961,14 @@ reduceVerticesWithArgumentIf(
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
-template< typename Graph,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Graph,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Graph::IndexType
 reduceVerticesWithArgumentIf(
    const Graph& graph,

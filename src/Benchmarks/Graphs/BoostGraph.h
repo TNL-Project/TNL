@@ -20,21 +20,23 @@ namespace TNL::Benchmarks::Graphs {
 template< typename Value = double, typename GraphType = TNL::Graphs::DirectedGraph >
 struct BoostAdjacencyList
 {
-   using type = boost::adjacency_list< boost::vecS,
-                                       boost::vecS,
-                                       boost::directedS,
-                                       boost::no_property,
-                                       boost::property< boost::edge_weight_t, Value > >;
+   using type = boost::adjacency_list<
+      boost::vecS,
+      boost::vecS,
+      boost::directedS,
+      boost::no_property,
+      boost::property< boost::edge_weight_t, Value > >;
 };
 
 template< typename Value >
 struct BoostAdjacencyList< Value, TNL::Graphs::UndirectedGraph >
 {
-   using type = boost::adjacency_list< boost::vecS,
-                                       boost::vecS,
-                                       boost::undirectedS,
-                                       boost::no_property,
-                                       boost::property< boost::edge_weight_t, Value > >;
+   using type = boost::adjacency_list<
+      boost::vecS,
+      boost::vecS,
+      boost::undirectedS,
+      boost::no_property,
+      boost::property< boost::edge_weight_t, Value > >;
 };
 
 template< typename Index = int, typename Real = double, typename GraphType = TNL::Graphs::DirectedGraph >

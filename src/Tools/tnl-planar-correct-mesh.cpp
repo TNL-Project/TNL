@@ -86,11 +86,12 @@ struct MeshLocalIndexTag< MeshPlanarCorrectConfigTag, short int >
 template<>
 struct MeshConfigTemplateTag< MeshPlanarCorrectConfigTag >
 {
-   template< typename Cell,
-             int SpaceDimension = Cell::dimension,
-             typename Real = float,
-             typename GlobalIndex = int,
-             typename LocalIndex = short int >
+   template<
+      typename Cell,
+      int SpaceDimension = Cell::dimension,
+      typename Real = float,
+      typename GlobalIndex = int,
+      typename LocalIndex = short int >
    struct MeshConfig
    {
       using CellTopology = Cell;
@@ -213,10 +214,11 @@ struct PlanarMeshWriter< Topologies::Polyhedron >
 
 template< typename Mesh >
 bool
-triangulateMesh( const Mesh& mesh,
-                 const std::string& outputFileName,
-                 const std::string& outputFormat,
-                 const std::string& decompositionType )
+triangulateMesh(
+   const Mesh& mesh,
+   const std::string& outputFileName,
+   const std::string& outputFormat,
+   const std::string& decompositionType )
 {
    const auto planarMesh = getPlanarMeshHelper( mesh, decompositionType );
    using PlanarMesh = decltype( planarMesh );

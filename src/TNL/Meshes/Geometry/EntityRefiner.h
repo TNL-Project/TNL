@@ -16,9 +16,10 @@ enum class EntityRefinerVersion : std::uint8_t
    EdgeBisection
 };
 
-template< typename MeshConfig,
-          typename Topology,
-          EntityRefinerVersion EntityRefinerVersion_ = EntityRefinerVersion::EdgeBisection >
+template<
+   typename MeshConfig,
+   typename Topology,
+   EntityRefinerVersion EntityRefinerVersion_ = EntityRefinerVersion::EdgeBisection >
 struct EntityRefiner;
 
 template< typename MeshConfig >

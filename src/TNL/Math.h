@@ -140,11 +140,12 @@ argAbsMax( const T1& a, const T2& b )
 /**
  * \brief This function returns the result of \e base to the power of \e exp.
  */
-template< typename T1,
-          typename T2,
-          typename ResultType = std::common_type_t< T1, T2 >,
-          // enable_if is necessary to avoid ambiguity in vector expressions
-          std::enable_if_t< std::is_arithmetic_v< T1 > && std::is_arithmetic_v< T2 >, bool > = true >
+template<
+   typename T1,
+   typename T2,
+   typename ResultType = std::common_type_t< T1, T2 >,
+   // enable_if is necessary to avoid ambiguity in vector expressions
+   std::enable_if_t< std::is_arithmetic_v< T1 > && std::is_arithmetic_v< T2 >, bool > = true >
 __cuda_callable__
 ResultType
 pow( const T1& base, const T2& exp )
@@ -527,9 +528,10 @@ swap( Type& a, Type& b ) noexcept
  * It extracts the sign of \e value. In other words, the signum function projects
  * negative numbers to value -1, positive numbers to value 1 and zero to value 0.
  */
-template< class T,
-          // enable_if is necessary to avoid ambiguity in vector expressions
-          std::enable_if_t< ! HasSubscriptOperator< T >::value, bool > = true >
+template<
+   class T,
+   // enable_if is necessary to avoid ambiguity in vector expressions
+   std::enable_if_t< ! HasSubscriptOperator< T >::value, bool > = true >
 constexpr T
 sign( const T& value )
 {

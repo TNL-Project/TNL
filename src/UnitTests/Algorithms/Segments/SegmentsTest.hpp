@@ -591,12 +591,14 @@ test_sortSegmentsWithSegmentIndexes()
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
          if( segmentIdx % 2 == 0 )
-            EXPECT_GE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
-                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+            EXPECT_GE(
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
          else
-            EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
-                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+            EXPECT_LE(
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
       }
    }
@@ -621,8 +623,9 @@ test_sortSegmentsWithSegmentIndexes()
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
          // All segments with are now sorted in descending order
-         EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
-                    v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+         EXPECT_LE(
+            v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+            v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
             << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
       }
    }
@@ -688,12 +691,14 @@ test_sortSegmentsIf()
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
          if( segmentIdx % 2 == 0 )
-            EXPECT_GE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
-                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+            EXPECT_GE(
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
          else
-            EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
-                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+            EXPECT_LE(
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+               v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
       }
    }
@@ -718,8 +723,9 @@ test_sortSegmentsIf()
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
          // All segments with are now sorted in descending order
-         EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
-                    v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+         EXPECT_LE(
+            v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+            v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
             << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
       }
    }

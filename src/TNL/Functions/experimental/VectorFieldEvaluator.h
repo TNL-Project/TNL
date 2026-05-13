@@ -15,11 +15,12 @@ class VectorFieldEvaluatorTraverserUserData
 public:
    typedef InVectorField InVectorFieldType;
 
-   VectorFieldEvaluatorTraverserUserData( const InVectorField* inVectorField,
-                                          const Real& time,
-                                          OutVectorField* outVectorField,
-                                          const Real& outVectorFieldMultiplicator,
-                                          const Real& inVectorFieldMultiplicator )
+   VectorFieldEvaluatorTraverserUserData(
+      const InVectorField* inVectorField,
+      const Real& time,
+      OutVectorField* outVectorField,
+      const Real& outVectorFieldMultiplicator,
+      const Real& inVectorFieldMultiplicator )
    : outVectorField( outVectorField ),
      inVectorField( inVectorField ),
      time( time ),
@@ -44,8 +45,9 @@ public:
 template< typename OutVectorField, typename InVectorField >
 class VectorFieldEvaluator
 {
-   static_assert( OutVectorField::getDomainDimension() == InVectorField::getDomainDimension(),
-                  "Input and output vector field must have the same domain dimensions." );
+   static_assert(
+      OutVectorField::getDomainDimension() == InVectorField::getDomainDimension(),
+      "Input and output vector field must have the same domain dimensions." );
 
 public:
    typedef typename OutVectorField::RealType RealType;
@@ -55,35 +57,39 @@ public:
 
    template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
    static void
-   evaluate( OutVectorFieldPointer& meshFunction,
-             const InVectorFieldPointer& function,
-             const RealType& time = 0.0,
-             const RealType& outFunctionMultiplicator = 0.0,
-             const RealType& inFunctionMultiplicator = 1.0 );
+   evaluate(
+      OutVectorFieldPointer& meshFunction,
+      const InVectorFieldPointer& function,
+      const RealType& time = 0.0,
+      const RealType& outFunctionMultiplicator = 0.0,
+      const RealType& inFunctionMultiplicator = 1.0 );
 
    template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
    static void
-   evaluateAllEntities( OutVectorFieldPointer& meshFunction,
-                        const InVectorFieldPointer& function,
-                        const RealType& time = 0.0,
-                        const RealType& outFunctionMultiplicator = 0.0,
-                        const RealType& inFunctionMultiplicator = 1.0 );
+   evaluateAllEntities(
+      OutVectorFieldPointer& meshFunction,
+      const InVectorFieldPointer& function,
+      const RealType& time = 0.0,
+      const RealType& outFunctionMultiplicator = 0.0,
+      const RealType& inFunctionMultiplicator = 1.0 );
 
    template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
    static void
-   evaluateInteriorEntities( OutVectorFieldPointer& meshFunction,
-                             const InVectorFieldPointer& function,
-                             const RealType& time = 0.0,
-                             const RealType& outFunctionMultiplicator = 0.0,
-                             const RealType& inFunctionMultiplicator = 1.0 );
+   evaluateInteriorEntities(
+      OutVectorFieldPointer& meshFunction,
+      const InVectorFieldPointer& function,
+      const RealType& time = 0.0,
+      const RealType& outFunctionMultiplicator = 0.0,
+      const RealType& inFunctionMultiplicator = 1.0 );
 
    template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
    static void
-   evaluateBoundaryEntities( OutVectorFieldPointer& meshFunction,
-                             const InVectorFieldPointer& function,
-                             const RealType& time = 0.0,
-                             const RealType& outFunctionMultiplicator = 0.0,
-                             const RealType& inFunctionMultiplicator = 1.0 );
+   evaluateBoundaryEntities(
+      OutVectorFieldPointer& meshFunction,
+      const InVectorFieldPointer& function,
+      const RealType& time = 0.0,
+      const RealType& outFunctionMultiplicator = 0.0,
+      const RealType& inFunctionMultiplicator = 1.0 );
 
 protected:
    enum EntitiesType
@@ -95,12 +101,13 @@ protected:
 
    template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
    static void
-   evaluateEntities( OutVectorFieldPointer& meshFunction,
-                     const InVectorFieldPointer& function,
-                     const RealType& time,
-                     const RealType& outFunctionMultiplicator,
-                     const RealType& inFunctionMultiplicator,
-                     EntitiesType entitiesType );
+   evaluateEntities(
+      OutVectorFieldPointer& meshFunction,
+      const InVectorFieldPointer& function,
+      const RealType& time,
+      const RealType& outFunctionMultiplicator,
+      const RealType& inFunctionMultiplicator,
+      EntitiesType entitiesType );
 };
 
 template< typename MeshType, typename UserData >

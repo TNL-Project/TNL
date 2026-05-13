@@ -10,9 +10,10 @@ getRowExample()
 {
    const int matrixSize( 5 );
    using MatrixType = TNL::Matrices::MultidiagonalMatrix< double, Device >;
-   MatrixType matrix( matrixSize,  // number of matrix rows
-                      matrixSize,  // number of matrix columns
-                      { -1, 0, 1 } );
+   MatrixType matrix(
+      matrixSize,  // number of matrix rows
+      matrixSize,  // number of matrix columns
+      { -1, 0, 1 } );
    auto view = matrix.getView();
 
    auto f = [ = ] __cuda_callable__( int rowIdx ) mutable

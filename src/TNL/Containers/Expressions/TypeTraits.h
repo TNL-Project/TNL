@@ -26,14 +26,15 @@ using EnableIfStaticUnaryExpression_t =
    std::enable_if_t< HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, T >;
 
 template< typename ET1, typename ET2, typename T = void >
-using EnableIfStaticBinaryExpression_t =
-   std::enable_if_t< ( HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
-                       || HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value )
-                        && ! ( HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value
-                               || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
-                               || HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value
-                               || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value ),
-                     T >;
+using EnableIfStaticBinaryExpression_t = std::enable_if_t<
+   ( HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value
+     || HasEnabledStaticExpressionTemplates< std::decay_t< ET2 > >::value )
+      && ! (
+         HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value
+         || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
+         || HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value
+         || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value ),
+   T >;
 
 template< typename ET1, typename T = void >
 using EnableIfUnaryExpression_t = std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value, T >;
@@ -44,8 +45,7 @@ using EnableIfBinaryExpression_t = std::enable_if_t<
    // so the first operand must not be Array
    ( HasAddAssignmentOperator< std::decay_t< ET1 > >::value || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
      || std::is_arithmetic_v< std::decay_t< ET1 > > )
-      && ( HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value
-           || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value ),
+      && ( HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value ),
    T >;
 
 template< typename ET1, typename T = void >
@@ -58,8 +58,7 @@ using EnableIfDistributedBinaryExpression_t = std::enable_if_t<
    // so the first operand must not be Array
    ( HasAddAssignmentOperator< std::decay_t< ET1 > >::value
      || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value || std::is_arithmetic_v< std::decay_t< ET1 > > )
-      && ( HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value
-           || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value ),
+      && ( HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value ),
    T >;
 
 // helper trait class for recursively turning expression template classes into compatible vectors
@@ -79,9 +78,10 @@ template< typename R >
 using RemoveET = typename RemoveExpressionTemplate< R >::type;
 
 template< typename T1, typename T2 >
-constexpr std::enable_if_t< ! ( IsStaticArrayType< T1 >::value && IsStaticArrayType< T2 >::value )
-                               && ! ( IsArrayType< T1 >::value && IsArrayType< T2 >::value ),
-                            bool >
+constexpr std::enable_if_t<
+   ! ( IsStaticArrayType< T1 >::value && IsStaticArrayType< T2 >::value )
+      && ! ( IsArrayType< T1 >::value && IsArrayType< T2 >::value ),
+   bool >
 compatibleForVectorAssignment()
 {
    return IsScalarType< T1 >::value && IsScalarType< T2 >::value;
@@ -103,15 +103,16 @@ compatibleForVectorAssignment()
 }
 
 // helper trait class for proper classification of expression operands using getExpressionVariableType
-template< typename T,
-          typename V,
-          bool enabled = HasEnabledExpressionTemplates< V >::value || HasEnabledStaticExpressionTemplates< V >::value
-                      || HasEnabledDistributedExpressionTemplates< V >::value >
-struct IsArithmeticSubtype
-: public std::integral_constant< bool,
-                                 // Note that using std::is_same would not be general enough, because e.g.
-                                 // StaticVector<3, int> may be assigned to StaticVector<3, double>
-                                 compatibleForVectorAssignment< typename V::RealType, T >() >
+template<
+   typename T,
+   typename V,
+   bool enabled = HasEnabledExpressionTemplates< V >::value || HasEnabledStaticExpressionTemplates< V >::value
+               || HasEnabledDistributedExpressionTemplates< V >::value >
+struct IsArithmeticSubtype : public std::integral_constant<
+                                bool,
+                                // Note that using std::is_same would not be general enough, because e.g.
+                                // StaticVector<3, int> may be assigned to StaticVector<3, double>
+                                compatibleForVectorAssignment< typename V::RealType, T >() >
 {};
 
 template< typename T >
@@ -130,11 +131,12 @@ struct IsArithmeticSubtype< T, V, false > : public std::is_arithmetic< T >
 template< typename R, typename Enable = void >
 struct OperandMemberType
 {
-   using type = std::conditional_t< std::is_fundamental_v< R >,
-                                    // non-reference for fundamental types
-                                    std::add_const_t< std::remove_reference_t< R > >,
-                                    // lvalue-reference for other types (especially StaticVector)
-                                    std::add_lvalue_reference_t< std::add_const_t< R > > >;
+   using type = std::conditional_t<
+      std::is_fundamental_v< R >,
+      // non-reference for fundamental types
+      std::add_const_t< std::remove_reference_t< R > >,
+      // lvalue-reference for other types (especially StaticVector)
+      std::add_lvalue_reference_t< std::add_const_t< R > > >;
    //   using type = std::add_const_t< std::remove_reference_t< R > >;
 };
 

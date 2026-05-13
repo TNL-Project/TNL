@@ -31,13 +31,14 @@ vertexViewExample()
     */
    std::cout << "\nExample 3: Modifying edge weights\n";
 
-   TNL::Graphs::forAllVertices( graph,
-                                [] __cuda_callable__( typename GraphType::VertexView vertex )
-                                {
-                                   for( int i = 0; i < vertex.getDegree(); i++ ) {
-                                      vertex.setEdgeWeight( i, vertex.getEdgeWeight( i ) + 1.0 );
-                                   }
-                                } );
+   TNL::Graphs::forAllVertices(
+      graph,
+      [] __cuda_callable__( typename GraphType::VertexView vertex )
+      {
+         for( int i = 0; i < vertex.getDegree(); i++ ) {
+            vertex.setEdgeWeight( i, vertex.getEdgeWeight( i ) + 1.0 );
+         }
+      } );
 
    std::cout << "Graph after modifying edge weights:\n" << graph << '\n';
 }

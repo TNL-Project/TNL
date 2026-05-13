@@ -49,25 +49,28 @@ protected:
 };
 
 // types for which DistributedNDArray_semi1D_test is instantiated
-using DistributedNDArrayTypes =
-   ::testing::Types< DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, Q, 0, 0 >,     // Q, X, Y, Z
-                                                  std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
-                                                  Devices::Host > >
+using DistributedNDArrayTypes = ::testing::Types<
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y, Z
+      std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+      Devices::Host > >
 #if defined( __CUDACC__ )
-                     ,
-                     DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, Q, 0, 0 >,     // Q, X, Y, Z
-                                                  std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
-                                                  Devices::Cuda > >
+   ,
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y, Z
+      std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+      Devices::Cuda > >
 #elif defined( __HIP__ )
-                     ,
-                     DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, Q, 0, 0 >,     // Q, X, Y, Z
-                                                  std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
-                                                  Devices::Hip > >
+   ,
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y, Z
+      std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+      Devices::Hip > >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( DistributedNDArray_semi1D_test, DistributedNDArrayTypes );
 
@@ -86,8 +89,9 @@ TYPED_TEST( DistributedNDArray_semi1D_test, setLike )
    using DistributedNDArrayType = typename TestFixture::DistributedNDArrayType;
 
    const auto localRange = this->distributedNDArray.template getLocalRange< 1 >();
-   EXPECT_EQ( this->distributedNDArray.getLocalStorageSize(),
-              Q * ( localRange.getEnd() - localRange.getBegin() ) * ( this->globalSize / 2 ) );
+   EXPECT_EQ(
+      this->distributedNDArray.getLocalStorageSize(),
+      Q * ( localRange.getEnd() - localRange.getBegin() ) * ( this->globalSize / 2 ) );
    DistributedNDArrayType copy;
    EXPECT_EQ( copy.getLocalStorageSize(), 0 );
    copy.setLike( this->distributedNDArray );
@@ -97,8 +101,9 @@ TYPED_TEST( DistributedNDArray_semi1D_test, setLike )
 TYPED_TEST( DistributedNDArray_semi1D_test, reset )
 {
    const auto localRange = this->distributedNDArray.template getLocalRange< 1 >();
-   EXPECT_EQ( this->distributedNDArray.getLocalStorageSize(),
-              Q * ( localRange.getEnd() - localRange.getBegin() ) * ( this->globalSize / 2 ) );
+   EXPECT_EQ(
+      this->distributedNDArray.getLocalStorageSize(),
+      Q * ( localRange.getEnd() - localRange.getBegin() ) * ( this->globalSize / 2 ) );
    this->distributedNDArray.reset();
    EXPECT_EQ( this->distributedNDArray.getLocalStorageSize(), 0 );
 }

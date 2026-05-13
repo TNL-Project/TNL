@@ -21,11 +21,12 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                const LaunchConfiguration& launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       forElementsIf(
          segments,
@@ -41,10 +42,11 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
 
    template< typename Array, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                const Array& segmentIndexes,
-                Function&& function,
-                const LaunchConfiguration& launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
@@ -113,12 +115,13 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  const LaunchConfiguration& launchConfig )
+   forElementsIf(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();

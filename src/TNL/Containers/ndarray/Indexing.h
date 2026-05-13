@@ -200,9 +200,10 @@ compute_dynamic_strides( StridesHolder& strides, const SizesHolder& sizes, const
       } );
 }
 
-template< typename Permutation,
-          typename SizesHolder,
-          typename Sequence = std::make_index_sequence< SizesHolder::getDimension() > >
+template<
+   typename Permutation,
+   typename SizesHolder,
+   typename Sequence = std::make_index_sequence< SizesHolder::getDimension() > >
 struct make_strides_impl;
 
 template< typename Permutation, typename SizesHolder, std::size_t... idx >

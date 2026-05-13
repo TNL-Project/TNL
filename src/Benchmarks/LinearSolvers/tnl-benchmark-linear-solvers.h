@@ -61,9 +61,10 @@ static const std::set< std::string > valid_preconditioners = {
 };
 
 std::set< std::string >
-parse_comma_list( const TNL::Config::ParameterContainer& parameters,
-                  const char* parameter,
-                  const std::set< std::string >& options )
+parse_comma_list(
+   const TNL::Config::ParameterContainer& parameters,
+   const char* parameter,
+   const std::set< std::string >& options )
 {
    const auto param = parameters.getParameter< TNL::String >( parameter );
 
@@ -76,8 +77,9 @@ parse_comma_list( const TNL::Config::ParameterContainer& parameters,
 
    while( std::getline( ss, s, ',' ) ) {
       if( options.count( s ) == 0 )
-         throw std::logic_error( std::string( "Invalid value in the comma-separated list for the parameter '" ) + parameter
-                                 + "': '" + s + "'. The list contains: '" + param.getString() + "'." );
+         throw std::logic_error(
+            std::string( "Invalid value in the comma-separated list for the parameter '" ) + parameter + "': '" + s
+            + "'. The list contains: '" + param.getString() + "'." );
 
       set.insert( s );
 
@@ -119,11 +121,12 @@ set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::Real
 
 template< typename Matrix, typename Vector >
 void
-benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
-                           TNL::Config::ParameterContainer parameters,
-                           const std::shared_ptr< Matrix >& matrixPointer,
-                           const Vector& x0,
-                           const Vector& b )
+benchmarkIterativeSolvers(
+   TNL::Benchmarks::Benchmark<>& benchmark,
+   TNL::Config::ParameterContainer parameters,
+   const std::shared_ptr< Matrix >& matrixPointer,
+   const Vector& x0,
+   const Vector& b )
 {
 #ifdef __CUDACC__
    using CudaMatrix = typename Matrix::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
@@ -315,19 +318,21 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
 
 template< typename Matrix, typename Vector >
 void
-benchmarkDirectSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
-                        const TNL::Config::ParameterContainer& parameters,
-                        const std::shared_ptr< Matrix >& matrixPointer,
-                        const Vector& x0,
-                        const Vector& b )
+benchmarkDirectSolvers(
+   TNL::Benchmarks::Benchmark<>& benchmark,
+   const TNL::Config::ParameterContainer& parameters,
+   const std::shared_ptr< Matrix >& matrixPointer,
+   const Vector& x0,
+   const Vector& b )
 {
    using namespace TNL::Solvers::Linear;
 
-   using CSR = TNL::Matrices::SparseMatrix< typename Matrix::RealType,
-                                            typename Matrix::DeviceType,
-                                            typename Matrix::IndexType,
-                                            TNL::Matrices::GeneralMatrix,
-                                            TNL::Algorithms::Segments::CSR >;
+   using CSR = TNL::Matrices::SparseMatrix<
+      typename Matrix::RealType,
+      typename Matrix::DeviceType,
+      typename Matrix::IndexType,
+      TNL::Matrices::GeneralMatrix,
+      TNL::Algorithms::Segments::CSR >;
    auto csr_matrix = std::make_shared< CSR >();
    TNL::Matrices::copySparseMatrix( *csr_matrix, *matrixPointer );
 
@@ -476,13 +481,15 @@ struct LinearSolversBenchmark
       const TNL::String title = ( TNL::MPI::GetSize() > 1 ) ? "Distributed linear solvers" : "Linear solvers";
       std::cout << "\n== " << title << " ==\n\n";
 
-      benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
-         { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
-         { "segments type", matrixPointer->getSegments().getSegmentsType() },
-         { "rows", TNL::convertToString( matrixPointer->getRows() ) },
-         { "columns", TNL::convertToString( matrixPointer->getColumns() ) },
-         { "max elements per row", TNL::convertToString( maxRowLength ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            {
+               { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
+               { "segments type", matrixPointer->getSegments().getSegmentsType() },
+               { "rows", TNL::convertToString( matrixPointer->getRows() ) },
+               { "columns", TNL::convertToString( matrixPointer->getColumns() ) },
+               { "max elements per row", TNL::convertToString( maxRowLength ) },
+            } ) );
       if( TNL::MPI::GetSize() > 1 )
          benchmark.setMetadataElement( { "MPI processes", TNL::convertToString( TNL::MPI::GetSize() ) } );
 
@@ -514,11 +521,12 @@ struct LinearSolversBenchmark
    }
 
    static void
-   runDistributed( TNL::Benchmarks::Benchmark<>& benchmark,
-                   const TNL::Config::ParameterContainer& parameters,
-                   const std::shared_ptr< MatrixType >& matrixPointer,
-                   const VectorType& x0,
-                   const VectorType& b )
+   runDistributed(
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      const TNL::Config::ParameterContainer& parameters,
+      const std::shared_ptr< MatrixType >& matrixPointer,
+      const VectorType& x0,
+      const VectorType& b )
    {
       // set up the distributed matrix
       const TNL::MPI::Comm communicator = MPI_COMM_WORLD;
@@ -562,11 +570,12 @@ struct LinearSolversBenchmark
    }
 
    static void
-   runNonDistributed( TNL::Benchmarks::Benchmark<>& benchmark,
-                      const TNL::Config::ParameterContainer& parameters,
-                      const std::shared_ptr< MatrixType >& matrixPointer,
-                      const VectorType& x0,
-                      const VectorType& b )
+   runNonDistributed(
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      const TNL::Config::ParameterContainer& parameters,
+      const std::shared_ptr< MatrixType >& matrixPointer,
+      const VectorType& x0,
+      const VectorType& b )
    {
       if( parameters.getParameter< bool >( "with-iterative" ) ) {
          std::cout << "Iterative solvers:\n";
@@ -589,8 +598,8 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
    config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
-   config.addRequiredEntry< TNL::String >( "input-matrix",
-                                           "File name of the input matrix (in binary TNL format or textual MTX format)." );
+   config.addRequiredEntry< TNL::String >(
+      "input-matrix", "File name of the input matrix (in binary TNL format or textual MTX format)." );
    config.addEntry< TNL::String >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
    config.addEntry< TNL::String >( "input-rhs", "File name of the input right-hand-side vector (in binary TNL format).", "" );
    config.addEntry< TNL::String >( "set-rhs", "Saya how to set the right-hand-side vector if no input file is given.", "ones" );

@@ -18,8 +18,9 @@ namespace TNL::Meshes::Writers {
 template< typename Mesh >
 class GnuplotWriter
 {
-   static_assert( isGrid< Mesh >::value || ! std::is_same_v< typename Mesh::DeviceType, Devices::GPU >,
-                  "Writers cannot be used with unstructured meshes allocated on GPU." );
+   static_assert(
+      isGrid< Mesh >::value || ! std::is_same_v< typename Mesh::DeviceType, Devices::GPU >,
+      "Writers cannot be used with unstructured meshes allocated on GPU." );
 
 public:
    /**

@@ -100,9 +100,10 @@ GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertex( Inde
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 __cuda_callable__
 void
-GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::setEdgeWeight( IndexType vertexIdx,
-                                                                                IndexType edgeIdx,
-                                                                                const ValueType& value )
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::setEdgeWeight(
+   IndexType vertexIdx,
+   IndexType edgeIdx,
+   const ValueType& value )
 {
    adjacencyMatrixView.setElement( vertexIdx, edgeIdx, value );
 }

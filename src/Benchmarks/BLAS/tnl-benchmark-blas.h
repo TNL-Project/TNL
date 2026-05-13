@@ -21,59 +21,71 @@ using namespace TNL::Benchmarks;
 
 template< typename Real >
 void
-runBlasBenchmarks( Benchmark<>& benchmark,
-                   const std::size_t& minSize,
-                   const std::size_t& maxSize,
-                   const double& sizeStepFactor )
+runBlasBenchmarks(
+   Benchmark<>& benchmark,
+   const std::size_t& minSize,
+   const std::size_t& maxSize,
+   const double& sizeStepFactor )
 {
-   benchmark.setMetadataWidths( {
-      { "operation", 30 },
-      { "performer", 21 },
-      { "precision", 10 },
-   } );
+   benchmark.setMetadataWidths(
+      {
+         { "operation", 30 },
+         { "performer", 21 },
+         { "precision", 10 },
+      } );
 
    // Array operations
    std::cout << "\n== Array operations ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "precision", getType< Real >() },
-         { "host allocator", "Host" },
-         { "size", convertToString( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "precision", getType< Real >() },
+               { "host allocator", "Host" },
+               { "size", convertToString( size ) },
+            } ) );
       benchmarkArrayOperations< Real >( benchmark, size );
    }
 #if defined( __CUDACC__ )
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "precision", getType< Real >() },
-         { "host allocator", "CudaHost" },
-         { "size", convertToString( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "precision", getType< Real >() },
+               { "host allocator", "CudaHost" },
+               { "size", convertToString( size ) },
+            } ) );
       benchmarkArrayOperations< Real, int, Allocators::CudaHost >( benchmark, size );
    }
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "precision", getType< Real >() },
-         { "host allocator", "CudaManaged" },
-         { "size", convertToString( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "precision", getType< Real >() },
+               { "host allocator", "CudaManaged" },
+               { "size", convertToString( size ) },
+            } ) );
       benchmarkArrayOperations< Real, int, Allocators::CudaManaged >( benchmark, size );
    }
 #elif defined( __HIP__ )
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "precision", getType< Real >() },
-         { "host allocator", "HipHost" },
-         { "size", convertToString( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "precision", getType< Real >() },
+               { "host allocator", "HipHost" },
+               { "size", convertToString( size ) },
+            } ) );
       benchmarkArrayOperations< Real, int, Allocators::HipHost >( benchmark, size );
    }
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "precision", getType< Real >() },
-         { "host allocator", "HipManaged" },
-         { "size", convertToString( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "precision", getType< Real >() },
+               { "host allocator", "HipManaged" },
+               { "size", convertToString( size ) },
+            } ) );
       benchmarkArrayOperations< Real, int, Allocators::HipManaged >( benchmark, size );
    }
 #endif
@@ -81,10 +93,12 @@ runBlasBenchmarks( Benchmark<>& benchmark,
    // Vector operations
    std::cout << "\n== Vector operations ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= sizeStepFactor ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "precision", getType< Real >() },
-         { "size", convertToString( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "precision", getType< Real >() },
+               { "size", convertToString( size ) },
+            } ) );
       benchmarkVectorOperations< Real >( benchmark, size );
    }
 
@@ -92,10 +106,12 @@ runBlasBenchmarks( Benchmark<>& benchmark,
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    std::cout << "\n== Triad ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "precision", getType< Real >() },
-         { "size", convertToString( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "precision", getType< Real >() },
+               { "size", convertToString( size ) },
+            } ) );
       benchmarkTriad< Real >( benchmark, size );
    }
 #endif
@@ -106,9 +122,11 @@ runBlasBenchmarks( Benchmark<>& benchmark,
       for( std::size_t columns = 10; columns <= 20000 * 20000; columns *= 2 ) {
          if( rows * columns > 20000 * 20000 )
             break;
-         benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "precision", getType< Real >() },
-                                                                       { "rows", convertToString( rows ) },
-                                                                       { "columns", convertToString( columns ) } } ) );
+         benchmark.setMetadataColumns(
+            Benchmark<>::MetadataColumns(
+               { { "precision", getType< Real >() },
+                 { "rows", convertToString( rows ) },
+                 { "columns", convertToString( columns ) } } ) );
 
          // don't abort due to out-of-memory errors
          try {
@@ -134,10 +152,11 @@ setupConfig( Config::ConfigDescription& config )
    config.addEntryEnum( "all" );
    config.addEntry< int >( "min-size", "Minimum size of arrays/vectors used in the benchmark.", 100000 );
    config.addEntry< int >( "max-size", "Minimum size of arrays/vectors used in the benchmark.", 10000000 );
-   config.addEntry< int >( "size-step-factor",
-                           "Factor determining the size of arrays/vectors used in the benchmark. First size is min-size and "
-                           "each following size is stepFactor*previousSize, up to max-size.",
-                           2 );
+   config.addEntry< int >(
+      "size-step-factor",
+      "Factor determining the size of arrays/vectors used in the benchmark. First size is min-size and "
+      "each following size is stepFactor*previousSize, up to max-size.",
+      2 );
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
 

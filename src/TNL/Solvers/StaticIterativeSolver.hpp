@@ -22,9 +22,10 @@ StaticIterativeSolver< Real, Index >::configSetup( Config::ConfigDescription& co
       config.addEntry< double >(
          prefix + "convergence-residue", "Convergence occurs when the residue drops bellow this limit.", 1e-6 );
    if( config.getEntry( prefix + "divergence-residue" ) == nullptr )
-      config.addEntry< double >( prefix + "divergence-residue",
-                                 "Divergence occurs when the residue exceeds given limit.",
-                                 std::numeric_limits< float >::max() );
+      config.addEntry< double >(
+         prefix + "divergence-residue",
+         "Divergence occurs when the residue exceeds given limit.",
+         std::numeric_limits< float >::max() );
    // TODO: setting refresh rate should be done in SolverStarter::setup (it's not a parameter of the IterativeSolver)
    if( config.getEntry( prefix + "refresh-rate" ) == nullptr )
       config.addEntry< int >( prefix + "refresh-rate", "Number of milliseconds between solver monitor refreshes.", 500 );

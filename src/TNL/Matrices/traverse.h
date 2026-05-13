@@ -248,9 +248,10 @@ namespace TNL::Matrices {
  */
 template< typename Matrix, typename Function >
 void
-forAllElements( Matrix& matrix,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllElements(
+   Matrix& matrix,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows of **constant matrix** and
@@ -272,9 +273,10 @@ forAllElements( Matrix& matrix,
  */
 template< typename Matrix, typename Function >
 void
-forAllElements( const Matrix& matrix,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllElements(
+   const Matrix& matrix,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements in the given range of matrix rows and applies the specified lambda function.
@@ -303,11 +305,12 @@ forAllElements( const Matrix& matrix,
  */
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( Matrix& matrix,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of **constant matrix** in the given range of matrix rows and applies the
@@ -337,11 +340,12 @@ forElements( Matrix& matrix,
  */
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( const Matrix& matrix,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
@@ -375,12 +379,13 @@ forElements( const Matrix& matrix,
  */
 template< typename Matrix, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( Matrix& matrix,
-             const Array& rowIndexes,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
@@ -414,12 +419,13 @@ forElements( Matrix& matrix,
  */
 template< typename Matrix, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( const Matrix& matrix,
-             const Array& rowIndexes,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
@@ -445,10 +451,11 @@ forElements( const Matrix& matrix,
  */
 template< typename Matrix, typename Array, typename Function >
 void
-forElements( Matrix& matrix,
-             const Array& rowIndexes,
-             Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
@@ -474,10 +481,11 @@ forElements( Matrix& matrix,
  */
 template< typename Matrix, typename Array, typename Function >
 void
-forElements( const Matrix& matrix,
-             const Array& rowIndexes,
-             Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements in a given range of rows based on a condition.
@@ -514,12 +522,13 @@ forElements( const Matrix& matrix,
  */
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
 void
-forElementsIf( Matrix& matrix,
-               IndexBegin begin,
-               IndexEnd end,
-               Condition&& condition,
-               Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElementsIf(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements in a given range of rows based on a condition. This function is for
@@ -556,12 +565,13 @@ forElementsIf( Matrix& matrix,
  */
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
 void
-forElementsIf( const Matrix& matrix,
-               IndexBegin begin,
-               IndexEnd end,
-               Condition&& condition,
-               Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElementsIf(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows based on a condition.
@@ -589,10 +599,11 @@ forElementsIf( const Matrix& matrix,
  */
 template< typename Matrix, typename Condition, typename Function >
 void
-forAllElementsIf( Matrix& matrix,
-                  Condition&& condition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllElementsIf(
+   Matrix& matrix,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows based on a condition.
@@ -622,10 +633,11 @@ forAllElementsIf( Matrix& matrix,
  */
 template< typename Matrix, typename Condition, typename Function >
 void
-forAllElementsIf( const Matrix& matrix,
-                  Condition&& condition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllElementsIf(
+   const Matrix& matrix,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over matrix rows within the specified range of row indexes
@@ -657,17 +669,19 @@ forAllElementsIf( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Function,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Function,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forRows( Matrix& matrix,
-         IndexBegin begin,
-         IndexEnd end,
-         Function&& function,
-         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRows(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over matrix rows within the specified range of row indexes
@@ -699,17 +713,19 @@ forRows( Matrix& matrix,
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Function,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Function,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forRows( const Matrix& matrix,
-         IndexBegin begin,
-         IndexEnd end,
-         Function&& function,
-         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRows(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** matrix rows and applies the given lambda function to each row.
@@ -734,9 +750,10 @@ forRows( const Matrix& matrix,
  */
 template< typename Matrix, typename Function >
 void
-forAllRows( Matrix& matrix,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllRows(
+   Matrix& matrix,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** matrix rows and applies the given lambda function to each row.
@@ -763,9 +780,10 @@ forAllRows( Matrix& matrix,
  */
 template< typename Matrix, typename Function >
 void
-forAllRows( const Matrix& matrix,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllRows(
+   const Matrix& matrix,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
@@ -797,20 +815,22 @@ forAllRows( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
-template< typename Matrix,
-          typename Array,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Function,
-          typename T = std::enable_if_t< IsArrayType< Array >::value
-                                         && std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Function,
+   typename T =
+      std::enable_if_t< IsArrayType< Array >::value && std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forRows( Matrix& matrix,
-         const Array& rowIndexes,
-         IndexBegin begin,
-         IndexEnd end,
-         Function&& function,
-         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRows(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
@@ -842,20 +862,22 @@ forRows( Matrix& matrix,
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
-template< typename Matrix,
-          typename Array,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Function,
-          typename T = std::enable_if_t< IsArrayType< Array >::value
-                                         && std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Function,
+   typename T =
+      std::enable_if_t< IsArrayType< Array >::value && std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forRows( const Matrix& matrix,
-         const Array& rowIndexes,
-         IndexBegin begin,
-         IndexEnd end,
-         Function&& function,
-         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRows(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
@@ -881,10 +903,11 @@ forRows( const Matrix& matrix,
  */
 template< typename Matrix, typename Array, typename Function, typename T = std::enable_if_t< IsArrayType< Array >::value > >
 void
-forRows( Matrix& matrix,
-         const Array& rowIndexes,
-         Function&& function,
-         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRows(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
@@ -910,10 +933,11 @@ forRows( Matrix& matrix,
  */
 template< typename Matrix, typename Array, typename Function, typename T = std::enable_if_t< IsArrayType< Array >::value > >
 void
-forRows( const Matrix& matrix,
-         const Array& rowIndexes,
-         Function&& function,
-         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRows(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 /**
  * \brief Iterates in parallel over rows within the given range of row indexes, applying a condition
  * to determine whether each row should be processed.
@@ -946,19 +970,21 @@ forRows( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename RowCondition,
-          typename Function,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename RowCondition,
+   typename Function,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forRowsIf( Matrix& matrix,
-           IndexBegin begin,
-           IndexEnd end,
-           RowCondition&& rowCondition,
-           Function&& function,
-           Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRowsIf(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over rows within the given range of row indexes, applying a condition
@@ -992,19 +1018,21 @@ forRowsIf( Matrix& matrix,
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename RowCondition,
-          typename Function,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename RowCondition,
+   typename Function,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forRowsIf( const Matrix& matrix,
-           IndexBegin begin,
-           IndexEnd end,
-           RowCondition&& rowCondition,
-           Function&& function,
-           Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forRowsIf(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** matrix rows, applying a condition
@@ -1032,10 +1060,11 @@ forRowsIf( const Matrix& matrix,
  */
 template< typename Matrix, typename RowCondition, typename Function >
 void
-forAllRowsIf( Matrix& matrix,
-              RowCondition&& rowCondition,
-              Function&& function,
-              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllRowsIf(
+   Matrix& matrix,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** matrix rows, applying a condition
@@ -1063,10 +1092,11 @@ forAllRowsIf( Matrix& matrix,
  */
 template< typename Matrix, typename RowCondition, typename Function >
 void
-forAllRowsIf( const Matrix& matrix,
-              RowCondition&& rowCondition,
-              Function&& function,
-              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllRowsIf(
+   const Matrix& matrix,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Matrices
 

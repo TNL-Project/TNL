@@ -6,8 +6,9 @@
 
 const int size = 3;
 
-using Implementations = ::testing::Types< TNL::Meshes::Grid< 3, double, TNL::Devices::Sequential, int >,
-                                          TNL::Meshes::Grid< 3, float, TNL::Devices::Sequential, int > >;
+using Implementations = ::testing::Types<
+   TNL::Meshes::Grid< 3, double, TNL::Devices::Sequential, int >,
+   TNL::Meshes::Grid< 3, float, TNL::Devices::Sequential, int > >;
 
 template< typename Grid >
 class GridTestSuite : public ::testing::Test

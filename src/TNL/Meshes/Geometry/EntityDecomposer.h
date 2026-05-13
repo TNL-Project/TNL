@@ -17,19 +17,22 @@ enum class EntityDecomposerVersion : std::uint8_t
    ConnectEdgesToPoint
 };
 
-template< typename MeshConfig,
-          typename Topology,
-          EntityDecomposerVersion EntityDecomposerVersion_ = EntityDecomposerVersion::ConnectEdgesToCentroid,
-          EntityDecomposerVersion SubentityDecomposerVersion = EntityDecomposerVersion::ConnectEdgesToCentroid >
+template<
+   typename MeshConfig,
+   typename Topology,
+   EntityDecomposerVersion EntityDecomposerVersion_ = EntityDecomposerVersion::ConnectEdgesToCentroid,
+   EntityDecomposerVersion SubentityDecomposerVersion = EntityDecomposerVersion::ConnectEdgesToCentroid >
 struct EntityDecomposer;
 
 // Polygon
-template< typename MeshConfig,
-          EntityDecomposerVersion SubentityDecomposerVersion >  // SubentityDecomposerVersion is not used for polygons
-struct EntityDecomposer< MeshConfig,
-                         Topologies::Polygon,
-                         EntityDecomposerVersion::ConnectEdgesToCentroid,
-                         SubentityDecomposerVersion >
+template<
+   typename MeshConfig,
+   EntityDecomposerVersion SubentityDecomposerVersion >  // SubentityDecomposerVersion is not used for polygons
+struct EntityDecomposer<
+   MeshConfig,
+   Topologies::Polygon,
+   EntityDecomposerVersion::ConnectEdgesToCentroid,
+   SubentityDecomposerVersion >
 {
    using Device = Devices::Host;
    using Topology = Topologies::Polygon;
@@ -75,12 +78,14 @@ struct EntityDecomposer< MeshConfig,
    }
 };
 
-template< typename MeshConfig,
-          EntityDecomposerVersion SubentityDecomposerVersion >  // SubentityDecomposerVersion is not used for polygons
-struct EntityDecomposer< MeshConfig,
-                         Topologies::Polygon,
-                         EntityDecomposerVersion::ConnectEdgesToPoint,
-                         SubentityDecomposerVersion >
+template<
+   typename MeshConfig,
+   EntityDecomposerVersion SubentityDecomposerVersion >  // SubentityDecomposerVersion is not used for polygons
+struct EntityDecomposer<
+   MeshConfig,
+   Topologies::Polygon,
+   EntityDecomposerVersion::ConnectEdgesToPoint,
+   SubentityDecomposerVersion >
 {
    using Device = Devices::Host;
    using Topology = Topologies::Polygon;
@@ -115,10 +120,11 @@ struct EntityDecomposer< MeshConfig,
 
 // Polyhedron
 template< typename MeshConfig, EntityDecomposerVersion SubentityDecomposerVersion >
-struct EntityDecomposer< MeshConfig,
-                         Topologies::Polyhedron,
-                         EntityDecomposerVersion::ConnectEdgesToCentroid,
-                         SubentityDecomposerVersion >
+struct EntityDecomposer<
+   MeshConfig,
+   Topologies::Polyhedron,
+   EntityDecomposerVersion::ConnectEdgesToCentroid,
+   SubentityDecomposerVersion >
 {
    using Device = Devices::Host;
    using CellTopology = Topologies::Polyhedron;
@@ -171,10 +177,11 @@ struct EntityDecomposer< MeshConfig,
 };
 
 template< typename MeshConfig, EntityDecomposerVersion SubentityDecomposerVersion >
-struct EntityDecomposer< MeshConfig,
-                         Topologies::Polyhedron,
-                         EntityDecomposerVersion::ConnectEdgesToPoint,
-                         SubentityDecomposerVersion >
+struct EntityDecomposer<
+   MeshConfig,
+   Topologies::Polyhedron,
+   EntityDecomposerVersion::ConnectEdgesToPoint,
+   SubentityDecomposerVersion >
 {
    // https://mathoverflow.net/a/7672
    using Device = Devices::Host;

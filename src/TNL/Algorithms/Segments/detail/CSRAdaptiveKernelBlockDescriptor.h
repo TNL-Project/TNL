@@ -24,10 +24,11 @@ enum class Type : std::uint8_t
 template< typename Index >
 union CSRAdaptiveKernelBlockDescriptor
 {
-   CSRAdaptiveKernelBlockDescriptor( Index row,
-                                     Type type = Type::VECTOR,
-                                     Index index = 0,
-                                     std::uint8_t warpsCount = 0 ) noexcept
+   CSRAdaptiveKernelBlockDescriptor(
+      Index row,
+      Type type = Type::VECTOR,
+      Index index = 0,
+      std::uint8_t warpsCount = 0 ) noexcept
    {
       this->index[ 0 ] = row;
       this->index[ 1 ] = index;
@@ -133,10 +134,11 @@ union CSRAdaptiveKernelBlockDescriptor
 template< typename Index >
 struct CSRAdaptiveKernelBlockDescriptor
 {
-   CSRAdaptiveKernelBlockDescriptor( Index firstSegmentIdx,
-                                     Type type = Type::VECTOR,
-                                     std::uint8_t warpIdx = 0,
-                                     std::uint8_t warpsCount = 0 ) noexcept
+   CSRAdaptiveKernelBlockDescriptor(
+      Index firstSegmentIdx,
+      Type type = Type::VECTOR,
+      std::uint8_t warpIdx = 0,
+      std::uint8_t warpsCount = 0 ) noexcept
    {
       this->firstSegmentIdx = firstSegmentIdx;
       this->type = (std::uint8_t) type;

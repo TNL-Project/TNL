@@ -50,9 +50,10 @@ TEST( HypreTest, Vector )
 
 template< typename DistributedArray >
 auto
-getDistributedArray( MPI_Comm communicator,
-                     typename DistributedArray::IndexType globalSize,
-                     typename DistributedArray::IndexType ghosts )
+getDistributedArray(
+   MPI_Comm communicator,
+   typename DistributedArray::IndexType globalSize,
+   typename DistributedArray::IndexType ghosts )
 {
    DistributedArray array;
 
@@ -145,8 +146,9 @@ getGlobalMatrix( int size )
 // returns only a local block of the global matrix created by getGlobalMatrix
 template< typename MatrixType >
 MatrixType
-getLocalBlock( typename MatrixType::IndexType global_size,
-               Containers::Subrange< typename MatrixType::IndexType > local_row_range )
+getLocalBlock(
+   typename MatrixType::IndexType global_size,
+   Containers::Subrange< typename MatrixType::IndexType > local_row_range )
 {
    using Vector =
       Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >;

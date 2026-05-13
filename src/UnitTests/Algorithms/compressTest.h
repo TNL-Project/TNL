@@ -70,12 +70,13 @@ CompressTest_compressVector()
    EXPECT_EQ( compressed.getElement( 3 ), 8 );
 
    auto v_view = v.getView();
-   auto compressed2 = compress< VectorType >( 0,
-                                              v.getSize(),
-                                              [ = ] __cuda_callable__( IndexType idx )
-                                              {
-                                                 return v_view[ idx ];
-                                              } );
+   auto compressed2 = compress< VectorType >(
+      0,
+      v.getSize(),
+      [ = ] __cuda_callable__( IndexType idx )
+      {
+         return v_view[ idx ];
+      } );
 
    EXPECT_EQ( compressed2.getSize(), 4 );
    EXPECT_EQ( compressed2.getElement( 0 ), 0 );
@@ -83,12 +84,13 @@ CompressTest_compressVector()
    EXPECT_EQ( compressed2.getElement( 2 ), 7 );
    EXPECT_EQ( compressed2.getElement( 3 ), 8 );
 
-   auto compressed3 = compress< VectorType >( 4,
-                                              v.getSize(),
-                                              [ = ] __cuda_callable__( IndexType idx )
-                                              {
-                                                 return v_view[ idx ];
-                                              } );
+   auto compressed3 = compress< VectorType >(
+      4,
+      v.getSize(),
+      [ = ] __cuda_callable__( IndexType idx )
+      {
+         return v_view[ idx ];
+      } );
 
    EXPECT_EQ( compressed3.getSize(), 3 );
    EXPECT_EQ( compressed3.getElement( 0 ), 5 );

@@ -46,13 +46,14 @@ CSRAdaptiveKernelView< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                        Index begin,
-                                                        Index end,
-                                                        Fetch& fetch,
-                                                        const Reduction& reduction,
-                                                        ResultKeeper& keeper,
-                                                        const Value& identity ) const
+CSRAdaptiveKernelView< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    int valueSizeLog = getSizeValueLog( sizeof( Value ) );
 
@@ -102,11 +103,12 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernelView< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                           Fetch& fetch,
-                                                           const Reduction& reduction,
-                                                           ResultKeeper& keeper,
-                                                           const Value& identity ) const
+CSRAdaptiveKernelView< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }

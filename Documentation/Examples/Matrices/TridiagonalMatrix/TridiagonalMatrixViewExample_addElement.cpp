@@ -7,8 +7,9 @@ void
 addElements()
 {
    const int matrixSize( 5 );
-   TNL::Matrices::TridiagonalMatrix< double, Device > matrix( matrixSize,  // number of rows
-                                                              matrixSize   // number of columns
+   TNL::Matrices::TridiagonalMatrix< double, Device > matrix(
+      matrixSize,  // number of rows
+      matrixSize   // number of columns
    );
    auto view = matrix.getView();
 

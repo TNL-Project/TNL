@@ -21,11 +21,12 @@ namespace TNL::Matrices {
  *         or ColumnMajorOrder.
  * \tparam RealAllocator is allocator for the matrix elements.
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real > >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real > >
 class DenseMatrix : public DenseMatrixBase< Real, Device, Index, Organization >
 {
    using Base = DenseMatrixBase< Real, Device, Index, Organization >;
@@ -58,12 +59,12 @@ public:
    /**
     * \brief Helper type for getting self type or its modifications.
     */
-   template< typename _Real = Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             ElementsOrganization _Organization =
-                Algorithms::Segments::DefaultElementsOrganization< _Device >::getOrganization(),
-             typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
+   template<
+      typename _Real = Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      ElementsOrganization _Organization = Algorithms::Segments::DefaultElementsOrganization< _Device >::getOrganization(),
+      typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
    using Self = DenseMatrix< _Real, _Device, _Index, _Organization, _RealAllocator >;
 
    /**
@@ -115,9 +116,10 @@ public:
     * \include DenseMatrixExample_Constructor_init_list.out
     */
    template< typename Value >
-   DenseMatrix( std::initializer_list< std::initializer_list< Value > > data,
-                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
-                const RealAllocatorType& allocator = RealAllocatorType() );
+   DenseMatrix(
+      std::initializer_list< std::initializer_list< Value > > data,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+      const RealAllocatorType& allocator = RealAllocatorType() );
 
    /**
     * \brief Constructor with matrix dimensions and sparse data in initializer list.
@@ -138,11 +140,12 @@ public:
     * \par Output
     * \include DenseMatrixExample_Constructor_sparse_init_list.out
     */
-   explicit DenseMatrix( Index rows,
-                         Index columns,
-                         const std::initializer_list< std::tuple< Index, Index, Real > >& data,
-                         MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
-                         const RealAllocatorType& allocator = RealAllocatorType() );
+   explicit DenseMatrix(
+      Index rows,
+      Index columns,
+      const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+      const RealAllocatorType& allocator = RealAllocatorType() );
 
    /**
     * \brief Constructor with matrix dimensions and data in std::map.
@@ -166,11 +169,12 @@ public:
     * \include DenseMatrixExample_Constructor_std_map.out
     */
    template< typename MapIndex, typename MapValue >
-   explicit DenseMatrix( Index rows,
-                         Index columns,
-                         const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-                         MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
-                         const RealAllocatorType& allocator = RealAllocatorType() );
+   explicit DenseMatrix(
+      Index rows,
+      Index columns,
+      const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+      const RealAllocatorType& allocator = RealAllocatorType() );
 
    /**
     * \brief Returns a modifiable view of the dense matrix.
@@ -249,8 +253,9 @@ public:
     */
    template< typename Value >
    void
-   setElements( std::initializer_list< std::initializer_list< Value > > data,
-                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
+   setElements(
+      std::initializer_list< std::initializer_list< Value > > data,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief This method sets the matrix elements from initializer list with sparse data.
@@ -273,8 +278,9 @@ public:
     * \include SparseMatrixExample_setElements.out
     */
    void
-   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data,
-                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
+   setElements(
+      const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief This method sets the dense matrix elements from std::map.
@@ -297,8 +303,9 @@ public:
     */
    template< typename MapIndex, typename MapValue >
    void
-   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
+   setElements(
+      const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief Resets the matrix to zero dimensions.
@@ -329,11 +336,12 @@ public:
     */
    template< typename Matrix1, typename Matrix2, int tileDim = 16 >
    void
-   getMatrixProduct( const Matrix1& matrix1,
-                     const Matrix2& matrix2,
-                     Real matrixMultiplicator = 1.0,
-                     TransposeState transposeA = TransposeState::None,
-                     TransposeState transposeB = TransposeState::None );
+   getMatrixProduct(
+      const Matrix1& matrix1,
+      const Matrix2& matrix2,
+      Real matrixMultiplicator = 1.0,
+      TransposeState transposeA = TransposeState::None,
+      TransposeState transposeB = TransposeState::None );
 
    /**
     * \brief Computes the transposition of a given matrix and stores the result in this matrix.
@@ -417,11 +425,12 @@ public:
     * \param matrix is the right-hand side matrix.
     * \return reference to this matrix.
     */
-   template< typename RHSReal,
-             typename RHSDevice,
-             typename RHSIndex,
-             ElementsOrganization RHSOrganization,
-             typename RHSRealAllocator >
+   template<
+      typename RHSReal,
+      typename RHSDevice,
+      typename RHSIndex,
+      ElementsOrganization RHSOrganization,
+      typename RHSRealAllocator >
    DenseMatrix&
    operator=( const DenseMatrix< RHSReal, RHSDevice, RHSIndex, RHSOrganization, RHSRealAllocator >& matrix );
 

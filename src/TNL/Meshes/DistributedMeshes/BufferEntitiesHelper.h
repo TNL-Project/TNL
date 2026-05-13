@@ -8,12 +8,13 @@
 
 namespace TNL::Meshes::DistributedMeshes {
 
-template< typename MeshFunctionType,
-          typename PeriodicBoundariesMaskPointer,
-          int dim,
-          typename RealType = typename MeshFunctionType::MeshType::RealType,
-          typename Device = typename MeshFunctionType::MeshType::DeviceType,
-          typename Index = typename MeshFunctionType::MeshType::GlobalIndexType >
+template<
+   typename MeshFunctionType,
+   typename PeriodicBoundariesMaskPointer,
+   int dim,
+   typename RealType = typename MeshFunctionType::MeshType::RealType,
+   typename Device = typename MeshFunctionType::MeshType::DeviceType,
+   typename Index = typename MeshFunctionType::MeshType::GlobalIndexType >
 class BufferEntitiesHelper;
 
 template< typename MeshFunctionType, typename MaskPointer, typename RealType, typename Device, typename Index >
@@ -21,13 +22,14 @@ class BufferEntitiesHelper< MeshFunctionType, MaskPointer, 1, RealType, Device, 
 {
 public:
    static void
-   BufferEntities( MeshFunctionType& meshFunction,
-                   const MaskPointer& maskPointer,
-                   RealType* buffer,
-                   bool isBoundary,
-                   const Containers::StaticArray< 1, Index >& begin,
-                   const Containers::StaticArray< 1, Index >& size,
-                   bool tobuffer )
+   BufferEntities(
+      MeshFunctionType& meshFunction,
+      const MaskPointer& maskPointer,
+      RealType* buffer,
+      bool isBoundary,
+      const Containers::StaticArray< 1, Index >& begin,
+      const Containers::StaticArray< 1, Index >& size,
+      bool tobuffer )
    {
       Index beginx = begin.x();
       Index sizex = size.x();
@@ -58,13 +60,14 @@ class BufferEntitiesHelper< MeshFunctionType, MaskPointer, 2, RealType, Device, 
 {
 public:
    static void
-   BufferEntities( MeshFunctionType& meshFunction,
-                   const MaskPointer& maskPointer,
-                   RealType* buffer,
-                   bool isBoundary,
-                   const Containers::StaticArray< 2, Index >& begin,
-                   const Containers::StaticArray< 2, Index >& size,
-                   bool tobuffer )
+   BufferEntities(
+      MeshFunctionType& meshFunction,
+      const MaskPointer& maskPointer,
+      RealType* buffer,
+      bool isBoundary,
+      const Containers::StaticArray< 2, Index >& begin,
+      const Containers::StaticArray< 2, Index >& size,
+      bool tobuffer )
    {
       auto* mesh = &meshFunction.getMeshPointer().template getData< Device >();
       RealType* meshFunctionData = meshFunction.getData().getData();
@@ -95,13 +98,14 @@ class BufferEntitiesHelper< MeshFunctionType, MaskPointer, 3, RealType, Device, 
 {
 public:
    static void
-   BufferEntities( MeshFunctionType& meshFunction,
-                   const MaskPointer& maskPointer,
-                   RealType* buffer,
-                   bool isBoundary,
-                   const Containers::StaticArray< 3, Index >& begin,
-                   const Containers::StaticArray< 3, Index >& size,
-                   bool tobuffer )
+   BufferEntities(
+      MeshFunctionType& meshFunction,
+      const MaskPointer& maskPointer,
+      RealType* buffer,
+      bool isBoundary,
+      const Containers::StaticArray< 3, Index >& begin,
+      const Containers::StaticArray< 3, Index >& size,
+      bool tobuffer )
    {
       auto* mesh = &meshFunction.getMeshPointer().template getData< Device >();
       RealType* meshFunctionData = meshFunction.getData().getData();

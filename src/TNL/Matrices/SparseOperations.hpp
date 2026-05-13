@@ -26,13 +26,14 @@ namespace TNL::Matrices {
 #ifdef USE_NVCC_WORKAROUND
 template< typename Matrix, typename Index, typename IndexVector, typename ValueVector >
 void
-copyMatrixElementsToBuffers( const Matrix& m,
-                             Index baseRow,
-                             Index lastRow,
-                             Index maxRowLength,
-                             IndexVector& columnsBuffer,
-                             ValueVector& valuesBuffer,
-                             bool generalToSymmetric = false )
+copyMatrixElementsToBuffers(
+   const Matrix& m,
+   Index baseRow,
+   Index lastRow,
+   Index maxRowLength,
+   IndexVector& columnsBuffer,
+   ValueVector& valuesBuffer,
+   bool generalToSymmetric = false )
 {
    using RHSIndexType = typename Matrix::IndexType;
    using RHSRealType = typename Matrix::RealType;
@@ -58,14 +59,15 @@ copyMatrixElementsToBuffers( const Matrix& m,
 
 template< typename Matrix, typename Index, typename IndexVectorView, typename ValueVectorView, typename RowLengthsVector >
 void
-copyBuffersToMatrixElements( Matrix& m,
-                             const IndexVectorView& thisColumnsBuffer_view,
-                             const ValueVectorView& thisValuesBuffer_view,
-                             Index baseRow,
-                             Index lastRow,
-                             Index maxRowLength,
-                             RowLengthsVector& thisRowLengths,
-                             IndexVectorView rowLocalIndexes_view )
+copyBuffersToMatrixElements(
+   Matrix& m,
+   const IndexVectorView& thisColumnsBuffer_view,
+   const ValueVectorView& thisValuesBuffer_view,
+   Index baseRow,
+   Index lastRow,
+   Index maxRowLength,
+   RowLengthsVector& thisRowLengths,
+   IndexVectorView rowLocalIndexes_view )
 {
    using Real = typename Matrix::RealType;
    constexpr Index padding_index = paddingIndex< Index >;  // this is just to avoid nvcc error: identifier
@@ -168,9 +170,10 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
                      continue;
 
                Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, aLocalIdx++ );
-               TNL_ASSERT_GE( thisGlobalIdx,
-                              0,
-                              "Global index must be non-negative. Negative values may appear due to Index type overflow." );
+               TNL_ASSERT_GE(
+                  thisGlobalIdx,
+                  0,
+                  "Global index must be non-negative. Negative values may appear due to Index type overflow." );
                columns_view[ thisGlobalIdx ] = columnIdx;
                if( ! TargetMatrix::isBinary() )
                   values_view[ thisGlobalIdx ] = row.getValue( bLocalIdx );
@@ -239,14 +242,15 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
          thisColumnsBuffer_view = matrixColumnsBuffer_view;
 
 #ifdef USE_NVCC_WORKAROUND
-         copyBuffersToMatrixElements( A,
-                                      thisColumnsBuffer_view,
-                                      thisValuesBuffer_view,
-                                      baseRow,
-                                      lastRow,
-                                      maxRowLength,
-                                      thisRowLengths,
-                                      rowLocalIndexes_view );
+         copyBuffersToMatrixElements(
+            A,
+            thisColumnsBuffer_view,
+            thisValuesBuffer_view,
+            baseRow,
+            lastRow,
+            maxRowLength,
+            thisRowLengths,
+            rowLocalIndexes_view );
 #else
          // Copy matrix elements from the buffer to the matrix and ignoring
          // zero matrix elements.
@@ -289,13 +293,14 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
 #ifdef USE_NVCC_WORKAROUND
 template< typename Matrix, typename Index, typename IndexVector, typename ValueVector >
 void
-copyMatrixElementsToBuffers_SymmetricToGeneral( const Matrix& m,
-                                                Index baseRow,
-                                                Index lastRow,
-                                                Index maxRowLength,
-                                                IndexVector& columnsBuffer,
-                                                ValueVector& valuesBuffer,
-                                                IndexVector& bufferRowLocalIndexes )
+copyMatrixElementsToBuffers_SymmetricToGeneral(
+   const Matrix& m,
+   Index baseRow,
+   Index lastRow,
+   Index maxRowLength,
+   IndexVector& columnsBuffer,
+   ValueVector& valuesBuffer,
+   IndexVector& bufferRowLocalIndexes )
 {
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
@@ -390,18 +395,20 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
 
                Index thisGlobalIdx = segments_view.getGlobalIndex(
                   rowIdx, Algorithms::AtomicOperations< Device >::add( aLocalIndexes_view[ rowIdx ], (Index) 1 ) );
-               TNL_ASSERT_GE( thisGlobalIdx,
-                              0,
-                              "Global index must be non-negative. Negative values may appear due to Index type overflow." );
+               TNL_ASSERT_GE(
+                  thisGlobalIdx,
+                  0,
+                  "Global index must be non-negative. Negative values may appear due to Index type overflow." );
                columns_view[ thisGlobalIdx ] = columnIdx;
                if( ! TargetMatrix::isBinary() )
                   values_view[ thisGlobalIdx ] = value;
                if( rowIdx != columnIdx ) {  // Transpose element
                   thisGlobalIdx = segments_view.getGlobalIndex(
                      columnIdx, Algorithms::AtomicOperations< Device >::add( aLocalIndexes_view[ columnIdx ], (Index) 1 ) );
-                  TNL_ASSERT_GE( thisGlobalIdx,
-                                 0,
-                                 "Global index must be non-negative. Negative values may appear due to Index type overflow." );
+                  TNL_ASSERT_GE(
+                     thisGlobalIdx,
+                     0,
+                     "Global index must be non-negative. Negative values may appear due to Index type overflow." );
                   columns_view[ thisGlobalIdx ] = rowIdx;
                   if( ! TargetMatrix::isBinary() )
                      values_view[ thisGlobalIdx ] = value;
@@ -484,14 +491,15 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
          thisColumnsBuffer_view = matrixColumnsBuffer_view;
 
 #ifdef USE_NVCC_WORKAROUND
-         copyBuffersToMatrixElements( A,
-                                      thisColumnsBuffer_view,
-                                      thisValuesBuffer_view,
-                                      baseRow,
-                                      lastRow,
-                                      maxRowLength,
-                                      thisRowLengths,
-                                      rowLocalIndexes_view );
+         copyBuffersToMatrixElements(
+            A,
+            thisColumnsBuffer_view,
+            thisValuesBuffer_view,
+            baseRow,
+            lastRow,
+            maxRowLength,
+            thisRowLengths,
+            rowLocalIndexes_view );
 #else
          // Copy matrix elements from the buffer to the matrix and ignoring
          // zero matrix elements
@@ -534,10 +542,11 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
 template< typename Vector, typename Matrix >
 __global__
 void
-SparseMatrixSetRowLengthsVectorKernel( Vector* rowLengths,
-                                       const Matrix* matrix,
-                                       typename Matrix::IndexType rows,
-                                       typename Matrix::IndexType cols )
+SparseMatrixSetRowLengthsVectorKernel(
+   Vector* rowLengths,
+   const Matrix* matrix,
+   typename Matrix::IndexType rows,
+   typename Matrix::IndexType cols )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename Matrix::IndexType;
@@ -562,10 +571,11 @@ SparseMatrixSetRowLengthsVectorKernel( Vector* rowLengths,
 template< typename Matrix1, typename Matrix2 >
 __global__
 void
-SparseMatrixCopyKernel( Matrix1* A,
-                        const Matrix2* B,
-                        const typename Matrix2::IndexType* rowLengths,
-                        typename Matrix2::IndexType rows )
+SparseMatrixCopyKernel(
+   Matrix1* A,
+   const Matrix2* B,
+   const typename Matrix2::IndexType* rowLengths,
+   typename Matrix2::IndexType rows )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename Matrix2::IndexType;
@@ -589,12 +599,14 @@ template< typename Matrix1, typename Matrix2 >
 std::enable_if_t< std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType > >
 copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 {
-   static_assert( std::is_same_v< typename Matrix1::RealType, typename Matrix2::RealType >,
-                  "The matrices must have the same RealType." );
-   static_assert( std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >,
-                  "The matrices must be allocated on the same device." );
-   static_assert( std::is_same_v< typename Matrix1::IndexType, typename Matrix2::IndexType >,
-                  "The matrices must have the same IndexType." );
+   static_assert(
+      std::is_same_v< typename Matrix1::RealType, typename Matrix2::RealType >, "The matrices must have the same RealType." );
+   static_assert(
+      std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >,
+      "The matrices must be allocated on the same device." );
+   static_assert(
+      std::is_same_v< typename Matrix1::IndexType, typename Matrix2::IndexType >,
+      "The matrices must have the same IndexType." );
 
    using DeviceType = typename Matrix1::DeviceType;
    using IndexType = typename Matrix1::IndexType;
@@ -651,30 +663,33 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
       constexpr auto kernelRowLengths =
          SparseMatrixSetRowLengthsVectorKernel< typename Matrix1::RowCapacitiesType::ValueType, Matrix2 >;
-      Backend::launchKernelSync( kernelRowLengths,
-                                 launch_config,
-                                 rowLengths.getData(),
-                                 &Bpointer.template getData< TNL::Devices::Cuda >(),
-                                 rows,
-                                 cols );
+      Backend::launchKernelSync(
+         kernelRowLengths,
+         launch_config,
+         rowLengths.getData(),
+         &Bpointer.template getData< TNL::Devices::Cuda >(),
+         rows,
+         cols );
       Apointer->setRowCapacities( rowLengths );
 
       // copy rows
       Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
       constexpr auto kernelCopy = SparseMatrixCopyKernel< Matrix1, Matrix2 >;
-      Backend::launchKernelSync( kernelCopy,
-                                 launch_config,
-                                 &Apointer.template modifyData< TNL::Devices::Cuda >(),
-                                 &Bpointer.template getData< TNL::Devices::Cuda >(),
-                                 rowLengths.getData(),
-                                 rows );
+      Backend::launchKernelSync(
+         kernelCopy,
+         launch_config,
+         &Apointer.template modifyData< TNL::Devices::Cuda >(),
+         &Bpointer.template getData< TNL::Devices::Cuda >(),
+         rowLengths.getData(),
+         rows );
    }
 }
 
 // cross-device copy (host -> gpu)
 template< typename Matrix1, typename Matrix2 >
-std::enable_if_t< ! std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >
-                  && std::is_same_v< typename Matrix2::DeviceType, Devices::Host > >
+std::enable_if_t<
+   ! std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >
+   && std::is_same_v< typename Matrix2::DeviceType, Devices::Host > >
 copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 {
    using CudaMatrix2 = typename Matrix2::template Self< typename Matrix2::RealType, Devices::Cuda >;
@@ -685,8 +700,9 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 
 // cross-device copy (gpu -> host)
 template< typename Matrix1, typename Matrix2 >
-std::enable_if_t< ! std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >
-                  && std::is_same_v< typename Matrix2::DeviceType, Devices::Cuda > >
+std::enable_if_t<
+   ! std::is_same_v< typename Matrix1::DeviceType, typename Matrix2::DeviceType >
+   && std::is_same_v< typename Matrix2::DeviceType, Devices::Cuda > >
 copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 {
    using CudaMatrix1 = typename Matrix1::template Self< typename Matrix1::RealType, Devices::Cuda >;
@@ -706,13 +722,16 @@ template< typename Matrix, typename AdjacencyMatrix >
 void
 copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_pattern, bool ignore_diagonal )
 {
-   static_assert( std::is_same_v< typename Matrix::DeviceType, Devices::Host >,
-                  "The function is not implemented for CUDA matrices - it would require atomic insertions "
-                  "of elements into the sparse format." );
-   static_assert( std::is_same_v< typename Matrix::DeviceType, typename AdjacencyMatrix::DeviceType >,
-                  "The matrices must be allocated on the same device." );
-   static_assert( std::is_same_v< typename Matrix::IndexType, typename AdjacencyMatrix::IndexType >,
-                  "The matrices must have the same IndexType." );
+   static_assert(
+      std::is_same_v< typename Matrix::DeviceType, Devices::Host >,
+      "The function is not implemented for CUDA matrices - it would require atomic insertions "
+      "of elements into the sparse format." );
+   static_assert(
+      std::is_same_v< typename Matrix::DeviceType, typename AdjacencyMatrix::DeviceType >,
+      "The matrices must be allocated on the same device." );
+   static_assert(
+      std::is_same_v< typename Matrix::IndexType, typename AdjacencyMatrix::IndexType >,
+      "The matrices must have the same IndexType." );
    //static_assert( std::is_same_v< typename AdjacencyMatrix::RealType, bool >,
    //               "The RealType of the adjacency matrix must be bool." );
 
@@ -720,8 +739,9 @@ copyAdjacencyStructure( const Matrix& A, AdjacencyMatrix& B, bool has_symmetric_
    using IndexType = typename Matrix::IndexType;
 
    if( A.getRows() != A.getColumns() ) {
-      throw std::logic_error( "The matrix is not square: " + std::to_string( A.getRows() ) + " rows, "
-                              + std::to_string( A.getColumns() ) + " columns." );
+      throw std::logic_error(
+         "The matrix is not square: " + std::to_string( A.getRows() ) + " rows, " + std::to_string( A.getColumns() )
+         + " columns." );
    }
 
    const IndexType N = A.getRows();
@@ -771,15 +791,18 @@ void
 reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const PermutationArray& perm, const PermutationArray& iperm )
 {
    // TODO: implement on GPU
-   static_assert( std::is_same_v< typename Matrix1::DeviceType, Devices::Host >
-                     || std::is_same_v< typename Matrix1::DeviceType, Devices::Sequential >,
-                  "matrix reordering is implemented only for host" );
-   static_assert( std::is_same_v< typename Matrix2::DeviceType, Devices::Host >
-                     || std::is_same_v< typename Matrix2::DeviceType, Devices::Sequential >,
-                  "matrix reordering is implemented only for host" );
-   static_assert( std::is_same_v< typename PermutationArray::DeviceType, Devices::Host >
-                     || std::is_same_v< typename PermutationArray::DeviceType, Devices::Sequential >,
-                  "matrix reordering is implemented only for host" );
+   static_assert(
+      std::is_same_v< typename Matrix1::DeviceType, Devices::Host >
+         || std::is_same_v< typename Matrix1::DeviceType, Devices::Sequential >,
+      "matrix reordering is implemented only for host" );
+   static_assert(
+      std::is_same_v< typename Matrix2::DeviceType, Devices::Host >
+         || std::is_same_v< typename Matrix2::DeviceType, Devices::Sequential >,
+      "matrix reordering is implemented only for host" );
+   static_assert(
+      std::is_same_v< typename PermutationArray::DeviceType, Devices::Host >
+         || std::is_same_v< typename PermutationArray::DeviceType, Devices::Sequential >,
+      "matrix reordering is implemented only for host" );
 
    using IndexType = typename Matrix1::IndexType;
 
@@ -875,10 +898,11 @@ template< typename Array1, typename Array2, typename PermutationArray >
 void
 reorderArray( const Array1& src, Array2& dest, const PermutationArray& perm )
 {
-   static_assert( std::is_same_v< typename Array1::DeviceType, typename Array2::DeviceType >,
-                  "Arrays must reside on the same device." );
-   static_assert( std::is_same_v< typename Array1::DeviceType, typename PermutationArray::DeviceType >,
-                  "Arrays must reside on the same device." );
+   static_assert(
+      std::is_same_v< typename Array1::DeviceType, typename Array2::DeviceType >, "Arrays must reside on the same device." );
+   static_assert(
+      std::is_same_v< typename Array1::DeviceType, typename PermutationArray::DeviceType >,
+      "Arrays must reside on the same device." );
    if( src.getSize() != perm.getSize() )
       throw std::invalid_argument( "reorderArray: source array and permutation must have the same size." );
    if( dest.getSize() != perm.getSize() )
@@ -887,10 +911,11 @@ reorderArray( const Array1& src, Array2& dest, const PermutationArray& perm )
    using DeviceType = typename Array1::DeviceType;
    using IndexType = typename Array1::IndexType;
 
-   auto kernel = [] __cuda_callable__( IndexType i,
-                                       const typename Array1::ValueType* src,
-                                       typename Array2::ValueType* dest,
-                                       const typename PermutationArray::ValueType* perm )
+   auto kernel = [] __cuda_callable__(
+                    IndexType i,
+                    const typename Array1::ValueType* src,
+                    typename Array2::ValueType* dest,
+                    const typename PermutationArray::ValueType* perm )
    {
       dest[ i ] = src[ perm[ i ] ];
    };

@@ -94,13 +94,14 @@ compress( BeginIndex begin, EndIndex end, MarksFunction&& marksFunction, OutputV
  * \par Output
  * \include compressExample-vector.out
  */
-template< typename MarksVector,
-          typename OutputVector = MarksVector,
-          typename BeginIndex = typename OutputVector::IndexType,
-          typename EndIndex = BeginIndex,
-          typename std::enable_if_t< IsArrayType< MarksVector >::value
-                                        && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
-                                     bool > = true >
+template<
+   typename MarksVector,
+   typename OutputVector = MarksVector,
+   typename BeginIndex = typename OutputVector::IndexType,
+   typename EndIndex = BeginIndex,
+   typename std::enable_if_t<
+      IsArrayType< MarksVector >::value && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
+      bool > = true >
 OutputVector
 compress( const MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0 )
 {
@@ -134,11 +135,12 @@ compress( const MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0
  * \par Output
  * \include compressExample-vector.out
  */
-template< typename MarksVector,
-          typename OutputVector = MarksVector,
-          typename BeginIndex = typename OutputVector::IndexType,
-          typename EndIndex = BeginIndex,
-          typename std::enable_if_t< IsArrayType< MarksVector >::value, bool > = true >
+template<
+   typename MarksVector,
+   typename OutputVector = MarksVector,
+   typename BeginIndex = typename OutputVector::IndexType,
+   typename EndIndex = BeginIndex,
+   typename std::enable_if_t< IsArrayType< MarksVector >::value, bool > = true >
 auto
 compress( const MarksVector& marksVector, OutputVector& outputVector, BeginIndex begin = 0, EndIndex end = 0 ) ->
    typename OutputVector::IndexType
@@ -169,13 +171,14 @@ compress( const MarksVector& marksVector, OutputVector& outputVector, BeginIndex
  * \par Output
  * \include compressExample-vector.out
  */
-template< typename MarksVector,
-          typename OutputVector = MarksVector,
-          typename BeginIndex = typename OutputVector::IndexType,
-          typename EndIndex = BeginIndex,
-          typename std::enable_if_t< IsArrayType< MarksVector >::value
-                                        && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
-                                     bool > = true >
+template<
+   typename MarksVector,
+   typename OutputVector = MarksVector,
+   typename BeginIndex = typename OutputVector::IndexType,
+   typename EndIndex = BeginIndex,
+   typename std::enable_if_t<
+      IsArrayType< MarksVector >::value && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
+      bool > = true >
 OutputVector
 compressFast( MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0 )
 {
@@ -208,13 +211,14 @@ compressFast( MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0 )
  * \par Output
  * \include compressExample-vector.out
  */
-template< typename MarksVector,
-          typename OutputVector = MarksVector,
-          typename BeginIndex = typename OutputVector::IndexType,
-          typename EndIndex = BeginIndex,
-          typename std::enable_if_t< IsArrayType< MarksVector >::value
-                                        && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
-                                     bool > = true >
+template<
+   typename MarksVector,
+   typename OutputVector = MarksVector,
+   typename BeginIndex = typename OutputVector::IndexType,
+   typename EndIndex = BeginIndex,
+   typename std::enable_if_t<
+      IsArrayType< MarksVector >::value && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
+      bool > = true >
 auto
 compressFast( MarksVector& marksVector, OutputVector& outputVector, BeginIndex begin = 0, EndIndex end = 0 ) ->
    typename OutputVector::IndexType

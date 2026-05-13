@@ -34,27 +34,29 @@ UmfpackWrapper< Matrix, SolverMonitor >::setMatrix( const MatrixPointer& matrix 
    umfpack_di_defaults( Control );
 
    // symbolic reordering of the sparse matrix
-   status = umfpack_di_symbolic( size,
-                                 size,
-                                 this->matrix->getSegments().getOffsets().getData(),
-                                 this->matrix->getColumnIndexes().getData(),
-                                 this->matrix->getValues().getData(),
-                                 &Symbolic,
-                                 Control,
-                                 Info );
+   status = umfpack_di_symbolic(
+      size,
+      size,
+      this->matrix->getSegments().getOffsets().getData(),
+      this->matrix->getColumnIndexes().getData(),
+      this->matrix->getValues().getData(),
+      &Symbolic,
+      Control,
+      Info );
    if( status != UMFPACK_OK ) {
       symbolic_fail = true;
    }
 
    // numeric factorization
    if( ! symbolic_fail ) {
-      status = umfpack_di_numeric( this->matrix->getSegments().getOffsets().getData(),
-                                   this->matrix->getColumnIndexes().getData(),
-                                   this->matrix->getValues().getData(),
-                                   Symbolic,
-                                   &Numeric,
-                                   Control,
-                                   Info );
+      status = umfpack_di_numeric(
+         this->matrix->getSegments().getOffsets().getData(),
+         this->matrix->getColumnIndexes().getData(),
+         this->matrix->getValues().getData(),
+         Symbolic,
+         &Numeric,
+         Control,
+         Info );
       if( status != UMFPACK_OK ) {
          numeric_fail = true;
       }
@@ -98,15 +100,16 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
    int system_type = UMFPACK_Aat;
 
    // solve with specified right-hand-side
-   status = umfpack_di_solve( system_type,
-                              this->matrix->getSegments().getOffsets().getData(),
-                              this->matrix->getColumnIndexes().getData(),
-                              this->matrix->getValues().getData(),
-                              x.getData(),
-                              b.getData(),
-                              Numeric,
-                              Control,
-                              Info );
+   status = umfpack_di_solve(
+      system_type,
+      this->matrix->getSegments().getOffsets().getData(),
+      this->matrix->getColumnIndexes().getData(),
+      this->matrix->getValues().getData(),
+      x.getData(),
+      b.getData(),
+      Numeric,
+      Control,
+      Info );
    if( status != UMFPACK_OK ) {
       throw std::runtime_error( "Umfpack solver failed." );
    }

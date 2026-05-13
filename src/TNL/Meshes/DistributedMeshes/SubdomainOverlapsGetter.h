@@ -35,12 +35,13 @@ public:
     * upper.x() is overlap of the subdomain at boundary where x = grid.getDimensions().x() - 1,
     */
    static void
-   getOverlaps( const DistributedMeshType* distributedMesh,
-                SubdomainOverlapsType& lower,
-                SubdomainOverlapsType& upper,
-                IndexType subdomainOverlapSize,
-                const SubdomainOverlapsType& lowerPeriodicBoundariesOverlapSize = 0,
-                const SubdomainOverlapsType& upperPeriodicBoundariesOverlapSize = 0 );
+   getOverlaps(
+      const DistributedMeshType* distributedMesh,
+      SubdomainOverlapsType& lower,
+      SubdomainOverlapsType& upper,
+      IndexType subdomainOverlapSize,
+      const SubdomainOverlapsType& lowerPeriodicBoundariesOverlapSize = 0,
+      const SubdomainOverlapsType& upperPeriodicBoundariesOverlapSize = 0 );
 };
 
 template< typename Real, typename Device, typename Index >
@@ -63,12 +64,13 @@ public:
     * upper.y() is overlap of the subdomain at boundary where y = grid.getDimensions().y() - 1.
     */
    static void
-   getOverlaps( const DistributedMeshType* distributedMesh,
-                SubdomainOverlapsType& lower,
-                SubdomainOverlapsType& upper,
-                IndexType subdomainOverlapSize,
-                const SubdomainOverlapsType& lowerPeriodicBoundariesOverlapSize = 0,
-                const SubdomainOverlapsType& upperPeriodicBoundariesOverlapSize = 0 );
+   getOverlaps(
+      const DistributedMeshType* distributedMesh,
+      SubdomainOverlapsType& lower,
+      SubdomainOverlapsType& upper,
+      IndexType subdomainOverlapSize,
+      const SubdomainOverlapsType& lowerPeriodicBoundariesOverlapSize = 0,
+      const SubdomainOverlapsType& upperPeriodicBoundariesOverlapSize = 0 );
 };
 
 template< typename Real, typename Device, typename Index >
@@ -93,12 +95,13 @@ public:
     * upper.z() is overlap of the subdomain at boundary where z = grid.getDimensions().z() - 1,
     */
    static void
-   getOverlaps( const DistributedMeshType* distributedMesh,
-                SubdomainOverlapsType& lower,
-                SubdomainOverlapsType& upper,
-                IndexType subdomainOverlapSize,
-                const SubdomainOverlapsType& lowerPeriodicBoundariesOverlapSize = 0,
-                const SubdomainOverlapsType& upperPeriodicBoundariesOverlapSize = 0 );
+   getOverlaps(
+      const DistributedMeshType* distributedMesh,
+      SubdomainOverlapsType& lower,
+      SubdomainOverlapsType& upper,
+      IndexType subdomainOverlapSize,
+      const SubdomainOverlapsType& lowerPeriodicBoundariesOverlapSize = 0,
+      const SubdomainOverlapsType& upperPeriodicBoundariesOverlapSize = 0 );
 };
 
 }  // namespace TNL::Meshes::DistributedMeshes

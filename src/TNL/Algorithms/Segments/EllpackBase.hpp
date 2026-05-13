@@ -12,9 +12,10 @@ namespace TNL::Algorithms::Segments {
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
 void
-EllpackBase< Device, Index, Organization, Alignment >::bind( IndexType segmentsCount,
-                                                             IndexType segmentSize,
-                                                             IndexType alignedSize )
+EllpackBase< Device, Index, Organization, Alignment >::bind(
+   IndexType segmentsCount,
+   IndexType segmentSize,
+   IndexType alignedSize )
 {
    this->segmentSize = segmentSize;
    this->segmentsCount = segmentsCount;
@@ -23,9 +24,10 @@ EllpackBase< Device, Index, Organization, Alignment >::bind( IndexType segmentsC
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
-EllpackBase< Device, Index, Organization, Alignment >::EllpackBase( IndexType segmentsCount,
-                                                                    IndexType segmentSize,
-                                                                    IndexType alignedSize )
+EllpackBase< Device, Index, Organization, Alignment >::EllpackBase(
+   IndexType segmentsCount,
+   IndexType segmentSize,
+   IndexType alignedSize )
 : segmentSize( segmentSize ),
   segmentsCount( segmentsCount ),
   alignedSize( alignedSize )
@@ -176,10 +178,11 @@ EllpackBase< Device, Index, Organization, Alignment >::forAllElements( Function&
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 template< typename Array, typename Function >
 void
-EllpackBase< Device, Index, Organization, Alignment >::forElements( const Array& segmentIndexes,
-                                                                    Index begin,
-                                                                    Index end,
-                                                                    Function function ) const
+EllpackBase< Device, Index, Organization, Alignment >::forElements(
+   const Array& segmentIndexes,
+   Index begin,
+   Index end,
+   Function function ) const
 {
    auto segmentIndexesView = segmentIndexes.getConstView();
    if constexpr( Organization == RowMajorOrder ) {
@@ -222,10 +225,11 @@ EllpackBase< Device, Index, Organization, Alignment >::forElements( const Array&
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 template< typename Condition, typename Function >
 void
-EllpackBase< Device, Index, Organization, Alignment >::forElementsIf( IndexType begin,
-                                                                      IndexType end,
-                                                                      Condition condition,
-                                                                      Function function ) const
+EllpackBase< Device, Index, Organization, Alignment >::forElementsIf(
+   IndexType begin,
+   IndexType end,
+   Condition condition,
+   Function function ) const
 {
    if constexpr( Organization == RowMajorOrder ) {
       const IndexType segmentSize = this->segmentSize;

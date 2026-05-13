@@ -47,10 +47,11 @@ checkDevice( const TNL::Config::ParameterContainer& parameters )
 
 template< template< typename > class Solver, typename Matrix >
 void
-benchmarkSolverSetup( TNL::Benchmarks::Benchmark<>& benchmark,
-                      const TNL::Config::ParameterContainer& parameters,
-                      const std::shared_ptr< Matrix >& matrix,
-                      const std::string& solver_name )
+benchmarkSolverSetup(
+   TNL::Benchmarks::Benchmark<>& benchmark,
+   const TNL::Config::ParameterContainer& parameters,
+   const std::shared_ptr< Matrix >& matrix,
+   const std::string& solver_name )
 {
    // skip benchmarks on devices which the user did not select
    if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
@@ -74,10 +75,11 @@ benchmarkSolverSetup( TNL::Benchmarks::Benchmark<>& benchmark,
 
 template< template< typename > class Preconditioner, typename Matrix >
 void
-benchmarkPreconditionerUpdate( TNL::Benchmarks::Benchmark<>& benchmark,
-                               const TNL::Config::ParameterContainer& parameters,
-                               const std::shared_ptr< Matrix >& matrix,
-                               const std::string& preconditioner_name )
+benchmarkPreconditionerUpdate(
+   TNL::Benchmarks::Benchmark<>& benchmark,
+   const TNL::Config::ParameterContainer& parameters,
+   const std::shared_ptr< Matrix >& matrix,
+   const std::string& preconditioner_name )
 {
    // skip benchmarks on devices which the user did not select
    if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
@@ -102,17 +104,19 @@ template< typename >
 struct NoPreconditioner
 {};
 
-template< template< typename > class Solver,
-          template< typename > class Preconditioner = NoPreconditioner,
-          typename Matrix,
-          typename Vector >
+template<
+   template< typename > class Solver,
+   template< typename > class Preconditioner = NoPreconditioner,
+   typename Matrix,
+   typename Vector >
 void
-benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
-                 const TNL::Config::ParameterContainer& parameters,
-                 const std::shared_ptr< Matrix >& matrix,
-                 const Vector& x0,
-                 const Vector& b,
-                 const std::string& solver_name )
+benchmarkSolver(
+   TNL::Benchmarks::Benchmark<>& benchmark,
+   const TNL::Config::ParameterContainer& parameters,
+   const std::shared_ptr< Matrix >& matrix,
+   const Vector& x0,
+   const Vector& b,
+   const std::string& solver_name )
 {
    // skip benchmarks on devices which the user did not select
    if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
@@ -166,12 +170,13 @@ benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
 
 template< template< typename > class Solver, typename Matrix, typename Vector >
 void
-benchmarkDirectSolver( TNL::Benchmarks::Benchmark<>& benchmark,
-                       const TNL::Config::ParameterContainer& parameters,
-                       const std::shared_ptr< Matrix >& matrix,
-                       const Vector& x0,
-                       const Vector& b,
-                       const std::string& solver_name )
+benchmarkDirectSolver(
+   TNL::Benchmarks::Benchmark<>& benchmark,
+   const TNL::Config::ParameterContainer& parameters,
+   const std::shared_ptr< Matrix >& matrix,
+   const Vector& x0,
+   const Vector& b,
+   const std::string& solver_name )
 {
    benchmarkSolverSetup< Solver >( benchmark, parameters, matrix, solver_name );
    benchmarkSolver< Solver >( benchmark, parameters, matrix, x0, b, solver_name + " solve" );

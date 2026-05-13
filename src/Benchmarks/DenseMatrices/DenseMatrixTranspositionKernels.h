@@ -21,11 +21,12 @@ namespace TNL::Benchmarks::DenseMatrices {
 template< int tileDim, int tileRowBlockSize, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
 __global__
 void
-DenseTranspositionAlignedKernel( OutputMatrix resultMatrix,
-                                 const InputMatrix inputMatrix,
-                                 const Real matrixMultiplicator,
-                                 const Index gridIdx_x,
-                                 const Index gridIdx_y )
+DenseTranspositionAlignedKernel(
+   OutputMatrix resultMatrix,
+   const InputMatrix inputMatrix,
+   const Real matrixMultiplicator,
+   const Index gridIdx_x,
+   const Index gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim * tileDim ];
@@ -68,11 +69,12 @@ DenseTranspositionAlignedKernel( OutputMatrix resultMatrix,
 template< int tileDim, int tileRowBlockSize, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
 __global__
 void
-DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
-                                    const InputMatrix inputMatrix,
-                                    const Real matrixMultiplicator,
-                                    const Index gridIdx_x,
-                                    const Index gridIdx_y )
+DenseTranspositionNonAlignedKernel(
+   OutputMatrix resultMatrix,
+   const InputMatrix inputMatrix,
+   const Real matrixMultiplicator,
+   const Index gridIdx_x,
+   const Index gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim * tileDim ];
@@ -126,12 +128,13 @@ DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
 template< int tileDim, int tileRowBlockSize, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
 __global__
 void
-TranspositionKernel2( OutputMatrix resultMatrix,
-                      const InputMatrix inputMatrix,
-                      const Real matrixMultiplicator,
-                      const Index gridIdx_x,
-                      const Index gridIdx_y,
-                      bool isAligned )
+TranspositionKernel2(
+   OutputMatrix resultMatrix,
+   const InputMatrix inputMatrix,
+   const Real matrixMultiplicator,
+   const Index gridIdx_x,
+   const Index gridIdx_y,
+   bool isAligned )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim * tileDim ];
