@@ -166,15 +166,26 @@ getDeviceCoresPerMultiprocessors( int deviceNum )
          }
       case 7:  // Volta and Turing generations
          return 64;
-      case 8:  // Ampere generation
+      case 8:  // Ampere and Ada Lovelace generations
          switch( minor ) {
             case 0:  // GA100 class
                return 64;
-            case 6:
+            case 6:  // GA10x class
+            case 7:  // GA10b class
+            case 9:  // AD10x class (Ada Lovelace)
                return 128;
             default:
                return -1;
          }
+      case 9:  // Hopper generation (GH100)
+         return 128;
+      case 10:  // Blackwell generation (GB200, GB300)
+         return 128;
+      case 11:  // Blackwell generation (Jetson T4000, T5000)
+         return 128;
+      case 12:  // Blackwell generation (RTX)
+         return 128;
+      // Future architectures should be updated according to https://developer.nvidia.com/cuda/gpus
       default:
          return -1;
    }
