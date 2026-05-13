@@ -35,8 +35,9 @@ TEST( MatrixTypeTraitsTest, is_matrix_v )
    static_assert( is_matrix_v< typename Tridiagonal::ViewType > );
    static_assert( is_matrix_v< typename Tridiagonal::ConstViewType > );
 
-   auto matrixElements = []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
-   auto rowLengths = []( int rows, int columns, int rowIdx ) -> int
+   [[maybe_unused]] auto matrixElements =
+      []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
+   [[maybe_unused]] auto rowLengths = []( int rows, int columns, int rowIdx ) -> int
    {
       return 0;
    };
@@ -70,8 +71,9 @@ TEST( MatrixTypeTraitsTest, is_dense_matrix_v )
    static_assert( ! is_dense_matrix_v< typename Tridiagonal::ViewType > );
    static_assert( ! is_dense_matrix_v< typename Tridiagonal::ConstViewType > );
 
-   auto matrixElements = []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
-   auto rowLengths = []( int rows, int columns, int rowIdx ) -> int
+   [[maybe_unused]] auto matrixElements =
+      []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
+   [[maybe_unused]] auto rowLengths = []( int rows, int columns, int rowIdx ) -> int
    {
       return 0;
    };
@@ -105,8 +107,9 @@ TEST( MatrixTypeTraitsTest, is_sparse_csr_matrix_v )
    static_assert( ! is_sparse_csr_matrix_v< typename Tridiagonal::ViewType > );
    static_assert( ! is_sparse_csr_matrix_v< typename Tridiagonal::ConstViewType > );
 
-   auto matrixElements = []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
-   auto rowLengths = []( int rows, int columns, int rowIdx ) -> int
+   [[maybe_unused]] auto matrixElements =
+      []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
+   [[maybe_unused]] auto rowLengths = []( int rows, int columns, int rowIdx ) -> int
    {
       return 0;
    };
