@@ -224,6 +224,18 @@ set(JSON_SystemInclude ON)
 FetchContent_MakeAvailable(nlohmann_json)
 target_link_libraries(TNL INTERFACE nlohmann_json::nlohmann_json)
 
+# magic_enum (compile-time enum-to-string and string-to-enum)
+FetchContent_Declare(
+    magic_enum
+    GIT_REPOSITORY https://github.com/Neargye/magic_enum
+    GIT_TAG v0.9.8
+    SYSTEM
+    FIND_PACKAGE_ARGS
+)
+set(MAGIC_ENUM_OPT_INSTALL ON)
+FetchContent_MakeAvailable(magic_enum)
+target_link_libraries(TNL INTERFACE magic_enum::magic_enum)
+
 # Fetch CUDA samples for reference sorting algorithms (only if building CUDA)
 if(TNL_BUILD_CUDA AND TNL_FETCH_CUDA_SAMPLES)
     include(FetchCUDASamples)

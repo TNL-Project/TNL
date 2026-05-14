@@ -4,6 +4,9 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+
+#include <magic_enum/magic_enum.hpp>
 
 #include <TNL/Devices/Host.h>
 
@@ -36,9 +39,7 @@ struct DefaultElementsOrganization
 inline std::string
 getSerializationType( Algorithms::Segments::ElementsOrganization Organization )
 {
-   if( Organization == Algorithms::Segments::RowMajorOrder )
-      return "RowMajorOrder";
-   return "ColumnMajorOrder";
+   return std::string( magic_enum::enum_name( Organization ) );
 }
 
 }  // namespace TNL

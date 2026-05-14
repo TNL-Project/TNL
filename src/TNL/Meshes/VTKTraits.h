@@ -7,6 +7,8 @@
 #include <string>
 #include <cstdint>
 
+#include <magic_enum/magic_enum.hpp>
+
 #include <TNL/Meshes/Topologies/Edge.h>
 #include <TNL/Meshes/Topologies/Triangle.h>
 #include <TNL/Meshes/Topologies/Quadrangle.h>
@@ -59,43 +61,10 @@ enum class EntityShape : std::uint8_t
 [[nodiscard]] inline std::string
 getShapeName( EntityShape shape )
 {
-   switch( shape ) {
-      case EntityShape::Vertex:
-         return "Vertex";
-      case EntityShape::PolyVertex:
-         return "PolyVertex";
-      case EntityShape::Line:
-         return "Line";
-      case EntityShape::PolyLine:
-         return "PolyLine";
-      case EntityShape::Triangle:
-         return "Triangle";
-      case EntityShape::TriangleStrip:
-         return "TriangleStrip";
-      case EntityShape::Polygon:
-         return "Polygon";
-      case EntityShape::Pixel:
-         return "Pixel";
-      case EntityShape::Quad:
-         return "Quad";
-      case EntityShape::Tetra:
-         return "Tetra";
-      case EntityShape::Voxel:
-         return "Voxel";
-      case EntityShape::Hexahedron:
-         return "Hexahedron";
-      case EntityShape::Wedge:
-         return "Wedge";
-      case EntityShape::Pyramid:
-         return "Pyramid";
-      case EntityShape::PentagonalPrism:
-         return "PentagonalPrism";
-      case EntityShape::HexagonalPrism:
-         return "HexagonalPrism";
-      case EntityShape::Polyhedron:
-         return "Polyhedron";
-   }
-   return "<unknown entity shape>";
+   auto name = magic_enum::enum_name( shape );
+   if( name.empty() )
+      return "<unknown entity shape>";
+   return std::string( name );
 }
 
 [[nodiscard]] inline int

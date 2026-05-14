@@ -261,6 +261,12 @@ computing platform, and (optionally) some libraries.
       <td> If nlohmann_json is not found as a system library, CMake
            will download it along with TNL. </td>
   </tr>
+  <tr><td> [magic_enum](https://github.com/Neargye/magic_enum/) </td>
+      <td> Enum-to-string conversions in VTK readers and segments </td>
+      <td> </td>
+      <td> If magic_enum is not found as a system library, CMake
+           will download it along with TNL. </td>
+  </tr>
   <tr><td> [CGAL](https://github.com/CGAL/cgal/) </td>
       <td> Additional mesh ordering algorithms for `tnl-reorder-mesh` and `tnl-plot-mesh-ordering` </td>
       <td> `-DHAVE_CGAL` </td>
