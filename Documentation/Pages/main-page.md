@@ -255,6 +255,12 @@ computing platform, and (optionally) some libraries.
       <td> If pugixml is not found as a system library, CMake
            will download, compile and install pugixml along with TNL. </td>
   </tr>
+  <tr><td> [nlohmann_json](https://github.com/nlohmann/json/) </td>
+      <td> \ref TNL::Benchmarks "Benchmark logging" (JSONL output) </td>
+      <td> </td>
+      <td> If nlohmann_json is not found as a system library, CMake
+           will download it along with TNL. </td>
+  </tr>
   <tr><td> [CGAL](https://github.com/CGAL/cgal/) </td>
       <td> Additional mesh ordering algorithms for `tnl-reorder-mesh` and `tnl-plot-mesh-ordering` </td>
       <td> `-DHAVE_CGAL` </td>
