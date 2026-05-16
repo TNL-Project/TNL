@@ -91,7 +91,8 @@ ParticlesLinkedList< ParticleConfig, Device >::getCLLSearchToken()
 
    searchToken.numberOfParticles = this->getNumberOfParticles();
    searchToken.gridSize = this->getGridDimensionsWithOverlap();
-   searchToken.gridOrigin = this->getGridOriginWithOverlap();
+   searchToken.gridOriginCoords = this->getGridOriginGlobalCoordsWithOverlap();
+   searchToken.refOrigin = this->getGridReferentialOrigin();
    searchToken.searchRadius = this->getSearchRadius();
    searchToken.view_firstLastCellParticle.bind( this->getCellFirstLastParticleList().getView() );
 
@@ -107,7 +108,8 @@ ParticlesLinkedList< ParticleConfig, Device >::getCLLSearchToken( ParticlesPoint
 
    searchToken.numberOfParticles = particlesToSearch->getNumberOfParticles();
    searchToken.gridSize = particlesToSearch->getGridDimensionsWithOverlap();
-   searchToken.gridOrigin = particlesToSearch->getGridOriginWithOverlap();
+   searchToken.gridOrigCoords = particlesToSearch->getGridOriginGlobalCoordsWithOverlap();
+   searchToken.refOrigin = particlesToSearch->getGridReferentialOrigin();
    searchToken.searchRadius = particlesToSearch->getSearchRadius();
    searchToken.view_firstLastCellParticle.bind( particlesToSearch->getCellFirstLastParticleList().getView() );
 

@@ -14,7 +14,8 @@ struct NeighborsLoopCellLinkedList2D
          Function f, FunctionArgs... args )
    {
       //const typename NeighborsLoopParams gridIndex = NeighborsLoopParams::CellIndexer ...
-      const typename NeighborsLoopParams::IndexVectorType gridIndex = TNL::floor( ( r_i - params.gridOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType globGridIndex = TNL::floor( ( r_i - params.refOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType gridIndex = globGridIndex - params.gridOrigCoords;
 
       for( int cj = gridIndex[ 1 ] -1; cj <= gridIndex[ 1 ] + 1; cj++ ){
          for( int ci = gridIndex[ 0 ] - 1; ci <= gridIndex[ 0 ] + 1; ci++ ){
@@ -46,7 +47,8 @@ struct NeighborsLoopCellLinedList2DAnotherSet
          Function f, FunctionArgs... args )
    {
       //const typename NeighborsLoopParams gridIndex = NeighborsLoopParams::CellIndexer ...
-      const typename NeighborsLoopParams::IndexVectorType gridIndex = TNL::floor( ( r_i - params.gridOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType globGridIndex = TNL::floor( ( r_i - params.refOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType gridIndex = globGridIndex - params.gridOrigCoords;
 
       for( int cj = gridIndex[ 1 ] -1; cj <= gridIndex[ 1 ] + 1; cj++ ){
          for( int ci = gridIndex[ 0 ] - 1; ci <= gridIndex[ 0 ] + 1; ci++ ){
@@ -77,7 +79,8 @@ struct NeighborsLoopCellLinkedList3D
          Function f, FunctionArgs... args )
    {
       //const typename NeighborsLoopParams gridIndex = NeighborsLoopParams::CellIndexer ...
-      const typename NeighborsLoopParams::IndexVectorType gridIndex = TNL::floor( ( r_i - params.gridOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType globGridIndex = TNL::floor( ( r_i - params.refOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType gridIndex = globGridIndex - params.gridOrigCoords;
 
       for( int ck = gridIndex[ 2 ] -1; ck <= gridIndex[ 2 ] + 1; ck++ ){
          for( int cj = gridIndex[ 1 ] -1; cj <= gridIndex[ 1 ] + 1; cj++ ){
@@ -111,7 +114,8 @@ struct NeighborsLoopCellLinkedList3DAnotherSet
          Function f, FunctionArgs... args )
    {
       //const typename NeighborsLoopParams gridIndex = NeighborsLoopParams::CellIndexer ...
-      const typename NeighborsLoopParams::IndexVectorType gridIndex = TNL::floor( ( r_i - params.gridOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType globGridIndex = TNL::floor( ( r_i - params.refOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType gridIndex = globGridIndex - params.gridOrigCoords;
 
       for( int ck = gridIndex[ 2 ] -1; ck <= gridIndex[ 2 ] + 1; ck++ ){
          for( int cj = gridIndex[ 1 ] -1; cj <= gridIndex[ 1 ] + 1; cj++ ){
@@ -144,7 +148,8 @@ struct NeighborsBlockLoopCellLinkedList3D
          Function f, FunctionArgs... args )
    {
       //const typename NeighborsLoopParams gridIndex = NeighborsLoopParams::CellIndexer ...
-      const typename NeighborsLoopParams::IndexVectorType gridIndex = TNL::floor( ( r_i - params.gridOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType globGridIndex = TNL::floor( ( r_i - params.refOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType gridIndex = globGridIndex - params.gridOrigCoords;
 
       for( int ck = gridIndex[ 2 ] -1; ck <= gridIndex[ 2 ] + 1; ck++ ){
          for( int cj = gridIndex[ 1 ] -1; cj <= gridIndex[ 1 ] + 1; cj++ ){
@@ -199,7 +204,8 @@ struct NeighborsBlockLoop3DAnotherSet
          Function f, FunctionArgs... args )
    {
       //const typename NeighborsLoopParams gridIndex = NeighborsLoopParams::CellIndexer ...
-      const typename NeighborsLoopParams::IndexVectorType gridIndex = TNL::floor( ( r_i - params.gridOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType globGridIndex = TNL::floor( ( r_i - params.refOrigin ) / params.searchRadius );
+      const typename NeighborsLoopParams::IndexVectorType gridIndex = globGridIndex - params.gridOrigCoords;
 
       for( int ck = gridIndex[ 2 ] -1; ck <= gridIndex[ 2 ] + 1; ck++ ){
          for( int cj = gridIndex[ 1 ] -1; cj <= gridIndex[ 1 ] + 1; cj++ ){

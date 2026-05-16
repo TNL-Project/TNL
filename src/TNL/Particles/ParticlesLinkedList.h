@@ -38,13 +38,15 @@ public:
    NeighborsLoopParams( ParticlesPointerType particles )
    : numberOfParticles( particles->getNumberOfParticles() ),
      gridSize( particles->getGridDimensionsWithOverlap() ),
-     gridOrigin( particles->getGridOriginWithOverlap() ),
+     gridOrigCoords( particles->getGridOriginGlobalCoordsWithOverlap() ),
+     refOrigin( particles->getGridReferentialOrigin() ),
      searchRadius( particles->getSearchRadius() ),
      view_firstLastCellParticle( particles->getCellFirstLastParticleList().getView() ) {}
 
    GlobalIndexType numberOfParticles;
    IndexVectorType gridSize;
-   PointType gridOrigin;
+   IndexVectorType gridOrigCoords;
+   PointType refOrigin;
    RealType searchRadius;
 
    PairIndexArrayView view_firstLastCellParticle;
