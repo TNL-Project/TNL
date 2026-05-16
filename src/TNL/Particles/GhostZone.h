@@ -63,6 +63,15 @@ public:
                 RealType searchRadius );
 
    /**
+    * Assing cells as a frame
+    */
+   void
+   assignCellsFrame( const IndexVectorType frameFrontOrigin, // lower-left corner of shell box, cell indices
+                     const IndexVectorType frameFrontDims, // extent of shell box, in cells
+                     const int frameWidth, // shell thickness in cells (always positive)
+                     const IndexVectorType gridSize );
+
+   /**
     * Assign cells from another array.
     */
    template< typename Array >
@@ -145,6 +154,13 @@ public:
 
    void
    writeProlog( TNL::Logger& logger ) const noexcept;
+
+   void
+   saveZoneToVTK(
+   const std::string&    filename,
+   const IndexVectorType gridSize,
+   const PointType      gridOrigin,
+   const RealType        searchRadius ) const;
 
 
 protected:
