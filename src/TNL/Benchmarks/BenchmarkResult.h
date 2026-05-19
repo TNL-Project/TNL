@@ -20,8 +20,10 @@ namespace TNL::Benchmarks {
  *
  * - `loops`: Number of iterations executed
  * - `time`: Mean execution time per iteration
+ * - `time_median`: Median execution time per iteration
  * - `time_stddev`: Standard deviation of execution time
  * - `cpu_cycles`: Mean CPU cycles per iteration (host devices only)
+ * - `cpu_cycles_median`: Median CPU cycles per iteration (host devices only)
  * - `cpu_cycles_stddev`: Standard deviation of CPU cycles
  *
  * Derived values (computed by \ref setDerivedResults):
@@ -39,8 +41,10 @@ struct BenchmarkResult
 
    std::size_t loops = 0;
    double time = std::numeric_limits< double >::quiet_NaN();
+   double time_median = std::numeric_limits< double >::quiet_NaN();
    double time_stddev = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles = std::numeric_limits< double >::quiet_NaN();
+   double cpu_cycles_median = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
    double speedup = std::numeric_limits< double >::quiet_NaN();
@@ -55,17 +59,28 @@ struct BenchmarkResult
     *
     * \param loops_ Number of iterations executed
     * \param time_ Mean execution time per iteration
+    * \param time_median_ Median execution time per iteration
     * \param time_stddev_ Standard deviation of execution time
     * \param cpu_cycles_ Mean CPU cycles per iteration
+    * \param cpu_cycles_median_ Median CPU cycles per iteration
     * \param cpu_cycles_stddev_ Standard deviation of CPU cycles
     */
    virtual void
-   setTimeResults( std::size_t loops_, double time_, double time_stddev_, double cpu_cycles_, double cpu_cycles_stddev_ )
+   setTimeResults(
+      std::size_t loops_,
+      double time_,
+      double time_median_,
+      double time_stddev_,
+      double cpu_cycles_,
+      double cpu_cycles_median_,
+      double cpu_cycles_stddev_ )
    {
       loops = loops_;
       time = time_;
+      time_median = time_median_;
       time_stddev = time_stddev_;
       cpu_cycles = cpu_cycles_;
+      cpu_cycles_median = cpu_cycles_median_;
       cpu_cycles_stddev = cpu_cycles_stddev_;
    }
 
@@ -99,10 +114,12 @@ struct BenchmarkResult
    {
       return HeaderElements(
          { "time",
+           "time_median",
            "speedup",
            "bandwidth",
            "cycles/op",
            "cycles",
+           "cycles_median",
            "time_stddev",
            "time_stddev/time",
            "cycles_stddev",
@@ -126,7 +143,7 @@ struct BenchmarkResult
       // write in scientific format to avoid precision loss
       elements << std::scientific;
 
-      elements << time;
+      elements << time << time_median;
       if( speedup != 0 )
          elements << speedup;
       else
@@ -137,9 +154,10 @@ struct BenchmarkResult
       else
          elements << "N/A";
       if( cpu_cycles != 0 )
-         elements << cpu_cycles;
+         elements << cpu_cycles << cpu_cycles_median;
       else
-         elements << "N/A";
+         elements << "N/A"
+                  << "N/A";
       elements << time_stddev << time_stddev / time;
       if( cpu_cycles != 0 )
          elements << cpu_cycles_stddev << cpu_cycles_stddev / cpu_cycles;

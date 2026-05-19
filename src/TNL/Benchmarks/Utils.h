@@ -6,6 +6,7 @@
 #include <map>
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 #include <TNL/Timer.h>
 #include <TNL/PerformanceCounters.h>
@@ -27,7 +28,7 @@ namespace TNL::Benchmarks {
  *
  * Executes the compute function repeatedly, collecting timing samples until
  * either maxLoops iterations complete or `minTime` seconds have elapsed.
- * Computes mean and standard deviation of the measurements.
+ * Computes mean, median, and standard deviation of the measurements.
  *
  * Before the timed loop begins, one **untimed warmup iteration** is performed
  * (calling `reset()` followed by `compute()`). This serves to fill CPU/GPU
@@ -52,6 +53,11 @@ namespace TNL::Benchmarks {
  * \param minTime Minimum total runtime in seconds
  * \param monitor Solver monitor instance (must not be null)
  * \param result Output object to receive timing data via `setTimeResults()`
+ *
+ * \par Statistics computed:
+ * - **Mean**: arithmetic average of all samples
+ * - **Median**: middle value of sorted samples (average of two middle values for even sample counts)
+ * - **Standard deviation**: sample standard deviation using Bessel's correction
  */
 template<
    typename Device,
@@ -111,8 +117,26 @@ timeFunction(
          results_cpu_cycles[ loops ] = performanceCounters.getCPUCycles();
    }
 
+   // sort for median computation (also improves summation accuracy)
+   double* time_begin = results_time.getData();
+   double* time_end = time_begin + loops;
+   std::sort( time_begin, time_end );
+   const double median_time =
+      ( loops % 2 == 1 ) ? time_begin[ loops / 2 ] : ( time_begin[ loops / 2 - 1 ] + time_begin[ loops / 2 ] ) / 2.0;
+
+   double median_cpu_cycles = 0.0;
+   if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > ) {
+      long long int* cycles_begin = results_cpu_cycles.getData();
+      long long int* cycles_end = cycles_begin + loops;
+      std::sort( cycles_begin, cycles_end );
+      median_cpu_cycles = ( loops % 2 == 1 )
+                           ? static_cast< double >( cycles_begin[ loops / 2 ] )
+                           : static_cast< double >( cycles_begin[ loops / 2 - 1 ] + cycles_begin[ loops / 2 ] ) / 2.0;
+   }
+
    const double mean_time = sum( results_time ) / static_cast< double >( loops );
    const double mean_cpu_cycles = sum( results_cpu_cycles ) / static_cast< double >( loops );
+
    double stddev_time;
    double stddev_cpu_cycles;
    if( loops > 1 ) {
@@ -128,7 +152,7 @@ timeFunction(
    // so we must unset it to avoid returning a dangling reference to the caller
    monitor.unsetTimer();
 
-   result.setTimeResults( loops, mean_time, stddev_time, mean_cpu_cycles, stddev_cpu_cycles );
+   result.setTimeResults( loops, mean_time, median_time, stddev_time, mean_cpu_cycles, median_cpu_cycles, stddev_cpu_cycles );
 }
 
 inline std::map< std::string, std::string >
