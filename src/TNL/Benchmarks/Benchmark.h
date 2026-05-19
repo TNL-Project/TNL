@@ -82,6 +82,8 @@ public:
     * - `output-mode`: "append" or "overwrite"
     * - `loops`: Number of iterations (default: 10)
     * - `min-time`: Minimum runtime in seconds (default: 0.0)
+    * - `warmup-loops`: Number of warmup iterations (default: 1)
+    * - `warmup-min-time`: Minimum warmup runtime in seconds (default: 0.0)
     * - `verbose`: Verbosity level (default: 1)
     * - `catch-exceptions`: Catch exceptions during timing (default: true)
     *
@@ -119,6 +121,29 @@ public:
     */
    void
    setMinTime( double minTime );
+
+   /**
+    * \brief Sets the number of warmup iterations.
+    *
+    * Warmup iterations are executed before timing begins to stabilize
+    * thermal and frequency states and amortize one-time costs such as
+    * CUDA JIT compilation.
+    *
+    * \param warmupLoops Number of warmup loops (0 to disable)
+    */
+   void
+   setWarmupLoops( std::size_t warmupLoops );
+
+   /**
+    * \brief Sets the minimum warmup runtime.
+    *
+    * If specified, warmup will continue until at least this much real time
+    * has elapsed, regardless of the warmup loop count.
+    *
+    * \param warmupMinTime Minimum warmup time in seconds
+    */
+   void
+   setWarmupMinTime( double warmupMinTime );
 
    /**
     * \brief Sets metadata columns for all subsequent result rows.
@@ -186,8 +211,8 @@ public:
     * iteration. Results are logged through configured loggers.
     *
     * One untimed warmup iteration (reset + compute) is performed automatically
-    * before the timed loop begins, to fill CPU/GPU caches and amortize one-time
-    * costs such as CUDA JIT compilation.
+    * before the timed loop begins, to stabilize thermal and frequency states
+    * and amortize one-time costs such as CUDA JIT compilation.
     *
     * \tparam Device Device type (e.g., \ref TNL::Devices::Host, \ref TNL::Devices::Cuda)
     * \tparam ResetFunction Callable that resets state before each iteration
@@ -318,6 +343,10 @@ protected:
    std::ofstream logFile;
 
    std::size_t loops = 10;
+
+   std::size_t warmupLoops = 1;
+
+   double warmupMinTime = 0.0;
 
    std::size_t operations_per_loop = 0;
 

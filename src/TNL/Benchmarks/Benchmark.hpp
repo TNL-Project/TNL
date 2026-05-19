@@ -25,6 +25,8 @@ Benchmark::configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "overwrite" );
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
    config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
+   config.addEntry< int >( "warmup-loops", "Number of warmup iterations before timing (0 to disable).", 1 );
+   config.addEntry< double >( "warmup-min-time", "Minimal real time in seconds for warmup (0 to disable).", 0.0 );
    config.addEntry< int >( "verbose", "Verbose mode for terminal output, the higher number the more verbosity.", 1 );
    config.addEntry< bool >( "catch-exceptions", "Catch exceptions during timing.", true );
 }
@@ -34,6 +36,8 @@ Benchmark::setup( const Config::ParameterContainer& parameters )
 {
    this->loops = parameters.getParameter< int >( "loops" );
    this->minTime = parameters.getParameter< double >( "min-time" );
+   this->warmupLoops = parameters.getParameter< int >( "warmup-loops" );
+   this->warmupMinTime = parameters.getParameter< double >( "warmup-min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
    this->catchExceptions = parameters.getParameter< bool >( "catch-exceptions" );
 
@@ -71,6 +75,18 @@ void
 Benchmark::setMinTime( double minTime )
 {
    this->minTime = minTime;
+}
+
+void
+Benchmark::setWarmupLoops( std::size_t warmupLoops )
+{
+   this->warmupLoops = warmupLoops;
+}
+
+void
+Benchmark::setWarmupMinTime( double warmupMinTime )
+{
+   this->warmupMinTime = warmupMinTime;
 }
 
 void
@@ -122,7 +138,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
    std::string errorMessage;
    if( catchExceptions ) {
       try {
-         timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
+         timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, monitor, result );
       }
       catch( const std::exception& e ) {
          errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
@@ -130,7 +146,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
       }
    }
    else {
-      timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
+      timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, monitor, result );
    }
 
    result.setDerivedResults( datasetSize, baseTime, operations_per_loop );
