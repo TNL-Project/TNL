@@ -37,14 +37,14 @@ setupConfig( TNL::Config::ConfigDescription& config )
 }
 
 void
-resolvePrecision( TNL::Config::ParameterContainer& parameters )
+resolvePrecision( TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    const auto precision = parameters.getParameter< TNL::String >( "precision" );
    if( precision == "float" || precision == "all" ) {
-      benchmarkDenseLinearSolvers< float, int >( parameters );
+      benchmarkDenseLinearSolvers< float, int >( parameters, programName );
    }
    if( precision == "double" || precision == "all" ) {
-      benchmarkDenseLinearSolvers< double, int >( parameters );
+      benchmarkDenseLinearSolvers< double, int >( parameters, programName );
    }
 }
 
@@ -59,6 +59,6 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   resolvePrecision( parameters );
+   resolvePrecision( parameters, argv[ 0 ] );
    return EXIT_SUCCESS;
 }

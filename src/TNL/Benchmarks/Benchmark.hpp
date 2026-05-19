@@ -19,7 +19,7 @@ void
 Benchmark::configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name for JSON output.", "" );
+   config.addEntry< String >( "log-file", "Log file name for JSONL output (default: <program>.log).", "" );
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
@@ -32,7 +32,7 @@ Benchmark::configSetup( Config::ConfigDescription& config )
 }
 
 void
-Benchmark::setup( const Config::ParameterContainer& parameters )
+Benchmark::setup( const Config::ParameterContainer& parameters, const std::string& programName )
 {
    this->loops = parameters.getParameter< int >( "loops" );
    this->minTime = parameters.getParameter< double >( "min-time" );
@@ -46,8 +46,10 @@ Benchmark::setup( const Config::ParameterContainer& parameters )
    if( rank > 0 )
       return;
 
-   // Set up JSON logging if log-file is specified
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
+   // Set up JSON logging
+   String logFileName = parameters.getParameter< String >( "log-file" );
+   if( logFileName.empty() && ! programName.empty() )
+      logFileName = std::filesystem::path( programName ).stem().string() + ".log";
    if( ! logFileName.empty() ) {
       const String& outputMode = parameters.getParameter< String >( "output-mode" );
       auto mode = std::ios::out;

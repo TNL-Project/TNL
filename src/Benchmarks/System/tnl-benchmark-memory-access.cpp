@@ -6,28 +6,28 @@
 #include "MemoryAccessBenchmark.h"
 
 bool
-resolveElementSize( const TNL::Config::ParameterContainer& parameters )
+resolveElementSize( const TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    int element_size = parameters.getParameter< int >( "element-size" );
    switch( element_size ) {
       case 1:
-         return MemoryAccessBenchmark::performBenchmark< 1 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 1 >( parameters, programName );
       case 2:
-         return MemoryAccessBenchmark::performBenchmark< 2 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 2 >( parameters, programName );
       case 4:
-         return MemoryAccessBenchmark::performBenchmark< 4 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 4 >( parameters, programName );
       case 8:
-         return MemoryAccessBenchmark::performBenchmark< 8 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 8 >( parameters, programName );
       case 16:
-         return MemoryAccessBenchmark::performBenchmark< 16 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 16 >( parameters, programName );
       case 32:
-         return MemoryAccessBenchmark::performBenchmark< 32 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 32 >( parameters, programName );
       case 64:
-         return MemoryAccessBenchmark::performBenchmark< 64 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 64 >( parameters, programName );
       case 128:
-         return MemoryAccessBenchmark::performBenchmark< 128 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 128 >( parameters, programName );
       case 256:
-         return MemoryAccessBenchmark::performBenchmark< 256 >( parameters );
+         return MemoryAccessBenchmark::performBenchmark< 256 >( parameters, programName );
    }
    std::cerr << "Element size " << element_size << " is not allowed. It can be only 1, 2, 4, 8, 16, 32, 64, 128, 256.\n";
    return false;
@@ -44,5 +44,5 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
 
-   return resolveElementSize( parameters ) ? EXIT_SUCCESS : EXIT_FAILURE;
+   return resolveElementSize( parameters, argv[ 0 ] ) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

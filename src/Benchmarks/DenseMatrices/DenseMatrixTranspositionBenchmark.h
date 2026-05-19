@@ -71,12 +71,12 @@ struct DenseMatrixTranspositionBenchmark
    {}
 
    bool
-   runBenchmark()
+   runBenchmark( const std::string& programName = "" )
    {
       const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
 
       TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters );
+      benchmark.setup( parameters, programName );
 
       const auto device = parameters.getParameter< TNL::String >( "device" );
 

@@ -22,7 +22,7 @@ main( int argc, char* argv[] )
 
    try {
       TNL::Benchmarks::Segments::SegmentsBenchmark< int > benchmark( parameters );
-      benchmark.setupBenchmark();
+      benchmark.setupBenchmark( argv[ 0 ] );
    }
    catch( std::exception& e ) {
       std::cerr << e.what() << '\n';

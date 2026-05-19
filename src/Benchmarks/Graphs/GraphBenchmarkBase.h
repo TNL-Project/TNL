@@ -110,7 +110,7 @@ public:
    virtual ~GraphBenchmarkBase() = default;
 
    bool
-   runBenchmark()
+   runBenchmark( const std::string& programName = "" )
    {
       auto inputFile = parameters.getParameter< TNL::String >( "input-file" );
 #ifdef WITH_SORTED_SEGMENTS
@@ -123,7 +123,7 @@ public:
          inputFileExtension = inputFile.substr( dotPosition + 1 );
 
       TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters );
+      benchmark.setup( parameters, programName );
 
       this->errors = 0;
 

@@ -421,7 +421,7 @@ main( int argc, char* argv[] )
 
    // init benchmark and set parameters
    Benchmark benchmark;
-   benchmark.setup( parameters );
+   benchmark.setup( parameters, argv[ 0 ] );
 
    const String devices = parameters.getParameter< String >( "devices" );
    if( devices == "all" || devices == "host" )

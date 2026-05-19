@@ -18,10 +18,10 @@ configSetup( TNL::Config::ConfigDescription& config )
 
 template< typename Real >
 bool
-runDenseMatrixMultiplicationBenchmark( TNL::Config::ParameterContainer& parameters )
+runDenseMatrixMultiplicationBenchmark( TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    TNL::Benchmarks::DenseMatrices::DenseMatrixMultiplicationBenchmark< Real > benchmark( parameters );
-   benchmark.runBenchmark();
+   benchmark.runBenchmark( programName );
    return true;
 }
 
@@ -53,10 +53,10 @@ main( int argc, char* argv[] )
    auto precision = parameters.getParameter< TNL::String >( "precision" );
 
    if( precision == "float" || precision == "all" ) {
-      success = runDenseMatrixMultiplicationBenchmark< float >( parameters );
+      success = runDenseMatrixMultiplicationBenchmark< float >( parameters, argv[ 0 ] );
    }
    else if( precision == "double" || precision == "all" ) {
-      success = runDenseMatrixMultiplicationBenchmark< double >( parameters );
+      success = runDenseMatrixMultiplicationBenchmark< double >( parameters, argv[ 0 ] );
    }
    else {
       std::cerr << "Unknown precision " << precision << ".\n";

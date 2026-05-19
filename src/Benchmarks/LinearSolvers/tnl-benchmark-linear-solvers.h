@@ -669,7 +669,7 @@ main( int argc, char* argv[] )
 
    // init benchmark and set parameters
    TNL::Benchmarks::Benchmark benchmark;
-   benchmark.setup( parameters );
+   benchmark.setup( parameters, argv[ 0 ] );
 
    // TODO: implement resolveMatrixType
    //return ! Matrices::resolveMatrixType< MainConfig,

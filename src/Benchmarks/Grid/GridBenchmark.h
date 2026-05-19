@@ -34,10 +34,10 @@ public:
 
    template< int GridDimension >
    void
-   runBenchmark( const TNL::Config::ParameterContainer& parameters ) const
+   runBenchmark( const TNL::Config::ParameterContainer& parameters, const std::string& programName = "" ) const
    {
       Benchmark benchmark;
-      benchmark.setup( parameters );
+      benchmark.setup( parameters, programName );
 
       time< GridDimension >( benchmark, parameters );
    }

@@ -29,7 +29,7 @@ MemoryAccessBenchmark::configSetup( TNL::Config::ConfigDescription& config )
 
 template< int ElementSize >
 bool
-MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& parameters )
+MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    using TestArrayType = MemoryAccessBenchmarkTestArray< ElementSize >;
    using ElementType = typename TestArrayType::ElementType;
@@ -37,7 +37,7 @@ MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& 
    auto log_file_name = parameters.getParameter< TNL::String >( "log-file" );
 
    TNL::Benchmarks::Benchmark benchmark;
-   benchmark.setup( parameters );
+   benchmark.setup( parameters, programName );
 
    auto access_type = parameters.getParameter< TNL::String >( "access-type" );
    size_t min_size = parameters.getParameter< int >( "min-array-size" );

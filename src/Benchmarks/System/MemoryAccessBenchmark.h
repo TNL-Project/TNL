@@ -13,7 +13,7 @@ struct MemoryAccessBenchmark
 
    template< int ElementSize >
    static bool
-   performBenchmark( const TNL::Config::ParameterContainer& parameters );
+   performBenchmark( const TNL::Config::ParameterContainer& parameters, const std::string& programName = "" );
 };
 
 #include "MemoryAccessBenchmark.hpp"
