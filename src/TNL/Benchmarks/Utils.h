@@ -30,11 +30,15 @@ namespace TNL::Benchmarks {
  * either maxLoops iterations complete or `minTime` seconds have elapsed.
  * Computes mean, median, and standard deviation of the measurements.
  *
- * Before the timed loop begins, one **untimed warmup iteration** is performed
- * (calling `reset()` followed by `compute()`). This serves to fill CPU/GPU
- * caches and amortize one-time costs such as CUDA JIT compilation. For CUDA
- * devices, device synchronization is performed after the warmup iteration to
- * ensure the kernel has completed before timing starts.
+ * Before the timed loop begins, **warmup iterations** (controlled by the
+ * `warmupLoops` and `warmupMinTime` parameters) are performed (calling
+ * `reset()` followed by `compute()`). The warmup continues until both
+ * conditions are satisfied: at least `warmupLoops` iterations have been
+ * executed AND at least `warmupMinTime` seconds have elapsed. This serves
+ * to stabilize thermal and frequency states and amortize one-time costs
+ * such as CUDA JIT compilation. For CUDA devices, device synchronization
+ * is performed after each warmup iteration to ensure the kernel has
+ * completed before timing starts.
  *
  * For CUDA devices, explicit synchronization is performed before and after
  * each timed computation to ensure accurate timing.
@@ -51,6 +55,8 @@ namespace TNL::Benchmarks {
  * \param reset Function called before each compute iteration
  * \param maxLoops Maximum number of iterations
  * \param minTime Minimum total runtime in seconds
+ * \param warmupLoops Number of untimed warmup iterations (0 to disable, unless warmupMinTime > 0)
+ * \param warmupMinTime Minimum total warmup runtime in seconds (0 to disable)
  * \param monitor Solver monitor instance (must not be null)
  * \param result Output object to receive timing data via `setTimeResults()`
  *
@@ -71,6 +77,8 @@ timeFunction(
    ResetFunction reset,
    std::size_t maxLoops,
    double minTime,
+   std::size_t warmupLoops,
+   double warmupMinTime,
    Monitor& monitor,
    ResultType& result )
 {
@@ -82,11 +90,16 @@ timeFunction(
 
    PerformanceCounters performanceCounters;
 
-   // warm up: one untimed iteration to fill caches and amortize JIT overhead
-   reset();
-   compute();
-   if constexpr( std::is_same_v< Device, Devices::Cuda > )
-      Backend::deviceSynchronize();
+   // warm up: untimed iterations to stabilize thermal/frequency states and amortize JIT overhead
+   Timer warmupTimer;
+   warmupTimer.start();
+   for( std::size_t i = 0; i < warmupLoops || warmupTimer.getRealTime() < warmupMinTime; i++ ) {
+      reset();
+      compute();
+      if constexpr( std::is_same_v< Device, Devices::Cuda > )
+         Backend::deviceSynchronize();
+   }
+   warmupTimer.stop();
 
    Containers::Vector< double > results_time( maxLoops, 0.0 );
    Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0 );
