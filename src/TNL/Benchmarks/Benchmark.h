@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <fstream>
+#include <filesystem>
 
 #include "BenchmarkResult.h"
 #include "Logging.h"
@@ -44,7 +45,7 @@ inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
  *
  * // Parse command line parameters
  * auto parameters = config.parseCommandLine();
- * benchmark.setup( parameters );
+ * benchmark.setup( parameters, argv[ 0 ] );
  *
  * // Set up operation to benchmark
  * benchmark.setMetadataColumns(
@@ -78,7 +79,7 @@ public:
     * Must be called before parsing command line arguments. Adds the following
     * configuration entries:
     *
-    * - `log-file`: Path to JSON output file
+    * - `log-file`: Path to JSONL output file (default: `<program>.log`)
     * - `output-mode`: "append" or "overwrite"
     * - `loops`: Number of iterations (default: 10)
     * - `min-time`: Minimum runtime in seconds (default: 0.0)
@@ -98,10 +99,15 @@ public:
     * Extracts benchmark settings from the parameter container and initializes
     * loggers (JSON and/or terminal; only on rank 0 in MPI configurations).
     *
+    * If the `log-file` parameter is empty, the log file name defaults to
+    * `<programName>.log`, where `programName` is typically derived from
+    * `argv[0]`.
+    *
     * \param parameters Parsed configuration parameters
+    * \param programName Program name used as default log file base name
     */
    void
-   setup( const Config::ParameterContainer& parameters );
+   setup( const Config::ParameterContainer& parameters, const std::string& programName = "" );
 
    /**
     * \brief Sets the number of iterations for each measurement.

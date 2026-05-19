@@ -35,31 +35,31 @@ setupConfig( TNL::Config::ConfigDescription& config )
 
 template< typename Real, typename Device >
 bool
-startBenchmark( TNL::Config::ParameterContainer& parameters )
+startBenchmark( TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    GridBenchmark< Real, Device > benchmark;
 #ifndef GRID_DIM
-   benchmark.template runBenchmark< 1 >( parameters );
-   benchmark.template runBenchmark< 2 >( parameters );
-   benchmark.template runBenchmark< 3 >( parameters );
+   benchmark.template runBenchmark< 1 >( parameters, programName );
+   benchmark.template runBenchmark< 2 >( parameters, programName );
+   benchmark.template runBenchmark< 3 >( parameters, programName );
 #else
-   benchmark.template runBenchmark< GRID_DIM >( parameters );
+   benchmark.template runBenchmark< GRID_DIM >( parameters, programName );
 #endif
    return true;
 }
 
 template< typename Real >
 bool
-resolveDevice( TNL::Config::ParameterContainer& parameters )
+resolveDevice( TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    auto device = parameters.getParameter< TNL::String >( "device" );
    if( device == "sequential" )
-      return startBenchmark< Real, TNL::Devices::Sequential >( parameters );
+      return startBenchmark< Real, TNL::Devices::Sequential >( parameters, programName );
    if( device == "host" )
-      return startBenchmark< Real, TNL::Devices::Host >( parameters );
+      return startBenchmark< Real, TNL::Devices::Host >( parameters, programName );
    if( device == "cuda" ) {
 #ifdef __CUDACC__
-      return startBenchmark< Real, TNL::Devices::Cuda >( parameters );
+      return startBenchmark< Real, TNL::Devices::Cuda >( parameters, programName );
 #else
       std::cerr << "The benchmark was not built with CUDA support.\n";
       return false;
@@ -70,13 +70,13 @@ resolveDevice( TNL::Config::ParameterContainer& parameters )
 }
 
 bool
-resolveReal( TNL::Config::ParameterContainer& parameters )
+resolveReal( TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    auto precision = parameters.getParameter< TNL::String >( "precision" );
    if( precision == "float" )
-      return resolveDevice< float >( parameters );
+      return resolveDevice< float >( parameters, programName );
    if( precision == "double" )
-      return resolveDevice< double >( parameters );
+      return resolveDevice< double >( parameters, programName );
    std::cerr << "Unknown precision " << precision << ".\n";
    return false;
 }
@@ -96,7 +96,7 @@ main( int argc, char* argv[] )
    if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
       return EXIT_FAILURE;
 
-   if( ! resolveReal( parameters ) )
+   if( ! resolveReal( parameters, argv[ 0 ] ) )
       return EXIT_FAILURE;
    return EXIT_SUCCESS;
 }

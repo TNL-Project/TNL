@@ -18,10 +18,10 @@ configSetup( TNL::Config::ConfigDescription& config )
 
 template< typename Real >
 bool
-runDenseTranspositionBenchmark( TNL::Config::ParameterContainer& parameters )
+runDenseTranspositionBenchmark( TNL::Config::ParameterContainer& parameters, const std::string& programName )
 {
    TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark< Real > benchmark( parameters );
-   benchmark.runBenchmark();
+   benchmark.runBenchmark( programName );
    return true;
 }
 
@@ -53,10 +53,10 @@ main( int argc, char* argv[] )
    auto precision = parameters.getParameter< TNL::String >( "precision" );
 
    if( precision == "float" || precision == "all" ) {
-      success = runDenseTranspositionBenchmark< float >( parameters );
+      success = runDenseTranspositionBenchmark< float >( parameters, argv[ 0 ] );
    }
    else if( precision == "double" || precision == "all" ) {
-      success = runDenseTranspositionBenchmark< double >( parameters );
+      success = runDenseTranspositionBenchmark< double >( parameters, argv[ 0 ] );
    }
    else {
       std::cerr << "Unknown precision " << precision << ".\n";

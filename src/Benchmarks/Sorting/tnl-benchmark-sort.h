@@ -236,7 +236,7 @@ main( int argc, char* argv[] )
    const String& valueType = parameters.getParameter< String >( "value-type" );
 
    Benchmark benchmark;
-   benchmark.setup( parameters );
+   benchmark.setup( parameters, argv[ 0 ] );
 
    if( valueType == "int" || valueType == "all" )
       runBenchmark< int >( benchmark, size, device );

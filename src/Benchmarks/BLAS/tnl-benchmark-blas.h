@@ -179,7 +179,7 @@ main( int argc, char* argv[] )
    }
 
    Benchmark benchmark;
-   benchmark.setup( parameters );
+   benchmark.setup( parameters, argv[ 0 ] );
 
    if( precision == "all" || precision == "float" )
       runBlasBenchmarks< float >( benchmark, minSize, maxSize, sizeStepFactor );

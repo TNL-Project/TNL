@@ -389,7 +389,7 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
 
    Benchmark benchmark;
-   benchmark.setup( parameters );
+   benchmark.setup( parameters, argv[ 0 ] );
 
    const bool status = resolveRealTypes( benchmark, parameters );
    return static_cast< int >( ! status );

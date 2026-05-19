@@ -404,7 +404,7 @@ struct SegmentsBenchmark
    }
 
    void
-   setupBenchmark()
+   setupBenchmark( const std::string& programName = "" )
    {
       const auto segmentsSetup = parameters.getParameter< TNL::String >( "segments-setup" );
       const int minSegmentsCount = parameters.getParameter< int >( "min-segments-count" );
@@ -413,7 +413,7 @@ struct SegmentsBenchmark
       const int maxSegmentSize = parameters.getParameter< int >( "max-segment-size" );
 
       TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters );
+      benchmark.setup( parameters, programName );
 
       // Constant segments
       if( segmentsSetup == "constant" || segmentsSetup == "all" ) {

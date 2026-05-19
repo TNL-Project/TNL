@@ -101,7 +101,7 @@ struct HeatEquationSolverBenchmark
    exec( Index xSize, Index ySize ) = 0;
 
    bool
-   runBenchmark( const TNL::Config::ParameterContainer& parameters )
+   runBenchmark( const TNL::Config::ParameterContainer& parameters, const std::string& programName = "" )
    {
       auto implementation = parameters.getParameter< TNL::String >( "implementation" );
       const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
@@ -126,7 +126,7 @@ struct HeatEquationSolverBenchmark
       }
 
       TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters );
+      benchmark.setup( parameters, programName );
 
       this->xDomainSize = parameters.getParameter< Real >( "domain-x-size" );
       this->yDomainSize = parameters.getParameter< Real >( "domain-y-size" );
