@@ -598,7 +598,7 @@ TYPED_TEST( SorterTest, large_index_int64 )
 
    TNL::Containers::Array< int, TNL::Devices::GPU, Index > arr( vec );
    auto view = arr.getView();
-   BitonicSort::sort( view );
+   TypeParam::sort( view );
    EXPECT_TRUE( Algorithms::isAscending( view ) );
 }
 
@@ -612,7 +612,7 @@ TYPED_TEST( SorterTest, large_index_size_t )
 
    TNL::Containers::Array< int, TNL::Devices::GPU, Index > arr( vec );
    auto view = arr.getView();
-   BitonicSort::sort( view );
+   TypeParam::sort( view );
    EXPECT_TRUE( Algorithms::isAscending( view ) );
 }
 
@@ -628,7 +628,7 @@ TYPED_TEST( SorterTest, large_index_size2To32 )
    arr.setElement( size - 1, 3 );
 
    auto view = arr.getView();
-   BitonicSort::sort( view );
+   TypeParam::sort( view );
    EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for size 2^32 = " << size;
 }
    #endif
