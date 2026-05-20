@@ -81,7 +81,7 @@ struct CUBMergeSort
       std::size_t temp_storage_bytes = 0;
       TNL_BACKEND_SAFE_CALL( cub::DeviceMergeSort::SortKeys( nullptr, temp_storage_bytes, data, size, compare ) );
 
-      Containers::Array< std::uint8_t, Devices::Cuda > temp_storage;
+      Containers::Array< std::uint8_t, Devices::Cuda, std::size_t > temp_storage;
       temp_storage.setSize( temp_storage_bytes );
 
       TNL_BACKEND_SAFE_CALL(
