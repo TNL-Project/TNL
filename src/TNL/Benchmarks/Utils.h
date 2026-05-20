@@ -96,7 +96,7 @@ timeFunction(
    for( std::size_t i = 0; i < warmupLoops || warmupTimer.getRealTime() < warmupMinTime; i++ ) {
       reset();
       compute();
-      if constexpr( std::is_same_v< Device, Devices::Cuda > )
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
          Backend::deviceSynchronize();
    }
    warmupTimer.stop();
@@ -110,8 +110,8 @@ timeFunction(
       monitor.setTime( loops + 1 );
       reset();
 
-      // Explicit synchronization of the CUDA device
-      if constexpr( std::is_same_v< Device, Devices::Cuda > )
+      // Explicit synchronization of the GPU device
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
          Backend::deviceSynchronize();
 
       // reset timer and performance counters before each computation
@@ -120,7 +120,7 @@ timeFunction(
       timer.start();
       performanceCounters.start();
       compute();
-      if constexpr( std::is_same_v< Device, Devices::Cuda > )
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
          Backend::deviceSynchronize();
       timer.stop();
       performanceCounters.stop();
