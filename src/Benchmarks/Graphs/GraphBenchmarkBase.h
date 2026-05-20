@@ -16,6 +16,9 @@
 #include <TNL/Algorithms/Segments/BiEllpack.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 #include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
+#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/Hip.h>
+#include <TNL/Devices/Host.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include <type_traits>
