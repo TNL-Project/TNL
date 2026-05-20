@@ -92,21 +92,21 @@ Quicksorter< Value, Devices::Cuda, Index >::init(
    this->auxMem.setSize( arr.getSize() );
    this->aux.bind( auxMem.getView() );
    this->desiredSecondPhaseElementsPerBlock = desiredElementsPerBlock;
-   this->maxTasks = min( arr.getSize(), maxTasksLimit );
-   this->cuda_tasks.setSize( maxTasks );
-   this->cuda_newTasks.setSize( maxTasks );
-   this->cuda_secondPhaseTasks.setSize( maxTasks );
+   this->maxTasks = static_cast< int >( min( arr.getSize(), static_cast< Index >( maxTasksLimit ) ) );
+   this->cuda_tasks.setSize( static_cast< int >( maxTasks ) );
+   this->cuda_newTasks.setSize( static_cast< int >( maxTasks ) );
+   this->cuda_secondPhaseTasks.setSize( static_cast< int >( maxTasks ) );
    this->cuda_newTasksAmount.setSize( 1 );
    this->cuda_secondPhaseTasksAmount.setSize( 1 );
    this->cuda_blockToTaskMapping.setSize( maxBlocks );
    this->cuda_reductionTaskInitMem.setSize( maxTasks );
 
    if( arr.getSize() > static_cast< Index >( desiredSecondPhaseElementsPerBlock ) ) {
-      cuda_tasks.setElement( 0, QuicksortTask( 0, arr.getSize(), 0 ) );
+      cuda_tasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
       host_firstPhaseTasksAmount = 1;
    }
    else {
-      cuda_secondPhaseTasks.setElement( 0, QuicksortTask( 0, arr.getSize(), 0 ) );
+      cuda_secondPhaseTasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
       host_secondPhaseTasksAmount = 1;
    }
 
@@ -215,7 +215,7 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
          launch_config,
          arr,
          aux,
-         desiredSecondPhaseElementsPerBlock,
+         static_cast< Index >( desiredSecondPhaseElementsPerBlock ),
          task,
          newTask,
          cuda_newTasksAmount.getData(),
@@ -291,9 +291,9 @@ Quicksorter< Value, Devices::Cuda, Index >::initTasks( int elementsPerBlock, con
          host_firstPhaseTasksAmount,
          [ = ] __cuda_callable__( int i ) mutable
          {
-            const QuicksortTask& task = cuda_tasks[ i ];
-            int size = task.getSize();
-            blocksNeeded[ i ] = TNL::roundUpDivision( size, elementsPerBlock );
+            const QuicksortTask< Index >& task = cuda_tasks[ i ];
+            Index size = task.getSize();
+            blocksNeeded[ i ] = TNL::roundUpDivision( size, static_cast< Index >( elementsPerBlock ) );
          } );
    }
    // cuda_reductionTaskInitMem[i] == how many blocks task i needs

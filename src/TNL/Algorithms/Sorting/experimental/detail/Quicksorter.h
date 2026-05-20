@@ -85,7 +85,7 @@ protected:
    static constexpr int maxTasksLimit = 1 << 14;
    int maxTasks;
 
-   Containers::Array< QuicksortTask, Devices::Cuda > cuda_tasks, cuda_newTasks,
+   Containers::Array< QuicksortTask< IndexType >, Devices::Cuda > cuda_tasks, cuda_newTasks,
       cuda_secondPhaseTasks;  // one set of two rotating tasks and second phase
    Containers::Array< int, Devices::Cuda > cuda_newTasksAmount,
       cuda_secondPhaseTasksAmount;  // is in reality 1 integer each
