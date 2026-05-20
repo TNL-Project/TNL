@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/DenseMatrix.h>
@@ -27,7 +27,7 @@ setMatrix( Matrix& matrix )
 
 template< typename Real >
 void
-benchmarkGemv( Benchmark<>& benchmark, int rows, int columns )
+benchmarkGemv( Benchmark& benchmark, int rows, int columns )
 {
    using HostMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host >;
    using RowMajorCudaMatrix =

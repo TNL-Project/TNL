@@ -19,9 +19,7 @@
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Algorithms/fillRandom.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
-#include <cstring>
-#include <iostream>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <string>
 #include <type_traits>
 
@@ -33,7 +31,7 @@ using namespace Containers;
 
 template< typename Device, typename MatrixType >
 void
-benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, const Matrices::Factorization::QR::FactorizationMethod& factorMethod )
+benchmark_qr( Benchmark& benchmark, MatrixType& matrix, const Matrices::Factorization::QR::FactorizationMethod& factorMethod )
 {
    using DoubleMatrix = typename MatrixType::template Self< double >;
    DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
@@ -106,7 +104,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, const Matrices::Factor
 
 template< typename Device, typename PrecisionType, typename MatrixTypeCMO >
 void
-run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const int& size, MatrixTypeCMO& matrixCMO )
+run_benchmarks_DM( Benchmark& benchmark, const std::string& matrixName, const int& size, MatrixTypeCMO& matrixCMO )
 {
    using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
    MatrixTypeRMO matrixRMO( size, size );
@@ -114,7 +112,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
 
    if( ! std::is_same_v< Device, Devices::Cuda > ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             { { "operation", "QR" },
               { "precision", getType< PrecisionType >() },
               { "matrixName", matrixName },
@@ -125,7 +123,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -138,7 +136,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -150,7 +148,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
       benchmark_qr< Device, MatrixTypeCMO >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -164,7 +162,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
 }
 
 void
-run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName )
+run_benchmarks_file( Benchmark& benchmark, const std::string& fileName )
 {
    std::string matrixName = fileName;
    matrixName.erase( matrixName.length() - 4, 4 );
@@ -183,7 +181,7 @@ run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName )
 }
 
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    //https://sparse.tamu.edu/HB/bcspwr01
    run_benchmarks_file( benchmark, "bcspwr01.mtx" );
@@ -204,13 +202,8 @@ run_benchmarks( Benchmark<>& benchmark )
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-eigen-qr.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "Eigen benchmark settings:" );
    config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
@@ -237,25 +230,10 @@ main( int argc, char* argv[] )
    if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName, mode );
-
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
 
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
-
-   //const String devices = parameters.getParameter< String >( "devices" );
    run_benchmarks( benchmark );
 
    return EXIT_SUCCESS;

@@ -42,7 +42,7 @@ public:
       const HostGraph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
       if( withBoost )
          runBoostBenchmarks( digraph, graph, smallestNode, largestNode, benchmark );
@@ -55,7 +55,7 @@ public:
       const HostGraph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_BOOST
       BoostGraph< Index, Real, TNL::Graphs::UndirectedGraph > boostGraph( graph );
@@ -78,8 +78,7 @@ public:
          Real weight = boost::get( boost::edge_weight, boostGraph.getGraph(), edge );
          this->boostMSTTotalWeight += weight;
       }
-      if( this->verbose > 0 )
-         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
+      //std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
       auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
 
@@ -92,7 +91,7 @@ public:
       const HostGraph& hostGraph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
       // Gunrock doesn't have MST implementation, so this is empty
    }
@@ -104,7 +103,7 @@ public:
       Graph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::String& device,
       const TNL::String& segments )
    {

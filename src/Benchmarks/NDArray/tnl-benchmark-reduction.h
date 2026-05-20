@@ -17,7 +17,7 @@
 #include <TNL/Algorithms/Reduction2D.h>
 #include <TNL/Algorithms/Reduction3D.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -44,7 +44,7 @@ using index_type = int;
 
 template< typename Device >
 void
-benchmark_reduction1D( Benchmark<>& benchmark, index_type size )
+benchmark_reduction1D( Benchmark& benchmark, index_type size )
 {
    Array< index_type, Device, index_type > v( size );
    v.setValue( 10 );
@@ -57,13 +57,13 @@ benchmark_reduction1D( Benchmark<>& benchmark, index_type size )
 
    const double datasetSize = size * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "size", convertToString( size ) } } ) );
+   benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device >
 void
-benchmark_reduction2D( Benchmark<>& benchmark, index_type size, index_type n )
+benchmark_reduction2D( Benchmark& benchmark, index_type size, index_type n )
 {
    Vector< index_type, Device > v( size * n );
    Vector< index_type, Devices::Sequential > result( n );
@@ -86,13 +86,13 @@ benchmark_reduction2D( Benchmark<>& benchmark, index_type size, index_type n )
    const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "2D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns( { { "size", convertToString( size ) }, { "n", convertToString( n ) } } ) );
+      Benchmark::MetadataColumns( { { "size", convertToString( size ) }, { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device >
 void
-benchmark_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, index_type n )
+benchmark_reduction3D( Benchmark& benchmark, index_type size, index_type m, index_type n )
 {
    Vector< index_type, Device > v( m * n * size );
    Vector< index_type, Devices::Host > result( m * n );
@@ -121,14 +121,14 @@ benchmark_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, in
    const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          { { "size", convertToString( size ) }, { "m", convertToString( m ) }, { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device >
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    for( index_type size : { 5000000, 500000000 } ) {
       benchmark_reduction1D< Device >( benchmark, size );
@@ -155,13 +155,8 @@ run_benchmarks( Benchmark<>& benchmark )
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-reduction.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "NDArray benchmark settings:" );
    config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
@@ -189,22 +184,10 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
 
    const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
-
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
 
    const String devices = parameters.getParameter< String >( "devices" );
    if( devices == "all" || devices == "host" )

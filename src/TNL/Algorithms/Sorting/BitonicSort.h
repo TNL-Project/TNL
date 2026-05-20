@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Algorithms/Sorting/detail/bitonicSort.h>
-#include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL::Algorithms::Sorting {
 
@@ -13,22 +12,20 @@ struct BitonicSort
    template< typename Array >
    void static sort( Array& array )
    {
-      detail::bitonicSort( array );
+      sort( array, std::less<>{} );
    }
 
    template< typename Array, typename Compare >
    void static sort( Array& array, const Compare& compare )
    {
-      detail::bitonicSort( array, compare );
+      detail::bitonicSort( array.getView(), compare );
    }
 
    template< typename Device, typename Index, typename Compare, typename Swap >
    void static inplaceSort( const Index begin, const Index end, const Compare& compare, const Swap& swap )
    {
-      if constexpr( std::is_same_v< Device, Devices::Cuda > )
-         detail::bitonicSort( begin, end, compare, swap );
-      else
-         throw Exceptions::NotImplementedError( "inplace bitonic sort is implemented only for CUDA" );
+      static_assert( std::is_same_v< Device, Devices::GPU >, "inplace bitonic sort is implemented only for GPU" );
+      detail::bitonicSort( begin, end, compare, swap );
    }
 };
 

@@ -6,7 +6,7 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Config/ParameterContainer.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 using namespace TNL;
 using namespace TNL::Pointers;
@@ -23,7 +23,7 @@ getPerformer()
 
 template< typename Solver, typename VectorPointer >
 void
-benchmarkSolver( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, VectorPointer& u )
+benchmarkSolver( Benchmark& benchmark, const Config::ParameterContainer& parameters, VectorPointer& u )
 {
    using VectorType = typename VectorPointer::ObjectType;
    //using RealType = typename VectorType::RealType;

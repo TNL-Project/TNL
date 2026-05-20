@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
 
 // BenchmarkResult to add extra columns to the benchmark
@@ -34,17 +34,6 @@ struct LinearSolversBenchmarkResult : public TNL::Benchmarks::BenchmarkResult
       elements.emplace_back( "residue precond" );
       elements.emplace_back( "residue true" );
       return elements;
-   }
-
-   [[nodiscard]] std::vector< int >
-   getColumnWidthHints() const override
-   {
-      auto hints = TNL::Benchmarks::BenchmarkResult::getColumnWidthHints();
-      hints.emplace_back( 8 );   // solved
-      hints.emplace_back( 14 );  // iterations
-      hints.emplace_back( 14 );  // residue precond
-      hints.emplace_back( 14 );  // residue true
-      return hints;
    }
 
    [[nodiscard]] RowElements

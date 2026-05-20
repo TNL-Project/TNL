@@ -19,9 +19,7 @@
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Algorithms/fillRandom.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
-#include <cstring>
-#include <iostream>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <string>
 
 #include "EigenBenchmark.h"
@@ -44,7 +42,7 @@ generateVector( const int& size )
 
 template< typename Device, typename MatrixType, typename VectorType, typename PrecisionType >
 void
-benchmark_pi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVecOrig )
+benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOrig )
 {
    using DoubleMatrix = typename MatrixType::template Self< double >;
    DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
@@ -83,7 +81,7 @@ benchmark_pi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVec
 
 template< typename Device, typename MatrixType, typename VectorType, typename PrecisionType >
 void
-benchmark_spi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVecOrig, const PrecisionType& shiftValue )
+benchmark_spi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOrig, const PrecisionType& shiftValue )
 {
    using DoubleMatrix = typename MatrixType::template Self< double >;
    PrecisionType eigenvalue = 0;
@@ -124,7 +122,7 @@ benchmark_spi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVe
 template< typename Device, typename PrecisionType, typename MatrixTypeCMO, typename VectorType >
 void
 run_benchmarks_DM(
-   Benchmark<>& benchmark,
+   Benchmark& benchmark,
    const std::string& matrixName,
    int& size,
    MatrixTypeCMO& matrixCMO,
@@ -132,7 +130,7 @@ run_benchmarks_DM(
    const PrecisionType& shiftValue )
 {
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
@@ -143,7 +141,7 @@ run_benchmarks_DM(
    benchmark_pi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig );
    if( shiftValue != 0 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "SPI" },
                { "precision", getType< PrecisionType >() },
@@ -153,7 +151,7 @@ run_benchmarks_DM(
             } ) );
       benchmark_spi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig, shiftValue );
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "SPI0" },
                { "precision", getType< PrecisionType >() },
@@ -168,7 +166,7 @@ run_benchmarks_DM(
    MatrixTypeRMO matrixRMO( size, size );
    matrixRMO = matrixCMO;
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
@@ -179,7 +177,7 @@ run_benchmarks_DM(
    benchmark_pi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig );
    if( shiftValue != 0 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "SPI" },
                { "precision", getType< PrecisionType >() },
@@ -189,7 +187,7 @@ run_benchmarks_DM(
             } ) );
       benchmark_spi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig, shiftValue );
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "SPI0" },
                { "precision", getType< PrecisionType >() },
@@ -204,7 +202,7 @@ run_benchmarks_DM(
 template< typename Device, typename PrecisionType, typename MatrixType, typename VectorType >
 void
 run_benchmarks_SM(
-   Benchmark<>& benchmark,
+   Benchmark& benchmark,
    const std::string& matrixName,
    const int& size,
    MatrixType& matrixSM,
@@ -212,7 +210,7 @@ run_benchmarks_SM(
    const PrecisionType& shiftValue )
 {
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
@@ -223,7 +221,7 @@ run_benchmarks_SM(
    benchmark_pi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig );
    if( shiftValue != 0 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "SPI" },
                { "precision", getType< PrecisionType >() },
@@ -233,7 +231,7 @@ run_benchmarks_SM(
             } ) );
       benchmark_spi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig, shiftValue );
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "SPI0" },
                { "precision", getType< PrecisionType >() },
@@ -246,7 +244,7 @@ run_benchmarks_SM(
 }
 template< typename PrecisionType >
 void
-run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName, PrecisionType shiftValue = 0 )
+run_benchmarks_file( Benchmark& benchmark, const std::string& fileName, PrecisionType shiftValue = 0 )
 {
    std::string matrixName = fileName;
    matrixName.erase( matrixName.length() - 4, 4 );
@@ -284,7 +282,7 @@ run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName, Precis
 }
 
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    //https://sparse.tamu.edu/HB/bcspwr01
    run_benchmarks_file< float >( benchmark, "bcspwr01.mtx", -0.8 );
@@ -339,13 +337,8 @@ run_benchmarks( Benchmark<>& benchmark )
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-eigen-pi.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "Eigen benchmark settings:" );
    config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
@@ -372,25 +365,10 @@ main( int argc, char* argv[] )
    if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName, mode );
-
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
 
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
-
-   //const String devices = parameters.getParameter< String >( "devices" );
    run_benchmarks( benchmark );
 
    return EXIT_SUCCESS;

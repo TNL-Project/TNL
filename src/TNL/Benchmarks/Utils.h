@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <tuple>
 #include <map>
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 #include <TNL/Timer.h>
 #include <TNL/PerformanceCounters.h>
@@ -23,21 +23,64 @@
 
 namespace TNL::Benchmarks {
 
-// returns a tuple of (loops, mean, stddev) where loops is the number of
-// performed loops (i.e. timing samples), mean is the arithmetic mean of the
-// computation times and stddev is the sample standard deviation
+/**
+ * \brief Times a compute function over multiple iterations.
+ *
+ * Executes the compute function repeatedly, collecting timing samples until
+ * either maxLoops iterations complete or `minTime` seconds have elapsed.
+ * Computes mean, median, and standard deviation of the measurements.
+ *
+ * Before the timed loop begins, **warmup iterations** (controlled by the
+ * `warmupLoops` and `warmupMinTime` parameters) are performed (calling
+ * `reset()` followed by `compute()`). The warmup continues until both
+ * conditions are satisfied: at least `warmupLoops` iterations have been
+ * executed AND at least `warmupMinTime` seconds have elapsed. This serves
+ * to stabilize thermal and frequency states and amortize one-time costs
+ * such as CUDA JIT compilation. For CUDA devices, device synchronization
+ * is performed after each warmup iteration to ensure the kernel has
+ * completed before timing starts.
+ *
+ * For CUDA devices, explicit synchronization is performed before and after
+ * each timed computation to ensure accurate timing.
+ *
+ * CPU cycle counting is only available for host devices (Sequential, Host).
+ *
+ * \tparam Device Device type (e.g., \ref TNL::Devices::Host, \ref TNL::Devices::Cuda)
+ * \tparam ComputeFunction Callable containing code to benchmark
+ * \tparam ResetFunction Callable to reset state before each iteration
+ * \tparam Monitor Solver monitor for tracking progress
+ * \tparam ResultType Type with `setTimeResults` method
+ *
+ * \param compute Function to benchmark
+ * \param reset Function called before each compute iteration
+ * \param maxLoops Maximum number of iterations
+ * \param minTime Minimum total runtime in seconds
+ * \param warmupLoops Number of untimed warmup iterations (0 to disable, unless warmupMinTime > 0)
+ * \param warmupMinTime Minimum total warmup runtime in seconds (0 to disable)
+ * \param monitor Solver monitor instance (must not be null)
+ * \param result Output object to receive timing data via `setTimeResults()`
+ *
+ * \par Statistics computed:
+ * - **Mean**: arithmetic average of all samples
+ * - **Median**: middle value of sorted samples (average of two middle values for even sample counts)
+ * - **Standard deviation**: sample standard deviation using Bessel's correction
+ */
 template<
    typename Device,
    typename ComputeFunction,
    typename ResetFunction,
-   typename Monitor = TNL::Solvers::IterativeSolverMonitor< double > >
-std::tuple< std::size_t, double, double, double, double >
+   typename Monitor = TNL::Solvers::IterativeSolverMonitor< double >,
+   typename ResultType >
+void
 timeFunction(
    ComputeFunction compute,
    ResetFunction reset,
    std::size_t maxLoops,
-   const double& minTime,
-   Monitor&& monitor = Monitor() )
+   double minTime,
+   std::size_t warmupLoops,
+   double warmupMinTime,
+   Monitor& monitor,
+   ResultType& result )
 {
    // the timer is constructed zero-initialized and stopped
    Timer timer;
@@ -47,9 +90,16 @@ timeFunction(
 
    PerformanceCounters performanceCounters;
 
-   // warm up
-   reset();
-   compute();
+   // warm up: untimed iterations to stabilize thermal/frequency states and amortize JIT overhead
+   Timer warmupTimer;
+   warmupTimer.start();
+   for( std::size_t i = 0; i < warmupLoops || warmupTimer.getRealTime() < warmupMinTime; i++ ) {
+      reset();
+      compute();
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
+         Backend::deviceSynchronize();
+   }
+   warmupTimer.stop();
 
    Containers::Vector< double > results_time( maxLoops, 0.0 );
    Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0 );
@@ -60,8 +110,8 @@ timeFunction(
       monitor.setTime( loops + 1 );
       reset();
 
-      // Explicit synchronization of the CUDA device
-      if constexpr( std::is_same_v< Device, Devices::Cuda > )
+      // Explicit synchronization of the GPU device
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
          Backend::deviceSynchronize();
 
       // reset timer and performance counters before each computation
@@ -70,7 +120,7 @@ timeFunction(
       timer.start();
       performanceCounters.start();
       compute();
-      if constexpr( std::is_same_v< Device, Devices::Cuda > )
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
          Backend::deviceSynchronize();
       timer.stop();
       performanceCounters.stop();
@@ -80,8 +130,26 @@ timeFunction(
          results_cpu_cycles[ loops ] = performanceCounters.getCPUCycles();
    }
 
+   // sort for median computation (also improves summation accuracy)
+   double* time_begin = results_time.getData();
+   double* time_end = time_begin + loops;
+   std::sort( time_begin, time_end );
+   const double median_time =
+      ( loops % 2 == 1 ) ? time_begin[ loops / 2 ] : ( time_begin[ loops / 2 - 1 ] + time_begin[ loops / 2 ] ) / 2.0;
+
+   double median_cpu_cycles = 0.0;
+   if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > ) {
+      long long int* cycles_begin = results_cpu_cycles.getData();
+      long long int* cycles_end = cycles_begin + loops;
+      std::sort( cycles_begin, cycles_end );
+      median_cpu_cycles = ( loops % 2 == 1 )
+                           ? static_cast< double >( cycles_begin[ loops / 2 ] )
+                           : static_cast< double >( cycles_begin[ loops / 2 - 1 ] + cycles_begin[ loops / 2 ] ) / 2.0;
+   }
+
    const double mean_time = sum( results_time ) / static_cast< double >( loops );
    const double mean_cpu_cycles = sum( results_cpu_cycles ) / static_cast< double >( loops );
+
    double stddev_time;
    double stddev_cpu_cycles;
    if( loops > 1 ) {
@@ -97,7 +165,7 @@ timeFunction(
    // so we must unset it to avoid returning a dangling reference to the caller
    monitor.unsetTimer();
 
-   return std::make_tuple( loops, mean_time, stddev_time, mean_cpu_cycles, stddev_cpu_cycles );
+   result.setTimeResults( loops, mean_time, median_time, stddev_time, mean_cpu_cycles, median_cpu_cycles, stddev_cpu_cycles );
 }
 
 inline std::map< std::string, std::string >

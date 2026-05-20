@@ -20,10 +20,8 @@
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Algorithms/fillRandom.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <algorithm>
-#include <cstring>
-#include <iostream>
 #include <type_traits>
 
 #include "EigenBenchmark.h"
@@ -94,7 +92,7 @@ generateMatrixSM( int size )
 
 template< typename Device, typename MatrixType, typename VectorType >
 void
-benchmark_pi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVecOrig )
+benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOrig )
 {
    using PrecisionType = typename MatrixType::RealType;
    for( int i = 1; i < 15; i += 2 ) {
@@ -129,7 +127,7 @@ benchmark_pi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVec
 
 template< typename Device, typename MatrixType >
 void
-benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorization::QR::FactorizationMethod factorType )
+benchmark_qr( Benchmark& benchmark, MatrixType& matrix, Matrices::Factorization::QR::FactorizationMethod factorType )
 {
    using PrecisionType = typename MatrixType::RealType;
    for( int i = 1; i < 15; i += 2 ) {
@@ -174,12 +172,12 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorizatio
 
 template< typename Device, typename PrecisionType, typename MatrixTypeCMO >
 void
-run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
+run_benchmarks_DM( Benchmark& benchmark, int size, MatrixTypeCMO& matrixCMO )
 {
    using VectorType = Vector< PrecisionType, Device >;
    auto initialVecOrig = generateVector< VectorType >( matrixCMO.getColumns() );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
@@ -192,7 +190,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
    MatrixTypeRMO matrixRMO( size, size );
    matrixRMO = matrixCMO;
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
@@ -203,7 +201,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
 
    if( ! std::is_same_v< Device, Devices::Cuda > ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             { { "operation", "QR" },
               { "precision", getType< PrecisionType >() },
               { "MatrixType", "DM_CMO" },
@@ -213,7 +211,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -224,7 +222,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
       benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -235,7 +233,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
       benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -249,12 +247,12 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
 
 template< typename Device, typename PrecisionType, typename MatrixType >
 void
-run_benchmarks_SM( Benchmark<>& benchmark, int size, MatrixType& matrixSM )
+run_benchmarks_SM( Benchmark& benchmark, int size, MatrixType& matrixSM )
 {
    using VectorType = Vector< PrecisionType, Device >;
    auto initialVecOrig = generateVector< VectorType >( matrixSM.getColumns() );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
@@ -265,7 +263,7 @@ run_benchmarks_SM( Benchmark<>& benchmark, int size, MatrixType& matrixSM )
 }
 
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    using MatrixTypeHostFloatCMO =
       Matrices::DenseMatrix< float, Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
@@ -334,13 +332,8 @@ run_benchmarks( Benchmark<>& benchmark )
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-eigen.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "Eigen benchmark settings:" );
    config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
@@ -367,25 +360,10 @@ main( int argc, char* argv[] )
    if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName, mode );
-
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
 
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
-
-   //const String devices = parameters.getParameter< String >( "devices" );
    run_benchmarks( benchmark );
 
    return EXIT_SUCCESS;

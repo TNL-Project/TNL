@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Config/parseCommandLine.h>
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Graphs/GraphOperations.h>
 #include <TNL/Graphs/Readers/EdgeListReader.h>
 #include <TNL/Graphs/Readers/MtxReader.h>
@@ -87,12 +87,9 @@ public:
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
-      config.addDelimiter( "Benchmark settings:" );
+      Benchmark::configSetup( config );
+      config.addDelimiter( "Graph benchmark settings:" );
       config.addEntry< TNL::String >( "input-file", "Input file with the graph." );
-      config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-graphs.log" );
-      config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-      config.addEntryEnum( "append" );
-      config.addEntryEnum( "overwrite" );
 #ifdef WITH_SORTED_SEGMENTS
       config.addEntry< bool >( "with-sorted-segments", "Run benchmark with sorted segments.", true );
 #endif
@@ -104,9 +101,6 @@ public:
       config.addEntryEnum< TNL::String >( "cuda" );
       TNL::Devices::Host::configSetup( config );
       TNL::Devices::Cuda::configSetup( config );
-
-      config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-      config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    }
 
    GraphBenchmarkBase( const TNL::Config::ParameterContainer& parameters_ )
@@ -116,13 +110,9 @@ public:
    virtual ~GraphBenchmarkBase() = default;
 
    bool
-   runBenchmark()
+   runBenchmark( const std::string& programName = "" )
    {
       auto inputFile = parameters.getParameter< TNL::String >( "input-file" );
-      const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-      const int loops = parameters.getParameter< int >( "loops" );
-      verbose = parameters.getParameter< int >( "verbose" );
 #ifdef WITH_SORTED_SEGMENTS
       withSortedSegments = parameters.getParameter< bool >( "with-sorted-segments" );
 #endif
@@ -132,15 +122,8 @@ public:
       if( dotPosition != std::string::npos )
          inputFileExtension = inputFile.substr( dotPosition + 1 );
 
-      auto mode = std::ios::out;
-      if( outputMode == "append" )
-         mode |= std::ios::app;
-      std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
-
-      // write global metadata into a separate file
-      std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-      TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
+      TNL::Benchmarks::Benchmark benchmark;
+      benchmark.setup( parameters, programName );
 
       this->errors = 0;
 
@@ -175,13 +158,6 @@ public:
             { "nodes", convertToString( graph.getAdjacencyMatrix().getRows() ) },
             { "edges", convertToString( graph.getAdjacencyMatrix().getNonzeroElementsCount() ) },
          } );
-      benchmark.setMetadataWidths(
-         { { "graph name", 32 },
-           { "format", 26 },
-           { "threads", 5 },
-           { "problem", 22 },
-           { "kernel", 28 },
-           { "launch cfg.", 24 } } );
 
       auto& derived = static_cast< Derived& >( *this );
 
@@ -275,7 +251,7 @@ protected:
       const HostGraph& hostGraph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::String& device )
    {
       auto& derived = static_cast< Derived& >( *this );
@@ -293,7 +269,6 @@ protected:
 
    // Common data members
    const TNL::Config::ParameterContainer& parameters;
-   int verbose = 0;
    int errors = 0;
    bool withSortedSegments = false;
 };

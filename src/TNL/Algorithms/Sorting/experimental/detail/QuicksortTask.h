@@ -3,39 +3,39 @@
 
 #pragma once
 
-#include <ostream>
-
 #include <TNL/Backend/Macros.h>
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
-struct TASK
+template< typename Index >
+struct QuicksortTask
 {
-   // start and end position of array to read and write from
-   int partitionBegin, partitionEnd;
+   using Offset = std::make_signed_t< Index >;
+
+   Index partitionBegin, partitionEnd;
    //-----------------------------------------------
    // helper variables for blocks working on this task
 
    int iteration;
-   int pivotIdx;
-   int dstBegin, dstEnd;
-   int firstBlock, blockCount;  // for workers read only values
+   Index pivotIdx;
+   Offset dstBegin, dstEnd;
+   int firstBlock, blockCount;
 
    __cuda_callable__
-   TASK( int begin, int end, int iteration )
+   QuicksortTask( Index begin, Index end, int iteration )
    : partitionBegin( begin ),
      partitionEnd( end ),
      iteration( iteration ),
-     pivotIdx( -1 ),
-     dstBegin( -151561 ),
-     dstEnd( -151561 ),
+     pivotIdx( static_cast< Index >( -1 ) ),
+     dstBegin( static_cast< Offset >( -151561 ) ),
+     dstEnd( static_cast< Offset >( -151561 ) ),
      firstBlock( -100 ),
      blockCount( -100 )
    {}
 
    __cuda_callable__
    void
-   initTask( int firstBlock, int blocks, int pivotIdx )
+   init( int firstBlock, int blocks, Index pivotIdx )
    {
       dstBegin = 0;
       dstEnd = partitionEnd - partitionBegin;
@@ -45,25 +45,13 @@ struct TASK
    }
 
    [[nodiscard]] __cuda_callable__
-   int
+   Index
    getSize() const
    {
       return partitionEnd - partitionBegin;
    }
 
-   TASK() = default;
+   QuicksortTask() = default;
 };
-
-inline std::ostream&
-operator<<( std::ostream& out, const TASK& task )
-{
-   out << "[ ";
-   out << task.partitionBegin << " - " << task.partitionEnd;
-   out << " | "
-       << "iteration: " << task.iteration;
-   out << " | "
-       << "pivotIdx: " << task.pivotIdx;
-   return out << " ] ";
-}
 
 }  // namespace TNL::Algorithms::Sorting::experimental::detail

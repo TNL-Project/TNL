@@ -5,16 +5,17 @@
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
-#include "task.h"
+#include <TNL/Atomic.h>
+#include "QuicksortTask.h"
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-template< typename Value, typename Index, typename Device, typename CMP >
+template< typename Value, typename Index, typename Device, typename Compare >
 __device__
 Value
-pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const CMP& Cmp )
+pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare& compare )
 {
    if( src.getSize() == 1 )
       return src[ 0 ];
@@ -23,30 +24,30 @@ pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const CMP& Cm
    const Value& b = src[ src.getSize() / 2 ];
    const Value& c = src[ src.getSize() - 1 ];
 
-   if( Cmp( a, b ) )  // ..a..b..
+   if( compare( a, b ) )  // ..a..b..
    {
-      if( Cmp( b, c ) )  // ..a..b..c
+      if( compare( b, c ) )  // ..a..b..c
          return b;
-      else if( Cmp( c, a ) )  //..c..a..b..
+      else if( compare( c, a ) )  //..c..a..b..
          return a;
       else  //..a..c..b..
          return c;
    }
    else  //..b..a..
    {
-      if( Cmp( a, c ) )  //..b..a..c
+      if( compare( a, c ) )  //..b..a..c
          return a;
-      else if( Cmp( c, b ) )  //..c..b..a..
+      else if( compare( c, b ) )  //..c..b..a..
          return b;
       else  //..b..c..a..
          return c;
    }
 }
 
-template< typename Value, typename Index, typename Device, typename CMP >
+template< typename Value, typename Index, typename Device, typename Compare >
 __device__
-int
-pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const CMP& Cmp )
+Index
+pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare& compare )
 {
    if( src.getSize() <= 1 )
       return 0;
@@ -55,66 +56,66 @@ pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const CMP&
    const Value& b = src[ src.getSize() / 2 ];
    const Value& c = src[ src.getSize() - 1 ];
 
-   if( Cmp( a, b ) )  // ..a..b..
+   if( compare( a, b ) )  // ..a..b..
    {
-      if( Cmp( b, c ) )  // ..a..b..c
+      if( compare( b, c ) )  // ..a..b..c
          return src.getSize() / 2;
-      else if( Cmp( c, a ) )  //..c..a..b..
+      else if( compare( c, a ) )  //..c..a..b..
          return 0;
       else  //..a..c..b..
          return src.getSize() - 1;
    }
    else  //..b..a..
    {
-      if( Cmp( a, c ) )  //..b..a..c
+      if( compare( a, c ) )  //..b..a..c
          return 0;
-      else if( Cmp( c, b ) )  //..c..b..a..
+      else if( compare( c, b ) )  //..c..b..a..
          return src.getSize() / 2;
       else  //..b..c..a..
          return src.getSize() - 1;
    }
 }
 
-template< typename Value, typename Index, typename CMP >
+template< typename Value, typename Index, typename Compare >
 __device__
 void
-countElem(
+countElements(
    Containers::ArrayView< Value, Devices::Cuda, Index > arr,
-   const CMP& Cmp,
+   const Compare& compare,
    int& smaller,
    int& bigger,
    const Value& pivot )
 {
-   for( int i = threadIdx.x; i < arr.getSize(); i += blockDim.x ) {
+   for( Index i = threadIdx.x; i < arr.getSize(); i += blockDim.x ) {
       const Value& data = arr[ i ];
-      if( Cmp( data, pivot ) )
+      if( compare( data, pivot ) )
          smaller++;
-      else if( Cmp( pivot, data ) )
+      else if( compare( pivot, data ) )
          bigger++;
    }
 }
 
-template< typename Value, typename Index, typename CMP >
+template< typename Value, typename Index, typename Compare >
 __device__
 void
 copyDataShared(
    Containers::ArrayView< Value, Devices::Cuda, Index > src,
    Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-   const CMP& Cmp,
+   const Compare& compare,
    Value* sharedMem,
-   int smallerStart,
-   int biggerStart,
+   typename QuicksortTask< Index >::Offset smallerStart,
+   typename QuicksortTask< Index >::Offset biggerStart,
    int smallerTotal,
    int biggerTotal,
    int smallerOffset,
    int biggerOffset,  // exclusive prefix sum of elements
    const Value& pivot )
 {
-   for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
+   for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
       const Value& data = src[ i ];
-      if( Cmp( data, pivot ) )
+      if( compare( data, pivot ) )
          sharedMem[ smallerOffset++ ] = data;
-      else if( Cmp( pivot, data ) )
+      else if( compare( pivot, data ) )
          sharedMem[ smallerTotal + biggerOffset++ ] = data;
    }
    __syncthreads();
@@ -127,61 +128,51 @@ copyDataShared(
    }
 }
 
-template< typename Value, typename Index, typename CMP >
+template< typename Value, typename Index, typename Compare >
 __device__
 void
 copyData(
    Containers::ArrayView< Value, Devices::Cuda, Index > src,
    Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-   const CMP& Cmp,
-   int smallerStart,
-   int biggerStart,
+   const Compare& compare,
+   typename QuicksortTask< Index >::Offset smallerStart,
+   typename QuicksortTask< Index >::Offset biggerStart,
    const Value& pivot )
 {
-   for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
+   for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
       const Value& data = src[ i ];
-      if( Cmp( data, pivot ) ) {
-         /*
-         if(smallerStart >= dst.getSize() || smallerStart < 0)
-             printf("failed smaller: b:%d t:%d: tried to write into [%d]/%d\n", blockDim.x, threadIdx.x, smallerStart,
-         dst.getSize());
-         */
+      if( compare( data, pivot ) )
          dst[ smallerStart++ ] = data;
-      }
-      else if( Cmp( pivot, data ) ) {
-         /*
-         if(biggerStart >= dst.getSize() || biggerStart < 0)
-             printf("failed bigger: b:%d t:%d: tried to write into [%d]/%d\n", blockDim.x, threadIdx.x, biggerStart,
-         dst.getSize());
-         */
+      else if( compare( pivot, data ) )
          dst[ biggerStart++ ] = data;
-      }
    }
 }
 
-template< typename Value, typename Index, typename CMP, bool useShared >
+template< typename Value, typename Index, typename Compare, bool useShared >
 __device__
 void
 cudaPartition(
    Containers::ArrayView< Value, Devices::Cuda, Index > src,
    Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-   const CMP& Cmp,
+   const Compare& compare,
    Value* sharedMem,
    const Value& pivot,
-   int elemPerBlock,
-   TASK& task )
+   int elementsPerBlock,
+   QuicksortTask< Index >& task )
 {
-   static __shared__ int smallerStart;
-   static __shared__ int biggerStart;
+   using Offset = typename QuicksortTask< Index >::Offset;
 
-   int myBegin = elemPerBlock * ( blockIdx.x - task.firstBlock );
-   int myEnd = TNL::min( myBegin + elemPerBlock, src.getSize() );
+   static __shared__ Offset smallerStart;
+   static __shared__ Offset biggerStart;
+
+   Index myBegin = static_cast< Index >( elementsPerBlock ) * ( blockIdx.x - task.firstBlock );
+   Index myEnd = TNL::min( myBegin + elementsPerBlock, src.getSize() );
 
    auto srcView = src.getView( myBegin, myEnd );
 
    int smaller = 0;
    int bigger = 0;
-   countElem( srcView, Cmp, smaller, bigger, pivot );
+   countElements( srcView, compare, smaller, bigger, pivot );
 
    // synchronization is in this function already
    using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
@@ -191,8 +182,9 @@ cudaPartition(
 
    if( threadIdx.x == blockDim.x - 1 )  // last thread in block has sum of all values
    {
-      smallerStart = atomicAdd( &( task.dstBegin ), smallerPrefSumInc );
-      biggerStart = atomicAdd( &( task.dstEnd ), -biggerPrefSumInc ) - biggerPrefSumInc;
+      smallerStart = atomicAdd( &( task.dstBegin ), static_cast< Offset >( smallerPrefSumInc ) );
+      biggerStart =
+         atomicAdd( &( task.dstEnd ), -static_cast< Offset >( biggerPrefSumInc ) ) - static_cast< Offset >( biggerPrefSumInc );
    }
    __syncthreads();
 
@@ -208,7 +200,7 @@ cudaPartition(
       copyDataShared(
          srcView,
          dst,
-         Cmp,
+         compare,
          sharedMem,
          smallerStart,
          biggerStart,
@@ -219,9 +211,9 @@ cudaPartition(
          pivot );
    }
    else {
-      int destSmaller = smallerStart + smallerPrefSumInc - smaller;
-      int destBigger = biggerStart + biggerPrefSumInc - bigger;
-      copyData( srcView, dst, Cmp, destSmaller, destBigger, pivot );
+      Offset destSmaller = smallerStart + static_cast< Offset >( smallerPrefSumInc - smaller );
+      Offset destBigger = biggerStart + static_cast< Offset >( biggerPrefSumInc - bigger );
+      copyData( srcView, dst, compare, destSmaller, destBigger, pivot );
    }
 }
 

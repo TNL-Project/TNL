@@ -11,7 +11,7 @@
 #include <TNL/Containers/NDArray.h>
 #include <TNL/Containers/ndarray/Operations.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -43,7 +43,7 @@ reset()
 
 template< typename Device >
 void
-benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
+benchmark_array( Benchmark& benchmark, index_type size = 500000000 )
 {
    using ArrayType = Array< value_type, Device >;
    ArrayType a;
@@ -63,9 +63,6 @@ benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
       Algorithms::parallelFor< Device >( static_cast< index_type >( 0 ), size, kernel, a.getData(), b.getData() );
    };
 
-   // warm-up for all benchmarks
-   f();
-
    const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "array", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
@@ -73,7 +70,7 @@ benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
 
 template< typename Device >
 void
-benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
+benchmark_1D( Benchmark& benchmark, index_type size = 500000000 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0 >, std::make_index_sequence< 1 >, Device >;
    ArrayType a;
@@ -101,7 +98,7 @@ benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
 
 template< typename Device >
 void
-benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
+benchmark_2D( Benchmark& benchmark, index_type size = 22333 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::make_index_sequence< 2 >, Device >;
    ArrayType a;
@@ -129,7 +126,7 @@ benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
 
 template< typename Device >
 void
-benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
+benchmark_3D( Benchmark& benchmark, index_type size = 800 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::make_index_sequence< 3 >, Device >;
    ArrayType a;
@@ -157,7 +154,7 @@ benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
 
 template< typename Device >
 void
-benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
+benchmark_4D( Benchmark& benchmark, index_type size = 150 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::make_index_sequence< 4 >, Device >;
    ArrayType a;
@@ -185,7 +182,7 @@ benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
 
 template< typename Device >
 void
-benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
+benchmark_5D( Benchmark& benchmark, index_type size = 56 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::make_index_sequence< 5 >, Device >;
    ArrayType a;
@@ -213,7 +210,7 @@ benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
 
 template< typename Device >
 void
-benchmark_6D( Benchmark<>& benchmark, index_type size = 28 )
+benchmark_6D( Benchmark& benchmark, index_type size = 28 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::make_index_sequence< 6 >, Device >;
    ArrayType a;
@@ -241,7 +238,7 @@ benchmark_6D( Benchmark<>& benchmark, index_type size = 28 )
 
 template< typename Device >
 void
-benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
+benchmark_2D_perm( Benchmark& benchmark, index_type size = 22333 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::index_sequence< 1, 0 >, Device >;
    ArrayType a;
@@ -269,7 +266,7 @@ benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
 
 template< typename Device >
 void
-benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
+benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::index_sequence< 2, 1, 0 >, Device >;
    ArrayType a;
@@ -297,7 +294,7 @@ benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
 
 template< typename Device >
 void
-benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
+benchmark_4D_perm( Benchmark& benchmark, index_type size = 150 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::index_sequence< 3, 2, 1, 0 >, Device >;
    ArrayType a;
@@ -325,7 +322,7 @@ benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
 
 template< typename Device >
 void
-benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
+benchmark_5D_perm( Benchmark& benchmark, index_type size = 56 )
 {
    using ArrayType =
       NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::index_sequence< 4, 3, 2, 1, 0 >, Device >;
@@ -354,7 +351,7 @@ benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
 
 template< typename Device >
 void
-benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
+benchmark_6D_perm( Benchmark& benchmark, index_type size = 28 )
 {
    using ArrayType =
       NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::index_sequence< 5, 4, 3, 2, 1, 0 >, Device >;
@@ -383,7 +380,7 @@ benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
 
 template< typename Device >
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    benchmark_array< Device >( benchmark );
    benchmark_1D< Device >( benchmark );
@@ -402,13 +399,8 @@ run_benchmarks( Benchmark<>& benchmark )
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-ndarray.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "NDArray benchmark settings:" );
    config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
@@ -436,22 +428,10 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
 
    const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
-
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
 
    const String devices = parameters.getParameter< String >( "devices" );
    if( devices == "all" || devices == "host" )

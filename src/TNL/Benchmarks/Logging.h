@@ -4,7 +4,6 @@
 #pragma once
 
 #include <list>
-#include <map>
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -14,6 +13,12 @@
 
 namespace TNL::Benchmarks {
 
+/**
+ * \brief Container for formatted row data in benchmark output.
+ *
+ * Provides stream-like interface for building rows of string values.
+ * Uses fixed-point notation with 6 decimal places by default.
+ */
 class LoggingRowElements
 {
 public:
@@ -22,6 +27,15 @@ public:
       stream << std::setprecision( 6 ) << std::fixed;
    }
 
+   /**
+    * \brief Appends a value to the row.
+    *
+    * Converts the value to string and stores it for later iteration.
+    *
+    * \tparam T Type of value to append
+    * \param b Value to add
+    * \return Reference to this object for chaining
+    */
    template< typename T >
    LoggingRowElements&
    operator<<( const T& b )
@@ -32,6 +46,14 @@ public:
       return *this;
    }
 
+   /**
+    * \brief Sets output precision.
+    *
+    * Allows changing precision mid-stream (e.g., `std::setprecision(2)`).
+    *
+    * \param setprec Precision manipulator
+    * \return Reference to this object
+    */
    LoggingRowElements&
    operator<<( decltype( std::setprecision( 2 ) )& setprec )
    {
@@ -39,6 +61,12 @@ public:
       return *this;
    }
 
+   /**
+    * \brief Sets number format (fixed or scientific).
+    *
+    * \param setfixed Format manipulator (\ref std::fixed or \ref std::scientific)
+    * \return Reference to this object
+    */
    LoggingRowElements&
    operator<<( decltype( std::fixed )& setfixed )  // the same works also for std::scientific
    {
@@ -46,6 +74,7 @@ public:
       return *this;
    }
 
+   //! \brief Returns the number of elements in the row.
    [[nodiscard]] std::size_t
    size() const noexcept
    {
@@ -95,6 +124,13 @@ protected:
    std::stringstream stream;
 };
 
+/**
+ * \brief Abstract base class for benchmark result loggers.
+ *
+ * Provides common functionality for logging benchmark results to various
+ * outputs (files, terminals, etc.). Supports metadata tracking and
+ * configurable verbosity levels.
+ */
 class Logging
 {
 public:
@@ -103,8 +139,17 @@ public:
 
    using HeaderElements = std::vector< std::string >;
    using RowElements = LoggingRowElements;
-   using WidthHints = std::vector< int >;
 
+   virtual ~Logging() = default;
+
+   /**
+    * \brief Constructs logger with output stream.
+    *
+    * Enables exceptions on the output stream for error detection.
+    *
+    * \param log Output stream (file, cout, etc.)
+    * \param verbose Verbosity level (0=silent, 1=normal, 2=verbose)
+    */
    Logging( std::ostream& log, int verbose = 1 )
    : log( log ),
      verbose( verbose )
@@ -124,18 +169,35 @@ public:
       }
    }
 
+   /**
+    * \brief Sets verbosity level.
+    *
+    * \param verbose Verbosity: 0=silent, 1=normal, 2=verbose
+    */
    void
    setVerbose( int verbose )
    {
       this->verbose = verbose;
    }
 
+   /**
+    * \brief Gets current verbosity level.
+    *
+    * \return Verbosity setting
+    */
    [[nodiscard]] int
    getVerbose() const
    {
       return verbose;
    }
 
+   /**
+    * \brief Sets all metadata columns at once.
+    *
+    * Tracks changes to detect when headers need updating.
+    *
+    * \param elements Vector of key-value metadata pairs
+    */
    virtual void
    setMetadataColumns( const MetadataColumns& elements )
    {
@@ -151,6 +213,15 @@ public:
       metadataColumns = elements;
    }
 
+   /**
+    * \brief Updates or adds a single metadata element.
+    *
+    * If the key already exists, updates its value. Otherwise adds new entry.
+    * Negative insertPosition values count from the end.
+    *
+    * \param element Key-value pair to set
+    * \param insertPosition Insert position (-1=end, -2=second-to-last, etc.)
+    */
    virtual void
    setMetadataElement(
       const typename MetadataColumns::value_type& element,
@@ -173,24 +244,54 @@ public:
       }
    }
 
-   virtual void
-   setMetadataWidths( const std::map< std::string, int >& widths )
+   /**
+    * \brief Copies metadata from another logger instance.
+    *
+    * Used to synchronize state between multiple loggers.
+    *
+    * \param other Source logger to copy from
+    */
+   void
+   syncMetadata( Logging& other )
    {
-      for( const auto& it : widths )
-         if( metadataWidths.count( it.first ) > 0 )
-            metadataWidths[ it.first ] = it.second;
-         else
-            metadataWidths.insert( it );
+      other.metadataColumns = this->metadataColumns;
    }
 
+   /**
+    * \brief Gets current metadata columns.
+    *
+    * \return Reference to metadata vector
+    */
+   [[nodiscard]] const MetadataColumns&
+   getMetadataColumns() const
+   {
+      return metadataColumns;
+   }
+
+   /**
+    * \brief Logs a benchmark result row.
+    *
+    * Must be implemented by derived classes. Called after each measurement.
+    *
+    * \param performer Name of implementation being tested
+    * \param headerElements Column names
+    * \param rowElements Formatted row values
+    * \param errorMessage Optional error description (empty if success)
+    */
    virtual void
    logResult(
       const std::string& performer,
       const HeaderElements& headerElements,
       const RowElements& rowElements,
-      const WidthHints& columnWidthHints,
       const std::string& errorMessage = "" ) = 0;
 
+   /**
+    * \brief Logs an error message.
+    *
+    * Must be implemented by derived classes. Called when benchmark fails.
+    *
+    * \param message Error description
+    */
    virtual void
    writeErrorMessage( const std::string& message ) = 0;
 
@@ -199,7 +300,6 @@ protected:
    int verbose = 0;
 
    MetadataColumns metadataColumns;
-   std::map< std::string, int > metadataWidths;
    bool header_changed = true;
 };
 

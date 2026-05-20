@@ -15,7 +15,7 @@
 
 #include <TNL/Containers/ndarray/Reduce.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -49,7 +49,7 @@ using index_type = int;
 
 template< typename Device >
 void
-benchmark_ndarray_reduction1D( Benchmark<>& benchmark, index_type size )
+benchmark_ndarray_reduction1D( Benchmark& benchmark, index_type size )
 {
    NDArray< index_type, SizesHolder< index_type, 0 >, std::index_sequence< 0 >, Device > input;
 
@@ -65,13 +65,13 @@ benchmark_ndarray_reduction1D( Benchmark<>& benchmark, index_type size )
 
    const double datasetSize = size * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "size", convertToString( size ) } } ) );
+   benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
 void
-benchmark_ndarray_reduction2D( Benchmark<>& benchmark, index_type size, index_type n )
+benchmark_ndarray_reduction2D( Benchmark& benchmark, index_type size, index_type n )
 {
    NDArray< index_type, SizesHolder< index_type, 0, 0 >, Permutation, Device > input;
    NDArray< index_type, SizesHolder< index_type, 0 >, std::index_sequence< 0 >, Devices::Host > result;
@@ -88,7 +88,7 @@ benchmark_ndarray_reduction2D( Benchmark<>& benchmark, index_type size, index_ty
    const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "2D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
            { "permutation", print_sequence( Permutation{} ) },
            { "size", convertToString( size ) },
@@ -98,7 +98,7 @@ benchmark_ndarray_reduction2D( Benchmark<>& benchmark, index_type size, index_ty
 
 template< typename Device, typename Permutation, std::size_t axis >
 void
-benchmark_ndarray_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, index_type n )
+benchmark_ndarray_reduction3D( Benchmark& benchmark, index_type size, index_type m, index_type n )
 {
    NDArray< index_type, SizesHolder< index_type, 0, 0, 0 >, Permutation, Device > input;
    NDArray< index_type, SizesHolder< index_type, 0, 0 >, std::index_sequence< 0, 1 >, Devices::Host > result;
@@ -115,7 +115,7 @@ benchmark_ndarray_reduction3D( Benchmark<>& benchmark, index_type size, index_ty
    const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
            { "permutation", print_sequence( Permutation{} ) },
            { "size", convertToString( size ) },
@@ -126,7 +126,7 @@ benchmark_ndarray_reduction3D( Benchmark<>& benchmark, index_type size, index_ty
 
 template< typename Device, typename Permutation, std::size_t axis >
 void
-benchmark_ndarray_reduction4D( Benchmark<>& benchmark, index_type size, index_type m, index_type n, index_type o )
+benchmark_ndarray_reduction4D( Benchmark& benchmark, index_type size, index_type m, index_type n, index_type o )
 {
    NDArray< index_type, SizesHolder< index_type, 0, 0, 0, 0 >, Permutation, Device > input;
    NDArray< index_type, SizesHolder< index_type, 0, 0, 0 >, std::index_sequence< 0, 1, 2 >, Device > result;
@@ -148,7 +148,7 @@ benchmark_ndarray_reduction4D( Benchmark<>& benchmark, index_type size, index_ty
    const double datasetSize = ( m * n * o * size + m * n * o ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "4D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
            { "permutation", print_sequence( Permutation{} ) },
            { "size", convertToString( size ) },
@@ -160,7 +160,7 @@ benchmark_ndarray_reduction4D( Benchmark<>& benchmark, index_type size, index_ty
 
 template< typename Device, typename Permutation, std::size_t axis >
 void
-benchmark_ndarray_reduction5D( Benchmark<>& benchmark, index_type size, index_type m, index_type n, index_type o, index_type p )
+benchmark_ndarray_reduction5D( Benchmark& benchmark, index_type size, index_type m, index_type n, index_type o, index_type p )
 {
    NDArray< index_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, Permutation, Device > input;
    NDArray< index_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::index_sequence< 0, 1, 2, 3 >, Device > result;
@@ -182,7 +182,7 @@ benchmark_ndarray_reduction5D( Benchmark<>& benchmark, index_type size, index_ty
    const double datasetSize = ( m * n * o * p * size + m * n * o * p ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "5D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
            { "permutation", print_sequence( Permutation{} ) },
            { "size", convertToString( size ) },
@@ -196,7 +196,7 @@ benchmark_ndarray_reduction5D( Benchmark<>& benchmark, index_type size, index_ty
 template< typename Device, typename Permutation, std::size_t axis >
 void
 benchmark_ndarray_reduction6D(
-   Benchmark<>& benchmark,
+   Benchmark& benchmark,
    index_type size,
    index_type m,
    index_type n,
@@ -225,7 +225,7 @@ benchmark_ndarray_reduction6D(
    const double datasetSize = ( m * n * o * p * q * size + m * n * o * p * q ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "6D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
            { "permutation", print_sequence( Permutation{} ) },
            { "size", convertToString( size ) },
@@ -239,7 +239,7 @@ benchmark_ndarray_reduction6D(
 
 template< typename Device >
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    std::vector sizes_23 = { 64, 256, 1024, 4096, 16384 };
 
@@ -376,13 +376,8 @@ run_benchmarks( Benchmark<>& benchmark )
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-ndarray-reduction.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "NDArray benchmark settings:" );
    config.addEntry< String >( "devices", "Run benchmarks on these devices.", "cuda" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
@@ -410,22 +405,10 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
 
    const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
-
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
 
    const String devices = parameters.getParameter< String >( "devices" );
    if( devices == "all" || devices == "host" )

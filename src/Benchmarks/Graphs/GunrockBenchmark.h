@@ -1,10 +1,7 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <vector>
 #ifdef HAVE_GUNROCK
    #include <thrust/device_vector.h>
@@ -48,7 +45,7 @@ struct GunrockBenchmark
    template< typename Graph >
    void
    breadthFirstSearch(
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       Graph& graph,
       Index start,
       Index size,
@@ -71,7 +68,7 @@ struct GunrockBenchmark
    template< typename Graph >
    void
    singleSourceShortestPath(
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       Graph& graph,
       Index start,
       Index size,

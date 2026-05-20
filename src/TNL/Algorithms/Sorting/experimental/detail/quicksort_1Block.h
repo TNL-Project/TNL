@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include "cassert"
+#include <TNL/Assert.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
@@ -12,47 +12,47 @@ namespace TNL::Algorithms::Sorting::experimental::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-template< typename Value, typename Index, typename CMP >
+template< typename Value, typename Index, typename Compare >
 __device__
 void
 externSort(
    Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
    Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
-   const CMP& Cmp,
+   const Compare& compare,
    Value* sharedMem )
 {
-   Sorting::detail::bitonicSort_Block( src, dst, sharedMem, Cmp );
+   Sorting::detail::bitonicSort_Block( src, dst, sharedMem, compare );
 }
 
-template< typename Value, typename Index, typename CMP >
+template< typename Value, typename Index, typename Compare >
 __device__
 void
-externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const CMP& Cmp )
+externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const Compare& compare )
 {
-   Sorting::detail::bitonicSort_Block( src, Cmp );
+   Sorting::detail::bitonicSort_Block( src, compare );
 }
 
-template< int stackSize >
+template< int stackSize, typename Index >
 __device__
 void
 stackPush(
-   int stackArrBegin[],
-   int stackArrEnd[],
+   Index stackArrBegin[],
+   Index stackArrEnd[],
    int stackDepth[],
    int& stackTop,
-   int begin,
-   int pivotBegin,
-   int pivotEnd,
-   int end,
+   Index begin,
+   Index pivotBegin,
+   Index pivotEnd,
+   Index end,
    int iteration );
 
-template< typename Value, typename Index, typename CMP, int stackSize, bool useShared >
+template< typename Value, typename Index, typename Compare, int stackSize, bool useShared >
 __device__
 void
 singleBlockQuickSort(
    Containers::ArrayView< Value, TNL::Devices::Cuda, Index > arr,
    Containers::ArrayView< Value, TNL::Devices::Cuda, Index > aux,
-   const CMP& Cmp,
+   const Compare& compare,
    int _iteration,
    Value* sharedMem,
    int memSize,
@@ -61,12 +61,12 @@ singleBlockQuickSort(
    if( arr.getSize() <= maxBitonicSize ) {
       auto& src = ( _iteration & 1 ) == 0 ? arr : aux;
       if( useShared && arr.getSize() <= memSize )
-         externSort< Value, Index, CMP >( src, arr, Cmp, sharedMem );
+         externSort< Value, Index, Compare >( src, arr, compare, sharedMem );
       else {
-         externSort< Value, Index, CMP >( src, Cmp );
+         externSort< Value, Index, Compare >( src, compare );
          // extern sort without shared memory only works in-place, need to copy into from aux
          if( ( _iteration & 1 ) != 0 )
-            for( int i = threadIdx.x; i < arr.getSize(); i += blockDim.x )
+            for( Index i = threadIdx.x; i < arr.getSize(); i += blockDim.x )
                arr[ i ] = src[ i ];
       }
 
@@ -74,14 +74,14 @@ singleBlockQuickSort(
    }
 
    static __shared__ int stackTop;
-   static __shared__ int stackArrBegin[ stackSize ];
-   static __shared__ int stackArrEnd[ stackSize ];
+   static __shared__ Index stackArrBegin[ stackSize ];
+   static __shared__ Index stackArrEnd[ stackSize ];
    static __shared__ int stackDepth[ stackSize ];
-   static __shared__ int begin;
-   static __shared__ int end;
+   static __shared__ Index begin;
+   static __shared__ Index end;
    static __shared__ int iteration;
-   static __shared__ int pivotBegin;
-   static __shared__ int pivotEnd;
+   static __shared__ Index pivotBegin;
+   static __shared__ Index pivotEnd;
    Value* piv = sharedMem;
    sharedMem += 1;
 
@@ -104,18 +104,18 @@ singleBlockQuickSort(
       }
       __syncthreads();
 
-      int size = end - begin;
+      Index size = end - begin;
       auto& src = ( iteration & 1 ) == 0 ? arr : aux;
 
-      // small enough for for bitonic
+      // small enough for bitonic sort
       if( size <= maxBitonicSize ) {
          if( useShared && size <= memSize )
-            externSort< Value, Index, CMP >( src.getView( begin, end ), arr.getView( begin, end ), Cmp, sharedMem );
+            externSort< Value, Index, Compare >( src.getView( begin, end ), arr.getView( begin, end ), compare, sharedMem );
          else {
-            externSort< Value, Index, CMP >( src.getView( begin, end ), Cmp );
+            externSort< Value, Index, Compare >( src.getView( begin, end ), compare );
             // extern sort without shared memory only works in-place, need to copy into from aux
             if( ( iteration & 1 ) != 0 )
-               for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x )
+               for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x )
                   arr[ begin + i ] = src[ i ];
          }
          __syncthreads();
@@ -123,13 +123,13 @@ singleBlockQuickSort(
       }
 
       if( threadIdx.x == 0 )
-         *piv = pickPivot( src.getView( begin, end ), Cmp );
+         *piv = pickPivot( src.getView( begin, end ), compare );
       __syncthreads();
       Value& pivot = *piv;
 
       int smaller = 0;
       int bigger = 0;
-      countElem( src.getView( begin, end ), Cmp, smaller, bigger, pivot );
+      countElements( src.getView( begin, end ), compare, smaller, bigger, pivot );
 
       // synchronization is in this function already
       using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
@@ -139,13 +139,13 @@ singleBlockQuickSort(
 
       if( threadIdx.x == blockDim.x - 1 )  // has sum of all smaller and greater elements than pivot in src
       {
-         pivotBegin = 0 + smallerPrefSumInc;
-         pivotEnd = size - biggerPrefSumInc;
+         pivotBegin = static_cast< Index >( smallerPrefSumInc );
+         pivotEnd = size - static_cast< Index >( biggerPrefSumInc );
       }
       __syncthreads();
 
       /**
-       * move elements, either use shared mem for coalesced access or without shared mem if data is too big
+       * move elements, either use shared memory for coalesced access or without shared memory if data is too big
        * */
 
       auto& dst = ( iteration & 1 ) == 0 ? aux : arr;
@@ -162,9 +162,9 @@ singleBlockQuickSort(
          copyDataShared(
             src.getView( begin, end ),
             dst.getView( begin, end ),
-            Cmp,
+            compare,
             sharedMem,
-            0,
+            static_cast< Index >( 0 ),
             pivotEnd,
             smallerTotal,
             biggerTotal,
@@ -173,47 +173,47 @@ singleBlockQuickSort(
             pivot );
       }
       else {
-         int destSmaller = 0 + ( smallerPrefSumInc - smaller );
-         int destBigger = pivotEnd + ( biggerPrefSumInc - bigger );
+         Index destSmaller = static_cast< Index >( smallerPrefSumInc - smaller );
+         Index destBigger = pivotEnd + static_cast< Index >( biggerPrefSumInc - bigger );
 
-         copyData( src.getView( begin, end ), dst.getView( begin, end ), Cmp, destSmaller, destBigger, pivot );
+         copyData( src.getView( begin, end ), dst.getView( begin, end ), compare, destSmaller, destBigger, pivot );
       }
 
       __syncthreads();
 
-      for( int i = pivotBegin + threadIdx.x; i < pivotEnd; i += blockDim.x )
+      for( Index i = pivotBegin + threadIdx.x; i < pivotEnd; i += blockDim.x )
          arr[ begin + i ] = pivot;
 
       // creates new tasks
       if( threadIdx.x == 0 ) {
-         stackPush< stackSize >(
+         stackPush< stackSize, Index >(
             stackArrBegin, stackArrEnd, stackDepth, stackTop, begin, begin + pivotBegin, begin + pivotEnd, end, iteration );
       }
       __syncthreads();  // sync to update stackTop
    }  // ends while loop
 }
 
-template< int stackSize >
+template< int stackSize, typename Index >
 __device__
 void
 stackPush(
-   int stackArrBegin[],
-   int stackArrEnd[],
+   Index stackArrBegin[],
+   Index stackArrEnd[],
    int stackDepth[],
    int& stackTop,
-   int begin,
-   int pivotBegin,
-   int pivotEnd,
-   int end,
+   Index begin,
+   Index pivotBegin,
+   Index pivotEnd,
+   Index end,
    int iteration )
 {
-   int sizeL = pivotBegin - begin;
-   int sizeR = end - pivotEnd;
+   Index sizeL = pivotBegin - begin;
+   Index sizeR = end - pivotEnd;
 
    // push the bigger one 1st and then smaller one 2nd
    // in next iteration, the smaller part will be handled 1st
    if( sizeL > sizeR ) {
-      if( sizeL > 0 )  // left from pivot are smaller elems
+      if( sizeL > 0 )  // left from pivot are smaller elements
       {
          stackArrBegin[ stackTop ] = begin;
          stackArrEnd[ stackTop ] = pivotBegin;
@@ -221,9 +221,9 @@ stackPush(
          stackTop++;
       }
 
-      if( sizeR > 0 )  // right from pivot until end are elem greater than pivot
+      if( sizeR > 0 )  // right from pivot until end are elements greater than pivot
       {
-         assert( stackTop < stackSize && "Local quicksort stack overflow." );
+         TNL_ASSERT_LT( stackTop, stackSize, "Local quicksort stack overflow." );
 
          stackArrBegin[ stackTop ] = pivotEnd;
          stackArrEnd[ stackTop ] = end;
@@ -232,7 +232,7 @@ stackPush(
       }
    }
    else {
-      if( sizeR > 0 )  // right from pivot until end are elem greater than pivot
+      if( sizeR > 0 )  // right from pivot until end are elements greater than pivot
       {
          stackArrBegin[ stackTop ] = pivotEnd;
          stackArrEnd[ stackTop ] = end;
@@ -240,9 +240,9 @@ stackPush(
          stackTop++;
       }
 
-      if( sizeL > 0 )  // left from pivot are smaller elems
+      if( sizeL > 0 )  // left from pivot are smaller elements
       {
-         assert( stackTop < stackSize && "Local quicksort stack overflow." );
+         TNL_ASSERT_LT( stackTop, stackSize, "Local quicksort stack overflow." );
 
          stackArrBegin[ stackTop ] = begin;
          stackArrEnd[ stackTop ] = pivotBegin;

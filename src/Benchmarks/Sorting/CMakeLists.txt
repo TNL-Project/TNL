@@ -1,19 +1,16 @@
-if(DEFINED CUDA_SAMPLES_DIR)
-    set(CUDA_SAMPLES_FLAGS "-I${CUDA_SAMPLES_DIR} -DHAVE_CUDA_SAMPLES")
-    message("   CUDA_SAMPLES_FLAGS = ${CUDA_SAMPLES_FLAGS}")
-else()
-    message(
-        WARNING
-        "The CUDA_SAMPLES_DIR variable was not set, the sorting benchmark will be built without some reference algorithms."
-    )
-endif()
-
 if(TNL_BUILD_CUDA)
     add_executable(tnl-benchmark-sort-cuda tnl-benchmark-sort.cu)
     target_link_libraries(tnl-benchmark-sort-cuda PUBLIC TNL::TNL)
-    target_compile_options(tnl-benchmark-sort-cuda PRIVATE ${CUDA_SAMPLES_FLAGS})
-    find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(tnl-benchmark-sort-cuda PUBLIC CUDA::cusparse)
+
+    # Add include directories from CUDA samples for reference algorithms
+    if(CUDA_SAMPLES_FOUND)
+        target_include_directories(tnl-benchmark-sort-cuda SYSTEM PRIVATE ${CUDA_SAMPLES_INCLUDE_DIRS})
+        target_compile_definitions(tnl-benchmark-sort-cuda PRIVATE HAVE_CUDA_SAMPLES)
+    endif()
+
+    find_package(CCCL REQUIRED)
+    target_link_libraries(tnl-benchmark-sort-cuda PUBLIC CCCL::CCCL)
+
     install(TARGETS tnl-benchmark-sort-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 

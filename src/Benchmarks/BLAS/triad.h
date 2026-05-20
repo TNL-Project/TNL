@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Allocators/CudaHost.h>
@@ -15,7 +15,7 @@ namespace TNL::Benchmarks {
 
 template< typename Real = double, typename Index = int >
 void
-benchmarkTriad( Benchmark<>& benchmark, const long& size )
+benchmarkTriad( Benchmark& benchmark, const long& size )
 {
    using HostAllocator = Allocators::Host< Real >;
 #if defined( __HIP__ )
