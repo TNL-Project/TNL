@@ -5,6 +5,7 @@
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Atomic.h>
 #include "QuicksortTask.h"
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
@@ -45,7 +46,7 @@ pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare
 
 template< typename Value, typename Index, typename Device, typename Compare >
 __device__
-int
+Index
 pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare& compare )
 {
    if( src.getSize() <= 1 )
@@ -85,7 +86,7 @@ countElements(
    int& bigger,
    const Value& pivot )
 {
-   for( int i = threadIdx.x; i < arr.getSize(); i += blockDim.x ) {
+   for( Index i = threadIdx.x; i < arr.getSize(); i += blockDim.x ) {
       const Value& data = arr[ i ];
       if( compare( data, pivot ) )
          smaller++;
@@ -102,15 +103,15 @@ copyDataShared(
    Containers::ArrayView< Value, Devices::Cuda, Index > dst,
    const Compare& compare,
    Value* sharedMem,
-   int smallerStart,
-   int biggerStart,
+   typename QuicksortTask< Index >::Offset smallerStart,
+   typename QuicksortTask< Index >::Offset biggerStart,
    int smallerTotal,
    int biggerTotal,
    int smallerOffset,
    int biggerOffset,  // exclusive prefix sum of elements
    const Value& pivot )
 {
-   for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
+   for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
       const Value& data = src[ i ];
       if( compare( data, pivot ) )
          sharedMem[ smallerOffset++ ] = data;
@@ -134,11 +135,11 @@ copyData(
    Containers::ArrayView< Value, Devices::Cuda, Index > src,
    Containers::ArrayView< Value, Devices::Cuda, Index > dst,
    const Compare& compare,
-   int smallerStart,
-   int biggerStart,
+   typename QuicksortTask< Index >::Offset smallerStart,
+   typename QuicksortTask< Index >::Offset biggerStart,
    const Value& pivot )
 {
-   for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
+   for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
       const Value& data = src[ i ];
       if( compare( data, pivot ) )
          dst[ smallerStart++ ] = data;
@@ -157,13 +158,15 @@ cudaPartition(
    Value* sharedMem,
    const Value& pivot,
    int elementsPerBlock,
-   QuicksortTask& task )
+   QuicksortTask< Index >& task )
 {
-   static __shared__ int smallerStart;
-   static __shared__ int biggerStart;
+   using Offset = typename QuicksortTask< Index >::Offset;
 
-   int myBegin = elementsPerBlock * ( blockIdx.x - task.firstBlock );
-   int myEnd = TNL::min( myBegin + elementsPerBlock, src.getSize() );
+   static __shared__ Offset smallerStart;
+   static __shared__ Offset biggerStart;
+
+   Index myBegin = static_cast< Index >( elementsPerBlock ) * ( blockIdx.x - task.firstBlock );
+   Index myEnd = TNL::min( myBegin + elementsPerBlock, src.getSize() );
 
    auto srcView = src.getView( myBegin, myEnd );
 
@@ -179,8 +182,9 @@ cudaPartition(
 
    if( threadIdx.x == blockDim.x - 1 )  // last thread in block has sum of all values
    {
-      smallerStart = atomicAdd( &( task.dstBegin ), smallerPrefSumInc );
-      biggerStart = atomicAdd( &( task.dstEnd ), -biggerPrefSumInc ) - biggerPrefSumInc;
+      smallerStart = atomicAdd( &( task.dstBegin ), static_cast< Offset >( smallerPrefSumInc ) );
+      biggerStart =
+         atomicAdd( &( task.dstEnd ), -static_cast< Offset >( biggerPrefSumInc ) ) - static_cast< Offset >( biggerPrefSumInc );
    }
    __syncthreads();
 
@@ -207,8 +211,8 @@ cudaPartition(
          pivot );
    }
    else {
-      int destSmaller = smallerStart + smallerPrefSumInc - smaller;
-      int destBigger = biggerStart + biggerPrefSumInc - bigger;
+      Offset destSmaller = smallerStart + static_cast< Offset >( smallerPrefSumInc - smaller );
+      Offset destBigger = biggerStart + static_cast< Offset >( biggerPrefSumInc - bigger );
       copyData( srcView, dst, compare, destSmaller, destBigger, pivot );
    }
 }

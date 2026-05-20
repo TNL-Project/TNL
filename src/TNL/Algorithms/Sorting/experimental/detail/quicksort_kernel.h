@@ -17,11 +17,11 @@ void
 writeNewTask(
    Index begin,
    Index end,
-   Index iteration,
+   int iteration,
    Index maxElementsForSecondPhase,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > newTasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > newTasks,
    int* newTasksCnt,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > secondPhaseTasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > secondPhaseTasks,
    int* secondPhaseTasksCnt );
 
 //-----------------------------------------------------------
@@ -30,7 +30,7 @@ template< typename Value, typename Index, typename Compare >
 __global__
 void
 cudaInitTask(
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > cuda_tasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > cuda_tasks,
    Containers::ArrayView< int, Devices::Cuda > cuda_blockToTaskMapping,
    Containers::ArrayView< int, Devices::Cuda > cuda_reductionTaskInitMem,
    Containers::ArrayView< Value, Devices::Cuda, Index > src,
@@ -46,8 +46,8 @@ cudaInitTask(
       cuda_blockToTaskMapping[ i ] = blockIdx.x;
 
    if( threadIdx.x == 0 ) {
-      QuicksortTask& task = cuda_tasks[ blockIdx.x ];
-      int pivotIdx = task.partitionBegin + pickPivotIdx( src.getView( task.partitionBegin, task.partitionEnd ), compare );
+      QuicksortTask< Index >& task = cuda_tasks[ blockIdx.x ];
+      Index pivotIdx = task.partitionBegin + pickPivotIdx( src.getView( task.partitionBegin, task.partitionEnd ), compare );
       task.init( start, end - start, pivotIdx );
    }
 #endif
@@ -61,7 +61,7 @@ cudaQuickSortFirstPhase(
    Containers::ArrayView< Value, Devices::Cuda, Index > aux,
    const Compare& compare,
    int elementsPerBlock,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > tasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > tasks,
    Containers::ArrayView< int, Devices::Cuda > taskMapping )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -69,7 +69,7 @@ cudaQuickSortFirstPhase(
    Value* piv = (Value*) externMem;
    Value* sharedMem = piv + 1;
 
-   QuicksortTask& myTask = tasks[ taskMapping[ blockIdx.x ] ];
+   QuicksortTask< Index >& myTask = tasks[ taskMapping[ blockIdx.x ] ];
    auto& src = ( myTask.iteration & 1 ) == 0 ? arr : aux;
    auto& dst = ( myTask.iteration & 1 ) == 0 ? aux : arr;
 
@@ -95,30 +95,30 @@ void
 cudaWritePivot(
    Containers::ArrayView< Value, Devices::Cuda, Index > arr,
    Containers::ArrayView< Value, Devices::Cuda, Index > aux,
-   int maxElementsForSecondPhase,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > tasks,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > newTasks,
+   Index maxElementsForSecondPhase,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > tasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > newTasks,
    int* newTasksCnt,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > secondPhaseTasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > secondPhaseTasks,
    int* secondPhaseTasksCnt )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
    Value* piv = (Value*) externMem;
 
-   QuicksortTask& myTask = tasks[ blockIdx.x ];
+   QuicksortTask< Index >& myTask = tasks[ blockIdx.x ];
 
    if( threadIdx.x == 0 )
       *piv = ( myTask.iteration & 1 ) == 0 ? arr[ myTask.pivotIdx ] : aux[ myTask.pivotIdx ];
    __syncthreads();
    Value& pivot = *piv;
 
-   int leftBegin = myTask.partitionBegin;
-   int leftEnd = myTask.partitionBegin + myTask.dstBegin;
-   int rightBegin = myTask.partitionBegin + myTask.dstEnd;
-   int rightEnd = myTask.partitionEnd;
+   Index leftBegin = myTask.partitionBegin;
+   Index leftEnd = myTask.partitionBegin + static_cast< Index >( myTask.dstBegin );
+   Index rightBegin = myTask.partitionBegin + static_cast< Index >( myTask.dstEnd );
+   Index rightEnd = myTask.partitionEnd;
 
-   for( int i = leftEnd + threadIdx.x; i < rightBegin; i += blockDim.x )
+   for( Index i = leftEnd + threadIdx.x; i < rightBegin; i += blockDim.x )
       arr[ i ] = pivot;
 
    if( threadIdx.x != 0 )
@@ -156,15 +156,15 @@ void
 writeNewTask(
    Index begin,
    Index end,
-   Index iteration,
+   int iteration,
    Index maxElementsForSecondPhase,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > newTasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > newTasks,
    int* newTasksCnt,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > secondPhaseTasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > secondPhaseTasks,
    int* secondPhaseTasksCnt )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   int size = end - begin;
+   Index size = end - begin;
    TNL_ASSERT_GE( size, 0, "negative size in writeNewTask" );
 
    if( size == 0 )
@@ -173,21 +173,21 @@ writeNewTask(
    if( size <= maxElementsForSecondPhase ) {
       int idx = atomicAdd( secondPhaseTasksCnt, 1 );
       if( idx < secondPhaseTasks.getSize() )
-         secondPhaseTasks[ idx ] = QuicksortTask( begin, end, iteration + 1 );
+         secondPhaseTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
       else {
          int idx = atomicAdd( newTasksCnt, 1 );
          TNL_ASSERT_LT( idx, newTasks.getSize(), "task memory exhausted in writeNewTask" );
-         newTasks[ idx ] = QuicksortTask( begin, end, iteration + 1 );
+         newTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
       }
    }
    else {
       int idx = atomicAdd( newTasksCnt, 1 );
       if( idx < newTasks.getSize() )
-         newTasks[ idx ] = QuicksortTask( begin, end, iteration + 1 );
+         newTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
       else {
          int idx = atomicAdd( secondPhaseTasksCnt, 1 );
          TNL_ASSERT_LT( idx, secondPhaseTasks.getSize(), "task memory exhausted in writeNewTask" );
-         secondPhaseTasks[ idx ] = QuicksortTask( begin, end, iteration + 1 );
+         secondPhaseTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
       }
    }
 #endif
@@ -200,7 +200,7 @@ cudaQuickSortSecondPhase(
    Containers::ArrayView< Value, Devices::Cuda, Index > arr,
    Containers::ArrayView< Value, Devices::Cuda, Index > aux,
    Compare compare,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > secondPhaseTasks,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > secondPhaseTasks,
    int elementsInShared,
    int maxBitonicSize )
 {
@@ -208,7 +208,7 @@ cudaQuickSortSecondPhase(
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 
-   QuicksortTask& myTask = secondPhaseTasks[ blockIdx.x ];
+   QuicksortTask< Index >& myTask = secondPhaseTasks[ blockIdx.x ];
    if( myTask.getSize() <= 0 )
       return;
 
@@ -233,8 +233,8 @@ cudaQuickSortSecondPhase2(
    Containers::ArrayView< Value, Devices::Cuda, Index > arr,
    Containers::ArrayView< Value, Devices::Cuda, Index > aux,
    Compare compare,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > secondPhaseTasks1,
-   Containers::ArrayView< QuicksortTask, Devices::Cuda > secondPhaseTasks2,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > secondPhaseTasks1,
+   Containers::ArrayView< QuicksortTask< Index >, Devices::Cuda > secondPhaseTasks2,
    int elementsInShared,
    int maxBitonicSize )
 {
@@ -242,7 +242,7 @@ cudaQuickSortSecondPhase2(
    extern __shared__ int externMem[];
    Value* sharedMem = (Value*) externMem;
 
-   QuicksortTask myTask;
+   QuicksortTask< Index > myTask;
    if( blockIdx.x < secondPhaseTasks1.getSize() )
       myTask = secondPhaseTasks1[ blockIdx.x ];
    else

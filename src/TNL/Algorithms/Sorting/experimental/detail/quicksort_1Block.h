@@ -32,18 +32,18 @@ externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const
    Sorting::detail::bitonicSort_Block( src, compare );
 }
 
-template< int stackSize >
+template< int stackSize, typename Index >
 __device__
 void
 stackPush(
-   int stackArrBegin[],
-   int stackArrEnd[],
+   Index stackArrBegin[],
+   Index stackArrEnd[],
    int stackDepth[],
    int& stackTop,
-   int begin,
-   int pivotBegin,
-   int pivotEnd,
-   int end,
+   Index begin,
+   Index pivotBegin,
+   Index pivotEnd,
+   Index end,
    int iteration );
 
 template< typename Value, typename Index, typename Compare, int stackSize, bool useShared >
@@ -66,7 +66,7 @@ singleBlockQuickSort(
          externSort< Value, Index, Compare >( src, compare );
          // extern sort without shared memory only works in-place, need to copy into from aux
          if( ( _iteration & 1 ) != 0 )
-            for( int i = threadIdx.x; i < arr.getSize(); i += blockDim.x )
+            for( Index i = threadIdx.x; i < arr.getSize(); i += blockDim.x )
                arr[ i ] = src[ i ];
       }
 
@@ -74,14 +74,14 @@ singleBlockQuickSort(
    }
 
    static __shared__ int stackTop;
-   static __shared__ int stackArrBegin[ stackSize ];
-   static __shared__ int stackArrEnd[ stackSize ];
+   static __shared__ Index stackArrBegin[ stackSize ];
+   static __shared__ Index stackArrEnd[ stackSize ];
    static __shared__ int stackDepth[ stackSize ];
-   static __shared__ int begin;
-   static __shared__ int end;
+   static __shared__ Index begin;
+   static __shared__ Index end;
    static __shared__ int iteration;
-   static __shared__ int pivotBegin;
-   static __shared__ int pivotEnd;
+   static __shared__ Index pivotBegin;
+   static __shared__ Index pivotEnd;
    Value* piv = sharedMem;
    sharedMem += 1;
 
@@ -104,7 +104,7 @@ singleBlockQuickSort(
       }
       __syncthreads();
 
-      int size = end - begin;
+      Index size = end - begin;
       auto& src = ( iteration & 1 ) == 0 ? arr : aux;
 
       // small enough for bitonic sort
@@ -115,7 +115,7 @@ singleBlockQuickSort(
             externSort< Value, Index, Compare >( src.getView( begin, end ), compare );
             // extern sort without shared memory only works in-place, need to copy into from aux
             if( ( iteration & 1 ) != 0 )
-               for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x )
+               for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x )
                   arr[ begin + i ] = src[ i ];
          }
          __syncthreads();
@@ -139,8 +139,8 @@ singleBlockQuickSort(
 
       if( threadIdx.x == blockDim.x - 1 )  // has sum of all smaller and greater elements than pivot in src
       {
-         pivotBegin = 0 + smallerPrefSumInc;
-         pivotEnd = size - biggerPrefSumInc;
+         pivotBegin = static_cast< Index >( smallerPrefSumInc );
+         pivotEnd = size - static_cast< Index >( biggerPrefSumInc );
       }
       __syncthreads();
 
@@ -164,7 +164,7 @@ singleBlockQuickSort(
             dst.getView( begin, end ),
             compare,
             sharedMem,
-            0,
+            static_cast< Index >( 0 ),
             pivotEnd,
             smallerTotal,
             biggerTotal,
@@ -173,42 +173,42 @@ singleBlockQuickSort(
             pivot );
       }
       else {
-         int destSmaller = 0 + ( smallerPrefSumInc - smaller );
-         int destBigger = pivotEnd + ( biggerPrefSumInc - bigger );
+         Index destSmaller = static_cast< Index >( smallerPrefSumInc - smaller );
+         Index destBigger = pivotEnd + static_cast< Index >( biggerPrefSumInc - bigger );
 
          copyData( src.getView( begin, end ), dst.getView( begin, end ), compare, destSmaller, destBigger, pivot );
       }
 
       __syncthreads();
 
-      for( int i = pivotBegin + threadIdx.x; i < pivotEnd; i += blockDim.x )
+      for( Index i = pivotBegin + threadIdx.x; i < pivotEnd; i += blockDim.x )
          arr[ begin + i ] = pivot;
 
       // creates new tasks
       if( threadIdx.x == 0 ) {
-         stackPush< stackSize >(
+         stackPush< stackSize, Index >(
             stackArrBegin, stackArrEnd, stackDepth, stackTop, begin, begin + pivotBegin, begin + pivotEnd, end, iteration );
       }
       __syncthreads();  // sync to update stackTop
    }  // ends while loop
 }
 
-template< int stackSize >
+template< int stackSize, typename Index >
 __device__
 void
 stackPush(
-   int stackArrBegin[],
-   int stackArrEnd[],
+   Index stackArrBegin[],
+   Index stackArrEnd[],
    int stackDepth[],
    int& stackTop,
-   int begin,
-   int pivotBegin,
-   int pivotEnd,
-   int end,
+   Index begin,
+   Index pivotBegin,
+   Index pivotEnd,
+   Index end,
    int iteration )
 {
-   int sizeL = pivotBegin - begin;
-   int sizeR = end - pivotEnd;
+   Index sizeL = pivotBegin - begin;
+   Index sizeR = end - pivotEnd;
 
    // push the bigger one 1st and then smaller one 2nd
    // in next iteration, the smaller part will be handled 1st
