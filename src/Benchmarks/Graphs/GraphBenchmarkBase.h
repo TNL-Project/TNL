@@ -16,6 +16,9 @@
 #include <TNL/Algorithms/Segments/BiEllpack.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 #include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
+#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/Hip.h>
+#include <TNL/Devices/Host.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include <type_traits>
@@ -89,7 +92,7 @@ public:
    {
       Benchmark::configSetup( config );
       config.addDelimiter( "Graph benchmark settings:" );
-      config.addEntry< TNL::String >( "input-file", "Input file with the graph." );
+      config.addRequiredEntry< TNL::String >( "input-file", "Input file with the graph." );
 #ifdef WITH_SORTED_SEGMENTS
       config.addEntry< bool >( "with-sorted-segments", "Run benchmark with sorted segments.", true );
 #endif
@@ -98,9 +101,14 @@ public:
       config.addEntryEnum< TNL::String >( "all" );
       config.addEntryEnum< TNL::String >( "host" );
       config.addEntryEnum< TNL::String >( "sequential" );
+#if defined( __HIP__ )
+      config.addEntryEnum< TNL::String >( "hip" );
+      TNL::Devices::Hip::configSetup( config );
+#else
       config.addEntryEnum< TNL::String >( "cuda" );
-      TNL::Devices::Host::configSetup( config );
       TNL::Devices::Cuda::configSetup( config );
+#endif
+      TNL::Devices::Host::configSetup( config );
    }
 
    GraphBenchmarkBase( const TNL::Config::ParameterContainer& parameters_ )
@@ -237,6 +245,54 @@ public:
    #endif  // WITH_SORTED_SEGMENTS
       }
 #endif  // __CUDACC__
+
+#ifdef __HIP__
+      if( device == "hip" || device == "all" ) {
+         runTNLBenchmarks< TNL::Devices::Hip, CSRSegments >( digraph, graph, smallest, largest, benchmark, "hip" );
+         runTNLBenchmarks< TNL::Devices::Hip, EllpackSegments >( digraph, graph, smallest, largest, benchmark, "hip" );
+
+   #ifdef WITH_ROW_MAJOR_SLICED_ELLPACK
+         runTNLBenchmarks< TNL::Devices::Hip, RowMajorSlicedEllpackSegments< 2 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "hip" );
+         runTNLBenchmarks< TNL::Devices::Hip, RowMajorSlicedEllpackSegments< 8 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "hip" );
+         runTNLBenchmarks< TNL::Devices::Hip, RowMajorSlicedEllpackSegments< 32 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "hip" );
+   #endif
+
+         runTNLBenchmarks< TNL::Devices::Hip, ColumnMajorSlicedEllpackSegments< 2 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "hip" );
+         runTNLBenchmarks< TNL::Devices::Hip, ColumnMajorSlicedEllpackSegments< 8 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "hip" );
+         runTNLBenchmarks< TNL::Devices::Hip, ColumnMajorSlicedEllpackSegments< 32 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "hip" );
+
+         runTNLBenchmarks< TNL::Devices::Hip, BiEllpackSegments >( digraph, graph, smallest, largest, benchmark, "hip" );
+         runTNLBenchmarks< TNL::Devices::Hip, ChunkedEllpackSegments >( digraph, graph, smallest, largest, benchmark, "hip" );
+
+   #ifdef WITH_SORTED_SEGMENTS
+         if( withSortedSegments ) {
+            runTNLBenchmarks< TNL::Devices::Hip, SortedCSRSegments >( digraph, graph, smallest, largest, benchmark, "hip" );
+
+      #ifdef WITH_ROW_MAJOR_SLICED_ELLPACK
+            runTNLBenchmarks< TNL::Devices::Hip, SortedRowMajorSlicedEllpackSegments< 2 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "hip" );
+            runTNLBenchmarks< TNL::Devices::Hip, SortedRowMajorSlicedEllpackSegments< 8 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "hip" );
+            runTNLBenchmarks< TNL::Devices::Hip, SortedRowMajorSlicedEllpackSegments< 32 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "hip" );
+      #endif
+
+            runTNLBenchmarks< TNL::Devices::Hip, SortedColumnMajorSlicedEllpackSegments< 2 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "hip" );
+            runTNLBenchmarks< TNL::Devices::Hip, SortedColumnMajorSlicedEllpackSegments< 8 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "hip" );
+            runTNLBenchmarks< TNL::Devices::Hip, SortedColumnMajorSlicedEllpackSegments< 32 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "hip" );
+         }
+   #endif
+      }
+#endif  // __HIP__
 
       if( errors == 0 )
          return true;
