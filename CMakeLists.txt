@@ -281,6 +281,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 if(PROJECT_IS_TOP_LEVEL)
     # Print custom build options
     message("-- Build options:")
+    message("   CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
     message("   TNL_USE_CUDA = ${TNL_USE_CUDA}")
     message("   CMAKE_CUDA_ARCHITECTURES = ${CMAKE_CUDA_ARCHITECTURES}")
     message("   TNL_USE_HIP = ${TNL_USE_HIP}")
