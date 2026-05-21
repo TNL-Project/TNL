@@ -4,7 +4,7 @@
 #include <TNL/Algorithms/fillRandom.h>
 #include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/MatrixReader.h>
@@ -14,14 +14,11 @@
 
 template< typename Real, typename Index >
 void
-benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters, const std::string& programName = "" )
+benchmarkDenseLinearSolvers( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
    using HostMatrixType = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >;
    using HostVectorType = TNL::Containers::Vector< Real, TNL::Devices::Host, Index >;
    using HostMatrixPointer = std::shared_ptr< HostMatrixType >;
-
-   TNL::Benchmarks::Benchmark benchmark;
-   benchmark.setup( parameters, programName );
 
    benchmark.getMonitor().setRefreshRate( 1000 );  // refresh rate in milliseconds
    benchmark.getMonitor().setStage( "GEM elimination stage:" );
@@ -43,80 +40,81 @@ benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters, const 
    HostVectorType host_x( matrixSize, 1 );
    input_matrix.vectorProduct( host_x, host_b );
 
-   // Benchmark GEM on CPU
-   HostMatrixPointer host_matrix = std::make_shared< HostMatrixType >( input_matrix );
-   TNL::Solvers::Linear::GEM< HostMatrixType > host_gem;
-   host_gem.setMatrix( host_matrix );
-   host_gem.setPivoting( parameters.getParameter< TNL::String >( "pivoting" ) == "yes" );
-   host_gem.setSolverMonitor( benchmark.getMonitor() );
+   const auto& device = parameters.getParameter< std::string >( "device" );
 
-   // reset function
-   auto reset_host = [ & ]()
-   {
-      host_x = 0;
-      *host_matrix = input_matrix;  // Reset the matrix to the original state
-   };
+   if( device == "host" || device == "all" ) {
+      // Benchmark GEM on CPU
+      HostMatrixPointer host_matrix = std::make_shared< HostMatrixType >( input_matrix );
+      TNL::Solvers::Linear::GEM< HostMatrixType > host_gem;
+      host_gem.setMatrix( host_matrix );
+      host_gem.setPivoting( parameters.getParameter< bool >( "pivoting" ) );
+      host_gem.setSolverMonitor( benchmark.getMonitor() );
 
-   // benchmark function
-   auto compute_host = [ & ]()
-   {
-      const bool converged = host_gem.solve( host_b, host_x );
-      if( ! converged )
-         throw std::runtime_error( "CPU solver did not converge" );
-   };
-   benchmark.time< TNL::Devices::Host >( reset_host, "CPU", compute_host );
-   if( max( host_x - 1 ) > 1e-5 )
-      std::cout << "Warning: the result of the CPU solver is not equal to the expected result: " << max( host_x - 1 ) << '\n';
+      // reset function
+      auto reset_host = [ & ]()
+      {
+         host_x = 0;
+         *host_matrix = input_matrix;  // Reset the matrix to the original state
+      };
 
-#ifdef __CUDACC__
-   using CudaMatrixType = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda, Index >;
-   using CudaVectorType = TNL::Containers::Vector< Real, TNL::Devices::Cuda, Index >;
-   using CudaMatrixPointer = std::shared_ptr< CudaMatrixType >;
+      // benchmark function
+      auto compute_host = [ & ]()
+      {
+         const bool converged = host_gem.solve( host_b, host_x );
+         if( ! converged )
+            throw std::runtime_error( "CPU solver did not converge" );
+      };
+      benchmark.time< TNL::Devices::Host >( reset_host, "CPU", compute_host );
+      if( max( host_x - 1 ) > 1e-5 )
+         std::cout << "Warning: the result of the CPU solver is not equal to the expected result: " << max( host_x - 1 )
+                   << '\n';
+   }
 
-   CudaMatrixPointer cuda_matrix = std::make_shared< CudaMatrixType >();
-   *cuda_matrix = input_matrix;
-   CudaVectorType cuda_b( host_b );
-   CudaVectorType cuda_x( matrixSize, 0 );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( device == "cuda" || device == "hip" || device == "all" ) {
+      using GPUMatrixType = TNL::Matrices::DenseMatrix< Real, TNL::Devices::GPU, Index >;
+      using GPUVectorType = TNL::Containers::Vector< Real, TNL::Devices::GPU, Index >;
+      using GPUMatrixPointer = std::shared_ptr< GPUMatrixType >;
 
-   TNL::Solvers::Linear::GEM< CudaMatrixType > cuda_gem;
-   cuda_gem.setMatrix( cuda_matrix );
-   cuda_gem.setPivoting( parameters.getParameter< TNL::String >( "pivoting" ) == "yes" );
-   cuda_gem.setSolverMonitor( benchmark.getMonitor() );
+      GPUMatrixPointer gpu_matrix = std::make_shared< GPUMatrixType >();
+      *gpu_matrix = input_matrix;
+      GPUVectorType gpu_b( host_b );
+      GPUVectorType gpu_x( matrixSize, 0 );
 
-   // reset function
-   auto reset_cuda = [ & ]()
-   {
-      cuda_x = 0;
-      *cuda_matrix = input_matrix;  // Reset the matrix to the original state
-   };
+      TNL::Solvers::Linear::GEM< GPUMatrixType > gpu_gem;
+      gpu_gem.setMatrix( gpu_matrix );
+      gpu_gem.setPivoting( parameters.getParameter< bool >( "pivoting" ) );
+      gpu_gem.setSolverMonitor( benchmark.getMonitor() );
 
-   // benchmark function
-   auto compute_cuda = [ & ]()
-   {
-      const bool converged = cuda_gem.solve( cuda_b, cuda_x );
-      if( ! converged )
-         throw std::runtime_error( "CUDA solver did not converge" );
-   };
-   benchmark.time< TNL::Devices::Cuda >( reset_cuda, "GPU", compute_cuda );
+      // reset function
+      auto reset_gpu = [ & ]()
+      {
+         gpu_x = 0;
+         *gpu_matrix = input_matrix;  // Reset the matrix to the original state
+      };
 
-   // Benchmark CuSolverWrapper on GPU
-   TNL::Solvers::Linear::CuSolverWrapper< CudaMatrixType > cuSolverWrapper;
-   cuSolverWrapper.setMatrix( cuda_matrix );
-   cuSolverWrapper.setSolverMonitor( benchmark.getMonitor() );
-   // reset function
-   auto reset_cuSolverWrapper = [ & ]()
-   {
-      cuda_x = 0;
-      *cuda_matrix = input_matrix;  // Reset the matrix to the original state
-   };
+      // benchmark function
+      auto compute_gpu = [ & ]()
+      {
+         const bool converged = gpu_gem.solve( gpu_b, gpu_x );
+         if( ! converged )
+            throw std::runtime_error( "GPU solver did not converge" );
+      };
+      benchmark.time< TNL::Devices::GPU >( reset_gpu, "GPU", compute_gpu );
 
-   // benchmark function
-   auto compute_cuSolverWrapper = [ & ]()
-   {
-      const bool converged = cuSolverWrapper.solve( cuda_b, cuda_x );
-      if( ! converged )
-         throw std::runtime_error( "CuSolverWrapper solver did not converge" );
-   };
-   benchmark.time< TNL::Devices::Cuda >( reset_cuSolverWrapper, "CuSolverWrapper", compute_cuSolverWrapper );
+      // Benchmark CuSolverWrapper on GPU
+      TNL::Solvers::Linear::CuSolverWrapper< GPUMatrixType > cuSolverWrapper;
+      cuSolverWrapper.setMatrix( gpu_matrix );
+      cuSolverWrapper.setSolverMonitor( benchmark.getMonitor() );
+
+      // benchmark function
+      auto compute_cuSolverWrapper = [ & ]()
+      {
+         const bool converged = cuSolverWrapper.solve( gpu_b, gpu_x );
+         if( ! converged )
+            throw std::runtime_error( "CuSolverWrapper solver did not converge" );
+      };
+      benchmark.time< TNL::Devices::GPU >( reset_gpu, "CuSolverWrapper", compute_cuSolverWrapper );
+   }
 #endif
 }
