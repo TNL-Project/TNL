@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 #include <TNL/Devices/Sequential.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
 
 #include "HeatEquationSolverBenchmarkParallelFor.h"
 #include "HeatEquationSolverBenchmarkSimpleGrid.h"
@@ -22,76 +22,75 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum< TNL::String >( "nd-grid" );
 
    config.addDelimiter( "Device settings:" );
-   config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
-   config.addEntryEnum< TNL::String >( "all" );
+   config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
    config.addEntryEnum< TNL::String >( "host" );
-   config.addEntryEnum< TNL::String >( "sequential" );
    config.addEntryEnum< TNL::String >( "cuda" );
+   config.addEntryEnum< TNL::String >( "hip" );
+   config.addEntryEnum< TNL::String >( "sequential" );
+   config.addEntryEnum< TNL::String >( "all" );
    TNL::Devices::Host::configSetup( config );
-   TNL::Devices::Cuda::configSetup( config );
+   TNL::Devices::GPU::configSetup( config );
 
    config.addDelimiter( "Precision settings:" );
    config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
+
+   HeatEquationSolverBenchmark<>::configSetup( config );
 }
 
 template< typename Real, typename Device >
 bool
-startBenchmark( TNL::Config::ParameterContainer& parameters, const std::string& programName )
+startBenchmark( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
    auto implementation = parameters.getParameter< TNL::String >( "implementation" );
    if( implementation == "parallel-for" ) {
-      HeatEquationSolverBenchmarkParallelFor< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters, programName );
+      HeatEquationSolverBenchmarkParallelFor< Real, Device > solver;
+      return solver.runBenchmark( benchmark, parameters );
    }
    if( implementation == "simple-grid" ) {
-      HeatEquationSolverBenchmarkSimpleGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters, programName );
+      HeatEquationSolverBenchmarkSimpleGrid< Real, Device > solver;
+      return solver.runBenchmark( benchmark, parameters );
    }
    if( implementation == "grid" ) {
-      HeatEquationSolverBenchmarkGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters, programName );
+      HeatEquationSolverBenchmarkGrid< Real, Device > solver;
+      return solver.runBenchmark( benchmark, parameters );
    }
    if( implementation == "nd-grid" ) {
-      HeatEquationSolverBenchmarkNdGrid< Real, Device > benchmark;
-      return benchmark.runBenchmark( parameters, programName );
+      HeatEquationSolverBenchmarkNdGrid< Real, Device > solver;
+      return solver.runBenchmark( benchmark, parameters );
    }
    return false;
 }
 
 template< typename Real >
 bool
-resolveDevice( TNL::Config::ParameterContainer& parameters, const std::string& programName )
+resolveDevice( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
    auto device = parameters.getParameter< TNL::String >( "device" );
-   if( device == "sequential" )
-      return startBenchmark< Real, TNL::Devices::Sequential >( parameters, programName );
-   if( device == "host" )
-      return startBenchmark< Real, TNL::Devices::Host >( parameters, programName );
-   if( device == "cuda" ) {
-#ifdef __CUDACC__
-      return startBenchmark< Real, TNL::Devices::Cuda >( parameters, programName );
-#else
-      std::cerr << "The benchmark was not built with CUDA support.\n";
-      return false;
+   bool result = true;
+   if( device == "sequential" || device == "all" )
+      result = startBenchmark< Real, TNL::Devices::Sequential >( benchmark, parameters ) && result;
+   if( device == "host" || device == "all" )
+      result = startBenchmark< Real, TNL::Devices::Host >( benchmark, parameters ) && result;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( device == "cuda" || device == "hip" || device == "all" )
+      result = startBenchmark< Real, TNL::Devices::GPU >( benchmark, parameters ) && result;
 #endif
-   }
-   std::cerr << "Unknown device " << device << ".\n";
-   return false;
+   return result;
 }
 
 bool
-resolveReal( TNL::Config::ParameterContainer& parameters, const std::string& programName )
+resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
    auto precision = parameters.getParameter< TNL::String >( "precision" );
-   if( precision == "float" )
-      return resolveDevice< float >( parameters, programName );
-   if( precision == "double" )
-      return resolveDevice< double >( parameters, programName );
-   std::cerr << "Unknown precision " << precision << ".\n";
-   return false;
+   bool result = true;
+   if( precision == "all" || precision == "float" )
+      result = resolveDevice< float >( benchmark, parameters ) && result;
+   if( precision == "all" || precision == "double" )
+      result = resolveDevice< double >( benchmark, parameters ) && result;
+   return result;
 }
 
 int
@@ -99,17 +98,20 @@ main( int argc, char* argv[] )
 {
    TNL::Config::ConfigDescription config;
    configSetup( config );
-   HeatEquationSolverBenchmark<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 
    if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
+   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   if( ! resolveReal( parameters, argv[ 0 ] ) )
+   // init benchmark
+   TNL::Benchmarks::Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
+
+   if( ! resolvePrecision( benchmark, parameters ) )
       return EXIT_FAILURE;
    return EXIT_SUCCESS;
 }
