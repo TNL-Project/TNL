@@ -1,0 +1,202 @@
+# Example benchmark configuration for TNL
+#
+# Benchmarks are auto-discovered from bin_dir by filename prefix.
+# The benchmarks section only customizes invocation — entries that need
+# non-default params, log file, or command prefix should be listed here.
+# Discovered benchmarks without a config entry run with common defaults.
+#
+# Usage:
+#   uv run src/Tools/tnl-run-benchmarks.py -c benchmarks.example.toml
+#   uv run src/Tools/tnl-run-benchmarks.py -c benchmarks.example.toml -n          # dry-run
+#   uv run src/Tools/tnl-run-benchmarks.py -c benchmarks.example.toml -b sort     # select by name
+#   uv run src/Tools/tnl-run-benchmarks.py -c benchmarks.example.toml --include '*-eigen*'  # glob filter
+#   uv run src/Tools/tnl-run-benchmarks.py -c benchmarks.example.toml --exclude '*-eigen*'  # glob filter
+#   uv run src/Tools/tnl-run-benchmarks.py -c benchmarks.example.toml --list      # list benchmarks
+
+[common]
+bin_dir = "./build/bin"
+output_mode = "append"
+verbose = 1
+loops = 10
+
+# ── Eigen benchmarks ─────────────────────────────────────────────────────
+# NOTE: eigen-pi and eigen-qr require the input-matrix parameter
+#
+#[benchmarks.eigen-pi]
+#
+#[benchmarks.eigen-pi.params]
+#input-matrix = [  # download from SuiteSparse
+#    "bcspwr01.mtx",  # https://sparse.tamu.edu/HB/bcspwr01
+#    "bcsstk01.mtx",  # https://sparse.tamu.edu/HB/bcsstk01
+#    "bfwb62.mtx",    # https://sparse.tamu.edu/Bai/bfwb62
+#    "polbooks.mtx",  # https://sparse.tamu.edu/Newman/polbooks
+#    "bcsstm03.mtx",  # https://sparse.tamu.edu/HB/bcsstm03
+#    "bcsstm05.mtx",  # https://sparse.tamu.edu/HB/bcsstm05
+#    "bcsstk05.mtx",  # https://sparse.tamu.edu/HB/bcsstk05
+#    "plat362.mtx",   # https://sparse.tamu.edu/HB/plat362
+#    "bfwa782.mtx",   # https://sparse.tamu.edu/Bai/bfwa782
+#    "lshp1561.mtx",  # https://sparse.tamu.edu/HB/lshp1561
+#    "bcsstk13.mtx",  # https://sparse.tamu.edu/HB/bcsstk13
+#    "bcsstk21.mtx",  # https://sparse.tamu.edu/HB/bcsstk21
+#    "bcsstk29.mtx",  # https://sparse.tamu.edu/HB/bcsstk29
+#    "bcsstk30.mtx",  # https://sparse.tamu.edu/HB/bcsstk30
+#    "bcsstk32.mtx",  # https://sparse.tamu.edu/HB/bcsstk32
+#    "s3dkt3m2.mtx",  # https://sparse.tamu.edu/GHS_psdef/s3dkt3m2
+#]
+#shift-value = -0.8
+
+# ── Eigen random ─────────────────────────────────────────────────────────
+
+[benchmarks.eigen-random]
+
+[benchmarks.eigen-random.params]
+# QR algorithm is very slow compared to the other benchmarks
+with-qr-householder = false
+with-qr-gram-schmidt = false
+with-qr-givens = false
+# limit maximum size of generated matrices
+max-size-dense = 2000
+max-size-sparse = 2000
+
+# ── Heat equation ────────────────────────────────────────────────────────
+
+[benchmarks.heat-equation]
+
+[benchmarks.heat-equation.params]
+device = "all"
+precision = ["float", "double"]
+implementation = ["parallel-for", "simple-grid", "grid", "nd-grid"]
+max-x-dimension = 800
+max-y-dimension = 800
+max-iterations = 500
+loops = 1
+final-time = 0.1
+write-data = false
+
+# ── Linear solvers ───────────────────────────────────────────────────────
+# NOTE: linear-solvers requires the input-matrix parameter
+#
+#[benchmarks.linear-solvers-cuda]
+#command_prefix = "mpirun -np 4 taskset -c 0,1,2,3"
+#
+#[benchmarks.linear-solvers-cuda.params]
+#device = "all"
+#convergence-residue = 1.0e-11
+#max-iterations = 10000
+#gmres-restarting-max = 30
+#gmres-restarting-min = 3
+#gmres-restarting-step-max = 4
+#gmres-restarting-step-min = 2
+#ilut-threshold = 1.0e-4
+#ilut-p = 8
+#with-preconditioner-update = true
+#solvers = ["gmres", "bicgstab", "bicgstab-ell", "tfqmr"]
+#gmres-variants = ["CGS", "CGSR", "MGS", "MGSR", "CWY"]
+#preconditioners = ["jacobi", "ilu0", "ilut"]
+
+# ── NDArray reduction ────────────────────────────────────────────────────
+
+[benchmarks.ndarray-reduction]
+
+[benchmarks.ndarray-reduction.params]
+device = "host"
+# More threads are not effective
+openmp-max-threads = 4
+# Reduced sizes for ~2 min total runtime (default is much larger)
+sizes-2d-3d = [256, 1024]
+sizes-4d = [64, 256]
+sizes-5d-6d = [16, 64]
+min-elements = 1000000
+max-elements = 50000000
+
+[benchmarks.ndarray-reduction-cuda]
+
+[benchmarks.ndarray-reduction-cuda.params]
+device = "cuda"
+# Reduced sizes for ~1 min total runtime (default is much larger)
+sizes-2d-3d = [256, 1024]
+sizes-4d = [64, 256]
+sizes-5d-6d = [16, 64]
+min-elements = 10000000
+max-elements = 100000000
+
+# ── Memory access ─────────────────────────────────────────────────────────
+
+[benchmarks.memory-access]
+
+[benchmarks.memory-access.params]
+threads-count = [1, 2, 4, 8]
+access-type = [
+    "sequential",
+    "interleaved",
+    #"random", # Note: very slow
+]
+element-size = [1, 2, 4, 16, 64, 256]
+max-array-size = 268435456 # 256 MB
+test-type = ["read", "write", "read-write"]
+
+# ── ODE solvers ──────────────────────────────────────────────────────────
+
+[benchmarks.ode-solvers]
+
+[benchmarks.ode-solvers.params]
+precision = "double"
+device = "all"
+adaptivity = 0.001
+solvers = "all"
+
+# ── Sorting ──────────────────────────────────────────────────────────────
+
+[benchmarks.sort]
+
+[benchmarks.sort.params]
+size = [
+    1000,     # ~1K
+    1024,     # 2^10
+    5000,     # ~5K
+    8192,     # 2^13
+    10000,    # ~10K
+    16384,    # 2^14
+    50000,    # ~50K
+    65536,    # 2^16
+    100000,   # ~100K
+    262144,   # 2^18
+    500000,   # ~500K
+    1048576,  # 2^20
+    2000000,  # ~2M
+    4194304,  # 2^22
+    10000000, # ~10M
+    # 16777216,    # 2^24
+    # 50000000,    # ~50M
+    # 67108864,    # 2^26
+    # 100000000,   # ~100M
+]
+device = "host"
+value-type = ["int", "uint", "double"]
+
+[benchmarks.sort-cuda]
+
+[benchmarks.sort-cuda.params]
+size = [
+    1000,     # ~1K
+    1024,     # 2^10
+    5000,     # ~5K
+    8192,     # 2^13
+    10000,    # ~10K
+    16384,    # 2^14
+    50000,    # ~50K
+    65536,    # 2^16
+    100000,   # ~100K
+    262144,   # 2^18
+    500000,   # ~500K
+    1048576,  # 2^20
+    2000000,  # ~2M
+    4194304,  # 2^22
+    10000000, # ~10M
+    # 16777216,    # 2^24
+    # 50000000,    # ~50M
+    # 67108864,    # 2^26
+    # 100000000,   # ~100M
+]
+device = "all"
+value-type = ["int", "uint", "double"]
