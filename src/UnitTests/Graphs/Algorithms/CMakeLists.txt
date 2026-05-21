@@ -1,6 +1,6 @@
-set(CPP_TESTS GraphTest_BFS GraphTest_CC GraphTest_SSSP GraphTest_trees GraphTest_MST)
-set(CUDA_TESTS GraphTest_BFS_cuda GraphTest_CC_cuda GraphTest_SSSP_cuda GraphTest_trees_cuda) # TODO: fix and add GraphTest_MST_cuda
-set(HIP_TESTS GraphTest_BFS_hip GraphTest_CC_hip GraphTest_SSSP_hip GraphTest_trees_hip) # TODO: fix and add GraphTest_MST_hip
+set(CPP_TESTS GraphTest_BFS GraphTest_CC GraphTest_SCC GraphTest_SSSP GraphTest_trees GraphTest_MST)
+set(CUDA_TESTS GraphTest_BFS_cuda GraphTest_CC_cuda GraphTest_SCC_cuda GraphTest_SSSP_cuda GraphTest_trees_cuda) # TODO: fix and add GraphTest_MST_cuda
+set(HIP_TESTS GraphTest_BFS_hip GraphTest_CC_hip GraphTest_SCC_hip GraphTest_SSSP_hip GraphTest_trees_hip) # TODO: fix and add GraphTest_MST_hip
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)
