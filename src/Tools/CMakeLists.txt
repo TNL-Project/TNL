@@ -105,5 +105,5 @@ if(TNL_BUILD_CPP_TARGETS)
 
     install(TARGETS tnl-matrix-info tnl-grid-setup DESTINATION bin COMPONENT tools)
 
-    install(PROGRAMS tnl-benchmark-to-html.py DESTINATION bin COMPONENT tools)
+    install(PROGRAMS tnl-benchmark-to-html.py tnl-run-benchmarks.py DESTINATION bin COMPONENT tools)
 endif()
