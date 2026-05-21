@@ -4,11 +4,10 @@
 #pragma once
 
 #include <TNL/Backend/Macros.h>
-#include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Hip.h>
 #include <TNL/Backend/SharedMemory.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/StaticArray.h>
@@ -30,38 +29,17 @@
 #endif
 
 namespace TNL::Benchmarks::DenseMatrices {
+
 template< typename Real = double, typename Index = int >
 struct DenseMatrixMultiplicationBenchmark
 {
    using RealType = Real;
    using IndexType = Index;
 
-#if defined( __CUDACC__ )
-   using DeviceType = TNL::Devices::Cuda;
-#endif
-
-#if defined( __HIP__ )
-   using DeviceType = TNL::Devices::Hip;
-#endif
-
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
-      TNL::Benchmarks::Benchmark::configSetup( config );
       config.addDelimiter( "Dense matrices benchmark settings:" );
-      config.addEntry< TNL::String >( "input-file", "Input file with dense matrices." );
-      config.addDelimiter( "Device settings:" );
-      config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
-      config.addEntryEnum< TNL::String >( "host" );
-
-#if defined( __CUDACC__ )
-      config.addEntryEnum< TNL::String >( "cuda" );
-      TNL::Devices::Cuda::configSetup( config );
-#elif defined( __HIP__ )
-      config.addEntryEnum< TNL::String >( "hip" );
-      TNL::Devices::Hip::configSetup( config );
-#endif
-
       config.addEntry< TNL::String >( "fill-mode", "Method to fill matrices.", "linear" );
       config.addEntryEnum( "linear" );
       config.addEntryEnum( "trigonometric" );
@@ -75,13 +53,13 @@ struct DenseMatrixMultiplicationBenchmark
    : parameters( std::move( parameters ) )
    {}
 
-   bool
-   runBenchmark( const std::string& programName = "" )
+   void
+   runBenchmark( TNL::Benchmarks::Benchmark& benchmark )
    {
-      const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
+      using HostMatrixType = TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType >;
+      using GPUMatrixType = TNL::Matrices::DenseMatrix< RealType, Devices::GPU, IndexType >;
 
-      TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters, programName );
+      const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
 
       const auto device = parameters.getParameter< TNL::String >( "device" );
 
@@ -96,12 +74,12 @@ struct DenseMatrixMultiplicationBenchmark
          matrix1Columns += 100;
          matrix2Columns += 100;
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          if( device == "cuda" || device == "hip" || device == "all" ) {
-#if defined( __CUDACC__ ) || ( __HIP__ )
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > denseMatrix1;
+            GPUMatrixType denseMatrix1;
             denseMatrix1.setDimensions( matrix1Rows, matrix1Columns );
             auto denseMatrix1View = denseMatrix1.getView();
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > denseMatrix2;
+            GPUMatrixType denseMatrix2;
             denseMatrix2.setDimensions( matrix1Columns, matrix2Columns );
             auto denseMatrix2View = denseMatrix2.getView();
 
@@ -122,7 +100,7 @@ struct DenseMatrixMultiplicationBenchmark
                   denseMatrix1View.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< DeviceType >( 0, matrix1Columns, fill1 );
+            TNL::Algorithms::parallelFor< Devices::GPU >( 0, matrix1Columns, fill1 );
 
             auto fill2 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
@@ -137,15 +115,15 @@ struct DenseMatrixMultiplicationBenchmark
                   denseMatrix2View.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< DeviceType >( 0, matrix2Columns, fill2 );
+            TNL::Algorithms::parallelFor< Devices::GPU >( 0, matrix2Columns, fill2 );
 
             // Create result matrices
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > resultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > cuBLASResultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > CutlassResultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > MagmaResultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > BlasResultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > HipBlasResultMatrix;
+            GPUMatrixType resultMatrix;
+            GPUMatrixType cuBLASResultMatrix;
+            GPUMatrixType CutlassResultMatrix;
+            GPUMatrixType MagmaResultMatrix;
+            GPUMatrixType BlasResultMatrix;
+            GPUMatrixType HipBlasResultMatrix;
 
             resultMatrix.setDimensions( matrix1Rows, matrix2Columns );
             cuBLASResultMatrix.setDimensions( matrix1Rows, matrix2Columns );
@@ -168,7 +146,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function
                matrixMultiplicationCuBLAS( denseMatrix1, denseMatrix2, cuBLASResultMatrix, false, false );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkcuBlas );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkcuBlas );
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
@@ -186,11 +164,9 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function
                matrixMultiplicationMAGMA( denseMatrix1, denseMatrix2, MagmaResultMatrix, false, false );
             };
-            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesMAGMA = {
-               cuBLASResultMatrix
-            };
-            DenseMatricesResult< RealType, DeviceType, IndexType > MagmaResult( MagmaResultMatrix, benchmarkMatricesMAGMA );
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkMagma, MagmaResult );
+            std::vector< GPUMatrixType > benchmarkMatricesMAGMA = { cuBLASResultMatrix };
+            DenseMatricesResult< RealType, Devices::GPU, IndexType > MagmaResult( MagmaResultMatrix, benchmarkMatricesMAGMA );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkMagma, MagmaResult );
       #endif  //HAVE_MAGMA
 
       #ifdef HAVE_CUTLASS
@@ -209,12 +185,10 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function
                matrixMultiplicationCutlass( denseMatrix1, denseMatrix2, CutlassResultMatrix );
             };
-            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesCutlass = {
-               cuBLASResultMatrix
-            };
-            DenseMatricesResult< RealType, DeviceType, IndexType > CutlassResult(
+            std::vector< GPUMatrixType > benchmarkMatricesCutlass = { cuBLASResultMatrix };
+            DenseMatricesResult< RealType, Devices::GPU, IndexType > CutlassResult(
                CutlassResultMatrix, benchmarkMatricesCutlass );
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkCutlass, CutlassResult );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkCutlass, CutlassResult );
       #endif  //HAVE_CUTLASS
    #endif     // __CUDACC__
 
@@ -233,23 +207,22 @@ struct DenseMatrixMultiplicationBenchmark
                // Lambda function for the first kernel launch
                auto matrixMultiplicationBenchmarkOriginal = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixMultiplicationKernel1( denseMatrix1, denseMatrix2, resultMatrix );
                };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTNL = {
-                  cuBLASResultMatrix
+               std::vector< GPUMatrixType > benchmarkMatricesTNL = { cuBLASResultMatrix
    #ifdef HAVE_MAGMA
-                  ,
-                  MagmaResultMatrix
+                                                                     ,
+                                                                     MagmaResultMatrix
    #endif  // HAVE_MAGMA
 
    #ifdef HAVE_CUTLASS
-                  ,
-                  CutlassResultMatrix
+                                                                     ,
+                                                                     CutlassResultMatrix
    #endif  // HAVE_CUTLASS
                };
-               DenseMatricesResult< RealType, DeviceType, IndexType > TNLResult( resultMatrix, benchmarkMatricesTNL );
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOriginal, TNLResult );
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > TNLResult( resultMatrix, benchmarkMatricesTNL );
+               benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkOriginal, TNLResult );
 
                benchmark.setMetadataColumns(
                   TNL::Benchmarks::Benchmark::MetadataColumns(
@@ -264,23 +237,22 @@ struct DenseMatrixMultiplicationBenchmark
                // Lambda function for the optimized kernel launch
                auto matrixMultiplicationBenchmarkOptimized = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixMultiplicationKernel2( denseMatrix1, denseMatrix2, resultMatrix );
                };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTNL2 = {
-                  cuBLASResultMatrix
+               std::vector< GPUMatrixType > benchmarkMatricesTNL2 = { cuBLASResultMatrix
    #ifdef HAVE_MAGMA
-                  ,
-                  MagmaResultMatrix
+                                                                      ,
+                                                                      MagmaResultMatrix
    #endif  // HAVE_MAGMA
 
    #ifdef HAVE_CUTLASS
-                  ,
-                  CutlassResultMatrix
+                                                                      ,
+                                                                      CutlassResultMatrix
    #endif  // HAVE_CUTLASS
                };
-               DenseMatricesResult< RealType, DeviceType, IndexType > TNL2Result( resultMatrix, benchmarkMatricesTNL2 );
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOptimized, TNL2Result );
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > TNL2Result( resultMatrix, benchmarkMatricesTNL2 );
+               benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkOptimized, TNL2Result );
 
                benchmark.setMetadataColumns(
                   TNL::Benchmarks::Benchmark::MetadataColumns(
@@ -295,23 +267,22 @@ struct DenseMatrixMultiplicationBenchmark
                // Lambda function for the optimized kernel 2 launch
                auto matrixMultiplicationBenchmarkOptimized2 = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixMultiplicationKernel3( denseMatrix1, denseMatrix2, resultMatrix );
                };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesSMA = {
-                  cuBLASResultMatrix
+               std::vector< GPUMatrixType > benchmarkMatricesSMA = { cuBLASResultMatrix
    #ifdef HAVE_MAGMA
-                  ,
-                  MagmaResultMatrix
+                                                                     ,
+                                                                     MagmaResultMatrix
    #endif  // HAVE_MAGMA
 
    #ifdef HAVE_CUTLASS
-                  ,
-                  CutlassResultMatrix
+                                                                     ,
+                                                                     CutlassResultMatrix
    #endif  // HAVE_CUTLASS
                };
-               DenseMatricesResult< RealType, DeviceType, IndexType > SMAResult( resultMatrix, benchmarkMatricesSMA );
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOptimized2, SMAResult );
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > SMAResult( resultMatrix, benchmarkMatricesSMA );
+               benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkOptimized2, SMAResult );
 
                benchmark.setMetadataColumns(
                   TNL::Benchmarks::Benchmark::MetadataColumns(
@@ -326,24 +297,23 @@ struct DenseMatrixMultiplicationBenchmark
                // Lambda function for the optimized kernel launch
                auto matrixMultiplicationBenchmarkWarptiling = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixMultiplicationKernel4( denseMatrix1, denseMatrix2, resultMatrix );
                };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesWarptiling = {
-                  cuBLASResultMatrix
+               std::vector< GPUMatrixType > benchmarkMatricesWarptiling = { cuBLASResultMatrix
    #ifdef HAVE_MAGMA
-                  ,
-                  MagmaResultMatrix
+                                                                            ,
+                                                                            MagmaResultMatrix
    #endif  // HAVE_MAGMA
 
    #ifdef HAVE_CUTLASS
-                  ,
-                  CutlassResultMatrix
+                                                                            ,
+                                                                            CutlassResultMatrix
    #endif  // HAVE_CUTLASS
                };
-               DenseMatricesResult< RealType, DeviceType, IndexType > WarptilingResult(
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > WarptilingResult(
                   resultMatrix, benchmarkMatricesWarptiling );
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkWarptiling, WarptilingResult );
+               benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkWarptiling, WarptilingResult );
 
                benchmark.setMetadataColumns(
                   TNL::Benchmarks::Benchmark::MetadataColumns(
@@ -358,24 +328,23 @@ struct DenseMatrixMultiplicationBenchmark
                // Lambda function for the optimized kernel launch
                auto matrixMultiplicationBenchmarkWarptiling2 = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixMultiplicationKernel5( denseMatrix1, denseMatrix2, resultMatrix );
                };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesWarptiling2 = {
-                  cuBLASResultMatrix
+               std::vector< GPUMatrixType > benchmarkMatricesWarptiling2 = { cuBLASResultMatrix
    #ifdef HAVE_MAGMA
-                  ,
-                  MagmaResultMatrix
+                                                                             ,
+                                                                             MagmaResultMatrix
    #endif  // HAVE_MAGMA
 
    #ifdef HAVE_CUTLASS
-                  ,
-                  CutlassResultMatrix
+                                                                             ,
+                                                                             CutlassResultMatrix
    #endif  // HAVE_CUTLASS
                };
-               DenseMatricesResult< RealType, DeviceType, IndexType > Warptiling2Result(
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > Warptiling2Result(
                   resultMatrix, benchmarkMatricesWarptiling2 );
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkWarptiling2, Warptiling2Result );
+               benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkWarptiling2, Warptiling2Result );
 
                benchmark.setMetadataColumns(
                   TNL::Benchmarks::Benchmark::MetadataColumns(
@@ -389,23 +358,22 @@ struct DenseMatrixMultiplicationBenchmark
                resultMatrix.getValues() = 0;
                auto matrixMultiplicationBenchmarkFermi = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixMultiplicationKernel6( denseMatrix1, denseMatrix2, resultMatrix );
                };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesFermi = {
-                  cuBLASResultMatrix
+               std::vector< GPUMatrixType > benchmarkMatricesFermi = { cuBLASResultMatrix
    #ifdef HAVE_MAGMA
-                  ,
-                  MagmaResultMatrix
+                                                                       ,
+                                                                       MagmaResultMatrix
    #endif  // HAVE_MAGMA
 
    #ifdef HAVE_CUTLASS
-                  ,
-                  CutlassResultMatrix
+                                                                       ,
+                                                                       CutlassResultMatrix
    #endif  // HAVE_CUTLASS
                };
-               DenseMatricesResult< RealType, DeviceType, IndexType > FermiResult( resultMatrix, benchmarkMatricesFermi );
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkFermi, FermiResult );
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > FermiResult( resultMatrix, benchmarkMatricesFermi );
+               benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkFermi, FermiResult );
 
    #ifdef USE_TENSOR_CORES
 
@@ -421,26 +389,25 @@ struct DenseMatrixMultiplicationBenchmark
                resultMatrix.getValues() = 0;
                auto matrixMultiplicationBenchmarkTensorCores = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixMultiplicationKernel7( denseMatrix1, denseMatrix2, resultMatrix );
                };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTensorCores = {
-                  cuBLASResultMatrix
+               std::vector< GPUMatrixType > benchmarkMatricesTensorCores = { cuBLASResultMatrix
       #ifdef HAVE_MAGMA
-                  ,
-                  MagmaResultMatrix
+                                                                             ,
+                                                                             MagmaResultMatrix
       #endif  // HAVE_MAGMA
 
       #ifdef HAVE_CUTLASS
-                  ,
-                  CutlassResultMatrix
+                                                                             ,
+                                                                             CutlassResultMatrix
       #endif  // HAVE_CUTLASS
                };
 
-               DenseMatricesResult< RealType, DeviceType, IndexType > TensorCoresResult(
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > TensorCoresResult(
                   resultMatrix, benchmarkMatricesTensorCores );
 
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTensorCores, TensorCoresResult );
+               benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkTensorCores, TensorCoresResult );
    #endif  // USE_TENSOR_CORES
 
             }  //LegacyOn
@@ -459,14 +426,13 @@ struct DenseMatrixMultiplicationBenchmark
             {
                resultMatrix.getMatrixProduct( denseMatrix1, denseMatrix2 );
             };
-            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesFinal = {
-               cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix
-            };
-            DenseMatricesResult< RealType, DeviceType, IndexType > FinalResult( resultMatrix, benchmarkMatricesFinal );
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkFinal, FinalResult );
+            std::vector< GPUMatrixType > benchmarkMatricesFinal = { cuBLASResultMatrix,
+                                                                    MagmaResultMatrix,
+                                                                    CutlassResultMatrix };
+            DenseMatricesResult< RealType, Devices::GPU, IndexType > FinalResult( resultMatrix, benchmarkMatricesFinal );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkFinal, FinalResult );
 
    #if defined( __HIP__ )
-
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
@@ -481,24 +447,22 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function
                matrixMultiplicationHIPBLAS( denseMatrix1, denseMatrix2, HipBlasResultMatrix, false, false );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkHIPBLAS );
-
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkHIPBLAS );
    #endif
-
-#endif  // ( __CUDACC__ ) || defined( __HIP__ )
          }
+#endif  // defined( __CUDACC__ ) || defined( __HIP__ )
 
          if( device == "host" || device == "all" ) {
-            TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > denseMatrix1;
+            HostMatrixType denseMatrix1;
             denseMatrix1.setDimensions( matrix1Rows, matrix1Columns );
 
-            TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > denseMatrix2;
+            HostMatrixType denseMatrix2;
             denseMatrix2.setDimensions( matrix1Columns, matrix2Columns );
 
-            TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > resultMatrix;
+            HostMatrixType resultMatrix;
             resultMatrix.setDimensions( matrix1Rows, matrix2Columns );
 
-            TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > BlasResultMatrix;
+            HostMatrixType BlasResultMatrix;
             BlasResultMatrix.setDimensions( matrix1Rows, matrix2Columns );
 
             const RealType h_x = 1.0 / 100;
@@ -560,49 +524,42 @@ struct DenseMatrixMultiplicationBenchmark
             {
                resultMatrix.getMatrixProduct( denseMatrix1, denseMatrix2, 1.0 );
             };
-            std::vector< TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > > benchmarkMatricesCPU = {
-               BlasResultMatrix
-            };
+            std::vector< HostMatrixType > benchmarkMatricesCPU = { BlasResultMatrix };
             DenseMatricesResult< RealType, Devices::Host, IndexType > CPUResult( resultMatrix, benchmarkMatricesCPU );
             benchmark.time< Devices::Host >( device, matrixMultiplicationBenchmarkTNL, CPUResult );
          }
       }
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
       const IndexType numMatrices2 = 100;  // Number of matrices for the cycle
-#if defined( __CUDACC__ ) || ( __HIP__ )
-      IndexType matrix1Rows2 = 1;     // Number of rows in matrix1
-      IndexType matrix1Columns2 = 1;  // Number of columns in matrix1 && rows in matrix2
-      IndexType matrix2Columns2 = 1;  // Number of columns in matrix2
-#endif
+      IndexType matrix1Rows2 = 1;          // Number of rows in matrix1
+      IndexType matrix1Columns2 = 1;       // Number of columns in matrix1 && rows in matrix2
+      IndexType matrix2Columns2 = 1;       // Number of columns in matrix2
 
       for( IndexType i = 0; i < numMatrices2; ++i ) {
          // Modify the matrix sizes for each iteration
-#if defined( __CUDACC__ ) || ( __HIP__ )
          matrix1Rows2 += 2;
          matrix1Columns2 += 1;
          matrix2Columns2 += 3;
-#endif
 
          // Multiplication with TransposeState
          if( device == "cuda" || device == "hip" || device == "all" ) {
-#if defined( __CUDACC__ ) || ( __HIP__ )
-
             // Original Matrices
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > denseMatrix1;
+            GPUMatrixType denseMatrix1;
             denseMatrix1.setDimensions( matrix1Rows2, matrix1Columns2 );
             auto denseMatrix1View = denseMatrix1.getView();
 
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > denseMatrix2;
+            GPUMatrixType denseMatrix2;
             denseMatrix2.setDimensions( matrix1Columns2, matrix2Columns2 );  // Matches inner dimension of Matrix1
             auto denseMatrix2View = denseMatrix2.getView();
 
             // Transposed Matrix1 (For Transpose A Only and Transpose Both Matrices)
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > denseMatrix1Transposed;
+            GPUMatrixType denseMatrix1Transposed;
             denseMatrix1Transposed.setDimensions( matrix1Columns2, matrix1Rows2 );
             auto denseMatrix1TransposedView = denseMatrix1Transposed.getView();
 
             // Transposed Matrix2 (For Transpose B Only and Transpose Both Matrices)
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > denseMatrix2Transposed;
+            GPUMatrixType denseMatrix2Transposed;
             denseMatrix2Transposed.setDimensions(
                matrix2Columns2,
                matrix1Columns2 );  // For matching with transposed dimensions of Matrix1
@@ -625,7 +582,7 @@ struct DenseMatrixMultiplicationBenchmark
                   denseMatrix1View.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< DeviceType >( 0, matrix1Columns2, fill1 );
+            TNL::Algorithms::parallelFor< Devices::GPU >( 0, matrix1Columns2, fill1 );
 
             auto fill2 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
@@ -640,7 +597,7 @@ struct DenseMatrixMultiplicationBenchmark
                   denseMatrix2View.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< DeviceType >( 0, matrix2Columns2, fill2 );
+            TNL::Algorithms::parallelFor< Devices::GPU >( 0, matrix2Columns2, fill2 );
 
             auto fill1Transposed = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
@@ -655,7 +612,7 @@ struct DenseMatrixMultiplicationBenchmark
                   denseMatrix1TransposedView.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< DeviceType >( 0, matrix1Rows2, fill1Transposed );
+            TNL::Algorithms::parallelFor< Devices::GPU >( 0, matrix1Rows2, fill1Transposed );
 
             auto fill2Transposed = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
@@ -670,13 +627,13 @@ struct DenseMatrixMultiplicationBenchmark
                   denseMatrix2TransposedView.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< DeviceType >( 0, matrix1Columns2, fill2Transposed );
+            TNL::Algorithms::parallelFor< Devices::GPU >( 0, matrix1Columns2, fill2Transposed );
 
             // Create result matrices
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > resultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > MagmaResultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > CuBLASResultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > HipBlasResultMatrix;
+            GPUMatrixType resultMatrix;
+            GPUMatrixType MagmaResultMatrix;
+            GPUMatrixType CuBLASResultMatrix;
+            GPUMatrixType HipBlasResultMatrix;
 
             resultMatrix.setDimensions( matrix1Rows2, matrix2Columns2 );
             MagmaResultMatrix.setDimensions( matrix1Rows2, matrix2Columns2 );
@@ -699,7 +656,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call HipBLAS matrix multiplication function for both matrices transposed
                matrixMultiplicationHIPBLAS( denseMatrix1Transposed, denseMatrix2, HipBlasResultMatrix, true, false );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkHipBlasTransB );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkHipBlasTransB );
    #endif
 
    #if defined( __CUDACC__ )
@@ -718,7 +675,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function function for both matrices transposed
                matrixMultiplicationCuBLAS( denseMatrix1Transposed, denseMatrix2, CuBLASResultMatrix, true, false );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkCuBlasTransA );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkCuBlasTransA );
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
@@ -736,7 +693,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call MAGMA matrix multiplication function for A transposed
                matrixMultiplicationMAGMA( denseMatrix1Transposed, denseMatrix2, MagmaResultMatrix, true, false );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkMagmaTransA );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkMagmaTransA );
       #endif  //HAVE_MAGMA
 
             benchmark.setMetadataColumns(
@@ -758,19 +715,17 @@ struct DenseMatrixMultiplicationBenchmark
                   TNL::Matrices::TransposeState::Transpose,
                   TNL::Matrices::TransposeState::None );
             };
-            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesATrans = {
-               CuBLASResultMatrix
+            std::vector< GPUMatrixType > benchmarkMatricesATrans = { CuBLASResultMatrix
       #ifdef HAVE_MAGMA
-               ,
-               MagmaResultMatrix
+                                                                     ,
+                                                                     MagmaResultMatrix
       #endif  // HAVE_MAGMA
             };
-            DenseMatricesResult< RealType, DeviceType, IndexType > ATransResult( resultMatrix, benchmarkMatricesATrans );
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTransA, ATransResult );
+            DenseMatricesResult< RealType, Devices::GPU, IndexType > ATransResult( resultMatrix, benchmarkMatricesATrans );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkTransA, ATransResult );
    #endif
 
    #if defined( __HIP__ )
-
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
@@ -786,10 +741,10 @@ struct DenseMatrixMultiplicationBenchmark
                // Call HipBLAS matrix multiplication function for both matrices transposed
                matrixMultiplicationHIPBLAS( denseMatrix1, denseMatrix2Transposed, HipBlasResultMatrix, false, true );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkHipBlasTransA );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkHipBlasTransA );
    #endif
-   #if defined( __CUDACC__ )
 
+   #if defined( __CUDACC__ )
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
@@ -805,7 +760,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function for B transposed
                matrixMultiplicationCuBLAS( denseMatrix1, denseMatrix2Transposed, CuBLASResultMatrix, false, true );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkCuBlasTransB );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkCuBlasTransB );
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
@@ -823,8 +778,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function for B transposed
                matrixMultiplicationMAGMA( denseMatrix1, denseMatrix2Transposed, MagmaResultMatrix, false, true );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkMagmaTransB );
-
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkMagmaTransB );
       #endif  //HAVE_MAGMA
 
             benchmark.setMetadataColumns(
@@ -846,19 +800,17 @@ struct DenseMatrixMultiplicationBenchmark
                   TNL::Matrices::TransposeState::None,
                   TNL::Matrices::TransposeState::Transpose );
             };
-            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesBTrans = {
-               CuBLASResultMatrix
+            std::vector< GPUMatrixType > benchmarkMatricesBTrans = { CuBLASResultMatrix
       #ifdef HAVE_MAGMA
-               ,
-               MagmaResultMatrix
+                                                                     ,
+                                                                     MagmaResultMatrix
       #endif  // HAVE_MAGMA
             };
-            DenseMatricesResult< RealType, DeviceType, IndexType > BTransResult( resultMatrix, benchmarkMatricesBTrans );
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTransB, BTransResult );
+            DenseMatricesResult< RealType, Devices::GPU, IndexType > BTransResult( resultMatrix, benchmarkMatricesBTrans );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkTransB, BTransResult );
    #endif
 
    #if defined( __HIP__ )
-
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
@@ -874,10 +826,10 @@ struct DenseMatrixMultiplicationBenchmark
                // Call HipBLAS matrix multiplication function for both matrices transposed
                matrixMultiplicationHIPBLAS( denseMatrix1Transposed, denseMatrix2Transposed, HipBlasResultMatrix, true, true );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkHipBlasTransBoth );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkHipBlasTransBoth );
    #endif
-   #if defined( __CUDACC__ )
 
+   #if defined( __CUDACC__ )
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
@@ -893,7 +845,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call cuBLAS matrix multiplication function for both matrices transposed
                matrixMultiplicationCuBLAS( denseMatrix1Transposed, denseMatrix2Transposed, CuBLASResultMatrix, true, true );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkCuBlasTransBoth );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkCuBlasTransBoth );
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
@@ -911,7 +863,7 @@ struct DenseMatrixMultiplicationBenchmark
                // Call MAGMA matrix multiplication function for both matrices transposed
                matrixMultiplicationMAGMA( denseMatrix1Transposed, denseMatrix2Transposed, MagmaResultMatrix, true, true );
             };
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkMagmaTransBoth );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkMagmaTransBoth );
       #endif  //HAVE_MAGMA
 
             resultMatrix.getValues() = 0;
@@ -933,21 +885,20 @@ struct DenseMatrixMultiplicationBenchmark
                   TNL::Matrices::TransposeState::Transpose,
                   TNL::Matrices::TransposeState::Transpose );
             };
-            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesBothTrans = {
-               CuBLASResultMatrix
+            std::vector< GPUMatrixType > benchmarkMatricesBothTrans = { CuBLASResultMatrix
       #ifdef HAVE_MAGMA
-               ,
-               MagmaResultMatrix
+                                                                        ,
+                                                                        MagmaResultMatrix
       #endif  // HAVE_MAGMA
             };
-            DenseMatricesResult< RealType, DeviceType, IndexType > BothTransResult( resultMatrix, benchmarkMatricesBothTrans );
-            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTransBoth, BothTransResult );
+            DenseMatricesResult< RealType, Devices::GPU, IndexType > BothTransResult(
+               resultMatrix, benchmarkMatricesBothTrans );
+            benchmark.time< Devices::GPU >( device, matrixMultiplicationBenchmarkTransBoth, BothTransResult );
    #endif
-
-#endif  // ( __CUDACC__ ) || defined( __HIP__ )
          }
       }
-      return true;
+#endif  // defined( __CUDACC__ ) || defined( __HIP__ )
    }
 };
+
 }  // namespace TNL::Benchmarks::DenseMatrices

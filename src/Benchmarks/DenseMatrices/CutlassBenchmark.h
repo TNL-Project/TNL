@@ -21,7 +21,7 @@ matrixMultiplicationCutlass( const DenseMatrix& matrix1, const DenseMatrix& matr
    using IndexType = typename DenseMatrix::IndexType;
    using Device = typename DenseMatrix::DeviceType;
 
-   static_assert( std::is_same_v< Device, TNL::Devices::Cuda >, "This function is specialized for CUDA device only." );
+   static_assert( std::is_same_v< Device, TNL::Devices::GPU >, "This function is specialized for GPU device only." );
 
    IndexType m = matrix1.getRows();
    IndexType n = matrix2.getColumns();
