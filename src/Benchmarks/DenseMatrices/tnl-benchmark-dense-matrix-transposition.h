@@ -1,67 +1,76 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Devices/Hip.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Config/ConfigDescription.h>
+#include <TNL/Config/ParameterContainer.h>
+#include <TNL/Config/parseCommandLine.h>
+#include <TNL/Benchmarks/Benchmark.h>
+
 #include "DenseMatrixTranspositionBenchmark.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Precision settings:" );
+   TNL::Benchmarks::Benchmark::configSetup( config );
+
+   config.addDelimiter( "Benchmark settings:" );
    config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
+   config.addEntry< TNL::String >( "device", "Device to run benchmarks on.", "all" );
+   config.addEntryEnum( "host" );
+   config.addEntryEnum( "cuda" );
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
+
+   config.addDelimiter( "Device settings:" );
+   TNL::Devices::Host::configSetup( config );
+   TNL::Devices::GPU::configSetup( config );
+
+   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark<>::configSetup( config );
 }
 
 template< typename Real >
-bool
-runDenseTranspositionBenchmark( TNL::Config::ParameterContainer& parameters, const std::string& programName )
+void
+run_benchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark< Real > benchmark( parameters );
-   benchmark.runBenchmark( programName );
-   return true;
+   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark< Real > bench( parameters );
+   bench.runBenchmark( benchmark );
+}
+
+void
+resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
+{
+   const auto& precision = parameters.getParameter< std::string >( "precision" );
+
+   if( precision == "all" || precision == "float" )
+      run_benchmark< float >( benchmark, parameters );
+   if( precision == "all" || precision == "double" )
+      run_benchmark< double >( benchmark, parameters );
 }
 
 int
 main( int argc, char* argv[] )
 {
-   TNL::Config::ConfigDescription config;
-   configSetup( config );
-   TNL::Devices::Host::configSetup( config );
-#if defined( __CUDACC__ )
-   TNL::Devices::Cuda::configSetup( config );
-#elif defined( __HIP__ )
-   TNL::Devices::Hip::configSetup( config );
-#endif
-   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark<>::configSetup( config );
-
    TNL::Config::ParameterContainer parameters;
+   TNL::Config::ConfigDescription conf_desc;
 
-   if( ! TNL::Config::parseCommandLine( argc, argv, config, parameters ) )
-      return EXIT_FAILURE;
-#if defined( __CUDACC__ )
-   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
-      return EXIT_FAILURE;
-#elif defined( __HIP__ )
-   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Hip::setup( parameters ) )
-      return EXIT_FAILURE;
-#endif
-   bool success = false;
-   auto precision = parameters.getParameter< TNL::String >( "precision" );
+   configSetup( conf_desc );
 
-   if( precision == "float" || precision == "all" ) {
-      success = runDenseTranspositionBenchmark< float >( parameters, argv[ 0 ] );
-   }
-   else if( precision == "double" || precision == "all" ) {
-      success = runDenseTranspositionBenchmark< double >( parameters, argv[ 0 ] );
-   }
-   else {
-      std::cerr << "Unknown precision " << precision << ".\n";
+   if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   }
 
-   return success ? EXIT_SUCCESS : EXIT_FAILURE;
+   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::GPU::setup( parameters ) )
+      return EXIT_FAILURE;
+
+   // init benchmark
+   TNL::Benchmarks::Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
+
+   resolvePrecision( benchmark, parameters );
+
+   return EXIT_SUCCESS;
 }

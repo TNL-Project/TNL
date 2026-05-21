@@ -4,11 +4,10 @@
 #pragma once
 
 #include <TNL/Backend/Macros.h>
-#include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Hip.h>
 #include <TNL/Backend/SharedMemory.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/StaticArray.h>
@@ -31,32 +30,10 @@ struct DenseMatrixTranspositionBenchmark
    using RealType = Real;
    using IndexType = Index;
 
-#if defined( __CUDACC__ )
-   using DeviceType = TNL::Devices::Cuda;
-#endif
-
-#if defined( __HIP__ )
-   using DeviceType = TNL::Devices::Hip;
-#endif
-
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
-      TNL::Benchmarks::Benchmark::configSetup( config );
       config.addDelimiter( "Dense matrices benchmark settings:" );
-      config.addEntry< TNL::String >( "input-file", "Input file with dense matrices." );
-      config.addDelimiter( "Device settings:" );
-      config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
-      config.addEntryEnum< TNL::String >( "host" );
-
-#if defined( __CUDACC__ )
-      config.addEntryEnum< TNL::String >( "cuda" );
-      TNL::Devices::Cuda::configSetup( config );
-#elif defined( __HIP__ )
-      config.addEntryEnum< TNL::String >( "hip" );
-      TNL::Devices::Hip::configSetup( config );
-#endif
-
       config.addEntry< TNL::String >( "fill-mode", "Method to fill matrices.", "linear" );
       config.addEntryEnum( "linear" );
       config.addEntryEnum( "trigonometric" );
@@ -70,34 +47,35 @@ struct DenseMatrixTranspositionBenchmark
    : parameters( std::move( parameters_ ) )
    {}
 
-   bool
-   runBenchmark( const std::string& programName = "" )
+   void
+   runBenchmark( TNL::Benchmarks::Benchmark& benchmark )
    {
-      const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
+      using HostMatrixType = TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType >;
+      using GPUMatrixType = TNL::Matrices::DenseMatrix< RealType, Devices::GPU, IndexType >;
 
-      TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters, programName );
+      const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
 
       const auto device = parameters.getParameter< TNL::String >( "device" );
 
-      IndexType dmatrix1Rows = 0;     // Number of rows in matrix1 (same as columns in matrix2)
-      IndexType dmatrix1Columns = 0;  // Number of columns in matrix1
-      IndexType numMatrices1 = 100;   // NUmber of matrices that are going to be generated
+      IndexType dmatrix1Rows = 0;          // Number of rows in matrix1 (same as columns in matrix2)
+      IndexType dmatrix1Columns = 0;       // Number of columns in matrix1
+      const IndexType numMatrices1 = 100;  // Number of matrices that are going to be generated
+
       for( IndexType i = 0; i < numMatrices1; ++i ) {
          // Modify the matrix sizes for each iteration
          dmatrix1Rows += 100;
          dmatrix1Columns += 50;
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          if( device == "cuda" || device == "hip" || device == "all" ) {
-#if defined( __CUDACC__ ) || ( __HIP__ )
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > denseMatrix;
+            GPUMatrixType denseMatrix;
             denseMatrix.setDimensions( dmatrix1Rows, dmatrix1Columns );
             auto denseMatrixView = denseMatrix.getView();
 
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > outputMatrix;
+            GPUMatrixType outputMatrix;
             outputMatrix.setDimensions( dmatrix1Columns, dmatrix1Rows );
 
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > MagmaOutputMatrix;
+            GPUMatrixType MagmaOutputMatrix;
             MagmaOutputMatrix.setDimensions( dmatrix1Columns, dmatrix1Rows );
 
             // Fill the matrix
@@ -117,7 +95,7 @@ struct DenseMatrixTranspositionBenchmark
                   denseMatrixView.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< DeviceType >( 0, dmatrix1Columns, fill );
+            TNL::Algorithms::parallelFor< Devices::GPU >( 0, dmatrix1Columns, fill );
    #if defined( __CUDACC__ )
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
@@ -135,7 +113,7 @@ struct DenseMatrixTranspositionBenchmark
             {
                denseMatrixTransposeMAGMA( denseMatrix, MagmaOutputMatrix );
             };
-            benchmark.time< DeviceType >( device, matrixTranspositionBenchmarkMagma );
+            benchmark.time< Devices::GPU >( device, matrixTranspositionBenchmarkMagma );
       #endif  //HAVE_MAGMA
    #endif
 
@@ -153,17 +131,15 @@ struct DenseMatrixTranspositionBenchmark
 
                auto matrixTranspositionBenchmarkTNL = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixTranspositionKernel1( denseMatrix, outputMatrix );
                };
    #ifdef HAVE_MAGMA
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTransposition = {
-                  MagmaOutputMatrix
-               };
-               DenseMatricesResult< RealType, DeviceType, IndexType > TranspositionResult(
+               std::vector< GPUMatrixType > benchmarkMatricesTransposition = { MagmaOutputMatrix };
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > TranspositionResult(
                   outputMatrix, benchmarkMatricesTransposition );
    #endif  // HAVE_MAGMA
-               benchmark.time< DeviceType >(
+               benchmark.time< Devices::GPU >(
                   device,
                   matrixTranspositionBenchmarkTNL
    #ifdef HAVE_MAGMA
@@ -184,16 +160,15 @@ struct DenseMatrixTranspositionBenchmark
 
                auto matrixTranspositionBenchmarkCombined = [ & ]() mutable
                {
-                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, DeviceType, IndexType >::
+                  TNL::Benchmarks::DenseMatrices::LegacyKernelsLauncher< RealType, Devices::GPU, IndexType >::
                      launchMatrixTranspositionKernel2( denseMatrix, outputMatrix );
                };
    #ifdef HAVE_MAGMA
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > >
-                  benchmarkMatricesTranspositionCombined = { MagmaOutputMatrix };
-               DenseMatricesResult< RealType, DeviceType, IndexType > TranspositionResult2(
+               std::vector< GPUMatrixType > benchmarkMatricesTranspositionCombined = { MagmaOutputMatrix };
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > TranspositionResult2(
                   outputMatrix, benchmarkMatricesTranspositionCombined );
    #endif  // HAVE_MAGMA
-               benchmark.time< DeviceType >(
+               benchmark.time< Devices::GPU >(
                   device,
                   matrixTranspositionBenchmarkCombined
    #ifdef HAVE_MAGMA
@@ -220,14 +195,12 @@ struct DenseMatrixTranspositionBenchmark
                outputMatrix.getTransposition( denseMatrix );
             };
    #ifdef HAVE_MAGMA
-            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTranspositionFinal = {
-               MagmaOutputMatrix
-            };
+            std::vector< GPUMatrixType > benchmarkMatricesTranspositionFinal = { MagmaOutputMatrix };
 
-            DenseMatricesResult< RealType, DeviceType, IndexType > TranspositionResult3(
+            DenseMatricesResult< RealType, Devices::GPU, IndexType > TranspositionResult3(
                outputMatrix, benchmarkMatricesTranspositionFinal );
    #endif  // HAVE_MAGMA
-            benchmark.time< DeviceType >(
+            benchmark.time< Devices::GPU >(
                device,
                matrixTranspositionBenchmarkFinal
    #ifdef HAVE_MAGMA
@@ -253,12 +226,11 @@ struct DenseMatrixTranspositionBenchmark
                   denseMatrix.getInPlaceTransposition();
                };
    #ifdef HAVE_MAGMA
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > >
-                  benchmarkMatricesTranspositionInPlace = { MagmaOutputMatrix };
-               DenseMatricesResult< RealType, DeviceType, IndexType > TranspositionResult4(
+               std::vector< GPUMatrixType > benchmarkMatricesTranspositionInPlace = { MagmaOutputMatrix };
+               DenseMatricesResult< RealType, Devices::GPU, IndexType > TranspositionResult4(
                   denseMatrix, benchmarkMatricesTranspositionInPlace );
    #endif  // HAVE_MAGMA
-               benchmark.time< DeviceType >(
+               benchmark.time< Devices::GPU >(
                   device,
                   matrixTranspositionBenchmarkInPlace
    #ifdef HAVE_MAGMA
@@ -267,9 +239,9 @@ struct DenseMatrixTranspositionBenchmark
    #endif  // HAVE_MAGMA
                );
             }
-
-#endif  // ( __CUDACC__ ) || defined( __HIP__ )
          }
+#endif  // defined( __CUDACC__ ) || defined( __HIP__ )
+
          if( device == "host" || device == "all" ) {
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark::MetadataColumns(
@@ -281,10 +253,10 @@ struct DenseMatrixTranspositionBenchmark
                      { "matrix size", std::to_string( dmatrix1Rows ) + "x" + std::to_string( dmatrix1Columns ) },
                   } ) );
 
-            TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > denseMatrix;
+            HostMatrixType denseMatrix;
             denseMatrix.setDimensions( dmatrix1Rows, dmatrix1Columns );
 
-            TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > outputMatrix;
+            HostMatrixType outputMatrix;
             // NOLINTNEXTLINE(readability-suspicious-call-argument)
             outputMatrix.setDimensions( dmatrix1Columns, dmatrix1Rows );
 
@@ -312,7 +284,7 @@ struct DenseMatrixTranspositionBenchmark
             benchmark.time< Devices::Host >( device, matrixTranspositionBenchmarkTNL );
          }
       }
-      return true;
    }
 };
+
 }  // namespace TNL::Benchmarks::DenseMatrices
