@@ -1,6 +1,6 @@
 #!/bin/bash
 
-devices=(sequential host cuda)
+devices=(sequential host cuda hip)
 precisions=(float double)
 # FIXME: nd-grid does not give correct results
 #tests=(parallel-for simple-grid grid nd-grid)
@@ -16,7 +16,6 @@ do
       for test in "${tests[@]}"
       do
          tnl-benchmark-heat-equation                         \
-            --id "$test"                                     \
             --implementation "$test"                         \
             --precision "$precision"                         \
             --max-x-dimension "$max_x_dimension"             \

@@ -7,7 +7,7 @@ from os.path import exists
 
 import pandas as pd
 
-devices = ["sequential", "host", "cuda"]
+devices = ["sequential", "host", "cuda", "hip"]
 precisions = ["float", "double"]
 tests = [
     "parallel-for",
@@ -19,7 +19,7 @@ tests = [
 ####
 # Create multiindex for columns
 def get_multiindex():
-    level1 = ["xSize", "ySize"]
+    level1 = ["x size", "y size"]
     level2 = ["", ""]
     level3 = ["", ""]
     df_data = [[" ", " "]]
@@ -48,20 +48,20 @@ def processDf(df, precision):
     frames = []
     out_idx = 0
 
-    x_sizes = list(set(df["xSize"]))
+    x_sizes = list(set(df["x size"]))
     x_sizes.sort()
-    y_sizes = list(set(df["ySize"]))
+    y_sizes = list(set(df["y size"]))
     y_sizes.sort()
 
     performers = []
 
     for x_size in x_sizes:
         for y_size in y_sizes:
-            aux_df = df.loc[(df["xSize"] == x_size) & (df["ySize"] == y_size)]
+            aux_df = df.loc[(df["x size"] == x_size) & (df["y size"] == y_size)]
             new_df = pd.DataFrame(df_data, columns=multicolumns, index=[out_idx])
             out_idx += 1
-            new_df.iloc[0][("xSize", "", "")] = x_size
-            new_df.iloc[0][("ySize", "", "")] = y_size
+            new_df.iloc[0][("x size", "", "")] = x_size
+            new_df.iloc[0][("y size", "", "")] = y_size
             for index, row in aux_df.iterrows():
                 test = row["implementation"]
                 # print( test )
@@ -111,7 +111,7 @@ for device in devices:
 
 df = pd.DataFrame(parsed_lines)
 
-keys = ["xSize", "ySize", "zSize", "time", "bandwidth"]
+keys = ["x size", "y size", "z size", "time", "bandwidth"]
 
 for key in keys:
     if key in df.keys():
