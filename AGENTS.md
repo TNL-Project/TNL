@@ -273,10 +273,13 @@ gitlab-ci-local --force-shell-executor "typos"
 - **Installation**: Header-only library with optional compiled components
 - **CMake best practices**: Use modern CMake with interface targets (`TNL::TNL`), export sets, and `FetchContent` for dependencies
 
-## References
+## Other documents
+
+Read only when relevant:
 
 - [Main website](https://tnl-project.org/)
 - [Documentation](https://tnl-project.gitlab.io/tnl/)
 - [GitLab repository](https://gitlab.com/tnl-project/tnl)
 - [Contributing guidelines](CONTRIBUTING.md)
+- [Benchmarks architecture](src/Benchmarks/ARCHITECTURE.md)
 - [Unit tests architecture](src/UnitTests/ARCHITECTURE.md)
