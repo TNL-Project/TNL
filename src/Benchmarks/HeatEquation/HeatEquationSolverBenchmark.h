@@ -16,7 +16,6 @@ struct HeatEquationSolverBenchmark
    {
       TNL::Benchmarks::Benchmark::configSetup( config );
       config.addDelimiter( "Heat equation benchmark settings:" );
-      config.addEntry< TNL::String >( "id", "Identifier of the run", "unknown" );
       config.addEntry< int >( "min-x-dimension", "Minimum dimension over x axis used in the benchmark.", 100 );
       config.addEntry< int >( "max-x-dimension", "Maximum dimension over x axis used in the benchmark.", 200 );
       config.addEntry< int >(
@@ -25,8 +24,8 @@ struct HeatEquationSolverBenchmark
          "following size is stepFactor*previousSize, up to max-x-dimension.",
          2 );
 
-      config.addEntry< int >( "min-y-dimension", "Minimum dimension over x axis used in the benchmark.", 100 );
-      config.addEntry< int >( "max-y-dimension", "Maximum dimension over x axis used in the benchmark.", 200 );
+      config.addEntry< int >( "min-y-dimension", "Minimum dimension over y axis used in the benchmark.", 100 );
+      config.addEntry< int >( "max-y-dimension", "Maximum dimension over y axis used in the benchmark.", 200 );
       config.addEntry< int >(
          "y-size-step-factor",
          "Factor determining the dimension grows over y axis. First size is min-y-dimension and each "
@@ -101,10 +100,9 @@ struct HeatEquationSolverBenchmark
    exec( Index xSize, Index ySize ) = 0;
 
    bool
-   runBenchmark( const TNL::Config::ParameterContainer& parameters, const std::string& programName = "" )
+   runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
    {
       auto implementation = parameters.getParameter< TNL::String >( "implementation" );
-      const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
       bool writeData = parameters.getParameter< bool >( "write-data" );
 
       const Index minXDimension = parameters.getParameter< int >( "min-x-dimension" );
@@ -125,9 +123,6 @@ struct HeatEquationSolverBenchmark
          return false;
       }
 
-      TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters, programName );
-
       this->xDomainSize = parameters.getParameter< Real >( "domain-x-size" );
       this->yDomainSize = parameters.getParameter< Real >( "domain-y-size" );
       this->alpha = parameters.getParameter< Real >( "alpha" );
@@ -143,8 +138,14 @@ struct HeatEquationSolverBenchmark
          device = "sequential";
       if( std::is_same_v< Device, TNL::Devices::Host > )
          device = "host";
-      if( std::is_same_v< Device, TNL::Devices::Cuda > )
+      if( std::is_same_v< Device, TNL::Devices::GPU > )
+#if defined( __CUDACC__ )
          device = "cuda";
+#elif defined( __HIP__ )
+         device = "hip";
+#else
+         device = "gpu";
+#endif
 
       std::cout << "Heat equation benchmark  with (" << precision << ", " << device << ")\n";
 
@@ -153,8 +154,8 @@ struct HeatEquationSolverBenchmark
             benchmark.setMetadataColumns(
                TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "precision", precision },
-                    { "xSize", TNL::convertToString( xSize ) },
-                    { "ySize", TNL::convertToString( ySize ) },
+                    { "x size", TNL::convertToString( xSize ) },
+                    { "y size", TNL::convertToString( ySize ) },
                     { "implementation", implementation } } ) );
 
             benchmark.setDatasetSize( xSize * ySize );
@@ -183,8 +184,6 @@ protected:
    Real xDomainSize = 0.0, yDomainSize = 0.0;
    Real alpha = 0.0, beta = 0.0, gamma = 0.0;
    Real timeStep = 0.0, finalTime = 0.0;
-   bool outputData = false;
-   bool verbose = false;
    Index maxIterations = 0;
 
    TNL::Containers::Vector< Real, Device > ux, aux;
