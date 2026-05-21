@@ -1,4 +1,4 @@
-set(GRAPH_BENCHMARKS bfs cc sssp mst)
+set(GRAPH_BENCHMARKS bfs cc scc sssp mst)
 
 find_package(Boost OPTIONAL_COMPONENTS graph)
 if(Boost_GRAPH_FOUND)
