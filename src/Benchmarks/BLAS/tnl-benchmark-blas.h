@@ -8,7 +8,10 @@
 #include <TNL/Allocators/HipHost.h>
 #include <TNL/Allocators/HipManaged.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
+#include <TNL/Benchmarks/Benchmark.h>
+#include <TNL/Config/ConfigDescription.h>
+#include <TNL/Config/ParameterContainer.h>
 #include <TNL/Config/parseCommandLine.h>
 
 #include "array-operations.h"
@@ -128,7 +131,7 @@ runBlasBenchmarks( Benchmark& benchmark, const std::size_t& minSize, const std::
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
    config.addDelimiter( "BLAS benchmark settings:" );
@@ -146,7 +149,7 @@ setupConfig( Config::ConfigDescription& config )
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -155,12 +158,12 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
    const String& precision = parameters.getParameter< String >( "precision" );
@@ -178,6 +181,7 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
    }
 
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
