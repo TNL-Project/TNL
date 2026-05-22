@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "detail/TileBasedMultiplicationKernel.h"
-#include "detail/OptimizedIndexAccessKernel.h"
-#include "detail/SharedMemory2DKernel.h"
-#include "detail/WarpBasedTileMultiplicationKernel.h"
-#include "detail/PaddedMemoryMultiplicationKernel.h"
-#include "detail/FermiOptimizedMultiplicationKernel.h"
+#include "Legacy/TileBasedMultiplicationKernel.h"
+#include "Legacy/OptimizedIndexAccessKernel.h"
+#include "Legacy/SharedMemory2DKernel.h"
+#include "Legacy/WarpBasedTileMultiplicationKernel.h"
+#include "Legacy/PaddedMemoryMultiplicationKernel.h"
+#include "Legacy/FermiOptimizedMultiplicationKernel.h"
 #include "DenseMatrixTranspositionKernels.h"
 
 namespace TNL::Benchmarks::DenseMatrices {
