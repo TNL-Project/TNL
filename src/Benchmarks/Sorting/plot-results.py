@@ -73,7 +73,7 @@ def save_plot(fig, filename):
 
 
 def plot_distribution(df, value_type, distribution, algo_devices, output_dir):
-    subset = df[(df["value_type"] == value_type) & (df["distribution"] == distribution)]
+    subset = df[(df["value type"] == value_type) & (df["distribution"] == distribution)]
     if subset.empty:
         return
 
@@ -107,7 +107,7 @@ def plot_all_results(df, value_types, algo_devices, output_dir):
     for i, algo_dev in enumerate(algo_devices):
         for j, value_type in enumerate(value_types):
             subset = df[
-                (df["algo_device"] == algo_dev) & (df["value_type"] == value_type)
+                (df["algo_device"] == algo_dev) & (df["value type"] == value_type)
             ]
             if subset.empty:
                 continue
@@ -148,7 +148,7 @@ def main():
     df = prepare_data(df)
 
     distributions = df["distribution"].unique()
-    value_types = df["value_type"].unique()
+    value_types = df["value type"].unique()
     algo_devices = df["algo_device"].unique()
 
     print(f"Loaded {len(df)} benchmark results")

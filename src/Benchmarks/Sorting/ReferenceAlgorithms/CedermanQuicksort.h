@@ -9,7 +9,7 @@
 #include <TNL/Allocators/CudaHost.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/ArrayView.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Math.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 
@@ -23,7 +23,7 @@
 template< typename element, typename Index >
 void
 gpuqsort(
-   TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
+   TNL::Containers::ArrayView< element, TNL::Devices::GPU, Index > data,
    unsigned int blockscount = 0,
    unsigned int threads = 0,
    unsigned int sbsize = 0,
@@ -92,11 +92,11 @@ struct LQSortParams
 template< typename element, typename Index >
 class GPUQSort
 {
-   TNL::Containers::Array< element, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< element > > data2;
-   TNL::Containers::Array< Params< element >, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< Params< element > > > dparams;
-   TNL::Containers::Array< LQSortParams, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< LQSortParams > > dlqparams;
-   TNL::Containers::Array< Hist, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< Hist > > dhists;
-   TNL::Containers::Array< Length< element >, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< Length< element > > > dlength;
+   TNL::Containers::Array< element, TNL::Devices::GPU, Index, TNL::Allocators::Cuda< element > > data2;
+   TNL::Containers::Array< Params< element >, TNL::Devices::GPU, Index, TNL::Allocators::Cuda< Params< element > > > dparams;
+   TNL::Containers::Array< LQSortParams, TNL::Devices::GPU, Index, TNL::Allocators::Cuda< LQSortParams > > dlqparams;
+   TNL::Containers::Array< Hist, TNL::Devices::GPU, Index, TNL::Allocators::Cuda< Hist > > dhists;
+   TNL::Containers::Array< Length< element >, TNL::Devices::GPU, Index, TNL::Allocators::Cuda< Length< element > > > dlength;
 
    TNL::Containers::Array< Params< element >, TNL::Devices::Host, Index, TNL::Allocators::CudaHost< Params< element > > >
       params;
@@ -113,7 +113,7 @@ public:
 
    void
    sort(
-      TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
+      TNL::Containers::ArrayView< element, TNL::Devices::GPU, Index > data,
       unsigned int blockscount = 0,
       unsigned int threads = 0,
       unsigned int sbsize = 0,
@@ -489,8 +489,8 @@ lqsort( element* adata, element* adata2, LQSortParams* bs, unsigned int phase )
             // sorting method. Store the result in the final destination buffer
             if( ( to - from >= 1 ) && ( lphase != 2 ) ) {
                // Create ArrayViews for the data to sort
-               TNL::Containers::ArrayView< element, TNL::Devices::Cuda > view_data( data + from, to - from );
-               TNL::Containers::ArrayView< element, TNL::Devices::Cuda > view_adata( adata + from, to - from );
+               TNL::Containers::ArrayView< element, TNL::Devices::GPU > view_data( data + from, to - from );
+               TNL::Containers::ArrayView< element, TNL::Devices::GPU > view_adata( adata + from, to - from );
 
                // Use TNL's bitonicSort_Block with shared memory
                // The comparator uses standard less-than for ascending sort
@@ -662,7 +662,7 @@ lqsort( element* adata, element* adata2, LQSortParams* bs, unsigned int phase )
 template< typename element, typename Index >
 void
 GPUQSort< element, Index >::sort(
-   TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
+   TNL::Containers::ArrayView< element, TNL::Devices::GPU, Index > data,
    unsigned int blockscount,
    unsigned int threads,
    unsigned int sbsize,
@@ -927,7 +927,7 @@ GPUQSort< element, Index >::GPUQSort()
 template< typename element, typename Index >
 void
 gpuqsort(
-   TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
+   TNL::Containers::ArrayView< element, TNL::Devices::GPU, Index > data,
    unsigned int blockscount,
    unsigned int threads,
    unsigned int sbsize,
@@ -947,7 +947,7 @@ struct CedermanQuicksort
       using DeviceType = typename Array::DeviceType;
       using IndexType = typename Array::IndexType;
 
-      static_assert( std::is_same_v< DeviceType, TNL::Devices::Cuda >, "CedermanQuicksort requires Devices::Cuda" );
+      static_assert( std::is_same_v< DeviceType, TNL::Devices::GPU >, "CedermanQuicksort requires Devices::GPU" );
 
       if( array.getSize() <= 1 )
          return;
