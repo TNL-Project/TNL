@@ -8,12 +8,14 @@
 #include <TNL/Assert.h>
 #include <TNL/Math.h>
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Config/ConfigDescription.h>
+#include <TNL/Config/ParameterContainer.h>
 #include <TNL/Config/parseCommandLine.h>
 
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Solvers/Eigen/experimental/PowerIteration.h>
 #include <TNL/Solvers/Eigen/experimental/QRAlgorithm.h>
 #include <TNL/Matrices/MatrixReader.h>
@@ -23,11 +25,11 @@
 #include <string>
 #include <type_traits>
 
-#include "EigenBenchmark.h"
+#include "EigenBenchmarkResult.h"
 
 using namespace TNL;
-using namespace Benchmarks;
-using namespace Containers;
+using namespace TNL::Benchmarks;
+using namespace TNL::Containers;
 
 template< typename Device, typename MatrixType >
 void
@@ -110,15 +112,15 @@ run_benchmarks_DM( Benchmark& benchmark, const std::string& matrixName, const in
    MatrixTypeRMO matrixRMO( size, size );
    matrixRMO = matrixCMO;
 
-   if( ! std::is_same_v< Device, Devices::Cuda > ) {
+   if constexpr( ! std::is_same_v< Device, Devices::GPU > ) {
       benchmark.setMetadataColumns(
          Benchmark::MetadataColumns(
             { { "operation", "QR" },
               { "precision", getType< PrecisionType >() },
-              { "matrixName", matrixName },
-              { "matrixType", "DM_CMO" },
+              { "matrix name", matrixName },
+              { "matrix type", "DM_CMO" },
               { "size", std::to_string( size ) },
-              { "facMethod", "HH" } } ) );
+              { "factorization", "HH" } } ) );
       benchmark_qr< Device, MatrixTypeCMO >(
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
 
@@ -127,10 +129,10 @@ run_benchmarks_DM( Benchmark& benchmark, const std::string& matrixName, const in
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "DM_CMO" },
+               { "matrix name", matrixName },
+               { "matrix type", "DM_CMO" },
                { "size", std::to_string( size ) },
-               { "facMethod", "GM" },
+               { "factorization", "GM" },
             } ) );
       benchmark_qr< Device, MatrixTypeCMO >(
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
@@ -140,10 +142,10 @@ run_benchmarks_DM( Benchmark& benchmark, const std::string& matrixName, const in
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "DM_CMO" },
+               { "matrix name", matrixName },
+               { "matrix type", "DM_CMO" },
                { "size", std::to_string( size ) },
-               { "facMethod", "GV" },
+               { "factorization", "GV" },
             } ) );
       benchmark_qr< Device, MatrixTypeCMO >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
 
@@ -152,68 +154,65 @@ run_benchmarks_DM( Benchmark& benchmark, const std::string& matrixName, const in
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "DM_RMO" },
+               { "matrix name", matrixName },
+               { "matrix type", "DM_RMO" },
                { "size", std::to_string( size ) },
-               { "facMethod", "GV" },
+               { "factorization", "GV" },
             } ) );
       benchmark_qr< Device, MatrixTypeRMO >( benchmark, matrixRMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
    }
 }
 
+template< typename PrecisionType >
 void
-run_benchmarks_file( Benchmark& benchmark, const std::string& fileName )
+run_benchmarks_file( Benchmark& benchmark, const Config::ParameterContainer& parameters )
 {
+   const auto& fileName = parameters.getParameter< std::string >( "input-matrix" );
+   const auto& device = parameters.getParameter< std::string >( "device" );
+
    std::string matrixName = fileName;
    matrixName.erase( matrixName.length() - 4, 4 );
-   using MatrixTypeHostFloatCMO =
-      Matrices::DenseMatrix< float, Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
-   using MatrixTypeHostDoubleCMO =
-      Matrices::DenseMatrix< double, Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
-   MatrixTypeHostDoubleCMO matrixDM;
-   TNL::Matrices::MatrixReader< MatrixTypeHostDoubleCMO >::readMtx( fileName, matrixDM );
-   int size = matrixDM.getColumns();
-   run_benchmarks_DM< Devices::Host, double >( benchmark, matrixName, size, matrixDM );
-   MatrixTypeHostFloatCMO matrixFloatDM;
-   TNL::Matrices::MatrixReader< MatrixTypeHostFloatCMO >::readMtx( fileName, matrixFloatDM );
-   size = matrixDM.getColumns();
-   run_benchmarks_DM< Devices::Host, float >( benchmark, matrixName, size, matrixFloatDM );
+
+   if( device == "host" || device == "all" ) {
+      using MatrixTypeHostCMO =
+         Matrices::DenseMatrix< PrecisionType, Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
+      MatrixTypeHostCMO matrixDM;
+      TNL::Matrices::MatrixReader< MatrixTypeHostCMO >::readMtx( fileName, matrixDM );
+      int size = matrixDM.getColumns();
+      run_benchmarks_DM< Devices::Host, PrecisionType >( benchmark, matrixName, size, matrixDM );
+   }
 }
 
 void
-run_benchmarks( Benchmark& benchmark )
+resolvePrecision( Benchmark& benchmark, const Config::ParameterContainer& parameters )
 {
-   //https://sparse.tamu.edu/HB/bcspwr01
-   run_benchmarks_file( benchmark, "bcspwr01.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstk01
-   run_benchmarks_file( benchmark, "bcsstk01.mtx" );
-   //http://sparse.tamu.edu/Bai/bfwb62
-   run_benchmarks_file( benchmark, "bfwb62.mtx" );
-   //https://sparse.tamu.edu/Newman/polbooks
-   run_benchmarks_file( benchmark, "polbooks.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstm03
-   run_benchmarks_file( benchmark, "bcsstm03.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstm05
-   run_benchmarks_file( benchmark, "bcsstm05.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstk05
-   run_benchmarks_file( benchmark, "bcsstk05.mtx" );
+   const auto& precision = parameters.getParameter< std::string >( "precision" );
+
+   if( precision == "all" || precision == "float" )
+      run_benchmarks_file< float >( benchmark, parameters );
+   if( precision == "all" || precision == "double" )
+      run_benchmarks_file< double >( benchmark, parameters );
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
    config.addDelimiter( "Eigen benchmark settings:" );
-   config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
+   config.addRequiredEntry< std::string >( "input-matrix", "Path to the input matrix in Matrix Market format (.mtx)." );
+   config.addEntry< std::string >( "precision", "Precision of the arithmetics.", "double" );
+   config.addEntryEnum( "float" );
+   config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
+   config.addEntry< std::string >( "device", "Device to run benchmarks on.", "all" );
    config.addEntryEnum( "host" );
-#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-#endif
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -222,19 +221,19 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   // init benchmark and set parameters
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   run_benchmarks( benchmark );
+   resolvePrecision( benchmark, parameters );
 
    return EXIT_SUCCESS;
 }
