@@ -2,85 +2,96 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import json
-import os
+import argparse
+import sys
+
+import pandas as pd
+from TNL.BenchmarkLogs import get_benchmark_dataframe
 
 
 def read_log_files(file_paths):
-    all_log_entries = []
-    for file_path in file_paths:
-        if os.path.exists(file_path):  # Check if the file exists
-            with open(file_path) as file:
-                log_entries = []
-                for line in file:
-                    entry = json.loads(line)
-                    # Stop reading further if 'matrix size' is encountered
-                    if "matrix size" in entry:
-                        break
-                    log_entries.append(entry)
-                all_log_entries.extend(log_entries)  # Combine entries from all files
-    return all_log_entries
-
-
-def round_scientific(notation, precision=2):
-    if isinstance(notation, str):
+    frames = []
+    for path in file_paths:
         try:
-            number = float(notation)
-            return f"{number:.{precision}e}"
-        except ValueError:
-            return notation  # Return original string if it's not a number
-    else:
-        return f"{notation:.{precision}e}"
+            df = get_benchmark_dataframe(path)
+            frames.append(df)
+        except Exception as e:
+            print(f"Warning: skipping {path}: {e}", file=sys.stderr)
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, ignore_index=True)
 
 
-def process_data(log_data):
-    data = {}
-    for entry in log_data:
-        matrix_sizes = (entry["matrix1 size"], entry["matrix2 size"])
-        algorithm = entry["algorithm"]
-        time = float(entry["time"])
+def process_data(df):
+    # collect all non-benchmark columns for the index
+    index_candidates = [
+        "matrix1 size",
+        "matrix2 size",
+        "algorithm",
+    ]
+    index_cols = [c for c in index_candidates if c in df.columns]
 
-        if matrix_sizes not in data:
-            data[matrix_sizes] = {}
-        if algorithm not in data[matrix_sizes]:
-            data[matrix_sizes][algorithm] = {"time": time}
-        # l2Norm
-        data[matrix_sizes][algorithm]["Diff.L2 1"] = round_scientific(
-            entry.get("Diff.L2 1", "N/A")
-        )
-        data[matrix_sizes][algorithm]["Diff.L2 2"] = round_scientific(
-            entry.get("Diff.L2 2", "N/A")
-        )
-        data[matrix_sizes][algorithm]["Diff.L2 3"] = round_scientific(
-            entry.get("Diff.L2 3", "N/A")
-        )
+    header_elements = ["time"] + [c for c in df.columns if c.startswith("Diff")]
 
-        # MaxNorm
-        data[matrix_sizes][algorithm]["Diff.Max 1"] = round_scientific(
-            entry.get("Diff.Max 1", "N/A")
-        )
-        data[matrix_sizes][algorithm]["Diff.Max 2"] = round_scientific(
-            entry.get("Diff.Max 2", "N/A")
-        )
-        data[matrix_sizes][algorithm]["Diff.Max 3"] = round_scientific(
-            entry.get("Diff.Max 3", "N/A")
+    result = df.copy()
+    result = result.set_index(index_cols)
+
+    # format time
+    result["time"] = result["time"].apply(
+        lambda t: f"{t:.5e}" if pd.notna(t) else "N/A"
+    )
+
+    # format Diff columns as scientific notation
+    for col in [c for c in result.columns if c.startswith("Diff")]:
+        result[col] = result[col].apply(
+            lambda v: f"{float(v):.2e}" if pd.notna(v) and v != "N/A" else v
         )
 
-    return data
+    return result, header_elements
 
 
-def format_time(time):
-    return f"{time:.5e}"
+def calculate_speedups(df, primary_algorithms, secondary_algorithms):
+    size_cols = [c for c in df.index.names if c != "algorithm"]
+    speedup_frames = []
+
+    for sizes, group in df.groupby(level=size_cols):
+        rows = {}
+        for algo in secondary_algorithms:
+            try:
+                sec_time = group.xs(algo, level="algorithm")["time"].iloc[0]
+            except (KeyError, IndexError):
+                continue
+            sec_time_val = float(sec_time) if sec_time != "N/A" else None
+            for p_algo in primary_algorithms:
+                try:
+                    prim_time = group.xs(p_algo, level="algorithm")["time"].iloc[0]
+                except (KeyError, IndexError):
+                    rows.setdefault(algo, {})[f"speedup vs {p_algo}"] = "N/A"
+                    continue
+                prim_time_val = float(prim_time) if prim_time != "N/A" else None
+                if prim_time_val and sec_time_val:
+                    rows.setdefault(algo, {})[f"speedup vs {p_algo}"] = (
+                        f"{prim_time_val / sec_time_val:.2f}x"
+                    )
+                else:
+                    rows.setdefault(algo, {})[f"speedup vs {p_algo}"] = "N/A"
+
+        speedup_df = pd.DataFrame.from_dict(rows, orient="index")
+        speedup_df.index.name = "algorithm"
+        # add back size index levels
+        for i, name in enumerate(size_cols):
+            speedup_df[name] = sizes[i] if isinstance(sizes, tuple) else sizes
+        speedup_df = speedup_df.set_index(size_cols, append=True)
+        speedup_df = speedup_df.reorder_levels(df.index.names)
+        speedup_frames.append(speedup_df)
+
+    if not speedup_frames:
+        return df
+    speedups = pd.concat(speedup_frames)
+    return df.join(speedups, how="left")
 
 
-def calculate_speedup(base_time, compare_time):
-    if base_time is not None and compare_time is not None and compare_time != 0:
-        return base_time / compare_time
-    else:
-        return None
-
-
-def create_html_table(data):
+def create_html_table(df, primary_algorithms, secondary_algorithms):
     style = """
     <style>
         table {
@@ -107,118 +118,136 @@ def create_html_table(data):
     </style>
     """
     title = "<h2>Dense Matrix Multiplication</h2>"
-    html = style + title
-    html += "<table>\n"
 
-    # Define primary and secondary algorithms
-    primary_algorithms = ["cuBLAS", "Magma", "Cutlass", "BLAS"]
-    secondary_algorithms = [
-        "Kernel 1.1",
-        "Kernel 1.2",
-        "Kernel 1.3",
-        "Kernel 1.4",
-        "Kernel 1.5",
-        "Kernel 1.6",
-    ]
+    # build multi-column header using pandas MultiIndex
     all_algorithms = primary_algorithms + secondary_algorithms
-
-    # Header row 1: Algorithm names
-    html += "<tr><th rowspan='2'>Matrix 1</th><th rowspan='2'>Matrix 2</th>"
+    columns = []
     for algo in all_algorithms:
-        colspan = (
-            "7" if algo in secondary_algorithms else "1"
-        )  # Adjust colspan for secondary algorithms
-        html += f"<th colspan='{colspan}'>{algo}</th>"
-    html += "</tr>\n"
+        if algo in primary_algorithms:
+            columns.append((algo, "Time"))
+        else:
+            columns.append((algo, "Time"))
+            for p in primary_algorithms:
+                columns.append((algo, f"vs {p}"))
+            columns.append((algo, "l2Norm"))
+            columns.append((algo, "MaxNorm"))
 
-    # Header row 2: Time and Speedup columns
-    html += "<tr>"
-    for algo in primary_algorithms:
-        # Time columns for primary algorithms
-        html += "<th>Time</th>"
-    for algo in secondary_algorithms:
-        # Time column for secondary algorithms
-        html += "<th>Time</th>"
-        # Speedup columns for secondary algorithms
-        for primary_algo in primary_algorithms:
-            html += f"<th> vs {primary_algo}</th>"
-        html += "<th>l2Norm</th>"  # Additional cell for Diff.L2
-        html += "<th>MaxNorm</th>"
-    html += "</tr>\n"
+    col_index = pd.MultiIndex.from_tuples(columns)
 
-    # Data rows
-    for sizes, algos in data.items():
-        matrix1_size, matrix2_size = sizes
-        html += f"<tr><td>{matrix1_size}</td><td>{matrix2_size}</td>"
+    # build data rows
+    size_cols = [c for c in df.index.names if c != "algorithm"]
+    rows = []
+    row_indices = []
 
+    for sizes, group in df.groupby(level=size_cols):
+        row = []
         for algo in all_algorithms:
-            algo_data = algos.get(
-                algo, {"time": "N/A", "Diff.L2 1": "N/A", "Diff.Max 1": "N/A"}
-            )
-            # Time for each algorithm
-            formatted_time = (
-                format_time(algo_data["time"]) if algo_data["time"] != "N/A" else "N/A"
-            )
-            html += f"<td>{formatted_time}</td>"
+            try:
+                algo_row = group.xs(algo, level="algorithm")
+            except KeyError:
+                algo_row = None
+
+            if algo_row is not None and not algo_row.empty:
+                time_val = algo_row["time"].iloc[0]
+            else:
+                time_val = "N/A"
+            row.append(time_val)
 
             if algo in secondary_algorithms:
-                # Speedup calculations for secondary algorithms
-                for primary_algo in primary_algorithms:
-                    primary_time = algos.get(primary_algo, {}).get("time", None)
-                    speedup = calculate_speedup(primary_time, algo_data["time"])
-                    formatted_speedup = f"{speedup:.2f}x" if speedup else "N/A"
-                    html += f"<td>{formatted_speedup}</td>"
+                for p in primary_algorithms:
+                    col = f"speedup vs {p}"
+                    if algo_row is not None and col in algo_row.columns:
+                        row.append(algo_row[col].iloc[0])
+                    else:
+                        row.append("N/A")
+                # l2Norm
+                if algo_row is not None:
+                    diff_l2 = []
+                    for c in ["Diff.L2 1", "Diff.L2 2", "Diff.L2 3"]:
+                        if c in algo_row.columns:
+                            diff_l2.append(algo_row[c].iloc[0])
+                    row.append(" ".join(diff_l2) if diff_l2 else "N/A")
+                    # MaxNorm
+                    diff_max = []
+                    for c in ["Diff.Max 1", "Diff.Max 2", "Diff.Max 3"]:
+                        if c in algo_row.columns:
+                            diff_max.append(algo_row[c].iloc[0])
+                    row.append(" ".join(diff_max) if diff_max else "N/A")
+                else:
+                    row.append("N/A")
+                    row.append("N/A")
 
-                # Adding 'Diff.L2 1' data in the additional cell
-                diff_l2_1 = algo_data["Diff.L2 1"]
-                diff_l2_2 = algo_data["Diff.L2 2"]
-                diff_l2_3 = algo_data["Diff.L2 3"]
-                html += (
-                    f"<td>Cublas:{diff_l2_1} Magma:{diff_l2_2} Cutlass:{diff_l2_3}</td>"
-                )
-
-                diff_Max_1 = algo_data["Diff.Max 1"]
-                diff_Max_2 = algo_data["Diff.Max 2"]
-                diff_Max_3 = algo_data["Diff.Max 3"]
-                html += (
-                    f"<td>Cublas:{diff_Max_1} Magma:{diff_Max_2} Cutlass:{diff_Max_3}"
-                    "</td>"
-                )
-
-        html += "</tr>\n"  # End of the data row
-
-    html += "</table>"  # End of the table
-    return html
-
-
-log_file_paths = [
-    "tnl-benchmark-dense-matrices.log",
-    "tnl-benchmark-dense-matrices-cpu.log",
-]
-log_data = read_log_files(log_file_paths)
-processed_data = process_data(log_data)
-html_table = create_html_table(processed_data)
-
-
-# Function to determine the next available file name
-def get_next_available_filename(base_path, extension):
-    counter = 0
-    while True:
-        if counter == 0:
-            file_name = f"{base_path}.{extension}"
+        rows.append(row)
+        if isinstance(sizes, tuple):
+            row_indices.append(sizes)
         else:
-            file_name = f"{base_path}{counter}.{extension}"
-        if not os.path.exists(file_name):
-            return file_name
-        counter += 1
+            row_indices.append((sizes,))
+
+    row_index = pd.MultiIndex.from_tuples(row_indices, names=size_cols)
+    table_df = pd.DataFrame(rows, index=row_index, columns=col_index)
+
+    html_table = table_df.to_html()
+    return style + title + html_table
 
 
-# Save the HTML table to a file
-output_base_path = "dense_matrix_multiplication"
-output_extension = "html"
-output_file_path = get_next_available_filename(output_base_path, output_extension)
+def main():
+    parser = argparse.ArgumentParser(
+        description="Generate HTML table from dense matrix multiplication benchmark "
+        "logs"
+    )
+    parser.add_argument(
+        "inputs",
+        nargs="+",
+        help="Input log file paths (JSON lines format)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Output HTML file path (default: dense_matrix_multiplication.html)",
+    )
+    args = parser.parse_args()
 
-with open(output_file_path, "w") as file:
-    file.write(html_table)
+    df = read_log_files(args.inputs)
+    if df.empty:
+        print("No log entries found in input files.", file=sys.stderr)
+        sys.exit(1)
 
-print(f"HTML table saved as {output_file_path}")
+    # drop rows with "matrix size" key (transposition entries use different schema)
+    if "matrix size" in df.columns:
+        df = df[df["matrix size"].isna()]
+
+    # filter to multiplication entries (must have matrix1 size and matrix2 size)
+    if "matrix1 size" not in df.columns or "matrix2 size" not in df.columns:
+        print("Input does not contain multiplication benchmark data.", file=sys.stderr)
+        sys.exit(1)
+
+    primary_algorithms = ["cuBLAS", "Magma", "Cutlass", "BLAS"]
+    secondary_algorithms = [
+        "Final",
+        "cublasA",
+        "cublasB",
+        "cublasAB",
+        "magmaA",
+        "magmaB",
+        "magmaAB",
+        "tnlA",
+        "tnlB",
+        "tnlAB",
+    ]
+
+    processed_df, _ = process_data(df)
+    processed_df = calculate_speedups(
+        processed_df, primary_algorithms, secondary_algorithms
+    )
+    html = create_html_table(processed_df, primary_algorithms, secondary_algorithms)
+
+    output_path = args.output or "dense_matrix_multiplication.html"
+    with open(output_path, "w") as f:
+        f.write(html)
+
+    print(f"HTML table saved as {output_path}")
+
+
+if __name__ == "__main__":
+    main()
