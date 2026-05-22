@@ -64,9 +64,14 @@ static __device__
 __forceinline__ unsigned int
 __qsflo( unsigned int word )
 {
+#if defined( __CUDACC__ )
    unsigned int ret;
    asm volatile( "bfind.u32 %0, %1;" : "=r"( ret ) : "r"( word ) );
    return ret;
+#else
+   // HIP fallback: bfind.u32 returns 0xFFFFFFFF for word == 0, otherwise index of highest set bit
+   return ( word == 0 ) ? 0xFFFFFFFFU : ( 31 - __builtin_clz( word ) );
+#endif
 }
 
 // Helper function to get the next representable value after x
@@ -486,27 +491,27 @@ manca_qsort( Type* ddata, uint size )
    npartitions1.setValue( 0 );
 
    //setting GPU Cache
-   cudaFuncSetCacheConfig( init< Type >, cudaFuncCachePreferL1 );
-   cudaFuncSetCacheConfig( insertPivot< Type >, cudaFuncCachePreferL1 );
-   cudaFuncSetCacheConfig( bucketAssign< Type >, cudaFuncCachePreferL1 );
-   cudaFuncSetCacheConfig( partitionAssign< Type >, cudaFuncCachePreferL1 );
-   cudaFuncSetCacheConfig( quick< blockSize, Type >, cudaFuncCachePreferShared );
-   cudaFuncSetCacheConfig( globalBitonicSort< Type >, cudaFuncCachePreferShared );
+   TNL::Backend::funcSetCacheConfig( init< Type >, TNL::Backend::FuncCachePreferL1 );
+   TNL::Backend::funcSetCacheConfig( insertPivot< Type >, TNL::Backend::FuncCachePreferL1 );
+   TNL::Backend::funcSetCacheConfig( bucketAssign< Type >, TNL::Backend::FuncCachePreferL1 );
+   TNL::Backend::funcSetCacheConfig( partitionAssign< Type >, TNL::Backend::FuncCachePreferL1 );
+   TNL::Backend::funcSetCacheConfig( quick< blockSize, Type >, TNL::Backend::FuncCachePreferShared );
+   TNL::Backend::funcSetCacheConfig( globalBitonicSort< Type >, TNL::Backend::FuncCachePreferShared );
 
-   TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
+   TNL::Backend::deviceSynchronize();
 
    // Initialize the bucket array: initial attributes for each bucket
    // clang-format off
    init<Type><<<(nblock + 255) / 256, 256>>>(ddata, dbucket.getData(), npartitions1.getData(), size, partition_max);
    // clang-format on
-   TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
+   TNL::Backend::deviceSynchronize();
 
    uint nbucket = 1;
    uint numIterations = 0;
    bool inputSelect = true;
 
    cudaBlocks.x = blocks;
-   TNL_BACKEND_SAFE_CALL( cudaMemcpy( npartitions2.getData(), &cudaBlocks.x, sizeof( uint ), cudaMemcpyHostToDevice ) );
+   TNL::Backend::memcpy( npartitions2.getData(), &cudaBlocks.x, sizeof( uint ), TNL::Backend::MemcpyHostToDevice );
 
    // beginning of the first phase
    // this phase goes on until the size of the buckets is comparable to the SHARED_LIMIT size
@@ -525,8 +530,8 @@ manca_qsort( Type* ddata, uint size )
          auto view1 = npartitions1.getView( 0, nbucket );
          auto view2 = npartitions2.getView( 0, nbucket );
          TNL::Algorithms::inclusiveScan( view1, view2 );
-         TNL_BACKEND_SAFE_CALL(
-            cudaMemcpy( &cudaBlocks.x, npartitions2.getData() + nbucket - 1, sizeof( uint ), cudaMemcpyDeviceToHost ) );
+         TNL::Backend::memcpy(
+            &cudaBlocks.x, npartitions2.getData() + nbucket - 1, sizeof( uint ), TNL::Backend::MemcpyDeviceToHost );
       }
 
       if( cudaBlocks.x == 0 )
@@ -541,7 +546,7 @@ manca_qsort( Type* ddata, uint size )
       // clang-format off
       partitionAssign<Type><<<nbucket, 1024>>>(dbucket.getData(), npartitions2.getData(), partition.getData());
       // clang-format on
-      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
+      TNL::Backend::deviceSynchronize();
 
       /*
        *  ---------------------    step 2a    ---------------------
@@ -560,19 +565,19 @@ manca_qsort( Type* ddata, uint size )
          quick<blockSize, Type><<<cudaBlocks, blockSize>>>(dbuffer.getData(), ddata, partition.getData(), dbucket.getData());
          // clang-format on
       }
-      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
+      TNL::Backend::deviceSynchronize();
 
       //step 2b: this function enters the pivot value in the central bucket's items
       // clang-format off
       insertPivot<Type><<<nbucket, 512>>>(ddata, dbucket.getData(), nbucket);
       // clang-format on
-      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
+      TNL::Backend::deviceSynchronize();
 
       //step 3: parameters are assigned, linked to the two new buckets created in step 2
       // clang-format off
       bucketAssign<Type><<<(nbucket + 255) / 256, 256>>>(dbucket.getData(), npartitions1.getData(), nbucket, inputSelect);
       // clang-format on
-      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
+      TNL::Backend::deviceSynchronize();
 
       nbucket *= 2;
 
@@ -597,7 +602,7 @@ manca_qsort( Type* ddata, uint size )
       // clang-format off
       globalBitonicSort<Type><<<nbucket, 512, 0>>>(ddata, dbuffer.getData(), dbucket.getData(), inputSelect);
       // clang-format on
-      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
+      TNL::Backend::deviceSynchronize();
    }
 }
 
