@@ -17,7 +17,6 @@
 #include "array-operations.h"
 #include "vector-operations.h"
 #include "triad.h"
-#include "gemv.h"
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -107,27 +106,6 @@ runBlasBenchmarks( Benchmark& benchmark, const std::size_t& minSize, const std::
       benchmarkTriad< Real >( benchmark, size );
    }
 #endif
-
-   // Dense matrix-vector multiplication
-   std::cout << "\n== Dense matrix-vector multiplication ==\n\n";
-   for( std::size_t rows = 10; rows <= 20000 * 20000; rows *= 2 ) {
-      for( std::size_t columns = 10; columns <= 20000 * 20000; columns *= 2 ) {
-         if( rows * columns > 20000 * 20000 )
-            break;
-         benchmark.setMetadataColumns(
-            Benchmark::MetadataColumns(
-               { { "precision", getType< Real >() },
-                 { "rows", convertToString( rows ) },
-                 { "columns", convertToString( columns ) } } ) );
-
-         // don't abort due to out-of-memory errors
-         try {
-            benchmarkGemv< Real >( benchmark, rows, columns );
-         }
-         catch( Exceptions::BackendBadAlloc& ) {
-         }
-      }
-   }
 }
 
 void
