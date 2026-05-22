@@ -14,6 +14,12 @@ if(TNL_BUILD_CUDA)
     install(TARGETS tnl-benchmark-sort-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
+if(TNL_BUILD_HIP)
+    add_executable(tnl-benchmark-sort-hip tnl-benchmark-sort.hip)
+    target_link_libraries(tnl-benchmark-sort-hip PUBLIC TNL::TNL)
+    install(TARGETS tnl-benchmark-sort-hip RUNTIME DESTINATION bin COMPONENT benchmarks)
+endif()
+
 # skip building host-only targets in CUDA-enabled CI jobs
 if(TNL_BUILD_CPP_TARGETS)
     add_executable(tnl-benchmark-sort tnl-benchmark-sort.cpp)
