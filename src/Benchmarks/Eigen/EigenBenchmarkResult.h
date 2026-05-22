@@ -1,9 +1,13 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Benchmarks/Benchmark.h>
+#pragma once
+
+#include <TNL/Benchmarks/BenchmarkResult.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
+
+#include <type_traits>
 
 template< typename PrecisionType >
 struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
@@ -17,16 +21,16 @@ struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
    [[nodiscard]] HeaderElements
    getTableHeader() const override
    {
-      return HeaderElements( { "time", "time_stddev", "time_stddev/time", "loops", "epsilon", "iterations", "error" } );
+      HeaderElements headers = BenchmarkResult::getTableHeader();
+      headers.insert( headers.end(), { "epsilon", "iterations", "error" } );
+      return headers;
    }
 
    [[nodiscard]] RowElements
    getRowElements() const override
    {
-      RowElements elements;
-      // write in scientific format to avoid precision loss
-      elements << std::scientific << time << time_stddev << time_stddev / time << loops << epsilon << ( iterations / loops )
-               << ( error / loops );
+      RowElements elements = BenchmarkResult::getRowElements();
+      elements << std::scientific << epsilon << ( iterations / loops ) << ( error / loops );
       return elements;
    }
 
@@ -39,13 +43,13 @@ template< typename Device >
 const char*
 performer()
 {
-   if( std::is_same_v< Device, TNL::Devices::Host > )
+   if constexpr( std::is_same_v< Device, TNL::Devices::Host > )
 #ifdef HAVE_OPENMP
       return "CPUP";
 #else
       return "CPU";
 #endif
-   else if( std::is_same_v< Device, TNL::Devices::Cuda > )
+   else if constexpr( std::is_same_v< Device, TNL::Devices::GPU > )
       return "GPU";
    else
       return "unknown";
