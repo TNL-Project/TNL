@@ -5,19 +5,19 @@
 
 #include <TNL/Backend/Macros.h>
 
-#include "BlasBenchmark.h"
 #include "DenseMatrixBenchmarkHelpers.h"
 #include "DenseMatricesResult.h"
 #include "LegacyKernelsLauncher.h"
+#include "Wrappers/blasWrappers.h"
 
 #include <vector>
 
 #if defined( __CUDACC__ )
-   #include "CublasBenchmark.h"
-   #include "CutlassBenchmark.h"
-   #include "MagmaBenchmark.h"
+   #include "Wrappers/cublasWrappers.h"
+   #include "Wrappers/cutlassWrappers.h"
+   #include "Wrappers/magmaWrappers.h"
 #elif defined( __HIP__ )
-   #include "HipBlasBenchmark.h"
+   #include "Wrappers/hipblasWrappers.h"
 #endif
 
 namespace TNL::Benchmarks::DenseMatrices {
