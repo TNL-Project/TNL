@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Matrices/DenseOperations.h>
 #include <type_traits>
 
 #ifdef __CUDACC__
@@ -17,14 +18,14 @@ matrixMultiplicationMAGMA(
    const DenseMatrix& matrix1,
    const DenseMatrix& matrix2,
    DenseMatrix& resultMatrix,
-   bool transposeA,
-   bool transposeB )
+   TNL::Matrices::TransposeState transposeA,
+   TNL::Matrices::TransposeState transposeB )
 {
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
    using Device = typename DenseMatrix::DeviceType;
 
-   static_assert( std::is_same_v< Device, TNL::Devices::Cuda >, "This function is specialized for CUDA device only." );
+   static_assert( std::is_same_v< Device, TNL::Devices::GPU >, "This function is specialized for GPU device only." );
 
    magma_init();
 
@@ -32,23 +33,26 @@ matrixMultiplicationMAGMA(
    magma_int_t dev = 0;
    magma_queue_create( dev, &queue );
 
-   IndexType m = transposeA ? matrix1.getColumns() : matrix1.getRows();
-   IndexType n = transposeB ? matrix2.getRows() : matrix2.getColumns();
-   IndexType k = transposeA ? matrix1.getRows() : matrix1.getColumns();
+   bool transA = transposeA == TNL::Matrices::TransposeState::Transpose;
+   bool transB = transposeB == TNL::Matrices::TransposeState::Transpose;
 
-   magma_int_t lda = transposeA ? k : m;
-   magma_int_t ldb = transposeB ? n : k;
+   IndexType m = transA ? matrix1.getColumns() : matrix1.getRows();
+   IndexType n = transB ? matrix2.getRows() : matrix2.getColumns();
+   IndexType k = transA ? matrix1.getRows() : matrix1.getColumns();
+
+   magma_int_t lda = transA ? k : m;
+   magma_int_t ldb = transB ? n : k;
    magma_int_t ldc = m;
 
    RealType alpha = 1.0;
    RealType beta = 0.0;
-   magma_trans_t transA = transposeA ? MagmaTrans : MagmaNoTrans;
-   magma_trans_t transB = transposeB ? MagmaTrans : MagmaNoTrans;
+   magma_trans_t magTransA = transA ? MagmaTrans : MagmaNoTrans;
+   magma_trans_t magTransB = transB ? MagmaTrans : MagmaNoTrans;
 
    if constexpr( std::is_same_v< RealType, float > ) {
       magma_sgemm(
-         transA,
-         transB,
+         magTransA,
+         magTransB,
          m,
          n,
          k,
@@ -64,8 +68,8 @@ matrixMultiplicationMAGMA(
    }
    else if constexpr( std::is_same_v< RealType, double > ) {
       magma_dgemm(
-         transA,
-         transB,
+         magTransA,
+         magTransB,
          m,
          n,
          k,
