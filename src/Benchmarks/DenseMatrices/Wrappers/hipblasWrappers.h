@@ -83,6 +83,59 @@ matrixMultiplicationHIPBLAS(
    hipblasDestroy( handle );
 }
 
+template< typename DenseMatrix, typename Vector >
+void
+matrixVectorProductHIPBLAS( const DenseMatrix& matrix, const Vector& inVector, Vector& outVector )
+{
+   using RealType = typename DenseMatrix::RealType;
+   using IndexType = typename DenseMatrix::IndexType;
+   using Device = typename DenseMatrix::DeviceType;
+
+   static_assert( std::is_same_v< Device, TNL::Devices::GPU >, "This function is specialized for GPU device only." );
+
+   hipblasHandle_t handle;
+   hipblasCreate( &handle );
+
+   IndexType rows = matrix.getRows();
+   IndexType cols = matrix.getColumns();
+
+   RealType alpha = 1.0;
+   RealType beta = 0.0;
+
+   if constexpr( std::is_same_v< RealType, float > ) {
+      hipblasSgemv(
+         handle,
+         HIPBLAS_OP_N,
+         rows,
+         cols,
+         &alpha,
+         matrix.getValues().getData(),
+         rows,
+         inVector.getData(),
+         1,
+         &beta,
+         outVector.getData(),
+         1 );
+   }
+   else if constexpr( std::is_same_v< RealType, double > ) {
+      hipblasDgemv(
+         handle,
+         HIPBLAS_OP_N,
+         rows,
+         cols,
+         &alpha,
+         matrix.getValues().getData(),
+         rows,
+         inVector.getData(),
+         1,
+         &beta,
+         outVector.getData(),
+         1 );
+   }
+
+   hipblasDestroy( handle );
+}
+
 }  // namespace TNL::Benchmarks::DenseMatrices
 
 #endif  // (__HIP__)

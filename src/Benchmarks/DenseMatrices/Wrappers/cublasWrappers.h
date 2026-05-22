@@ -86,6 +86,59 @@ matrixMultiplicationCuBLAS(
    cublasDestroy( handle );
 }
 
+template< typename DenseMatrix, typename Vector >
+void
+matrixVectorProductCuBLAS( const DenseMatrix& matrix, const Vector& inVector, Vector& outVector )
+{
+   using RealType = typename DenseMatrix::RealType;
+   using IndexType = typename DenseMatrix::IndexType;
+   using Device = typename DenseMatrix::DeviceType;
+
+   static_assert( std::is_same_v< Device, TNL::Devices::GPU >, "This function is specialized for GPU device only." );
+
+   cublasHandle_t handle;
+   cublasCreate( &handle );
+
+   IndexType rows = matrix.getRows();
+   IndexType cols = matrix.getColumns();
+
+   RealType alpha = 1.0;
+   RealType beta = 0.0;
+
+   if constexpr( std::is_same_v< RealType, float > ) {
+      cublasSgemv(
+         handle,
+         CUBLAS_OP_N,
+         rows,
+         cols,
+         &alpha,
+         matrix.getValues().getData(),
+         rows,
+         inVector.getData(),
+         1,
+         &beta,
+         outVector.getData(),
+         1 );
+   }
+   else if constexpr( std::is_same_v< RealType, double > ) {
+      cublasDgemv(
+         handle,
+         CUBLAS_OP_N,
+         rows,
+         cols,
+         &alpha,
+         matrix.getValues().getData(),
+         rows,
+         inVector.getData(),
+         1,
+         &beta,
+         outVector.getData(),
+         1 );
+   }
+
+   cublasDestroy( handle );
+}
+
 }  // namespace TNL::Benchmarks::DenseMatrices
 
 #endif  //__CUDACC__
