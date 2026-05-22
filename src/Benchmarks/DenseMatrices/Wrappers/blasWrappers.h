@@ -5,6 +5,7 @@
 
 #include <type_traits>
 
+#include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/MatrixBase.h>
 
@@ -63,6 +64,53 @@ matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2
          0.0,
          resultMatrix.getValues().getData(),
          organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m );
+   }
+}
+
+template< typename DenseMatrix, typename Vector >
+void
+matrixVectorProductBLAS( const DenseMatrix& matrix, const Vector& inVector, Vector& outVector )
+{
+   using RealType = typename DenseMatrix::RealType;
+   using IndexType = typename DenseMatrix::IndexType;
+   using Device = typename DenseMatrix::DeviceType;
+
+   static_assert( std::is_same_v< Device, TNL::Devices::Host >, "This function is specialized for Host device only." );
+
+   IndexType rows = matrix.getRows();
+   IndexType cols = matrix.getColumns();
+
+   auto organization = matrix.getOrganization();
+
+   if constexpr( std::is_same_v< RealType, float > ) {
+      cblas_sgemv(
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
+         CblasNoTrans,
+         rows,
+         cols,
+         1.0F,
+         matrix.getValues().getData(),
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? cols : rows,
+         inVector.getData(),
+         1,
+         0.0F,
+         outVector.getData(),
+         1 );
+   }
+   else if constexpr( std::is_same_v< RealType, double > ) {
+      cblas_dgemv(
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
+         CblasNoTrans,
+         rows,
+         cols,
+         1.0,
+         matrix.getValues().getData(),
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? cols : rows,
+         inVector.getData(),
+         1,
+         0.0,
+         outVector.getData(),
+         1 );
    }
 }
 
