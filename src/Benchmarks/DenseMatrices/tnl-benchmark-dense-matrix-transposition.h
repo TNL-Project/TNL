@@ -15,7 +15,15 @@ configSetup( TNL::Config::ConfigDescription& config )
 {
    TNL::Benchmarks::Benchmark::configSetup( config );
 
-   config.addDelimiter( "Benchmark settings:" );
+   config.addDelimiter( "Dense matrix transposition benchmark settings:" );
+   config.addEntry< int >( "min-rows", "Minimum number of matrix rows.", 100 );
+   config.addEntry< int >( "max-rows", "Maximum number of matrix rows.", 5000 );
+   config.addEntry< int >( "min-columns", "Minimum number of matrix columns.", 100 );
+   config.addEntry< int >( "max-columns", "Maximum number of matrix columns.", 5000 );
+   config.addEntry< TNL::String >( "fill-mode", "Method to fill matrices.", "linear" );
+   config.addEntryEnum( "linear" );
+   config.addEntryEnum( "trigonometric" );
+   config.addEntry< bool >( "include-legacy-kernels", "Include legacy kernels to the benchmark", true );
    config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
@@ -29,16 +37,13 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addDelimiter( "Device settings:" );
    TNL::Devices::Host::configSetup( config );
    TNL::Devices::GPU::configSetup( config );
-
-   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark<>::configSetup( config );
 }
 
 template< typename Real >
 void
 run_benchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark< Real > bench( parameters );
-   bench.runBenchmark( benchmark );
+   TNL::Benchmarks::DenseMatrices::runBenchmark< Real, int >( benchmark, parameters );
 }
 
 void
