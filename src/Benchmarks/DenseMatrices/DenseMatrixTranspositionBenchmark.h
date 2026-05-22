@@ -12,7 +12,7 @@
 #include <vector>
 
 #if defined( __CUDACC__ )
-   #include "MagmaBenchmark.h"
+   #include "Wrappers/magmaWrappers.h"
 #endif
 
 namespace TNL::Benchmarks::DenseMatrices {

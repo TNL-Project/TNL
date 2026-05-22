@@ -23,7 +23,7 @@ matrixMultiplicationHIPBLAS(
    using IndexType = typename DenseMatrix::IndexType;
    using Device = typename DenseMatrix::DeviceType;
 
-   static_assert( std::is_same_v< Device, TNL::Devices::Hip >, "This function is specialized for Hip device only." );
+   static_assert( std::is_same_v< Device, TNL::Devices::GPU >, "This function is specialized for GPU device only." );
 
    hipblasHandle_t handle;
    hipblasCreate( &handle );
@@ -85,4 +85,4 @@ matrixMultiplicationHIPBLAS(
 
 }  // namespace TNL::Benchmarks::DenseMatrices
 
-#endif  // (__HIPP__)
+#endif  // (__HIP__)
