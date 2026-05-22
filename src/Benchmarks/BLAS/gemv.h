@@ -7,7 +7,7 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/DenseMatrix.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
 
 #if defined( __CUDACC__ )
@@ -31,10 +31,10 @@ benchmarkGemv( Benchmark& benchmark, int rows, int columns )
 {
    using HostMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host >;
    using RowMajorCudaMatrix =
-      TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >;
-   using ColumnMajorCudaMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda >;
+      TNL::Matrices::DenseMatrix< Real, TNL::Devices::GPU, int, TNL::Algorithms::Segments::RowMajorOrder >;
+   using ColumnMajorCudaMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::GPU >;
    using HostVector = Containers::Vector< Real, Devices::Host, int >;
-   using CudaVector = Containers::Vector< Real, Devices::Cuda, int >;
+   using CudaVector = Containers::Vector< Real, Devices::GPU, int >;
 
    HostMatrix hostMatrix;
    RowMajorCudaMatrix rowMajorCudaMatrix;
@@ -83,7 +83,7 @@ benchmarkGemv( Benchmark& benchmark, int rows, int columns )
    {
       columnMajorCudaMatrix.vectorProduct( inCudaVector, outCudaVector1 );
    };
-   benchmark.time< Devices::Cuda >( reset, "GPU col", columnMajorMvCuda );
+   benchmark.time< Devices::GPU >( reset, "GPU col", columnMajorMvCuda );
 
    columnMajorCudaMatrix.reset();
 
@@ -94,7 +94,7 @@ benchmarkGemv( Benchmark& benchmark, int rows, int columns )
    {
       rowMajorCudaMatrix.vectorProduct( inCudaVector, outCudaVector2 );
    };
-   benchmark.time< Devices::Cuda >( reset, "GPU row", rowMajorMvCuda );
+   benchmark.time< Devices::GPU >( reset, "GPU row", rowMajorMvCuda );
 
    //auto diff = TNL::max( abs( outCudaVector2 - outCudaVector1 ) );
    //std::cerr << outCudaVector1 << '\n' << outCudaVector2 << '\n';
@@ -124,7 +124,7 @@ benchmarkGemv( Benchmark& benchmark, int rows, int columns )
          outCudaVector1.getData(),
          1 );
    };
-   benchmark.time< Devices::Cuda >( reset, "GPU hipblas", mvCublas );
+   benchmark.time< Devices::GPU >( reset, "GPU cublas", mvCublas );
    #else
    hipblasHandle_t hipblasHandle;
    hipblasCreate( &hipblasHandle );

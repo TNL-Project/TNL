@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Algorithms/parallelFor.h>
 
 namespace TNL::Benchmarks {
@@ -76,7 +76,7 @@ struct VectorOperations< Devices::Host >
 };
 
 template<>
-struct VectorOperations< Devices::Cuda >
+struct VectorOperations< Devices::GPU >
 {
    template< typename Vector1, typename Vector2, typename Scalar1, typename Scalar2 >
    static void
@@ -100,9 +100,9 @@ struct VectorOperations< Devices::Cuda >
       };
 
       if( thisMultiplicator == 1.0 )
-         Algorithms::parallelFor< Devices::Cuda >( 0, _y.getSize(), add1 );
+         Algorithms::parallelFor< Devices::GPU >( 0, _y.getSize(), add1 );
       else
-         Algorithms::parallelFor< Devices::Cuda >( 0, _y.getSize(), add2 );
+         Algorithms::parallelFor< Devices::GPU >( 0, _y.getSize(), add2 );
    }
 
    template< typename Vector1, typename Vector2, typename Vector3, typename Scalar1, typename Scalar2, typename Scalar3 >
@@ -135,9 +135,9 @@ struct VectorOperations< Devices::Cuda >
       };
 
       if( thisMultiplicator == 1.0 )
-         Algorithms::parallelFor< Devices::Cuda >( 0, _v.getSize(), add1 );
+         Algorithms::parallelFor< Devices::GPU >( 0, _v.getSize(), add1 );
       else
-         Algorithms::parallelFor< Devices::Cuda >( 0, _v.getSize(), add2 );
+         Algorithms::parallelFor< Devices::GPU >( 0, _v.getSize(), add2 );
    }
 };
 
