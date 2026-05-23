@@ -33,7 +33,7 @@ struct KokkosDevice< TNL::Devices::Host >
 };
 
 template<>
-struct KokkosDevice< TNL::Devices::Cuda >
+struct KokkosDevice< TNL::Devices::GPU >
 {
    using type = Kokkos::DefaultExecutionSpace;
 };

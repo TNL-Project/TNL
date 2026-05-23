@@ -42,7 +42,7 @@ function run_benchmark() {
         --output-mode "append" \
         --name "$bench_name" \
         --redirect-mpi-output "false" \
-        --devices "$devices" \
+        --device "$devices" \
         --openmp-enabled "$omp_enabled" \
         --openmp-max-threads "$omp_threads" \
         --input-matrix "$bench_matrix" \
