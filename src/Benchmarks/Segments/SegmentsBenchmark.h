@@ -10,10 +10,14 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
-#include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Matrices/MatrixOperations.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRScalarKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/SlicedEllpackKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/BiEllpackKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
 
 namespace TNL::Benchmarks::Segments {
 
@@ -48,16 +52,16 @@ struct SegmentsBenchmark
       config.addEntry< int >( "max-segment-size", "Maximum segment size.", 128 );
       config.addEntry< int >( "min-segments-count", "Minimum number of segments.", 1 << 8 );
       config.addEntry< int >( "max-segments-count", "Maximum number of segments.", 1 << 20 );
-      //config.addEntry< bool >( "with-bfs", "Run breadth-first search benchmark.", true );
 
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
-      config.addEntryEnum< TNL::String >( "all" );
       config.addEntryEnum< TNL::String >( "host" );
       config.addEntryEnum< TNL::String >( "sequential" );
       config.addEntryEnum< TNL::String >( "cuda" );
+      config.addEntryEnum< TNL::String >( "hip" );
+      config.addEntryEnum< TNL::String >( "all" );
       TNL::Devices::Host::configSetup( config );
-      TNL::Devices::Cuda::configSetup( config );
+      TNL::Devices::GPU::configSetup( config );
    }
 
    SegmentsBenchmark( const TNL::Config::ParameterContainer& parameters_ )
@@ -381,39 +385,44 @@ struct SegmentsBenchmark
       if( device == "host" || device == "all" )
          TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
             segmentsSizes, benchmark, "host", "CSR" );
-#ifdef __CUDACC__
-      if( device == "cuda" || device == "all" ) {
-         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            segmentsSizes, benchmark, "cuda", "CSR" );
-         TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "Ellpack" );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+      if( device == "cuda" || device == "hip" || device == "all" ) {
+         TNL::String gpuLabel;
+   #if defined( __CUDACC__ )
+         gpuLabel = "cuda";
+   #elif defined( __HIP__ )
+         gpuLabel = "hip";
+   #else
+         gpuLabel = "gpu";
+   #endif
+         TNLBenchmarks< TNL::Devices::GPU, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
+            segmentsSizes, benchmark, gpuLabel, "CSR" );
+         TNLBenchmarks< TNL::Devices::GPU, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
+            segmentsSizes, benchmark, gpuLabel, "Ellpack" );
          TNLBenchmarks<
-            TNL::Devices::Cuda,
+            TNL::Devices::GPU,
             SlicedEllpackSegments,
             TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "SlicedEllpack" );
-         TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "BiEllpack" );
+            segmentsSizes, benchmark, gpuLabel, "SlicedEllpack" );
+         TNLBenchmarks< TNL::Devices::GPU, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
+            segmentsSizes, benchmark, gpuLabel, "BiEllpack" );
          TNLBenchmarks<
-            TNL::Devices::Cuda,
+            TNL::Devices::GPU,
             ChunkedEllpackSegments,
             TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "ChunkedEllpack" );
+            segmentsSizes, benchmark, gpuLabel, "ChunkedEllpack" );
       }
 #endif
    }
 
    void
-   setupBenchmark( const std::string& programName = "" )
+   setupBenchmark( TNL::Benchmarks::Benchmark& benchmark )
    {
       const auto segmentsSetup = parameters.getParameter< TNL::String >( "segments-setup" );
       const int minSegmentsCount = parameters.getParameter< int >( "min-segments-count" );
       const int maxSegmentsCount = parameters.getParameter< int >( "max-segments-count" );
       const int minSegmentSize = parameters.getParameter< int >( "min-segment-size" );
       const int maxSegmentSize = parameters.getParameter< int >( "max-segment-size" );
-
-      TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters, programName );
 
       // Constant segments
       if( segmentsSetup == "constant" || segmentsSetup == "all" ) {
