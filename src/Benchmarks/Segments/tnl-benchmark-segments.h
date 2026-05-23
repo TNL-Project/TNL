@@ -3,7 +3,7 @@
 
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include "SegmentsBenchmark.h"
 
 int
@@ -17,12 +17,15 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
+   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
    try {
-      TNL::Benchmarks::Segments::SegmentsBenchmark< int > benchmark( parameters );
-      benchmark.setupBenchmark( argv[ 0 ] );
+      // init benchmark
+      TNL::Benchmarks::Benchmark benchmark;
+      benchmark.setup( parameters, argv[ 0 ] );
+      TNL::Benchmarks::Segments::SegmentsBenchmark< int > segmentsBenchmark( parameters );
+      segmentsBenchmark.setupBenchmark( benchmark );
    }
    catch( std::exception& e ) {
       std::cerr << e.what() << '\n';
