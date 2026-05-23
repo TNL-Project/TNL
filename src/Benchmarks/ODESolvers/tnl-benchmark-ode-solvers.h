@@ -11,7 +11,7 @@
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
 #include <TNL/Solvers/ODE/ODESolver.h>
@@ -44,11 +44,6 @@
 using namespace TNL;
 using namespace TNL::Benchmarks;
 
-template< typename Real, typename Index >
-void
-benchmarkODESolvers( Benchmark& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
-{}
-
 template< typename Real, typename Device, typename Index >
 struct ODESolversBenchmark
 {
@@ -67,8 +62,14 @@ struct ODESolversBenchmark
       using VectorView = typename VectorType::ViewType;
 
       std::string device = "host";
-      if( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      if( std::is_same_v< DeviceType, Devices::GPU > ) {
+#if defined( __CUDACC__ )
          device = "cuda";
+#elif defined( __HIP__ )
+         device = "hip";
+#else
+         device = "gpu";
+#endif
       }
 
       double adaptivity = parameters.getParameter< double >( "adaptivity" );
@@ -225,7 +226,7 @@ struct ODESolversBenchmark
             benchmarkSolver< Solver >( benchmark, parameters, "Ralston2" );
          }
          if( solver == "ralston3" || solver == "all" ) {
-            using Method = TNL::Solvers::ODE::Methods::Ralston2< RealType >;
+            using Method = TNL::Solvers::ODE::Methods::Ralston3< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Ralston3" );
          }
@@ -283,7 +284,7 @@ resolveIndexType( Benchmark& benchmark, Config::ParameterContainer& parameters )
 
 template< typename Real >
 bool
-resolveDeviceType( Benchmark& benchmark, Config::ParameterContainer& parameters )
+resolveDevice( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
    const String& device = parameters.getParameter< String >( "device" );
    if( ( device == "sequential" || device == "all" )
@@ -291,25 +292,21 @@ resolveDeviceType( Benchmark& benchmark, Config::ParameterContainer& parameters 
       return false;
    if( ( device == "host" || device == "all" ) && ! resolveIndexType< Real, Devices::Host >( benchmark, parameters ) )
       return false;
-   if( device == "cuda" || device == "all" ) {
-#ifdef __CUDACC__
-      if( ! resolveIndexType< Real, Devices::Cuda >( benchmark, parameters ) )
-         return false;
-#else
-      std::cerr << "CUDA support not compiled in.\n";
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( ( device == "cuda" || device == "hip" || device == "all" )
+       && ! resolveIndexType< Real, Devices::GPU >( benchmark, parameters ) )
       return false;
 #endif
-   }
    return true;
 }
 
 bool
-resolveRealTypes( Benchmark& benchmark, Config::ParameterContainer& parameters )
+resolvePrecision( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
    const String& realType = parameters.getParameter< String >( "precision" );
-   if( ( realType == "float" || realType == "all" ) && ! resolveDeviceType< float >( benchmark, parameters ) )
+   if( ( realType == "float" || realType == "all" ) && ! resolveDevice< float >( benchmark, parameters ) )
       return false;
-   if( ( realType == "double" || realType == "all" ) && ! resolveDeviceType< double >( benchmark, parameters ) )
+   if( ( realType == "double" || realType == "all" ) && ! resolveDevice< double >( benchmark, parameters ) )
       return false;
    return true;
 }
@@ -343,6 +340,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
    config.addEntryEnum( "cuda" );
+   config.addEntryEnum( "hip" );
    config.addEntryEnum( "all" );
    config.addEntry< String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
@@ -359,7 +357,7 @@ configSetup( Config::ConfigDescription& config )
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
    TNL::MPI::configSetup( config );
 
    config.addDelimiter( "ODE solver settings:" );
@@ -385,12 +383,13 @@ main( int argc, char* argv[] )
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   const bool status = resolveRealTypes( benchmark, parameters );
+   const bool status = resolvePrecision( benchmark, parameters );
    return static_cast< int >( ! status );
 }
