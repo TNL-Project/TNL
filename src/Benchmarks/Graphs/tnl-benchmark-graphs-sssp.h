@@ -3,7 +3,7 @@
 
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include "GraphBenchmarkSSSP.h"
 
 void
@@ -18,22 +18,22 @@ configSetup( TNL::Config::ConfigDescription& config )
 
 template< typename Real >
 bool
-startBenchmark( TNL::Config::ParameterContainer& parameters, const std::string& programName )
+startBenchmark( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::Graphs::GraphBenchmarkSSSP< Real > benchmark( parameters );
-   return benchmark.runBenchmark( programName );
+   TNL::Benchmarks::Graphs::GraphBenchmarkSSSP< Real > graphBenchmark( parameters );
+   return graphBenchmark.runBenchmark( benchmark );
 }
 
 bool
-resolveReal( TNL::Config::ParameterContainer& parameters, const std::string& programName )
+resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
    auto precision = parameters.getParameter< TNL::String >( "precision" );
-   if( precision == "float" )
-      return startBenchmark< float >( parameters, programName );
-   if( precision == "double" )
-      return startBenchmark< double >( parameters, programName );
-   std::cerr << "Unknown precision " << precision << ".\n";
-   return false;
+   bool result = true;
+   if( precision == "all" || precision == "float" )
+      result = startBenchmark< float >( benchmark, parameters ) && result;
+   if( precision == "all" || precision == "double" )
+      result = startBenchmark< double >( benchmark, parameters ) && result;
+   return result;
 }
 
 int
@@ -48,10 +48,14 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
+   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   if( ! resolveReal( parameters, argv[ 0 ] ) )
+   // init benchmark
+   TNL::Benchmarks::Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
+
+   if( ! resolvePrecision( benchmark, parameters ) )
       return EXIT_FAILURE;
    return EXIT_SUCCESS;
 }
