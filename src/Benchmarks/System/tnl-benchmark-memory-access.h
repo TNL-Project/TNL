@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Config/parseCommandLine.h>
+#include <TNL/Devices/Host.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include "MemoryAccessBenchmarkTestArray.h"
-#include "MemoryAccessBenchmark.h"
 
 void
-MemoryAccessBenchmark::configSetup( TNL::Config::ConfigDescription& config )
+configSetup( TNL::Config::ConfigDescription& config )
 {
    TNL::Benchmarks::Benchmark::configSetup( config );
    config.addDelimiter( "Memory access benchmark settings:" );
@@ -25,19 +25,17 @@ MemoryAccessBenchmark::configSetup( TNL::Config::ConfigDescription& config )
    config.addEntry< TNL::String >( "access-type", "Type of memory accesses to be benchmarked.", "sequential" );
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "random" );
+
+   config.addDelimiter( "Device settings:" );
+   TNL::Devices::Host::configSetup( config );
 }
 
 template< int ElementSize >
 bool
-MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& parameters, const std::string& programName )
+performBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
    using TestArrayType = MemoryAccessBenchmarkTestArray< ElementSize >;
    using ElementType = typename TestArrayType::ElementType;
-
-   auto log_file_name = parameters.getParameter< TNL::String >( "log-file" );
-
-   TNL::Benchmarks::Benchmark benchmark;
-   benchmark.setup( parameters, programName );
 
    auto access_type = parameters.getParameter< TNL::String >( "access-type" );
    size_t min_size = parameters.getParameter< int >( "min-array-size" );
@@ -84,4 +82,54 @@ MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& 
       benchmark.time< TNL::Devices::Host >( "host", compute );
    }
    return true;
+}
+
+bool
+resolveElementSize( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
+{
+   int element_size = parameters.getParameter< int >( "element-size" );
+   switch( element_size ) {
+      case 1:
+         return performBenchmark< 1 >( benchmark, parameters );
+      case 2:
+         return performBenchmark< 2 >( benchmark, parameters );
+      case 4:
+         return performBenchmark< 4 >( benchmark, parameters );
+      case 8:
+         return performBenchmark< 8 >( benchmark, parameters );
+      case 16:
+         return performBenchmark< 16 >( benchmark, parameters );
+      case 32:
+         return performBenchmark< 32 >( benchmark, parameters );
+      case 64:
+         return performBenchmark< 64 >( benchmark, parameters );
+      case 128:
+         return performBenchmark< 128 >( benchmark, parameters );
+      case 256:
+         return performBenchmark< 256 >( benchmark, parameters );
+   }
+   std::cerr << "Element size " << element_size << " is not allowed. It can be only 1, 2, 4, 8, 16, 32, 64, 128, 256.\n";
+   return false;
+}
+
+int
+main( int argc, char* argv[] )
+{
+   TNL::Config::ConfigDescription config;
+   configSetup( config );
+
+   TNL::Config::ParameterContainer parameters;
+
+   if( ! parseCommandLine( argc, argv, config, parameters ) )
+      return EXIT_FAILURE;
+
+   if( ! TNL::Devices::Host::setup( parameters ) )
+      return EXIT_FAILURE;
+
+   // init benchmark
+   TNL::Benchmarks::Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
+
+   const bool status = resolveElementSize( benchmark, parameters );
+   return static_cast< int >( ! status );
 }
