@@ -4,6 +4,12 @@ if(TNL_BUILD_CUDA)
     install(TARGETS tnl-benchmark-ode-solvers-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
+if(TNL_BUILD_HIP)
+    add_executable(tnl-benchmark-ode-solvers-hip tnl-benchmark-ode-solvers.hip)
+    target_link_libraries(tnl-benchmark-ode-solvers-hip PUBLIC TNL::TNL)
+    install(TARGETS tnl-benchmark-ode-solvers-hip RUNTIME DESTINATION bin COMPONENT benchmarks)
+endif()
+
 # skip building host-only targets in CUDA-enabled CI jobs
 if(TNL_BUILD_CPP_TARGETS)
     add_executable(tnl-benchmark-ode-solvers tnl-benchmark-ode-solvers.cpp)
