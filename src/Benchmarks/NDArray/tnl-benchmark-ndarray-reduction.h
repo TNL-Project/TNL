@@ -28,7 +28,7 @@ performer()
 {
    if( std::is_same_v< Device, Devices::Host > )
       return "CPU";
-   else if( std::is_same_v< Device, Devices::Cuda > )
+   else if( std::is_same_v< Device, Devices::GPU > )
       return "GPU";
    else
       return "unknown";
@@ -374,20 +374,37 @@ run_benchmarks( Benchmark& benchmark )
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+resolveDevice( Benchmark& benchmark, const Config::ParameterContainer& parameters )
+{
+   const auto& device = parameters.getParameter< String >( "device" );
+
+   if( device == "sequential" || device == "all" )
+      run_benchmarks< Devices::Sequential >( benchmark, parameters );
+
+   if( device == "host" || device == "all" )
+      run_benchmarks< Devices::Host >( benchmark );
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( device == "cuda" || device == "hip" || device == "all" )
+      run_benchmarks< Devices::GPU >( benchmark );
+#endif
+}
+
+void
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
-   config.addDelimiter( "NDArray benchmark settings:" );
-   config.addEntry< String >( "devices", "Run benchmarks on these devices.", "cuda" );
-   config.addEntryEnum( "all" );
+   config.addDelimiter( "NDArray reduction benchmark settings:" );
+   config.addEntry< String >( "device", "Device to run benchmarks on.", "all" );
+   config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
-#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-#endif
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -396,27 +413,19 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-
-   // init benchmark and set parameters
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   const String devices = parameters.getParameter< String >( "devices" );
-   if( devices == "all" || devices == "host" )
-      run_benchmarks< Devices::Host >( benchmark );
-#ifdef __CUDACC__
-   if( devices == "all" || devices == "cuda" )
-      run_benchmarks< Devices::Cuda >( benchmark );
-#endif
+   resolveDevice( benchmark, parameters );
 
    return EXIT_SUCCESS;
 }
