@@ -53,6 +53,30 @@ if(TNL_BUILD_CUDA)
     endif()
 endif()
 
+if(TNL_BUILD_HIP)
+    add_executable(tnl-benchmark-linear-solvers-hip tnl-benchmark-linear-solvers.hip)
+    target_link_libraries(tnl-benchmark-linear-solvers-hip PUBLIC TNL::TNL)
+    find_package(hipsolver REQUIRED)
+    target_link_libraries(tnl-benchmark-linear-solvers-hip PUBLIC roc::hipsolver)
+    install(TARGETS tnl-benchmark-linear-solvers-hip RUNTIME DESTINATION bin COMPONENT benchmarks)
+
+    if(TNL_BUILD_MPI)
+        target_compile_definitions(tnl-benchmark-linear-solvers-hip PUBLIC "-DHAVE_MPI")
+        target_link_libraries(tnl-benchmark-linear-solvers-hip PUBLIC MPI::MPI_CXX)
+
+        if(STRUMPACK_FOUND)
+            target_compile_definitions(tnl-benchmark-linear-solvers-hip PUBLIC "-DHAVE_STRUMPACK")
+            target_link_libraries(tnl-benchmark-linear-solvers-hip PUBLIC STRUMPACK::strumpack)
+        endif()
+    endif()
+
+    if(TARGET SuiteSparse::UMFPACK)
+        target_compile_definitions(tnl-benchmark-linear-solvers-hip PUBLIC "-DHAVE_UMFPACK")
+        target_link_libraries(tnl-benchmark-linear-solvers-hip PUBLIC SuiteSparse::UMFPACK)
+        set_property(TARGET SuiteSparse::UMFPACK PROPERTY SYSTEM 1)
+    endif()
+endif()
+
 # skip building host-only targets in CUDA-enabled CI jobs
 if(TNL_BUILD_CPP_TARGETS)
     add_executable(tnl-benchmark-linear-solvers tnl-benchmark-linear-solvers.cpp)

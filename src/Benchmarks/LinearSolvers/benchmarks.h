@@ -14,7 +14,7 @@ template< typename Device >
 const char*
 getPerformer()
 {
-   if( std::is_same_v< Device, TNL::Devices::Cuda > )
+   if( std::is_same_v< Device, TNL::Devices::GPU > )
       return "GPU";
    return "CPU";
 }
@@ -35,12 +35,12 @@ template< typename Device >
 bool
 checkDevice( const TNL::Config::ParameterContainer& parameters )
 {
-   const auto device = parameters.getParameter< TNL::String >( "devices" );
+   const auto device = parameters.getParameter< TNL::String >( "device" );
    if( device == "all" )
       return true;
    if( std::is_same_v< Device, TNL::Devices::Host > && device == "host" )
       return true;
-   if( std::is_same_v< Device, TNL::Devices::Cuda > && device == "cuda" )
+   if( std::is_same_v< Device, TNL::Devices::GPU > && ( device == "cuda" || device == "hip" ) )
       return true;
    return false;
 }
