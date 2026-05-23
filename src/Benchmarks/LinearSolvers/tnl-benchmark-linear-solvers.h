@@ -14,7 +14,7 @@
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
 #include <TNL/Containers/BlockPartitioning.h>
@@ -128,9 +128,9 @@ benchmarkIterativeSolvers(
    const Vector& x0,
    const Vector& b )
 {
-#ifdef __CUDACC__
-   using CudaMatrix = typename Matrix::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
-   using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Cuda >;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using CudaMatrix = typename Matrix::template Self< typename Matrix::RealType, TNL::Devices::GPU >;
+   using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::GPU >;
 
    CudaVector cuda_x0;
    cuda_x0 = x0;
@@ -153,7 +153,7 @@ benchmarkIterativeSolvers(
    if( preconditioners.count( "jacobi" ) ) {
       if( with_preconditioner_update ) {
          benchmarkPreconditionerUpdate< Diagonal >( benchmark, parameters, matrixPointer, "Jacobi" );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkPreconditionerUpdate< Diagonal >( benchmark, parameters, cudaMatrixPointer, "Jacobi" );
 #endif
       }
@@ -163,7 +163,7 @@ benchmarkIterativeSolvers(
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             const std::string solver_name = variant + "-GMRES (Jacobi)";
             benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
             benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
@@ -172,7 +172,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "tfqmr" ) ) {
          const std::string solver_name = "TFQMR (Jacobi)";
          benchmarkSolver< TFQMR, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< TFQMR, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -180,7 +180,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "bicgstab" ) ) {
          const std::string solver_name = "BiCGstab (Jacobi)";
          benchmarkSolver< BICGStab, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< BICGStab, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -190,7 +190,7 @@ benchmarkIterativeSolvers(
             parameters.template setParameter< int >( "bicgstab-ell", ell );
             const std::string solver_name = "BiCGstab(" + std::to_string( ell ) + ") (Jacobi)";
             benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
             benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
@@ -199,7 +199,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "idrs" ) ) {
          const std::string solver_name = "IDRs (Jacobi)";
          benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -208,7 +208,7 @@ benchmarkIterativeSolvers(
    if( preconditioners.count( "ilu0" ) ) {
       if( with_preconditioner_update ) {
          benchmarkPreconditionerUpdate< ILU0 >( benchmark, parameters, matrixPointer, "ILU0" );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkPreconditionerUpdate< ILU0 >( benchmark, parameters, cudaMatrixPointer, "ILU0" );
 #endif
       }
@@ -218,7 +218,7 @@ benchmarkIterativeSolvers(
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             const std::string solver_name = variant + "-GMRES (ILU0)";
             benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
             benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
@@ -227,7 +227,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "tfqmr" ) ) {
          const std::string solver_name = "TFQMR (ILU0)";
          benchmarkSolver< TFQMR, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< TFQMR, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -235,7 +235,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "bicgstab" ) ) {
          const std::string solver_name = "BiCGstab (ILU0)";
          benchmarkSolver< BICGStab, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< BICGStab, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -245,7 +245,7 @@ benchmarkIterativeSolvers(
             parameters.template setParameter< int >( "bicgstab-ell", ell );
             const std::string solver_name = "BiCGstab(" + std::to_string( ell ) + ") (ILU0)";
             benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
             benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
@@ -254,7 +254,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "idrs" ) ) {
          const std::string solver_name = "IDRs (ILU0)";
          benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -263,7 +263,7 @@ benchmarkIterativeSolvers(
    if( preconditioners.count( "ilut" ) ) {
       if( with_preconditioner_update ) {
          benchmarkPreconditionerUpdate< ILUT >( benchmark, parameters, matrixPointer, "ILUT" );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkPreconditionerUpdate< ILUT >( benchmark, parameters, cudaMatrixPointer, "ILUT" );
 #endif
       }
@@ -273,7 +273,7 @@ benchmarkIterativeSolvers(
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             const std::string solver_name = variant + "-GMRES (ILUT)";
             benchmarkSolver< GMRES, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
             benchmarkSolver< GMRES, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
@@ -282,7 +282,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "tfqmr" ) ) {
          const std::string solver_name = "TFQMR (ILUT)";
          benchmarkSolver< TFQMR, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< TFQMR, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -290,7 +290,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "bicgstab" ) ) {
          const std::string solver_name = "BiCGstab (ILUT)";
          benchmarkSolver< BICGStab, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< BICGStab, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -300,7 +300,7 @@ benchmarkIterativeSolvers(
             parameters.template setParameter< int >( "bicgstab-ell", ell );
             const std::string solver_name = "BiCGstab(" + std::to_string( ell ) + ") (ILUT)";
             benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
             benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
@@ -309,7 +309,7 @@ benchmarkIterativeSolvers(
       if( solvers.count( "idrs" ) ) {
          const std::string solver_name = "IDRs (ILUT)";
          benchmarkSolver< IDRs, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
          benchmarkSolver< IDRs, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
@@ -351,9 +351,9 @@ benchmarkDirectSolvers(
    benchmarkDirectSolver< GinkgoDirectSolver >( benchmark, parameters, csr_matrix, x0, b, "Ginkgo" );
 #endif
 
-#ifdef __CUDACC__
-   using CudaCSR = typename CSR::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
-   using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Cuda >;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using CudaCSR = typename CSR::template Self< typename Matrix::RealType, TNL::Devices::GPU >;
+   using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::GPU >;
 
    CudaVector cuda_x0;
    cuda_x0 = x0;
@@ -399,7 +399,7 @@ benchmarkDirectSolvers(
          std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver.\n";
    }
    #endif
-#endif  // __CUDACC__
+#endif  // defined( __CUDACC__ ) || defined( __HIP__ )
 
 #ifdef HAVE_STRUMPACK
    // Strumpack currently supports only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
@@ -589,6 +589,26 @@ struct LinearSolversBenchmark
    }
 };
 
+bool
+resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
+{
+   const auto& precision = parameters.getParameter< TNL::String >( "precision" );
+   bool ret_code = true;
+
+   if( precision == "all" || precision == "float" ) {
+      using MatrixType =
+         TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
+      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters ) && ret_code;
+   }
+   if( precision == "all" || precision == "double" ) {
+      using MatrixType =
+         TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
+      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters ) && ret_code;
+   }
+
+   return ret_code;
+}
+
 void
 configSetup( TNL::Config::ConfigDescription& config )
 {
@@ -598,7 +618,7 @@ configSetup( TNL::Config::ConfigDescription& config )
       "input-matrix", "File name of the input matrix (in binary TNL format or textual MTX format)." );
    config.addEntry< TNL::String >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
    config.addEntry< TNL::String >( "input-rhs", "File name of the input right-hand-side vector (in binary TNL format).", "" );
-   config.addEntry< TNL::String >( "set-rhs", "Saya how to set the right-hand-side vector if no input file is given.", "ones" );
+   config.addEntry< TNL::String >( "set-rhs", "Say how to set the right-hand-side vector if no input file is given.", "ones" );
    config.addEntryEnum( "ones" );
    config.addEntryEnum( "random" );
    config.addEntry< TNL::String >( "name", "Name of the matrix in the benchmark.", "" );
@@ -616,16 +636,15 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntry< TNL::String >(
       "preconditioners", "Comma-separated list of preconditioners to run benchmarks for. Options: jacobi, ilu0, ilut.", "all" );
    config.addEntry< bool >( "with-preconditioner-update", "Run benchmark for the preconditioner update.", true );
-   config.addEntry< TNL::String >( "devices", "Run benchmarks on these devices.", "all" );
-   config.addEntryEnum( "all" );
+   config.addEntry< TNL::String >( "device", "Device to run benchmarks on.", "all" );
    config.addEntryEnum( "host" );
-#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-#endif
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
    TNL::Devices::Host::configSetup( config );
-   TNL::Devices::Cuda::configSetup( config );
+   TNL::Devices::GPU::configSetup( config );
    TNL::MPI::configSetup( config );
 
    config.addDelimiter( "Linear solver settings:" );
@@ -638,9 +657,10 @@ configSetup( TNL::Config::ConfigDescription& config )
    using ILUT = TNL::Solvers::Linear::Preconditioners::ILUT< Matrix >;
    ILUT::configSetup( config );
 
-   config.addEntry< TNL::String >( "precision", "Precision of the solver.", "double" );
-   config.addEntryEnum( "double" );
+   config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
+   config.addEntryEnum( "double" );
+   config.addEntryEnum( "all" );
 }
 
 int
@@ -663,11 +683,11 @@ main( int argc, char* argv[] )
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters )
+   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::GPU::setup( parameters )
        || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
-   // init benchmark and set parameters
+   // init benchmark
    TNL::Benchmarks::Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
@@ -675,19 +695,7 @@ main( int argc, char* argv[] )
    //return ! Matrices::resolveMatrixType< MainConfig,
    //                                      Devices::Host,
    //                                      LinearSolversBenchmark >( benchmark, parameters );
-   auto precision = parameters.getParameter< TNL::String >( "precision" );
-   bool ret_code = false;
-   if( precision == "float" ) {
-      using MatrixType =
-         TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
-      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
-   }
-
-   if( precision == "double" ) {
-      using MatrixType =
-         TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
-      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
-   }
+   const bool ret_code = resolvePrecision( benchmark, parameters );
 
 #ifdef HAVE_TRILINOS
    Kokkos::finalize();
