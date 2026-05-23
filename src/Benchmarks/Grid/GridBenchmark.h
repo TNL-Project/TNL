@@ -4,127 +4,103 @@
 
 #pragma once
 
-#include "Operations.h"
-
 #include <vector>
+
+#include "Operations.h"
 
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Config/parseCommandLine.h>
 
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 #include <TNL/Benchmarks/Benchmark.h>
 
 static std::vector< TNL::String > dimensionParameterIds = { "x-dimension", "y-dimension", "z-dimension" };
 
-template< typename Real = double, typename Device = TNL::Devices::Host, typename Index = int >
-class GridBenchmark
+template< int EntityDimension, typename Grid, typename Operation >
+void
+timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
 {
-public:
-   using Benchmark = TNL::Benchmarks::Benchmark;
-
-   static void
-   setupConfig( TNL::Config::ConfigDescription& config )
+   auto exec = [] __cuda_callable__( typename Grid::template EntityType< EntityDimension > & entity ) mutable
    {
-      config.addDelimiter( "Grid settings:" );
-      for( int i = 0; i < 3; i++ )
-         config.addEntry< int >( dimensionParameterIds[ i ], "Grid resolution.", 100 );
-   }
+      Operation::exec( entity );
+   };
 
-   template< int GridDimension >
-   void
-   runBenchmark( const TNL::Config::ParameterContainer& parameters, const std::string& programName = "" ) const
+   TNL::String device;
+   if( std::is_same_v< typename Grid::DeviceType, TNL::Devices::Sequential > )
+      device = "sequential";
+   if( std::is_same_v< typename Grid::DeviceType, TNL::Devices::Host > )
+      device = "host";
+   if( std::is_same_v< typename Grid::DeviceType, TNL::Devices::GPU > )
+      device = "cuda";
+
+   auto operation = TNL::getType< Operation >();
+
+   const TNL::Benchmarks::Benchmark::MetadataColumns columns = {
+      { "dimensions", TNL::convertToString( grid.getDimensions() ) },
+      { "entity dimension", TNL::convertToString( EntityDimension ) },
+      { "entities count", TNL::convertToString( grid.getEntitiesCount( EntityDimension ) ) },
+      { "operation", operation }
+   };
+
+   TNL::Benchmarks::Benchmark::MetadataColumns forAllColumns( columns );
+   forAllColumns.emplace_back( "traverse", "forAll" );
+   benchmark.setMetadataColumns( forAllColumns );
+   auto measureAll = [ = ]()
    {
-      Benchmark benchmark;
-      benchmark.setup( parameters, programName );
+      grid.template forAllEntities< EntityDimension >( exec );
+   };
+   benchmark.time< typename Grid::DeviceType >( device, measureAll );
 
-      time< GridDimension >( benchmark, parameters );
-   }
-
-   template< int GridDimension >
-   void
-   time( Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters ) const
+   TNL::Benchmarks::Benchmark::MetadataColumns forInteriorColumns( columns );
+   forInteriorColumns.emplace_back( "traverse", "forInterior" );
+   benchmark.setMetadataColumns( forInteriorColumns );
+   auto measureInterior = [ = ]()
    {
-      using Grid = TNL::Meshes::Grid< GridDimension, Real, Device, int >;
-      using CoordinatesType = typename Grid::CoordinatesType;
+      grid.template forInteriorEntities< EntityDimension >( exec );
+   };
+   benchmark.time< typename Grid::DeviceType >( device, measureInterior );
 
-      CoordinatesType dimensions;
-
-      for( int i = 0; i < GridDimension; i++ )
-         dimensions[ i ] = parameters.getParameter< int >( dimensionParameterIds[ i ] );
-
-      Grid grid;
-
-      grid.setDimensions( dimensions );
-
-      auto forEachEntityDimension = [ & ]( const auto entityDimension )
-      {
-         timeTraverse< entityDimension, Grid, VoidOperation >( benchmark, grid );
-
-         timeTraverse< entityDimension, Grid, GetEntityIsBoundaryOperation >( benchmark, grid );
-         timeTraverse< entityDimension, Grid, GetEntityCoordinateOperation >( benchmark, grid );
-         timeTraverse< entityDimension, Grid, GetEntityIndexOperation >( benchmark, grid );
-         timeTraverse< entityDimension, Grid, GetEntityNormalsOperation >( benchmark, grid );
-         timeTraverse< entityDimension, Grid, RefreshEntityOperation >( benchmark, grid );
-
-         timeTraverse< entityDimension, Grid, GetMeshDimensionOperation >( benchmark, grid );
-         timeTraverse< entityDimension, Grid, GetOriginOperation >( benchmark, grid );
-         timeTraverse< entityDimension, Grid, GetEntitiesCountsOperation >( benchmark, grid );
-      };
-      TNL::Algorithms::staticFor< int, 0, GridDimension + 1 >( forEachEntityDimension );
-   }
-
-   template< int EntityDimension, typename Grid, typename Operation >
-   void
-   timeTraverse( Benchmark& benchmark, const Grid& grid ) const
+   TNL::Benchmarks::Benchmark::MetadataColumns forBoundaryColumns( columns );
+   forBoundaryColumns.emplace_back( "traverse", "forBoundary" );
+   benchmark.setMetadataColumns( forBoundaryColumns );
+   auto measureBoundary = [ = ]()
    {
-      auto exec = [] __cuda_callable__( typename Grid::template EntityType< EntityDimension > & entity ) mutable
-      {
-         Operation::exec( entity );
-      };
+      grid.template forBoundaryEntities< EntityDimension >( exec );
+   };
+   benchmark.time< typename Grid::DeviceType >( device, measureBoundary );
+}
 
-      TNL::String device;
-      if( std::is_same_v< Device, TNL::Devices::Sequential > )
-         device = "sequential";
-      if( std::is_same_v< Device, TNL::Devices::Host > )
-         device = "host";
-      if( std::is_same_v< Device, TNL::Devices::Cuda > )
-         device = "cuda";
+template< int GridDimension, typename Real, typename Device >
+void
+runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
+{
+   using Grid = TNL::Meshes::Grid< GridDimension, Real, Device, int >;
+   using CoordinatesType = typename Grid::CoordinatesType;
 
-      auto operation = TNL::getType< Operation >();
+   CoordinatesType dimensions;
 
-      const Benchmark::MetadataColumns columns = { { "dimensions", TNL::convertToString( grid.getDimensions() ) },
-                                                   { "entity_dimension", TNL::convertToString( EntityDimension ) },
-                                                   { "entitiesCounts",
-                                                     TNL::convertToString( grid.getEntitiesCount( EntityDimension ) ) },
-                                                   { "operation_id", operation } };
+   for( int i = 0; i < GridDimension; i++ )
+      dimensions[ i ] = parameters.getParameter< int >( dimensionParameterIds[ i ] );
 
-      Benchmark::MetadataColumns forAllColumns( columns );
-      forAllColumns.emplace_back( "traverse_id", "forAll" );
-      benchmark.setMetadataColumns( forAllColumns );
-      auto measureAll = [ = ]()
-      {
-         grid.template forAllEntities< EntityDimension >( exec );
-      };
-      benchmark.time< typename Grid::DeviceType >( device, measureAll );
+   Grid grid;
 
-      Benchmark::MetadataColumns forInteriorColumns( columns );
-      forInteriorColumns.emplace_back( "traverse_id", "forInterior" );
-      benchmark.setMetadataColumns( forInteriorColumns );
-      auto measureInterior = [ = ]()
-      {
-         grid.template forInteriorEntities< EntityDimension >( exec );
-      };
-      benchmark.time< typename Grid::DeviceType >( device, measureInterior );
+   grid.setDimensions( dimensions );
 
-      Benchmark::MetadataColumns forBoundaryColumns( columns );
-      forBoundaryColumns.emplace_back( "traverse_id", "forBoundary" );
-      benchmark.setMetadataColumns( forInteriorColumns );
-      auto measureBoundary = [ = ]()
-      {
-         grid.template forBoundaryEntities< EntityDimension >( exec );
-      };
-      benchmark.time< typename Grid::DeviceType >( device, measureBoundary );
-   }
-};
+   auto forEachEntityDimension = [ & ]( const auto entityDimension )
+   {
+      timeTraverse< entityDimension, Grid, VoidOperation >( benchmark, grid );
+
+      timeTraverse< entityDimension, Grid, GetEntityIsBoundaryOperation >( benchmark, grid );
+      timeTraverse< entityDimension, Grid, GetEntityCoordinateOperation >( benchmark, grid );
+      timeTraverse< entityDimension, Grid, GetEntityIndexOperation >( benchmark, grid );
+      timeTraverse< entityDimension, Grid, GetEntityNormalsOperation >( benchmark, grid );
+      timeTraverse< entityDimension, Grid, RefreshEntityOperation >( benchmark, grid );
+
+      timeTraverse< entityDimension, Grid, GetMeshDimensionOperation >( benchmark, grid );
+      timeTraverse< entityDimension, Grid, GetOriginOperation >( benchmark, grid );
+      timeTraverse< entityDimension, Grid, GetEntitiesCountsOperation >( benchmark, grid );
+   };
+   TNL::Algorithms::staticFor< int, 0, GridDimension + 1 >( forEachEntityDimension );
+}
