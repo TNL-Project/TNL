@@ -2,9 +2,7 @@
 
 devices=(sequential host cuda hip)
 precisions=(float double)
-# FIXME: nd-grid does not give correct results
-#tests=(parallel-for simple-grid grid nd-grid)
-tests=(parallel-for simple-grid grid)
+tests=(parallel-for simple-grid grid nd-grid)
 max_x_dimension="800"
 max_y_dimension="800"
 base="tnl-benchmark-heat-equation"
