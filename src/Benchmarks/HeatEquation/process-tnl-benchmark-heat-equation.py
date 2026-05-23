@@ -12,7 +12,8 @@ precisions = ["float", "double"]
 tests = [
     "parallel-for",
     "simple-grid",
-    "grid",  # "nd-grid",
+    "grid",
+    "nd-grid",
 ]
 
 

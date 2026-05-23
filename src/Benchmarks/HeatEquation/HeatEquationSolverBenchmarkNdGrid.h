@@ -423,8 +423,8 @@ struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< R
       Index iterations = 0;
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, hy * hy );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
-         auto uxView = this->aux.getView();
-         auto auxView = this->ux.getView();
+         auto uxView = this->ux.getView();
+         auto auxView = this->aux.getView();
          auto xDimension = grid.getDimension( 0 );
 
          auto next = [ = ] __cuda_callable__( const GridEntity< 2, int >& entity ) mutable
