@@ -178,83 +178,109 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, Matrices::Factorization:
 
 template< typename Device, typename PrecisionType, typename MatrixTypeCMO >
 void
-run_benchmarks_DM( Benchmark& benchmark, int size, MatrixTypeCMO& matrixCMO )
+run_benchmarks_DM( Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters, MatrixTypeCMO& matrixCMO )
 {
+   const bool withPI = parameters.getParameter< bool >( "with-pi" );
+   const bool withQRHouseholder = parameters.getParameter< bool >( "with-qr-householder" );
+   const bool withQRGramSchmidt = parameters.getParameter< bool >( "with-qr-gram-schmidt" );
+   const bool withQRGivens = parameters.getParameter< bool >( "with-qr-givens" );
+   const int size = matrixCMO.getColumns();
+
    using VectorType = Vector< PrecisionType, Device >;
    auto initialVecOrig = generateVector< VectorType >( matrixCMO.getColumns() );
-   benchmark.setMetadataColumns(
-      Benchmark::MetadataColumns(
-         {
-            { "operation", "PI" },
-            { "precision", getType< PrecisionType >() },
-            { "matrix type", "DM_CMO" },
-            { "size", std::to_string( size ) },
-         } ) );
-   benchmark_pi< Device >( benchmark, matrixCMO, initialVecOrig );
 
-   using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
-   MatrixTypeRMO matrixRMO( size, size );
-   matrixRMO = matrixCMO;
-   benchmark.setMetadataColumns(
-      Benchmark::MetadataColumns(
-         {
-            { "operation", "PI" },
-            { "precision", getType< PrecisionType >() },
-            { "matrix type", "DM_RMO" },
-            { "size", std::to_string( size ) },
-         } ) );
-   benchmark_pi< Device >( benchmark, matrixRMO, initialVecOrig );
-
-   if( ! std::is_same_v< Device, Devices::GPU > ) {
-      benchmark.setMetadataColumns(
-         Benchmark::MetadataColumns(
-            { { "operation", "QR" },
-              { "precision", getType< PrecisionType >() },
-              { "matrix type", "DM_CMO" },
-              { "size", std::to_string( size ) },
-              { "factorization", "Householder" } } ) );
-      benchmark_qr< Device, MatrixTypeCMO >(
-         benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
-
+   if( withPI ) {
       benchmark.setMetadataColumns(
          Benchmark::MetadataColumns(
             {
-               { "operation", "QR" },
+               { "operation", "PI" },
                { "precision", getType< PrecisionType >() },
                { "matrix type", "DM_CMO" },
                { "size", std::to_string( size ) },
-               { "factorization", "GramSchmidt" },
             } ) );
-      benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+      benchmark_pi< Device >( benchmark, matrixCMO, initialVecOrig );
 
+      using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
+      MatrixTypeRMO matrixRMO( size, size );
+      matrixRMO = matrixCMO;
       benchmark.setMetadataColumns(
          Benchmark::MetadataColumns(
             {
-               { "operation", "QR" },
-               { "precision", getType< PrecisionType >() },
-               { "matrix type", "DM_CMO" },
-               { "size", std::to_string( size ) },
-               { "factorization", "Givens" },
-            } ) );
-      benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
-
-      benchmark.setMetadataColumns(
-         Benchmark::MetadataColumns(
-            {
-               { "operation", "QR" },
+               { "operation", "PI" },
                { "precision", getType< PrecisionType >() },
                { "matrix type", "DM_RMO" },
                { "size", std::to_string( size ) },
-               { "factorization", "Givens" },
             } ) );
-      benchmark_qr< Device >( benchmark, matrixRMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
+      benchmark_pi< Device >( benchmark, matrixRMO, initialVecOrig );
+   }
+
+   if constexpr( ! std::is_same_v< Device, Devices::GPU > ) {
+      if( withQRHouseholder ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               { { "operation", "QR" },
+                 { "precision", getType< PrecisionType >() },
+                 { "matrix type", "DM_CMO" },
+                 { "size", std::to_string( size ) },
+                 { "factorization", "Householder" } } ) );
+         benchmark_qr< Device, MatrixTypeCMO >(
+            benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
+      }
+
+      if( withQRGramSchmidt ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "operation", "QR" },
+                  { "precision", getType< PrecisionType >() },
+                  { "matrix type", "DM_CMO" },
+                  { "size", std::to_string( size ) },
+                  { "factorization", "GramSchmidt" },
+               } ) );
+         benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+      }
+
+      if( withQRGivens ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "operation", "QR" },
+                  { "precision", getType< PrecisionType >() },
+                  { "matrix type", "DM_CMO" },
+                  { "size", std::to_string( size ) },
+                  { "factorization", "Givens" },
+               } ) );
+         benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
+
+         using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
+         MatrixTypeRMO matrixRMO( size, size );
+         matrixRMO = matrixCMO;
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "operation", "QR" },
+                  { "precision", getType< PrecisionType >() },
+                  { "matrix type", "DM_RMO" },
+                  { "size", std::to_string( size ) },
+                  { "factorization", "Givens" },
+               } ) );
+         benchmark_qr< Device >( benchmark, matrixRMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
+      }
    }
 }
 
 template< typename Device, typename PrecisionType, typename MatrixType >
 void
-run_benchmarks_SM( TNL::Benchmarks::Benchmark& benchmark, int size, MatrixType& matrixSM )
+run_benchmarks_SM(
+   TNL::Benchmarks::Benchmark& benchmark,
+   const TNL::Config::ParameterContainer& parameters,
+   MatrixType& matrixSM )
 {
+   const bool withPI = parameters.getParameter< bool >( "with-pi" );
+   if( ! withPI )
+      return;
+   const int size = matrixSM.getColumns();
+
    using VectorType = TNL::Containers::Vector< PrecisionType, Device >;
    auto initialVecOrig = generateVector< VectorType >( matrixSM.getColumns() );
    benchmark.setMetadataColumns(
@@ -273,14 +299,17 @@ void
 run_benchmarks( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
    const auto& device = parameters.getParameter< std::string >( "device" );
+   const int minSizeDense = parameters.getParameter< int >( "min-size-dense" );
+   const int maxSizeDense = parameters.getParameter< int >( "max-size-dense" );
+   const int minSizeSparse = parameters.getParameter< int >( "min-size-sparse" );
+   const int maxSizeSparse = parameters.getParameter< int >( "max-size-sparse" );
 
    using MatrixTypeHostCMO =
       TNL::Matrices::DenseMatrix< PrecisionType, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
-   int size = 10;
-   while( size <= 2000 ) {
+   for( int size = minSizeDense; size <= maxSizeDense; size *= 2 ) {
       if( device == "host" || device == "all" ) {
          auto matrixHostCMO = generateMatrixDM< MatrixTypeHostCMO >( size );
-         run_benchmarks_DM< TNL::Devices::Host, PrecisionType >( benchmark, size, matrixHostCMO );
+         run_benchmarks_DM< TNL::Devices::Host, PrecisionType >( benchmark, parameters, matrixHostCMO );
       }
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if( device == "cuda" || device == "hip" || device == "all" ) {
@@ -288,27 +317,17 @@ run_benchmarks( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Parame
          TNL::Matrices::DenseMatrix< PrecisionType, TNL::Devices::GPU, int, TNL::Algorithms::Segments::ColumnMajorOrder >
             matrixGPUCMO( size, size );
          matrixGPUCMO = matrixHostCMO;
-         run_benchmarks_DM< TNL::Devices::GPU, PrecisionType >( benchmark, size, matrixGPUCMO );
+         run_benchmarks_DM< TNL::Devices::GPU, PrecisionType >( benchmark, parameters, matrixGPUCMO );
       }
 #endif
-      if( size == 10 || size == 200 ) {
-         size *= 2.5;
-      }
-      else {
-         size *= 2;
-      }
-      if( size > 2000 ) {
-         break;
-      }
    }
 
    using MatrixTypeHostSM =
       TNL::Matrices::SparseMatrix< PrecisionType, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >;
-   size = 100;
-   while( size <= 10000 ) {
+   for( int size = minSizeSparse; size <= maxSizeSparse; size *= 2 ) {
       if( device == "host" || device == "all" ) {
          auto matrixHostSM = generateMatrixSM< MatrixTypeHostSM >( size );
-         run_benchmarks_SM< TNL::Devices::Host, PrecisionType >( benchmark, size, matrixHostSM );
+         run_benchmarks_SM< TNL::Devices::Host, PrecisionType >( benchmark, parameters, matrixHostSM );
       }
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if( device == "cuda" || device == "hip" || device == "all" ) {
@@ -316,24 +335,9 @@ run_benchmarks( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Parame
          TNL::Matrices::SparseMatrix< PrecisionType, TNL::Devices::GPU, int, TNL::Matrices::SymmetricMatrix > matrixGPUSM(
             size, size );
          matrixGPUSM = matrixHostSM;
-         run_benchmarks_SM< TNL::Devices::GPU, PrecisionType >( benchmark, size, matrixGPUSM );
+         run_benchmarks_SM< TNL::Devices::GPU, PrecisionType >( benchmark, parameters, matrixGPUSM );
       }
 #endif
-      if( size == 10 || size == 200 ) {
-         size *= 2.5;
-      }
-      else if( size == 500 || size == 1000 || size == 5000 ) {
-         size *= 1.5;
-      }
-      else if( size == 750 || size == 7500 ) {
-         size += ( size / 3 );
-      }
-      else if( size == 1500 ) {
-         size += 2 * ( size / 3 );
-      }
-      else {
-         size *= 2;
-      }
    }
 }
 
@@ -362,6 +366,14 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "hip" );
    config.addEntryEnum( "all" );
+   config.addEntry< int >( "min-size-dense", "Minimum dense matrix size.", 10 );
+   config.addEntry< int >( "max-size-dense", "Maximum dense matrix size.", 2000 );
+   config.addEntry< int >( "min-size-sparse", "Minimum sparse matrix size.", 100 );
+   config.addEntry< int >( "max-size-sparse", "Maximum sparse matrix size.", 10000 );
+   config.addEntry< bool >( "with-pi", "Run power iteration benchmarks.", true );
+   config.addEntry< bool >( "with-qr-householder", "Run QR algorithm with Householder factorization.", true );
+   config.addEntry< bool >( "with-qr-gram-schmidt", "Run QR algorithm with Gram-Schmidt factorization.", true );
+   config.addEntry< bool >( "with-qr-givens", "Run QR algorithm with Givens factorization.", true );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
