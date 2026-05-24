@@ -97,8 +97,10 @@ void
 benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOrig )
 {
    using PrecisionType = typename MatrixType::RealType;
-   for( int i = 1; i < 15; i += 2 ) {
+   constexpr int max_i = std::is_same_v< PrecisionType, float > ? 7 : 13;
+   for( int i = 1; i <= max_i; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
+      benchmark.setMetadataElement( { "epsilon", TNL::convertToString( epsilon ) } );
       PrecisionType error = 0;
       int iterations = 0;
       PrecisionType eigenvalue = 0;
@@ -120,7 +122,7 @@ benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOr
          std::tie( eigenvalue, eigenvector, iter ) =
             Solvers::Eigen::experimental::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
-      EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
+      EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
@@ -132,8 +134,10 @@ void
 benchmark_qr( Benchmark& benchmark, MatrixType& matrix, Matrices::Factorization::QR::FactorizationMethod factorType )
 {
    using PrecisionType = typename MatrixType::RealType;
-   for( int i = 1; i < 15; i += 2 ) {
+   constexpr int max_i = std::is_same_v< PrecisionType, float > ? 7 : 13;
+   for( int i = 1; i <= max_i; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
+      benchmark.setMetadataElement( { "epsilon", TNL::convertToString( epsilon ) } );
       PrecisionType error = 0;
       int iterations = 0;
       MatrixType eigenvalues( matrix.getColumns(), matrix.getColumns() );
@@ -165,7 +169,7 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, Matrices::Factorization:
          std::tie( eigenvalues, eigenvectors, iter ) =
             Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorType, 5000 );
       };
-      EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
+      EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
