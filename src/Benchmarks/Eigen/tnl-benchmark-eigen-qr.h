@@ -41,8 +41,10 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, const Matrices::Factoriz
    if constexpr( std::is_same< PrecisionType, double >() ) {
       doubleMatrix = matrix;
    }
-   for( int i = 1; i < 15; i += 2 ) {
+   constexpr int max_i = std::is_same_v< PrecisionType, float > ? 7 : 13;
+   for( int i = 1; i <= max_i; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
+      benchmark.setMetadataElement( { "epsilon", TNL::convertToString( epsilon ) } );
       double error = 0;
       int iterations = 0;
       MatrixType eigenvalues( matrix.getColumns(), matrix.getColumns() );
@@ -97,7 +99,7 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, const Matrices::Factoriz
          std::tie( eigenvalues, eigenvectors, iter ) =
             Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorMethod, 10000 );
       };
-      EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
+      EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
