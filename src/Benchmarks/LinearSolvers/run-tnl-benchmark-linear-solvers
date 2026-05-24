@@ -54,9 +54,9 @@ function run_benchmark() {
         --gmres-restarting-step-min "$gmresRestartingStepMin" \
         --ilut-threshold 1e-4 \
         --ilut-p 8 \
-        --solvers "$solvers" \
-        --gmres-variants "$gmresVariants" \
-        --preconditioners "$preconditioners" \
+        --solvers "${solvers[@]}" \
+        --gmres-variants "${gmresVariants[@]}" \
+        --preconditioners "${preconditioners[@]}" \
         --with-preconditioner-update "true" \
     || true
 }
@@ -69,13 +69,13 @@ max_omp_threads=$(get_cpu_count)
 #solver="tnl-benchmark-linear-solvers"
 solver="tnl-benchmark-linear-solvers-cuda"
 
-solvers="gmres,bicgstab,bicgstab-ell,tfqmr"
-#solvers="gmres"
-#solvers="tfqmr,bicgstab"
-#solvers="bicgstab-ell"
-#solvers="bicgstab"
-gmresVariants="CGS,CGSR,MGS,MGSR,CWY"
-preconditioners="jacobi,ilu0,ilut"
+solvers=(gmres bicgstab bicgstab-ell tfqmr)
+#solvers=(gmres)
+#solvers=(tfqmr bicgstab)
+#solvers=(bicgstab-ell)
+#solvers=(bicgstab)
+gmresVariants=(CGS CGSR MGS MGSR CWY)
+preconditioners=(jacobi ilu0 ilut)
 
 matrices_base_path="./mtx_matrices"
 
