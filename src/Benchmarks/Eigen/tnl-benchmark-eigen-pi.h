@@ -23,6 +23,7 @@
 
 #include <TNL/Benchmarks/Benchmark.h>
 #include <string>
+#include <type_traits>
 
 #include "EigenBenchmarkResult.h"
 
@@ -50,8 +51,10 @@ benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOr
    DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
    Vector< double, Device > doubleEigenvector( matrix.getColumns() );
    doubleMatrix = matrix;
-   for( int i = 1; i < 15; i += 2 ) {
+   constexpr int max_i = std::is_same_v< PrecisionType, float > ? 7 : 13;
+   for( int i = 1; i <= max_i; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
+      benchmark.setMetadataElement( { "epsilon", TNL::convertToString( epsilon ) } );
       double error = 0;
       int iterations = 0;
       PrecisionType eigenvalue = 0;
@@ -74,7 +77,7 @@ benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOr
          std::tie( eigenvalue, eigenvector, iter ) =
             Solvers::Eigen::experimental::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
-      EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
+      EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
@@ -89,8 +92,10 @@ benchmark_spi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecO
    PrecisionType eigenvalue = 0;
    DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
    doubleMatrix = matrix;
-   for( int i = 1; i < 14; i += 2 ) {
+   constexpr int max_i = std::is_same_v< PrecisionType, float > ? 7 : 13;
+   for( int i = 1; i <= max_i; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
+      benchmark.setMetadataElement( { "epsilon", TNL::convertToString( epsilon ) } );
       double error = 0;
       int iterations = 0;
       VectorType eigenvector( matrix.getColumns() );
@@ -114,7 +119,7 @@ benchmark_spi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecO
          std::tie( eigenvalue, eigenvector, iter ) =
             Solvers::Eigen::experimental::shiftedPowerIteration< MatrixType >( matrix, epsilon, shiftValue, initialVec, 10000 );
       };
-      EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
+      EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
