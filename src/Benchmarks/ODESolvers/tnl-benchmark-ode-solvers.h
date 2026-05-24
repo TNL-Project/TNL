@@ -148,7 +148,7 @@ struct ODESolversBenchmark
    run( Benchmark& benchmark, const Config::ParameterContainer& parameters )
    {
       using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
-      const auto& solvers = parameters.getList< String >( "solvers" );
+      const auto& solvers = parameters.getList< std::string >( "solvers" );
       const bool legacy_solvers = parameters.getParameter< bool >( "legacy-solvers" );
       for( auto&& solver : solvers ) {
          if( solver == "euler" || solver == "all" ) {
@@ -274,7 +274,7 @@ template< typename Real, typename Device >
 bool
 resolveIndexType( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
-   const String& index = parameters.getParameter< String >( "index-type" );
+   const auto& index = parameters.getParameter< std::string >( "index-type" );
    if( index == "int" && ! ODESolversBenchmark< Real, Device, int >::run( benchmark, parameters ) )
       return false;
    if( index == "long int" && ! ODESolversBenchmark< Real, Device, long int >::run( benchmark, parameters ) )
@@ -286,7 +286,7 @@ template< typename Real >
 bool
 resolveDevice( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
-   const String& device = parameters.getParameter< String >( "device" );
+   const auto& device = parameters.getParameter< std::string >( "device" );
    if( ( device == "sequential" || device == "all" )
        && ! resolveIndexType< Real, Devices::Sequential >( benchmark, parameters ) )
       return false;
@@ -303,7 +303,7 @@ resolveDevice( Benchmark& benchmark, Config::ParameterContainer& parameters )
 bool
 resolvePrecision( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
-   const String& realType = parameters.getParameter< String >( "precision" );
+   const auto& realType = parameters.getParameter< std::string >( "precision" );
    if( ( realType == "float" || realType == "all" ) && ! resolveDevice< float >( benchmark, parameters ) )
       return false;
    if( ( realType == "double" || realType == "all" ) && ! resolveDevice< double >( benchmark, parameters ) )
@@ -316,39 +316,39 @@ configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
    config.addDelimiter( "ODE solvers benchmark settings:" );
-   config.addList< String >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
-   config.addEntryEnum< String >( "bogacki-shampin" );
-   config.addEntryEnum< String >( "cash-karp" );
-   config.addEntryEnum< String >( "dormand-prince" );
-   config.addEntryEnum< String >( "euler" );
-   config.addEntryEnum< String >( "fehlberg2" );
-   config.addEntryEnum< String >( "fehlberg5" );
-   config.addEntryEnum< String >( "heun2" );
-   config.addEntryEnum< String >( "heun3" );
-   config.addEntryEnum< String >( "kutta" );
-   config.addEntryEnum< String >( "kutta-merson" );
-   config.addEntryEnum< String >( "midpoint" );
-   config.addEntryEnum< String >( "ralston2" );
-   config.addEntryEnum< String >( "ralston3" );
-   config.addEntryEnum< String >( "ralston4" );
-   config.addEntryEnum< String >( "rule38" );
-   config.addEntryEnum< String >( "original-runge-kutta" );
-   config.addEntryEnum< String >( "ssprk3" );
-   config.addEntryEnum< String >( "vanderhouwen-wray" );
-   config.addEntryEnum< String >( "all" );
-   config.addEntry< String >( "device", "Run benchmarks using given device.", "host" );
+   config.addList< std::string >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
+   config.addEntryEnum( "bogacki-shampin" );
+   config.addEntryEnum( "cash-karp" );
+   config.addEntryEnum( "dormand-prince" );
+   config.addEntryEnum( "euler" );
+   config.addEntryEnum( "fehlberg2" );
+   config.addEntryEnum( "fehlberg5" );
+   config.addEntryEnum( "heun2" );
+   config.addEntryEnum( "heun3" );
+   config.addEntryEnum( "kutta" );
+   config.addEntryEnum( "kutta-merson" );
+   config.addEntryEnum( "midpoint" );
+   config.addEntryEnum( "ralston2" );
+   config.addEntryEnum( "ralston3" );
+   config.addEntryEnum( "ralston4" );
+   config.addEntryEnum( "rule38" );
+   config.addEntryEnum( "original-runge-kutta" );
+   config.addEntryEnum( "ssprk3" );
+   config.addEntryEnum( "vanderhouwen-wray" );
+   config.addEntryEnum( "all" );
+   config.addEntry< std::string >( "device", "Run benchmarks using given device.", "host" );
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "hip" );
    config.addEntryEnum( "all" );
-   config.addEntry< String >( "precision", "Precision of the arithmetics.", "double" );
+   config.addEntry< std::string >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
-   config.addEntry< String >( "index-type", "Run benchmarks with given index type.", "int" );
-   config.addEntryEnum< String >( "int" );
-   config.addEntryEnum< String >( "long int" );
+   config.addEntry< std::string >( "index-type", "Run benchmarks with given index type.", "int" );
+   config.addEntryEnum( "int" );
+   config.addEntryEnum( "long int" );
    config.addEntry< int >( "size", "Size of the ODE system (all ODEs are the same).", 1 << 20 );
    config.addEntry< double >( "final-time", "Final time of the benchmark test.", 1.0 );
    config.addEntry< double >( "time-step", "Time step of the benchmark test.", 1.0e-2 );
