@@ -4,7 +4,6 @@
 #pragma once
 
 #include <set>
-#include <sstream>
 #include <string>
 #include <random>
 
@@ -61,32 +60,14 @@ static const std::set< std::string > valid_preconditioners = {
 };
 
 std::set< std::string >
-parse_comma_list(
-   const TNL::Config::ParameterContainer& parameters,
-   const char* parameter,
-   const std::set< std::string >& options )
+resolve_list( const std::vector< std::string >& list, const std::set< std::string >& options )
 {
-   const auto param = parameters.getParameter< TNL::String >( parameter );
-
-   if( param == "all" )
+   if( list.size() == 1 && list[ 0 ] == "all" )
       return options;
 
-   std::stringstream ss( param.getString() );
-   std::string s;
    std::set< std::string > set;
-
-   while( std::getline( ss, s, ',' ) ) {
-      if( options.count( s ) == 0 )
-         throw std::logic_error(
-            std::string( "Invalid value in the comma-separated list for the parameter '" ) + parameter + "': '" + s
-            + "'. The list contains: '" + param.getString() + "'." );
-
+   for( const auto& s : list )
       set.insert( s );
-
-      if( ss.peek() == ',' )
-         ss.ignore();
-   }
-
    return set;
 }
 
@@ -145,9 +126,11 @@ benchmarkIterativeSolvers(
    using namespace TNL::Solvers::Linear::Preconditioners;
 
    const int ell_max = 2;
-   const std::set< std::string > solvers = parse_comma_list( parameters, "solvers", valid_solvers );
-   const std::set< std::string > gmresVariants = parse_comma_list( parameters, "gmres-variants", valid_gmres_variants );
-   const std::set< std::string > preconditioners = parse_comma_list( parameters, "preconditioners", valid_preconditioners );
+   const std::set< std::string > solvers = resolve_list( parameters.getList< std::string >( "solvers" ), valid_solvers );
+   const std::set< std::string > gmresVariants =
+      resolve_list( parameters.getList< std::string >( "gmres-variants" ), valid_gmres_variants );
+   const std::set< std::string > preconditioners =
+      resolve_list( parameters.getList< std::string >( "preconditioners" ), valid_preconditioners );
    const bool with_preconditioner_update = parameters.getParameter< bool >( "with-preconditioner-update" );
 
    if( preconditioners.count( "jacobi" ) ) {
@@ -160,7 +143,7 @@ benchmarkIterativeSolvers(
 
       if( solvers.count( "gmres" ) ) {
          for( const auto& variant : gmresVariants ) {
-            parameters.template setParameter< TNL::String >( "gmres-variant", variant );
+            parameters.template setParameter< std::string >( "gmres-variant", variant );
             const std::string solver_name = variant + "-GMRES (Jacobi)";
             benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -215,7 +198,7 @@ benchmarkIterativeSolvers(
 
       if( solvers.count( "gmres" ) ) {
          for( const auto& variant : gmresVariants ) {
-            parameters.template setParameter< TNL::String >( "gmres-variant", variant );
+            parameters.template setParameter< std::string >( "gmres-variant", variant );
             const std::string solver_name = variant + "-GMRES (ILU0)";
             benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -270,7 +253,7 @@ benchmarkIterativeSolvers(
 
       if( solvers.count( "gmres" ) ) {
          for( const auto& variant : gmresVariants ) {
-            parameters.template setParameter< TNL::String >( "gmres-variant", variant );
+            parameters.template setParameter< std::string >( "gmres-variant", variant );
             const std::string solver_name = variant + "-GMRES (ILUT)";
             benchmarkSolver< GMRES, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -464,7 +447,7 @@ struct LinearSolversBenchmark
          // generate random vector x
          VectorType x;
          x.setSize( matrixPointer->getColumns() );
-         if( parameters.getParameter< TNL::String >( "set-rhs" ) == "random" )
+         if( parameters.getParameter< std::string >( "set-rhs" ) == "random" )
             set_random_vector( x, 1e2, 1e3 );
          else
             x = 1;
@@ -484,7 +467,7 @@ struct LinearSolversBenchmark
       benchmark.setMetadataColumns(
          TNL::Benchmarks::Benchmark::MetadataColumns(
             {
-               { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
+               { "matrix name", parameters.getParameter< std::string >( "name" ) },
                { "segments type", matrixPointer->getSegments().getSegmentsType() },
                { "rows", TNL::convertToString( matrixPointer->getRows() ) },
                { "columns", TNL::convertToString( matrixPointer->getColumns() ) },
@@ -592,7 +575,7 @@ struct LinearSolversBenchmark
 bool
 resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
-   const auto& precision = parameters.getParameter< TNL::String >( "precision" );
+   const auto& precision = parameters.getParameter< std::string >( "precision" );
    bool ret_code = true;
 
    if( precision == "all" || precision == "float" ) {
@@ -614,29 +597,38 @@ configSetup( TNL::Config::ConfigDescription& config )
 {
    TNL::Benchmarks::Benchmark::configSetup( config );
    config.addDelimiter( "Linear solvers benchmark settings:" );
-   config.addRequiredEntry< TNL::String >(
+   config.addRequiredEntry< std::string >(
       "input-matrix", "File name of the input matrix (in binary TNL format or textual MTX format)." );
-   config.addEntry< TNL::String >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
-   config.addEntry< TNL::String >( "input-rhs", "File name of the input right-hand-side vector (in binary TNL format).", "" );
-   config.addEntry< TNL::String >( "set-rhs", "Say how to set the right-hand-side vector if no input file is given.", "ones" );
+   config.addEntry< std::string >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
+   config.addEntry< std::string >( "input-rhs", "File name of the input right-hand-side vector (in binary TNL format).", "" );
+   config.addEntry< std::string >( "set-rhs", "Say how to set the right-hand-side vector if no input file is given.", "ones" );
    config.addEntryEnum( "ones" );
    config.addEntryEnum( "random" );
-   config.addEntry< TNL::String >( "name", "Name of the matrix in the benchmark.", "" );
+   config.addEntry< std::string >( "name", "Name of the matrix in the benchmark.", "" );
    config.addEntry< bool >( "reorder-dofs", "Reorder matrix entries corresponding to the same DOF together.", false );
    config.addEntry< bool >( "with-iterative", "Includes the iterative solvers in the benchmark.", true );
    config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", true );
-   config.addEntry< TNL::String >(
-      "solvers",
-      "Comma-separated list of solvers to run benchmarks for. Options: gmres, tfqmr, bicgstab, bicgstab-ell, idrs.",
-      "all" );
-   config.addEntry< TNL::String >(
-      "gmres-variants",
-      "Comma-separated list of GMRES variants to run benchmarks for. Options: CGS, CGSR, MGS, MGSR, CWY.",
-      "all" );
-   config.addEntry< TNL::String >(
-      "preconditioners", "Comma-separated list of preconditioners to run benchmarks for. Options: jacobi, ilu0, ilut.", "all" );
+   config.addList< std::string >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
+   config.addEntryEnum( "gmres" );
+   config.addEntryEnum( "tfqmr" );
+   config.addEntryEnum( "bicgstab" );
+   config.addEntryEnum( "bicgstab-ell" );
+   config.addEntryEnum( "idrs" );
+   config.addEntryEnum( "all" );
+   config.addList< std::string >( "gmres-variants", "List of GMRES variants to run benchmarks for.", { "all" } );
+   config.addEntryEnum( "CGS" );
+   config.addEntryEnum( "CGSR" );
+   config.addEntryEnum( "MGS" );
+   config.addEntryEnum( "MGSR" );
+   config.addEntryEnum( "CWY" );
+   config.addEntryEnum( "all" );
+   config.addList< std::string >( "preconditioners", "List of preconditioners to run benchmarks for.", { "all" } );
+   config.addEntryEnum( "jacobi" );
+   config.addEntryEnum( "ilu0" );
+   config.addEntryEnum( "ilut" );
+   config.addEntryEnum( "all" );
    config.addEntry< bool >( "with-preconditioner-update", "Run benchmark for the preconditioner update.", true );
-   config.addEntry< TNL::String >( "device", "Device to run benchmarks on.", "all" );
+   config.addEntry< std::string >( "device", "Device to run benchmarks on.", "all" );
    config.addEntryEnum( "host" );
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "hip" );
