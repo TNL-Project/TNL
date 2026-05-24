@@ -9,12 +9,10 @@
 
 #include <type_traits>
 
-template< typename PrecisionType >
 struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
 {
-   EigenBenchmarkResult( const PrecisionType& epsilon, const int& iterations, const double& error )
-   : epsilon( epsilon ),
-     iterations( iterations ),
+   EigenBenchmarkResult( const int& iterations, const double& error )
+   : iterations( iterations ),
      error( error )
    {}
 
@@ -22,7 +20,7 @@ struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
    getTableHeader() const override
    {
       HeaderElements headers = BenchmarkResult::getTableHeader();
-      headers.insert( headers.end(), { "epsilon", "iterations", "error" } );
+      headers.insert( headers.end(), { "iterations", "error" } );
       return headers;
    }
 
@@ -30,11 +28,10 @@ struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
    getRowElements() const override
    {
       RowElements elements = BenchmarkResult::getRowElements();
-      elements << std::scientific << epsilon << ( iterations / loops ) << ( error / loops );
+      elements << std::scientific << ( iterations / loops ) << ( error / loops );
       return elements;
    }
 
-   const PrecisionType& epsilon;
    const int& iterations;
    const double& error;
 };
