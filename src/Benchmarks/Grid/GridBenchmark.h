@@ -15,6 +15,7 @@
 #include <TNL/Devices/GPU.h>
 
 #include <TNL/Benchmarks/Benchmark.h>
+#include <TNL/Benchmarks/Devices.h>
 
 static std::vector< TNL::String > dimensionParameterIds = { "x-dimension", "y-dimension", "z-dimension" };
 
@@ -27,13 +28,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
       Operation::exec( entity );
    };
 
-   TNL::String device;
-   if( std::is_same_v< typename Grid::DeviceType, TNL::Devices::Sequential > )
-      device = "sequential";
-   if( std::is_same_v< typename Grid::DeviceType, TNL::Devices::Host > )
-      device = "host";
-   if( std::is_same_v< typename Grid::DeviceType, TNL::Devices::GPU > )
-      device = "cuda";
+   TNL::String device = TNL::Benchmarks::getDeviceName< typename Grid::DeviceType >();
 
    auto operation = TNL::getType< Operation >();
 

@@ -22,18 +22,6 @@ using value_type = float;
 //using index_type = std::size_t;
 using index_type = unsigned;
 
-template< typename Device >
-const char*
-performer()
-{
-   if( std::is_same_v< Device, Devices::Host > )
-      return "CPU";
-   else if( std::is_same_v< Device, Devices::GPU > )
-      return "GPU";
-   else
-      return "unknown";
-}
-
 void
 reset()
 {}
@@ -65,7 +53,7 @@ benchmark_array( Benchmark& benchmark, index_type size = 500000000 )
 
    const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "array", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -93,7 +81,7 @@ benchmark_1D( Benchmark& benchmark, index_type size = 500000000 )
 
    const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -121,7 +109,7 @@ benchmark_2D( Benchmark& benchmark, index_type size = 22333 )
 
    const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "2D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -149,7 +137,7 @@ benchmark_3D( Benchmark& benchmark, index_type size = 800 )
 
    const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -177,7 +165,7 @@ benchmark_4D( Benchmark& benchmark, index_type size = 150 )
 
    const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "4D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -205,7 +193,7 @@ benchmark_5D( Benchmark& benchmark, index_type size = 56 )
 
    const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "5D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -233,7 +221,7 @@ benchmark_6D( Benchmark& benchmark, index_type size = 28 )
 
    const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "6D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -261,7 +249,7 @@ benchmark_2D_perm( Benchmark& benchmark, index_type size = 22333 )
 
    const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "2D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -289,7 +277,7 @@ benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
 
    const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "3D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -317,7 +305,7 @@ benchmark_4D_perm( Benchmark& benchmark, index_type size = 150 )
 
    const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "4D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -346,7 +334,7 @@ benchmark_5D_perm( Benchmark& benchmark, index_type size = 56 )
 
    const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "5D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >
@@ -375,7 +363,7 @@ benchmark_6D_perm( Benchmark& benchmark, index_type size = 28 )
 
    const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "6D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), f );
 }
 
 template< typename Device >

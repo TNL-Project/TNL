@@ -24,18 +24,6 @@ using namespace TNL::Benchmarks;
 using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
-template< typename Device >
-const char*
-performer()
-{
-   if( std::is_same_v< Device, Devices::Host > )
-      return "CPU";
-   else if( std::is_same_v< Device, Devices::GPU > )
-      return "GPU";
-   else
-      return "unknown";
-}
-
 template< typename T, T... ints >
 std::string
 print_sequence( std::integer_sequence< T, ints... > int_seq )
@@ -68,7 +56,7 @@ benchmark_ndarray_reduction1D( Benchmark& benchmark, index_type size )
    const double datasetSize = size * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
    benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -95,7 +83,7 @@ benchmark_ndarray_reduction2D( Benchmark& benchmark, index_type size, index_type
            { "permutation", print_sequence( Permutation{} ) },
            { "size", convertToString( size ) },
            { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -123,7 +111,7 @@ benchmark_ndarray_reduction3D( Benchmark& benchmark, index_type size, index_type
            { "size", convertToString( size ) },
            { "m", convertToString( m ) },
            { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -157,7 +145,7 @@ benchmark_ndarray_reduction4D( Benchmark& benchmark, index_type size, index_type
            { "m", convertToString( m ) },
            { "n", convertToString( n ) },
            { "o", convertToString( o ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -192,7 +180,7 @@ benchmark_ndarray_reduction5D( Benchmark& benchmark, index_type size, index_type
            { "n", convertToString( n ) },
            { "o", convertToString( o ) },
            { "p", convertToString( p ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -236,7 +224,7 @@ benchmark_ndarray_reduction6D(
            { "o", convertToString( o ) },
            { "p", convertToString( p ) },
            { "q", convertToString( q ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
 }
 
 template< typename Device >
