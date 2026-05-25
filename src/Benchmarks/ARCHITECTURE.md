@@ -196,14 +196,44 @@ Rules:
 
 Use consistent naming for benchmark metadata:
 
-| Key           | Values                               | Notes                             |
-|---------------|--------------------------------------|-----------------------------------|
-| `device`      | `"host"`, `"cuda"`, `"hip"`, `"all"` | The actual device used            |
-| `precision`   | `"float"`, `"double"`                | From `getType<PrecisionType>()`   |
-| `operation`   | `"PI"`, `"QR"`, `"GEM"`, etc.        | The algorithm being benchmarked   |
-| `matrix type` | `"SM"`, `"DM_CMO"`, `"DM_RMO"`       | Matrix types (benchmark-specific) |
+| Key           | Values                                         | Notes                                        |
+|---------------|------------------------------------------------|----------------------------------------------|
+| `device`      | `"sequential"`, `"host"`, `"cuda"`, `"hip"`    | Auto-injected by `Benchmark::time<Device>()` |
+| `precision`   | `"float"`, `"double"`                          | From `getType<PrecisionType>()`              |
+| `operation`   | `"PI"`, `"QR"`, `"GEM"`, etc.                  | The algorithm being benchmarked              |
+| `matrix type` | `"SM"`, `"DM_CMO"`, `"DM_RMO"`                 | Matrix types (benchmark-specific)            |
 
 Keys use space-separated lowercase words, never CamelCase, lowercase camelCase, or snake_case.
+
+### Performer convention
+
+The **performer** field in benchmark results identifies the algorithm or implementation,
+not the device it runs on. Device information is automatically injected as the `"device"`
+metadata column by `Benchmark::time<Device>()` via `getDeviceName<Device>()`.
+
+Rules:
+
+- **TNL implementations**: Use `"TNL"` as the performer.
+- **External libraries**: Use the library name: `"Boost"`, `"Gunrock"`, `"MAGMA"`,
+  `"cuBLAS"`, `"hipBLAS"`, `"CuSolverWrapper"`, `"BLAS"`, etc.
+- **Algorithm variants**: Use the algorithm name: `"legacy"`, `"std::partial_sum"`,
+  `"std::inclusive_scan"`, `"thrust::inclusive_scan"`, etc.
+- **Data transfers**: Use `"host-to-device"` / `"device-to-host"`.
+- **Never use device names as performers**: Do not pass `"host"`, `"cuda"`, `"sequential"`,
+  `"CPU"`, or `"GPU"` as the performer string — these belong in the `"device"` metadata
+  column.
+
+### Utility
+
+`src/TNL/Benchmarks/Devices.h` provides:
+
+- `getDeviceName<Device>()` — returns the lowercase device name string
+  (`"sequential"`, `"host"`, `"cuda"`, `"hip"`)
+- `checkDevice<Device>(parameters)` — returns `false` if the user's `--device`
+  selection excludes this device, used to skip benchmark invocations
+
+`getDeviceName` is used internally by `Benchmark::time<Device>()` and benchmark
+code should not need to call it directly — only `checkDevice` for correct dispatch.
 
 ## Runner script
 
