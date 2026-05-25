@@ -100,7 +100,7 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, const Matrices::Factoriz
             Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorMethod, 10000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
-      benchmark.time< Device >( resetFunction, getDeviceName< Device >(), testFunction, eigenBenchmarkResult );
+      benchmark.time< Device >( resetFunction, "TNL", testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
    }
