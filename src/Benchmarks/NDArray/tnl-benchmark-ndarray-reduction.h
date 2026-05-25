@@ -17,6 +17,8 @@
 
 #include <TNL/Benchmarks/Benchmark.h>
 
+#include <limits>
+
 using namespace TNL;
 using namespace TNL::Benchmarks;
 using namespace TNL::Containers;
@@ -239,24 +241,30 @@ benchmark_ndarray_reduction6D(
 
 template< typename Device >
 void
-run_benchmarks( Benchmark& benchmark )
+run_benchmarks( Benchmark& benchmark, const Config::ParameterContainer& parameters )
 {
-   std::vector sizes_23 = { 64, 256, 1024, 4096, 16384 };
+   auto sizes_1d = parameters.getList< index_type >( "sizes-1d" );
+   auto sizes_23 = parameters.getList< index_type >( "sizes-2d-3d" );
+   auto sizes_4 = parameters.getList< index_type >( "sizes-4d" );
+   auto sizes_56 = parameters.getList< index_type >( "sizes-5d-6d" );
+   const auto max_elements = parameters.getParameter< std::size_t >( "max-elements" );
+   const auto min_elements = parameters.getParameter< std::size_t >( "min-elements" );
 
-   std::vector sizes_4 = { 4, 16, 128, 256 };
+   if( max_elements > static_cast< std::size_t >( std::numeric_limits< index_type >::max() ) )
+      throw std::runtime_error(
+         "max-elements value " + convertToString( max_elements ) + " exceeds index_type maximum ("
+         + convertToString( std::numeric_limits< index_type >::max() ) + ")" );
 
-   std::vector sizes_56 = { 2, 16, 128 };
-
-   for( index_type size : { 5000000, 50000000, 500000000 } ) {
+   for( index_type size : sizes_1d ) {
       benchmark_ndarray_reduction1D< Device >( benchmark, size );
    }
 
    TNL::Algorithms::staticFor< std::size_t, 0, 2 >(
       [ & ]( auto axis )
       {
-         for( index_type size : sizes_23 ) {
-            for( index_type m : sizes_23 ) {
-               if( size * m > 3e9 )
+         for( std::size_t size : sizes_23 ) {
+            for( std::size_t m : sizes_23 ) {
+               if( size * m > max_elements )
                   continue;
                benchmark_ndarray_reduction2D< Device, std::index_sequence< 0, 1 >, axis >( benchmark, size, m );
                benchmark_ndarray_reduction2D< Device, std::index_sequence< 1, 0 >, axis >( benchmark, size, m );
@@ -270,7 +278,7 @@ run_benchmarks( Benchmark& benchmark )
          for( std::size_t size : sizes_23 ) {
             for( std::size_t m : sizes_23 ) {
                for( std::size_t n : sizes_23 ) {
-                  if( size * m * n > 3e9 )
+                  if( size * m * n > max_elements )
                      continue;
                   benchmark_ndarray_reduction3D< Device, std::index_sequence< 0, 1, 2 >, axis >( benchmark, size, m, n );
                   benchmark_ndarray_reduction3D< Device, std::index_sequence< 0, 2, 1 >, axis >( benchmark, size, m, n );
@@ -290,9 +298,9 @@ run_benchmarks( Benchmark& benchmark )
             for( std::size_t m : sizes_4 ) {
                for( std::size_t n : sizes_4 ) {
                   for( std::size_t o : sizes_4 ) {
-                     if( size * m * n * o < 5e7 )
+                     if( size * m * n * o < min_elements )
                         continue;
-                     if( size * m * n * o > 2e9 )
+                     if( size * m * n * o > max_elements )
                         continue;
                      benchmark_ndarray_reduction4D< Device, std::index_sequence< 0, 1, 2, 3 >, axis >(
                         benchmark, size, m, n, o );
@@ -318,9 +326,9 @@ run_benchmarks( Benchmark& benchmark )
                for( std::size_t n : sizes_56 ) {
                   for( std::size_t o : sizes_56 ) {
                      for( std::size_t p : sizes_56 ) {
-                        if( size * m * n * o * p < 5e7 )
+                        if( size * m * n * o * p < min_elements )
                            continue;
-                        if( size * m * n * o * p > 3e9 )
+                        if( size * m * n * o * p > max_elements )
                            continue;
                         benchmark_ndarray_reduction5D< Device, std::index_sequence< 0, 1, 2, 3, 4 >, axis >(
                            benchmark, size, m, n, o, p );
@@ -348,9 +356,9 @@ run_benchmarks( Benchmark& benchmark )
                   for( std::size_t o : sizes_56 ) {
                      for( std::size_t p : sizes_56 ) {
                         for( std::size_t q : sizes_56 ) {
-                           if( size * m * n * o * p * q < 5e7 )
+                           if( size * m * n * o * p * q < min_elements )
                               continue;
-                           if( size * m * n * o * p * q > 3e9 )
+                           if( size * m * n * o * p * q > max_elements )
                               continue;
                            benchmark_ndarray_reduction6D< Device, std::index_sequence< 0, 1, 2, 3, 4, 5 >, axis >(
                               benchmark, size, m, n, o, p, q );
@@ -382,11 +390,11 @@ resolveDevice( Benchmark& benchmark, const Config::ParameterContainer& parameter
       run_benchmarks< Devices::Sequential >( benchmark, parameters );
 
    if( device == "host" || device == "all" )
-      run_benchmarks< Devices::Host >( benchmark );
+      run_benchmarks< Devices::Host >( benchmark, parameters );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    if( device == "cuda" || device == "hip" || device == "all" )
-      run_benchmarks< Devices::GPU >( benchmark );
+      run_benchmarks< Devices::GPU >( benchmark, parameters );
 #endif
 }
 
@@ -401,6 +409,18 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "hip" );
    config.addEntryEnum( "all" );
+
+   config.addList< index_type >( "sizes-1d", "Sizes for 1D reduction.", { 5000000, 50000000, 500000000 } );
+   config.addList< index_type >( "sizes-2d-3d", "Sizes for 2D and 3D reduction.", { 64, 256, 1024, 4096, 16384 } );
+   config.addList< index_type >( "sizes-4d", "Sizes for 4D reduction.", { 4, 16, 128, 256 } );
+   config.addList< index_type >( "sizes-5d-6d", "Sizes for 5D and 6D reduction.", { 2, 16, 128 } );
+   config.addEntry< std::size_t >(
+      "min-elements", "Skip combinations with fewer total elements (applied only to 4D, 5D, and 6D).", 50000000 );
+   config.addEntry< std::size_t >(
+      "max-elements",
+      "Skip combinations with more total elements. Values larger than "
+         + convertToString( std::numeric_limits< index_type >::max() ) + " may cause overflow in internal index computations.",
+      2000000000 );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
