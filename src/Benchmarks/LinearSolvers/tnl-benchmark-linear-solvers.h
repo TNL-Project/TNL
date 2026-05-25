@@ -357,9 +357,9 @@ benchmarkDirectSolvers(
    };
    TNL::Benchmarks::BenchmarkResult benchmarkResult;
    benchmark.setOperation( "matrix copy" );
-   benchmark.time< TNL::Devices::Host >( "CPU->GPU", copy_to_gpu, benchmarkResult );
-   benchmark.time< TNL::Devices::Host >( "GPU->CPU", copy_to_cpu, benchmarkResult );
+   benchmark.time< TNL::Devices::Host >( "host-to-device", copy_to_gpu, benchmarkResult );
 
+   benchmark.time< TNL::Devices::Host >( "device-to-host", copy_to_cpu, benchmarkResult );
    #ifdef HAVE_CUDSS
    benchmarkDirectSolver< CuDSSWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuDSS" );
    cuda_x0_copy = cuda_x0;

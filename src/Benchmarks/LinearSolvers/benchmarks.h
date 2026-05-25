@@ -36,7 +36,6 @@ benchmarkSolverSetup(
       return;
 
    barrier( matrix );
-   const std::string performer = TNL::Benchmarks::getDeviceName< typename Matrix::DeviceType >();
 
    Solver< Matrix > solver;
    solver.setup( parameters );
@@ -47,8 +46,8 @@ benchmarkSolverSetup(
       barrier( matrix );
    };
 
-   benchmark.setOperation( solver_name + " setMatrix" );
-   benchmark.time< typename Matrix::DeviceType >( performer, compute );
+   benchmark.setOperation( "setMatrix" );
+   benchmark.time< typename Matrix::DeviceType >( solver_name, compute );
 }
 
 template< template< typename > class Preconditioner, typename Matrix >
@@ -64,7 +63,6 @@ benchmarkPreconditionerUpdate(
       return;
 
    barrier( matrix );
-   const std::string performer = TNL::Benchmarks::getDeviceName< typename Matrix::DeviceType >();
    Preconditioner< Matrix > preconditioner;
    preconditioner.setup( parameters );
 
@@ -74,8 +72,8 @@ benchmarkPreconditionerUpdate(
       barrier( matrix );
    };
 
-   benchmark.setOperation( preconditioner_name + " preconditioner update" );
-   benchmark.time< typename Matrix::DeviceType >( performer, compute );
+   benchmark.setOperation( "preconditioner update" );
+   benchmark.time< typename Matrix::DeviceType >( preconditioner_name, compute );
 }
 
 template< typename >
@@ -101,7 +99,6 @@ benchmarkSolver(
       return;
 
    barrier( matrix );
-   const std::string performer = TNL::Benchmarks::getDeviceName< typename Matrix::DeviceType >();
 
    // setup
    Solver< Matrix > solver;
@@ -142,8 +139,8 @@ benchmarkSolver(
    };
 
    LinearSolversBenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
-   benchmark.setOperation( solver_name );
-   benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
+   benchmark.setOperation( "solve" );
+   benchmark.time< typename Matrix::DeviceType >( reset, solver_name, compute, benchmarkResult );
 }
 
 template< template< typename > class Solver, typename Matrix, typename Vector >
@@ -157,5 +154,5 @@ benchmarkDirectSolver(
    const std::string& solver_name )
 {
    benchmarkSolverSetup< Solver >( benchmark, parameters, matrix, solver_name );
-   benchmarkSolver< Solver >( benchmark, parameters, matrix, x0, b, solver_name + " solve" );
+   benchmarkSolver< Solver >( benchmark, parameters, matrix, x0, b, solver_name );
 }

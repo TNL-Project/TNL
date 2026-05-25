@@ -46,7 +46,7 @@ benchmark_reduction1D( Benchmark& benchmark, index_type size )
    const double datasetSize = size * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
    benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
-   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device >
@@ -75,7 +75,7 @@ benchmark_reduction2D( Benchmark& benchmark, index_type size, index_type n )
    benchmark.setOperation( "2D", datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns( { { "size", convertToString( size ) }, { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device >
@@ -111,7 +111,7 @@ benchmark_reduction3D( Benchmark& benchmark, index_type size, index_type m, inde
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "size", convertToString( size ) }, { "m", convertToString( m ) }, { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, getDeviceName< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device >

@@ -133,21 +133,6 @@ struct HeatEquationSolverBenchmark
       this->maxIterations = parameters.getParameter< int >( "max-iterations" );
 
       auto precision = TNL::getType< Real >();
-      TNL::String device;
-      if( std::is_same_v< Device, TNL::Devices::Sequential > )
-         device = "sequential";
-      if( std::is_same_v< Device, TNL::Devices::Host > )
-         device = "host";
-      if( std::is_same_v< Device, TNL::Devices::GPU > )
-#if defined( __CUDACC__ )
-         device = "cuda";
-#elif defined( __HIP__ )
-         device = "hip";
-#else
-         device = "gpu";
-#endif
-
-      std::cout << "Heat equation benchmark  with (" << precision << ", " << device << ")\n";
 
       for( Index xSize = minXDimension; xSize <= maxXDimension; xSize *= xSizeStepFactor ) {
          for( Index ySize = minYDimension; ySize <= maxYDimension; ySize *= ySizeStepFactor ) {
@@ -169,7 +154,7 @@ struct HeatEquationSolverBenchmark
             {
                this->exec( xSize, ySize );
             };
-            benchmark.time< Device >( device, lambda );
+            benchmark.time< Device >( "TNL", lambda );
             if( writeData ) {
                TNL::String fileName = TNL::String( "final-" ) + implementation + "-" + TNL::convertToString( xSize ) + "-"
                                     + TNL::convertToString( ySize ) + ".gplt";
