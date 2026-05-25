@@ -64,7 +64,7 @@ benchmarkDenseLinearSolvers( TNL::Benchmarks::Benchmark& benchmark, const TNL::C
          if( ! converged )
             throw std::runtime_error( "CPU solver did not converge" );
       };
-      benchmark.time< TNL::Devices::Host >( reset_host, "CPU", compute_host );
+      benchmark.time< TNL::Devices::Host >( reset_host, "TNL", compute_host );
       if( max( host_x - 1 ) > 1e-5 )
          std::cout << "Warning: the result of the CPU solver is not equal to the expected result: " << max( host_x - 1 )
                    << '\n';
@@ -100,7 +100,7 @@ benchmarkDenseLinearSolvers( TNL::Benchmarks::Benchmark& benchmark, const TNL::C
          if( ! converged )
             throw std::runtime_error( "GPU solver did not converge" );
       };
-      benchmark.time< TNL::Devices::GPU >( reset_gpu, "GPU", compute_gpu );
+      benchmark.time< TNL::Devices::GPU >( reset_gpu, "TNL", compute_gpu );
 
       // Benchmark CuSolverWrapper on GPU
       TNL::Solvers::Linear::CuSolverWrapper< GPUMatrixType > cuSolverWrapper;

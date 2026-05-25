@@ -67,8 +67,8 @@ def processDf(df, precision):
                 test = row["implementation"]
                 # print( test )
                 time = row["time"]
-                new_df.iloc[0][(test, row["performer"], "time")] = float(time)
-                performers.append(row["performer"])
+                new_df.iloc[0][(test, row["device"], "time")] = float(time)
+                performers.append(row["device"])
             # print( new_df )
             frames.append(new_df)
     result = pd.concat(frames)

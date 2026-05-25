@@ -61,17 +61,6 @@ struct ODESolversBenchmark
       using VectorType = TNL::Containers::Vector< ElementType, DeviceType, IndexType >;
       using VectorView = typename VectorType::ViewType;
 
-      std::string device = "host";
-      if( std::is_same_v< DeviceType, Devices::GPU > ) {
-#if defined( __CUDACC__ )
-         device = "cuda";
-#elif defined( __HIP__ )
-         device = "hip";
-#else
-         device = "gpu";
-#endif
-      }
-
       double adaptivity = parameters.getParameter< double >( "adaptivity" );
       SolverType solver;
       if constexpr( ! std::is_same_v< SolverType, Euler< VectorType, SolverMonitorType > >
@@ -119,7 +108,7 @@ struct ODESolversBenchmark
                      solver.solve( u_view[ i ], problem );
                   } );
             };
-            benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
+            benchmark.time< DeviceType >( reset_u, "TNL", solve, benchmarkResult );
          }
          else {
             auto problem = [ = ]( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view )
@@ -137,7 +126,7 @@ struct ODESolversBenchmark
                solver.setTau( tau );
                solver.solve( u, problem );
             };
-            benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
+            benchmark.time< DeviceType >( reset_u, "TNL", solve, benchmarkResult );
          }
          tau /= 2.0;
       }

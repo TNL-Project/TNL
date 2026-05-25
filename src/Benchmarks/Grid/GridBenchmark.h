@@ -15,7 +15,6 @@
 #include <TNL/Devices/GPU.h>
 
 #include <TNL/Benchmarks/Benchmark.h>
-#include <TNL/Benchmarks/Devices.h>
 
 static std::vector< TNL::String > dimensionParameterIds = { "x-dimension", "y-dimension", "z-dimension" };
 
@@ -27,8 +26,6 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    {
       Operation::exec( entity );
    };
-
-   TNL::String device = TNL::Benchmarks::getDeviceName< typename Grid::DeviceType >();
 
    auto operation = TNL::getType< Operation >();
 
@@ -46,7 +43,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    {
       grid.template forAllEntities< EntityDimension >( exec );
    };
-   benchmark.time< typename Grid::DeviceType >( device, measureAll );
+   benchmark.time< typename Grid::DeviceType >( "TNL", measureAll );
 
    TNL::Benchmarks::Benchmark::MetadataColumns forInteriorColumns( columns );
    forInteriorColumns.emplace_back( "traverse", "forInterior" );
@@ -55,7 +52,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    {
       grid.template forInteriorEntities< EntityDimension >( exec );
    };
-   benchmark.time< typename Grid::DeviceType >( device, measureInterior );
+   benchmark.time< typename Grid::DeviceType >( "TNL", measureInterior );
 
    TNL::Benchmarks::Benchmark::MetadataColumns forBoundaryColumns( columns );
    forBoundaryColumns.emplace_back( "traverse", "forBoundary" );
@@ -64,7 +61,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    {
       grid.template forBoundaryEntities< EntityDimension >( exec );
    };
-   benchmark.time< typename Grid::DeviceType >( device, measureBoundary );
+   benchmark.time< typename Grid::DeviceType >( "TNL", measureBoundary );
 }
 
 template< int GridDimension, typename Real, typename Device >
