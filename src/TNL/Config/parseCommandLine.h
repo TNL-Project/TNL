@@ -306,6 +306,9 @@ parseCommandLine(
                parameters.addParameter< std::vector< double > >( option, real_list );
             if( ! string_list.empty() )
                parameters.addParameter< std::vector< std::string > >( option, string_list );
+            // Compensate for the for-loop's i++ — the while loop already advanced
+            // i to the next --option or past argc
+            i--;
          }
          else {
             if( entryType == "bool" ) {
