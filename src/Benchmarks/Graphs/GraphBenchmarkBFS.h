@@ -75,7 +75,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       {
          boostDigraph.breadthFirstSearch( largestNode, boostBfsDistances );
       };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_dir );
+      benchmark.time< TNL::Devices::Sequential >( "Boost", bfs_boost_dir );
 
       // Convert and normalize distances
       this->boostBfsDistancesDirected = HostIndexVector( boostBfsDistances );
@@ -93,7 +93,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       {
          boostGraph.breadthFirstSearch( largestNode, boostBfsDistances );
       };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_undir );
+      benchmark.time< TNL::Devices::Sequential >( "Boost", bfs_boost_undir );
 
       // Convert and normalize distances
       this->boostBfsDistancesUndirected = HostIndexVector( boostBfsDistances );
@@ -186,7 +186,6 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       IndexType smallestNode,
       IndexType largestNode,
       TNL::Benchmarks::Benchmark& benchmark,
-      const TNL::String& device,
       const TNL::String& segments )
    {
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
@@ -209,7 +208,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          {
             TNL::Graphs::Algorithms::breadthFirstSearch( digraph, largestNode, bfsDistances, launchConfig );
          };
-         benchmark.time< Device >( device, bfs_tnl_dir );
+         benchmark.time< Device >( "TNL", bfs_tnl_dir );
 
 #ifdef HAVE_BOOST
          if( withBoost && bfsDistances != this->boostBfsDistancesDirected ) {
@@ -242,7 +241,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          {
             TNL::Graphs::Algorithms::breadthFirstSearch( graph, largestNode, bfsDistances, launchConfig );
          };
-         benchmark.time< Device >( device, bfs_tnl_undir );
+         benchmark.time< Device >( "TNL", bfs_tnl_undir );
 
 #ifdef HAVE_BOOST
          if( withBoost && bfsDistances != this->boostBfsDistancesUndirected ) {
@@ -270,7 +269,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          {
             semiringBFS( digraph, largestNode, semiringBfsDistances );
          };
-         benchmark.time< Device >( device, semiring_bfs_dir );
+         benchmark.time< Device >( "TNL", semiring_bfs_dir );
 #ifdef HAVE_BOOST
          if( withBoost && semiringBfsDistances != this->boostBfsDistancesDirected ) {
             std::cout << "BFS distances of directed graph from Boost and TNL are not equal!\n";
@@ -288,7 +287,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          {
             semiringBFS( graph, largestNode, semiringBfsDistances );
          };
-         benchmark.time< Device >( device, semiring_bfs_undir );
+         benchmark.time< Device >( "TNL", semiring_bfs_undir );
 #ifdef HAVE_BOOST
          if( withBoost && semiringBfsDistances != this->boostBfsDistancesUndirected ) {
             std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";

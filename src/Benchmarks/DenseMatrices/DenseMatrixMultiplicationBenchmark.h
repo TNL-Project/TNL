@@ -27,7 +27,6 @@ void
 benchmarkGpuComputing(
    TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
-   const TNL::String& device,
    TNL::Matrices::DenseMatrix< Real, Devices::GPU, Index >& matrix1,
    TNL::Matrices::DenseMatrix< Real, Devices::GPU, Index >& matrix2,
    TransposeState transposeA = TransposeState::None,
@@ -70,7 +69,7 @@ benchmarkGpuComputing(
    {
       matrixMultiplicationCuBLAS( matrix1, matrix2, cublasResultMatrix, transposeA, transposeB );
    };
-   benchmark.time< Devices::GPU >( device, computeCuBLAS );
+   benchmark.time< Devices::GPU >( cublasAlgo, computeCuBLAS );
 
    #ifdef HAVE_MAGMA
    setMetadata< Real, Index >( benchmark, magmaAlgo, m1s, m2s );
@@ -80,7 +79,7 @@ benchmarkGpuComputing(
    };
    std::vector< GPUMatrixType > magmaRefs = { cublasResultMatrix };
    DenseMatricesResult< Real, Devices::GPU, Index > magmaResult( magmaResultMatrix, magmaRefs );
-   benchmark.time< Devices::GPU >( device, computeMAGMA, magmaResult );
+   benchmark.time< Devices::GPU >( magmaAlgo, computeMAGMA, magmaResult );
    #endif
 
    #ifdef HAVE_CUTLASS
@@ -92,7 +91,7 @@ benchmarkGpuComputing(
       };
       std::vector< GPUMatrixType > cutlassRefs = { cublasResultMatrix };
       DenseMatricesResult< Real, Devices::GPU, Index > cutlassResult( cutlassResultMatrix, cutlassRefs );
-      benchmark.time< Devices::GPU >( device, computeCutlass, cutlassResult );
+      benchmark.time< Devices::GPU >( cutlassAlgo, computeCutlass, cutlassResult );
    }
    #endif
 #endif
@@ -117,7 +116,7 @@ benchmarkGpuComputing(
 #endif
          };
          DenseMatricesResult< Real, Devices::GPU, Index > legacyResult( resultMatrix, refs );
-         benchmark.time< Devices::GPU >( device, compute, legacyResult );
+         benchmark.time< Devices::GPU >( algoName, compute, legacyResult );
       };
 
       benchmarkLegacyKernel(
@@ -184,7 +183,7 @@ benchmarkGpuComputing(
 #endif
    };
    DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( resultMatrix, tnlRefs );
-   benchmark.time< Devices::GPU >( device, computeTnl, tnlResult );
+   benchmark.time< Devices::GPU >( tnlAlgo, computeTnl, tnlResult );
 
    // --- HipBLAS ---
 #if defined( __HIP__ )
@@ -193,7 +192,7 @@ benchmarkGpuComputing(
    {
       matrixMultiplicationHIPBLAS( matrix1, matrix2, hipblasResultMatrix, transposeA, transposeB );
    };
-   benchmark.time< Devices::GPU >( device, computeHipBLAS );
+   benchmark.time< Devices::GPU >( hipblasAlgo, computeHipBLAS );
 #endif
 }
 
@@ -202,7 +201,6 @@ void
 benchmarkHostStandard(
    TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
-   const TNL::String& device,
    Index m1Rows,
    Index m1Cols,
    Index m2Cols )
@@ -233,7 +231,7 @@ benchmarkHostStandard(
    {
       matrixMultiplicationBLAS( denseMatrix1, denseMatrix2, blasResultMatrix );
    };
-   benchmark.time< Devices::Host >( device, computeBLAS );
+   benchmark.time< Devices::Host >( "BLAS", computeBLAS );
 #endif
 
    setMetadata< Real, Index >( benchmark, "TNL", m1s, m2s );
@@ -243,7 +241,7 @@ benchmarkHostStandard(
    };
    std::vector< HostMatrixType > refMatrices = { blasResultMatrix };
    DenseMatricesResult< Real, Devices::Host, Index > hostResult( resultMatrix, refMatrices );
-   benchmark.time< Devices::Host >( device, computeTNL, hostResult );
+   benchmark.time< Devices::Host >( "TNL", computeTNL, hostResult );
 }
 
 template< typename Real, typename Index >
@@ -251,7 +249,6 @@ void
 benchmarkGpuStandard(
    TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
-   const TNL::String& device,
    Index m1Rows,
    Index m1Cols,
    Index m2Cols )
@@ -268,7 +265,7 @@ benchmarkGpuStandard(
    denseMatrix2.setDimensions( m1Cols, m2Cols );
    fillGpuMatrix( denseMatrix2, linFill, static_cast< Real >( 2 ) );
 
-   benchmarkGpuComputing< Real, Index >( benchmark, parameters, device, denseMatrix1, denseMatrix2 );
+   benchmarkGpuComputing< Real, Index >( benchmark, parameters, denseMatrix1, denseMatrix2 );
 }
 
 template< typename Real, typename Index >
@@ -276,7 +273,6 @@ void
 benchmarkGpuTransposed(
    TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
-   const TNL::String& device,
    Index m1Rows,
    Index m1Cols,
    Index m2Cols )
@@ -302,11 +298,11 @@ benchmarkGpuTransposed(
    fillGpuMatrix( denseMatrix2T, linFill, static_cast< Real >( 0 ) );
 
    benchmarkGpuComputing< Real, Index >(
-      benchmark, parameters, device, denseMatrix1T, denseMatrix2, TransposeState::Transpose, TransposeState::None );
+      benchmark, parameters, denseMatrix1T, denseMatrix2, TransposeState::Transpose, TransposeState::None );
    benchmarkGpuComputing< Real, Index >(
-      benchmark, parameters, device, denseMatrix1, denseMatrix2T, TransposeState::None, TransposeState::Transpose );
+      benchmark, parameters, denseMatrix1, denseMatrix2T, TransposeState::None, TransposeState::Transpose );
    benchmarkGpuComputing< Real, Index >(
-      benchmark, parameters, device, denseMatrix1T, denseMatrix2T, TransposeState::Transpose, TransposeState::Transpose );
+      benchmark, parameters, denseMatrix1T, denseMatrix2T, TransposeState::Transpose, TransposeState::Transpose );
 }
 
 template< typename Real, typename Index >
@@ -332,17 +328,12 @@ runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Paramete
             const Index m2Cols = minCols + c2 * colStep;
 
             if( device == "host" || device == "all" )
-               benchmarkHostStandard< Real, Index >( benchmark, parameters, "host", m1Rows, m1Cols, m2Cols );
+               benchmarkHostStandard< Real, Index >( benchmark, parameters, m1Rows, m1Cols, m2Cols );
 
-#if defined( __CUDACC__ )
-            if( device == "cuda" || device == "all" ) {
-               benchmarkGpuStandard< Real, Index >( benchmark, parameters, "cuda", m1Rows, m1Cols, m2Cols );
-               benchmarkGpuTransposed< Real, Index >( benchmark, parameters, "cuda", m1Rows, m1Cols, m2Cols );
-            }
-#elif defined( __HIP__ )
-            if( device == "hip" || device == "all" ) {
-               benchmarkGpuStandard< Real, Index >( benchmark, parameters, "hip", m1Rows, m1Cols, m2Cols );
-               benchmarkGpuTransposed< Real, Index >( benchmark, parameters, "hip", m1Rows, m1Cols, m2Cols );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+            if( device == "cuda" || device == "hip" || device == "all" ) {
+               benchmarkGpuStandard< Real, Index >( benchmark, parameters, m1Rows, m1Cols, m2Cols );
+               benchmarkGpuTransposed< Real, Index >( benchmark, parameters, m1Rows, m1Cols, m2Cols );
             }
 #endif
          }

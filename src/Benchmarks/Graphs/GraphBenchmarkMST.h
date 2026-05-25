@@ -72,7 +72,7 @@ public:
       {
          boostGraph.minimumSpanningTree( boostMstEdges );
       };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", mst_boost );
+      benchmark.time< TNL::Devices::Sequential >( "Boost", mst_boost );
       this->boostMSTTotalWeight = 0.0;
       for( auto& edge : boostMstEdges ) {
          Real weight = boost::get( boost::edge_weight, boostGraph.getGraph(), edge );
@@ -104,7 +104,6 @@ public:
       IndexType smallestNode,
       IndexType largestNode,
       TNL::Benchmarks::Benchmark& benchmark,
-      const TNL::String& device,
       const TNL::String& segments )
    {
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
@@ -121,7 +120,7 @@ public:
       {
          TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, mstGraph, roots );
       };
-      benchmark.time< Device >( device, mst_tnl );
+      benchmark.time< Device >( "TNL", mst_tnl );
 
       auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );

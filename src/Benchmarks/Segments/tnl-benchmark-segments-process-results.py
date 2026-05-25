@@ -178,7 +178,7 @@ def convert_data_frame(input_df, multicolumns, df_data, begin_idx=0, end_idx=-1)
 
             current_segments_type = row["segments type"]
             current_function = row["function"]
-            current_device = row["performer"]
+            current_device = row["device"]
             current_mapping = row["threads mapping"]
             time = pd.to_numeric(row["time"], errors="coerce")
             aux_df.loc[

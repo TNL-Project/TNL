@@ -60,8 +60,7 @@ run_benchmark_host( Benchmark& benchmark, const char* distribution, const std::v
       Benchmark::MetadataColumns(
          { { "size", std::to_string( vec.size() ) },
            { "distribution", distribution },
-           { "value type", TNL::getType< ValueType >() },
-           { "device", "host" } } ) );
+           { "value type", TNL::getType< ValueType >() } } ) );
    benchmark.setDatasetSize( vec.size() * sizeof( ValueType ) );
 
    Containers::Array< ValueType, Devices::Host, std::size_t > arr;
@@ -85,20 +84,11 @@ template< typename ValueType >
 void
 run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::vector< ValueType >& vec )
 {
-   std::string gpuDeviceLabel;
-   #if defined( __CUDACC__ )
-   gpuDeviceLabel = "cuda";
-   #elif defined( __HIP__ )
-   gpuDeviceLabel = "hip";
-   #else
-   gpuDeviceLabel = "gpu";
-   #endif
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "size", std::to_string( vec.size() ) },
            { "distribution", distribution },
-           { "value type", TNL::getType< ValueType >() },
-           { "device", gpuDeviceLabel } } ) );
+           { "value type", TNL::getType< ValueType >() } } ) );
    benchmark.setDatasetSize( vec.size() * sizeof( ValueType ) );
 
    Containers::Array< ValueType, Devices::GPU, std::size_t > arr;

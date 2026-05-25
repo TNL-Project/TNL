@@ -73,11 +73,7 @@ struct SegmentsBenchmark
       template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
       template< typename Index_, typename Device_ > class SegmentsKernel >
    void
-   TNLBenchmarks(
-      const HostVector& hostSegmentsSizes,
-      TNL::Benchmarks::Benchmark& benchmark,
-      const TNL::String& device,
-      const TNL::String& segmentsType )
+   TNLBenchmarks( const HostVector& hostSegmentsSizes, TNL::Benchmarks::Benchmark& benchmark, const TNL::String& segmentsType )
    {
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
       using IndexAllocator = typename TNL::Allocators::Default< Device >::template Allocator< Index >;
@@ -107,7 +103,7 @@ struct SegmentsBenchmark
                },
                launchConfig_ );
          };
-         benchmark.time< Device >( device, f );
+         benchmark.time< Device >( "TNL", f );
          HostVector dataHost( data );  // NOLINT(performance-unnecessary-copy-initialization)
          for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
             for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
@@ -151,7 +147,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
          }
       }
 
@@ -187,7 +183,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
          }
 
          benchmark.setMetadataElement( { "function", "forSelectedElements with stride " + convertToString( stride ) } );
@@ -212,7 +208,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
          }
       }
 
@@ -249,7 +245,7 @@ struct SegmentsBenchmark
                },
                launchConfig_ );
          };
-         benchmark.time< Device >( device, f );
+         benchmark.time< Device >( "TNL", f );
          HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
          for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
             if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
@@ -298,7 +294,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
             HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
             for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
@@ -350,7 +346,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
             HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
             for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
@@ -381,36 +377,26 @@ struct SegmentsBenchmark
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            segmentsSizes, benchmark, "sequential", "CSR" );
+            segmentsSizes, benchmark, "CSR" );
       if( device == "host" || device == "all" )
          TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            segmentsSizes, benchmark, "host", "CSR" );
+            segmentsSizes, benchmark, "CSR" );
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if( device == "cuda" || device == "hip" || device == "all" ) {
-         TNL::String gpuLabel;
-   #if defined( __CUDACC__ )
-         gpuLabel = "cuda";
-   #elif defined( __HIP__ )
-         gpuLabel = "hip";
-   #else
-         gpuLabel = "gpu";
-   #endif
          TNLBenchmarks< TNL::Devices::GPU, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            segmentsSizes, benchmark, gpuLabel, "CSR" );
+            segmentsSizes, benchmark, "CSR" );
          TNLBenchmarks< TNL::Devices::GPU, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
-            segmentsSizes, benchmark, gpuLabel, "Ellpack" );
+            segmentsSizes, benchmark, "Ellpack" );
          TNLBenchmarks<
             TNL::Devices::GPU,
             SlicedEllpackSegments,
-            TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
-            segmentsSizes, benchmark, gpuLabel, "SlicedEllpack" );
+            TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >( segmentsSizes, benchmark, "SlicedEllpack" );
          TNLBenchmarks< TNL::Devices::GPU, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
-            segmentsSizes, benchmark, gpuLabel, "BiEllpack" );
+            segmentsSizes, benchmark, "BiEllpack" );
          TNLBenchmarks<
             TNL::Devices::GPU,
             ChunkedEllpackSegments,
-            TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
-            segmentsSizes, benchmark, gpuLabel, "ChunkedEllpack" );
+            TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >( segmentsSizes, benchmark, "ChunkedEllpack" );
       }
 #endif
    }

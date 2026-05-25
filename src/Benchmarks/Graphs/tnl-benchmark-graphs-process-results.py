@@ -154,7 +154,7 @@ def get_solvers(input_df):
     devices = {}
     for solver in solvers:
         devices[solver] = list(
-            set(input_df.loc[input_df["solver"] == solver, "performer"].values.tolist())
+            set(input_df.loc[input_df["solver"] == solver, "device"].values.tolist())
         )
         order = {"sequential": 0, "host": 1, "cuda": 2, "hip": 3}
         devices[solver].sort(key=lambda d: order.get(d, len(order)))
@@ -182,7 +182,7 @@ def get_launch_configurations(input_df, kernels):
         row = input_df.iloc[in_idx]
         problem = row["problem"]
         solver = row["solver"]
-        device = row["performer"]
+        device = row["device"]
         kernel = row["kernel"]
         launch_cfg = row["launch cfg."]
         if (problem, solver, device, kernel) not in launch_configs:
@@ -291,7 +291,7 @@ def convert_data_frame(input_df, multicolumns, df_data, begin_idx=0, end_idx=-1)
 
             current_problem = row["problem"]
             current_solver = row["solver"]
-            current_device = row["performer"]
+            current_device = row["device"]
             current_kernel = row["kernel"]
             current_launch_cfg = row["launch cfg."]
             time = pd.to_numeric(row["time"], errors="coerce")

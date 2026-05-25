@@ -21,8 +21,8 @@ namespace TNL::Benchmarks {
  *
  * Output format example:
  * \code
- * {"operation": "multiply", "performer": "CPU", "time": "1.23e-04", ...}
- * {"operation": "multiply", "performer": "GPU", "time": "4.56e-05", ...}
+ * {"operation": "multiply", "device": "host", "performer": "TNL", "time": "1.23e-04", ...}
+ * {"operation": "multiply", "device": "cuda", "performer": "cuBLAS", "time": "4.56e-05", ...}
  * \endcode
  *
  * Error messages are also logged as JSON objects with an "error" field.

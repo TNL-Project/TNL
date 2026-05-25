@@ -77,7 +77,7 @@ public:
       {
          boostDigraph.singleSourceShortestPath( largestNode, boostSSSPDistances );
       };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_dir );
+      benchmark.time< TNL::Devices::Sequential >( "Boost", sssp_boost_dir );
       HostRealVector boost_sssp_dist( boostSSSPDistances );
       boost_sssp_dist.forAllElements(
          [] __cuda_callable__( Index i, Real & x )
@@ -95,7 +95,7 @@ public:
       {
          boostGraph.singleSourceShortestPath( largestNode, boostSSSPDistances );
       };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_undir );
+      benchmark.time< TNL::Devices::Sequential >( "Boost", sssp_boost_undir );
       boost_sssp_dist = boostSSSPDistances;
       boost_sssp_dist.forAllElements(
          [] __cuda_callable__( Index i, Real & x )
@@ -177,7 +177,6 @@ public:
       IndexType smallestNode,
       IndexType largestNode,
       TNL::Benchmarks::Benchmark& benchmark,
-      const TNL::String& device,
       const TNL::String& segments )
    {
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
@@ -206,7 +205,7 @@ public:
             this->errors++;
          }
          else
-            benchmark.time< Device >( device, sssp_tnl_dir );
+            benchmark.time< Device >( "TNL", sssp_tnl_dir );
 
 #ifdef HAVE_BOOST
          if( withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
@@ -240,7 +239,7 @@ public:
          {
             TNL::Graphs::Algorithms::singleSourceShortestPath( graph, largestNode, ssspDistances, launchConfig );
          };
-         benchmark.time< Device >( device, sssp_tnl_undir );
+         benchmark.time< Device >( "TNL", sssp_tnl_undir );
 
 #ifdef HAVE_BOOST
          if( withBoost && ssspDistances != this->boostSSSPDistancesUndirected ) {
@@ -276,7 +275,7 @@ public:
             this->errors++;
          }
          else
-            benchmark.time< Device >( device, semiring_sssp_dir );
+            benchmark.time< Device >( "TNL", semiring_sssp_dir );
 
          // Benchmarking semiring-based SSSP with undirected graph
          semiringSsspDistances = std::numeric_limits< Real >::max();
@@ -291,7 +290,7 @@ public:
          {
             semiringSSSP( graph, largestNode, semiringSsspDistances );
          };
-         benchmark.time< Device >( device, semiring_sssp_undir );
+         benchmark.time< Device >( "TNL", semiring_sssp_undir );
       }
    }
 

@@ -37,7 +37,7 @@ benchmarkHostVectorProduct(
    {
       matrix.vectorProduct( inVector, outVector );
    };
-   benchmark.time< TNL::Devices::Host >( reset, "CPU", compute );
+   benchmark.time< TNL::Devices::Host >( reset, "TNL", compute );
 
 #ifdef HAVE_BLAS
    setMetadata< Real, Index >(
@@ -47,7 +47,7 @@ benchmarkHostVectorProduct(
    {
       matrixVectorProductBLAS( matrix, inVector, outVector );
    };
-   benchmark.time< TNL::Devices::Host >( reset, "CPU BLAS", computeBlas );
+   benchmark.time< TNL::Devices::Host >( reset, "BLAS", computeBlas );
 #endif
 }
 
@@ -57,7 +57,6 @@ template< typename Real, typename Index >
 void
 benchmarkGpuVectorProduct(
    TNL::Benchmarks::Benchmark& benchmark,
-   const std::string& device,
    TNL::Matrices::DenseMatrix< Real, TNL::Devices::GPU, Index, TNL::Algorithms::Segments::ColumnMajorOrder >& matrixCMO,
    TNL::Matrices::DenseMatrix< Real, TNL::Devices::GPU, Index, TNL::Algorithms::Segments::RowMajorOrder >& matrixRMO,
    TNL::Containers::Vector< Real, TNL::Devices::GPU, Index >& inVector,
@@ -76,7 +75,7 @@ benchmarkGpuVectorProduct(
    {
       matrixCMO.vectorProduct( inVector, outVector1 );
    };
-   benchmark.time< TNL::Devices::GPU >( device, computeCMO );
+   benchmark.time< TNL::Devices::GPU >( "TNL CMO", computeCMO );
 
    // Row-major
    fillGpuMatrix( matrixRMO, true, static_cast< Real >( 1.0 ) );
@@ -86,7 +85,7 @@ benchmarkGpuVectorProduct(
    {
       matrixRMO.vectorProduct( inVector, outVector2 );
    };
-   benchmark.time< TNL::Devices::GPU >( device, computeRMO );
+   benchmark.time< TNL::Devices::GPU >( "TNL RMO", computeRMO );
 
    // cuBLAS / hipBLAS (column-major only)
    fillGpuMatrix( matrixCMO, true, static_cast< Real >( 1.0 ) );
@@ -97,7 +96,7 @@ benchmarkGpuVectorProduct(
    {
       matrixVectorProductCuBLAS( matrixCMO, inVector, outVector1 );
    };
-   benchmark.time< TNL::Devices::GPU >( device, computeCuBLAS );
+   benchmark.time< TNL::Devices::GPU >( "cuBLAS", computeCuBLAS );
    #elif defined( __HIP__ )
    setMetadata< Real, Index >(
       benchmark, "hipBLAS", std::to_string( matrixCMO.getRows() ) + "x" + std::to_string( matrixCMO.getColumns() ) );
@@ -105,7 +104,7 @@ benchmarkGpuVectorProduct(
    {
       matrixVectorProductHIPBLAS( matrixCMO, inVector, outVector1 );
    };
-   benchmark.time< TNL::Devices::GPU >( device, computeHipBLAS );
+   benchmark.time< TNL::Devices::GPU >( "hipBLAS", computeHipBLAS );
    #endif
 }
 
@@ -156,14 +155,8 @@ runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Paramete
                GPUVector outVector1( rows );
                GPUVector outVector2( rows );
 
-   #if defined( __CUDACC__ )
-               const std::string gpuDevice = ( device == "all" ) ? "cuda" : device;
-   #elif defined( __HIP__ )
-               const std::string gpuDevice = ( device == "all" ) ? "hip" : device;
-   #endif
                benchmark.setOperation( "GEMV", ( rows * columns + rows + columns ) * sizeof( Real ) / oneGB );
-               benchmarkGpuVectorProduct< Real, Index >(
-                  benchmark, gpuDevice, matrixCMO, matrixRMO, inVector, outVector1, outVector2 );
+               benchmarkGpuVectorProduct< Real, Index >( benchmark, matrixCMO, matrixRMO, inVector, outVector1, outVector2 );
             }
 #endif
          }
