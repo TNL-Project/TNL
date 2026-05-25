@@ -78,7 +78,7 @@ benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOr
             Solvers::Eigen::experimental::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
-      benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
+      benchmark.time< Device >( resetFunction, getDeviceName< Device >(), testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
    }
@@ -120,7 +120,7 @@ benchmark_spi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecO
             Solvers::Eigen::experimental::shiftedPowerIteration< MatrixType >( matrix, epsilon, shiftValue, initialVec, 10000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
-      benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
+      benchmark.time< Device >( resetFunction, getDeviceName< Device >(), testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
    }

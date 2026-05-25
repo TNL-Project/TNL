@@ -6,18 +6,10 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 #include <TNL/Matrices/DistributedMatrix.h>
+#include <TNL/Benchmarks/Devices.h>
 
 #include <stdexcept>  // std::runtime_error
 #include "LinearSolversBenchmarkResult.h"
-
-template< typename Device >
-const char*
-getPerformer()
-{
-   if( std::is_same_v< Device, TNL::Devices::GPU > )
-      return "GPU";
-   return "CPU";
-}
 
 template< typename Matrix >
 void
@@ -31,20 +23,6 @@ barrier( const TNL::Matrices::DistributedMatrix< Matrix >& matrix )
    TNL::MPI::Barrier( matrix.getCommunicator() );
 }
 
-template< typename Device >
-bool
-checkDevice( const TNL::Config::ParameterContainer& parameters )
-{
-   const auto device = parameters.getParameter< TNL::String >( "device" );
-   if( device == "all" )
-      return true;
-   if( std::is_same_v< Device, TNL::Devices::Host > && device == "host" )
-      return true;
-   if( std::is_same_v< Device, TNL::Devices::GPU > && ( device == "cuda" || device == "hip" ) )
-      return true;
-   return false;
-}
-
 template< template< typename > class Solver, typename Matrix >
 void
 benchmarkSolverSetup(
@@ -54,11 +32,11 @@ benchmarkSolverSetup(
    const std::string& solver_name )
 {
    // skip benchmarks on devices which the user did not select
-   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+   if( ! TNL::Benchmarks::checkDevice< typename Matrix::DeviceType >( parameters ) )
       return;
 
    barrier( matrix );
-   const char* performer = getPerformer< typename Matrix::DeviceType >();
+   const std::string performer = TNL::Benchmarks::getDeviceName< typename Matrix::DeviceType >();
 
    Solver< Matrix > solver;
    solver.setup( parameters );
@@ -82,11 +60,11 @@ benchmarkPreconditionerUpdate(
    const std::string& preconditioner_name )
 {
    // skip benchmarks on devices which the user did not select
-   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+   if( ! TNL::Benchmarks::checkDevice< typename Matrix::DeviceType >( parameters ) )
       return;
 
    barrier( matrix );
-   const char* performer = getPerformer< typename Matrix::DeviceType >();
+   const std::string performer = TNL::Benchmarks::getDeviceName< typename Matrix::DeviceType >();
    Preconditioner< Matrix > preconditioner;
    preconditioner.setup( parameters );
 
@@ -119,11 +97,11 @@ benchmarkSolver(
    const std::string& solver_name )
 {
    // skip benchmarks on devices which the user did not select
-   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+   if( ! TNL::Benchmarks::checkDevice< typename Matrix::DeviceType >( parameters ) )
       return;
 
    barrier( matrix );
-   const char* performer = getPerformer< typename Matrix::DeviceType >();
+   const std::string performer = TNL::Benchmarks::getDeviceName< typename Matrix::DeviceType >();
 
    // setup
    Solver< Matrix > solver;
