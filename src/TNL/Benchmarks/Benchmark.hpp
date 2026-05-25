@@ -9,6 +9,7 @@
 #include <TNL/MPI/Comm.h>
 
 #include "Benchmark.h"
+#include "Devices.h"
 #include "JsonLogging.h"
 #include "TerminalLogging.h"
 #include "Utils.h"
@@ -131,6 +132,8 @@ template< typename Device, typename ResetFunction, typename ComputeFunction >
 void
 Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunction& compute, BenchmarkResult& result )
 {
+   setMetadataElement( { "device", getDeviceName< Device >() } );
+
    // run the monitor main loop
    Solvers::SolverMonitorThread monitor_thread( monitor );
    if( ! loggers.empty() && loggers.front()->getVerbose() <= 1 )

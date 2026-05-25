@@ -123,7 +123,7 @@ benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOr
             Solvers::Eigen::experimental::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
-      benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
+      benchmark.time< Device >( resetFunction, getDeviceName< Device >(), testfunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
    }
@@ -170,7 +170,7 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, Matrices::Factorization:
             Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorType, 5000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
-      benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
+      benchmark.time< Device >( resetFunction, getDeviceName< Device >(), testfunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
    }

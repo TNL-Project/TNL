@@ -4,10 +4,6 @@
 #pragma once
 
 #include <TNL/Benchmarks/BenchmarkResult.h>
-#include <TNL/Devices/Host.h>
-#include <TNL/Devices/GPU.h>
-
-#include <type_traits>
 
 struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
 {
@@ -35,19 +31,3 @@ struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
    const int& iterations;
    const double& error;
 };
-
-template< typename Device >
-const char*
-performer()
-{
-   if constexpr( std::is_same_v< Device, TNL::Devices::Host > )
-#ifdef HAVE_OPENMP
-      return "CPUP";
-#else
-      return "CPU";
-#endif
-   else if constexpr( std::is_same_v< Device, TNL::Devices::GPU > )
-      return "GPU";
-   else
-      return "unknown";
-}
