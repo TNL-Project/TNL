@@ -22,7 +22,6 @@ void
 benchmarkGpuTransposition(
    TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
-   const TNL::String& device,
    Index rows,
    Index cols )
 {
@@ -48,7 +47,7 @@ benchmarkGpuTransposition(
    {
       denseMatrixTransposeMAGMA( denseMatrix, magmaOutputMatrix );
    };
-   benchmark.time< Devices::GPU >( device, computeMagma );
+   benchmark.time< Devices::GPU >( "MAGMA", computeMagma );
    #endif
 #endif
 
@@ -63,7 +62,7 @@ benchmarkGpuTransposition(
       DenseMatricesResult< Real, Devices::GPU, Index > result1( outputMatrix, refs1 );
 #endif
       benchmark.time< Devices::GPU >(
-         device,
+         "Kernel 2.1",
          computeKernel1
 #ifdef HAVE_MAGMA
          ,
@@ -81,7 +80,7 @@ benchmarkGpuTransposition(
       DenseMatricesResult< Real, Devices::GPU, Index > result2( outputMatrix, refs2 );
 #endif
       benchmark.time< Devices::GPU >(
-         device,
+         "Kernel 2.2",
          computeKernel2
 #ifdef HAVE_MAGMA
          ,
@@ -100,7 +99,7 @@ benchmarkGpuTransposition(
    DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( outputMatrix, refsTnl );
 #endif
    benchmark.time< Devices::GPU >(
-      device,
+      "Kernel 2.3",
       computeTnl
 #ifdef HAVE_MAGMA
       ,
@@ -119,7 +118,7 @@ benchmarkGpuTransposition(
       DenseMatricesResult< Real, Devices::GPU, Index > inPlaceResult( denseMatrix, refsInPlace );
 #endif
       benchmark.time< Devices::GPU >(
-         device,
+         "Kernel 2.4",
          computeInPlace
 #ifdef HAVE_MAGMA
          ,
@@ -134,7 +133,6 @@ void
 benchmarkHostTransposition(
    TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
-   const TNL::String& device,
    Index rows,
    Index cols )
 {
@@ -155,7 +153,7 @@ benchmarkHostTransposition(
    {
       outputMatrix.getTransposition( denseMatrix );
    };
-   benchmark.time< Devices::Host >( device, computeTnl );
+   benchmark.time< Devices::Host >( "TNL", computeTnl );
 }
 
 template< typename Real, typename Index >
@@ -178,16 +176,13 @@ runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Paramete
       for( Index c = 0; c <= numColSteps; ++c ) {
          const Index cols = minCols + c * colStep;
 
-#if defined( __CUDACC__ )
-         if( device == "cuda" || device == "all" )
-            benchmarkGpuTransposition< Real, Index >( benchmark, parameters, "cuda", rows, cols );
-#elif defined( __HIP__ )
-         if( device == "hip" || device == "all" )
-            benchmarkGpuTransposition< Real, Index >( benchmark, parameters, "hip", rows, cols );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+         if( device == "cuda" || device == "hip" || device == "all" )
+            benchmarkGpuTransposition< Real, Index >( benchmark, parameters, rows, cols );
 #endif
 
          if( device == "host" || device == "all" )
-            benchmarkHostTransposition< Real, Index >( benchmark, parameters, "host", rows, cols );
+            benchmarkHostTransposition< Real, Index >( benchmark, parameters, rows, cols );
       }
    }
 }

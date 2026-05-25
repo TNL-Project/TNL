@@ -163,81 +163,73 @@ public:
       derived.runOtherBenchmarks( digraph, graph, smallest, largest, benchmark );
 
       if( device == "sequential" || device == "all" )
-         runTNLBenchmarks< TNL::Devices::Sequential, CSRSegments >(
-            digraph, graph, smallest, largest, benchmark, "sequential" );
+         runTNLBenchmarks< TNL::Devices::Sequential, CSRSegments >( digraph, graph, smallest, largest, benchmark );
       if( device == "host" || device == "all" )
-         runTNLBenchmarks< TNL::Devices::Host, CSRSegments >( digraph, graph, smallest, largest, benchmark, "host" );
+         runTNLBenchmarks< TNL::Devices::Host, CSRSegments >( digraph, graph, smallest, largest, benchmark );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if( device == "cuda" || device == "hip" || device == "all" ) {
-         TNL::String gpuLabel = ( device == "cuda" || device == "hip" ) ? device :
-   #ifdef __CUDACC__
-                                                                        "cuda";
-   #else
-                                                                        "hip";
-   #endif
-         runTNLBenchmarks< TNL::Devices::GPU, CSRSegments >( digraph, graph, smallest, largest, benchmark, gpuLabel );
-         runTNLBenchmarks< TNL::Devices::GPU, EllpackSegments >( digraph, graph, smallest, largest, benchmark, gpuLabel );
+         runTNLBenchmarks< TNL::Devices::GPU, CSRSegments >( digraph, graph, smallest, largest, benchmark );
+         runTNLBenchmarks< TNL::Devices::GPU, EllpackSegments >( digraph, graph, smallest, largest, benchmark );
 
    #ifdef WITH_ROW_MAJOR_SLICED_ELLPACK
          // Row-major sliced Ellpack with various segment sizes
          runTNLBenchmarks< TNL::Devices::GPU, RowMajorSlicedEllpackSegments< 2 >::template type >(
-            digraph, graph, smallest, largest, benchmark, gpuLabel );
+            digraph, graph, smallest, largest, benchmark );
          //runTNLBenchmarks< TNL::Devices::GPU, RowMajorSlicedEllpackSegments< 4 >::template type >(
-         //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+         //   digraph, graph, smallest, largest, benchmark );
          runTNLBenchmarks< TNL::Devices::GPU, RowMajorSlicedEllpackSegments< 8 >::template type >(
-            digraph, graph, smallest, largest, benchmark, gpuLabel );
+            digraph, graph, smallest, largest, benchmark );
          //runTNLBenchmarks< TNL::Devices::GPU, RowMajorSlicedEllpackSegments< 16 >::template type >(
-         //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+         //   digraph, graph, smallest, largest, benchmark );
          runTNLBenchmarks< TNL::Devices::GPU, RowMajorSlicedEllpackSegments< 32 >::template type >(
-            digraph, graph, smallest, largest, benchmark, gpuLabel );
+            digraph, graph, smallest, largest, benchmark );
    #endif
 
          // Column-major sliced Ellpack with various segment sizes
          runTNLBenchmarks< TNL::Devices::GPU, ColumnMajorSlicedEllpackSegments< 2 >::template type >(
-            digraph, graph, smallest, largest, benchmark, gpuLabel );
+            digraph, graph, smallest, largest, benchmark );
          //runTNLBenchmarks< TNL::Devices::GPU, ColumnMajorSlicedEllpackSegments< 4 >::template type >(
-         //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+         //   digraph, graph, smallest, largest, benchmark );
          runTNLBenchmarks< TNL::Devices::GPU, ColumnMajorSlicedEllpackSegments< 8 >::template type >(
-            digraph, graph, smallest, largest, benchmark, gpuLabel );
+            digraph, graph, smallest, largest, benchmark );
          //runTNLBenchmarks< TNL::Devices::GPU, ColumnMajorSlicedEllpackSegments< 16 >::template type >(
-         //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+         //   digraph, graph, smallest, largest, benchmark );
          runTNLBenchmarks< TNL::Devices::GPU, ColumnMajorSlicedEllpackSegments< 32 >::template type >(
-            digraph, graph, smallest, largest, benchmark, gpuLabel );
+            digraph, graph, smallest, largest, benchmark );
 
-         runTNLBenchmarks< TNL::Devices::GPU, BiEllpackSegments >( digraph, graph, smallest, largest, benchmark, gpuLabel );
-         runTNLBenchmarks< TNL::Devices::GPU, ChunkedEllpackSegments >(
-            digraph, graph, smallest, largest, benchmark, gpuLabel );
+         runTNLBenchmarks< TNL::Devices::GPU, BiEllpackSegments >( digraph, graph, smallest, largest, benchmark );
+         runTNLBenchmarks< TNL::Devices::GPU, ChunkedEllpackSegments >( digraph, graph, smallest, largest, benchmark );
 
    #ifdef WITH_SORTED_SEGMENTS
          if( withSortedSegments ) {
-            runTNLBenchmarks< TNL::Devices::GPU, SortedCSRSegments >( digraph, graph, smallest, largest, benchmark, gpuLabel );
+            runTNLBenchmarks< TNL::Devices::GPU, SortedCSRSegments >( digraph, graph, smallest, largest, benchmark );
 
       #ifdef WITH_ROW_MAJOR_SLICED_ELLPACK
             // Row-major sliced Ellpack with various segment sizes
             runTNLBenchmarks< TNL::Devices::GPU, SortedRowMajorSlicedEllpackSegments< 2 >::template type >(
-               digraph, graph, smallest, largest, benchmark, gpuLabel );
+               digraph, graph, smallest, largest, benchmark );
             //runTNLBenchmarks< TNL::Devices::GPU, SortedRowMajorSlicedEllpackSegments< 4 >::template type >(
-            //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+            //   digraph, graph, smallest, largest, benchmark );
             runTNLBenchmarks< TNL::Devices::GPU, SortedRowMajorSlicedEllpackSegments< 8 >::template type >(
-               digraph, graph, smallest, largest, benchmark, gpuLabel );
+               digraph, graph, smallest, largest, benchmark );
             //runTNLBenchmarks< TNL::Devices::GPU, SortedRowMajorSlicedEllpackSegments< 16 >::template type >(
-            //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+            //   digraph, graph, smallest, largest, benchmark );
             runTNLBenchmarks< TNL::Devices::GPU, SortedRowMajorSlicedEllpackSegments< 32 >::template type >(
-               digraph, graph, smallest, largest, benchmark, gpuLabel );
+               digraph, graph, smallest, largest, benchmark );
       #endif
 
             // Column-major sliced Ellpack with various segment sizes
             runTNLBenchmarks< TNL::Devices::GPU, SortedColumnMajorSlicedEllpackSegments< 2 >::template type >(
-               digraph, graph, smallest, largest, benchmark, gpuLabel );
+               digraph, graph, smallest, largest, benchmark );
             //runTNLBenchmarks< TNL::Devices::GPU, SortedColumnMajorSlicedEllpackSegments< 4 >::template type >(
-            //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+            //   digraph, graph, smallest, largest, benchmark );
             runTNLBenchmarks< TNL::Devices::GPU, SortedColumnMajorSlicedEllpackSegments< 8 >::template type >(
-               digraph, graph, smallest, largest, benchmark, gpuLabel );
+               digraph, graph, smallest, largest, benchmark );
             //runTNLBenchmarks< TNL::Devices::GPU, SortedColumnMajorSlicedEllpackSegments< 16 >::template type >(
-            //   digraph, graph, smallest, largest, benchmark, gpuLabel );
+            //   digraph, graph, smallest, largest, benchmark );
             runTNLBenchmarks< TNL::Devices::GPU, SortedColumnMajorSlicedEllpackSegments< 32 >::template type >(
-               digraph, graph, smallest, largest, benchmark, gpuLabel );
+               digraph, graph, smallest, largest, benchmark );
          }
    #endif  // WITH_SORTED_SEGMENTS
       }
@@ -256,8 +248,7 @@ protected:
       const HostGraph& hostGraph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark& benchmark,
-      const TNL::String& device )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
       auto& derived = static_cast< Derived& >( *this );
       using Graph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::UndirectedGraph, Segments >;
@@ -269,7 +260,7 @@ protected:
       auto segments = graph.getAdjacencyMatrix().getSegments().getSegmentsType();
 
       // Call the derived class implementation
-      derived.runTNLAlgorithm( digraph, graph, smallestNode, largestNode, benchmark, device, segments );
+      derived.runTNLAlgorithm( digraph, graph, smallestNode, largestNode, benchmark, segments );
    }
 
    // Common data members

@@ -90,7 +90,7 @@ performBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Para
       {
          array.performTest();
       };
-      benchmark.time< TNL::Devices::Host >( "host", compute );
+      benchmark.time< TNL::Devices::Host >( "TNL", compute );
    }
    return true;
 }

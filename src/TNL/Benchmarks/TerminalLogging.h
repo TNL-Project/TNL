@@ -28,8 +28,8 @@ namespace TNL::Benchmarks {
  * operation     : multiply
  * precision     : double
  * === Results ===
- * CPU           : time=4.44e-04  speedup=N/A  bandwidth=1.11GB/s  loops=10
- * GPU           : time=1.11e-04  speedup=4.0  bandwidth=4.44GB/s  loops=10
+ * TNL           : time=4.44e-04  speedup=N/A  bandwidth=1.11GB/s  loops=10
+ * cuBLAS        : time=1.11e-04  speedup=4.0  bandwidth=4.44GB/s  loops=10
  * \endcode
  */
 class TerminalLogger : public Logging
