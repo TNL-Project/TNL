@@ -78,8 +78,6 @@ benchmarkGpuVectorProduct(
    };
    benchmark.time< TNL::Devices::GPU >( device, computeCMO );
 
-   matrixCMO.reset();
-
    // Row-major
    fillGpuMatrix( matrixRMO, true, static_cast< Real >( 1.0 ) );
    setMetadata< Real, Index >(
@@ -89,8 +87,6 @@ benchmarkGpuVectorProduct(
       matrixRMO.vectorProduct( inVector, outVector2 );
    };
    benchmark.time< TNL::Devices::GPU >( device, computeRMO );
-
-   matrixRMO.reset();
 
    // cuBLAS / hipBLAS (column-major only)
    fillGpuMatrix( matrixCMO, true, static_cast< Real >( 1.0 ) );
