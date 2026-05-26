@@ -3,24 +3,23 @@
 
 #pragma once
 
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <map>
-#include <fstream>
-#include <filesystem>
-#include <algorithm>
 
-#include <TNL/Timer.h>
-#include <TNL/PerformanceCounters.h>
-#include <TNL/Devices/Cuda.h>
-#include <TNL/Containers/Vector.h>
-#include <TNL/Solvers/IterativeSolverMonitor.h>
-
-#include <TNL/Devices/Host.h>
-#include <TNL/SystemInfo.h>
 #include <TNL/Backend.h>
 #include <TNL/Config/ConfigDescription.h>
+#include <TNL/Containers/Vector.h>
+#include <TNL/Devices/GPU.h>
+#include <TNL/Devices/Host.h>
 #include <TNL/MPI/Comm.h>
 #include <TNL/MPI/Wrappers.h>
+#include <TNL/PerformanceCounters.h>
+#include <TNL/Solvers/IterativeSolverMonitor.h>
+#include <TNL/SystemInfo.h>
+#include <TNL/Timer.h>
 
 namespace TNL::Benchmarks {
 
