@@ -56,8 +56,9 @@ benchmark_1D( Benchmark& benchmark, index_type size = 500000000 )
          } );
    };
 
-   const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "1D", datasetSize );
+   const std::size_t datasetSize = 2 * size * sizeof( value_type );
+   benchmark.setOperation( "1D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -90,8 +91,9 @@ benchmark_2D( Benchmark& benchmark, index_type size = 22333 )
          } );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "2D", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * sizeof( value_type );
+   benchmark.setOperation( "2D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -124,8 +126,9 @@ benchmark_3D( Benchmark& benchmark, index_type size = 800 )
          } );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "3D", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "3D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -151,8 +154,9 @@ benchmark_3D( Benchmark& benchmark, index_type size = 800 )
 //      index_type l ) mutable { a_view( i, j, k, l ) = b_view( i, j, k, l ); } );
 //   };
 //
-//   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof(value_type) / oneGB;
-//   benchmark.setOperation( "4D", datasetSize );
+//   const std::size_t datasetSize = 2 * size * size * size * size * sizeof(value_type) ;
+//   benchmark.setOperation( "4D" );
+//   benchmark.setDatasetSize( datasetSize );
 //   benchmark.time< Device >( reset, "TNL", f );
 //}
 //
@@ -177,8 +181,9 @@ benchmark_3D( Benchmark& benchmark, index_type size = 800 )
 //      j, index_type k, index_type l, index_type m ) mutable { a_view( i, j, k, l, m ) = b_view( i, j, k, l, m ); } );
 //   };
 //
-//   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof(value_type) / oneGB;
-//   benchmark.setOperation( "5D", datasetSize );
+//   const std::size_t datasetSize = 2 * size * size * size * size * size * sizeof(value_type) ;
+//   benchmark.setOperation( "5D" );
+//   benchmark.setDatasetSize( datasetSize );
 //   benchmark.time< Device >( reset, "TNL", f );
 //}
 //
@@ -204,8 +209,9 @@ benchmark_3D( Benchmark& benchmark, index_type size = 800 )
 //      ) = b_view( i, j, k, l, m, n ); } );
 //   };
 //
-//   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof(value_type) / oneGB;
-//   benchmark.setOperation( "6D", datasetSize );
+//   const std::size_t datasetSize = 2 * size * size * size * size * size * size * sizeof(value_type) ;
+//   benchmark.setOperation( "6D" );
+//   benchmark.setDatasetSize( datasetSize );
 //   benchmark.time< Device >( reset, "TNL", f );
 //}
 
@@ -238,8 +244,9 @@ benchmark_2D_perm( Benchmark& benchmark, index_type size = 22333 )
          } );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "2D permuted", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * sizeof( value_type );
+   benchmark.setOperation( "2D permuted" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -272,8 +279,9 @@ benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
          } );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "3D permuted", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "3D permuted" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -299,8 +307,9 @@ benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
 //      index_type l ) mutable { a_view( i, j, k, l ) = b_view( i, j, k, l ); } );
 //   };
 //
-//   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof(value_type) / oneGB;
-//   benchmark.setOperation( "4D permuted", datasetSize );
+//   const std::size_t datasetSize = 2 * size * size * size * size * sizeof(value_type) ;
+//   benchmark.setOperation( "4D permuted" );
+//   benchmark.setDatasetSize( datasetSize );
 //   benchmark.time< Device >( reset, "TNL", f );
 //}
 //
@@ -325,8 +334,9 @@ benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
 //      j, index_type k, index_type l, index_type m ) mutable { a_view( i, j, k, l, m ) = b_view( i, j, k, l, m ); } );
 //   };
 //
-//   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof(value_type) / oneGB;
-//   benchmark.setOperation( "5D permuted", datasetSize );
+//   const std::size_t datasetSize = 2 * size * size * size * size * size * sizeof(value_type) ;
+//   benchmark.setOperation( "5D permuted" );
+//   benchmark.setDatasetSize( datasetSize );
 //   benchmark.time< Device >( reset, "TNL", f );
 //}
 //
@@ -352,8 +362,9 @@ benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
 //      ) = b_view( i, j, k, l, m, n ); } );
 //   };
 //
-//   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof(value_type) / oneGB;
-//   benchmark.setOperation( "6D permuted", datasetSize );
+//   const std::size_t datasetSize = 2 * size * size * size * size * size * size * sizeof(value_type) ;
+//   benchmark.setOperation( "6D permuted" );
+//   benchmark.setDatasetSize( datasetSize );
 //   benchmark.time< Device >( reset, "TNL", f );
 //}
 

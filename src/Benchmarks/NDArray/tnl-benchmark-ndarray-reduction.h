@@ -53,8 +53,9 @@ benchmark_ndarray_reduction1D( Benchmark& benchmark, index_type size )
       (void) res;
    };
 
-   const double datasetSize = size * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "1D", datasetSize );
+   const std::size_t datasetSize = size * sizeof( index_type );
+   benchmark.setOperation( "1D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
    benchmark.time< Device >( reset, "TNL", compute );
 }
@@ -75,8 +76,9 @@ benchmark_ndarray_reduction2D( Benchmark& benchmark, index_type size, index_type
       nd_reduce< axis >( input, TNL::Plus{}, 0, result );
    };
 
-   const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "2D", datasetSize );
+   const std::size_t datasetSize = ( size * n + n ) * sizeof( index_type );
+   benchmark.setOperation( "2D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -102,8 +104,9 @@ benchmark_ndarray_reduction3D( Benchmark& benchmark, index_type size, index_type
       nd_reduce< axis >( input, TNL::Plus{}, 0, result );
    };
 
-   const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "3D", datasetSize );
+   const std::size_t datasetSize = ( m * n * size + m * n ) * sizeof( index_type );
+   benchmark.setOperation( "3D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -135,8 +138,9 @@ benchmark_ndarray_reduction4D( Benchmark& benchmark, index_type size, index_type
       result_host = result;
    };
 
-   const double datasetSize = ( m * n * o * size + m * n * o ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "4D", datasetSize );
+   const std::size_t datasetSize = ( m * n * o * size + m * n * o ) * sizeof( index_type );
+   benchmark.setOperation( "4D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -169,8 +173,9 @@ benchmark_ndarray_reduction5D( Benchmark& benchmark, index_type size, index_type
       result_host = result;
    };
 
-   const double datasetSize = ( m * n * o * p * size + m * n * o * p ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "5D", datasetSize );
+   const std::size_t datasetSize = ( m * n * o * p * size + m * n * o * p ) * sizeof( index_type );
+   benchmark.setOperation( "5D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -212,8 +217,9 @@ benchmark_ndarray_reduction6D(
       result_host = result;
    };
 
-   const double datasetSize = ( m * n * o * p * q * size + m * n * o * p * q ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "6D", datasetSize );
+   const std::size_t datasetSize = ( m * n * o * p * q * size + m * n * o * p * q ) * sizeof( index_type );
+   benchmark.setOperation( "6D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },

@@ -10,6 +10,11 @@
 namespace TNL::Benchmarks {
 
 /**
+ * \brief Conversion factor for bytes to gigabytes (1 GB = 2^30 bytes).
+ */
+inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
+
+/**
  * \brief Container for benchmark measurement results.
  *
  * Stores timing data and derived metrics from benchmark runs. The class
@@ -88,13 +93,13 @@ struct BenchmarkResult
     * Must be called after \ref setTimeResults. Calculates bandwidth and
     * cycles per operation based on dataset size and operation count.
     *
-    * \param datasetSize Dataset size in gigabytes
+    * \param datasetSize Dataset size in bytes
     * \param operationsPerLoop Number of operations performed per iteration
     */
    virtual void
-   setDerivedResults( double datasetSize, std::size_t operationsPerLoop )
+   setDerivedResults( std::size_t datasetSize, std::size_t operationsPerLoop )
    {
-      bandwidth = datasetSize / time;
+      bandwidth = ( static_cast< double >( datasetSize ) / oneGB ) / time;
       operations_per_loop = operationsPerLoop;
       if( cpu_cycles != 0.0 && operationsPerLoop != 0 )
          cpu_cycles_per_operation = cpu_cycles / operationsPerLoop;
