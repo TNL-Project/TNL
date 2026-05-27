@@ -28,8 +28,9 @@ benchmarkTriad( Benchmark& benchmark, const long& size )
    using CudaManagedAllocator = Allocators::CudaManaged< Real >;
 #endif
 
-   double datasetSize = size * sizeof( Real ) / oneGB;
-   benchmark.setOperation( "triad", 3 * datasetSize );
+   std::size_t datasetSize = size * sizeof( Real );
+   benchmark.setOperation( "triad" );
+   benchmark.setDatasetSize( 3 * datasetSize );
 
    const Real scalar = 3.1415926535;
 

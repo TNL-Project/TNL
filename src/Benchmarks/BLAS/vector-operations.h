@@ -100,7 +100,7 @@ class VectorOperationsBenchmark
 
    Benchmark& benchmark;
    long size = 0;
-   double datasetSize = 0;
+   std::size_t datasetSize = 0;
 
    HostVector hostVector;
    HostVector hostVector2;
@@ -142,7 +142,7 @@ public:
    VectorOperationsBenchmark( Benchmark& benchmark, const long& size )
    : benchmark( benchmark ),
      size( size ),
-     datasetSize( size * sizeof( Real ) / oneGB )
+     datasetSize( size * sizeof( Real ) )
    {
       hostVector.setSize( size );
       hostVector2.setSize( size );
@@ -263,7 +263,8 @@ public:
    void
    max()
    {
-      benchmark.setOperation( "max", datasetSize );
+      benchmark.setOperation( "max" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -329,7 +330,8 @@ public:
    void
    min()
    {
-      benchmark.setOperation( "min", datasetSize );
+      benchmark.setOperation( "min" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -395,7 +397,8 @@ public:
    void
    absMax()
    {
-      benchmark.setOperation( "absMax", datasetSize );
+      benchmark.setOperation( "absMax" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -501,7 +504,8 @@ public:
    void
    absMin()
    {
-      benchmark.setOperation( "absMin", datasetSize );
+      benchmark.setOperation( "absMin" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -609,7 +613,8 @@ public:
    void
    sum()
    {
-      benchmark.setOperation( "sum", datasetSize );
+      benchmark.setOperation( "sum" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -675,7 +680,8 @@ public:
    void
    l1norm()
    {
-      benchmark.setOperation( "l1 norm", datasetSize );
+      benchmark.setOperation( "l1 norm" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -782,7 +788,8 @@ public:
    void
    l2norm()
    {
-      benchmark.setOperation( "l2 norm", datasetSize );
+      benchmark.setOperation( "l2 norm" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -892,7 +899,8 @@ public:
    void
    l3norm()
    {
-      benchmark.setOperation( "l3 norm", datasetSize );
+      benchmark.setOperation( "l3 norm" );
+      benchmark.setDatasetSize( datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -982,7 +990,8 @@ public:
    void
    scalarProduct()
    {
-      benchmark.setOperation( "scalar product", 2 * datasetSize );
+      benchmark.setOperation( "scalar product" );
+      benchmark.setDatasetSize( 2 * datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -1083,7 +1092,8 @@ public:
    void
    scalarMultiplication()
    {
-      benchmark.setOperation( "scalar multiplication", 2 * datasetSize );
+      benchmark.setOperation( "scalar multiplication" );
+      benchmark.setDatasetSize( 2 * datasetSize );
 
       auto computeET = [ & ]()
       {
@@ -1128,7 +1138,8 @@ public:
    void
    vectorAddition()
    {
-      benchmark.setOperation( "vector addition", 3 * datasetSize );
+      benchmark.setOperation( "vector addition" );
+      benchmark.setDatasetSize( 3 * datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -1188,7 +1199,8 @@ public:
    void
    twoVectorsAddition()
    {
-      benchmark.setOperation( "two vectors addition", 4 * datasetSize );
+      benchmark.setOperation( "two vectors addition" );
+      benchmark.setDatasetSize( 4 * datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -1299,7 +1311,8 @@ public:
    void
    threeVectorsAddition()
    {
-      benchmark.setOperation( "three vectors addition", 5 * datasetSize );
+      benchmark.setOperation( "three vectors addition" );
+      benchmark.setDatasetSize( 5 * datasetSize );
 
       auto computeLegacy = [ & ]()
       {
@@ -1419,7 +1432,8 @@ public:
    void
    inclusiveScanInplace()
    {
-      benchmark.setOperation( "inclusive scan (inplace)", 2 * datasetSize );
+      benchmark.setOperation( "inclusive scan (inplace)" );
+      benchmark.setDatasetSize( 2 * datasetSize );
 
       auto computeET = [ & ]()
       {
@@ -1494,7 +1508,8 @@ public:
    void
    inclusiveScanOneVector()
    {
-      benchmark.setOperation( "inclusive scan (1 vector)", 2 * datasetSize );
+      benchmark.setOperation( "inclusive scan (1 vector)" );
+      benchmark.setDatasetSize( 2 * datasetSize );
 
       auto computeET = [ & ]()
       {
@@ -1560,7 +1575,8 @@ public:
    void
    inclusiveScanTwoVectors()
    {
-      benchmark.setOperation( "inclusive scan (2 vectors)", 3 * datasetSize );
+      benchmark.setOperation( "inclusive scan (2 vectors)" );
+      benchmark.setDatasetSize( 3 * datasetSize );
 
       auto computeET = [ & ]()
       {
@@ -1588,7 +1604,8 @@ public:
       {
          Algorithms::inclusiveScan( hostVector + hostVector2 + hostVector3, hostVector4 );
       };
-      benchmark.setOperation( "inclusive scan (3 vectors)", 4 * datasetSize );
+      benchmark.setOperation( "inclusive scan (3 vectors)" );
+      benchmark.setDatasetSize( 4 * datasetSize );
       benchmark.time< Devices::Host >( resetAll, "ET", computeET );
       verify( "ET", hostVector4[ 0 ], 3 );
       verify( "ET", hostVector4[ size - 1 ], 3 * size );
@@ -1607,7 +1624,8 @@ public:
    void
    exclusiveScanInplace()
    {
-      benchmark.setOperation( "exclusive scan (inplace)", 2 * datasetSize );
+      benchmark.setOperation( "exclusive scan (inplace)" );
+      benchmark.setDatasetSize( 2 * datasetSize );
 
       auto computeET = [ & ]()
       {
@@ -1676,7 +1694,8 @@ public:
    void
    exclusiveScanOneVector()
    {
-      benchmark.setOperation( "exclusive scan (1 vector)", 2 * datasetSize );
+      benchmark.setOperation( "exclusive scan (1 vector)" );
+      benchmark.setDatasetSize( 2 * datasetSize );
 
       auto computeET = [ & ]()
       {
@@ -1734,7 +1753,8 @@ public:
    void
    exclusiveScanTwoVectors()
    {
-      benchmark.setOperation( "exclusive scan (2 vectors)", 3 * datasetSize );
+      benchmark.setOperation( "exclusive scan (2 vectors)" );
+      benchmark.setDatasetSize( 3 * datasetSize );
 
       auto computeET = [ & ]()
       {
@@ -1758,7 +1778,8 @@ public:
    void
    exclusiveScanThreeVectors()
    {
-      benchmark.setOperation( "exclusive scan (3 vectors)", 4 * datasetSize );
+      benchmark.setOperation( "exclusive scan (3 vectors)" );
+      benchmark.setDatasetSize( 4 * datasetSize );
 
       auto computeET = [ & ]()
       {

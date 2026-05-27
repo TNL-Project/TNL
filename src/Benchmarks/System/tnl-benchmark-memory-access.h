@@ -82,7 +82,7 @@ performBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Para
       }
 
       benchmark.setOperationsPerLoop( array.getTestedElementsCountPerThread() );
-      double dataset_size = elementsPerTest * sizeof( long int ) / static_cast< double >( 1 << 30 );
+      std::size_t dataset_size = elementsPerTest * sizeof( long int );
       if( read_test || write_test )
          dataset_size *= 2;
       benchmark.setDatasetSize( dataset_size );
