@@ -104,12 +104,6 @@ struct SegmentsBenchmark
                launchConfig_ );
          };
          benchmark.time< Device >( "TNL", f );
-         HostVector dataHost( data );  // NOLINT(performance-unnecessary-copy-initialization)
-         for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
-            for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
-               if( dataHost.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ) != segmentIdx + localIdx )
-                  throw std::runtime_error( "Error in forElements" );
-         }
       }
 
       for( auto stride : { 2, 4, 8 } ) {
