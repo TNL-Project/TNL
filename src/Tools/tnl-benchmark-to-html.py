@@ -78,7 +78,6 @@ with open(htmlFile, "w") as f:
     formatters = {
         "time_stddev": lambda value: f"{value:e}",
         "bandwidth": lambda value: f"{value:.3f}",
-        "speedup": lambda value: f"{value:.3f}",
     }
 
     for op, df in dataframes:

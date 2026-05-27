@@ -127,7 +127,7 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
    {
       hostArray = deviceArray;
    };
-   benchmark.setOperation( "copy (operator=)", datasetSize, benchmark.getBaseTime() );
+   benchmark.setOperation( "copy (operator=)", datasetSize );
    benchmark.time< Devices::GPU >( reset1, "host-to-device", copyAssignHostCuda );
    benchmark.time< Devices::GPU >( reset1, "device-to-host", copyAssignCudaHost );
 #endif

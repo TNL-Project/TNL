@@ -106,7 +106,7 @@ Alternatively, you can execute the `run-tnl-benchmark-sort` script which automat
 
 The benchmark outputs timing measurements in the [JSONL](https://jsonltools.com/what-is-jsonl) format with the following keys:
 
-- distribution, value_type, device, performer (algorithm), time, speedup, bandwidth, cycles/op, cycles, time_stddev, loops, ops_per_loop
+- distribution, value_type, device, performer (algorithm), time, bandwidth, cycles/op, cycles, time_stddev, loops, ops_per_loop
 
 Results are logged to the specified log file and metadata is written to `<log-file>.metadata.json`.
 

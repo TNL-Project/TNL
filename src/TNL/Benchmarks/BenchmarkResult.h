@@ -29,7 +29,6 @@ namespace TNL::Benchmarks {
  * Derived values (computed by \ref setDerivedResults):
  *
  * - `bandwidth`: Dataset size divided by execution time (GB/s)
- * - `speedup`: Baseline time divided by execution time
  * - `cpu_cycles_per_operation`: CPU cycles divided by operations per loop
  */
 struct BenchmarkResult
@@ -47,7 +46,6 @@ struct BenchmarkResult
    double cpu_cycles_median = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
-   double speedup = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_per_operation = 0;
    std::size_t operations_per_loop = 0;
 
@@ -87,18 +85,16 @@ struct BenchmarkResult
    /**
     * \brief Computes derived metrics from raw timing data.
     *
-    * Must be called after \ref setTimeResults. Calculates bandwidth, speedup, and
-    * cycles per operation based on dataset size, baseline time, and operation count.
+    * Must be called after \ref setTimeResults. Calculates bandwidth and
+    * cycles per operation based on dataset size and operation count.
     *
     * \param datasetSize Dataset size in gigabytes
-    * \param baseTime Baseline time for speedup calculation
     * \param operationsPerLoop Number of operations performed per iteration
     */
    virtual void
-   setDerivedResults( double datasetSize, double baseTime, std::size_t operationsPerLoop )
+   setDerivedResults( double datasetSize, std::size_t operationsPerLoop )
    {
       bandwidth = datasetSize / time;
-      speedup = baseTime / time;
       operations_per_loop = operationsPerLoop;
       if( cpu_cycles != 0.0 && operationsPerLoop != 0 )
          cpu_cycles_per_operation = cpu_cycles / operationsPerLoop;
@@ -115,7 +111,6 @@ struct BenchmarkResult
       return HeaderElements(
          { "time",
            "time_median",
-           "speedup",
            "bandwidth",
            "cycles/op",
            "cycles",
@@ -144,10 +139,6 @@ struct BenchmarkResult
       elements << std::scientific;
 
       elements << time << time_median;
-      if( speedup != 0 )
-         elements << speedup;
-      else
-         elements << "N/A";
       elements << bandwidth;
       if( cpu_cycles_per_operation != 0 )
          elements << cpu_cycles_per_operation;
