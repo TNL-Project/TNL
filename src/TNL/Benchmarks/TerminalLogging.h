@@ -16,7 +16,7 @@ namespace TNL::Benchmarks {
  * Provides human-readable output with configurable verbosity:
  *
  * - Level 0: No output (silent)
- * - Level 1: Summary with key metrics (time, speedup, bandwidth, loops)
+ * - Level 1: Summary with key metrics (time, bandwidth, loops)
  * - Level 2+: Full details including all metrics and configuration
  *
  * Metadata is printed once when it changes, followed by result rows.
@@ -28,8 +28,8 @@ namespace TNL::Benchmarks {
  * operation     : multiply
  * precision     : double
  * === Results ===
- * TNL           : time=4.44e-04  speedup=N/A  bandwidth=1.11GB/s  loops=10
- * cuBLAS        : time=1.11e-04  speedup=4.0  bandwidth=4.44GB/s  loops=10
+ * TNL           : time=4.44e-04  bandwidth=1.11GB/s  loops=10
+ * cuBLAS        : time=1.11e-04  bandwidth=4.44GB/s  loops=10
  * \endcode
  */
 class TerminalLogger : public Logging
@@ -101,7 +101,6 @@ public:
          else {
             // Print only essential results
             log << "time=" << rowMap[ "time" ];
-            log << "  speedup=" << rowMap[ "speedup" ];
             log << "  bandwidth=" << rowMap[ "bandwidth" ];
             log << "  loops=" << rowMap[ "loops" ];
          }

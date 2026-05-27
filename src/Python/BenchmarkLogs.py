@@ -54,9 +54,6 @@ def get_benchmark_dataframe(logFile):
     print(f"Parsing input file {logFile}")
     with open(logFile) as file:
         df = pd.read_json(file, orient="records", lines=True)
-        # convert "N/A" in the speedup column to nan
-        if "speedup" in df.columns:
-            df["speedup"] = pd.to_numeric(df["speedup"], errors="coerce")
 
     return df
 
