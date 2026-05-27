@@ -107,10 +107,9 @@ Benchmark::setMetadataElement( const typename MetadataColumns::value_type& eleme
 }
 
 void
-Benchmark::setDatasetSize( double datasetSize, double baseTime )
+Benchmark::setDatasetSize( double datasetSize )
 {
    this->datasetSize = datasetSize;
-   this->baseTime = baseTime;
 }
 
 void
@@ -120,12 +119,12 @@ Benchmark::setOperationsPerLoop( std::size_t operationsPerLoop )
 }
 
 void
-Benchmark::setOperation( const std::string& operation, double datasetSize, double baseTime )
+Benchmark::setOperation( const std::string& operation, double datasetSize )
 {
    monitor.setStage( operation );
    for( auto& logger : loggers )
       logger->setMetadataElement( { "operation", operation }, 0 );
-   setDatasetSize( datasetSize, baseTime );
+   setDatasetSize( datasetSize );
 }
 
 template< typename Device, typename ResetFunction, typename ComputeFunction >
@@ -154,10 +153,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
       timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, monitor, result );
    }
 
-   result.setDerivedResults( datasetSize, baseTime, operations_per_loop );
-
-   if( this->baseTime == 0.0 )
-      this->baseTime = result.time;
+   result.setDerivedResults( datasetSize, operations_per_loop );
 
    for( auto& logger : loggers )
       logger->logResult( performer, result.getTableHeader(), result.getRowElements(), errorMessage );
@@ -207,12 +203,6 @@ auto
 Benchmark::getMonitor() -> SolverMonitorType&
 {
    return monitor;
-}
-
-double
-Benchmark::getBaseTime() const
-{
-   return baseTime;
 }
 
 void
