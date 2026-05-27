@@ -105,8 +105,8 @@ struct SegmentsBenchmark
          };
          benchmark.time< Device >( "TNL", f );
          HostVector dataHost( data );  // NOLINT(performance-unnecessary-copy-initialization)
-         for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
-            for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
+         for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
+            for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
                if( dataHost.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ) != segmentIdx + localIdx )
                   throw std::runtime_error( "Error in forElements" );
          }
@@ -247,8 +247,8 @@ struct SegmentsBenchmark
          };
          benchmark.time< Device >( "TNL", f );
          HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
-         for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
-            if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+         for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
+            if( resultHost[ segmentIdx ] != hostSegmentsSizes[ segmentIdx ] )
                throw std::runtime_error( "Error in reduceSegments" );
          }
       }
@@ -296,9 +296,9 @@ struct SegmentsBenchmark
             };
             benchmark.time< Device >( "TNL", f );
             HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
-            for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
+            for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
-                  if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+                  if( resultHost[ segmentIdx ] != hostSegmentsSizes[ segmentIdx ] )
                      throw std::runtime_error( "Error in reduceSegments" );
                }
                else {
@@ -348,9 +348,9 @@ struct SegmentsBenchmark
             };
             benchmark.time< Device >( "TNL", f );
             HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
-            for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
+            for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
-                  if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+                  if( resultHost[ segmentIdx ] != hostSegmentsSizes[ segmentIdx ] )
                      throw std::runtime_error( "Error in reduceSegments" );
                }
                else {
