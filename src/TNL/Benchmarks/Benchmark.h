@@ -33,7 +33,7 @@ inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
  * - Automatic warmup iteration before timing begins
  * - Configurable output logging
  * - Metadata tracking (device, operation, performer, etc.)
- * - Bandwidth and speedup calculations
+ * - Bandwidth calculations
  * - CPU cycle counting (host devices only)
  *
  * Example usage:
@@ -174,15 +174,12 @@ public:
    setMetadataElement( const typename MetadataColumns::value_type& element );
 
    /**
-    * \brief Sets dataset size and base time for derived metrics.
+    * \brief Sets dataset size for derived metrics.
     *
     * \param datasetSize Dataset size in GB
-    * \param baseTime Baseline time for speedup calculation
     */
    void
-   setDatasetSize(
-      double datasetSize = 0.0,  // in GB
-      double baseTime = 0.0 );
+   setDatasetSize( double datasetSize = 0.0 );
 
    /**
     * \brief Sets the number of operations performed per loop iteration.
@@ -195,20 +192,15 @@ public:
    setOperationsPerLoop( std::size_t operationsPerLoop );
 
    /**
-    * \brief Sets the current operation name and optionally overrides dataset size/base time.
+    * \brief Sets the current operation name and optionally overrides dataset size.
     *
-    * Operations create vertical divisions in result tables. The baseTime parameter
-    * can be used to establish a new baseline for subsequent speedup calculations.
+    * Operations create vertical divisions in result tables.
     *
     * \param operation Name of the current operation
     * \param datasetSize Optional dataset size override in GB
-    * \param baseTime Optional baseline time override
     */
    void
-   setOperation(
-      const std::string& operation,
-      double datasetSize = 0.0,  // in GB
-      double baseTime = 0.0 );
+   setOperation( const std::string& operation, double datasetSize = 0.0 );
 
    /**
     * \brief Times a compute function with reset between iterations.
@@ -315,14 +307,6 @@ public:
    getMonitor();
 
    /**
-    * \brief Returns the base time used for speedup calculations.
-    *
-    * \return Current base time value
-    */
-   [[nodiscard]] double
-   getBaseTime() const;
-
-   /**
     * \brief Sets whether to catch exceptions during timing of computations.
     *
     * When enabled (default), exceptions thrown during benchmark execution are
@@ -359,8 +343,6 @@ protected:
    double minTime = 0.0;
 
    double datasetSize = 0.0;
-
-   double baseTime = 0.0;
 
    bool catchExceptions = true;
 
