@@ -107,7 +107,7 @@ Benchmark::setMetadataElement( const typename MetadataColumns::value_type& eleme
 }
 
 void
-Benchmark::setDatasetSize( double datasetSize )
+Benchmark::setDatasetSize( std::size_t datasetSize )
 {
    this->datasetSize = datasetSize;
 }
@@ -119,12 +119,11 @@ Benchmark::setOperationsPerLoop( std::size_t operationsPerLoop )
 }
 
 void
-Benchmark::setOperation( const std::string& operation, double datasetSize )
+Benchmark::setOperation( const std::string& operation )
 {
    monitor.setStage( operation );
    for( auto& logger : loggers )
       logger->setMetadataElement( { "operation", operation }, 0 );
-   setDatasetSize( datasetSize );
 }
 
 template< typename Device, typename ResetFunction, typename ComputeFunction >

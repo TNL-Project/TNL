@@ -130,7 +130,8 @@ runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Paramete
                HostVector inHostVector( columns );
                HostVector outHostVector( rows );
 
-               benchmark.setOperation( "GEMV", ( rows * columns + rows + columns ) * sizeof( Real ) / oneGB );
+               benchmark.setOperation( "GEMV" );
+               benchmark.setDatasetSize( ( rows * columns + rows + columns ) * sizeof( Real ) );
                benchmarkHostVectorProduct< Real, Index >( benchmark, hostMatrix, inHostVector, outHostVector );
             }
 
@@ -151,7 +152,8 @@ runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Paramete
                GPUVector outVector1( rows );
                GPUVector outVector2( rows );
 
-               benchmark.setOperation( "GEMV", ( rows * columns + rows + columns ) * sizeof( Real ) / oneGB );
+               benchmark.setOperation( "GEMV" );
+               benchmark.setDatasetSize( ( rows * columns + rows + columns ) * sizeof( Real ) );
                benchmarkGpuVectorProduct< Real, Index >( benchmark, matrixCMO, matrixRMO, inVector, outVector1, outVector2 );
             }
 #endif

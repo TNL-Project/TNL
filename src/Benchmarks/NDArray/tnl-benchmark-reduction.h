@@ -43,8 +43,9 @@ benchmark_reduction1D( Benchmark& benchmark, index_type size )
       (void) res;
    };
 
-   const double datasetSize = size * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "1D", datasetSize );
+   const std::size_t datasetSize = size * sizeof( index_type );
+   benchmark.setOperation( "1D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
    benchmark.time< Device >( reset, "TNL", compute );
 }
@@ -71,8 +72,9 @@ benchmark_reduction2D( Benchmark& benchmark, index_type size, index_type n )
       Reduction2D< Device >::reduce( static_cast< index_type >( 0 ), fetch, std::plus<>{}, size, n, result.getView() );
    };
 
-   const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "2D", datasetSize );
+   const std::size_t datasetSize = ( size * n + n ) * sizeof( index_type );
+   benchmark.setOperation( "2D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns( { { "size", convertToString( size ) }, { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, "TNL", compute );
@@ -106,8 +108,9 @@ benchmark_reduction3D( Benchmark& benchmark, index_type size, index_type m, inde
       Reduction3D< Device >::reduce( static_cast< index_type >( 0 ), fetch, std::plus<>{}, size, m, n, output );
    };
 
-   const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "3D", datasetSize );
+   const std::size_t datasetSize = ( m * n * size + m * n ) * sizeof( index_type );
+   benchmark.setOperation( "3D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "size", convertToString( size ) }, { "m", convertToString( m ) }, { "n", convertToString( n ) } } ) );

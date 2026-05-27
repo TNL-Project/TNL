@@ -143,7 +143,7 @@ struct HeatEquationSolverBenchmark
                     { "y size", TNL::convertToString( ySize ) },
                     { "implementation", implementation } } ) );
 
-            benchmark.setDatasetSize( xSize * ySize );
+            benchmark.setDatasetSize( xSize * ySize * sizeof( Real ) );
             this->init( xSize, ySize );
             if( writeData ) {
                TNL::String fileName = TNL::String( "initial-" ) + implementation + "-" + TNL::convertToString( xSize ) + "-"
