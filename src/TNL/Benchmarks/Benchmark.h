@@ -18,11 +18,6 @@
 namespace TNL::Benchmarks {
 
 /**
- * \brief Conversion factor for bytes to gigabytes (1 GB = 2^30 bytes).
- */
-inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
-
-/**
  * \brief Base class for running benchmarks with timing and logging support.
  *
  * The Benchmark class provides a unified interface for measuring performance
@@ -54,8 +49,9 @@ inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
  *          { "precision", getType< Real >() },
  *          { "size", std::to_string( size ) },
  *       } ) );
- * double datasetSize = size * sizeof( Real ) / oneGB;
- * benchmark.setOperation( "operation-name", datasetSize );
+ * std::size_t datasetSize = size * sizeof( Real );
+ * benchmark.setOperation( "operation-name" );
+ * benchmark.setDatasetSize( datasetSize );
  *
  * // Define reset and compute functions
  * auto reset = []() { ... };
@@ -176,10 +172,10 @@ public:
    /**
     * \brief Sets dataset size for derived metrics.
     *
-    * \param datasetSize Dataset size in GB
+    * \param datasetSize Dataset size in bytes
     */
    void
-   setDatasetSize( double datasetSize = 0.0 );
+   setDatasetSize( std::size_t datasetSize );
 
    /**
     * \brief Sets the number of operations performed per loop iteration.
@@ -190,18 +186,15 @@ public:
     */
    void
    setOperationsPerLoop( std::size_t operationsPerLoop );
-
    /**
-    * \brief Sets the current operation name and optionally overrides dataset size.
+    * \brief Sets the current operation name and dataset size.
     *
     * Operations create vertical divisions in result tables.
     *
     * \param operation Name of the current operation
-    * \param datasetSize Optional dataset size override in GB
     */
    void
-   setOperation( const std::string& operation, double datasetSize = 0.0 );
-
+   setOperation( const std::string& operation );
    /**
     * \brief Times a compute function with reset between iterations.
     *
@@ -342,7 +335,7 @@ protected:
 
    double minTime = 0.0;
 
-   double datasetSize = 0.0;
+   std::size_t datasetSize = 0;
 
    bool catchExceptions = true;
 

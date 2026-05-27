@@ -51,8 +51,9 @@ benchmark_array( Benchmark& benchmark, index_type size = 500000000 )
       Algorithms::parallelFor< Device >( static_cast< index_type >( 0 ), size, kernel, a.getData(), b.getData() );
    };
 
-   const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "array", datasetSize );
+   const std::size_t datasetSize = 2 * size * sizeof( value_type );
+   benchmark.setOperation( "array" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -79,8 +80,9 @@ benchmark_1D( Benchmark& benchmark, index_type size = 500000000 )
          b );
    };
 
-   const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "1D", datasetSize );
+   const std::size_t datasetSize = 2 * size * sizeof( value_type );
+   benchmark.setOperation( "1D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -107,8 +109,9 @@ benchmark_2D( Benchmark& benchmark, index_type size = 22333 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "2D", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * sizeof( value_type );
+   benchmark.setOperation( "2D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -135,8 +138,9 @@ benchmark_3D( Benchmark& benchmark, index_type size = 800 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "3D", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "3D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -163,8 +167,9 @@ benchmark_4D( Benchmark& benchmark, index_type size = 150 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "4D", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "4D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -191,8 +196,9 @@ benchmark_5D( Benchmark& benchmark, index_type size = 56 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "5D", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "5D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -219,8 +225,9 @@ benchmark_6D( Benchmark& benchmark, index_type size = 28 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "6D", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "6D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -247,8 +254,9 @@ benchmark_2D_perm( Benchmark& benchmark, index_type size = 22333 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "2D permuted", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * sizeof( value_type );
+   benchmark.setOperation( "2D permuted" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -275,8 +283,9 @@ benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "3D permuted", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "3D permuted" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -303,8 +312,9 @@ benchmark_4D_perm( Benchmark& benchmark, index_type size = 150 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "4D permuted", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "4D permuted" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -332,8 +342,9 @@ benchmark_5D_perm( Benchmark& benchmark, index_type size = 56 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "5D permuted", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "5D permuted" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
@@ -361,8 +372,9 @@ benchmark_6D_perm( Benchmark& benchmark, index_type size = 28 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "6D permuted", datasetSize );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "6D permuted" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.time< Device >( reset, "TNL", f );
 }
 
