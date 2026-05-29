@@ -1,7 +1,7 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 default:
-    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-cuda:latest"
+    image: "registry.gitlab.com/tnl-project/container-images/archlinux-tnl-cuda:latest"
     tags:
         - docker
     retry:
@@ -69,7 +69,7 @@ workflow:
 
 # base for NVHPC builds
 .nvhpc:
-    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-nvhpc:latest"
+    image: "registry.gitlab.com/tnl-project/container-images/archlinux-tnl-nvhpc:latest"
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
@@ -99,7 +99,7 @@ workflow:
         - docker
         - nvidia
     extends: .clang
-    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-cuda:latest"
+    image: "registry.gitlab.com/tnl-project/container-images/archlinux-tnl-cuda:latest"
     variables:
         CUDACXX: clang++
         CUDAHOSTCXX: clang++
@@ -115,7 +115,7 @@ workflow:
 # base for Intel oneAPI builds
 .icpx:
     stage: build:host
-    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-oneapi:latest"
+    image: "registry.gitlab.com/tnl-project/container-images/archlinux-tnl-oneapi:latest"
     variables:
         <<: *default_cmake_flags
         CXX: icpx
@@ -124,7 +124,7 @@ workflow:
 # base for HIP/ROCm builds
 .hip_rocm:
     stage: build:hip_rocm
-    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-rocm:latest"
+    image: "registry.gitlab.com/tnl-project/container-images/archlinux-tnl-rocm:latest"
     tags:
         - docker
         - hip-rocm
