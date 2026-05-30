@@ -267,6 +267,29 @@ dummy build job:
             - Documentation/**/*
 
 
+# Manual jobs for verification of GPU passthrough
+cuda-gpu-check:
+    extends: .nvcc
+    stage: build:cuda
+    script:
+        - nvidia-smi
+    rules:
+        - if: $GITLAB_CI == "false"
+          when: manual
+          allow_failure: true
+
+rocm-gpu-check:
+    extends: .hip_rocm
+    stage: build:hip_rocm
+    script:
+        - source /etc/profile
+        - rocminfo
+    rules:
+        - if: $GITLAB_CI == "false"
+          when: manual
+          allow_failure: true
+
+
 
 
 
