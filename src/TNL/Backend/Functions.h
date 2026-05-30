@@ -5,6 +5,7 @@
 
 #include "Macros.h"
 #include "Types.h"
+
 #include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Backend {

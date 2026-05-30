@@ -105,7 +105,7 @@ reduceSegmentsCSRVariableVectorKernel(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduce, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
    if( laneID == 0 )
@@ -172,7 +172,7 @@ reduceSegmentsCSRLightMultivectorKernel(
    __syncthreads();
    if( warpIdx == 0 ) {
       ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
-      partial = BlockReduce::warpReduce< warpsPerSegment >( reduce, partial );
+      partial = BlockReduce::template warpReduce< warpsPerSegment >( reduce, partial );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && segmentIdx + groupIdx < end )
@@ -448,7 +448,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduce, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
    if( laneID == 0 )
@@ -517,7 +517,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes(
    __syncthreads();
    if( warpIdx == 0 ) {
       ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
-      partial = BlockReduce::warpReduce< warpsPerSegment >( reduce, partial );
+      partial = BlockReduce::template warpReduce< warpsPerSegment >( reduce, partial );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount
@@ -796,7 +796,7 @@ reduceSegmentsCSRVariableVectorKernelWithArgument(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduce, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
    if( laneID == 0 ) {
@@ -876,7 +876,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument(
       ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
       Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
       auto [ final_result, final_argument ] =
-         BlockReduce::warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
+         BlockReduce::template warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && segmentIdx + groupIdx < end ) {
@@ -1158,7 +1158,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduce, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
    if( laneID == 0 ) {
@@ -1240,7 +1240,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
       ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
       Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
       auto [ final_result, final_argument ] =
-         BlockReduce::warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
+         BlockReduce::template warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount

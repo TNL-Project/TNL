@@ -61,7 +61,7 @@ EllpackCudaReductionKernel(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
    if( laneIdx == 0 )
@@ -122,7 +122,7 @@ EllpackCudaReductionKernelWithSegmentIndexes(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
    if( laneIdx == 0 )
@@ -184,7 +184,7 @@ EllpackCudaReductionKernelWithArgument(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
    if( laneIdx == 0 ) {
@@ -245,7 +245,7 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument(
 
    // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
    if( laneIdx == 0 ) {

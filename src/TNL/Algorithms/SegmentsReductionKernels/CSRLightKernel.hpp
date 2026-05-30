@@ -48,57 +48,30 @@ CSRVectorReduction(
       result = reduce( result, fetch( i ) );
 
    // Parallel reduction
-   #if defined( __HIP__ )
    if( ThreadsPerSegment > 16 ) {
-      result = reduce( result, __shfl_down( result, 16 ) );
-      result = reduce( result, __shfl_down( result, 8 ) );
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 16 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 8 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 4 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 1 ) );
    }
    else if( ThreadsPerSegment > 8 ) {
-      result = reduce( result, __shfl_down( result, 8 ) );
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 8 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 4 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 1 ) );
    }
    else if( ThreadsPerSegment > 4 ) {
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 4 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 1 ) );
    }
    else if( ThreadsPerSegment > 2 ) {
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 ) );
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 1 ) );
    }
    else if( ThreadsPerSegment > 1 )
-      result = reduce( result, __shfl_down( result, 1 ) );
-   #else
-   if( ThreadsPerSegment > 16 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 8 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 4 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 2 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 1 )
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   #endif
+      result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 1 ) );
 
    // Write the result
    if( laneID == 0 )
@@ -151,19 +124,11 @@ reduceSegmentsCSRLightMultivectorKernel(
       localIdx += ThreadsPerSegment;
    }
 
-   #if defined( __HIP__ )
-   result = reduce( result, __shfl_down( result, 16 ) );
-   result = reduce( result, __shfl_down( result, 8 ) );
-   result = reduce( result, __shfl_down( result, 4 ) );
-   result = reduce( result, __shfl_down( result, 2 ) );
-   result = reduce( result, __shfl_down( result, 1 ) );
-   #else
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   #endif
+   result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 16 ) );
+   result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 8 ) );
+   result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 4 ) );
+   result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 ) );
+   result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 1 ) );
 
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    if( inWarpLaneIdx == 0 )
