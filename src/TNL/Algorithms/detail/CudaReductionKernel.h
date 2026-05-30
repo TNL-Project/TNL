@@ -87,46 +87,47 @@ struct CudaBlockReduceSharedMemory
          __syncthreads();
       }
 
-      // This runs in one warp so we use __syncwarp() instead of __syncthreads().
+      // Warp-level reduction using cooperative groups for portable warp sync
       if( segment_tid < 32 ) {
+         auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
          if constexpr( blockSize >= 64 ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + 32 ] );
             storage.data[ global_tid ] = threadValue;
-            __syncwarp();
+            warp.sync();
          }
          // Note that here we do not have to check if tid < 16 etc, because we have
          // 2 * blockSize.x elements of shared memory per block, so we do not
          // access out of bounds. The results for the upper half will be undefined,
          // but unused anyway.
-         // Note that we must add __syncwarp() between the read and write operations
+         // Note that we must add warp.sync() between the read and write operations
          // to avoid race conditions.
          if constexpr( blockSize >= 32 ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + 16 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ global_tid ] = threadValue;
-            __syncwarp();
+            warp.sync();
          }
          if constexpr( blockSize >= 16 ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + 8 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ global_tid ] = threadValue;
-            __syncwarp();
+            warp.sync();
          }
          if constexpr( blockSize >= 8 ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + 4 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ global_tid ] = threadValue;
-            __syncwarp();
+            warp.sync();
          }
          if constexpr( blockSize >= 4 ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + 2 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ global_tid ] = threadValue;
-            __syncwarp();
+            warp.sync();
          }
          if constexpr( blockSize >= 2 ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + 1 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ global_tid ] = threadValue;
          }
       }
@@ -389,49 +390,52 @@ struct CudaBlockReduceWithArgument
          __syncthreads();
       }
 
-      // This runs in one warp so we use __syncwarp() instead of __syncthreads().
+      // Warp-level reduction using cooperative groups for portable warp sync
       if( tid < 32 ) {
+         auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
          if( blockSize >= 64 ) {
             reduction( threadValue, storage.data[ tid + 32 ], threadIndex, storage.idx[ tid + 32 ] );
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            __syncwarp();
+            warp.sync();
          }
          // Note that here we do not have to check if tid < 16 etc, because we have
          // 2 * blockSize.x elements of shared memory per block, so we do not
          // access out of bounds. The results for the upper half will be undefined,
          // but unused anyway.
+         // Note that we must add warp.sync() between the read and write operations
+         // to avoid race conditions.
          if( blockSize >= 32 ) {
             reduction( threadValue, storage.data[ tid + 16 ], threadIndex, storage.idx[ tid + 16 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            __syncwarp();
+            warp.sync();
          }
          if( blockSize >= 16 ) {
             reduction( threadValue, storage.data[ tid + 8 ], threadIndex, storage.idx[ tid + 8 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            __syncwarp();
+            warp.sync();
          }
          if( blockSize >= 8 ) {
             reduction( threadValue, storage.data[ tid + 4 ], threadIndex, storage.idx[ tid + 4 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            __syncwarp();
+            warp.sync();
          }
          if( blockSize >= 4 ) {
             reduction( threadValue, storage.data[ tid + 2 ], threadIndex, storage.idx[ tid + 2 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            __syncwarp();
+            warp.sync();
          }
          if( blockSize >= 2 ) {
             reduction( threadValue, storage.data[ tid + 1 ], threadIndex, storage.idx[ tid + 1 ] );
-            __syncwarp();
+            warp.sync();
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
          }

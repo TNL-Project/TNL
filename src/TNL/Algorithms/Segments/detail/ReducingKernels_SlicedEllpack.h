@@ -6,6 +6,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
 #include <TNL/Algorithms/detail/CudaReductionKernel.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Backend/LaunchHelpers.h>
 
 namespace TNL::Algorithms::Segments::detail {
@@ -309,7 +310,8 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       //          +---------+--------+
       /////
       result = sharedResults[ threadIdx.x ];
-      __syncwarp();
+      auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
+      warp.sync();
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 

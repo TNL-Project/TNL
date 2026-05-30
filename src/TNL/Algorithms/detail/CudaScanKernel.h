@@ -81,6 +81,7 @@ struct CudaBlockScan
       // perform the parallel scan on chunkResults inside warps
       const int lane_id = tid % Backend::getWarpSize();
       const int warp_id = tid / Backend::getWarpSize();
+      auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
       #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          ValueType result;
@@ -88,10 +89,10 @@ struct CudaBlockScan
             result = reduction(
                storage.chunkResults[ chunkResultIdx ], storage.chunkResults[ Backend::getInterleaving( tid - stride ) ] );
          // We must sync all threads in a warp after read and before write to avoid race condition
-         __syncwarp();
+         warp.sync();
          if( lane_id >= stride )
             storage.chunkResults[ chunkResultIdx ] = result;
-         __syncwarp();
+         warp.sync();
       }
       threadValue = storage.chunkResults[ chunkResultIdx ];
 
@@ -108,10 +109,10 @@ struct CudaBlockScan
             if( lane_id >= stride )
                result = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
             // We must sync all threads in a warp after read and before write to avoid race condition
-            __syncwarp();
+            warp.sync();
             if( lane_id >= stride )
                storage.warpResults[ tid ] = result;
-            __syncwarp();
+            warp.sync();
          }
       }
       __syncthreads();
