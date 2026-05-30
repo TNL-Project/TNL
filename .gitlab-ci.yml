@@ -192,10 +192,9 @@ workflow:
         # https://gitlab.kitware.com/cmake/cmake/-/issues/23982
         - "sed 's|\"binaryDir\": \"${sourceDir}/build\",|\"binaryDir\": \"${sourceDir}\",|' CMakePresets.json > \"./build/$CI_JOB_NAME_SLUG/CMakePresets.json\""
         - pushd "./build/$CI_JOB_NAME_SLUG/"
-        # NOTE: execution of HIP tests is temporarily skipped until we get a reliable GPU
-        - if [[ ${MATRIX_TARGET} == "tests" ]] && [[ ${USE_HIP} != "yes" ]]; then
+        - if [[ ${MATRIX_TARGET} == "tests" ]]; then
                 ctest --preset non-matrix-tests --output-junit "./tests-report.xml";
-          elif [[ ${MATRIX_TARGET} == "matrix_tests" ]] && [[ ${USE_HIP} != "yes" ]]; then
+          elif [[ ${MATRIX_TARGET} == "matrix_tests" ]]; then
                 ctest --preset matrix-tests --output-junit "./tests-report.xml";
           fi
         - popd
@@ -333,8 +332,6 @@ hip_rocm:
         - .build_template
         - .matrix_template
         - .hip_rocm
-    # FIXME: rocm-llvm 6.4.3 fails in Debug mode
-    allow_failure: true
 
 
 gcc:
