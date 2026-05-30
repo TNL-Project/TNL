@@ -9,11 +9,13 @@
 
 #include <TNL/Backend/Macros.h>
 #include <TNL/Containers/Array.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
 #if defined( __CUDACC__ )
    #include <cub/device/device_radix_sort.cuh>
+#elif defined( __HIPCC__ )
+   #include <hipcub/device/device_radix_sort.hpp>
 #endif
 
 namespace TNL::Algorithms::Sorting {
@@ -64,22 +66,26 @@ struct CUBRadixSort
       using Value = typename Array::ValueType;
       using Device = typename Array::DeviceType;
       static_assert( std::is_arithmetic_v< Value >, "CUBRadixSort: unsupported value type" );
-      static_assert( std::is_same_v< Device, Devices::Cuda >, "CUBRadixSort: unsupported device type" );
+      static_assert( std::is_same_v< Device, Devices::GPU >, "CUBRadixSort: unsupported device type" );
 
-#if defined( __CUDACC__ )
+#if defined( __CUDACC__ ) || defined( __HIPCC__ )
+   #if defined( __HIPCC__ ) && ! defined( __CUDACC__ )
+      namespace cub = hipcub;
+   #endif
+
       const auto size = array.getSize();
       if( size <= 1 )
          return;
 
       Value* data = array.getData();
 
-      Containers::Array< Value, Devices::Cuda > temp_array;
+      Containers::Array< Value, Device > temp_array;
       temp_array.setSize( size );
 
       std::size_t temp_storage_bytes = 0;
       TNL_BACKEND_SAFE_CALL( cub::DeviceRadixSort::SortKeys( nullptr, temp_storage_bytes, data, temp_array.getData(), size ) );
 
-      Containers::Array< std::uint8_t, Devices::Cuda > temp_storage;
+      Containers::Array< std::uint8_t, Device > temp_storage;
       temp_storage.setSize( temp_storage_bytes );
 
       TNL_BACKEND_SAFE_CALL(
@@ -88,7 +94,7 @@ struct CUBRadixSort
 
       array = temp_array;
 #else
-      throw Exceptions::NotImplementedError( "CUBRadixSort is supported only when CUDA is enabled." );
+      throw Exceptions::NotImplementedError( "CUBRadixSort is supported only when CUDA or HIP is enabled." );
 #endif
    }
 };
