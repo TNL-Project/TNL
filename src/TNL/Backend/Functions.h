@@ -148,19 +148,16 @@ ldg( const T& value )
 
 }  // namespace TNL::Backend
 
-// HIP does not have __syncwarp
-#ifdef __HIP__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
+   #if defined( __CUDACC__ )
+      #include <cooperative_groups.h>
+   #elif defined( __HIPCC__ )
+      #include <hip/hip_cooperative_groups.h>
+   #endif
+
 namespace TNL {
-
-// FIXME: the signature in CUDA is void __syncwarp(unsigned mask=FULL_MASK);
-// but HIP does not support independent thread scheduling
-// https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#independent-thread-scheduling
-__device__
-inline void
-__syncwarp()
-{
-   __syncthreads();
-}
-
+namespace cg = cooperative_groups;
 }  // namespace TNL
+
 #endif

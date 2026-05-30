@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/detail/BiEllpack.h>
 #include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 
@@ -137,6 +138,7 @@ reduceSegmentsKernel(
    }
    else {
       ReturnType* temp = Backend::getSharedMemory< ReturnType >();
+      auto warp = cg::tiled_partition< SegmentsView::getWarpSize() >( cg::this_thread_block() );
       for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
          Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
          Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
@@ -148,22 +150,22 @@ reduceSegmentsKernel(
                globalIdx += SegmentsView::getWarpSize();
             }
 
-            __syncwarp();
+            warp.sync();
             if( group > 0 && inWarpIdx < 16 )
                temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 16 ] );
-            __syncwarp();
+            warp.sync();
             if( group > 1 && inWarpIdx < 8 )
                temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 8 ] );
-            __syncwarp();
+            warp.sync();
             if( group > 2 && inWarpIdx < 4 )
                temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 4 ] );
-            __syncwarp();
+            warp.sync();
             if( group > 3 && inWarpIdx < 2 )
                temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 2 ] );
-            __syncwarp();
+            warp.sync();
             if( group > 4 && inWarpIdx < 1 )
                temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 1 ] );
-            __syncwarp();
+            warp.sync();
 
             if( inWarpIdx < groupHeight )
                results[ threadIdx.x ] = reduction( results[ threadIdx.x ], temp[ threadIdx.x ] );

@@ -136,31 +136,31 @@ reduceSegmentsCSRLightMultivectorKernel(
 
    __syncthreads();
    // Reduction in shared
+   auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
    if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
-      // constexpr int totalWarps = BlockSize / Backend::getWarpSize();
       constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
       if( warpsPerSegment >= 32 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
-         __syncwarp();
+         warp.sync();
       }
       if( warpsPerSegment >= 16 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
-         __syncwarp();
+         warp.sync();
       }
       if( warpsPerSegment >= 8 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
-         __syncwarp();
+         warp.sync();
       }
       if( warpsPerSegment >= 4 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
-         __syncwarp();
+         warp.sync();
       }
       if( warpsPerSegment >= 2 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
-         __syncwarp();
+         warp.sync();
       }
       constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-      if( inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
+      if( warpIdx == 0 && inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
          keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
       }
    }
