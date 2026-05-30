@@ -52,29 +52,16 @@ reduceSegmentsCSRHybridVectorKernel(
    /****
     * Reduction in each segment.
     */
-   #if defined( __HIP__ )
    if( ThreadsPerSegment == 32 )
-      aux = reduction( aux, __shfl_down( aux, 16 ) );
+      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 16 ) );
    if( ThreadsPerSegment >= 16 )
-      aux = reduction( aux, __shfl_down( aux, 8 ) );
+      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 8 ) );
    if( ThreadsPerSegment >= 8 )
-      aux = reduction( aux, __shfl_down( aux, 4 ) );
+      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 4 ) );
    if( ThreadsPerSegment >= 4 )
-      aux = reduction( aux, __shfl_down( aux, 2 ) );
+      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 2 ) );
    if( ThreadsPerSegment >= 2 )
-      aux = reduction( aux, __shfl_down( aux, 1 ) );
-   #else
-   if( ThreadsPerSegment == 32 )
-      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 16 ) );
-   if( ThreadsPerSegment >= 16 )
-      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 8 ) );
-   if( ThreadsPerSegment >= 8 )
-      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 4 ) );
-   if( ThreadsPerSegment >= 4 )
-      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 2 ) );
-   if( ThreadsPerSegment >= 2 )
-      aux = reduction( aux, __shfl_down_sync( 0xFFFFFFFF, aux, 1 ) );
-   #endif
+      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 1 ) );
 
    if( laneIdx == 0 )
       keep( segmentIdx, aux );

@@ -34,7 +34,7 @@ atomicAdd( long int* address, long int val )
 }
 
 __device__
-static double
+static double __attribute__( ( unused ) )
 atomicMax( double* address, double value )
 {
    unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
@@ -49,7 +49,7 @@ atomicMax( double* address, double value )
 }
 
 __device__
-static double
+static double __attribute__( ( unused ) )
 atomicMin( double* address, double value )
 {
    unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );

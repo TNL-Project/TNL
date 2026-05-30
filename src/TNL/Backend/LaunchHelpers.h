@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <memory>       // std::unique_ptr
 #include <type_traits>  // std::remove_cv_t
@@ -62,7 +63,7 @@ getMaxBlockZSize()
 #endif
 }
 
-/*
+/**
  * The warpSize variable is of type int and contains the warp size (in threads)
  * for the target device. This should be used only from device code in order to
  * develop portable wave-aware code.
@@ -83,11 +84,35 @@ getWarpSize()
    return 32;
 #elif defined( __AMDGCN_WAVEFRONT_SIZE__ )
    return __AMDGCN_WAVEFRONT_SIZE__;
-// this is deprecated, alias to the previous one
-#elif defined( __AMDGCN_WAVEFRONT_SIZE )
-   return __AMDGCN_WAVEFRONT_SIZE;
+#elif defined( __GFX8__ ) || defined( __GFX9__ )
+   // gfx8/gfx9 (GCN) use wave64, all others use wave32
+   return 64;
 #else
-   return 64;  // default, same as __AMDGCN_WAVEFRONT_SIZE__ for host code
+   return 32;
+#endif
+}
+
+/**
+ * \brief Returns the full mask for warp shuffle operations.
+ *
+ * HIP shfl intrinsics require a 64-bit mask regardless of the wavefront size
+ * (unused upper bits are zero for wave32). CUDA uses a 32-bit mask.
+ */
+[[nodiscard]] constexpr auto
+getWarpFullMask()
+{
+#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
+   return std::uint32_t{ 0xffffffff };
+#elif defined( __AMDGCN_WAVEFRONT_SIZE__ )
+   if constexpr( __AMDGCN_WAVEFRONT_SIZE__ == 64 )
+      return std::uint64_t{ 0xffffffffffffffffULL };
+   else
+      return std::uint64_t{ 0xffffffffULL };
+#elif defined( __GFX8__ ) || defined( __GFX9__ )
+   // gfx8/gfx9 (GCN) use wave64, all others use wave32
+   return std::uint64_t{ 0xffffffffffffffffULL };
+#else
+   return std::uint64_t{ 0xffffffffULL };
 #endif
 }
 

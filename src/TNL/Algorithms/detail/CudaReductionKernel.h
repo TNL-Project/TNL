@@ -205,8 +205,7 @@ struct CudaBlockReduceShfl
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
+         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -228,8 +227,7 @@ struct CudaBlockReduceShfl
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_down_sync( mask, threadValue, i );
+         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -453,9 +451,8 @@ struct CudaBlockReduceWithArgument
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
-         const IndexType otherArgument = __shfl_xor_sync( mask, threadArgument, i );
+         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
+         const IndexType otherArgument = __shfl_xor_sync( Backend::getWarpFullMask(), threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );
@@ -477,9 +474,8 @@ struct CudaBlockReduceWithArgument
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_down_sync( mask, threadValue, i );
-         const IndexType otherArgument = __shfl_down_sync( mask, threadArgument, i );
+         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i );
+         const IndexType otherArgument = __shfl_down_sync( Backend::getWarpFullMask(), threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );
