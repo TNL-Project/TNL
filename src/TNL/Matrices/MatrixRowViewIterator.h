@@ -73,7 +73,7 @@ public:
    operator++();
 
    /**
-    * \brief Decrement operetor.
+    * \brief Decrement operator.
     */
    __cuda_callable__
    MatrixRowViewIterator&
