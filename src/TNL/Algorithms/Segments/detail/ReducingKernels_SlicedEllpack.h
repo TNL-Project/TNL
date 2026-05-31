@@ -39,45 +39,46 @@ reduceSegmentsRowMajorSlicedEllpackKernel(
    constexpr Index SliceSize = Segments::getSliceSize();
 
    const Index segmentIdx = ( begin / SliceSize ) * SliceSize + Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
-   if( segmentIdx < begin || segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-
-   const Index sliceIdx = segmentIdx / SliceSize;
-   const Index segmentInSliceIdx = segmentIdx % SliceSize;
-   TNL_ASSERT_LT( sliceIdx, segments.getSliceSegmentSizesView().getSize(), "" );
-
-   const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
-
-   const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-   const Index endIdx = beginIdx + segmentSize;
-   TNL_ASSERT_EQ( beginIdx, segments.getGlobalIndex( segmentIdx, 0 ), "" );
-   TNL_ASSERT_LE( endIdx, segments.getStorageSize(), "" );
+   const bool active = ( segmentIdx >= begin && segmentIdx < end );
 
    ReturnType result = identity;
-   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-      Index localIdx = laneIdx;
-      for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-         TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
-         TNL_ASSERT_LT( globalIdx, endIdx, "" );
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
-         localIdx += ThreadsPerSegment;
+   if( active ) {
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+
+      const Index sliceIdx = segmentIdx / SliceSize;
+      const Index segmentInSliceIdx = segmentIdx % SliceSize;
+      TNL_ASSERT_LT( sliceIdx, segments.getSliceSegmentSizesView().getSize(), "" );
+
+      const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
+
+      const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+      const Index endIdx = beginIdx + segmentSize;
+      TNL_ASSERT_EQ( beginIdx, segments.getGlobalIndex( segmentIdx, 0 ), "" );
+      TNL_ASSERT_LE( endIdx, segments.getStorageSize(), "" );
+
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneIdx;
+         for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+            TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
+            TNL_ASSERT_LT( globalIdx, endIdx, "" );
+            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+            result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+            localIdx += ThreadsPerSegment;
+         }
       }
-   }
-   else {
-      for( Index i = beginIdx + laneIdx; i < endIdx; i += ThreadsPerSegment ) {
-         result = reduce( result, fetch( i ) );
+      else {
+         for( Index i = beginIdx + laneIdx; i < endIdx; i += ThreadsPerSegment ) {
+            result = reduce( result, fetch( i ) );
+         }
       }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
    result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
-   if( ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
       store( segmentIdx, result );
    }
 #endif
