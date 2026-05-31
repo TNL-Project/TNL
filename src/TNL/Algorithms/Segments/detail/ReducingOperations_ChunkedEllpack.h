@@ -266,7 +266,12 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          const IndexType cudaBlocks = segments.getNumberOfSlices();
          const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
          launch_config.blockSize.x = segments.getChunksInSlice();
-         launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * ( sizeof( ReturnType ) + sizeof( IndexType ) );
+
+         // Must match the alignment padding in ChunkedEllpackReduceSegmentsKernelWithArgument
+         // (value + align-1) rounds up, & ~(align-1) clears low bits to align boundary
+         const std::size_t resultsBytes = launch_config.blockSize.x * sizeof( ReturnType );
+         const std::size_t argumentsOffset = ( resultsBytes + alignof( IndexType ) - 1 ) & ~( alignof( IndexType ) - 1 );
+         launch_config.dynamicSharedMemorySize = argumentsOffset + launch_config.blockSize.x * sizeof( IndexType );
 
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getMaxGridXSize();
