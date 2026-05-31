@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <limits>       // std::numeric_limits
 #include <memory>       // std::unique_ptr
 #include <type_traits>  // std::remove_cv_t
 
@@ -18,27 +19,50 @@ namespace TNL::Backend {
 constexpr std::size_t
 getMaxGridXSize()
 {
+#if defined( __HIPCC__ )
+   // AMD GPUs support up to 2^32 - 1 blocks in the x-dimension
+   // https://rocm.docs.amd.com/projects/HIP/en/latest/reference/hardware_features.html
+   return 4294967295ULL;
+#else
    return 2147483647;
+#endif
 }
 
 constexpr std::size_t
 getMaxGridYSize()
 {
-#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
+   // Both NVIDIA and AMD GPUs have the same limit of 65535 blocks
+   // https://rocm.docs.amd.com/projects/HIP/en/latest/reference/hardware_features.html
    return 65535;
-#else
-   return 2147483647;
-#endif
 }
 
 constexpr std::size_t
 getMaxGridZSize()
 {
-#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
+   // Both NVIDIA and AMD GPUs have the same limit of 65535 blocks
+   // https://rocm.docs.amd.com/projects/HIP/en/latest/reference/hardware_features.html
    return 65535;
+}
+
+constexpr std::size_t
+getMaxThreadsPerGrid()
+{
+#if defined( __HIPCC__ )
+   // AMD GPUs limit total threads per grid launch to 2^32 - 1
+   // https://rocm.docs.amd.com/projects/HIP/en/latest/reference/hardware_features.html
+   return 4294967295ULL;
 #else
-   return 2147483647;
+   // NVIDIA GPUs have no explicit threads-per-grid limit beyond the grid/block
+   // dimension limits
+   return std::numeric_limits< std::size_t >::max();
 #endif
+}
+
+constexpr int
+getMaxThreadsPerBlock()
+{
+   // Both NVIDIA and AMD GPUs support up to 1024 threads per block
+   return 1024;
 }
 
 constexpr int

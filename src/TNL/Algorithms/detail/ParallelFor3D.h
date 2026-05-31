@@ -164,6 +164,13 @@ struct ParallelFor3D< Devices::Cuda >
          }
       }
 
+      launch_config.blockSize.x = TNL::min( launch_config.blockSize.x, Backend::getMaxThreadsPerBlock() );
+      launch_config.blockSize.y =
+         TNL::min( launch_config.blockSize.y, Backend::getMaxThreadsPerBlock() / launch_config.blockSize.x );
+      const int remainingThreads = Backend::getMaxThreadsPerBlock() / ( launch_config.blockSize.x * launch_config.blockSize.y );
+      launch_config.blockSize.z =
+         TNL::min( TNL::min( launch_config.blockSize.z, Backend::getMaxBlockZSize() ), remainingThreads );
+
       launch_config.gridSize.x =
          TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
       launch_config.gridSize.y =
@@ -171,13 +178,18 @@ struct ParallelFor3D< Devices::Cuda >
       launch_config.gridSize.z =
          TNL::min( Backend::getMaxGridZSize(), Backend::getNumberOfBlocks( sizeZ, launch_config.blockSize.z ) );
 
+      const auto totalThreads = static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y
+                              * launch_config.blockSize.z * static_cast< std::size_t >( launch_config.gridSize.x )
+                              * launch_config.gridSize.y * launch_config.gridSize.z;
+      const bool needsGridStride = totalThreads > Backend::getMaxThreadsPerGrid();
+
       // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow
       MultiIndex gridCount;
       gridCount.x() = Backend::getNumberOfGrids( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
       gridCount.y() = Backend::getNumberOfGrids( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
       gridCount.z() = Backend::getNumberOfGrids( sizeZ, launch_config.blockSize.z * launch_config.gridSize.z );
 
-      if( gridCount.x() == 1 && gridCount.y() == 1 && gridCount.z() == 1 ) {
+      if( ! needsGridStride && gridCount.x() == 1 && gridCount.y() == 1 && gridCount.z() == 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< false, MultiIndex, Function, FunctionArgs... >;
          Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }

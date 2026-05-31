@@ -82,6 +82,7 @@ struct ParallelFor1D< Devices::Cuda >
       if( launch_config.blockSize.x == 1 ) {
          launch_config.blockSize.x = 256;
       }
+      launch_config.blockSize.x = TNL::min( launch_config.blockSize.x, Backend::getMaxThreadsPerBlock() );
       launch_config.blockSize.y = 1;
       launch_config.blockSize.z = 1;
 
@@ -90,9 +91,11 @@ struct ParallelFor1D< Devices::Cuda >
       launch_config.gridSize.y = 1;
       launch_config.gridSize.z = 1;
 
-      if( static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.gridSize.x
-          >= static_cast< std::size_t >( end - begin ) )
-      {
+      const auto totalThreads =
+         static_cast< std::size_t >( launch_config.blockSize.x ) * static_cast< std::size_t >( launch_config.gridSize.x );
+      const bool needsGridStride = totalThreads > Backend::getMaxThreadsPerGrid();
+
+      if( ! needsGridStride && totalThreads >= static_cast< std::size_t >( end - begin ) ) {
          constexpr auto kernel = ParallelFor1DKernel< false, Index, Function, FunctionArgs... >;
          Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
