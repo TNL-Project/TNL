@@ -181,12 +181,18 @@ ChunkedEllpackReduceSegmentsKernelWithArgument(
       return;
 
    ReturnType* chunksResults = Backend::getSharedMemory< ReturnType >();
-   Index* chunksArguments = (Index*) &chunksResults[ blockDim.x ];
+   // Align the arguments array to alignof(Index) since sizeof(ReturnType) may
+   // not be a multiple of Index alignment (e.g. sizeof(float)=4 but alignof(long)=8).
+   // Round up to the next aligned boundary: (value + align-1) rounds up, & ~(align-1)
+   // clears the low bits to produce a multiple of align.
+   const std::size_t argumentsOffset = ( blockDim.x * sizeof( ReturnType ) + alignof( Index ) - 1 ) & ~( alignof( Index ) - 1 );
+   Index* chunksArguments = reinterpret_cast< Index* >( reinterpret_cast< unsigned char* >( chunksResults ) + argumentsOffset );
    __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
 
    if( threadIdx.x == 0 )
       sliceInfo = segments.getSlicesView()[ sliceIdx ];
    chunksResults[ threadIdx.x ] = identity;
+   chunksArguments[ threadIdx.x ] = 0;
    __syncthreads();
 
    const Index sliceOffset = sliceInfo.pointer;
