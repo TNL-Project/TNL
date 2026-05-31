@@ -437,7 +437,9 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
       auto matrixColumnsBuffer_view = matrixColumnsBuffer.getView();
       auto thisValuesBuffer_view = thisValuesBuffer.getView();
       auto thisColumnsBuffer_view = thisColumnsBuffer.getView();
+#ifndef USE_NVCC_WORKAROUND
       auto bufferRowLocalIndexes_view = bufferRowLocalIndexes.getView();
+#endif
       matrixValuesBuffer_view = 0.0;
 
       Index baseRow = 0;
