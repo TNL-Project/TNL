@@ -127,6 +127,9 @@ struct ParallelFor2D< Devices::Cuda >
             launch_config.blockSize.y = TNL::min( 8, sizeY );
          }
       }
+      launch_config.blockSize.x = TNL::min( launch_config.blockSize.x, Backend::getMaxThreadsPerBlock() );
+      launch_config.blockSize.y =
+         TNL::min( launch_config.blockSize.y, Backend::getMaxThreadsPerBlock() / launch_config.blockSize.x );
       launch_config.blockSize.z = 1;
 
       launch_config.gridSize.x =
@@ -135,12 +138,16 @@ struct ParallelFor2D< Devices::Cuda >
          TNL::min( Backend::getMaxGridYSize(), Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
       launch_config.gridSize.z = 1;
 
+      const auto totalThreads = static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y
+                              * static_cast< std::size_t >( launch_config.gridSize.x ) * launch_config.gridSize.y;
+      const bool needsGridStride = totalThreads > Backend::getMaxThreadsPerGrid();
+
       // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow
       MultiIndex gridCount;
       gridCount.x() = Backend::getNumberOfGrids( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
       gridCount.y() = Backend::getNumberOfGrids( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
 
-      if( gridCount.x() == 1 && gridCount.y() == 1 ) {
+      if( ! needsGridStride && gridCount.x() == 1 && gridCount.y() == 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< false, MultiIndex, Function, FunctionArgs... >;
          Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }
