@@ -61,7 +61,7 @@ foreach(target IN ITEMS ${CPP_TESTS})
     target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
     target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
     add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    set_property(TEST ${target} PROPERTY LABELS Matrices)
+    set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
 endforeach()
 
 if(TNL_BUILD_CUDA)
@@ -72,7 +72,7 @@ if(TNL_BUILD_CUDA)
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
         add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
         # add "Matrices" label to the test
-        set_property(TEST ${target} PROPERTY LABELS Matrices)
+        set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
     endforeach()
 endif()
 
@@ -82,9 +82,9 @@ if(TNL_BUILD_HIP)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
         # add "Matrices" label to the test
-        set_property(TEST ${target} PROPERTY LABELS Matrices)
+        set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
     endforeach()
 endif()
 
@@ -96,15 +96,15 @@ if(TNL_BUILD_MPI)
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
         target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
         target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-        add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-        add_test_mpi(
+        tnl_add_mpi_test(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
+        tnl_add_mpi_test(
             NAME ${target}_nodistr
             NPROC 1
             COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
         )
         # add "Matrices" label to the test
-        set_property(TEST ${target} PROPERTY LABELS Matrices)
-        set_property(TEST ${target}_nodistr PROPERTY LABELS Matrices)
+        set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
+        set_property(TEST ${target}_nodistr APPEND PROPERTY LABELS Matrices)
     endforeach()
 
     if(TNL_BUILD_CUDA)
@@ -115,15 +115,19 @@ if(TNL_BUILD_MPI)
             target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
             target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
             target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-            add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-            add_test_mpi(
+            tnl_add_mpi_test(
+                NAME ${target}
+                NPROC 4
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            tnl_add_mpi_test(
                 NAME ${target}_nodistr
                 NPROC 1
                 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
             )
             # add "Matrices" label to the test
-            set_property(TEST ${target} PROPERTY LABELS Matrices)
-            set_property(TEST ${target}_nodistr PROPERTY LABELS Matrices)
+            set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
+            set_property(TEST ${target}_nodistr APPEND PROPERTY LABELS Matrices)
         endforeach()
     endif()
 
@@ -135,15 +139,18 @@ if(TNL_BUILD_MPI)
             target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
             target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
             target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-            add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-            add_test_mpi(
+            tnl_add_hip_mpi_test(
+                NAME ${target}
+                NPROC 4
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            tnl_add_hip_mpi_test(
                 NAME ${target}_nodistr
                 NPROC 1
                 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
             )
             # add "Matrices" label to the test
-            set_property(TEST ${target} PROPERTY LABELS Matrices)
-            set_property(TEST ${target}_nodistr PROPERTY LABELS Matrices)
+            set_property(TEST ${target}_nodistr APPEND PROPERTY LABELS Matrices)
         endforeach()
     endif()
 endif()

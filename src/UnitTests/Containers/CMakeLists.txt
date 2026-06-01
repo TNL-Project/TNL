@@ -73,7 +73,7 @@ if(TNL_BUILD_HIP)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
     endforeach()
 endif()
 
@@ -96,8 +96,8 @@ if(TNL_BUILD_MPI)
         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
         target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
 
-        add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-        add_test_mpi(
+        tnl_add_mpi_test(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
+        tnl_add_mpi_test(
             NAME ${target}_nodistr
             NPROC 1
             COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
@@ -117,8 +117,12 @@ if(TNL_BUILD_MPI)
             # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
             target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
 
-            add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-            add_test_mpi(
+            tnl_add_mpi_test(
+                NAME ${target}
+                NPROC 4
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            tnl_add_mpi_test(
                 NAME ${target}_nodistr
                 NPROC 1
                 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
@@ -130,7 +134,7 @@ if(TNL_BUILD_MPI)
         foreach(test IN ITEMS ${MPI_TESTS})
             set(target ${test}Hip)
             add_executable(${target} ${target}.hip)
-            target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
+            target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
             target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
             target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
 
@@ -139,8 +143,12 @@ if(TNL_BUILD_MPI)
             # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
             target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
 
-            add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-            add_test_mpi(
+            tnl_add_hip_mpi_test(
+                NAME ${target}
+                NPROC 4
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            tnl_add_hip_mpi_test(
                 NAME ${target}_nodistr
                 NPROC 1
                 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
