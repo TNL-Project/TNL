@@ -63,7 +63,7 @@ if(TNL_BUILD_HIP)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
     endforeach()
 endif()
 
@@ -106,23 +106,47 @@ if(TNL_BUILD_MPI)
         target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
         target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-
-        # 4 ranks are enough for 1D tests
-        if(${target} MATCHES "1D")
-            set(_nproc 4)
-        else()
-            set(_nproc 12)
-        endif()
-
-        add_test_mpi(
-            NAME ${target}
-            NPROC ${_nproc}
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-        )
-        add_test_mpi(
-            NAME ${target}_nodistr
-            NPROC 1
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-        )
     endforeach()
+
+    if(NOT TNL_BUILD_HIP)
+        foreach(target IN ITEMS ${MPI_TESTS})
+            # 4 ranks are enough for 1D tests
+            if(${target} MATCHES "1D")
+                set(_nproc 4)
+            else()
+                set(_nproc 12)
+            endif()
+
+            tnl_add_mpi_test(
+                NAME ${target}
+                NPROC ${_nproc}
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            tnl_add_mpi_test(
+                NAME ${target}_nodistr
+                NPROC 1
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+        endforeach()
+    else()
+        foreach(target IN ITEMS ${MPI_TESTS})
+            # 4 ranks are enough for 1D tests
+            if(${target} MATCHES "1D")
+                set(_nproc 4)
+            else()
+                set(_nproc 12)
+            endif()
+
+            tnl_add_hip_mpi_test(
+                NAME ${target}
+                NPROC ${_nproc}
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            tnl_add_hip_mpi_test(
+                NAME ${target}_nodistr
+                NPROC 1
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+        endforeach()
+    endif()
 endif()

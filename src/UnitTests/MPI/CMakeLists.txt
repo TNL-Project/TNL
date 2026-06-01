@@ -13,7 +13,7 @@ if(TNL_BUILD_MPI)
         target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
 
         foreach(np IN ITEMS 2 3 4)
-            add_test_mpi(
+            tnl_add_mpi_test(
                 NAME ${target}_np${np}
                 NPROC ${np}
                 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
