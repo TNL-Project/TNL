@@ -277,3 +277,4 @@ gitlab-ci-local --force-shell-executor "typos"
 - [Documentation](https://tnl-project.gitlab.io/tnl/)
 - [GitLab repository](https://gitlab.com/tnl-project/tnl)
 - [Contributing guidelines](CONTRIBUTING.md)
+- [Unit tests architecture](src/UnitTests/ARCHITECTURE.md)
