@@ -87,11 +87,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          const IndexType cudaBlocks = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
+         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getMaxGridXSize();
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
@@ -177,11 +177,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          const IndexType cudaBlocks = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
+         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getMaxGridXSize();
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
@@ -281,11 +281,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          const IndexType cudaBlocks = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
+         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getMaxGridXSize();
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
@@ -377,11 +377,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          const IndexType cudaBlocks = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
+         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getMaxGridXSize();
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
