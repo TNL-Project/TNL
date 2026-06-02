@@ -97,10 +97,13 @@ reduceSegmentsKernel(
 
    const bool active = ( warpStart < end );
 
-   const int warpIdx = threadIdx.x / SegmentsView::getWarpSize();
    const int warpsCount = BlockDim / SegmentsView::getWarpSize();
    constexpr int groupsInStrip = SegmentsView::getLogWarpSize() + 1;
-   Index firstGroupInBlock = 8 * ( strip / 8 ) * groupsInStrip;
+   // Each warp processes one strip, so the number of strips per block equals
+   // the number of warps. The groupPointers array is divided into chunks of
+   // stripsPerBlock strips; this thread's chunk starts at firstGroupInBlock.
+   const int stripsPerBlock = warpsCount;
+   Index firstGroupInBlock = stripsPerBlock * ( strip / stripsPerBlock ) * groupsInStrip;
    Index groupHeight = SegmentsView::getWarpSize();
 
    // Allocate shared memory
@@ -114,7 +117,11 @@ reduceSegmentsKernel(
    {
       sharedGroupPointers[ threadIdx.x ] = segments.getGroupPointersView()[ firstGroupInBlock + threadIdx.x ];
    }
-   const Index sharedGroupOffset = warpIdx * groupsInStrip;
+   // Offset of this warp's strip within the shared group pointers array.
+   // strip % stripsPerBlock gives the strip's position within its block,
+   // but integer arithmetic (strip - strip/stripsPerBlock*stripsPerBlock)
+   // avoids a potentially expensive modulo on GPU.
+   const Index sharedGroupOffset = ( strip - strip / stripsPerBlock * stripsPerBlock ) * groupsInStrip;
    __syncthreads();
 
    // Perform the reduction
