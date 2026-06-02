@@ -9,7 +9,13 @@ set(COMMON_EXAMPLES
 
 set(MPI_EXAMPLES DistributedODESolver-HeatEquationExample)
 
-set(mpirun_parameters -np 4 -H localhost:4)
+set(mpirun_parameters
+    -np
+    4
+    --bind-to
+    none
+    --oversubscribe
+)
 
 foreach(target IN ITEMS ${HOST_EXAMPLES})
     add_executable(${target} ${target}.cpp)
