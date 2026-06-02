@@ -63,21 +63,18 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
       else {
-         std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
-         };
          if constexpr( Segments::getOrganization() == RowMajorOrder ) {
-            return std::list< std::pair< LaunchConfiguration, std::string > >{
+            std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs{
                { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "16 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "32 TPS" }
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" }
             };
+            if constexpr( Backend::getWarpSize() >= 64 )
+               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
+            return launchConfigs;
          }
          else {
             // For the column major ordering we have to ensure that:
@@ -102,6 +99,11 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             if constexpr( Segments::getSliceSize() * 32 <= 256 && Segments::getSliceSize() * 32 >= Backend::getWarpSize() ) {
                launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" );
             }
+            if constexpr( Backend::getWarpSize() >= 64 && Segments::getSliceSize() * 64 <= 256
+                          && Segments::getSliceSize() * 64 >= Backend::getWarpSize() )
+            {
+               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
+            }
             return launchConfigs;
          }
       }
@@ -111,8 +113,8 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
-      else
-         return std::list< std::pair< LaunchConfiguration, std::string > >{
+      else {
+         std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
@@ -120,6 +122,10 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" }
          };
+         if constexpr( Backend::getWarpSize() >= 64 )
+            launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
+         return launchConfigs;
+      }
    }
    else {
       return std::list< std::pair< LaunchConfiguration, std::string > >{

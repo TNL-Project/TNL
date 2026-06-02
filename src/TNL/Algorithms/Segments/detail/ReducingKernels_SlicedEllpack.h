@@ -212,31 +212,9 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       // We can use warp shuffles to perform reduction within each row (i.e. within each segment).
       /////
       __syncthreads();
-      if( ThreadsPerSegment > 16 ) {
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 16 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 8 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 8 ) {
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 8 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 4 ) {
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 2 ) {
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 1 ) {
-         result = reduce( result, __shfl_down_sync( Backend::getWarpFullMask(), result, SliceSize ) );
-      }
+      // Parallel reduction using strided warp shuffle (SliceSize stride)
+      using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
+      result = BlockReduce::template warpReduce< ThreadsPerSegment, SliceSize >( reduce, result );
       // Write the result
       if( inSliceThreadIdx < SliceSize && segmentIdx >= begin && segmentIdx < end ) {
          store( segmentIdx, result );

@@ -176,10 +176,12 @@ struct CudaBlockReduceShfl
    /* Helper function.
     * Cooperative reduction in sub-groups of GroupSize threads within the warp.
     * Each group reduces independently and simultaneously. GroupSize must be
-    * a power of two and at most Backend::getWarpSize().
+    * a power of two and at most Backend::getWarpSize(). Stride is the
+    * distance (in lane IDs) between consecutive threads of the same group
+    * (default 1 for contiguous groups).
     * Only the first thread of each group will have the correct result.
     */
-   template< int GroupSize >
+   template< int GroupSize, int Stride = 1 >
    __device__
    static ValueType
    warpReduce( const Reduction& reduction, ValueType threadValue )
@@ -187,9 +189,11 @@ struct CudaBlockReduceShfl
       static_assert(
          GroupSize > 0 && GroupSize <= Backend::getWarpSize(), "GroupSize must be between 1 and Backend::getWarpSize()" );
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
+      static_assert( Stride > 0, "Stride must be positive" );
+      static_assert( GroupSize * Stride <= Backend::getWarpSize(), "GroupSize * Stride must not exceed the warp size" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i );
+         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i * Stride );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;

@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <type_traits>
-
+#include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/Containers/Vector.h>
 
 #include "CSRView.h"
@@ -47,8 +46,10 @@ struct LaunchConfigurationSetter_LightCSR
          launchConfig.setThreadsPerSegmentCount( 8 );
       else if( elementsInSegment <= 16 )
          launchConfig.setThreadsPerSegmentCount( 16 );
+      else if constexpr( Backend::getWarpSize() == 32 )
+         launchConfig.setThreadsPerSegmentCount( 32 );
       else
-         launchConfig.setThreadsPerSegmentCount( 32 );  // TODO: fix this for warp size = 64
+         launchConfig.setThreadsPerSegmentCount( 64 );
       return launchConfig;
    }
 };

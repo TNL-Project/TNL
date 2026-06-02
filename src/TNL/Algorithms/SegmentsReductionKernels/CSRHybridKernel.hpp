@@ -46,22 +46,14 @@ reduceSegmentsCSRHybridVectorKernel(
    ReturnType aux = identity;
    for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
       aux = reduction( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
-      localIdx += Backend::getWarpSize();
+      localIdx += ThreadsPerSegment;
    }
 
    /****
     * Reduction in each segment.
     */
-   if( ThreadsPerSegment == 32 )
-      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 16 ) );
-   if( ThreadsPerSegment >= 16 )
-      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 8 ) );
-   if( ThreadsPerSegment >= 8 )
-      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 4 ) );
-   if( ThreadsPerSegment >= 4 )
-      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 2 ) );
-   if( ThreadsPerSegment >= 2 )
-      aux = reduction( aux, __shfl_down_sync( Backend::getWarpFullMask(), aux, 1 ) );
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
+   aux = BlockReduce::template warpReduce< ThreadsPerSegment >( reduction, aux );
 
    if( laneIdx == 0 )
       keep( segmentIdx, aux );
@@ -121,35 +113,19 @@ reduceSegmentsCSRHybridMultivectorKernel(
       shared[ warpIdx ] = result;
 
    __syncthreads();
-   // Reduction in shared
-   auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
-   if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
+   // Reduction in shared using warp-level shuffle
+   if( warpIdx == 0 ) {
       constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
-      if constexpr( warpsPerSegment >= 32 ) {
-         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
-         warp.sync();
-      }
-      if constexpr( warpsPerSegment >= 16 ) {
-         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
-         warp.sync();
-      }
-      if constexpr( warpsPerSegment >= 8 ) {
-         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
-         warp.sync();
-      }
-      if constexpr( warpsPerSegment >= 4 ) {
-         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
-         warp.sync();
-      }
-      if constexpr( warpsPerSegment >= 2 ) {
-         shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
-         warp.sync();
-      }
-      constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-      if( inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
-         // printf( "Long: segmentIdx %d -> %d \n", segmentIdx, aux );
-         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
-      }
+      auto myValue = ( inWarpLaneIdx < warpsPerSegment ) ? shared[ inWarpLaneIdx ] : identity;
+      myValue = BlockReduce::warpReduce( reduction, myValue );
+      if( inWarpLaneIdx == 0 )
+         shared[ 0 ] = myValue;
+   }
+   __syncthreads();
+
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   if( warpIdx == 0 && inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
+      keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
    }
 #endif
 }
