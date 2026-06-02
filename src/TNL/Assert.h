@@ -129,7 +129,7 @@ struct AssertionError : public std::runtime_error
    // reference: https://github.com/ROCm-Developer-Tools/HIP/issues/2235
    #if defined( __HIP__ ) && ! defined( HIP_ENABLE_PRINTF )
       #error \
-         "TNL requires the HIP_ENABLE_PRINTF macro to be defined in debug mode in order to enable assert messages frorm HIP device kernels."
+         "TNL requires the HIP_ENABLE_PRINTF macro to be defined in debug mode in order to enable assert messages from HIP device kernels."
    #endif
 
 namespace TNL::Assert {
