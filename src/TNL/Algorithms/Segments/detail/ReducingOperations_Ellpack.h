@@ -134,6 +134,25 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      Backend::launchKernelSync(
                         kernel32, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      break;
+                  case 64:
+                     if constexpr( Backend::getWarpSize() >= 64 ) {
+                        constexpr auto kernel64 = EllpackCudaReductionKernel<
+                           64,
+                           ConstViewType,
+                           IndexBegin,
+                           IndexEnd,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           ReturnType >;
+                        Backend::launchKernelSync(
+                           kernel64, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     }
+                     else
+                        throw std::invalid_argument(
+                           "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
+                           + std::to_string( Backend::getWarpSize() ) + "." );
+                     break;
                   default:
                      throw std::invalid_argument(
                         "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
@@ -279,6 +298,24 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                case 32:
                   Backend::launchKernelSync(
                      kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  break;
+               case 64:
+                  if constexpr( Backend::getWarpSize() >= 64 ) {
+                     constexpr auto kernel64 = EllpackCudaReductionKernelWithSegmentIndexes<
+                        64,
+                        ConstViewType,
+                        ArrayView,
+                        std::remove_reference_t< Fetch >,
+                        std::remove_reference_t< Reduction >,
+                        std::remove_reference_t< ResultStorer >,
+                        ReturnType >;
+                     Backend::launchKernelSync(
+                        kernel64, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  }
+                  else
+                     throw std::invalid_argument(
+                        "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
+                        + std::to_string( Backend::getWarpSize() ) + "." );
                   break;
                default:
                   throw std::invalid_argument(
@@ -429,6 +466,25 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                case 32:
                   Backend::launchKernelSync(
                      kernel32, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  break;
+               case 64:
+                  if constexpr( Backend::getWarpSize() >= 64 ) {
+                     constexpr auto kernel64 = EllpackCudaReductionKernelWithArgument<
+                        64,
+                        ConstViewType,
+                        IndexBegin,
+                        IndexEnd,
+                        std::remove_reference_t< Fetch >,
+                        std::remove_reference_t< Reduction >,
+                        std::remove_reference_t< ResultStorer >,
+                        ReturnType >;
+                     Backend::launchKernelSync(
+                        kernel64, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  }
+                  else
+                     throw std::invalid_argument(
+                        "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
+                        + std::to_string( Backend::getWarpSize() ) + "." );
                   break;
                default:
                   throw std::invalid_argument(
@@ -583,6 +639,24 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                case 32:
                   Backend::launchKernelSync(
                      kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  break;
+               case 64:
+                  if constexpr( Backend::getWarpSize() >= 64 ) {
+                     constexpr auto kernel64 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+                        64,
+                        ConstViewType,
+                        ArrayView,
+                        std::remove_reference_t< Fetch >,
+                        std::remove_reference_t< Reduction >,
+                        std::remove_reference_t< ResultStorer >,
+                        ReturnType >;
+                     Backend::launchKernelSync(
+                        kernel64, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  }
+                  else
+                     throw std::invalid_argument(
+                        "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
+                        + std::to_string( Backend::getWarpSize() ) + "." );
                   break;
                default:
                   throw std::invalid_argument(

@@ -99,7 +99,7 @@ reduceSegmentsKernel(
 
    const int warpIdx = threadIdx.x / SegmentsView::getWarpSize();
    const int warpsCount = BlockDim / SegmentsView::getWarpSize();
-   constexpr int groupsInStrip = 6;  // SegmentsView::getLogWarpSize() + 1;
+   constexpr int groupsInStrip = SegmentsView::getLogWarpSize() + 1;
    Index firstGroupInBlock = 8 * ( strip / 8 ) * groupsInStrip;
    Index groupHeight = SegmentsView::getWarpSize();
 
@@ -155,21 +155,13 @@ reduceSegmentsKernel(
                }
 
                warp.sync();
-               if( group > 0 && inWarpIdx < 16 )
-                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 16 ] );
-               warp.sync();
-               if( group > 1 && inWarpIdx < 8 )
-                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 8 ] );
-               warp.sync();
-               if( group > 2 && inWarpIdx < 4 )
-                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 4 ] );
-               warp.sync();
-               if( group > 3 && inWarpIdx < 2 )
-                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 2 ] );
-               warp.sync();
-               if( group > 4 && inWarpIdx < 1 )
-                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 1 ] );
-               warp.sync();
+               #pragma unroll
+               for( int step = 0; step < SegmentsView::getLogWarpSize(); step++ ) {
+                  const int threshold = SegmentsView::getWarpSize() >> ( step + 1 );
+                  if( group > step && inWarpIdx < threshold )
+                     temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + threshold ] );
+                  warp.sync();
+               }
 
                if( inWarpIdx < groupHeight )
                   results[ threadIdx.x ] = reduction( results[ threadIdx.x ], temp[ threadIdx.x ] );

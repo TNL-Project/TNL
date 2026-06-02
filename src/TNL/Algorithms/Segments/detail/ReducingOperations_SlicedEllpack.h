@@ -16,9 +16,9 @@ template< typename Segments, int ThreadsPerSegment, int BlockSize >
 static constexpr bool
 SlicedEllpackReductionSupported()
 {
-   return Segments::getOrganization() == ElementsOrganization::RowMajorOrder
-       || ( Segments::getSliceSize() * ThreadsPerSegment <= 256
-            && Segments::getSliceSize() * ThreadsPerSegment >= Backend::getWarpSize() );
+   return ThreadsPerSegment <= Backend::getWarpSize()
+       && ( Segments::getOrganization() == ElementsOrganization::RowMajorOrder
+            || ( Segments::getSliceSize() * ThreadsPerSegment <= 256 && Segments::getSliceSize() * ThreadsPerSegment >= Backend::getWarpSize() ) );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -340,10 +340,48 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
                         break;
                      }
+                  case 64:
+                     {
+                        if constexpr( SlicedEllpackReductionSupported< ConstViewType, 64, 256 >() )
+
+                        {
+                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                              256,
+                              64,
+                              ConstViewType,
+                              IndexType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
+                        }
+                        else
+                           throw std::runtime_error(
+                              "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
+                              + std::string(
+                                 SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
+                                                                                                : "ColumnMajorOrder" )
+                              + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
+                              + " TPS = 64, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
+
+                        break;
+                     }
                   default:
                      throw std::runtime_error(
                         "Unsupported number of threads per segment" + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                        + ". It can be only 2, 4, 8, 16 or 32." );
+                        + ". It can be only 2, 4, 8, 16, 32 or 64." );
                }
             }
             else {
