@@ -88,7 +88,9 @@ Available presets (all use `CMAKE_BUILD_TYPE=RelWithDebInfo`):
 - `toolchain-clang-cuda` - Clang + CUDA
 - `toolchain-hip` - ROCm/HIP
 
-Usage: `cmake --preset toolchain-gcc`
+Usage: `cmake --preset toolchain-gcc` or `cmake --preset toolchain-gcc --fresh`
+
+The `--fresh` option is preferred over removing the build directory manually.
 
 ## Development conventions
 
