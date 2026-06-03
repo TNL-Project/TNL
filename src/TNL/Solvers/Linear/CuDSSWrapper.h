@@ -32,11 +32,17 @@ class CuDSSWrapper : public LinearSolver< Matrix >
    static_assert(
       std::is_same_v< typename Matrix::RealType, float > || std::is_same_v< typename Matrix::RealType, double >,
       "unsupported RealType" );
+#if defined( CUDSS_VERSION ) && CUDSS_VERSION >= 800
+   static_assert(
+      std::is_same_v< typename Matrix::IndexType, std::int32_t > || std::is_same_v< typename Matrix::IndexType, std::int64_t >,
+      "unsupported IndexType" );
+#else
    static_assert(
       std::is_same_v< typename Matrix::IndexType, std::int32_t > || std::is_same_v< typename Matrix::IndexType, std::uint32_t >
          || std::is_same_v< typename Matrix::IndexType, std::int64_t >
          || std::is_same_v< typename Matrix::IndexType, std::uint64_t >,
       "unsupported IndexType" );
+#endif
 
    using Base = LinearSolver< Matrix >;
 
@@ -55,6 +61,17 @@ public:
       TNL_CUDSS_CHECK( cudssConfigCreate( &solverConfig ) );
       TNL_CUDSS_CHECK( cudssDataCreate( handle, &solverData ) );
 
+   #if CUDSS_VERSION >= 800
+      if constexpr( std::is_same_v< RealType, float > )
+         valueType = CUDSS_R_32F;
+      if constexpr( std::is_same_v< RealType, double > )
+         valueType = CUDSS_R_64F;
+
+      if constexpr( std::is_same_v< IndexType, std::int32_t > )
+         indexType = CUDSS_R_32I;
+      if constexpr( std::is_same_v< IndexType, std::int64_t > )
+         indexType = CUDSS_R_64I;
+   #else
       if constexpr( std::is_same_v< RealType, float > )
          valueType = CUDA_R_32F;
       if constexpr( std::is_same_v< RealType, double > )
@@ -68,6 +85,7 @@ public:
          indexType = CUDA_R_64I;
       if constexpr( std::is_same_v< IndexType, std::uint64_t > )
          indexType = CUDA_R_64U;
+   #endif
 #endif
    }
 
@@ -88,6 +106,9 @@ public:
          (void*) matrix->getColumnIndexes().getData(),
          (void*) matrix->getValues().getData(),
          indexType,
+   #if CUDSS_VERSION >= 800
+         indexType,
+   #endif
          valueType,
          CUDSS_MTYPE_GENERAL,
          CUDSS_MVIEW_FULL,
@@ -165,8 +186,13 @@ public:
 protected:
 #ifdef HAVE_CUDSS
    cudssHandle_t handle;
+   #if CUDSS_VERSION >= 800
+   cudssDataType_t indexType;
+   cudssDataType_t valueType;
+   #else
    cudaDataType_t indexType;
    cudaDataType_t valueType;
+   #endif
    cudssConfig_t solverConfig;
    cudssData_t solverData;
    cudssMatrix_t A = nullptr;
