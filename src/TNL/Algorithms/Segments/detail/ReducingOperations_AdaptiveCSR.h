@@ -42,7 +42,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
          if( valueSizeLog >= segments.MaxValueSizeLog() ) {
             ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
@@ -113,7 +113,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
          if( valueSizeLog >= segments.MaxValueSizeLog() ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(

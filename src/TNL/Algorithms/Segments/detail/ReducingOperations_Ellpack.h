@@ -42,7 +42,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
-         if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+         if constexpr( std::is_same_v< Device, Devices::GPU > ) {
             if( end <= begin )
                return;
             const std::size_t threadsCount =
@@ -215,7 +215,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       using ArrayView = typename Array::ConstViewType;
       auto segmentIndexes_view = segmentIndexes.getConstView();
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
-         if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+         if constexpr( std::is_same_v< Device, Devices::GPU > ) {
             if( segmentIndexes.getSize() == 0 )
                return;
             const std::size_t threadsCount =
@@ -381,7 +381,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
-         if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+         if constexpr( std::is_same_v< Device, Devices::GPU > ) {
             if( end <= begin )
                return;
             const std::size_t threadsCount =
@@ -556,7 +556,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       using ArrayView = typename Array::ConstViewType;
       auto segmentIndexes_view = segmentIndexes.getConstView();
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
-         if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+         if constexpr( std::is_same_v< Device, Devices::GPU > ) {
             if( segmentIndexes.getSize() == 0 )
                return;
             const std::size_t threadsCount =
