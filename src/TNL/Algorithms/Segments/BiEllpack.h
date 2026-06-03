@@ -40,7 +40,7 @@ template<
    typename Index,
    typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
    ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization(),
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 class BiEllpack : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
    using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;
@@ -235,7 +235,7 @@ template<
    typename Device,
    typename Index,
    typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 using RowMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, RowMajorOrder, WarpSize >;
 
 /**
@@ -253,7 +253,7 @@ template<
    typename Device,
    typename Index,
    typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 using ColumnMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, WarpSize >;
 
 /**
@@ -268,7 +268,7 @@ template<
    typename Index,
    typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
    ElementsOrganization Organization = TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 using SortedBiEllpack = SortedSegments< BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize > >;
 
 /**
@@ -282,7 +282,7 @@ template<
    typename Device,
    typename Index,
    typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 using SortedRowMajorBiEllpack = SortedSegments< RowMajorBiEllpack< Device, Index, IndexAllocator, WarpSize > >;
 
 /**
@@ -296,7 +296,7 @@ template<
    typename Device,
    typename Index,
    typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 using SortedColumnMajorBiEllpack = SortedSegments< ColumnMajorBiEllpack< Device, Index, IndexAllocator, WarpSize > >;
 
 template< typename Segments >

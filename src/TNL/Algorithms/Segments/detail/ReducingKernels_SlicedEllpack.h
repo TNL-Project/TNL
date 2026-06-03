@@ -116,7 +116,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       ThreadsPerSegment * Segments::getSliceSize() <= BlockSize,
       "There are not enough threads in the block for the given configuration (ThreadsPerSegment and SliceSize)." );
    static_assert(
-      ThreadsPerSegment * Segments::getSliceSize() >= Backend::getWarpSize(),
+      ThreadsPerSegment * Segments::getSliceSize() >= Backend::getMinWarpSize(),
       "The SliceSize is too small for given configuration (ThreadsPerSegment and warp size)." );
    /////
    // To describe this kernel we assume that the SlizeSize = 4. Then the mapping of segment elements is as follows:
@@ -343,7 +343,8 @@ reduceSegmentsSlicedEllpackKernel(
    const Value identity )
 {
    static_assert(
-      ThreadsPerSegment <= Backend::getWarpSize(), "ThreadsPerSegment must be less than or equal to the warp size." );
+      ThreadsPerSegment <= Backend::getMaxWarpSize(),
+      "ThreadsPerSegment must be less than or equal to the maximum warp size." );
    if constexpr( Segments::getOrganization() == RowMajorOrder )
       reduceSegmentsRowMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
          gridIdx, segments, begin, end, fetch, reduce, store, identity );

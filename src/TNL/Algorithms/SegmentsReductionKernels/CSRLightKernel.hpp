@@ -150,8 +150,10 @@ CSRLightKernel< Index, Device >::init( const Segments& segments )
          setThreadsPerSegment( 8 );
       else if( elementsInSegment <= 16 )
          setThreadsPerSegment( 16 );
-      else                                                                // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
-         setThreadsPerSegment( Backend::getWarpSize() >= 64 ? 64 : 32 );  // CSR Vector
+      else if constexpr( Backend::getMaxWarpSize() == 32 )  // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
+         setThreadsPerSegment( 32 );                        // CSR Vector
+      else
+         setThreadsPerSegment( Backend::getWarpSize( Backend::getDevice() ) == 64 ? 64 : 32 );  // CSR Vector
       // else
       //    threadsPerSegment = roundUpDivision(nnz, matrix.MAX_ELEMENTS_PER_WARP) * 32; // CSR MultiVector
    }
@@ -167,8 +169,10 @@ CSRLightKernel< Index, Device >::init( const Segments& segments )
          setThreadsPerSegment( 8 );
       else if( elementsInSegment <= 16 )
          setThreadsPerSegment( 16 );
-      else                                                                // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
-         setThreadsPerSegment( Backend::getWarpSize() >= 64 ? 64 : 32 );  // CSR Vector
+      else if constexpr( Backend::getMaxWarpSize() == 32 )  // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
+         setThreadsPerSegment( 32 );                        // CSR Vector
+      else
+         setThreadsPerSegment( Backend::getWarpSize( Backend::getDevice() ) == 64 ? 64 : 32 );  // CSR Vector
       // else
       //    threadsPerSegment = roundUpDivision(nnz, matrix.MAX_ELEMENTS_PER_WARP) * 32; // CSR MultiVector
    }

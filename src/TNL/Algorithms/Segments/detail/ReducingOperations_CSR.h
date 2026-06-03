@@ -101,7 +101,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
@@ -400,7 +400,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
@@ -720,7 +720,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
@@ -1021,7 +1021,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();

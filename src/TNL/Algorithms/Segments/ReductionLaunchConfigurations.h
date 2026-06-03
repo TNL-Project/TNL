@@ -72,37 +72,46 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
                { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" }
             };
-            if constexpr( Backend::getWarpSize() >= 64 )
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
+            if constexpr( Backend::getMaxWarpSize() == 64 )
+               if( Backend::getWarpSize( Backend::getDevice() ) == 64 )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
             return launchConfigs;
          }
          else {
             // For the column major ordering we have to ensure that:
             // 1. there are enough threads to cover the slice size
-            // 2. TPS * SliceSize >= warp size
+            // 2. TPS * SliceSize >= warp size (checked at runtime below)
+            const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs;
-            if constexpr( Segments::getSliceSize() * 1 <= 256 && Segments::getSliceSize() * 1 >= Backend::getWarpSize() ) {
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" );
+            if constexpr( Segments::getSliceSize() * 1 <= 256 && Segments::getSliceSize() * 1 >= Backend::getMinWarpSize() ) {
+               if( Segments::getSliceSize() * 1 >= warpSize )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" );
             }
-            if constexpr( Segments::getSliceSize() * 2 <= 256 && Segments::getSliceSize() * 2 >= Backend::getWarpSize() ) {
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" );
+            if constexpr( Segments::getSliceSize() * 2 <= 256 && Segments::getSliceSize() * 2 >= Backend::getMinWarpSize() ) {
+               if( Segments::getSliceSize() * 2 >= warpSize )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" );
             }
-            if constexpr( Segments::getSliceSize() * 4 <= 256 && Segments::getSliceSize() * 4 >= Backend::getWarpSize() ) {
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" );
+            if constexpr( Segments::getSliceSize() * 4 <= 256 && Segments::getSliceSize() * 4 >= Backend::getMinWarpSize() ) {
+               if( Segments::getSliceSize() * 4 >= warpSize )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" );
             }
-            if constexpr( Segments::getSliceSize() * 8 <= 256 && Segments::getSliceSize() * 8 >= Backend::getWarpSize() ) {
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" );
+            if constexpr( Segments::getSliceSize() * 8 <= 256 && Segments::getSliceSize() * 8 >= Backend::getMinWarpSize() ) {
+               if( Segments::getSliceSize() * 8 >= warpSize )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" );
             }
-            if constexpr( Segments::getSliceSize() * 16 <= 256 && Segments::getSliceSize() * 16 >= Backend::getWarpSize() ) {
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" );
+            if constexpr( Segments::getSliceSize() * 16 <= 256 && Segments::getSliceSize() * 16 >= Backend::getMinWarpSize() ) {
+               if( Segments::getSliceSize() * 16 >= warpSize )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" );
             }
-            if constexpr( Segments::getSliceSize() * 32 <= 256 && Segments::getSliceSize() * 32 >= Backend::getWarpSize() ) {
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" );
+            if constexpr( Segments::getSliceSize() * 32 <= 256 && Segments::getSliceSize() * 32 >= Backend::getMinWarpSize() ) {
+               if( Segments::getSliceSize() * 32 >= warpSize )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" );
             }
-            if constexpr( Backend::getWarpSize() >= 64 && Segments::getSliceSize() * 64 <= 256
-                          && Segments::getSliceSize() * 64 >= Backend::getWarpSize() )
+            if constexpr( Backend::getMaxWarpSize() == 64 && Segments::getSliceSize() * 64 <= 256
+                          && Segments::getSliceSize() * 64 >= Backend::getMinWarpSize() )
             {
-               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
+               if( warpSize == 64 )
+                  launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
             }
             return launchConfigs;
          }
@@ -122,8 +131,9 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" }
          };
-         if constexpr( Backend::getWarpSize() >= 64 )
-            launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
+         if constexpr( Backend::getMaxWarpSize() == 64 )
+            if( Backend::getWarpSize( Backend::getDevice() ) == 64 )
+               launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" );
          return launchConfigs;
       }
    }

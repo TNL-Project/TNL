@@ -92,11 +92,14 @@ getMaxBlockZSize()
  * for the target device. This should be used only from device code in order to
  * develop portable wave-aware code.
  *
- * Note that NVIDIA devices return 32; AMD devices return 64 for gfx9 and 32 for
- * gfx10 and above.
+ * Note that NVIDIA devices return 32; AMD devices return 64 for gfx8/gfx9 and
+ * 32 for gfx10 and above.
  *
  * Warning: the returned value may be inconsistent when used from a host-code
- * context on HIP where it defaults to 64, but the device code may use 32.
+ * context on HIP, because `__GFX8__`/`__GFX9__` are defined only during device
+ * compilation. On the host side, the function falls through to return 32.
+ * Use `getMaxWarpSize()` for compile-time host-side guards, or the runtime
+ * overload `getWarpSize(int deviceId)` for host-side dispatch decisions.
  * See https://clang.llvm.org/docs/HIPSupport.html#predefined-macros for details.
  *
  * https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#warpsize
@@ -106,8 +109,8 @@ getWarpSize()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return 32;
-#elif defined( __AMDGCN_WAVEFRONT_SIZE__ )
-   return __AMDGCN_WAVEFRONT_SIZE__;
+// We use architecture macros instead of the deprecated `__AMDGCN_WAVEFRONT_SIZE__`
+// which was removed in ROCm 7.0+.
 #elif defined( __GFX8__ ) || defined( __GFX9__ )
    // gfx8/gfx9 (GCN) use wave64, all others use wave32
    return 64;
@@ -117,21 +120,83 @@ getWarpSize()
 }
 
 /**
+ * \brief Returns the maximum possible warp/wavefront size for the current build.
+ *
+ * Unlike getWarpSize(), this is consistent between host and device compilation:
+ * - CUDA: always 32
+ * - HIP: always 64 (the maximum across all AMD architectures)
+ * - Host-only: 32
+ *
+ * Use this for compile-time guards that must be consistent on the host side,
+ * e.g. deciding whether to instantiate TPS=64 kernel variants.
+ */
+constexpr int
+getMaxWarpSize()
+{
+#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
+   return 32;
+#elif defined( __HIP__ )
+   return 64;
+#else
+   return 32;
+#endif
+}
+
+/**
+ * \brief Returns the minimum possible warp/wavefront size across all platforms.
+ *
+ * Always returns 32. Use this for compile-time checks that must allow configs
+ * valid on any architecture, e.g. column-major SlicedEllpack launch configs
+ * where `TPS * SliceSize >= getMinWarpSize()` ensures the group covers at
+ * least one warp on the smallest-warp-size device.
+ */
+constexpr int
+getMinWarpSize()
+{
+   return 32;
+}
+
+/**
+ * \brief Runtime query for the warp/wavefront size of a specific device.
+ *
+ * Use this for host-side launch configuration decisions (TPS selection, etc.).
+ * For CUDA, always returns 32. For HIP, queries the runtime API.
+ *
+ * \param deviceId The device ID to query (default: current device).
+ */
+[[nodiscard]] inline int
+getWarpSize( int deviceId )
+{
+#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
+   (void) deviceId;
+   return 32;
+#elif defined( __HIP__ )
+   int warpSize = 0;
+   TNL_BACKEND_SAFE_CALL( hipDeviceGetAttribute( &warpSize, hipDeviceAttributeWarpSize, deviceId ) );
+   return warpSize;
+#else
+   (void) deviceId;
+   return 32;
+#endif
+}
+
+/**
  * \brief Returns the full mask for warp shuffle operations.
  *
  * HIP shfl intrinsics require a 64-bit mask regardless of the wavefront size
  * (unused upper bits are zero for wave32). CUDA uses a 32-bit mask.
+ *
+ * Warning: this function relies on `__GFX8__`/`__GFX9__` arch macros which are
+ * defined only during device compilation. On the host side, it falls through
+ * to the wavefront=32 mask. Do not call from host code — use only in
+ * `__device__` functions or inside `#if defined(__CUDACC__) || defined(__HIP__)`
+ * guards.
  */
 [[nodiscard]] constexpr auto
 getWarpFullMask()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return std::uint32_t{ 0xffffffff };
-#elif defined( __AMDGCN_WAVEFRONT_SIZE__ )
-   if constexpr( __AMDGCN_WAVEFRONT_SIZE__ == 64 )
-      return std::uint64_t{ 0xffffffffffffffffULL };
-   else
-      return std::uint64_t{ 0xffffffffULL };
 #elif defined( __GFX8__ ) || defined( __GFX9__ )
    // gfx8/gfx9 (GCN) use wave64, all others use wave32
    return std::uint64_t{ 0xffffffffffffffffULL };

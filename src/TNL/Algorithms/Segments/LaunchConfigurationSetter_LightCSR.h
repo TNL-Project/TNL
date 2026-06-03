@@ -46,10 +46,14 @@ struct LaunchConfigurationSetter_LightCSR
          launchConfig.setThreadsPerSegmentCount( 8 );
       else if( elementsInSegment <= 16 )
          launchConfig.setThreadsPerSegmentCount( 16 );
-      else if constexpr( Backend::getWarpSize() == 32 )
+      else if constexpr( Backend::getMaxWarpSize() == 32 )
          launchConfig.setThreadsPerSegmentCount( 32 );
-      else
-         launchConfig.setThreadsPerSegmentCount( 64 );
+      else {
+         if( Backend::getWarpSize( Backend::getDevice() ) == 32 )
+            launchConfig.setThreadsPerSegmentCount( 32 );
+         else
+            launchConfig.setThreadsPerSegmentCount( 64 );
+      }
       return launchConfig;
    }
 };

@@ -167,7 +167,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
       if constexpr( callableArgumentCount< Function >() == 2 )  // we use scan kernel
          threadsCount = segmentsCount;
       else
-         threadsCount = segmentsCount * Backend::getWarpSize();
+         threadsCount = segmentsCount * Backend::getWarpSize( Backend::getDevice() );
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
@@ -237,7 +237,7 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
    if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       const Index segmentsCount = end - begin;
       std::size_t threadsCount;
-      threadsCount = segmentsCount * Backend::getWarpSize();  // for vector kernel
+      threadsCount = segmentsCount * Backend::getWarpSize( Backend::getDevice() );  // for vector kernel
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
@@ -311,7 +311,7 @@ CSRBase< Device, Index >::forElementsIf( IndexType begin, IndexType end, Conditi
          return;
 
       const Index warpsCount = end - begin;
-      const std::size_t threadsCount = warpsCount * Backend::getWarpSize();
+      const std::size_t threadsCount = warpsCount * Backend::getWarpSize( Backend::getDevice() );
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;

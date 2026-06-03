@@ -187,10 +187,11 @@ struct CudaBlockReduceShfl
    warpReduce( const Reduction& reduction, ValueType threadValue )
    {
       static_assert(
-         GroupSize > 0 && GroupSize <= Backend::getWarpSize(), "GroupSize must be between 1 and Backend::getWarpSize()" );
+         GroupSize > 0 && GroupSize <= Backend::getMaxWarpSize(), "GroupSize must be between 1 and Backend::getMaxWarpSize()" );
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
       static_assert( Stride > 0, "Stride must be positive" );
-      static_assert( GroupSize * Stride <= Backend::getWarpSize(), "GroupSize * Stride must not exceed the warp size" );
+      static_assert(
+         GroupSize * Stride <= Backend::getMaxWarpSize(), "GroupSize * Stride must not exceed the maximum warp size" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
          const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i * Stride );
@@ -393,7 +394,7 @@ struct CudaBlockReduceWithArgument
    warpReduceWithArgument( const Reduction& reduction, ValueType threadValue, IndexType threadArgument )
    {
       static_assert(
-         GroupSize > 0 && GroupSize <= Backend::getWarpSize(), "GroupSize must be between 1 and Backend::getWarpSize()" );
+         GroupSize > 0 && GroupSize <= Backend::getMaxWarpSize(), "GroupSize must be between 1 and Backend::getMaxWarpSize()" );
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {

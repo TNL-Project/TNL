@@ -19,7 +19,7 @@ namespace TNL::Algorithms::Segments {
  *  and \ref TNL::Algorithms::Segments::SegmentView< Index, RowMajorOrder > for column-major
  * and row-major elements organization respectively. They have equivalent interface.
  */
-template< typename Index, ElementsOrganization Organization, int WarpSize = Backend::getWarpSize() >
+template< typename Index, ElementsOrganization Organization, int WarpSize = 32 >
 class BiEllpackSegmentView
 {
 public:

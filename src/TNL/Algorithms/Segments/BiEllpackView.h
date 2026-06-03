@@ -21,7 +21,7 @@ template<
    typename Device,
    typename Index,
    ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 class BiEllpackView : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
    using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;
@@ -115,7 +115,7 @@ public:
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+template< typename Device, typename Index, int WarpSize = 32 >
 using RowMajorBiEllpackView = BiEllpackView< Device, Index, RowMajorOrder, WarpSize >;
 
 /**
@@ -129,7 +129,7 @@ using RowMajorBiEllpackView = BiEllpackView< Device, Index, RowMajorOrder, WarpS
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+template< typename Device, typename Index, int WarpSize = 32 >
 using ColumnMajorBiEllpackView = BiEllpackView< Device, Index, ColumnMajorOrder, WarpSize >;
 
 /**
@@ -143,7 +143,7 @@ template<
    typename Device,
    typename Index,
    ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
-   int WarpSize = Backend::getWarpSize() >
+   int WarpSize = 32 >
 using SortedBiEllpackView = SortedSegmentsView< BiEllpackView< Device, Index, Organization, WarpSize > >;
 
 /**
@@ -153,7 +153,7 @@ using SortedBiEllpackView = SortedSegmentsView< BiEllpackView< Device, Index, Or
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+template< typename Device, typename Index, int WarpSize = 32 >
 using SortedRowMajorBiEllpackView = SortedSegmentsView< RowMajorBiEllpackView< Device, Index, WarpSize > >;
 
 /**
@@ -163,7 +163,7 @@ using SortedRowMajorBiEllpackView = SortedSegmentsView< RowMajorBiEllpackView< D
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+template< typename Device, typename Index, int WarpSize = 32 >
 using SortedColumnMajorBiEllpackView = SortedSegmentsView< ColumnMajorBiEllpackView< Device, Index, WarpSize > >;
 
 }  // namespace TNL::Algorithms::Segments
