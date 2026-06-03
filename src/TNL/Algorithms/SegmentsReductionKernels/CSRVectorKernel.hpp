@@ -72,7 +72,7 @@ CSRVectorKernel< Index, Device >::reduceSegments(
       OffsetsView offsets = segments.getOffsets();
 
       const Index warpsCount = end - begin;
-      const std::size_t threadsCount = warpsCount * Backend::getWarpSize();
+      const std::size_t threadsCount = warpsCount * Backend::getWarpSize( Backend::getDevice() );
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;

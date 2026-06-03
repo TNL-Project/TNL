@@ -16,9 +16,9 @@ template< typename Segments, int ThreadsPerSegment, int BlockSize >
 static constexpr bool
 SlicedEllpackReductionSupported()
 {
-   return ThreadsPerSegment <= Backend::getWarpSize()
+   return ThreadsPerSegment <= Backend::getMaxWarpSize()
        && ( Segments::getOrganization() == ElementsOrganization::RowMajorOrder
-            || ( Segments::getSliceSize() * ThreadsPerSegment <= 256 && Segments::getSliceSize() * ThreadsPerSegment >= Backend::getWarpSize() ) );
+            || ( Segments::getSliceSize() * ThreadsPerSegment <= BlockSize && Segments::getSliceSize() * ThreadsPerSegment >= Backend::getMinWarpSize() ) );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -118,6 +118,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             launchConfig );
       }
       else {
+         const int warpSize = Backend::getWarpSize( Backend::getDevice() );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -136,7 +137,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
          TNL_ASSERT_LE( sliceCount, (std::size_t) segments.getSliceSegmentSizesView().getSize(), "Too many slices." );
          std::size_t threadsCount = sliceCount * ConstViewType::getSliceSize();
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-            threadsCount *= (std::size_t) Backend::getWarpSize();
+            threadsCount *= warpSize;
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
             threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
          if( threadsCount > std::numeric_limits< IndexType >::max() )
@@ -185,7 +186,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                  SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
-                              + " TPS = 2, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
+                              + " TPS = 2, warp size = " + std::to_string( warpSize ) + "." );
                         break;
                      }
                   case 4:
@@ -222,7 +223,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                  SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
-                              + " TPS = 4, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
+                              + " TPS = 4, warp size = " + std::to_string( warpSize ) + "." );
 
                         break;
                      }
@@ -260,7 +261,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                  SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
-                              + " TPS = 8, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
+                              + " TPS = 8, warp size = " + std::to_string( warpSize ) + "." );
 
                         break;
                      }
@@ -298,7 +299,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                  SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
-                              + " TPS = 16, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
+                              + " TPS = 16, warp size = " + std::to_string( warpSize ) + "." );
 
                         break;
                      }
@@ -336,15 +337,21 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                  SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
-                              + " TPS = 32, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
+                              + " TPS = 32, warp size = " + std::to_string( warpSize ) + "." );
 
                         break;
                      }
                   case 64:
                      {
-                        if constexpr( SlicedEllpackReductionSupported< ConstViewType, 64, 256 >() )
-
-                        {
+                        if constexpr( Backend::getMaxWarpSize() == 32 )
+                           throw std::invalid_argument(
+                              "Unsupported threads per segment ( 64 ) for SlicedEllpack segments on GPU with warp size "
+                              + std::to_string( warpSize ) + "." );
+                        else if( warpSize == 32 )
+                           throw std::invalid_argument(
+                              "Unsupported threads per segment ( 64 ) for SlicedEllpack segments on GPU with warp size "
+                              + std::to_string( warpSize ) + "." );
+                        else if constexpr( SlicedEllpackReductionSupported< ConstViewType, 64, 256 >() ) {
                            constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
                               256,
                               64,
@@ -374,7 +381,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                  SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
-                              + " TPS = 64, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
+                              + " TPS = 64, warp size = " + std::to_string( warpSize ) + "." );
 
                         break;
                      }

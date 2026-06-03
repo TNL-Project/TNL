@@ -60,7 +60,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
 
             // Fill blocks
             const auto blocks = segments.getBlocks()[ valueSizeLog ];
-            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize();  // one warp per block
+            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
 
             // Execute kernels on device
             for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
@@ -133,7 +133,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
 
             // Fill blocks
             const auto& blocks = segments.getBlocks()[ valueSizeLog ];
-            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize();  // one warp per block
+            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
 
             // Execute kernels on device
             for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {

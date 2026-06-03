@@ -121,7 +121,7 @@ CudaReduction3DKernelLauncher(
    // when there is only one warp per launch_config.blockSize.x, we need to allocate two warps
    // worth of shared memory so that we don't index shared memory out of bounds
    launch_config.dynamicSharedMemorySize =
-      ( launch_config.blockSize.x <= static_cast< unsigned >( Backend::getWarpSize() ) )
+      ( launch_config.blockSize.x <= static_cast< unsigned >( Backend::getWarpSize( Backend::getDevice() ) ) )
          ? 2 * launch_config.blockSize.x * launch_config.blockSize.y * launch_config.blockSize.z * sizeof( Result )
          : launch_config.blockSize.x * launch_config.blockSize.y * launch_config.blockSize.z * sizeof( Result );
 

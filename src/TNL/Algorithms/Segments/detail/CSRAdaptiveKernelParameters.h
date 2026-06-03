@@ -63,6 +63,11 @@ struct CSRAdaptiveKernelParameters
 
    /**
     * \brief Computes number of warps in one CUDA block.
+    *
+    * Warning: `Backend::getWarpSize()` is only correct during device compilation.
+    * On HIP host, it returns 32 even for wavefront=64 GPUs. This function is
+    * currently only called from device code, but if called from host code in the
+    * future, use `Backend::getWarpSize(Backend::getDevice())` instead.
     */
    [[nodiscard]] static constexpr std::size_t
    WarpsCount()

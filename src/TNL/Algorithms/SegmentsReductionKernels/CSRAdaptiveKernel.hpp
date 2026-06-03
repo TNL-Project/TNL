@@ -147,8 +147,8 @@ CSRAdaptiveKernel< Index, Device >::initValueSize( const Offsets& offsets )
       nextStart = findLimit< SizeOfValue >( start, hostOffsets, rows, type );
       if( type == Segments::detail::Type::LONG ) {
          const Index blocksCount = inBlocks.size();
-         const Index warpsPerCudaBlock =
-            Segments::detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / Backend::getWarpSize();
+         const Index warpsPerCudaBlock = Segments::detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize()
+                                       / Backend::getWarpSize( Backend::getDevice() );
          Index warpsLeft = roundUpDivision( blocksCount, warpsPerCudaBlock ) * warpsPerCudaBlock - blocksCount;
          if( warpsLeft == 0 )
             warpsLeft = warpsPerCudaBlock;
