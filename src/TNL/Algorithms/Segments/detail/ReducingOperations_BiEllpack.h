@@ -12,11 +12,11 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename Device, typename Index, ElementsOrganization Organization >
-struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
-: public ReducingOperationsBase< BiEllpackView< Device, Index, Organization > >
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize > >
+: public ReducingOperationsBase< BiEllpackView< Device, Index, Organization, WarpSize > >
 {
-   using SegmentsViewType = BiEllpackView< Device, Index, Organization >;
+   using SegmentsViewType = BiEllpackView< Device, Index, Organization, WarpSize >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
