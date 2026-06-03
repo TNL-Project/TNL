@@ -76,7 +76,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             storer( segmentIdx, aux );
          }
       }
-      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          Backend::LaunchConfiguration launch_config;
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end

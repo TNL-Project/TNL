@@ -41,8 +41,8 @@ reduceSegmentsKernelWithAllParameters(
       const Index strip = segmentIdx / SegmentsView::getWarpSize();
       const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
       const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-      const Index groupsCount =
-         Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
             getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
       Index groupHeight = SegmentsView::getWarpSize();
       Index localIdx = 0;
@@ -247,8 +247,8 @@ BiEllpackReduceSegmentsKernelWithIndexes(
       const Index strip = segmentIdx / SegmentsView::getWarpSize();
       const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
       const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-      const Index groupsCount =
-         Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
             getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
       Index groupHeight = SegmentsView::getWarpSize();
       Index localIdx = 0;
@@ -309,8 +309,8 @@ reduceSegmentsKernelWithAllParametersWithArgument(
       const Index strip = segmentIdx / SegmentsView::getWarpSize();
       const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
       const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-      const Index groupsCount =
-         Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
             getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
       Index groupHeight = SegmentsView::getWarpSize();
       Index localIdx = 0;
@@ -405,8 +405,8 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument(
       const Index strip = segmentIdx / SegmentsView::getWarpSize();
       const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
       const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-      const Index groupsCount =
-         Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
             getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
       Index groupHeight = SegmentsView::getWarpSize();
       Index localIdx = 0;
