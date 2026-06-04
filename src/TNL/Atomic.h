@@ -13,8 +13,8 @@
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 namespace {
 
-__device__
-inline long int
+[[maybe_unused]] __device__
+long int
 atomicAdd( long int* address, long int val )
 {
    auto* address_as_unsigned = reinterpret_cast< unsigned long long int* >( address );
@@ -33,8 +33,8 @@ atomicAdd( long int* address, long int val )
    return old;
 }
 
-__device__
-static double
+[[maybe_unused]] __device__
+double
 atomicMax( double* address, double value )
 {
    unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
@@ -48,8 +48,8 @@ atomicMax( double* address, double value )
    return __longlong_as_double( old );
 }
 
-__device__
-static double
+[[maybe_unused]] __device__
+double
 atomicMin( double* address, double value )
 {
    unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
@@ -64,8 +64,8 @@ atomicMin( double* address, double value )
 }
 
    #ifndef __HIP__  // HIP has its own atomicMax and atomicMin functions for float
-__device__
-static float
+[[maybe_unused]] __device__
+float
 atomicMax( float* address, float value )
 {
    int* addr_as_int = reinterpret_cast< int* >( address );
@@ -78,8 +78,8 @@ atomicMax( float* address, float value )
    return __int_as_float( old );
 }
 
-__device__
-static float
+[[maybe_unused]] __device__
+float
 atomicMin( float* address, float value )
 {
    int* addr_as_int = reinterpret_cast< int* >( address );
