@@ -1,4 +1,4 @@
-set(GRAPH_BENCHMARKS bfs cc scc sssp mst)
+set(GRAPH_BENCHMARKS bfs cc coloring scc sssp mst)
 
 find_package(Boost OPTIONAL_COMPONENTS graph)
 if(Boost_GRAPH_FOUND)
@@ -97,7 +97,12 @@ install(TARGETS ${GRAPH_BENCHMARK_TARGETS} RUNTIME DESTINATION bin COMPONENT ben
 if(TNL_BUILD_HIP)
    add_executable(tnl-benchmark-graphs-cc-hip tnl-benchmark-graphs-cc.hip)
    target_link_libraries(tnl-benchmark-graphs-cc-hip PUBLIC TNL::TNL)
+   add_executable(tnl-benchmark-graphs-coloring-hip tnl-benchmark-graphs-coloring.hip)
+   target_link_libraries(tnl-benchmark-graphs-coloring-hip PUBLIC TNL::TNL)
    add_executable(tnl-benchmark-graphs-scc-hip tnl-benchmark-graphs-scc.hip)
    target_link_libraries(tnl-benchmark-graphs-scc-hip PUBLIC TNL::TNL)
-   install(TARGETS tnl-benchmark-graphs-cc-hip tnl-benchmark-graphs-scc-hip RUNTIME DESTINATION bin COMPONENT benchmarks)
+   install(
+      TARGETS tnl-benchmark-graphs-cc-hip tnl-benchmark-graphs-coloring-hip tnl-benchmark-graphs-scc-hip
+      RUNTIME DESTINATION bin
+      COMPONENT benchmarks)
 endif()
