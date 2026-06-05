@@ -71,13 +71,10 @@ public:
    setCentralDataAccess( bool accessCentralData );
 
    void
-   setInterleaving( bool interleaving );
-
-   bool
-   setupRandomTest( int tlbTestBlockSize = 0, int numThreads = 1 );
+   setupRandomTest( int tlbTestBlockSize = 0 );
 
    void
-   setupSequentialTest( int numThreads = 1, bool interleaving = true );
+   setupSequentialTest( bool interleaving = true );
 
    void
    performTest();
@@ -89,11 +86,11 @@ public:
    getTestedElementsCountPerThread();
 
 protected:
-   bool
+   void
    setupRandomTLBWorstTest();
 
-   bool
-   setupRandomTestBlock( std::uintptr_t blockSize, PtrArrayType& blockLink, int numThreads = 1 );
+   void
+   setupRandomTestBlock( std::uintptr_t blockSize, PtrArrayType& blockLink );
 
    template< bool readTest, bool writeTest, bool accessCentralData >
    void
@@ -107,7 +104,6 @@ protected:
    bool readTest = true;
    bool writeTest = false;
    bool accessCentralData = false;
-   bool interleaving = false;
 
    int num_threads = 1;
 

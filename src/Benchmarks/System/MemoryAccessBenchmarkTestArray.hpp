@@ -71,18 +71,10 @@ MemoryAccessBenchmarkTestArray< Size >::setCentralDataAccess( bool accessCentral
 
 template< int Size >
 void
-MemoryAccessBenchmarkTestArray< Size >::setInterleaving( bool interleaving )
-{
-   this->interleaving = interleaving;
-}
-
-template< int Size >
-bool
 MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
 {
    if( 4096 % sizeof( ElementType ) != 0U ) {
-      std::cerr << "Element size does not divide the page size.\n";
-      return false;
+      throw std::runtime_error( "Element size does not divide the page size." );
    }
    const std::uintptr_t elementsPerPage = 4096 / sizeof( ElementType );
    const std::uintptr_t numberOfPages = ceil( this->numberOfElements * sizeof( ElementType ) / 4096.0 );
@@ -131,16 +123,13 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
    this->array[ newElement ][ ( Size - 1 ) / 2 ] = 1;
    delete[] elementsOnPageLeft;
    delete[] usedElements;
-   return true;
 }
 
 template< int Size >
-bool
-MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock(
-   std::uintptr_t blockSize,
-   PtrArrayType& blockLink,
-   int numThreads )
+void
+MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( std::uintptr_t blockSize, PtrArrayType& blockLink )
 {
+   const int numThreads = this->num_threads;
    TNL::Containers::Array< char > usedElements( blockSize, 0 );
    TNL::Containers::Array< std::uintptr_t > previousElement( numThreads, 0 );
    TNL::Containers::Array< std::uintptr_t > newElement( numThreads, 0 );
@@ -161,8 +150,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock(
          while( usedElements[ newElement[ tid ] ] != 0 ) {
             newElement[ tid ] = ( newElement[ tid ] + 1 ) % blockSize;
             if( aux == newElement[ tid ] ) {
-               std::cerr << "Error, I cannot setup random access test.\n";
-               return false;
+               throw std::runtime_error( "Cannot setup random access test." );
             }
          }
          this->array[ previousElement[ tid ] ].next = &this->array[ newElement[ tid ] ];
@@ -182,34 +170,33 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock(
       }
       blockLink[ tid ] = &( this->array[ newElement[ tid ] ] );
    }
-   return true;
 }
 
 template< int Size >
-bool
-MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, int numThreads )
+void
+MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize )
 {
+   const int numThreads = this->num_threads;
    srand( time( nullptr ) );
 
    TNL::Containers::Array< ElementType* > blockLink( numThreads, nullptr );
 
    if( tlbTestBlockSize == 0 )
-      return this->setupRandomTestBlock( this->numberOfElements, blockLink, numThreads );
-
-   if( tlbTestBlockSize == -1 )
-      return this->setupRandomTLBWorstTest();
-
-   const std::uintptr_t elementsPerBlock = tlbTestBlockSize * 4096 / sizeof( ElementType );
-   for( std::uintptr_t i = 0; i < this->numberOfElements; i += elementsPerBlock )
-      if( ! this->setupRandomTestBlock( this->numberOfElements, blockLink ) )
-         return false;
-   return true;
+      this->setupRandomTestBlock( this->numberOfElements, blockLink );
+   else if( tlbTestBlockSize == -1 )
+      this->setupRandomTLBWorstTest();
+   else {
+      const std::uintptr_t elementsPerBlock = tlbTestBlockSize * 4096 / sizeof( ElementType );
+      for( std::uintptr_t i = 0; i < this->numberOfElements; i += elementsPerBlock )
+         this->setupRandomTestBlock( this->numberOfElements, blockLink );
+   }
 }
 
 template< int Size >
 void
-MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( int numThreads, bool interleaving )
+MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( bool interleaving )
 {
+   const int numThreads = this->num_threads;
    if( interleaving ) {
       for( std::uintptr_t i = 0; i < this->numberOfElements; i++ ) {
          if( i + numThreads < this->numberOfElements )
@@ -223,6 +210,12 @@ MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( int numThreads, boo
       }
    }
    else {
+      // Each thread gets its own linked-list chain: array[tid] is the head,
+      // followed by elements [numThreads, numberOfElements) split evenly.
+      // Skip the setup when there are not enough elements for every thread.
+      if( numThreads > 1 && static_cast< std::uintptr_t >( numThreads ) >= this->numberOfElements )
+         throw std::runtime_error( "Not enough elements for the requested number of threads." );
+
       const int elementsPerThread = this->numberOfElements / numThreads;
       for( int tid = 0; tid < numThreads; tid++ ) {
          int firstElement = tid * elementsPerThread;
