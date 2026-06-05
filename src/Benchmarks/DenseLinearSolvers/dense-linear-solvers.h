@@ -40,6 +40,15 @@ benchmarkDenseLinearSolvers( TNL::Benchmarks::Benchmark& benchmark, const TNL::C
    HostVectorType host_x( matrixSize, 1 );
    input_matrix.vectorProduct( host_x, host_b );
 
+   benchmark.setMetadataColumns(
+      TNL::Benchmarks::Benchmark::MetadataColumns(
+         {
+            { "index type", TNL::getType< Index >() },
+            { "real type", TNL::getType< Real >() },
+            { "matrix size", TNL::convertToString( matrixSize ) },
+            { "pivoting", TNL::convertToString( parameters.getParameter< bool >( "pivoting" ) ) },
+         } ) );
+
    const auto& device = parameters.getParameter< std::string >( "device" );
 
    if( device == "host" || device == "all" ) {
