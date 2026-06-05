@@ -8,6 +8,8 @@
 #include <TNL/Benchmarks/Benchmark.h>
 #include "MemoryAccessBenchmarkTestArray.h"
 
+#include <stdexcept>
+
 void
 configSetup( TNL::Config::ConfigDescription& config )
 {
@@ -15,15 +17,16 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addDelimiter( "Memory access benchmark settings:" );
    config.addEntry< int >( "threads-count", "Number of OpenMP threads for host device.", 1 );
    config.addEntry< int >( "element-size", "Benchmark element size.", 1 );
-   config.addEntry< bool >( "read-test", "Read data from the memory.", true );
-   config.addEntry< bool >( "write-test", "Write data to the memory.", false );
+   config.addEntry< TNL::String >( "test-type", "Type of memory operation to benchmark.", "read" );
+   config.addEntryEnum( "read" );
+   config.addEntryEnum( "write" );
+   config.addEntryEnum( "read-write" );
    config.addEntry< bool >( "central-data-access", "Accessing data in the middle of the testing element.", false );
-   config.addEntry< bool >(
-      "interleaving", "Sequential access with multiple threads will be interleaved, not in blocks.", false );
    config.addEntry< int >( "min-array-size", "Minimal array size size.", 1 << 10 );
    config.addEntry< int >( "max-array-size", "Maximal array size size.", 1 << 30 );
    config.addEntry< TNL::String >( "access-type", "Type of memory accesses to be benchmarked.", "sequential" );
    config.addEntryEnum( "sequential" );
+   config.addEntryEnum( "interleaved" );
    config.addEntryEnum( "random" );
 
    config.addDelimiter( "Device settings:" );
@@ -38,13 +41,13 @@ performBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Para
    using ElementType = typename TestArrayType::ElementType;
 
    auto access_type = parameters.getParameter< TNL::String >( "access-type" );
+   auto test_type = parameters.getParameter< TNL::String >( "test-type" );
+   bool read_test = ( test_type == "read" || test_type == "read-write" );
+   bool write_test = ( test_type == "write" || test_type == "read-write" );
    size_t min_size = parameters.getParameter< int >( "min-array-size" );
    size_t max_size = parameters.getParameter< int >( "max-array-size" );
    int threads_count = parameters.getParameter< int >( "threads-count" );
-   bool read_test = parameters.getParameter< bool >( "read-test" );
-   bool write_test = parameters.getParameter< bool >( "write-test" );
    bool central_data_access = parameters.getParameter< bool >( "central-data-access" );
-   bool interleaving = parameters.getParameter< bool >( "interleaving" );
 
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       const long long int elementsPerTest = TNL::max( size, 1 << 26 ) / sizeof( ElementType );
@@ -52,24 +55,32 @@ performBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Para
          TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "threads", TNL::convertToString( threads_count ) },
               { "access type", access_type },
-              { "read test", TNL::convertToString( read_test ) },
-              { "write test", TNL::convertToString( write_test ) },
+              { "test type", test_type },
               { "central data", TNL::convertToString( central_data_access ) },
-              { "interleaving", TNL::convertToString( interleaving ) },
               { "element size", TNL::convertToString( ElementSize ) },
               { "array size", TNL::convertToString( size ) } } ) );
+
       TestArrayType array( size );
       array.setThreadsCount( threads_count );
       array.setElementsPerTest( elementsPerTest );
       array.setReadTest( read_test );
       array.setWriteTest( write_test );
-      array.setInterleaving( interleaving );
       array.setCentralDataAccess( central_data_access );
-      if( access_type == "sequential" )
-         array.setupSequentialTest();
-      else if( access_type == "random" )
-         array.setupRandomTest();
-      array.performTest();
+
+      try {
+         if( access_type == "sequential" )
+            array.setupSequentialTest( false );
+         else if( access_type == "interleaved" )
+            array.setupSequentialTest( true );
+         else if( access_type == "random" )
+            array.setupRandomTest();
+         array.performTest();
+      }
+      catch( const std::runtime_error& e ) {
+         std::cerr << "Skipping array size " << size << ": " << e.what() << '\n';
+         continue;
+      }
+
       benchmark.setOperationsPerLoop( array.getTestedElementsCountPerThread() );
       double dataset_size = elementsPerTest * sizeof( long int ) / static_cast< double >( 1 << 30 );
       if( read_test || write_test )
