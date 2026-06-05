@@ -1,3 +1,0 @@
-#!/bin/bash
-
-tnl-benchmark-ode-solvers --precision double --device all --adaptivity 0.001  --solvers kutta-merson
