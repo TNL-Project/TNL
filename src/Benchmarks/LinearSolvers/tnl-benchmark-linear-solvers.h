@@ -467,6 +467,8 @@ struct LinearSolversBenchmark
       benchmark.setMetadataColumns(
          TNL::Benchmarks::Benchmark::MetadataColumns(
             {
+               { "index type", TNL::getType< IndexType >() },
+               { "real type", TNL::getType< RealType >() },
                { "matrix name", parameters.getParameter< std::string >( "name" ) },
                { "segments type", matrixPointer->getSegments().getSegmentsType() },
                { "rows", TNL::convertToString( matrixPointer->getRows() ) },
