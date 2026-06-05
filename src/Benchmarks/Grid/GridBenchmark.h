@@ -30,6 +30,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    auto operation = TNL::getType< Operation >();
 
    const TNL::Benchmarks::Benchmark::MetadataColumns columns = {
+      { "precision", TNL::getType< typename Grid::RealType >() },
       { "dimensions", TNL::convertToString( grid.getDimensions() ) },
       { "entity dimension", TNL::convertToString( EntityDimension ) },
       { "entities count", TNL::convertToString( grid.getEntitiesCount( EntityDimension ) ) },
