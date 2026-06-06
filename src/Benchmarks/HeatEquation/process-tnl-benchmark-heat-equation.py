@@ -2,122 +2,183 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import json
-from os.path import exists
+import argparse
+import sys
+from pathlib import Path
 
 import pandas as pd
 
-devices = ["sequential", "host", "cuda", "hip"]
-precisions = ["float", "double"]
-tests = [
-    "parallel-for",
-    "simple-grid",
-    "grid",
-    "nd-grid",
-]
+from TNL import BenchmarkLogs
+
+DEFAULT_OUTPUT_DIR = Path("heat-equation-plots")
+
+_DEVICE_ORDER = {"sequential": 0, "host": 1, "cuda": 2, "hip": 3}
 
 
-####
-# Create multiindex for columns
-def get_multiindex():
-    level1 = ["x size", "y size"]
-    level2 = ["", ""]
-    level3 = ["", ""]
-    df_data = [[" ", " "]]
-    for test in tests:
-        for device in devices:
+def _sorted_devices(devices: list[str]) -> list[str]:
+    """Sort devices by conventional order: sequential → host → cuda → hip."""
+    return sorted(devices, key=lambda d: _DEVICE_ORDER.get(d, len(_DEVICE_ORDER)))
+
+
+def _load_dataframes(filenames: list[str]) -> pd.DataFrame:
+    """Load and concatenate heat equation benchmark log files."""
+    frames: list[pd.DataFrame] = []
+    for filename in filenames:
+        path = Path(filename)
+        if not path.exists():
+            print(f"Skipping non-existing input file {filename} ...")
+            continue
+        frames.append(BenchmarkLogs.get_benchmark_dataframe(path))
+    if not frames:
+        return pd.DataFrame()
+    df = pd.concat(frames, ignore_index=True)
+
+    numeric_cols = ["x size", "y size", "z size", "time", "bandwidth"]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    return df
+
+
+def get_multiindex(input_df: pd.DataFrame, implementations: list[str]) -> pd.MultiIndex:
+    """Create multi-index columns for the pivot table based on the actual data."""
+    level1: list[str] = ["x size", "y size"]
+    level2: list[str] = ["", ""]
+    level3: list[str] = ["", ""]
+
+    available_devices = _sorted_devices(list(input_df["device"].unique()))
+
+    for impl in implementations:
+        for device in available_devices:
             values = ["time"]
-            if test != "parallel-for":
+            if impl != "parallel-for":
                 values.append("parallel-for speed-up")
             if device == "cuda":
                 values.append("CPU speed-up")
             for value in values:
-                level1.append(test)
+                level1.append(impl)
                 level2.append(device)
                 level3.append(value)
-                df_data[0].append("")
 
-    multiColumns = pd.MultiIndex.from_arrays([level1, level2, level3])
-    return multiColumns, df_data
+    return pd.MultiIndex.from_arrays([level1, level2, level3])
 
 
-####
-# Process dataframe for given precision - float or double
-def processDf(df, precision):
-    multicolumns, df_data = get_multiindex()
+def compute_speedup(
+    df: pd.DataFrame, available_devices: list[str], implementations: list[str]
+) -> None:
+    """Compute speedup columns from baselines (vectorized)."""
+    have_cuda = "cuda" in available_devices and "host" in available_devices
+    if have_cuda:
+        for impl in implementations:
+            cuda_key = (impl, "cuda", "time")
+            host_key = (impl, "host", "time")
+            if cuda_key in df.columns and host_key in df.columns:
+                df[(impl, "cuda", "CPU speed-up")] = df[host_key] / df[cuda_key]
 
-    frames = []
+    for impl in implementations:
+        if impl == "parallel-for":
+            continue
+        for device in available_devices:
+            pf_key = ("parallel-for", device, "time")
+            impl_key = (impl, device, "time")
+            speedup_key = (impl, device, "parallel-for speed-up")
+            if pf_key in df.columns and impl_key in df.columns:
+                df[speedup_key] = df[pf_key] / df[impl_key]
+
+
+def build_wide_table(
+    input_df: pd.DataFrame, multicolumns: pd.MultiIndex, implementations: list[str]
+) -> pd.DataFrame:
+    """Convert flat input table to a structured one using multi-index columns."""
+    available_devices = _sorted_devices(list(input_df["device"].unique()))
+    frames: list[pd.DataFrame] = []
     out_idx = 0
 
-    x_sizes = list(set(df["x size"]))
-    x_sizes.sort()
-    y_sizes = list(set(df["y size"]))
-    y_sizes.sort()
-
-    performers = []
+    x_sizes = sorted(set(input_df["x size"]))
+    y_sizes = sorted(set(input_df["y size"]))
 
     for x_size in x_sizes:
         for y_size in y_sizes:
-            aux_df = df.loc[(df["x size"] == x_size) & (df["y size"] == y_size)]
-            new_df = pd.DataFrame(df_data, columns=multicolumns, index=[out_idx])
+            subset = input_df[
+                (input_df["x size"] == x_size) & (input_df["y size"] == y_size)
+            ]
+            row_data: dict[tuple[str, ...], object] = {
+                col: float("nan") for col in multicolumns
+            }
+            row_data[("x size", "", "")] = x_size
+            row_data[("y size", "", "")] = y_size
+            for _index, row in subset.iterrows():
+                impl = str(row["implementation"])
+                device = str(row["device"])
+                time_val = pd.to_numeric(row["time"], errors="coerce")
+                row_data[(impl, device, "time")] = time_val
+            aux_df = pd.DataFrame(
+                [row_data], columns=multicolumns, index=pd.Index([out_idx])
+            )
+            frames.append(aux_df)
             out_idx += 1
-            new_df.iloc[0][("x size", "", "")] = x_size
-            new_df.iloc[0][("y size", "", "")] = y_size
-            for index, row in aux_df.iterrows():
-                test = row["implementation"]
-                # print( test )
-                time = row["time"]
-                new_df.iloc[0][(test, row["device"], "time")] = float(time)
-                performers.append(row["device"])
-            # print( new_df )
-            frames.append(new_df)
+
     result = pd.concat(frames)
-    idx = 0
-    have_cuda = performers.count("cuda") > 0
-    for index, row in result.iterrows():
-        for test in tests:
-            if have_cuda:
-                result.iloc[idx][(test, "cuda", "CPU speed-up")] = float(
-                    row[(test, "host", "time")]
-                ) / float(row[(test, "cuda", "time")])
-            if test != "parallel-for":
-                for device in devices:
-                    if device == "cuda" and not have_cuda:
-                        continue
-                    result.iloc[idx][(test, device, "parallel-for speed-up")] = float(
-                        row[("parallel-for", device, "time")]
-                    ) / float(row[(test, device, "time")])
-        idx += 1
-
-    result.to_html(f"tnl-benchmark-heat-equation-{precision}.html")
+    result.replace("", float("nan"), inplace=True)
+    compute_speedup(result, available_devices, implementations)
+    return result
 
 
-#####
-# Parse input files
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Script for processing TNL benchmark heat equation results."
+    )
+    parser.add_argument(
+        "input",
+        nargs="+",
+        help="Input log files (JSON lines format)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help=f"Output directory (default: {DEFAULT_OUTPUT_DIR})",
+    )
+    args = parser.parse_args()
 
-parsed_lines = []
-for device in devices:
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    input_df = _load_dataframes(args.input)
+    if input_df.empty:
+        print("No data found in log files", file=sys.stderr)
+        return
+
+    raw_path = args.output_dir / "tnl-benchmark-heat-equation-raw.html"
+    input_df.to_html(raw_path)
+    print(f"Wrote {raw_path}")
+
+    precisions: list[str] = (
+        sorted(input_df["precision"].unique())
+        if "precision" in input_df.columns
+        else [""]
+    )
+
     for precision in precisions:
-        for test in tests:
-            filename = f"tnl-benchmark-heat-equation-{test}-{device}-{precision}.json"
-            if not exists(filename):
-                print(f"Skipping non-existing input file {filename} ....")
-                continue
-            print(f"Parsing input file {filename} ....")
-            with open(filename) as f:
-                lines = f.readlines()
-                for line in lines:
-                    parsed_line = json.loads(line)
-                    parsed_lines.append(parsed_line)
+        print(f"Processing precision {precision} ...")
+        if precision:
+            subset = input_df.loc[input_df["precision"] == precision]
+        else:
+            subset = input_df
+        if subset.empty:
+            continue
 
-df = pd.DataFrame(parsed_lines)
+        implementations = sorted(subset["implementation"].unique())
 
-keys = ["x size", "y size", "z size", "time", "bandwidth"]
+        multicolumns = get_multiindex(subset, implementations)
+        result = build_wide_table(subset, multicolumns, implementations)
 
-for key in keys:
-    if key in df.keys():
-        df[key] = pd.to_numeric(df[key])
+        suffix = precision if precision else "all"
+        html_path = args.output_dir / f"tnl-benchmark-heat-equation-{suffix}.html"
+        result.to_html(html_path)
+        print(f"Wrote {html_path}")
 
-for precision in precisions:
-    aux_df = df.loc[(df["precision"] == precision)]
-    processDf(aux_df, precision)
+
+if __name__ == "__main__":
+    main()
