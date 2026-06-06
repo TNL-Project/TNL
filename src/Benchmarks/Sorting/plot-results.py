@@ -5,162 +5,242 @@
 """Visualize sorting benchmark results."""
 
 import argparse
+from itertools import product
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
+import seaborn as sns
 
 from TNL import BenchmarkLogs
 
-MARKERS = ["o", "s", "^", "v", "D", "p", "*", "h", "X", "P"]
-LINESTYLES = ["-", "--", ":", "-."]
-COLORS = plt.get_cmap("tab10")(np.linspace(0, 1, 10))
+sns.set_theme()
+
+DEFAULT_OUTPUT_DIR = Path("sorting-plots")
+
+_DEVICE_ORDER = {"sequential": 0, "host": 1, "cuda": 2, "hip": 3}
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Visualize sorting benchmark results")
-    parser.add_argument("log_file", help="Path to the benchmark log file")
-    parser.add_argument(
-        "--output-dir",
-        "-o",
-        default=".",
-        help="Directory for output plots (default: current directory)",
-    )
-    return parser.parse_args()
+def _algo_device_sort_key(algo_device: str) -> tuple[int, str]:
+    """Sort key: device first (sequential→host→cuda→hip), then algorithm name."""
+    algo, device = algo_device.rsplit(" (", 1)
+    device = device.rstrip(")")
+    return (_DEVICE_ORDER.get(device, len(_DEVICE_ORDER)), algo)
 
 
-def load_data(log_file):
-    df = BenchmarkLogs.get_benchmark_dataframe(log_file)
-    metadata = BenchmarkLogs.get_benchmark_metadata(log_file)
-    return df, metadata
+def _load_dataframes(filenames: list[str]) -> pd.DataFrame:
+    """Load and concatenate sorting benchmark log files."""
+    frames: list[pd.DataFrame] = []
+    for filename in filenames:
+        path = Path(filename)
+        if not path.exists():
+            print(f"Skipping non-existing input file {filename} ...")
+            continue
+        frames.append(BenchmarkLogs.get_benchmark_dataframe(path))
+    if not frames:
+        return pd.DataFrame()
+    df = pd.concat(frames, ignore_index=True)
 
+    numeric_cols = ["size", "time", "time_stddev", "bandwidth"]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
-def prepare_data(df):
     df["algo_device"] = df["performer"] + " (" + df["device"] + ")"
     return df
 
 
-def get_algo_data(subset, algo_device):
-    algo_data = subset[subset["algo_device"] == algo_device].copy()
-    if algo_data.empty:
-        return None
-    algo_data = algo_data.sort_values("size")
-    sizes = algo_data["size"].astype(float).to_numpy()
-    times = algo_data["time"].to_numpy()
-    stddev_vals = algo_data.get("time_stddev")
-    if stddev_vals is not None and len(stddev_vals) > 0:
-        stddev = stddev_vals.to_numpy()
-    else:
-        stddev = np.zeros(len(times))
-    return sizes, times, stddev
-
-
-def setup_axes(ax, title, xlabel="Array size", ylabel="Time [s]"):
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+def writeFigure(
+    df: pd.DataFrame,
+    *,
+    x: str = "size",
+    y: str = "time",
+    y_err: str | None = None,
+    hue: str,
+    hue_title: str = "",
+    hue_order: list[str] | None = None,
+    style: str | None = None,
+    title: str = "",
+    y_label: str = "Time [s]",
+    file_path: Path,
+) -> None:
+    """Write a comparison figure using seaborn lineplot with optional error band."""
+    # Rename the hue column so seaborn uses it as the legend section title
+    # instead of the raw column name
+    if hue_title:
+        df = df.rename(columns={hue: hue_title})
+        hue = hue_title
+    if hue_order is None:
+        hue_order = sorted(df[hue].unique())
+    palette = dict(zip(hue_order, sns.color_palette(n_colors=len(hue_order))))
+    fig, ax = plt.subplots(figsize=(12, 8))
+    sns.lineplot(
+        data=df,
+        x=x,
+        y=y,
+        hue=hue,
+        hue_order=hue_order,
+        style=style,
+        marker="o",
+        errorbar=None,
+        palette=palette,
+        ax=ax,
+    )
+    if y_err and y_err in df.columns:
+        # Aggregate before fill_between — seaborn averages internally but
+        # raw fill_between doesn't, so we must groupby([hue, x]) first
+        agg = df.groupby([hue, x]).agg({y: "mean", y_err: "max"}).reset_index()
+        for name, group in agg.groupby(hue, sort=True):
+            sg = group.sort_values(x)
+            xs = sg[x].to_numpy(dtype=float)
+            ys = sg[y].to_numpy(dtype=float)
+            errs = sg[y_err].to_numpy(dtype=float)
+            ax.fill_between(
+                xs, ys - errs, ys + errs, alpha=0.15, color=palette[str(name)]
+            )
+    ax.set_xlabel("Array size")
+    ax.set_ylabel(y_label)
+    if title:
+        ax.set_title(title)
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_title(title)
-    ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left", borderaxespad=0.0)
+    ax.legend(loc="best")
     ax.grid(True, alpha=0.3)
-
-
-def save_plot(fig, filename):
     fig.tight_layout()
-    fig.savefig(filename, bbox_inches="tight")
-    print(f"Saved: {filename}")
+    fig.savefig(file_path, format="svg", bbox_inches="tight")
     plt.close(fig)
+    print(f"Saved: {file_path}")
 
 
-def plot_distribution(df, value_type, distribution, algo_devices, output_dir):
-    subset = df[(df["value type"] == value_type) & (df["distribution"] == distribution)]
-    if subset.empty:
-        return
-
-    fig, ax = plt.subplots(figsize=(12, 8))
-
-    for i, algo_dev in enumerate(algo_devices):
-        data = get_algo_data(subset, algo_dev)
-        if data is None:
+def writeDistributionFigures(
+    df: pd.DataFrame,
+    value_types: list[str],
+    distributions: list[str],
+    hue_order: list[str],
+    output_dir: Path,
+) -> None:
+    """Write figures comparing algorithms per distribution and value type."""
+    for value_type, distribution in product(value_types, distributions):
+        sub: pd.DataFrame = df[
+            (df["value type"] == value_type) & (df["distribution"] == distribution)
+        ]  # pyright: ignore[reportAssignmentType]
+        if sub.empty:
             continue
-        sizes, times, stddev = data
-        ax.errorbar(
-            sizes,
-            times,
-            yerr=stddev,
-            label=algo_dev,
-            marker=MARKERS[i % len(MARKERS)],
-            color=COLORS[i % len(COLORS)],
-            capsize=3,
-            markersize=6,
-            linewidth=1.5,
+        file_path = (
+            output_dir / f"sort-{value_type}-{distribution.replace('-', '_')}.svg"
+        )
+        title = f"Sorting Benchmark: {distribution}, {value_type}"
+        writeFigure(
+            sub,
+            y="time",
+            y_err="time_stddev",
+            hue="algo_device",
+            hue_title="Algorithm (Device)",
+            hue_order=hue_order,
+            title=title,
+            file_path=file_path,
         )
 
-    setup_axes(ax, f"Sorting Benchmark: {distribution}, {value_type}")
-    filename = output_dir / f"sort-{value_type}-{distribution.replace('-', '_')}.pdf"
-    save_plot(fig, filename)
 
-
-def plot_all_results(df, value_types, algo_devices, output_dir):
+def writeAllResultsFigure(
+    df: pd.DataFrame,
+    algo_order: list[str],
+    output_dir: Path,
+) -> None:
+    """Write figure with all algorithms and value types,
+    averaged across all distributions.
+    Fill-between shows min-to-max range across distributions.
+    """
+    # Rename columns so seaborn uses them as legend section titles
+    # instead of raw column names
+    df = df.rename(
+        columns={"algo_device": "Algorithm (Device)", "value type": "Value type"}
+    )
+    algo_col = "Algorithm (Device)"
+    hue_order = [a for a in algo_order if a in df[algo_col].unique()]
+    # Pre-aggregate across distributions: mean, min, max
+    # per (algorithm, value type, size)
+    agg_df = (
+        df.groupby([algo_col, "Value type", "size"])
+        .agg(
+            time_mean=("time", "mean"),
+            time_min=("time", "min"),
+            time_max=("time", "max"),
+        )
+        .reset_index()
+    )
+    palette = dict(zip(hue_order, sns.color_palette(n_colors=len(hue_order))))
     fig, ax = plt.subplots(figsize=(14, 9))
+    sns.lineplot(
+        data=agg_df,
+        x="size",
+        y="time_mean",
+        hue=algo_col,
+        hue_order=hue_order,
+        style="Value type",
+        marker="o",
+        errorbar=None,
+        palette=palette,
+        ax=ax,
+    )
+    # Fill bands: min/max of time across distributions per (algorithm, value type, size)
+    for _name, group in agg_df.groupby([algo_col, "Value type"], sort=True):
+        sg = group.sort_values("size")
+        algo = str(sg[algo_col].iloc[0])
+        xs = sg["size"].to_numpy(dtype=float)
+        y_lo = sg["time_min"].to_numpy(dtype=float)
+        y_hi = sg["time_max"].to_numpy(dtype=float)
+        ax.fill_between(xs, y_lo, y_hi, alpha=0.15, color=palette[algo])
+    ax.set_xlabel("Array size")
+    ax.set_ylabel("Time [s]")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_title("Sorting Benchmark: Average across all distributions")
+    ax.legend(fontsize=8, loc="best")
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    file_path = output_dir / "sort-all.svg"
+    fig.savefig(file_path, format="svg", bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {file_path}")
 
-    for i, algo_dev in enumerate(algo_devices):
-        for j, value_type in enumerate(value_types):
-            subset = df[
-                (df["algo_device"] == algo_dev) & (df["value type"] == value_type)
-            ]
-            if subset.empty:
-                continue
 
-            grouped = subset.groupby("size")["time"].agg(["mean", "std"]).reset_index()
-            grouped = grouped.sort_values("size")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Visualize sorting benchmark results")
+    parser.add_argument(
+        "input",
+        nargs="+",
+        help="Input log files (JSON lines format)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help=f"Directory for output plots (default: {DEFAULT_OUTPUT_DIR})",
+    )
+    args = parser.parse_args()
 
-            ax.errorbar(
-                grouped["size"].astype(float).to_numpy(),
-                grouped["mean"].to_numpy(),
-                yerr=grouped["std"].to_numpy(),
-                label=f"{algo_dev}, {value_type}",
-                marker=MARKERS[i % len(MARKERS)],
-                color=COLORS[i % len(COLORS)],
-                linestyle=LINESTYLES[j % len(LINESTYLES)],
-                capsize=3,
-                linewidth=1.5,
-                markersize=5,
-            )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    setup_axes(ax, "Sorting Benchmark: All Results")
-    ax.legend(fontsize=8)
-    filename = output_dir / "sort-all.pdf"
-    save_plot(fig, filename)
-
-
-def main():
-    args = parse_args()
-
-    df, _metadata = load_data(args.log_file)
+    df = _load_dataframes(args.input)
     if df.empty:
-        print("No data found in log file")
+        print("No data found in log files")
         return
 
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    df = prepare_data(df)
-
-    distributions = df["distribution"].unique()
-    value_types = df["value type"].unique()
-    algo_devices = df["algo_device"].unique()
+    distributions = sorted(df["distribution"].unique())
+    value_types = sorted(df["value type"].unique())
+    algo_order = sorted(df["algo_device"].unique(), key=_algo_device_sort_key)
 
     print(f"Loaded {len(df)} benchmark results")
     print(f"Algorithms: {list(df['performer'].unique())}")
     print(f"Distributions: {list(distributions)}")
     print(f"Value types: {list(value_types)}")
 
-    for value_type in value_types:
-        for distribution in distributions:
-            plot_distribution(df, value_type, distribution, algo_devices, output_dir)
-
-    plot_all_results(df, value_types, algo_devices, output_dir)
+    writeDistributionFigures(
+        df, value_types, distributions, algo_order, args.output_dir
+    )
+    writeAllResultsFigure(df, algo_order, args.output_dir)
 
 
 if __name__ == "__main__":
