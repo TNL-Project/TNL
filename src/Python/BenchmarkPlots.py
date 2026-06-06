@@ -9,10 +9,15 @@ __all__ = [
 
 import base64
 import io
+from collections.abc import Iterator
+from typing import Any
 
+import matplotlib.axes as maxes
+import matplotlib.figure as mfig
 import matplotlib.pyplot as plt
 import numpy as np
-from cycler import cycler
+import pandas as pd
+from cycler import Cycler, cycler
 
 custom_cycler = cycler(linestyle=["-", "--", ":", "-."]) * cycler(
     "color",
@@ -31,7 +36,12 @@ custom_cycler = cycler(linestyle=["-", "--", ":", "-."]) * cycler(
 )
 
 
-def plot_bandwidth_vs_size(df, size_name="size", prop_cycler=custom_cycler, **kwargs):
+def plot_bandwidth_vs_size(
+    df: pd.DataFrame,
+    size_name: str = "size",
+    prop_cycler: Cycler = custom_cycler,  # pyright: ignore[reportArgumentType]
+    **kwargs: Any,
+) -> tuple[mfig.Figure, maxes.Axes]:
     """
     Creates a bandwidth-size plot. The "size" data are expected in the index of
     the dataframe, all other columns of the index are used for labels of the
@@ -63,7 +73,11 @@ def plot_bandwidth_vs_size(df, size_name="size", prop_cycler=custom_cycler, **kw
         part = df.loc[idx]
         err = part["bandwidth"] * part["time_stddev/time"]
         ax.errorbar(
-            part[size_name], part["bandwidth"], yerr=err, label=", ".join(idx), **kwargs
+            part[size_name],
+            part["bandwidth"],
+            yerr=err,
+            label=", ".join(str(i) for i in idx),
+            **kwargs,
         )
     # see https://stackoverflow.com/a/43439132
     ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left", borderaxespad=0.0)
@@ -71,7 +85,14 @@ def plot_bandwidth_vs_size(df, size_name="size", prop_cycler=custom_cycler, **kw
     return fig, ax
 
 
-def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **kwargs):
+def heatmaps_bandwidth(
+    df: pd.DataFrame,
+    x_name: str = "columns",
+    y_name: str = "rows",
+    *,
+    cbar_kw: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> Iterator[tuple[mfig.Figure, maxes.Axes]]:
     """
     Creates heatmaps two-dimensional data of bandwidth. The "size" data (i.e.
     x_name and y_name) are expected in the index of the dataframe, all other
@@ -86,7 +107,7 @@ def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **k
         optional dict of arguments passed to matplotlib's colorbar function
     :param kwargs:
         optional keyword arguments passed to matplotlib's imshow function
-    :returns: a tuple (fig, ax) as returned by plt.subplots()
+    :returns: a generator of tuples (fig, ax) as returned by plt.subplots()
     """
     # prepare the dataframe
     assert "bandwidth" in df.columns
@@ -111,7 +132,7 @@ def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **k
         fig, ax = plt.subplots()
         ax.set_xlabel(x_name)
         ax.set_ylabel(y_name)
-        label = ", ".join(idx)
+        label = ", ".join(str(i) for i in idx)
         ax.set_title(f"{label} bandwidth [GiB/s]")
 
         # plot the heatmap and colorbar
@@ -122,8 +143,8 @@ def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **k
         # set ticks and their labels
         ax.set_xticks(np.arange(len(bandwidth.columns)))
         ax.set_yticks(np.arange(len(bandwidth.index)))
-        ax.set_xticklabels(int(n) for n in bandwidth.columns)
-        ax.set_yticklabels(int(n) for n in bandwidth.index)
+        ax.set_xticklabels(str(int(n)) for n in bandwidth.columns)
+        ax.set_yticklabels(str(int(n)) for n in bandwidth.index)
 
         # rotate xtick labels and set their alignment
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
@@ -131,7 +152,7 @@ def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **k
         yield fig, ax
 
 
-def get_image_html_tag(fig, format="svg"):
+def get_image_html_tag(fig: mfig.Figure, format: str = "svg") -> str:
     """
     Returns an HTML tag with embedded image data in the given format.
 
