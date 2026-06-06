@@ -3,538 +3,398 @@
 # SPDX-License-Identifier: MIT
 
 import argparse
-import json
-from os.path import exists
+from itertools import product
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 
-font_size = "15"
-threads = []
-accesses = ["sequential", "random"]
-element_sizes = ["1", "2", "4", "16", "64", "256"]
+from TNL import BenchmarkLogs
+
+sns.set_theme()
+
+BW_LABEL: str = "Effective bandwidth in GiB/s"
+CYCLES_LABEL: str = "CPU cycles per element"
+DEFAULT_OUTPUT_DIR = Path("memory-access-plots")
+
+_ACCESS_TYPE_ORDER = {"sequential": 0, "interleaved": 1, "random": 2}
+_TEST_TYPE_ORDER = {"read": 0, "write": 1, "read-write": 2}
+
+METRICS: list[tuple[str, str, str, str]] = [
+    ("bandwidth", "bandwidth_stddev", BW_LABEL, "bw"),
+    ("cycles/op", "cycles/op_stddev", CYCLES_LABEL, "cycles"),
+]
 
 
-####
-# Create multiindex for columns
-def get_multiindex():
-    level1 = ["size"]
-    level2 = [
-        "",
+def _load_dataframes(filenames: list[str]) -> pd.DataFrame:
+    """Load and concatenate log files, then derive stddev columns."""
+    frames: list[pd.DataFrame] = []
+    for filename in filenames:
+        path = Path(filename)
+        if not path.exists():
+            print(f"Skipping non-existing input file {filename} ...")
+            continue
+        frames.append(BenchmarkLogs.get_benchmark_dataframe(path))
+    df = pd.concat(frames, ignore_index=True)
+
+    numeric_cols = [
+        "array size",
+        "time",
+        "time_stddev",
+        "bandwidth",
+        "cycles/op",
+        "cycles_stddev",
+        "cycles",
     ]
-    level3 = [
-        "",
-    ]
-    level4 = [
-        "",
-    ]
-    level5 = [
-        "",
-    ]
-    df_data = [[" "]]
-    for threads_count in threads:
-        for access in accesses:
-            for rw in ["read", "write"]:
-                orderings = ["blocks"]
-                if access == "sequential" and float(threads_count) > 1:
-                    orderings.append("interleaving")
-                for ordering in orderings:
-                    for element_size in element_sizes:
-                        values = ["time", "bandwidth", "CPU cycles"]
-                        for value in values:
-                            level1.append(f"Threads {threads_count} {access}")
-                            level2.append(rw)
-                            level3.append(ordering)
-                            level4.append(element_size)
-                            level5.append(value)
-                            df_data[0].append("")
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col])
 
-    multiColumns = pd.MultiIndex.from_arrays([level1, level2, level3, level4, level5])
-    return multiColumns, df_data
+    if "time_stddev" in df.columns and "time" in df.columns:
+        df["bandwidth_stddev"] = df["bandwidth"] * (df["time_stddev"] / df["time"])
+
+    if "cycles_stddev" in df.columns and "cycles" in df.columns:
+        df["cycles/op_stddev"] = df["cycles/op"] * (df["cycles_stddev"] / df["cycles"])
+
+    df["threads"] = df["threads"].astype(str)
+    df["element size"] = df["element size"].astype(str)
+    return df
 
 
-####
-# Process dataframe
-def processDf(df):
-    multicolumns, df_data = get_multiindex()
-
-    frames = []
-    out_idx = 0
-
-    sizes = list(set(df["array size"]))
-    sizes.sort()
-    print(f"Sizes = {sizes}")
-
-    for size in sizes:
-        aux_df = df.loc[(df["array size"] == size)]
-        new_df = pd.DataFrame(df_data, columns=multicolumns, index=[out_idx])
-        out_idx += 1
-        new_df.iloc[0][("size", "", "", "", "")] = size
-        for index, row in aux_df.iterrows():
-            threads_count = row["threads"]
-            if threads_count not in threads:
-                continue
-            access_type = row["access type"]
-            read_test = row["read test"]
-            write_test = row["write test"]
-            test_type = ""
-            if read_test == "true" and write_test == "false":
-                test_type = "read"
-            if read_test == "false" and write_test == "true":
-                test_type = "write"
-            if test_type == "":
-                raise RuntimeError("Wrong combination of read test and write test.")
-            interleaving = row["interleaving"]
-            ordering = "blocks"
-            if interleaving == "true":
-                ordering = "interleaving"
-            element_size = row["element size"]
-            time = row["time"]
-            bandwidth = row["bandwidth"]
-            cpu_cycles = row["cycles/op."]
-            print(
-                f"Threads {threads_count} \t {access_type} \t {test_type} \t {ordering}"
-                f" \t {element_size} \t {time} \t {bandwidth} \t {cpu_cycles} \r",
-                end="",
-            )
-            new_df.iloc[0][
-                (
-                    f"Threads {threads_count} {access_type}",
-                    test_type,
-                    ordering,
-                    element_size,
-                    "time",
-                )
-            ] = time
-            new_df.iloc[0][
-                (
-                    f"Threads {threads_count} {access_type}",
-                    test_type,
-                    ordering,
-                    element_size,
-                    "bandwidth",
-                )
-            ] = bandwidth
-            new_df.iloc[0][
-                (
-                    f"Threads {threads_count} {access_type}",
-                    test_type,
-                    ordering,
-                    element_size,
-                    "CPU cycles",
-                )
-            ] = cpu_cycles
-        frames.append(new_df)
-    result = pd.concat(frames)
-    return result
+def _make_filename(
+    *parts: str, suffix: str, output_dir: Path = DEFAULT_OUTPUT_DIR
+) -> Path:
+    """Build a dash-separated filename with subdirectory."""
+    name = "-".join(str(p) for p in parts if p is not None) + f"-{suffix}.svg"
+    return output_dir / name
 
 
-####
-# Extract data with memory bandwidth from a data frame
-def get_bandwidth(df, threads_count, access, test_type, ordering, element_size):
-    in_bandwidth = df[
-        (
-            f"Threads {threads_count} {access}",
-            test_type,
-            ordering,
-            element_size,
-            "bandwidth",
-        )
-    ].tolist()
-    bandwidth = []
-    for bw in in_bandwidth:
-        try:
-            bandwidth.append(float(bw))
-        except ValueError:
-            bandwidth.append(0)
-            print(
-                f"Warning wrong value of bandwidth: {bw} for threads count "
-                f"{threads_count}, access {access}, test type {test_type}, "
-                f"ordering {ordering}, element size {element_size} "
-            )
-    return bandwidth
-
-
-###
-# Extract data with CPU cycles from a data frame
-def get_cpu_cycles(df, threads_count, access, test_type, ordering, element_size):
-    in_cpu_cycles = df[
-        (
-            f"Threads {threads_count} {access}",
-            test_type,
-            ordering,
-            element_size,
-            "CPU cycles",
-        )
-    ].tolist()
-    cpu_cycles = []
-    for cycles in in_cpu_cycles:
-        try:
-            cpu_cycles.append(float(cycles))
-        except ValueError:
-            cpu_cycles.append(0)
-            print(
-                f"Warning wrong value of CPU cycles: {cycles} for threads count "
-                f"{threads_count}, access {access}, test type {test_type}, "
-                f"ordering {ordering}, element size {element_size} "
-            )
-    return cpu_cycles
-
-
-###
-# Helper function for writing of figures
-def writeFigure(file_name, data_set, legend, legend_location, sizes, y_lim):
-    fig, axs = plt.subplots(1, 1)
-    for data in data_set:
-        axs.plot(sizes, data, "-o", ms=6, lw=2)
-    axs.legend(legend, loc=legend_location)
-    axs.set_ylabel("Effective bandwidth in GB/sec")
-    axs.set_xlabel("Array size in bytes")
-    axs.set_xscale("log")
-    axs.set_yscale("linear")
-    if y_lim:
-        axs.set_ylim(y_lim)
-    axs.grid()
-    plt.rcParams.update(
-        {"text.usetex": True, "font.family": "sans-serif", "font.size": font_size}
+def writeFigure(
+    df: pd.DataFrame,
+    *,
+    x: str = "array size",
+    y: str,
+    y_err: str | None = None,
+    hue: str,
+    hue_title: str = "",
+    hue_order: list[str] | None = None,
+    title: str = "",
+    y_label: str,
+    y_lim: tuple[float, float] | None = None,
+    file_path: Path,
+) -> None:
+    """Write a comparison figure using seaborn lineplot with optional error band."""
+    fig, ax = plt.subplots(1, 1)
+    order = hue_order or (sorted(df[hue].unique()) if hue_title else None)
+    sns.lineplot(
+        data=df,
+        x=x,
+        y=y,
+        hue=hue,
+        hue_order=order,
+        marker="o",
+        errorbar=None,
+        ax=ax,
     )
-    plt.savefig(file_name)
+    # fill_between is used instead of seaborn's errorbar because we have pre-computed
+    # stddev values rather than multiple observations per x-point
+    if y_err and y_err in df.columns:
+        for _name, group in df.groupby(hue, sort=True):
+            sg = group.sort_values(x)
+            xs = sg[x].to_numpy(dtype=float)
+            ys = sg[y].to_numpy(dtype=float)
+            errs = sg[y_err].to_numpy(dtype=float)
+            ax.fill_between(xs, ys - errs, ys + errs, alpha=0.15)
+    ax.set_ylabel(y_label)
+    ax.set_xlabel("Array size in bytes")
+    if title:
+        ax.set_title(title)
+    ax.set_xscale("log")
+    ax.set_yscale("linear")
+    if y_lim:
+        ax.set_ylim(y_lim)
+    if hue_title:
+        ax.legend(title=hue_title, loc="best")
+    else:
+        ax.legend(loc="best")
+    ax.grid()
+    fig.savefig(file_path, format="svg")
     plt.close(fig)
 
 
-####
-# Write figures for particular benchmark tests
-def writeGeneralFigures(df):
-    sizes = df[("size", "", "", "", "")].tolist()
-    for threads_count in threads:
-        for access in accesses:
-            for test_type in ["read", "write"]:
-                orderings = ["blocks"]
-                if access == "sequential" and float(threads_count) > 1:
-                    orderings.append("interleaving")
-                for ordering in orderings:
-                    for element_size in element_sizes:
-                        print(
-                            f"Writing figures for benchmark: {access} "
-                            f"threads={threads_count} {test_type} {ordering} "
-                            f"element size = {element_size}:"
-                        )
-                        bandwidth = get_bandwidth(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                        cpu_cycles = get_cpu_cycles(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                        print(f"   BW: {bandwidth}")
-                        print(f"   CPU cycles: {cpu_cycles}")
-                        max_bandwidth = max(bandwidth)
-
-                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"  # noqa: E501
-                        data_set = [bandwidth]
-                        legend = [f"{access} access {threads_count} threads"]
-                        legend_location = "upper right"
-                        writeFigure(
-                            file_name,
-                            data_set,
-                            legend,
-                            legend_location,
-                            sizes,
-                            [0, 1.2 * max_bandwidth],
-                        )
-
-                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"  # noqa: E501
-                        data_set = [cpu_cycles]
-                        legend = [f"{access} access {threads_count} threads"]
-                        legend_location = "upper left"
-                        writeFigure(
-                            file_name, data_set, legend, legend_location, sizes, []
-                        )
+def _filter_df(
+    df: pd.DataFrame,
+    *,
+    threads: str | None = None,
+    access_type: str | None = None,
+    test_type: str | None = None,
+    element_size: str | None = None,
+) -> pd.DataFrame:
+    """Filter dataframe by given metadata columns."""
+    mask = pd.Series(True, index=df.index)
+    if threads is not None:
+        mask &= df["threads"] == threads
+    if access_type is not None:
+        mask &= df["access type"] == access_type
+    if test_type is not None:
+        mask &= df["test type"] == test_type
+    if element_size is not None:
+        mask &= df["element size"] == element_size
+    result: pd.DataFrame = df[mask]  # pyright: ignore[reportAssignmentType]
+    return result
 
 
-####
-# Write figures for comparison of sequential and random access
-def writeSequentialRandomComparisonFigures(df):
-    sizes = df[("size", "", "", "", "")].tolist()
-    for threads_count in threads:
-        for test_type in ["read", "write"]:
-            ordering = "blocks"
-            for element_size in element_sizes:
-                print(
-                    f"Writing figure for comparison of sequential and random access: "
-                    f"{test_type} element size = {element_size}:"
-                )
-
-                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"  # noqa: E501
-                data_set = []
-                legend = []
-                for access in accesses:
-                    legend.append(access)
-                    data_set.append(
-                        get_bandwidth(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                    )
-                legend_location = "lower left"
-                writeFigure(file_name, data_set, legend, legend_location, sizes, [])
-
-                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"  # noqa: E501
-                data_set = []
-                legend = []
-                for access in accesses:
-                    legend.append(access)
-                    data_set.append(
-                        get_cpu_cycles(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                    )
-                legend_location = "upper left"
-                writeFigure(file_name, data_set, legend, legend_location, sizes, [])
-
-
-####
-# Write figures for comparison with different threads count
-def writeThreadsCountComparisonFigures(df):
-    sizes = df[("size", "", "", "", "")].tolist()
-    for access in accesses:
-        for test_type in ["read", "write"]:
-            orderings = ["blocks"]
-            if access == "sequential":
-                orderings.append("interleaving")
-            for ordering in orderings:
-                for element_size in element_sizes:
-                    print(
-                        f"Writing figure for threads count comparison: "
-                        f"{access} {test_type} {ordering} "
-                        f"element size = {element_size}:"
-                    )
-
-                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"  # noqa: E501
-                    data_set = []
-                    legend = []
-                    for threads_count in threads:
-                        if ordering == "interleaving" and threads_count == "1":
-                            continue
-                        legend.append(f"{threads_count} threads")
-                        data_set.append(
-                            get_bandwidth(
-                                df,
-                                threads_count,
-                                access,
-                                test_type,
-                                ordering,
-                                element_size,
-                            )
-                        )
-                    legend_location = "upper right"
-                    writeFigure(file_name, data_set, legend, legend_location, sizes, [])
-
-                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"  # noqa: E501
-                    data_set = []
-                    legend = []
-                    for threads_count in threads:
-                        if ordering == "interleaving" and threads_count == "1":
-                            continue
-                        legend.append(f"{threads_count} threads")
-                        data_set.append(
-                            get_cpu_cycles(
-                                df,
-                                threads_count,
-                                access,
-                                test_type,
-                                ordering,
-                                element_size,
-                            )
-                        )
-                    legend_location = "upper right"
-                    writeFigure(file_name, data_set, legend, legend_location, sizes, [])
+def writeAccessTypeComparisonFigures(
+    df: pd.DataFrame,
+    threads: list[str],
+    access_types: list[str],
+    element_sizes: list[str],
+    test_types: list[str],
+    output_dir: Path,
+) -> None:
+    """Write figures comparing bandwidth across access types."""
+    if len(access_types) < 2:
+        return
+    for threads_count, test_type, element_size in product(
+        threads, test_types, element_sizes
+    ):
+        sub: pd.DataFrame = _filter_df(
+            df,
+            threads=threads_count,
+            test_type=test_type,
+            element_size=element_size,
+        )
+        file_parts = [
+            "access-type-comparison",
+            f"{threads_count}-threads",
+            test_type,
+            f"element-size-{element_size}",
+        ]
+        title = (
+            f"Access type comparison: {threads_count} threads, "
+            f"{test_type}, el. size {element_size}"
+        )
+        print(
+            f"Writing figure for access type comparison: "
+            f"{threads_count} threads {test_type} "
+            f"element size = {element_size}:"
+        )
+        for y_col, y_err_col, y_label, suffix in METRICS:
+            writeFigure(
+                sub,
+                y=y_col,
+                y_err=y_err_col,
+                hue="access type",
+                hue_title="Access type",
+                title=title,
+                y_label=y_label,
+                file_path=_make_filename(
+                    *file_parts, suffix=suffix, output_dir=output_dir
+                ),
+            )
 
 
-####
-# Write figures for comparison of read and write access
-def writeReadWriteComparisonFigures(df):
-    sizes = df[("size", "", "", "", "")].tolist()
-    for threads_count in threads:
-        for access in accesses:
-            ordering = "blocks"
-            for element_size in element_sizes:
-                print(
-                    f"Writing figure for comparison of read and write access: "
-                    f"{access} {ordering} element size = {element_size}:"
-                )
-
-                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-bw.pdf"  # noqa: E501
-                data_set = []
-                legend = []
-                for test_type in ["read", "write"]:
-                    legend.append(test_type)
-                    data_set.append(
-                        get_bandwidth(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                    )
-                legend_location = "lower left"
-                writeFigure(file_name, data_set, legend, legend_location, sizes, [])
-
-                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-cycles.pdf"  # noqa: E501
-                data_set = []
-                legend = []
-                for test_type in ["read", "write"]:
-                    legend.append(test_type)
-                    data_set.append(
-                        get_cpu_cycles(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                    )
-                legend_location = "upper left"
-                writeFigure(file_name, data_set, legend, legend_location, sizes, [])
-
-
-####
-# Write figures for comparison of blocks and interleaving for sequential access
-def writeBlocksInterleavingComparisonFigures(df):
-    sizes = df[("size", "", "", "", "")].tolist()
-    orderings = ["blocks", "interleaving"]
-    for threads_count in threads:
-        if threads_count == "1":
-            continue
-        for test_type in ["read", "write"]:
-            for element_size in element_sizes:
-                access = "sequential"
-                print(
-                    f"Writing figure for comparison of interleaved and blocked "
-                    f"ordering: {test_type} element size = {element_size}:"
-                )
-
-                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"  # noqa: E501
-                data_set = []
-                legend = []
-                for ordering in orderings:
-                    legend.append(ordering)
-                    data_set.append(
-                        get_bandwidth(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                    )
-                legend_location = "upper right"
-                writeFigure(file_name, data_set, legend, legend_location, sizes, [])
-
-                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"  # noqa: E501
-                data_set = []
-                legend = []
-                for ordering in orderings:
-                    legend.append(ordering)
-                    data_set.append(
-                        get_cpu_cycles(
-                            df, threads_count, access, test_type, ordering, element_size
-                        )
-                    )
-                legend_location = "upper left"
-                writeFigure(file_name, data_set, legend, legend_location, sizes, [])
+def writeThreadsCountComparisonFigures(
+    df: pd.DataFrame,
+    threads: list[str],
+    access_types: list[str],
+    element_sizes: list[str],
+    test_types: list[str],
+    output_dir: Path,
+) -> None:
+    """Write figures comparing bandwidth across different thread counts."""
+    if len(threads) < 2:
+        return
+    threads_sorted = sorted(threads, key=int)
+    for access_type, test_type, element_size in product(
+        access_types, test_types, element_sizes
+    ):
+        sub: pd.DataFrame = _filter_df(
+            df,
+            access_type=access_type,
+            test_type=test_type,
+            element_size=element_size,
+        ).copy()
+        file_parts = [
+            "threads-comparison",
+            access_type,
+            test_type,
+            f"element-size-{element_size}",
+        ]
+        title = (
+            f"Threads comparison: {access_type}, {test_type}, el. size {element_size}"
+        )
+        print(
+            f"Writing figure for threads count comparison: "
+            f"{access_type} {test_type} "
+            f"element size = {element_size}:"
+        )
+        for y_col, y_err_col, y_label, suffix in METRICS:
+            writeFigure(
+                sub,
+                y=y_col,
+                y_err=y_err_col,
+                hue="threads",
+                hue_title="Threads",
+                hue_order=threads_sorted,
+                title=title,
+                y_label=y_label,
+                file_path=_make_filename(
+                    *file_parts, suffix=suffix, output_dir=output_dir
+                ),
+            )
 
 
-####
-# Write figures for comparison with different element sizes
-def writeElementSizeComparisonFigures(df):
-    sizes = df[("size", "", "", "", "")].tolist()
-    for threads_count in threads:
-        for access in accesses:
-            for test_type in ["read", "write"]:
-                orderings = ["blocks"]
-                if access == "sequential" and int(threads_count) > 1:
-                    orderings.append("interleaving")
-                for ordering in orderings:
-                    print(
-                        f"Writing figure for element size comparison: "
-                        f"{threads_count} threads {access} {test_type} {ordering}:"
-                    )
-
-                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-bw.pdf"  # noqa: E501
-                    data_set = []
-                    legend = []
-                    for element_size in element_sizes:
-                        legend.append(f"el.size {element_size}")
-                        data_set.append(
-                            get_bandwidth(
-                                df,
-                                threads_count,
-                                access,
-                                test_type,
-                                ordering,
-                                element_size,
-                            )
-                        )
-                    legend_location = "upper right"
-                    writeFigure(file_name, data_set, legend, legend_location, sizes, [])
-
-                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-cycles.pdf"  # noqa: E501
-                    data_set = []
-                    legend = []
-                    for element_size in element_sizes:
-                        legend.append(f"el.size {element_size}")
-                        data_set.append(
-                            get_cpu_cycles(
-                                df,
-                                threads_count,
-                                access,
-                                test_type,
-                                ordering,
-                                element_size,
-                            )
-                        )
-                    legend_location = "upper left"
-                    writeFigure(file_name, data_set, legend, legend_location, sizes, [])
+def writeTestTypeComparisonFigures(
+    df: pd.DataFrame,
+    threads: list[str],
+    access_types: list[str],
+    element_sizes: list[str],
+    test_types: list[str],
+    output_dir: Path,
+) -> None:
+    """Write figures comparing bandwidth across different test types."""
+    if len(test_types) < 2:
+        return
+    for threads_count, access_type, element_size in product(
+        threads, access_types, element_sizes
+    ):
+        sub: pd.DataFrame = _filter_df(
+            df,
+            threads=threads_count,
+            access_type=access_type,
+            element_size=element_size,
+        )
+        file_parts = [
+            "test-type-comparison",
+            access_type,
+            f"{threads_count}-threads",
+            f"element-size-{element_size}",
+        ]
+        title = (
+            f"Test type comparison: {access_type}, "
+            f"{threads_count} threads, el. size {element_size}"
+        )
+        print(
+            f"Writing figure for test type comparison: "
+            f"{access_type} {threads_count} threads "
+            f"element size = {element_size}:"
+        )
+        for y_col, y_err_col, y_label, suffix in METRICS:
+            writeFigure(
+                sub,
+                y=y_col,
+                y_err=y_err_col,
+                hue="test type",
+                hue_title="Test type",
+                title=title,
+                y_label=y_label,
+                file_path=_make_filename(
+                    *file_parts, suffix=suffix, output_dir=output_dir
+                ),
+            )
 
 
-#####
-# Parse input files
-parser = argparse.ArgumentParser(
-    description="Script for processing TNL benchmark memory access results."
-)
-parser.add_argument(
-    "-i",
-    "--input-file",
-    dest="input_files",
-    nargs="+",
-    required=True,
-    help="The input file to be processed",
-)
-args = parser.parse_args()
+def writeElementSizeComparisonFigures(
+    df: pd.DataFrame,
+    threads: list[str],
+    access_types: list[str],
+    element_sizes: list[str],
+    test_types: list[str],
+    output_dir: Path,
+) -> None:
+    """Write figures comparing bandwidth across different element sizes."""
+    if len(element_sizes) < 2:
+        return
+    element_sizes_sorted = sorted(element_sizes, key=int)
+    for threads_count, access_type, test_type in product(
+        threads, access_types, test_types
+    ):
+        sub: pd.DataFrame = _filter_df(
+            df,
+            threads=threads_count,
+            access_type=access_type,
+            test_type=test_type,
+        ).copy()
+        file_parts = [
+            "element-size-comparison",
+            f"{threads_count}-threads",
+            access_type,
+            test_type,
+        ]
+        title = (
+            f"Element size comparison: {access_type}, "
+            f"{threads_count} threads, {test_type}"
+        )
+        print(
+            f"Writing figure for element size comparison: "
+            f"{threads_count} threads {access_type} {test_type}:"
+        )
+        for y_col, y_err_col, y_label, suffix in METRICS:
+            writeFigure(
+                sub,
+                y=y_col,
+                y_err=y_err_col,
+                hue="element size",
+                hue_title="Element size",
+                hue_order=element_sizes_sorted,
+                title=title,
+                y_label=y_label,
+                file_path=_make_filename(
+                    *file_parts, suffix=suffix, output_dir=output_dir
+                ),
+            )
 
-parsed_lines = []
 
-for filename in args.input_files:
-    if not exists(filename):
-        print(f"Skipping non-existing input file {filename} ....")
-    print(f"Parsing input file {filename} ....")
-    with open(filename) as f:
-        lines = f.readlines()
-        for line in lines:
-            parsed_line = json.loads(line)
-            parsed_lines.append(parsed_line)
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Script for processing TNL benchmark memory access results."
+    )
+    parser.add_argument(
+        "input",
+        nargs="+",
+        help="Input log files (JSON lines format)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help=f"Output directory for plots (default: {DEFAULT_OUTPUT_DIR})",
+    )
+    args = parser.parse_args()
 
-df = pd.DataFrame(parsed_lines)
-if not threads:
-    for threads_count in df["threads"]:
-        if threads_count not in threads:
-            threads.append(threads_count)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
-if not element_sizes:
-    for element_size in df["element size"]:
-        if element_size not in element_sizes:
-            element_sizes.append(element_size)
+    df = _load_dataframes(args.input)
 
-keys = ["array size", "time", "bandwidth", "cycles/op"]
+    threads = sorted(df["threads"].unique(), key=int)
+    access_types = sorted(
+        df["access type"].unique(),
+        key=lambda x: _ACCESS_TYPE_ORDER.get(x, len(_ACCESS_TYPE_ORDER)),
+    )
+    element_sizes = sorted(df["element size"].unique(), key=int)
+    test_types = sorted(
+        df["test type"].unique(),
+        key=lambda x: _TEST_TYPE_ORDER.get(x, len(_TEST_TYPE_ORDER)),
+    )
 
-for key in keys:
-    if key in df.keys():
-        df[key] = pd.to_numeric(df[key])
+    df.to_html(args.output_dir / "tnl-benchmark-memory-access-raw.html")
 
-df.to_html("tnl-benchmark-memory-access-raw.html")
-frame = processDf(df)
-frame.to_html("tnl-benchmark-memory-access.html")
-writeGeneralFigures(frame)
-writeSequentialRandomComparisonFigures(frame)
-writeThreadsCountComparisonFigures(frame)
-writeReadWriteComparisonFigures(frame)
-writeBlocksInterleavingComparisonFigures(frame)
-writeElementSizeComparisonFigures(frame)
+    writeAccessTypeComparisonFigures(
+        df, threads, access_types, element_sizes, test_types, args.output_dir
+    )
+    writeThreadsCountComparisonFigures(
+        df, threads, access_types, element_sizes, test_types, args.output_dir
+    )
+    writeTestTypeComparisonFigures(
+        df, threads, access_types, element_sizes, test_types, args.output_dir
+    )
+    writeElementSizeComparisonFigures(
+        df, threads, access_types, element_sizes, test_types, args.output_dir
+    )
+
+
+if __name__ == "__main__":
+    main()
