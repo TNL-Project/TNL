@@ -172,7 +172,7 @@ def get_kernels(input_df):
     return kernels
 
 
-def get_launch_configurations(input_df, kernels):
+def get_launch_configurations(input_df, kernels, problems):
     """
     Get list of launch configurations from the input dataframe
     """
@@ -404,7 +404,7 @@ def compute_speedup(df, problems, solvers, kernels, launch_configurations):
                         )
 
 
-def draw_speedup_graphs(in_df, kernels, launch_configurations):
+def draw_speedup_graphs(in_df, kernels, launch_configurations, problems):
     """
     Draw speedup graphs
     """
@@ -500,41 +500,42 @@ def draw_speedup_graphs(in_df, kernels, launch_configurations):
                         )
 
 
-###
-# Main part of the script
-parser = argparse.ArgumentParser(
-    description="Script for parsing log files from tnl-benchmark-graphs."
-)
-parser.add_argument(
-    "-i",
-    "--input",
-    nargs="+",
-    help="Input files",
-    default=["graphs-benchmark.log"],
-)
-parser.add_argument(
-    "-v", "--verbose", help="Show more information", action="store_true"
-)
+def main():
+    parser = argparse.ArgumentParser(
+        description="Script for parsing log files from tnl-benchmark-graphs."
+    )
+    parser.add_argument(
+        "input",
+        nargs="+",
+        help="Input log files (JSON lines format)",
+    )
+    parser.add_argument(
+        "-v", "--verbose", help="Show more information", action="store_true"
+    )
 
-args = parser.parse_args()
+    args = parser.parse_args()
 
-print("Parsing input files....")
-input_df = pd.DataFrame()
-for file in args.input:
-    df = get_benchmark_dataframe(file)
-    input_df = pd.concat([input_df, df])
+    print("Parsing input files ...")
+    input_df = pd.DataFrame()
+    for file in args.input:
+        df = get_benchmark_dataframe(file)
+        input_df = pd.concat([input_df, df])
 
-problems = get_problems(input_df)
-solvers, devices = get_solvers(input_df)
-kernels = get_kernels(input_df)
-launch_configurations = get_launch_configurations(input_df, kernels)
-multicolumns, df_data = get_multiindex(
-    problems, solvers, kernels, launch_configurations
-)
-input_df.to_html("graphs-benchmark-input.html")
-df = convert_data_frame(input_df, multicolumns, df_data={})
-df.to_html("graphs-benchmark.html")
+    problems = get_problems(input_df)
+    solvers, _devices = get_solvers(input_df)
+    kernels = get_kernels(input_df)
+    launch_configurations = get_launch_configurations(input_df, kernels, problems)
+    multicolumns, _df_data = get_multiindex(
+        problems, solvers, kernels, launch_configurations
+    )
+    input_df.to_html("graphs-benchmark-input.html")
+    df = convert_data_frame(input_df, multicolumns, df_data={})
+    df.to_html("graphs-benchmark.html")
 
-compute_speedup(df, problems, solvers, kernels, launch_configurations)
-df.to_html("graphs-benchmark.html")
-draw_speedup_graphs(df, kernels, launch_configurations)
+    compute_speedup(df, problems, solvers, kernels, launch_configurations)
+    df.to_html("graphs-benchmark.html")
+    draw_speedup_graphs(df, kernels, launch_configurations, problems)
+
+
+if __name__ == "__main__":
+    main()
