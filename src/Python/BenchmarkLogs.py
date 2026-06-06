@@ -9,12 +9,13 @@ __all__ = [
 ]
 
 import json
-import os.path
+from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
 
-def dict_to_html_table(data):
+def dict_to_html_table(data: dict[str, Any]) -> str:
     html = "<table border=1>\n"
     html += "<tbody>\n"
     for key in sorted(data.keys()):
@@ -24,27 +25,30 @@ def dict_to_html_table(data):
     return html
 
 
-def get_benchmark_metadata(filename):
+def get_benchmark_metadata(filename: str | Path) -> dict[str, Any] | None:
     """
     Reads metadata of the benchmark in the given file.
 
-    :param str filename: path of the file with metadata or benchmark results.
+    :param filename: path of the file with metadata or benchmark results.
         - If it ends with ".metadata.json", metadata is read from that file.
         - Otherwise, the extension is first replaced with ".metadata.json".
     :returns: dict as returned by json.load, or None if the file does not exist.
     """
-    if not filename.endswith(".metadata.json"):
-        filename = os.path.splitext(filename)[0] + ".metadata.json"
-    if os.path.isfile(filename):
-        print(f"Parsing metadata from file {filename}")
-        with open(filename) as file:
+    path = Path(filename)
+    if path.suffixes[-2:] == [".metadata", ".json"]:
+        meta_path = path
+    else:
+        meta_path = path.with_name(path.stem + ".metadata.json")
+    if meta_path.is_file():
+        print(f"Parsing metadata from file {meta_path}")
+        with meta_path.open() as file:
             metadata = json.load(file)
         return metadata
-    print(f"Metadata file {filename} does not exist")
+    print(f"Metadata file {meta_path} does not exist")
     return None
 
 
-def get_benchmark_dataframe(logFile):
+def get_benchmark_dataframe(logFile: str | Path) -> pd.DataFrame:
     """
     Get pandas dataframe with benchmark results stored in the given log file.
 
@@ -58,7 +62,10 @@ def get_benchmark_dataframe(logFile):
     return df
 
 
-def gen_dataframes_per_operation(logFile, header_elements=None):
+def gen_dataframes_per_operation(
+    logFile: str | Path,
+    header_elements: list[str] | None = None,
+) -> Any:
     """
     Reads benchmark results stored in the given log file and splits them into
     multiple dataframes according to the "operation" column.
