@@ -58,8 +58,7 @@ benchmarkGpuTransposition(
          LegacyKernelsLauncher< Real, Devices::GPU, Index >::launchMatrixTranspositionKernel1( denseMatrix, outputMatrix );
       };
 #ifdef HAVE_MAGMA
-      std::vector< GPUMatrixType > refs1 = { magmaOutputMatrix };
-      DenseMatricesResult< Real, Devices::GPU, Index > result1( outputMatrix, refs1 );
+      DenseMatricesResult< Real, Devices::GPU, Index > result1( outputMatrix, { { magmaOutputMatrix, "MAGMA" } } );
 #endif
       benchmark.time< Devices::GPU >(
          "Kernel 2.1",
@@ -76,8 +75,7 @@ benchmarkGpuTransposition(
          LegacyKernelsLauncher< Real, Devices::GPU, Index >::launchMatrixTranspositionKernel2( denseMatrix, outputMatrix );
       };
 #ifdef HAVE_MAGMA
-      std::vector< GPUMatrixType > refs2 = { magmaOutputMatrix };
-      DenseMatricesResult< Real, Devices::GPU, Index > result2( outputMatrix, refs2 );
+      DenseMatricesResult< Real, Devices::GPU, Index > result2( outputMatrix, { { magmaOutputMatrix, "MAGMA" } } );
 #endif
       benchmark.time< Devices::GPU >(
          "Kernel 2.2",
@@ -95,8 +93,7 @@ benchmarkGpuTransposition(
       outputMatrix.getTransposition( denseMatrix );
    };
 #ifdef HAVE_MAGMA
-   std::vector< GPUMatrixType > refsTnl = { magmaOutputMatrix };
-   DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( outputMatrix, refsTnl );
+   DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( outputMatrix, { { magmaOutputMatrix, "MAGMA" } } );
 #endif
    benchmark.time< Devices::GPU >(
       "Kernel 2.3",
@@ -114,8 +111,7 @@ benchmarkGpuTransposition(
          denseMatrix.getInPlaceTransposition();
       };
 #ifdef HAVE_MAGMA
-      std::vector< GPUMatrixType > refsInPlace = { magmaOutputMatrix };
-      DenseMatricesResult< Real, Devices::GPU, Index > inPlaceResult( denseMatrix, refsInPlace );
+      DenseMatricesResult< Real, Devices::GPU, Index > inPlaceResult( denseMatrix, { { magmaOutputMatrix, "MAGMA" } } );
 #endif
       benchmark.time< Devices::GPU >(
          "Kernel 2.4",
