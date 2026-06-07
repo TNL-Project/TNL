@@ -33,6 +33,7 @@ benchmarkGpuComputing(
    TransposeState transposeB = TransposeState::None )
 {
    using GPUMatrixType = TNL::Matrices::DenseMatrix< Real, Devices::GPU, Index >;
+   using ReferenceVector = std::vector< typename DenseMatricesResult< Real, Devices::GPU, Index >::Reference >;
 
    const auto m1s = sizeString( matrix1, transposeA );
    const auto m2s = sizeString( matrix2, transposeB );
@@ -61,6 +62,23 @@ benchmarkGpuComputing(
 
    GPUMatrixType hipblasResultMatrix;
    hipblasResultMatrix.setDimensions( resultRows, resultCols );
+
+   auto buildReferencePairs = [ & ]() -> ReferenceVector
+   {
+      ReferenceVector pairs;
+#if defined( __CUDACC__ )
+      pairs.emplace_back( cublasResultMatrix, cublasAlgo );
+#elif defined( __HIP__ )
+      pairs.emplace_back( hipblasResultMatrix, hipblasAlgo );
+#endif
+#ifdef HAVE_MAGMA
+      pairs.emplace_back( magmaResultMatrix, magmaAlgo );
+#endif
+#ifdef HAVE_CUTLASS
+      pairs.emplace_back( cutlassResultMatrix, cutlassAlgo );
+#endif
+      return pairs;
+   };
 
 #if defined( __CUDACC__ )
    setMetadata< Real, Index >( benchmark, cublasAlgo, m1s, m2s );
@@ -92,6 +110,13 @@ benchmarkGpuComputing(
       benchmark.time< Devices::GPU >( cutlassAlgo, computeCutlass, cutlassResult );
    }
    #endif
+#elif defined( __HIP__ )
+   setMetadata< Real, Index >( benchmark, hipblasAlgo, m1s, m2s );
+   auto computeHipBLAS = [ & ]() mutable
+   {
+      matrixMultiplicationHIPBLAS( matrix1, matrix2, hipblasResultMatrix, transposeA, transposeB );
+   };
+   benchmark.time< Devices::GPU >( hipblasAlgo, computeHipBLAS );
 #endif
 
    if( suffix.empty() && parameters.getParameter< bool >( "include-legacy-kernels" ) ) {
@@ -103,18 +128,7 @@ benchmarkGpuComputing(
          {
             kernelLaunch( matrix1, matrix2, resultMatrix );
          };
-         std::vector< typename DenseMatricesResult< Real, Devices::GPU, Index >::Reference > refPairs = {
-            { cublasResultMatrix, cublasAlgo }
-#ifdef HAVE_MAGMA
-            ,
-            { magmaResultMatrix, magmaAlgo }
-#endif
-#ifdef HAVE_CUTLASS
-            ,
-            { cutlassResultMatrix, cutlassAlgo }
-#endif
-         };
-         DenseMatricesResult< Real, Devices::GPU, Index > legacyResult( resultMatrix, refPairs );
+         DenseMatricesResult< Real, Devices::GPU, Index > legacyResult( resultMatrix, buildReferencePairs() );
          benchmark.time< Devices::GPU >( algoName, compute, legacyResult );
       };
 
@@ -171,29 +185,8 @@ benchmarkGpuComputing(
    {
       resultMatrix.getMatrixProduct( matrix1, matrix2, 1.0, transposeA, transposeB );
    };
-   std::vector< typename DenseMatricesResult< Real, Devices::GPU, Index >::Reference > tnlRefPairs = {
-      { cublasResultMatrix, cublasAlgo }
-#ifdef HAVE_MAGMA
-      ,
-      { magmaResultMatrix, magmaAlgo }
-#endif
-#ifdef HAVE_CUTLASS
-      ,
-      { cutlassResultMatrix, cutlassAlgo }
-#endif
-   };
-   DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( resultMatrix, tnlRefPairs );
+   DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( resultMatrix, buildReferencePairs() );
    benchmark.time< Devices::GPU >( tnlAlgo, computeTnl, tnlResult );
-
-   // --- HipBLAS ---
-#if defined( __HIP__ )
-   setMetadata< Real, Index >( benchmark, hipblasAlgo, m1s, m2s );
-   auto computeHipBLAS = [ & ]() mutable
-   {
-      matrixMultiplicationHIPBLAS( matrix1, matrix2, hipblasResultMatrix, transposeA, transposeB );
-   };
-   benchmark.time< Devices::GPU >( hipblasAlgo, computeHipBLAS );
-#endif
 }
 
 template< typename Real, typename Index >
@@ -239,8 +232,12 @@ benchmarkHostStandard(
    {
       resultMatrix.getMatrixProduct( denseMatrix1, denseMatrix2, 1.0 );
    };
+#ifdef HAVE_BLAS
    DenseMatricesResult< Real, Devices::Host, Index > hostResult( resultMatrix, { { blasResultMatrix, "BLAS" } } );
    benchmark.time< Devices::Host >( "TNL", computeTNL, hostResult );
+#else
+   benchmark.time< Devices::Host >( "TNL", computeTNL );
+#endif
 }
 
 template< typename Real, typename Index >
