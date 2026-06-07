@@ -99,7 +99,9 @@ transposeSuffix( TransposeState transposeA, TransposeState transposeB )
       suffix += 'A';
    if( transposeB == TransposeState::Transpose )
       suffix += 'B';
-   return suffix;
+   if( suffix.empty() )
+      return suffix;
+   return " " + suffix;
 }
 
 template< typename Matrix >
