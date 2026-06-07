@@ -17,19 +17,20 @@ struct DenseMatricesResult : public BenchmarkResult
    using IndexType = Index;
    using HostMatrix = TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >;
    using BenchmarkMatrix = TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >;
+   using Reference = std::pair< BenchmarkMatrix, std::string >;
 
-   DenseMatricesResult( const HostMatrix& referenceResult, const std::vector< BenchmarkMatrix >& benchmarkResults )
+   DenseMatricesResult( const HostMatrix& referenceResult, const std::vector< Reference >& references )
    : referenceResult( referenceResult ),
-     benchmarkResults( benchmarkResults )
+     references( references )
    {}
 
    [[nodiscard]] HeaderElements
    getTableHeader() const override
    {
       HeaderElements headers = BenchmarkResult::getTableHeader();
-      for( size_t i = 0; i < benchmarkResults.size(); i++ ) {
-         headers.push_back( "Diff.Max " + std::to_string( i + 1 ) );
-         headers.push_back( "Diff.L2 " + std::to_string( i + 1 ) );
+      for( const auto& ref : references ) {
+         headers.push_back( "Diff.Max vs " + ref.second );
+         headers.push_back( "Diff.L2 vs " + ref.second );
       }
       return headers;
    }
@@ -39,10 +40,9 @@ struct DenseMatricesResult : public BenchmarkResult
    {
       RowElements elements = BenchmarkResult::getRowElements();
 
-      // Compute and append differences for each benchmark result
-      for( const auto& benchmarkMatrix : benchmarkResults ) {
-         // Check if dimensions match
-         auto diff = referenceResult.getValues() - benchmarkMatrix.getValues();
+      // Compute and append differences for each reference result
+      for( const auto& ref : references ) {
+         auto diff = referenceResult.getValues() - ref.first.getValues();
          elements << TNL::maxNorm( abs( diff ) ) << TNL::l2Norm( diff );
       }
 
@@ -50,7 +50,7 @@ struct DenseMatricesResult : public BenchmarkResult
    }
 
    const HostMatrix& referenceResult;
-   std::vector< BenchmarkMatrix > benchmarkResults;  // Vector of benchmark matrices
+   std::vector< Reference > references;
 };
 
 }  // namespace TNL::Benchmarks

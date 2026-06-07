@@ -37,13 +37,12 @@ benchmarkGpuComputing(
    const auto m1s = sizeString( matrix1, transposeA );
    const auto m2s = sizeString( matrix2, transposeB );
    const auto suffix = transposeSuffix( transposeA, transposeB );
-   const bool isStandard = suffix.empty();
 
-   const auto cublasAlgo = isStandard ? std::string( "cuBLAS" ) : ( "cublas" + suffix );
-   const auto magmaAlgo = isStandard ? std::string( "Magma" ) : ( "magma" + suffix );
-   const auto cutlassAlgo = isStandard ? std::string( "Cutlass" ) : ( "cutlass" + suffix );
-   const auto tnlAlgo = isStandard ? std::string( "Final" ) : ( "tnl" + suffix );
-   const auto hipblasAlgo = isStandard ? std::string( "HipBlas" ) : ( "hipblas" + suffix );
+   const auto cublasAlgo = "cuBLAS" + suffix;
+   const auto magmaAlgo = "MAGMA" + suffix;
+   const auto cutlassAlgo = "Cutlass" + suffix;
+   const auto tnlAlgo = "TNL" + suffix;
+   const auto hipblasAlgo = "hipBLAS" + suffix;
 
    const Index resultRows = transposeA == TransposeState::Transpose ? matrix1.getColumns() : matrix1.getRows();
    const Index resultCols = transposeB == TransposeState::Transpose ? matrix2.getRows() : matrix2.getColumns();
@@ -77,26 +76,25 @@ benchmarkGpuComputing(
    {
       matrixMultiplicationMAGMA( matrix1, matrix2, magmaResultMatrix, transposeA, transposeB );
    };
-   std::vector< GPUMatrixType > magmaRefs = { cublasResultMatrix };
-   DenseMatricesResult< Real, Devices::GPU, Index > magmaResult( magmaResultMatrix, magmaRefs );
+   DenseMatricesResult< Real, Devices::GPU, Index > magmaResult( magmaResultMatrix, { { cublasResultMatrix, cublasAlgo } } );
    benchmark.time< Devices::GPU >( magmaAlgo, computeMAGMA, magmaResult );
    #endif
 
    #ifdef HAVE_CUTLASS
-   if( isStandard ) {
+   if( suffix.empty() ) {
       setMetadata< Real, Index >( benchmark, cutlassAlgo, m1s, m2s );
       auto computeCutlass = [ & ]() mutable
       {
          matrixMultiplicationCutlass( matrix1, matrix2, cutlassResultMatrix );
       };
-      std::vector< GPUMatrixType > cutlassRefs = { cublasResultMatrix };
-      DenseMatricesResult< Real, Devices::GPU, Index > cutlassResult( cutlassResultMatrix, cutlassRefs );
+      DenseMatricesResult< Real, Devices::GPU, Index > cutlassResult(
+         cutlassResultMatrix, { { cublasResultMatrix, cublasAlgo } } );
       benchmark.time< Devices::GPU >( cutlassAlgo, computeCutlass, cutlassResult );
    }
    #endif
 #endif
 
-   if( isStandard && parameters.getParameter< bool >( "include-legacy-kernels" ) ) {
+   if( suffix.empty() && parameters.getParameter< bool >( "include-legacy-kernels" ) ) {
       auto benchmarkLegacyKernel = [ & ]( const std::string& algoName, auto kernelLaunch )
       {
          setMetadata< Real, Index >( benchmark, algoName, m1s, m2s );
@@ -105,17 +103,18 @@ benchmarkGpuComputing(
          {
             kernelLaunch( matrix1, matrix2, resultMatrix );
          };
-         std::vector< GPUMatrixType > refs = { cublasResultMatrix
+         std::vector< typename DenseMatricesResult< Real, Devices::GPU, Index >::Reference > refPairs = {
+            { cublasResultMatrix, cublasAlgo }
 #ifdef HAVE_MAGMA
-                                               ,
-                                               magmaResultMatrix
+            ,
+            { magmaResultMatrix, magmaAlgo }
 #endif
 #ifdef HAVE_CUTLASS
-                                               ,
-                                               cutlassResultMatrix
+            ,
+            { cutlassResultMatrix, cutlassAlgo }
 #endif
          };
-         DenseMatricesResult< Real, Devices::GPU, Index > legacyResult( resultMatrix, refs );
+         DenseMatricesResult< Real, Devices::GPU, Index > legacyResult( resultMatrix, refPairs );
          benchmark.time< Devices::GPU >( algoName, compute, legacyResult );
       };
 
@@ -172,17 +171,18 @@ benchmarkGpuComputing(
    {
       resultMatrix.getMatrixProduct( matrix1, matrix2, 1.0, transposeA, transposeB );
    };
-   std::vector< GPUMatrixType > tnlRefs = { cublasResultMatrix
+   std::vector< typename DenseMatricesResult< Real, Devices::GPU, Index >::Reference > tnlRefPairs = {
+      { cublasResultMatrix, cublasAlgo }
 #ifdef HAVE_MAGMA
-                                            ,
-                                            magmaResultMatrix
+      ,
+      { magmaResultMatrix, magmaAlgo }
 #endif
 #ifdef HAVE_CUTLASS
-                                            ,
-                                            cutlassResultMatrix
+      ,
+      { cutlassResultMatrix, cutlassAlgo }
 #endif
    };
-   DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( resultMatrix, tnlRefs );
+   DenseMatricesResult< Real, Devices::GPU, Index > tnlResult( resultMatrix, tnlRefPairs );
    benchmark.time< Devices::GPU >( tnlAlgo, computeTnl, tnlResult );
 
    // --- HipBLAS ---
@@ -239,8 +239,7 @@ benchmarkHostStandard(
    {
       resultMatrix.getMatrixProduct( denseMatrix1, denseMatrix2, 1.0 );
    };
-   std::vector< HostMatrixType > refMatrices = { blasResultMatrix };
-   DenseMatricesResult< Real, Devices::Host, Index > hostResult( resultMatrix, refMatrices );
+   DenseMatricesResult< Real, Devices::Host, Index > hostResult( resultMatrix, { { blasResultMatrix, "BLAS" } } );
    benchmark.time< Devices::Host >( "TNL", computeTNL, hostResult );
 }
 
