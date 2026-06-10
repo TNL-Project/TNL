@@ -5,6 +5,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 #include "CSRLightKernel.h"
 #include "CSRScalarKernel.h"
@@ -48,57 +49,8 @@ CSRVectorReduction(
       result = reduce( result, fetch( i ) );
 
    // Parallel reduction
-   #if defined( __HIP__ )
-   if( ThreadsPerSegment > 16 ) {
-      result = reduce( result, __shfl_down( result, 16 ) );
-      result = reduce( result, __shfl_down( result, 8 ) );
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 8 ) {
-      result = reduce( result, __shfl_down( result, 8 ) );
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 4 ) {
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 2 ) {
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 1 )
-      result = reduce( result, __shfl_down( result, 1 ) );
-   #else
-   if( ThreadsPerSegment > 16 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 8 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 4 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 2 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 1 )
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   #endif
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 128, Reduce, ReturnType >;
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
    if( laneID == 0 )
@@ -151,53 +103,27 @@ reduceSegmentsCSRLightMultivectorKernel(
       localIdx += ThreadsPerSegment;
    }
 
-   #if defined( __HIP__ )
-   result = reduce( result, __shfl_down( result, 16 ) );
-   result = reduce( result, __shfl_down( result, 8 ) );
-   result = reduce( result, __shfl_down( result, 4 ) );
-   result = reduce( result, __shfl_down( result, 2 ) );
-   result = reduce( result, __shfl_down( result, 1 ) );
-   #else
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   #endif
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
+   result = BlockReduce::warpReduce( reduce, result );
 
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    if( inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
    __syncthreads();
-   // Reduction in shared
-   if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
-      // constexpr int totalWarps = BlockSize / Backend::getWarpSize();
+   // Reduction in shared using warp-level shuffle
+   if( warpIdx == 0 ) {
       constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
-      if( warpsPerSegment >= 32 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
-         __syncwarp();
-      }
-      if( warpsPerSegment >= 16 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
-         __syncwarp();
-      }
-      if( warpsPerSegment >= 8 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
-         __syncwarp();
-      }
-      if( warpsPerSegment >= 4 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
-         __syncwarp();
-      }
-      if( warpsPerSegment >= 2 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
-         __syncwarp();
-      }
-      constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-      if( inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
-         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
-      }
+      auto myValue = ( inWarpLaneIdx < warpsPerSegment ) ? shared[ inWarpLaneIdx ] : identity;
+      myValue = BlockReduce::warpReduce( reduce, myValue );
+      if( inWarpLaneIdx == 0 )
+         shared[ 0 ] = myValue;
+   }
+   __syncthreads();
+
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   if( warpIdx == 0 && inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
+      keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
    }
 #endif
 }
@@ -224,8 +150,10 @@ CSRLightKernel< Index, Device >::init( const Segments& segments )
          setThreadsPerSegment( 8 );
       else if( elementsInSegment <= 16 )
          setThreadsPerSegment( 16 );
-      else                            // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
-         setThreadsPerSegment( 32 );  // CSR Vector
+      else if constexpr( Backend::getMaxWarpSize() == 32 )  // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
+         setThreadsPerSegment( 32 );                        // CSR Vector
+      else
+         setThreadsPerSegment( Backend::getWarpSize( Backend::getDevice() ) == 64 ? 64 : 32 );  // CSR Vector
       // else
       //    threadsPerSegment = roundUpDivision(nnz, matrix.MAX_ELEMENTS_PER_WARP) * 32; // CSR MultiVector
    }
@@ -241,8 +169,10 @@ CSRLightKernel< Index, Device >::init( const Segments& segments )
          setThreadsPerSegment( 8 );
       else if( elementsInSegment <= 16 )
          setThreadsPerSegment( 16 );
-      else                            // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
-         setThreadsPerSegment( 32 );  // CSR Vector
+      else if constexpr( Backend::getMaxWarpSize() == 32 )  // if (nnz <= 2 * matrix.MAX_ELEMENTS_PER_WARP)
+         setThreadsPerSegment( 32 );                        // CSR Vector
+      else
+         setThreadsPerSegment( Backend::getWarpSize( Backend::getDevice() ) == 64 ? 64 : 32 );  // CSR Vector
       // else
       //    threadsPerSegment = roundUpDivision(nnz, matrix.MAX_ELEMENTS_PER_WARP) * 32; // CSR MultiVector
    }

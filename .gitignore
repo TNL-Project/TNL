@@ -1,5 +1,6 @@
 # build/output directories
 /build/
+/.gitlab-ci-local/
 
 # user-specific CMake presets
 /CMakeUserPresets.json

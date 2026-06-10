@@ -88,7 +88,9 @@ Available presets (all use `CMAKE_BUILD_TYPE=RelWithDebInfo`):
 - `toolchain-clang-cuda` - Clang + CUDA
 - `toolchain-hip` - ROCm/HIP
 
-Usage: `cmake --preset toolchain-gcc`
+Usage: `cmake --preset toolchain-gcc` or `cmake --preset toolchain-gcc --fresh`
+
+The `--fresh` option is preferred over removing the build directory manually.
 
 ## Development conventions
 
@@ -186,6 +188,84 @@ just check-clang-tidy   # C++ (clang-tidy)
 
 **Note**: clang-tidy requires a non-CUDA build in Debug mode.
 
+## Running CI jobs locally
+
+[gitlab-ci-local](https://github.com/firecow/gitlab-ci-local) can be used to run GitLab CI pipelines locally using podman or docker.
+
+### Configuration
+
+The project uses `.gitlab-ci-local-env` for default options:
+
+```env
+EVALUATE_RULE_CHANGES=false
+```
+
+This ignores `rules:changes` so all jobs are available regardless of file changes.
+
+### Usage examples
+
+```bash
+# List available jobs
+gitlab-ci-local --list
+gitlab-ci-local --list-all         # include when:never jobs
+
+# Run all jobs in a stage
+gitlab-ci-local --stage lint --concurrency 4
+gitlab-ci-local --stage build:host --concurrency 2
+gitlab-ci-local --stage build:cuda --concurrency 1
+gitlab-ci-local --stage build:hip_rocm --concurrency 1
+
+# Run a specific job
+gitlab-ci-local "ruff format"
+gitlab-ci-local "gcc: [tests,Debug]"
+
+# Run CUDA jobs with NVIDIA GPU passthrough (requires NVIDIA CDI)
+gitlab-ci-local --device nvidia.com/gpu=all "nvcc: [tests,Debug]"
+
+# Run HIP/ROCm jobs with AMD GPU passthrough
+gitlab-ci-local --device /dev/kfd --device /dev/dri "hip_rocm: [tests,Debug]"
+
+# Verify GPU passthrough with dummy check jobs
+gitlab-ci-local --device nvidia.com/gpu=all "cuda-gpu-check"
+gitlab-ci-local --device /dev/kfd --device /dev/dri "rocm-gpu-check"
+
+# Override matrix variables
+gitlab-ci-local --variable MATRIX_TARGET=tests --variable BUILD_TYPE=Release gcc
+
+# Force shell executor instead of containers
+gitlab-ci-local --force-shell-executor "typos"
+```
+
+### GPU passthrough
+
+- **NVIDIA**: `--device nvidia.com/gpu=all` (via CDI, no `--privileged` needed)
+- **AMD**: `--device /dev/kfd --device /dev/dri` (CDI does not cover ROCm)
+
+### Key options
+
+| Option | Description |
+|--------|-------------|
+| `--container-executable podman` | Use podman instead of docker |
+| `--evaluate-rule-changes false` | Ignore `rules:changes` (run all jobs) |
+| `--concurrency N` | Limit parallel jobs |
+| `--device nvidia.com/gpu=all` | NVIDIA GPU passthrough via CDI |
+| `--device /dev/kfd` | AMD KFD device for ROCm |
+| `--device /dev/dri` | AMD DRI render nodes for ROCm |
+| `--stage <name>` | Run all jobs in a stage |
+| `--force-shell-executor` | Run on host without containers |
+| `--shell-isolation` | Enable artifact isolation for shell jobs |
+| `--variable KEY=VAL` | Set CI variables |
+| `--pull-policy if-not-present` | Avoid re-pulling images |
+
+### Caveats
+
+- **Untracked files are not synced** into job containers — only git-tracked files. Run `git add` on new files before executing.
+- **Per-stage concurrency is not supported** — run each stage separately with different `--concurrency` values.
+- **NVIDIA GPU passthrough** requires `nvidia-ctk` CDI setup; use `--device nvidia.com/gpu=all`.
+- **AMD GPU passthrough** requires `--device /dev/kfd --device /dev/dri` (CDI does not cover ROCm).
+- **`rules:changes` may exclude jobs** — use `--evaluate-rule-changes false` to run all jobs regardless.
+- **`artifacts`, `needs`, and `pages`** features are not fully supported by local execution.
+
 ## Important notes
 
 - **CUDA/HIP builds**: CUDA and HIP are mutually exclusive; some tools only work with CPU builds
@@ -199,3 +279,4 @@ just check-clang-tidy   # C++ (clang-tidy)
 - [Documentation](https://tnl-project.gitlab.io/tnl/)
 - [GitLab repository](https://gitlab.com/tnl-project/tnl)
 - [Contributing guidelines](CONTRIBUTING.md)
+- [Unit tests architecture](src/UnitTests/ARCHITECTURE.md)

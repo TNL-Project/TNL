@@ -84,28 +84,48 @@ if(TNL_BUILD_MPI)
     endif()
 
     # TODO: Fix distributed grid
-    #add_test_mpi( NAME DistributedGridTest_1D NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_1D${CMAKE_EXECUTABLE_SUFFIX}" )
-    #add_test_mpi( NAME DistributedGridTest_2D NPROC 9 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_2D${CMAKE_EXECUTABLE_SUFFIX}" )
-    #add_test_mpi( NAME DistributedGridTest_3D NPROC 27 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_3D${CMAKE_EXECUTABLE_SUFFIX}" )
+    #tnl_add_mpi_test( NAME DistributedGridTest_1D NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_1D${CMAKE_EXECUTABLE_SUFFIX}" )
+    #tnl_add_mpi_test( NAME DistributedGridTest_2D NPROC 9 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_2D${CMAKE_EXECUTABLE_SUFFIX}" )
+    #tnl_add_mpi_test( NAME DistributedGridTest_3D NPROC 27 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedGridTest_3D${CMAKE_EXECUTABLE_SUFFIX}" )
 
-    #add_test_mpi( NAME CutDistributedGridTest NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedGridTest${CMAKE_EXECUTABLE_SUFFIX}" )
+    #tnl_add_mpi_test( NAME CutDistributedGridTest NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedGridTest${CMAKE_EXECUTABLE_SUFFIX}" )
 
     # TODO: Fix
-    #add_test_mpi( NAME CutDistributedMeshFunctionTest NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedMeshFunctionTest${CMAKE_EXECUTABLE_SUFFIX}" )
+    #tnl_add_mpi_test( NAME CutDistributedMeshFunctionTest NPROC 12 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutDistributedMeshFunctionTest${CMAKE_EXECUTABLE_SUFFIX}" )
 
-    add_test_mpi(
-        NAME DistributedMeshTest_2x2
-        NPROC 4
-        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
-    )
-    # FIXME: 3x3 and 4x4 tests cause a deadlock on a single AMD Radeon RX 7900 GRE
-    if(NOT TNL_BUILD_HIP)
-        add_test_mpi(
+    if(TNL_BUILD_HIP)
+        tnl_add_hip_mpi_test(
+            NAME DistributedMeshTest_2x2
+            NPROC 4
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+        tnl_add_hip_mpi_test(
             NAME DistributedMeshTest_3x3
             NPROC 9
             COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
         )
-        add_test_mpi(
+        tnl_add_hip_mpi_test(
+            NAME DistributedMeshTest_4x4
+            NPROC 16
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+        tnl_add_hip_mpi_test(
+            NAME DistributedMeshTest_nodistr
+            NPROC 1
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+    else()
+        tnl_add_mpi_test(
+            NAME DistributedMeshTest_2x2
+            NPROC 4
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+        tnl_add_mpi_test(
+            NAME DistributedMeshTest_3x3
+            NPROC 9
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+        tnl_add_mpi_test(
             NAME DistributedMeshTest_4x4
             NPROC 16
             COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"

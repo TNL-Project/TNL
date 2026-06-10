@@ -49,7 +49,7 @@ if(TNL_BUILD_HIP)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
     endforeach()
 endif()
 
@@ -85,8 +85,12 @@ if(TNL_BUILD_MPI)
             target_link_libraries(${target} PUBLIC ${TESTS_LIBRARIES} ${HYPRE_LIBRARIES})
             target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
 
-            add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-            add_test_mpi(
+            tnl_add_mpi_test(
+                NAME ${target}
+                NPROC 4
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            tnl_add_mpi_test(
                 NAME ${target}_nodistr
                 NPROC 1
                 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"

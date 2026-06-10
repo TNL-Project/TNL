@@ -59,7 +59,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
    void
    setThreadsPerSegmentCountToWarpSize()
    {
-      this->threadsPerSegmentCount = Backend::getWarpSize();
+      this->threadsPerSegmentCount = Backend::getWarpSize( Backend::getDevice() );
    }
 
    [[nodiscard]] int

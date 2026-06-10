@@ -9,11 +9,13 @@
 
 #include <TNL/Backend/Macros.h>
 #include <TNL/Containers/Array.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
 #if defined( __CUDACC__ )
    #include <cub/device/device_merge_sort.cuh>
+#elif defined( __HIPCC__ )
+   #include <hipcub/device/device_merge_sort.hpp>
 #endif
 
 namespace TNL::Algorithms::Sorting {
@@ -68,9 +70,13 @@ struct CUBMergeSort
    sort( Array& array, const Compare& compare )
    {
       using Device = typename Array::DeviceType;
-      static_assert( std::is_same_v< Device, Devices::Cuda >, "CUBMergeSort: unsupported device type" );
+      static_assert( std::is_same_v< Device, Devices::GPU >, "CUBMergeSort: unsupported device type" );
 
-#if defined( __CUDACC__ )
+#if defined( __CUDACC__ ) || defined( __HIPCC__ )
+   #if defined( __HIPCC__ ) && ! defined( __CUDACC__ )
+      namespace cub = hipcub;
+   #endif
+
       const auto size = array.getSize();
       if( size <= 1 )
          return;
@@ -81,14 +87,14 @@ struct CUBMergeSort
       std::size_t temp_storage_bytes = 0;
       TNL_BACKEND_SAFE_CALL( cub::DeviceMergeSort::SortKeys( nullptr, temp_storage_bytes, data, size, compare ) );
 
-      Containers::Array< std::uint8_t, Devices::Cuda, std::size_t > temp_storage;
+      Containers::Array< std::uint8_t, Device, std::size_t > temp_storage;
       temp_storage.setSize( temp_storage_bytes );
 
       TNL_BACKEND_SAFE_CALL(
          cub::DeviceMergeSort::SortKeys(
             static_cast< void* >( temp_storage.getData() ), temp_storage_bytes, data, size, compare ) );
 #else
-      throw Exceptions::NotImplementedError( "CUBMergeSort is supported only when CUDA is enabled." );
+      throw Exceptions::NotImplementedError( "CUBMergeSort is supported only when CUDA or HIP is enabled." );
 #endif
    }
 };

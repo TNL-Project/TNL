@@ -111,9 +111,9 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsS
     * Here we briefly summarize the main idea of the format. Note, that each segment represents slots for the non-zero matrix
     * elements.
     *
-    * 1. We first split all segments into strips of size equal to the warp-size which is 32. If the number of segments is not
-    * divisible by the warp-size, we add virtual segments. The number of all segments including the virtual ones can be obtained
-    * by calling the getVirtualSegments() method.
+    * 1. We first split all segments into strips of size equal to the WarpSize. If the number of
+    * segments is not divisible by the warp-size, we add virtual segments. The number of all segments including the virtual ones
+    * can be obtained by calling the getVirtualSegments() method.
     *
     * 2. In the next step we sort segments in each strip in the descending order according to the segments sizes. This changes
     * the ordering of the segments and so we need to store a permutation mapping the original segment index to the new one.

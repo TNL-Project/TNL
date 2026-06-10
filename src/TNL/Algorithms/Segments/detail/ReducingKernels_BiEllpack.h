@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/detail/BiEllpack.h>
 #include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 
@@ -33,34 +34,36 @@ reduceSegmentsKernelWithAllParameters(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
-   if( segmentIdx >= end )
-      return;
+   const bool active = ( segmentIdx < end );
 
-   const Index strip = segmentIdx / SegmentsView::getWarpSize();
-   const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
-   const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-   const Index groupsCount =
-      Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
-         getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
-   Index groupHeight = SegmentsView::getWarpSize();
-   Index localIdx = 0;
    ReturnType result = identity;
-   for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
-      Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
-      const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
-      if( groupSize ) {
-         const Index groupWidth = groupSize / groupHeight;
-         for( Index i = 0; i < groupWidth; i++ ) {
-            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
-               result = reduction( result, fetch( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ) );
-            else
-               result = reduction( result, fetch( segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ) );
-            localIdx++;
+   if( active ) {
+      const Index strip = segmentIdx / SegmentsView::getWarpSize();
+      const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
+      const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+            getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
+      Index groupHeight = SegmentsView::getWarpSize();
+      Index localIdx = 0;
+      for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+         Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
+         const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
+         if( groupSize ) {
+            const Index groupWidth = groupSize / groupHeight;
+            for( Index i = 0; i < groupWidth; i++ ) {
+               if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+                  result = reduction( result, fetch( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ) );
+               else
+                  result = reduction( result, fetch( segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ) );
+               localIdx++;
+            }
          }
+         groupHeight /= 2;
       }
-      groupHeight /= 2;
    }
-   storer( segmentIdx, result );
+   if( active )
+      storer( segmentIdx, result );
 #endif
 }
 
@@ -92,13 +95,15 @@ reduceSegmentsKernel(
    const Index warpStart = strip << SegmentsView::getLogWarpSize();
    const Index inWarpIdx = segmentIdx & ( SegmentsView::getWarpSize() - 1 );
 
-   if( warpStart >= end )
-      return;
+   const bool active = ( warpStart < end );
 
-   const int warpIdx = threadIdx.x / SegmentsView::getWarpSize();
    const int warpsCount = BlockDim / SegmentsView::getWarpSize();
-   constexpr int groupsInStrip = 6;  // SegmentsView::getLogWarpSize() + 1;
-   Index firstGroupInBlock = 8 * ( strip / 8 ) * groupsInStrip;
+   constexpr int groupsInStrip = SegmentsView::getLogWarpSize() + 1;
+   // Each warp processes one strip, so the number of strips per block equals
+   // the number of warps. The groupPointers array is divided into chunks of
+   // stripsPerBlock strips; this thread's chunk starts at firstGroupInBlock.
+   const int stripsPerBlock = warpsCount;
+   Index firstGroupInBlock = stripsPerBlock * ( strip / stripsPerBlock ) * groupsInStrip;
    Index groupHeight = SegmentsView::getWarpSize();
 
    // Allocate shared memory
@@ -112,72 +117,75 @@ reduceSegmentsKernel(
    {
       sharedGroupPointers[ threadIdx.x ] = segments.getGroupPointersView()[ firstGroupInBlock + threadIdx.x ];
    }
-   const Index sharedGroupOffset = warpIdx * groupsInStrip;
+   // Offset of this warp's strip within the shared group pointers array.
+   // strip % stripsPerBlock gives the strip's position within its block,
+   // but integer arithmetic (strip - strip/stripsPerBlock*stripsPerBlock)
+   // avoids a potentially expensive modulo on GPU.
+   const Index sharedGroupOffset = ( strip - strip / stripsPerBlock * stripsPerBlock ) * groupsInStrip;
    __syncthreads();
 
    // Perform the reduction
    if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
-      for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
-         Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
-         Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
-         TNL_ASSERT_LE( groupBegin, segments.getStorageSize(), "" );
-         TNL_ASSERT_LE( groupEnd, segments.getStorageSize(), "" );
-         if( groupEnd - groupBegin > 0 ) {
-            if( inWarpIdx < groupHeight ) {
-               const Index groupWidth = ( groupEnd - groupBegin ) / groupHeight;
-               Index globalIdx = groupBegin + inWarpIdx * groupWidth;
-               for( Index i = 0; i < groupWidth; i++ ) {
-                  TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-                  results[ threadIdx.x ] = reduction( results[ threadIdx.x ], fetch( globalIdx++ ) );
+      if( active ) {
+         for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
+            Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
+            Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
+            TNL_ASSERT_LE( groupBegin, segments.getStorageSize(), "" );
+            TNL_ASSERT_LE( groupEnd, segments.getStorageSize(), "" );
+            if( groupEnd - groupBegin > 0 ) {
+               if( inWarpIdx < groupHeight ) {
+                  const Index groupWidth = ( groupEnd - groupBegin ) / groupHeight;
+                  Index globalIdx = groupBegin + inWarpIdx * groupWidth;
+                  for( Index i = 0; i < groupWidth; i++ ) {
+                     TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+                     results[ threadIdx.x ] = reduction( results[ threadIdx.x ], fetch( globalIdx++ ) );
+                  }
                }
             }
+            groupHeight >>= 1;
          }
-         groupHeight >>= 1;
       }
    }
    else {
-      ReturnType* temp = Backend::getSharedMemory< ReturnType >();
-      for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
-         Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
-         Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
-         if( groupEnd - groupBegin > 0 ) {
-            temp[ threadIdx.x ] = identity;
-            Index globalIdx = groupBegin + inWarpIdx;
-            while( globalIdx < groupEnd ) {
-               temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], fetch( globalIdx ) );
-               globalIdx += SegmentsView::getWarpSize();
+      if( active ) {
+         ReturnType* temp = Backend::getSharedMemory< ReturnType >();
+         auto warp = cg::tiled_partition< SegmentsView::getWarpSize() >( cg::this_thread_block() );
+         for( Index group = 0; group < SegmentsView::getLogWarpSize() + 1; group++ ) {
+            Index groupBegin = sharedGroupPointers[ sharedGroupOffset + group ];
+            Index groupEnd = sharedGroupPointers[ sharedGroupOffset + group + 1 ];
+            if( groupEnd - groupBegin > 0 ) {
+               temp[ threadIdx.x ] = identity;
+               Index globalIdx = groupBegin + inWarpIdx;
+               while( globalIdx < groupEnd ) {
+                  temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], fetch( globalIdx ) );
+                  globalIdx += SegmentsView::getWarpSize();
+               }
+
+               warp.sync();
+               #pragma unroll
+               for( int step = 0; step < SegmentsView::getLogWarpSize(); step++ ) {
+                  const int threshold = SegmentsView::getWarpSize() >> ( step + 1 );
+                  if( group > step && inWarpIdx < threshold )
+                     temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + threshold ] );
+                  warp.sync();
+               }
+
+               if( inWarpIdx < groupHeight )
+                  results[ threadIdx.x ] = reduction( results[ threadIdx.x ], temp[ threadIdx.x ] );
             }
-
-            __syncwarp();
-            if( group > 0 && inWarpIdx < 16 )
-               temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 16 ] );
-            __syncwarp();
-            if( group > 1 && inWarpIdx < 8 )
-               temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 8 ] );
-            __syncwarp();
-            if( group > 2 && inWarpIdx < 4 )
-               temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 4 ] );
-            __syncwarp();
-            if( group > 3 && inWarpIdx < 2 )
-               temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 2 ] );
-            __syncwarp();
-            if( group > 4 && inWarpIdx < 1 )
-               temp[ threadIdx.x ] = reduction( temp[ threadIdx.x ], temp[ threadIdx.x + 1 ] );
-            __syncwarp();
-
-            if( inWarpIdx < groupHeight )
-               results[ threadIdx.x ] = reduction( results[ threadIdx.x ], temp[ threadIdx.x ] );
+            groupHeight >>= 1;
          }
-         groupHeight >>= 1;
       }
    }
    __syncthreads();
-   if( warpStart + inWarpIdx >= end )
-      return;
 
-   // Store the results
-   storer(
-      warpStart + inWarpIdx, results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
+   // Store the results - only active threads with valid segment index
+   const bool storeActive = active && ( warpStart + inWarpIdx < end );
+   if( storeActive ) {
+      storer(
+         warpStart + inWarpIdx,
+         results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
+   }
 #endif
 }
 
@@ -230,42 +238,43 @@ BiEllpackReduceSegmentsKernelWithIndexes(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index strip = segmentIdx / SegmentsView::getWarpSize();
-   const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
-   const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-   const Index groupsCount =
-      Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
-         getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
-   Index groupHeight = SegmentsView::getWarpSize();
-   Index localIdx = 0;
    ReturnType result = identity;
-   for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
-      Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
-      const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
-      if( groupSize ) {
-         const Index groupWidth = groupSize / groupHeight;
-         for( Index i = 0; i < groupWidth; i++ ) {
-            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
-               result = reduction(
-                  result,
-                  FetchLambdaAdapter< Index, Fetch >::call(
-                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ) );
-            else
-               result = reduction(
-                  result,
-                  FetchLambdaAdapter< Index, Fetch >::call(
-                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ) );
-            localIdx++;
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index strip = segmentIdx / SegmentsView::getWarpSize();
+      const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
+      const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+            getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
+      Index groupHeight = SegmentsView::getWarpSize();
+      Index localIdx = 0;
+      for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+         Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
+         const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
+         if( groupSize ) {
+            const Index groupWidth = groupSize / groupHeight;
+            for( Index i = 0; i < groupWidth; i++ ) {
+               if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+                  result = reduction(
+                     result,
+                     FetchLambdaAdapter< Index, Fetch >::call(
+                        fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ) );
+               else
+                  result = reduction(
+                     result,
+                     FetchLambdaAdapter< Index, Fetch >::call(
+                        fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ) );
+               localIdx++;
+            }
          }
+         groupHeight /= 2;
       }
-      groupHeight /= 2;
+      storer( segmentIdx_idx, segmentIdx, result );
    }
-   storer( segmentIdx_idx, segmentIdx, result );
 #endif
 }
 
@@ -292,46 +301,49 @@ reduceSegmentsKernelWithAllParametersWithArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
-   if( segmentIdx >= end )
-      return;
+   const bool active = ( segmentIdx < end );
 
-   const Index strip = segmentIdx / SegmentsView::getWarpSize();
-   const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
-   const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-   const Index groupsCount =
-      Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
-         getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
-   Index groupHeight = SegmentsView::getWarpSize();
-   Index localIdx = 0;
    Index argument = 0;
    ReturnType result = identity;
-   for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
-      Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
-      const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
-      if( groupSize ) {
-         const Index groupWidth = groupSize / groupHeight;
-         for( Index i = 0; i < groupWidth; i++ ) {
-            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
-               reduction(
-                  result,
-                  detail::FetchLambdaAdapter< Index, Fetch >::call(
-                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
-                  argument,
-                  localIdx );
-            else
-               reduction(
-                  result,
-                  detail::FetchLambdaAdapter< Index, Fetch >::call(
-                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
-                  argument,
-                  localIdx );
-            localIdx++;
+   if( active ) {
+      const Index strip = segmentIdx / SegmentsView::getWarpSize();
+      const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
+      const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+            getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
+      Index groupHeight = SegmentsView::getWarpSize();
+      Index localIdx = 0;
+      for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+         Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
+         const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
+         if( groupSize ) {
+            const Index groupWidth = groupSize / groupHeight;
+            for( Index i = 0; i < groupWidth; i++ ) {
+               if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+                  reduction(
+                     result,
+                     detail::FetchLambdaAdapter< Index, Fetch >::call(
+                        fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
+                     argument,
+                     localIdx );
+               else
+                  reduction(
+                     result,
+                     detail::FetchLambdaAdapter< Index, Fetch >::call(
+                        fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
+                     argument,
+                     localIdx );
+               localIdx++;
+            }
          }
+         groupHeight /= 2;
       }
-      groupHeight /= 2;
    }
-   bool emptySegment = ( groupsCount == 0 );
-   storer( segmentIdx, argument, result, emptySegment );
+   if( active ) {
+      bool emptySegment = false;
+      storer( segmentIdx, argument, result, emptySegment );
+   }
 #endif
 }
 
@@ -383,48 +395,49 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index strip = segmentIdx / SegmentsView::getWarpSize();
-   const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
-   const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
-   const Index groupsCount =
-      Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
-         getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
-   Index groupHeight = SegmentsView::getWarpSize();
-   Index localIdx = 0;
    ReturnType result = identity;
    Index argument = 0;
-   for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
-      Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
-      const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
-      if( groupSize ) {
-         const Index groupWidth = groupSize / groupHeight;
-         for( Index i = 0; i < groupWidth; i++ ) {
-            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
-               reduction(
-                  result,
-                  FetchLambdaAdapter< Index, Fetch >::call(
-                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
-                  argument,
-                  localIdx );
-            else
-               reduction(
-                  result,
-                  FetchLambdaAdapter< Index, Fetch >::call(
-                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
-                  argument,
-                  localIdx );
-            localIdx++;
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index strip = segmentIdx / SegmentsView::getWarpSize();
+      const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
+      const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
+      const Index groupsCount = Segments::detail::
+         BiEllpack< Index, typename SegmentsView::DeviceType, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+            getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
+      Index groupHeight = SegmentsView::getWarpSize();
+      Index localIdx = 0;
+      for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+         Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
+         const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
+         if( groupSize ) {
+            const Index groupWidth = groupSize / groupHeight;
+            for( Index i = 0; i < groupWidth; i++ ) {
+               if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+                  reduction(
+                     result,
+                     FetchLambdaAdapter< Index, Fetch >::call(
+                        fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
+                     argument,
+                     localIdx );
+               else
+                  reduction(
+                     result,
+                     FetchLambdaAdapter< Index, Fetch >::call(
+                        fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
+                     argument,
+                     localIdx );
+               localIdx++;
+            }
          }
+         groupHeight /= 2;
       }
-      groupHeight /= 2;
+      bool emptySegment = false;
+      storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
    }
-   bool emptySegment = ( groupsCount == 0 );
-   storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
 #endif
 }
 

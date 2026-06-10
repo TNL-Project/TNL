@@ -295,9 +295,10 @@ DenseTranspositionKernel(
    Index row = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.y;
    Index col = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.x;
 
-   if( row < matrixRows && col < matrixColumns ) {
+   if( row < matrixRows && col < matrixColumns )
       tile[ threadIdx.y ][ threadIdx.x ] = inputMatrix( row, col ) * matrixMultiplicator;
-   }
+   else
+      tile[ threadIdx.y ][ threadIdx.x ] = 0;
 
    __syncthreads();
 
@@ -359,13 +360,15 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
       Backend::streamSynchronize( launch_config.stream );
    }
    else {
-      const Index& rows = matrix.getRows();
-      const Index& columns = matrix.getColumns();
+      const Index rows = matrix.getRows();
+      const Index columns = matrix.getColumns();
+      auto matrixView = matrix.getConstView();
+      auto resultView = resultMatrix.getView();
       for( Index i = 0; i < rows; i += tileDim )
          for( Index j = 0; j < columns; j += tileDim )
             for( Index k = i; k < i + tileDim && k < rows; k++ )
                for( Index l = j; l < j + tileDim && l < columns; l++ )
-                  resultMatrix.setElement( l, k, matrixMultiplicator * matrix.getElement( k, l ) );
+                  resultView( l, k ) = matrixMultiplicator * matrixView( k, l );
    }
 }
 
@@ -379,27 +382,72 @@ DenseInPlaceTranspositionKernel(
    const typename Matrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   __shared__ Real tile[ tileDim ][ tileDim + 1 ];
+   __shared__ Real tile1[ tileDim ][ tileDim + 1 ];
+   __shared__ Real tile2[ tileDim ][ tileDim + 1 ];
 
-   const Index matrixColumns = matrix.getColumns();
-   const Index matrixRows = matrix.getRows();
+   const Index matrixSize = matrix.getRows();
 
-   // Adjust global block indices using gridIdx_x and gridIdx_y
-   Index xIndex = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.x;
-   Index yIndex = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.y;
+   const Index tileRow = blockIdx.y + gridIdx_y * Backend::getMaxGridYSize();
+   const Index tileCol = blockIdx.x + gridIdx_x * Backend::getMaxGridXSize();
 
-   if( xIndex < matrixColumns && yIndex < matrixRows ) {
-      tile[ threadIdx.y ][ threadIdx.x ] = matrix( yIndex, xIndex ) * matrixMultiplicator;
+   // Only process upper triangle (including diagonal) to avoid race conditions
+   // between blocks processing mirrored tile pairs
+   if( tileRow > tileCol )
+      return;
+
+   const Index tx = threadIdx.x;
+   const Index ty = threadIdx.y;
+
+   if( tileRow == tileCol ) {
+      // Diagonal tile: transpose within the tile using shared memory
+      const Index row = tileRow * tileDim + ty;
+      const Index col = tileCol * tileDim + tx;
+
+      if( row < matrixSize && col < matrixSize )
+         tile1[ ty ][ tx ] = matrix( row, col ) * matrixMultiplicator;
+      else
+         tile1[ ty ][ tx ] = 0;
+
+      __syncthreads();
+
+      // Write back transposed: thread (ty,tx) holds tile1[ty][tx] from (row,col),
+      // and writes it to the transposed position (col,row)
+      if( row < matrixSize && col < matrixSize )
+         matrix( col, row ) = tile1[ ty ][ tx ];
    }
+   else {
+      // Off-diagonal tile: read both this tile and its mirror, then write
+      // both back transposed. This avoids the race condition where two
+      // separate blocks read/write each other's regions without synchronization.
 
-   __syncthreads();
+      // Read upper-triangle tile at (tileRow, tileCol)
+      const Index row1 = tileRow * tileDim + ty;
+      const Index col1 = tileCol * tileDim + tx;
+      if( row1 < matrixSize && col1 < matrixSize )
+         tile1[ ty ][ tx ] = matrix( row1, col1 ) * matrixMultiplicator;
+      else
+         tile1[ ty ][ tx ] = 0;
 
-   // Adjust writing based on result matrix organization
-   xIndex = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.x;
-   yIndex = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.y;
+      // Read lower-triangle mirror tile at (tileCol, tileRow)
+      const Index row2 = tileCol * tileDim + ty;
+      const Index col2 = tileRow * tileDim + tx;
+      if( row2 < matrixSize && col2 < matrixSize )
+         tile2[ ty ][ tx ] = matrix( row2, col2 ) * matrixMultiplicator;
+      else
+         tile2[ ty ][ tx ] = 0;
 
-   if( xIndex < matrixRows && yIndex < matrixColumns ) {
-      matrix( yIndex, xIndex ) = tile[ threadIdx.x ][ threadIdx.y ];
+      __syncthreads();
+
+      // Thread (ty,tx) holds tile1[ty][tx] from position (row1,col1) and
+      // tile2[ty][tx] from position (row2,col2). Write each to the
+      // transposed destination:
+      //   tile1[ty][tx] (from tileRow,tileCol) → position (col1,row1)
+      //   tile2[ty][tx] (from tileCol,tileRow) → position (col2,row2)
+      if( col1 < matrixSize && row1 < matrixSize )
+         matrix( col1, row1 ) = tile1[ ty ][ tx ];
+
+      if( col2 < matrixSize && row2 < matrixSize )
+         matrix( col2, row2 ) = tile2[ ty ][ tx ];
    }
 #endif
 }
@@ -418,7 +466,6 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = tileDim;
-      launch_config.dynamicSharedMemorySize = tileDim * tileDim + tileDim * tileDim / Backend::getNumberOfSharedMemoryBanks();
 
       const Index rowTiles = Backend::getNumberOfBlocks( matrix.getRows(), tileDim );
       const Index columnTiles = Backend::getNumberOfBlocks( matrix.getColumns(), tileDim );
@@ -442,14 +489,27 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
    }
    else {
       const Index rows = matrix.getRows();
-      const Index columns = matrix.getColumns();
-
-      // Performing in-place transposition for square matrices
-      for( Index i = 0; i < rows; ++i ) {
-         for( Index j = i + 1; j < columns; ++j ) {
-            Real temp = matrix.getElement( i, j );
-            matrix.setElement( i, j, matrix.getElement( j, i ) );
-            matrix.setElement( j, i, temp );
+      auto matrixView = matrix.getView();
+      for( Index ti = 0; ti < rows; ti += tileDim ) {
+         const Index tileEnd_i = min( ti + tileDim, rows );
+         // Diagonal tile: only apply multiplicator to upper triangle
+         for( Index i = ti; i < tileEnd_i; i++ ) {
+            matrixView( i, i ) *= matrixMultiplicator;
+            for( Index j = i + 1; j < tileEnd_i; j++ ) {
+               Real temp = matrixView( i, j ) * matrixMultiplicator;
+               matrixView( i, j ) = matrixView( j, i ) * matrixMultiplicator;
+               matrixView( j, i ) = temp;
+            }
+         }
+         // Off-diagonal tiles: swap with transposed tile pair
+         for( Index tj = ti + tileDim; tj < rows; tj += tileDim ) {
+            const Index tileEnd_j = min( tj + tileDim, rows );
+            for( Index i = ti; i < tileEnd_i; i++ )
+               for( Index j = tj; j < tileEnd_j; j++ ) {
+                  Real temp = matrixView( i, j ) * matrixMultiplicator;
+                  matrixView( i, j ) = matrixView( j, i ) * matrixMultiplicator;
+                  matrixView( j, i ) = temp;
+               }
          }
       }
    }

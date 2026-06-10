@@ -8,7 +8,13 @@ set(COMMON_EXAMPLES
 
 set(MPI_COMMON_EXAMPLES DistributedArrayExample DistributedVectorExample DistributedNDArrayExample)
 
-set(mpirun_parameters -np 4 -H localhost:4)
+set(mpirun_parameters
+    -np
+    4
+    --bind-to
+    none
+    --oversubscribe
+)
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${COMMON_EXAMPLES} ${MPI_COMMON_EXAMPLES})

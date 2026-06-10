@@ -94,14 +94,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsSequential( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
@@ -393,14 +393,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       LaunchConfiguration launchConfig )
    {
       using ArrayView = typename Array::ConstViewType;
-      if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
@@ -713,14 +713,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
@@ -1013,7 +1013,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       LaunchConfiguration launchConfig )
    {
       using ArrayView = typename Array::ConstViewType;
-      if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsWithIndexesAndArgumentSequential(
@@ -1021,7 +1021,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount *= (std::size_t) Backend::getWarpSize();
+               threadsCount *= Backend::getWarpSize( Backend::getDevice() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();

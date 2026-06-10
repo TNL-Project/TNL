@@ -6,6 +6,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
 #include <TNL/Algorithms/detail/CudaReductionKernel.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Backend/LaunchHelpers.h>
 
 namespace TNL::Algorithms::Segments::detail {
@@ -38,45 +39,46 @@ reduceSegmentsRowMajorSlicedEllpackKernel(
    constexpr Index SliceSize = Segments::getSliceSize();
 
    const Index segmentIdx = ( begin / SliceSize ) * SliceSize + Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
-   if( segmentIdx < begin || segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-
-   const Index sliceIdx = segmentIdx / SliceSize;
-   const Index segmentInSliceIdx = segmentIdx % SliceSize;
-   TNL_ASSERT_LT( sliceIdx, segments.getSliceSegmentSizesView().getSize(), "" );
-
-   const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
-
-   const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-   const Index endIdx = beginIdx + segmentSize;
-   TNL_ASSERT_EQ( beginIdx, segments.getGlobalIndex( segmentIdx, 0 ), "" );
-   TNL_ASSERT_LE( endIdx, segments.getStorageSize(), "" );
+   const bool active = ( segmentIdx >= begin && segmentIdx < end );
 
    ReturnType result = identity;
-   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-      Index localIdx = laneIdx;
-      for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-         TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
-         TNL_ASSERT_LT( globalIdx, endIdx, "" );
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
-         localIdx += ThreadsPerSegment;
+   if( active ) {
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+
+      const Index sliceIdx = segmentIdx / SliceSize;
+      const Index segmentInSliceIdx = segmentIdx % SliceSize;
+      TNL_ASSERT_LT( sliceIdx, segments.getSliceSegmentSizesView().getSize(), "" );
+
+      const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
+
+      const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+      const Index endIdx = beginIdx + segmentSize;
+      TNL_ASSERT_EQ( beginIdx, segments.getGlobalIndex( segmentIdx, 0 ), "" );
+      TNL_ASSERT_LE( endIdx, segments.getStorageSize(), "" );
+
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneIdx;
+         for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+            TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
+            TNL_ASSERT_LT( globalIdx, endIdx, "" );
+            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+            result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+            localIdx += ThreadsPerSegment;
+         }
       }
-   }
-   else {
-      for( Index i = beginIdx + laneIdx; i < endIdx; i += ThreadsPerSegment ) {
-         result = reduce( result, fetch( i ) );
+      else {
+         for( Index i = beginIdx + laneIdx; i < endIdx; i += ThreadsPerSegment ) {
+            result = reduce( result, fetch( i ) );
+         }
       }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
-   if( ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
       store( segmentIdx, result );
    }
 #endif
@@ -114,7 +116,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       ThreadsPerSegment * Segments::getSliceSize() <= BlockSize,
       "There are not enough threads in the block for the given configuration (ThreadsPerSegment and SliceSize)." );
    static_assert(
-      ThreadsPerSegment * Segments::getSliceSize() >= Backend::getWarpSize(),
+      ThreadsPerSegment * Segments::getSliceSize() >= Backend::getMinWarpSize(),
       "The SliceSize is too small for given configuration (ThreadsPerSegment and warp size)." );
    /////
    // To describe this kernel we assume that the SlizeSize = 4. Then the mapping of segment elements is as follows:
@@ -210,58 +212,9 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       // We can use warp shuffles to perform reduction within each row (i.e. within each segment).
       /////
       __syncthreads();
-   #if defined( __HIP__ )
-      if( ThreadsPerSegment > 16 ) {
-         result = reduce( result, __shfl_down( result, 16 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, 8 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 8 ) {
-         result = reduce( result, __shfl_down( result, 8 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 4 ) {
-         result = reduce( result, __shfl_down( result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 2 ) {
-         result = reduce( result, __shfl_down( result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down( result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 1 )
-         result = reduce( result, __shfl_down( result, SliceSize ) );
-   #else
-      if( ThreadsPerSegment > 16 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 8 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 4 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 2 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 * SliceSize ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, SliceSize ) );
-      }
-      else if( ThreadsPerSegment > 1 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, SliceSize ) );
-      }
-   #endif
+      // Parallel reduction using strided warp shuffle (SliceSize stride)
+      using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
+      result = BlockReduce::template warpReduce< ThreadsPerSegment, SliceSize >( reduce, result );
       // Write the result
       if( inSliceThreadIdx < SliceSize && segmentIdx >= begin && segmentIdx < end ) {
          store( segmentIdx, result );
@@ -336,9 +289,10 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       //          +---------+--------+
       /////
       result = sharedResults[ threadIdx.x ];
-      __syncwarp();
+      auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
+      warp.sync();
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
-      result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+      result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
       /////
       // Finally, we write the result. The mapping of threads having the result of the reduction is as follows:
@@ -389,7 +343,8 @@ reduceSegmentsSlicedEllpackKernel(
    const Value identity )
 {
    static_assert(
-      ThreadsPerSegment <= Backend::getWarpSize(), "ThreadsPerSegment must be less than or equal to the warp size." );
+      ThreadsPerSegment <= Backend::getMaxWarpSize(),
+      "ThreadsPerSegment must be less than or equal to the maximum warp size." );
    if constexpr( Segments::getOrganization() == RowMajorOrder )
       reduceSegmentsRowMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
          gridIdx, segments, begin, end, fetch, reduce, store, identity );

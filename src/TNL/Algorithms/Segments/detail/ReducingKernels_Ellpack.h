@@ -36,35 +36,38 @@ EllpackCudaReductionKernel(
    const int gridIdx = 0;
    const Index segmentIdx =
       begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx >= end )
-      return;
+   const bool active = ( segmentIdx < end );
 
-   const Index segmentSize = segments.getSegmentSize();
    ReturnType result = identity;
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+   if( active ) {
+      const Index segmentSize = segments.getSegmentSize();
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
 
-   begin = segmentIdx * segmentSize;  // reusing begin and end variables - now they define
-   end = begin + segmentSize;         // the range of the global indices
+      begin = segmentIdx * segmentSize;  // reusing begin and end variables - now they define
+      end = begin + segmentSize;         // the range of the global indices
 
-   // Calculate the result
-   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-      Index localIdx = laneIdx;
-      for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+      // Calculate the result
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneIdx;
+         for( Index globalIdx = begin + laneIdx; globalIdx < end;
+              globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment )
+         {
+            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+            result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+         }
+      }
+      else {
+         for( Index i = begin + laneIdx; i < end; i += ThreadsPerSegment )
+            result = reduce( result, fetch( i ) );
       }
    }
-   else {
-      for( Index i = begin + laneIdx; i < end; i += ThreadsPerSegment )
-         result = reduce( result, fetch( i ) );
-   }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
-   if( laneIdx == 0 )
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 )
       store( segmentIdx, result );
 
 #endif
@@ -95,38 +98,43 @@ EllpackCudaReductionKernelWithSegmentIndexes(
    const int gridIdx = 0;
    const Index segmentIdx_idx =
       ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index segmentSize = segments.getSegmentSize();
    ReturnType result = identity;
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index segmentSize = segments.getSegmentSize();
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
 
-   Index begin = segmentIdx * segmentSize;
-   Index end = begin + segmentSize;
+      Index begin = segmentIdx * segmentSize;
+      Index end = begin + segmentSize;
 
-   // Calculate the result
-   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-      Index localIdx = laneIdx;
-      for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+      // Calculate the result
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneIdx;
+         for( Index globalIdx = begin + laneIdx; globalIdx < end;
+              globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment )
+         {
+            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+            result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+         }
+      }
+      else {
+         for( Index i = begin + laneIdx; i < end; i += ThreadsPerSegment )
+            result = reduce( result, fetch( i ) );
       }
    }
-   else {
-      for( Index i = begin + laneIdx; i < end; i += ThreadsPerSegment )
-         result = reduce( result, fetch( i ) );
-   }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
-   if( laneIdx == 0 )
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
       store( segmentIdx_idx, segmentIdx, result );
+   }
 
 #endif
 }
@@ -158,36 +166,40 @@ EllpackCudaReductionKernelWithArgument(
    const int gridIdx = 0;
    const Index segmentIdx =
       begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx >= end )
-      return;
+   const bool active = ( segmentIdx < end );
 
-   const Index segmentSize = segments.getSegmentSize();
    ReturnType result = identity;
    Index argument = 0;
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+   if( active ) {
+      const Index segmentSize = segments.getSegmentSize();
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
 
-   begin = segmentIdx * segmentSize;  // reusing begin and end variables - now they define
-   end = begin + segmentSize;         // the range of the global indices
+      begin = segmentIdx * segmentSize;  // reusing begin and end variables - now they define
+      end = begin + segmentSize;         // the range of the global indices
 
-   // Calculate the result
-   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-      Index localIdx = laneIdx;
-      for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         reduce( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
+      // Calculate the result
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneIdx;
+         for( Index globalIdx = begin + laneIdx; globalIdx < end;
+              globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment )
+         {
+            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+            reduce( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
+         }
+      }
+      else {
+         for( Index i = begin + laneIdx; i < end; i += ThreadsPerSegment )
+            reduce( result, fetch( i ), argument, i - begin );
       }
    }
-   else {
-      for( Index i = begin + laneIdx; i < end; i += ThreadsPerSegment )
-         reduce( result, fetch( i ), argument, i - begin );
-   }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
-   if( laneIdx == 0 ) {
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
+      const Index segmentSize = segments.getSegmentSize();
       bool emptySegment = ( segmentSize == 0 );
       store( segmentIdx, argument_, result_, emptySegment );
    }
@@ -220,35 +232,38 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument(
    const int gridIdx = 0;
    const Index segmentIdx_idx =
       ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index segmentSize = segments.getSegmentSize();
    ReturnType result = identity;
    Index argument = 0;
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index segmentSize = segments.getSegmentSize();
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
 
-   Index begin = segmentIdx * segmentSize;
-   Index end = begin + segmentSize;
+      Index begin = segmentIdx * segmentSize;
+      Index end = begin + segmentSize;
 
-   // Calculate the result
-   Index localIdx = laneIdx;
-   for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
-      TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-      if constexpr( callableArgumentCount< Fetch >() == 3 )
-         reduce( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
-      else
-         reduce( result, fetch( globalIdx ), argument, localIdx );
+      // Calculate the result
+      Index localIdx = laneIdx;
+      for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
+         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+         if constexpr( callableArgumentCount< Fetch >() == 3 )
+            reduce( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
+         else
+            reduce( result, fetch( globalIdx ), argument, localIdx );
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
-   if( laneIdx == 0 ) {
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index segmentSize = segments.getSegmentSize();
       bool emptySegment = ( segmentSize == 0 );
       store( segmentIdx_idx, segmentIdx, argument_, result_, emptySegment );
    }

@@ -271,6 +271,20 @@
           "label": "MPI"
         }
       }
+    },
+    {
+      "name": "hip-tests",
+      "displayName": "HIP tests (serialized)",
+      "inherits": "default",
+      "configurePreset": "toolchain-hip",
+      "execution": {
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "HIP"
+        }
+      }
     }
   ]
 }

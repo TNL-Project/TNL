@@ -7,6 +7,7 @@
 #include <TNL/Algorithms/Segments/detail/CSRAdaptiveKernelBlockDescriptor.h>
 #include <TNL/Algorithms/Segments/detail/CSRAdaptiveKernelParameters.h>
 #include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 
@@ -64,7 +65,8 @@ reduceSegmentsCSRAdaptiveKernel(
       // Stream data to shared memory
       for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
          streamShared[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
-      __syncwarp();
+      auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
+      warp.sync();
       const Index lastSegmentIdx = firstSegmentIdx + block.getSegmentsInBlock();
 
       for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
@@ -113,33 +115,18 @@ reduceSegmentsCSRAdaptiveKernel(
          multivectorShared[ warpIdx ] = result;
 
       __syncthreads();
-      // Reduction in multivectorShared
-      if( block.getWarpIdx() == 0 && laneIdx < 16 ) {
+      // Reduction in multivectorShared using warp-level shuffle
+      if( block.getWarpIdx() == 0 ) {
          constexpr int totalWarps = CudaBlockSize / WarpSize;
-         if( totalWarps >= 32 ) {
-            multivectorShared[ laneIdx ] = reduction( multivectorShared[ laneIdx ], multivectorShared[ laneIdx + 16 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 16 ) {
-            multivectorShared[ laneIdx ] = reduction( multivectorShared[ laneIdx ], multivectorShared[ laneIdx + 8 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 8 ) {
-            multivectorShared[ laneIdx ] = reduction( multivectorShared[ laneIdx ], multivectorShared[ laneIdx + 4 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 4 ) {
-            multivectorShared[ laneIdx ] = reduction( multivectorShared[ laneIdx ], multivectorShared[ laneIdx + 2 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 2 ) {
-            multivectorShared[ laneIdx ] = reduction( multivectorShared[ laneIdx ], multivectorShared[ laneIdx + 1 ] );
-            __syncwarp();
-         }
-         if( laneIdx == 0 ) {
-            //printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared[ 0 ] );
-            store( segmentIdx, multivectorShared[ 0 ] );
-         }
+         auto myValue = ( laneIdx < totalWarps ) ? multivectorShared[ laneIdx ] : identity;
+         myValue = BlockReduce::warpReduce( reduction, myValue );
+         if( laneIdx == 0 )
+            multivectorShared[ 0 ] = myValue;
+      }
+      __syncthreads();
+
+      if( laneIdx == 0 ) {
+         store( segmentIdx, multivectorShared[ 0 ] );
       }
    }
 #endif
@@ -199,8 +186,8 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
       // Stream data to shared memory
       for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
          streamShared_result[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
-
-      __syncwarp();
+      auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
+      warp.sync();
       const Index lastSegmentIdx = firstSegmentIdx + block.getSegmentsInBlock();
 
       for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
@@ -255,54 +242,22 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
       }
 
       __syncthreads();
-      // Reduction in multivectorShared
-      if( block.getWarpIdx() == 0 && laneIdx < 16 ) {
+      // Reduction in multivectorShared using warp-level shuffle
+      if( block.getWarpIdx() == 0 ) {
          constexpr int totalWarps = CudaBlockSize / WarpSize;
-         if( totalWarps >= 32 ) {
-            reduction(
-               multivectorShared_result[ laneIdx ],
-               multivectorShared_result[ laneIdx + 16 ],
-               multivectorShared_argument[ laneIdx ],
-               multivectorShared_argument[ laneIdx + 16 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 16 ) {
-            reduction(
-               multivectorShared_result[ laneIdx ],
-               multivectorShared_result[ laneIdx + 8 ],
-               multivectorShared_argument[ laneIdx ],
-               multivectorShared_argument[ laneIdx + 8 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 8 ) {
-            reduction(
-               multivectorShared_result[ laneIdx ],
-               multivectorShared_result[ laneIdx + 4 ],
-               multivectorShared_argument[ laneIdx ],
-               multivectorShared_argument[ laneIdx + 4 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 4 ) {
-            reduction(
-               multivectorShared_result[ laneIdx ],
-               multivectorShared_result[ laneIdx + 2 ],
-               multivectorShared_argument[ laneIdx ],
-               multivectorShared_argument[ laneIdx + 2 ] );
-            __syncwarp();
-         }
-         if( totalWarps >= 2 ) {
-            reduction(
-               multivectorShared_result[ laneIdx ],
-               multivectorShared_result[ laneIdx + 1 ],
-               multivectorShared_argument[ laneIdx ],
-               multivectorShared_argument[ laneIdx + 1 ] );
-            __syncwarp();
-         }
+         auto myResult = ( laneIdx < totalWarps ) ? multivectorShared_result[ laneIdx ] : identity;
+         auto myArgument = ( laneIdx < totalWarps ) ? multivectorShared_argument[ laneIdx ] : Index{};
+         auto [ reducedResult, reducedArgument ] = BlockReduce::warpReduceWithArgument( reduction, myResult, myArgument );
          if( laneIdx == 0 ) {
-            //printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared_result[ 0 ] );
-            bool emptySegment = ( begin == end );
-            store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ], emptySegment );
+            multivectorShared_result[ 0 ] = reducedResult;
+            multivectorShared_argument[ 0 ] = reducedArgument;
          }
+      }
+      __syncthreads();
+
+      if( laneIdx == 0 ) {
+         bool emptySegment = ( begin == end );
+         store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ], emptySegment );
       }
    }
 #endif

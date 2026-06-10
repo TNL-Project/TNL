@@ -84,31 +84,34 @@ reduceSegmentsCSRVariableVectorKernel(
 
    const Index segmentIdx =
       begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx >= end )
-      return;
+   const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
-   const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   Index endID = segments.getOffsets()[ segmentIdx + 1 ];
+   if( active ) {
+      const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      Index endID = segments.getOffsets()[ segmentIdx + 1 ];
 
-   // Calculate result
-   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-      Index localIdx = laneID;
-      for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment )
-         result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
-      localIdx += ThreadsPerSegment;
-   }
-   else {
-      for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment )
-         result = reduce( result, fetch( globalIdx ) );
+      // Calculate result
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneID;
+         for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
+              globalIdx += ThreadsPerSegment )
+            result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+         localIdx += ThreadsPerSegment;
+      }
+      else {
+         for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
+              globalIdx += ThreadsPerSegment )
+            result = reduce( result, fetch( globalIdx ) );
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduce, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
-   if( laneID == 0 )
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 )
       store( segmentIdx, result );
 #endif
 }
@@ -138,21 +141,22 @@ reduceSegmentsCSRLightMultivectorKernel(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
-   if( segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   const Index beginIdx = segments.getOffsets()[ segmentIdx ];
-   const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+   const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
-   Index localIdx = laneIdx;
-   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      result = reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
-      localIdx += ThreadsPerSegment;
+   if( active ) {
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      const Index beginIdx = segments.getOffsets()[ segmentIdx ];
+      const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+
+      Index localIdx = laneIdx;
+      for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+         result = reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
+         localIdx += ThreadsPerSegment;
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
    result = BlockReduce::warpReduce( reduce, result );
 
@@ -165,14 +169,14 @@ reduceSegmentsCSRLightMultivectorKernel(
 
    // Write results of parallel reduction to shared memory
    __syncthreads();
-   if( inWarpLaneIdx == 0 )
+   if( active && inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
    // The first warp performs the remaining reduction
    __syncthreads();
    if( warpIdx == 0 ) {
       ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
-      partial = BlockReduce::warpReduce< warpsPerSegment >( reduce, partial );
+      partial = BlockReduce::template warpReduce< warpsPerSegment >( reduce, partial );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && segmentIdx + groupIdx < end )
@@ -425,34 +429,39 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes(
 
    const Index segmentIdx_idx =
       ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
    ReturnType result = identity;
-   const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   Index endID = segments.getOffsets()[ segmentIdx + 1 ];
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      Index endID = segments.getOffsets()[ segmentIdx + 1 ];
 
-   // Calculate result
-   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-      Index localIdx = laneID;
-      for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment )
-         result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
-      localIdx += ThreadsPerSegment;
-   }
-   else {
-      for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment )
-         result = reduce( result, fetch( globalIdx ) );
+      // Calculate result
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneID;
+         for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
+              globalIdx += ThreadsPerSegment )
+            result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+         localIdx += ThreadsPerSegment;
+      }
+      else {
+         for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
+              globalIdx += ThreadsPerSegment )
+            result = reduce( result, fetch( globalIdx ) );
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduce, ReturnType >;
-   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+   result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 
    // Write the result
-   if( laneID == 0 )
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
       store( segmentIdx_idx, segmentIdx, result );
+   }
 #endif
 }
 
@@ -481,23 +490,24 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
-
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   const Index beginIdx = segments.getOffsets()[ segmentIdx ];
-   const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
-   Index localIdx = laneIdx;
-   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      result = reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
-      localIdx += ThreadsPerSegment;
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      const Index beginIdx = segments.getOffsets()[ segmentIdx ];
+      const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+
+      Index localIdx = laneIdx;
+      for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+         result = reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
+         localIdx += ThreadsPerSegment;
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
    result = BlockReduce::warpReduce( reduce, result );
 
@@ -510,14 +520,14 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes(
 
    // Write results of parallel reduction to shared memory
    __syncthreads();
-   if( inWarpLaneIdx == 0 )
+   if( active && inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
    // The first warp performs the remaining reduction
    __syncthreads();
    if( warpIdx == 0 ) {
       ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
-      partial = BlockReduce::warpReduce< warpsPerSegment >( reduce, partial );
+      partial = BlockReduce::template warpReduce< warpsPerSegment >( reduce, partial );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount
@@ -775,31 +785,32 @@ reduceSegmentsCSRVariableVectorKernelWithArgument(
 
    const Index segmentIdx =
       begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx >= end )
-      return;
+   const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
-   const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   Index endID = segments.getOffsets()[ segmentIdx + 1 ];
-
-   // Calculate result
-   Index localIdx = laneID;
    Index argument = 0;
-   for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment ) {
-      reduce(
-         result,
-         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-         argument,
-         localIdx );
-      localIdx += ThreadsPerSegment;
+   if( active ) {
+      const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      Index endID = segments.getOffsets()[ segmentIdx + 1 ];
+
+      // Calculate result
+      Index localIdx = laneID;
+      for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment ) {
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+            argument,
+            localIdx );
+         localIdx += ThreadsPerSegment;
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduce, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
-   if( laneID == 0 ) {
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
       TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
       bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == segments.getOffsets()[ segmentIdx + 1 ] );
       store( segmentIdx, argument_, result_, emptySegment );
@@ -832,26 +843,27 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
-   if( segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   const Index beginIdx = segments.getOffsets()[ segmentIdx ];
-   const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+   const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
    Index argument = 0;
-   Index localIdx = laneIdx;
-   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      reduce(
-         result,
-         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-         argument,
-         localIdx );
-      localIdx += ThreadsPerSegment;
+   if( active ) {
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      const Index beginIdx = segments.getOffsets()[ segmentIdx ];
+      const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+
+      Index localIdx = laneIdx;
+      for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+            argument,
+            localIdx );
+         localIdx += ThreadsPerSegment;
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
    auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduce, result, argument );
 
@@ -865,7 +877,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument(
 
    // Write results of parallel reduction to shared memory
    __syncthreads();
-   if( inWarpLaneIdx == 0 ) {
+   if( active && inWarpLaneIdx == 0 ) {
       shared_results[ warpIdx ] = result_;
       shared_arguments[ warpIdx ] = argument_;
    }
@@ -876,7 +888,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument(
       ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
       Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
       auto [ final_result, final_argument ] =
-         BlockReduce::warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
+         BlockReduce::template warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && segmentIdx + groupIdx < end ) {
@@ -1135,33 +1147,35 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument(
 
    const Index segmentIdx_idx =
       ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
    ReturnType result = identity;
-   const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   Index endID = segments.getOffsets()[ segmentIdx + 1 ];
-
-   // Calculate result
-   Index localIdx = laneID;
    Index argument = 0;
-   for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment ) {
-      reduce(
-         result,
-         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-         argument,
-         localIdx );
-      localIdx += ThreadsPerSegment;
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index laneID = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      Index endID = segments.getOffsets()[ segmentIdx + 1 ];
+
+      // Calculate result
+      Index localIdx = laneID;
+      for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment ) {
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+            argument,
+            localIdx );
+         localIdx += ThreadsPerSegment;
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduce, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
+   auto [ result_, argument_ ] = BlockReduce::template warpReduceWithArgument< ThreadsPerSegment >( reduce, result, argument );
 
    // Write the result
-   if( laneID == 0 ) {
+   if( active && ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
       TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
       bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == segments.getOffsets()[ segmentIdx + 1 ] );
       store( segmentIdx_idx, segmentIdx, argument_, result_, emptySegment );
@@ -1194,28 +1208,29 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
-
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
-   const Index beginIdx = segments.getOffsets()[ segmentIdx ];
-   const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+   const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
    Index argument = 0;
-   Index localIdx = laneIdx;
-   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      reduce(
-         result,
-         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-         argument,
-         localIdx );
-      localIdx += ThreadsPerSegment;
+   if( active ) {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+      const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
+      const Index beginIdx = segments.getOffsets()[ segmentIdx ];
+      const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+
+      Index localIdx = laneIdx;
+      for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+            argument,
+            localIdx );
+         localIdx += ThreadsPerSegment;
+      }
    }
 
-   // Parallel reduction
+   // Parallel reduction - all threads must participate in shuffle on HIP
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
    auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduce, result, argument );
 
@@ -1229,7 +1244,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
 
    // Write results of parallel reduction to shared memory
    __syncthreads();
-   if( inWarpLaneIdx == 0 ) {
+   if( active && inWarpLaneIdx == 0 ) {
       shared_results[ warpIdx ] = result_;
       shared_arguments[ warpIdx ] = argument_;
    }
@@ -1240,7 +1255,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
       ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
       Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
       auto [ final_result, final_argument ] =
-         BlockReduce::warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
+         BlockReduce::template warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
       if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount

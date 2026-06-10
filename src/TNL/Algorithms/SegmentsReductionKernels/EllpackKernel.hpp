@@ -113,7 +113,7 @@ EllpackKernel< Index, Device >::reduceSegments(
          if( end <= begin )
             return;
          const Index segmentsCount = end - begin;
-         const Index threadsCount = segmentsCount * Backend::getWarpSize();
+         const Index threadsCount = segmentsCount * Backend::getWarpSize( Backend::getDevice() );
          const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
          Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;

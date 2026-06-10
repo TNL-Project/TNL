@@ -73,7 +73,7 @@ if(TNL_BUILD_HIP)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
     endforeach()
 endif()
 
@@ -109,27 +109,40 @@ if(TNL_BUILD_MPI)
         target_link_libraries(distributedScanTestHip PUBLIC MPI::MPI_CXX)
     endif()
 
-    add_test_mpi(
+    tnl_add_mpi_test(
         NAME distributedScanTest
         NPROC 4
         COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}"
     )
-    add_test_mpi(
+    tnl_add_mpi_test(
         NAME distributedScanTest_nodistr
         NPROC 1
         COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}"
     )
 
     if(TNL_BUILD_CUDA)
-        add_test_mpi(
+        tnl_add_mpi_test(
             NAME distributedScanTestCuda
             NPROC 4
             COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestCuda${CMAKE_EXECUTABLE_SUFFIX}"
         )
-        add_test_mpi(
+        tnl_add_mpi_test(
             NAME distributedScanTestCuda_nodistr
             NPROC 1
             COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestCuda${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+    endif()
+
+    if(TNL_BUILD_HIP)
+        tnl_add_hip_mpi_test(
+            NAME distributedScanTestHip
+            NPROC 4
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestHip${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+        tnl_add_hip_mpi_test(
+            NAME distributedScanTestHip_nodistr
+            NPROC 1
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestHip${CMAKE_EXECUTABLE_SUFFIX}"
         )
     endif()
 endif()

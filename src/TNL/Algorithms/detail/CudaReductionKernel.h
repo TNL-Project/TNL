@@ -22,7 +22,7 @@ struct CudaBlockReduceSharedMemory
    {
       // when there is only one warp per blockSize.x, we need to allocate two warps
       // worth of shared memory so that we don't index shared memory out of bounds
-      ValueType data[ ( blockSize <= 32 ) ? 2 * blockSize : blockSize ];
+      ValueType data[ ( blockSize <= Backend::getWarpSize() ) ? 2 * blockSize : blockSize ];
    };
 
    /* Cooperative reduction across the CUDA block - each thread will get the
@@ -55,79 +55,41 @@ struct CudaBlockReduceSharedMemory
       storage.data[ global_tid ] = threadValue;
       __syncthreads();
 
-      // Apply the reduction on threadValue rather than storage.data[ tid ] to
-      // avoid an unnecessary read from shared memory. Then update the thread
-      // value in shared memory for use by other threads.
-      if constexpr( blockSize >= 1024 ) {
-         if( segment_tid < 512 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 512 ] );
-            storage.data[ global_tid ] = threadValue;
-         }
-         __syncthreads();
-      }
-      if constexpr( blockSize >= 512 ) {
-         if( segment_tid < 256 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 256 ] );
-            storage.data[ global_tid ] = threadValue;
-         }
-         __syncthreads();
-      }
-      if constexpr( blockSize >= 256 ) {
-         if( segment_tid < 128 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 128 ] );
-            storage.data[ global_tid ] = threadValue;
-         }
-         __syncthreads();
-      }
-      if constexpr( blockSize >= 128 ) {
-         if( segment_tid < 64 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 64 ] );
+      // Phase 1: Cross-warp reduction: blockSize -> 2 * WarpSize
+      #pragma unroll
+      for( int offset = blockSize / 2; offset > Backend::getWarpSize(); offset /= 2 ) {
+         if( segment_tid < offset ) {
+            // Apply the reduction on threadValue rather than storage.data[ tid ] to
+            // avoid an unnecessary read from shared memory. Then update the thread
+            // value in shared memory for use by other threads.
+            threadValue = reduction( threadValue, storage.data[ global_tid + offset ] );
             storage.data[ global_tid ] = threadValue;
          }
          __syncthreads();
       }
 
-      // This runs in one warp so we use __syncwarp() instead of __syncthreads().
-      if( segment_tid < 32 ) {
-         if constexpr( blockSize >= 64 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 32 ] );
+      // Phase 2: Inter-warp reduction: 2 * WarpSize -> WarpSize
+      if( segment_tid < Backend::getWarpSize() ) {
+         // Use cooperative groups for portable warp sync
+         auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
+         if constexpr( blockSize >= 2 * Backend::getWarpSize() ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + Backend::getWarpSize() ] );
             storage.data[ global_tid ] = threadValue;
-            __syncwarp();
+            warp.sync();
          }
-         // Note that here we do not have to check if tid < 16 etc, because we have
-         // 2 * blockSize.x elements of shared memory per block, so we do not
-         // access out of bounds. The results for the upper half will be undefined,
-         // but unused anyway.
-         // Note that we must add __syncwarp() between the read and write operations
-         // to avoid race conditions.
-         if constexpr( blockSize >= 32 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 16 ] );
-            __syncwarp();
+         // Phase 3: Intra-warp reduction: min(blockSize, WarpSize) -> 1
+         // When blockSize <= WarpSize the inter-warp steps were skipped,
+         // so we reduce from blockSize threads. Shared memory has 2*blockSize
+         // elements when blockSize <= WarpSize, guaranteeing no out-of-bounds
+         // access since startOffset <= blockSize / 2.
+         constexpr int startOffset = ( blockSize <= Backend::getWarpSize() ) ? blockSize / 2 : Backend::getWarpSize() / 2;
+         #pragma unroll
+         for( int offset = startOffset; offset > 0; offset /= 2 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + offset ] );
+            warp.sync();
             storage.data[ global_tid ] = threadValue;
-            __syncwarp();
-         }
-         if constexpr( blockSize >= 16 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 8 ] );
-            __syncwarp();
-            storage.data[ global_tid ] = threadValue;
-            __syncwarp();
-         }
-         if constexpr( blockSize >= 8 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 4 ] );
-            __syncwarp();
-            storage.data[ global_tid ] = threadValue;
-            __syncwarp();
-         }
-         if constexpr( blockSize >= 4 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 2 ] );
-            __syncwarp();
-            storage.data[ global_tid ] = threadValue;
-            __syncwarp();
-         }
-         if constexpr( blockSize >= 2 ) {
-            threadValue = reduction( threadValue, storage.data[ global_tid + 1 ] );
-            __syncwarp();
-            storage.data[ global_tid ] = threadValue;
+            if( offset > 1 )
+               warp.sync();
          }
       }
 
@@ -205,8 +167,7 @@ struct CudaBlockReduceShfl
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
+         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -215,21 +176,25 @@ struct CudaBlockReduceShfl
    /* Helper function.
     * Cooperative reduction in sub-groups of GroupSize threads within the warp.
     * Each group reduces independently and simultaneously. GroupSize must be
-    * a power of two and at most Backend::getWarpSize().
+    * a power of two and at most Backend::getWarpSize(). Stride is the
+    * distance (in lane IDs) between consecutive threads of the same group
+    * (default 1 for contiguous groups).
     * Only the first thread of each group will have the correct result.
     */
-   template< int GroupSize >
+   template< int GroupSize, int Stride = 1 >
    __device__
    static ValueType
    warpReduce( const Reduction& reduction, ValueType threadValue )
    {
       static_assert(
-         GroupSize > 0 && GroupSize <= Backend::getWarpSize(), "GroupSize must be between 1 and Backend::getWarpSize()" );
+         GroupSize > 0 && GroupSize <= Backend::getMaxWarpSize(), "GroupSize must be between 1 and Backend::getMaxWarpSize()" );
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
+      static_assert( Stride > 0, "Stride must be positive" );
+      static_assert(
+         GroupSize * Stride <= Backend::getMaxWarpSize(), "GroupSize * Stride must not exceed the maximum warp size" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_down_sync( mask, threadValue, i );
+         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i * Stride );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -323,8 +288,8 @@ struct CudaBlockReduceWithArgument
    {
       // when there is only one warp per blockSize.x, we need to allocate two warps
       // worth of shared memory so that we don't index shared memory out of bounds
-      ValueType data[ ( blockSize <= 32 ) ? 2 * blockSize : blockSize ];
-      IndexType idx[ ( blockSize <= 32 ) ? 2 * blockSize : blockSize ];
+      ValueType data[ ( blockSize <= Backend::getWarpSize() ) ? 2 * blockSize : blockSize ];
+      IndexType idx[ ( blockSize <= Backend::getWarpSize() ) ? 2 * blockSize : blockSize ];
    };
 
    /* Cooperative reduction with argument across the CUDA block - each thread
@@ -354,88 +319,45 @@ struct CudaBlockReduceWithArgument
       storage.idx[ tid ] = threadIndex;
       __syncthreads();
 
-      // Apply the reduction on threadValue and threadIndex rather than
-      // storage.data[ tid ] and storage.idx[ tid ] to avoid unnecessary reads
-      // from shared memory. Then update the thread value and index in shared
-      // memory for use by other threads.
-      if( blockSize >= 1024 ) {
-         if( tid < 512 ) {
-            reduction( threadValue, storage.data[ tid + 512 ], threadIndex, storage.idx[ tid + 512 ] );
-            storage.data[ tid ] = threadValue;
-            storage.idx[ tid ] = threadIndex;
-         }
-         __syncthreads();
-      }
-      if( blockSize >= 512 ) {
-         if( tid < 256 ) {
-            reduction( threadValue, storage.data[ tid + 256 ], threadIndex, storage.idx[ tid + 256 ] );
-            storage.data[ tid ] = threadValue;
-            storage.idx[ tid ] = threadIndex;
-         }
-         __syncthreads();
-      }
-      if( blockSize >= 256 ) {
-         if( tid < 128 ) {
-            reduction( threadValue, storage.data[ tid + 128 ], threadIndex, storage.idx[ tid + 128 ] );
-            storage.data[ tid ] = threadValue;
-            storage.idx[ tid ] = threadIndex;
-         }
-         __syncthreads();
-      }
-      if( blockSize >= 128 ) {
-         if( tid < 64 ) {
-            reduction( threadValue, storage.data[ tid + 64 ], threadIndex, storage.idx[ tid + 64 ] );
+      // Phase 1: Cross-warp reduction: blockSize -> 2 * WarpSize
+      #pragma unroll
+      for( int offset = blockSize / 2; offset > Backend::getWarpSize(); offset /= 2 ) {
+         if( tid < offset ) {
+            // Apply the reduction on threadValue and threadIndex rather than
+            // storage.data[ tid ] and storage.idx[ tid ] to avoid unnecessary reads
+            // from shared memory. Then update the thread value and index in shared
+            // memory for use by other threads.
+            reduction( threadValue, storage.data[ tid + offset ], threadIndex, storage.idx[ tid + offset ] );
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
          }
          __syncthreads();
       }
 
-      // This runs in one warp so we use __syncwarp() instead of __syncthreads().
-      if( tid < 32 ) {
-         if( blockSize >= 64 ) {
-            reduction( threadValue, storage.data[ tid + 32 ], threadIndex, storage.idx[ tid + 32 ] );
+      // Phase 2: Inter-warp reduction: 2 * WarpSize -> WarpSize
+      if( tid < Backend::getWarpSize() ) {
+         // Use cooperative groups for portable warp sync
+         auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
+         if constexpr( blockSize >= 2 * Backend::getWarpSize() ) {
+            reduction(
+               threadValue,
+               storage.data[ tid + Backend::getWarpSize() ],
+               threadIndex,
+               storage.idx[ tid + Backend::getWarpSize() ] );
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            __syncwarp();
+            warp.sync();
          }
-         // Note that here we do not have to check if tid < 16 etc, because we have
-         // 2 * blockSize.x elements of shared memory per block, so we do not
-         // access out of bounds. The results for the upper half will be undefined,
-         // but unused anyway.
-         if( blockSize >= 32 ) {
-            reduction( threadValue, storage.data[ tid + 16 ], threadIndex, storage.idx[ tid + 16 ] );
-            __syncwarp();
+         // Phase 3: Intra-warp reduction: min(blockSize, WarpSize) -> 1
+         constexpr int startOffset = ( blockSize <= Backend::getWarpSize() ) ? blockSize / 2 : Backend::getWarpSize() / 2;
+         #pragma unroll
+         for( int offset = startOffset; offset > 0; offset /= 2 ) {
+            reduction( threadValue, storage.data[ tid + offset ], threadIndex, storage.idx[ tid + offset ] );
+            warp.sync();
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            __syncwarp();
-         }
-         if( blockSize >= 16 ) {
-            reduction( threadValue, storage.data[ tid + 8 ], threadIndex, storage.idx[ tid + 8 ] );
-            __syncwarp();
-            storage.data[ tid ] = threadValue;
-            storage.idx[ tid ] = threadIndex;
-            __syncwarp();
-         }
-         if( blockSize >= 8 ) {
-            reduction( threadValue, storage.data[ tid + 4 ], threadIndex, storage.idx[ tid + 4 ] );
-            __syncwarp();
-            storage.data[ tid ] = threadValue;
-            storage.idx[ tid ] = threadIndex;
-            __syncwarp();
-         }
-         if( blockSize >= 4 ) {
-            reduction( threadValue, storage.data[ tid + 2 ], threadIndex, storage.idx[ tid + 2 ] );
-            __syncwarp();
-            storage.data[ tid ] = threadValue;
-            storage.idx[ tid ] = threadIndex;
-            __syncwarp();
-         }
-         if( blockSize >= 2 ) {
-            reduction( threadValue, storage.data[ tid + 1 ], threadIndex, storage.idx[ tid + 1 ] );
-            __syncwarp();
-            storage.data[ tid ] = threadValue;
-            storage.idx[ tid ] = threadIndex;
+            if( offset > 1 )
+               warp.sync();
          }
       }
 
@@ -453,9 +375,8 @@ struct CudaBlockReduceWithArgument
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
-         const IndexType otherArgument = __shfl_xor_sync( mask, threadArgument, i );
+         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
+         const IndexType otherArgument = __shfl_xor_sync( Backend::getWarpFullMask(), threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );
@@ -473,13 +394,12 @@ struct CudaBlockReduceWithArgument
    warpReduceWithArgument( const Reduction& reduction, ValueType threadValue, IndexType threadArgument )
    {
       static_assert(
-         GroupSize > 0 && GroupSize <= Backend::getWarpSize(), "GroupSize must be between 1 and Backend::getWarpSize()" );
+         GroupSize > 0 && GroupSize <= Backend::getMaxWarpSize(), "GroupSize must be between 1 and Backend::getMaxWarpSize()" );
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         constexpr unsigned mask = 0xffffffff;
-         const ValueType otherValue = __shfl_down_sync( mask, threadValue, i );
-         const IndexType otherArgument = __shfl_down_sync( mask, threadArgument, i );
+         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i );
+         const IndexType otherArgument = __shfl_down_sync( Backend::getWarpFullMask(), threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );

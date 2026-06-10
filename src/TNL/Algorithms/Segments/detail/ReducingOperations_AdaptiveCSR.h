@@ -42,7 +42,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
          if( valueSizeLog >= segments.MaxValueSizeLog() ) {
             ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
@@ -60,7 +60,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
 
             // Fill blocks
             const auto blocks = segments.getBlocks()[ valueSizeLog ];
-            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize();  // one warp per block
+            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
 
             // Execute kernels on device
             for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
@@ -113,7 +113,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
          if( valueSizeLog >= segments.MaxValueSizeLog() ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
@@ -133,7 +133,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
 
             // Fill blocks
             const auto& blocks = segments.getBlocks()[ valueSizeLog ];
-            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize();  // one warp per block
+            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
 
             // Execute kernels on device
             for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
