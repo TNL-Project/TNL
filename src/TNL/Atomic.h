@@ -33,6 +33,7 @@ atomicAdd( long int* address, long int val )
    return old;
 }
 
+   #ifndef __HIP__  // HIP has its own atomicMax and atomicMin functions for float and double
 [[maybe_unused]] __device__
 double
 atomicMax( double* address, double value )
@@ -63,7 +64,6 @@ atomicMin( double* address, double value )
    return __longlong_as_double( old );
 }
 
-   #ifndef __HIP__  // HIP has its own atomicMax and atomicMin functions for float
 [[maybe_unused]] __device__
 float
 atomicMax( float* address, float value )
