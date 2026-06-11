@@ -153,4 +153,110 @@ TYPED_TEST( GraphTest, test_BFS_largest )
    }
 }
 
+TYPED_TEST( GraphTest, test_BFS_withIndexes_inducedSubgraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 1.0 },
+      } );
+   // clang-format on
+   const VectorType vertexIndexes( { 0, 1, 3 } );
+   const VectorType expectedDistances( { 0, 1, -1, -1, -1 } );
+   VectorType distances;
+
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, vertexIndexes, distances );
+
+   ASSERT_EQ( distances, expectedDistances );
+}
+
+TYPED_TEST( GraphTest, test_BFSIf_inducedSubgraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 1.0 },
+      } );
+   // clang-format on
+   const VectorType expectedDistances( { 0, 1, 2, -1, -1 } );
+   VectorType distances;
+   const auto firstThreeVertices = [ = ] __cuda_callable__( IndexType vertex )
+   {
+      return vertex <= 2;
+   };
+
+   TNL::Graphs::Algorithms::breadthFirstSearchIf( graph, 0, firstThreeVertices, distances );
+
+   ASSERT_EQ( distances, expectedDistances );
+}
+
+TYPED_TEST( GraphTest, test_BFS_withIndexes_visitor )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 1.0 },
+      } );
+   // clang-format on
+   const VectorType vertexIndexes( { 0, 1, 2 } );
+   const VectorType expectedDistances( { 0, 1, 2, -1, -1 } );
+   VectorType distances;
+   VectorType visitedDistances( graph.getVertexCount(), -1 );
+   auto visitedDistancesView = visitedDistances.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesView[ vertex ] = distance;
+   };
+
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, vertexIndexes, distances, visitor );
+
+   ASSERT_EQ( distances, expectedDistances );
+   EXPECT_EQ( visitedDistances.getElement( 0 ), -1 );
+   EXPECT_EQ( visitedDistances.getElement( 1 ), 1 );
+   EXPECT_EQ( visitedDistances.getElement( 2 ), 2 );
+   EXPECT_EQ( visitedDistances.getElement( 3 ), -1 );
+   EXPECT_EQ( visitedDistances.getElement( 4 ), -1 );
+}
+
+TYPED_TEST( GraphTest, test_BFS_withInactiveStart_throws )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   const GraphType graph( 4, { { 0, 1, 1.0 }, { 1, 2, 1.0 }, { 2, 3, 1.0 } } );
+   const VectorType vertexIndexes( { 0, 1, 2 } );
+   VectorType distances;
+
+   EXPECT_THROW( TNL::Graphs::Algorithms::breadthFirstSearch( graph, 3, vertexIndexes, distances ), std::invalid_argument );
+}
+
 #include "../../main.h"

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <queue>
+#include <stdexcept>
 
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Graphs/traverse.h>
@@ -15,16 +16,19 @@
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+
+#include "details/activeVertices.hpp"
 #include "singleSourceShortestPath.h"
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
+template< typename Graph, typename Vector, typename ActivePredicate, typename Index = typename Graph::IndexType >
 void
 parallelSingleSourceShortestPath(
    const Graph& graph,
    Index start,
    Vector& distances,
+   ActivePredicate&& isActive,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
@@ -56,19 +60,19 @@ parallelSingleSourceShortestPath(
             frontier_size,
             [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
-               if( targetIdx != Matrices::paddingIndex< Index > ) {
+               if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) ) {
                   Real new_distance = y_view[ sourceIdx ] + weight;
                   if( new_distance < y_view[ targetIdx ] ) {
 #if defined( HAVE_OPENMP )
-               #pragma omp atomic write
+   #pragma omp atomic write
 #endif
                      y_view[ targetIdx ] = new_distance;
 #if defined( HAVE_OPENMP )
-               #pragma omp atomic write
+   #pragma omp atomic write
 #endif
                      predecessors_view[ targetIdx ] = sourceIdx;
 #if defined( HAVE_OPENMP )
-               #pragma omp atomic write
+   #pragma omp atomic write
 #endif
                      marks_view[ targetIdx ] = 1;
                   }
@@ -87,7 +91,7 @@ parallelSingleSourceShortestPath(
                TNL_ASSERT_LT( sourceIdx, y_view.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
                TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
-               if( targetIdx != Matrices::paddingIndex< Index > ) {
+               if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) ) {
                   Real new_distance = y_view[ sourceIdx ] + weight;
                   if( new_distance < y_view[ targetIdx ] ) {
                      atomicMin( &y_view[ targetIdx ], new_distance );
@@ -117,12 +121,13 @@ parallelSingleSourceShortestPath(
    }
 }
 
-template< typename Graph, typename Vector, typename Index >
+template< typename Graph, typename Vector, typename ActivePredicate, typename Index >
 void
-singleSourceShortestPath(
+singleSourceShortestPath_impl(
    const Graph& graph,
    Index start,
    Vector& distances,
+   ActivePredicate&& isActive,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
@@ -131,13 +136,15 @@ singleSourceShortestPath(
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
 
+   distances.setSize( graph.getVertexCount() );
    if( graph.getVertexCount() == 0 )
       return;
    TNL_ASSERT_GE( start, static_cast< Index >( 0 ), "Start vertex index must be non-negative." );
-   TNL_ASSERT_LT(
-      start, static_cast< Index >( graph.getVertexCount() ), "Start vertex index must be less than the number of vertices." );
+   TNL_ASSERT_LT( start, graph.getVertexCount(), "Start vertex index must be less than the number of vertices." );
 
-   distances.setSize( graph.getVertexCount() );
+   if( ! isActive( start ) )
+      throw std::invalid_argument( "Start vertex must belong to the induced active subgraph." );
+
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0.0 );
 
@@ -163,6 +170,8 @@ singleSourceShortestPath(
             const auto& neighbor = row.getColumnIndex( i );
             if( neighbor == Matrices::paddingIndex< Index > )
                continue;
+            if( ! isActive( neighbor ) )
+               continue;
             double distance = current_distance + edge_weight;
 
             if( distance < distances[ neighbor ] ) {
@@ -173,13 +182,67 @@ singleSourceShortestPath(
       }
    }
    else {
-      parallelSingleSourceShortestPath( graph, start, distances, launchConfig );
+      parallelSingleSourceShortestPath( graph, start, distances, isActive, launchConfig );
    }
    distances.forAllElements(
       [] __cuda_callable__( Index i, Real & x )
       {
          x = ( x == std::numeric_limits< Real >::max() ) ? -1.0 : x;
       } );
+}
+
+template< typename Graph, typename Vector, typename Index >
+void
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   singleSourceShortestPath_impl(
+      graph,
+      start,
+      distances,
+      [] __cuda_callable__( Index )
+      {
+         return true;
+      },
+      launchConfig );
+}
+
+template< typename Graph, typename VertexIndexes, typename Vector, typename Index, typename >
+void
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   const VertexIndexes& vertexIndexes,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using Device = typename Graph::DeviceType;
+   using IndexVector = Containers::Vector< Index, Device, Index >;
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   const auto activeVerticesView = activeVertices.getConstView();
+   const auto isActive = [ = ] __cuda_callable__( Index vertex )
+   {
+      return static_cast< bool >( activeVerticesView[ vertex ] );
+   };
+   singleSourceShortestPath_impl( graph, start, distances, isActive, launchConfig );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector, typename Index >
+void
+singleSourceShortestPathIf(
+   const Graph& graph,
+   Index start,
+   VertexPredicate&& vertexPredicate,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
+   singleSourceShortestPath_impl( graph, start, distances, predicate, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
