@@ -34,7 +34,7 @@ void constexpr Reduction2D< Devices::Sequential >::reduce(
    constexpr int block_size = 128;
    const int blocks = size / block_size;
 
-#if defined( __CUDA_ARCH__ )
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    for( int k = 0; k < n; k++ )
       result( k ) = identity;
 
