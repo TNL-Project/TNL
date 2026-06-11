@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <numeric>
 #include <random>
+#include <cstdlib>
 
+#include <TNL/Backend/DeviceInfo.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
@@ -620,6 +622,11 @@ TYPED_TEST( SorterTest, large_index_size_t )
    #ifdef NDEBUG
 TYPED_TEST( SorterTest, large_index_size2To32 )
 {
+      #if defined( __HIP__ )
+   if( std::getenv( "GITLAB_CI" ) != nullptr && Backend::getDeviceMultiprocessors( Backend::getDevice() ) <= 2 )
+      GTEST_SKIP() << "Skipping on HIP CI with <= 2 CUs (takes ~10 min on 2-CU iGPU)";
+      #endif
+
    const std::size_t size = 1UL << 32;
    TNL::Containers::Array< std::uint8_t, TNL::Devices::GPU, std::size_t > arr( size );
    arr.setValue( 0 );
