@@ -30,7 +30,7 @@ void constexpr Reduction3D<
    constexpr int block_size = 128;
    const int blocks = size / block_size;
 
-#if defined( __CUDA_ARCH__ )
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    for( int i = 0; i < m; i++ ) {
       for( int j = 0; j < n; j++ ) {
          result( i, j ) = identity;
