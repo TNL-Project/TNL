@@ -47,7 +47,7 @@ activateIndexedVertices( const Graph& graph, const VertexIndexes& vertexIndexes,
       {
          const IndexType vertex = vertexIndexes_view[ index ];
          if( vertex >= 0 && vertex < verticesCount ) {
-            activeVertices_view[ vertexIndexes_view[ index ] ] = static_cast< IndexType >( 1 );
+            activeVertices_view[ vertex ] = static_cast< IndexType >( 1 );
             return true;
          }
          else
