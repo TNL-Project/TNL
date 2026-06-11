@@ -3,7 +3,10 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/TypeTraits.h>
 
 namespace TNL::Graphs::Algorithms {
 
@@ -25,6 +28,47 @@ void
 singleSourceShortestPath(
    const Graph& graph,
    Index start,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Computes single-source shortest paths on the subgraph induced by the given vertex indexes.
+ *
+ * The entries in \e vertexIndexes must be unique valid graph vertices and the
+ * start vertex must belong to the induced subgraph. Vertices outside of the
+ * induced subgraph are treated as absent and keep distance \c -1 in the output.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename Index = typename Graph::IndexType,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   const VertexIndexes& vertexIndexes,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Computes single-source shortest paths on the subgraph selected by a vertex predicate.
+ *
+ * The predicate decides which vertices belong to the induced subgraph. It must
+ * provide a call operator with the signature
+ * \code
+ * bool operator()( typename Graph::IndexType vertex ) const;
+ * \endcode
+ * The start vertex must belong to the induced subgraph and unselected vertices
+ * keep distance \c -1 in the output.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename Index = typename Graph::IndexType >
+void
+singleSourceShortestPathIf(
+   const Graph& graph,
+   Index start,
+   VertexPredicate&& vertexPredicate,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 

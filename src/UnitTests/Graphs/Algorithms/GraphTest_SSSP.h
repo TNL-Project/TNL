@@ -169,4 +169,80 @@ TYPED_TEST( GraphTest, test_BFS_largest )
    }
 }
 
+TYPED_TEST( GraphTest, test_SSSP_withIndexes_inducedSubgraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 0.5 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 0.5 },
+      } );
+   // clang-format on
+   const TNL::Containers::Vector< IndexType, DeviceType, IndexType > vertexIndexes( { 0, 1, 3 } );
+   const VectorType expectedDistances( { 0.0, 1.0, -1.0, -1.0, -1.0 } );
+   VectorType distances;
+
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, vertexIndexes, distances );
+
+   for( IndexType i = 0; i < graph.getVertexCount(); i++ )
+      ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSPIf_inducedSubgraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 0.5 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 0.5 },
+      } );
+   // clang-format on
+   const VectorType expectedDistances( { 0.0, 1.0, 2.0, -1.0, -1.0 } );
+   VectorType distances;
+   const auto firstThreeVertices = [ = ] __cuda_callable__( IndexType vertex )
+   {
+      return vertex <= 2;
+   };
+
+   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graph, 0, firstThreeVertices, distances );
+
+   for( IndexType i = 0; i < graph.getVertexCount(); i++ )
+      ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_withInactiveStart_throws )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   const GraphType graph( 4, { { 0, 1, 1.0 }, { 1, 2, 1.0 }, { 2, 3, 1.0 } } );
+   const TNL::Containers::Vector< IndexType, DeviceType, IndexType > vertexIndexes( { 0, 1, 2 } );
+   VectorType distances;
+
+   EXPECT_THROW(
+      TNL::Graphs::Algorithms::singleSourceShortestPath( graph, static_cast< IndexType >( 3 ), vertexIndexes, distances ),
+      std::invalid_argument );
+}
+
 #include "../../main.h"
