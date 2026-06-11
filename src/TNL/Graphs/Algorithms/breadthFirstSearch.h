@@ -4,8 +4,10 @@
 #pragma once
 
 #include <queue>
+#include <type_traits>
 
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/TypeTraits.h>
 
 namespace TNL::Graphs::Algorithms {
 
@@ -30,6 +32,47 @@ breadthFirstSearch(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Performs breadth-first search (BFS) on the subgraph induced by the given vertex indexes.
+ *
+ * The entries in \e vertexIndexes must be unique valid graph vertices and the
+ * start vertex must belong to the induced subgraph. Vertices outside of the
+ * induced subgraph are treated as absent, so they are never traversed and keep
+ * distance \c -1 in the output.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+breadthFirstSearch(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   const VertexIndexes& vertexIndexes,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Performs breadth-first search (BFS) on the subgraph selected by a vertex predicate.
+ *
+ * The predicate decides which vertices belong to the induced subgraph. It must
+ * provide a call operator with the signature
+ * \code
+ * bool operator()( typename Graph::IndexType vertex ) const;
+ * \endcode
+ * The start vertex must belong to the induced subgraph. Vertices not selected
+ * by the predicate are never traversed and keep distance \c -1 in the output.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector >
+void
+breadthFirstSearchIf(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   VertexPredicate&& vertexPredicate,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Performs breadth-first search (BFS) on the given graph starting from the specified node.
  *
  * See. [Wikipedia page](https://en.wikipedia.org/wiki/Breadth-first_search) for more details about the BFS algorithm.
@@ -48,6 +91,46 @@ void
 breadthFirstSearch(
    const Graph& graph,
    typename Graph::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Performs breadth-first search (BFS) on the induced subgraph given by vertex indexes.
+ *
+ * The entries in \e vertexIndexes must be unique valid graph vertices and the
+ * start vertex must belong to the induced subgraph.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename Visitor,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+breadthFirstSearch(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   const VertexIndexes& vertexIndexes,
+   Vector& distances,
+   Visitor&& visitor,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Performs breadth-first search (BFS) on the induced subgraph selected by a vertex predicate.
+ *
+ * The predicate must provide
+ * \code
+ * bool operator()( typename Graph::IndexType vertex ) const;
+ * \endcode
+ * and the start vertex must belong to the induced subgraph.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename Visitor >
+void
+breadthFirstSearchIf(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   VertexPredicate&& vertexPredicate,
    Vector& distances,
    Visitor&& visitor,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
