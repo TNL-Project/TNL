@@ -48,8 +48,8 @@ workflow:
     CMAKE_HIP_FLAGS: ""
     CMAKE_EXE_LINKER_FLAGS: ""
     CMAKE_SHARED_LINKER_FLAGS: ""
-    # prevent Open MPI abort when both CUDA and ROCm accelerator frameworks are detected
-    OMPI_MCA_accelerator: "cuda"
+    # avoid Open MPI abort on dual-accelerator hosts (both CUDA and ROCm detected)
+    OMPI_MCA_accelerator: "null"
 
 # base for GCC builds
 .gcc:
@@ -68,6 +68,8 @@ workflow:
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
+        # CUDA builds run on runners with GPU passthrough
+        OMPI_MCA_accelerator: "cuda"
 
 # base for NVHPC builds
 .nvhpc:
@@ -79,6 +81,8 @@ workflow:
         CC: nvc
         CUDACXX: nvcc
         CUDAHOSTCXX: nvc++
+        # CUDA builds run on runners with GPU passthrough
+        OMPI_MCA_accelerator: "cuda"
 
 # base for Clang builds
 .clang:
@@ -115,6 +119,8 @@ workflow:
         CUDA_PATH: "/opt/cuda"
         # CUDA 12 does not support sm_120, so override "native" with the oldest arch available in CI
         CMAKE_CUDA_ARCHITECTURES: "75"
+        # CUDA builds run on runners with GPU passthrough
+        OMPI_MCA_accelerator: "cuda"
 
 # base for Intel oneAPI builds
 .icpx:
@@ -136,7 +142,7 @@ workflow:
         <<: *default_cmake_flags
         USE_HIP: "yes"
         USE_OPENMP: "no"   # TODO: enabling OpenMP leads to false warnings due to unused variable
-        # override the default "cuda" — prevent Open MPI abort on dual-accelerator hosts
+        # ROCm builds run on runners with AMD GPU passthrough
         OMPI_MCA_accelerator: "rocm"
 
 # template for environment setup before build
@@ -447,6 +453,8 @@ documentation:
         BUILD_TYPE: Debug
         # build output snippets for documentation
         BUILD_DOC: "yes"
+        # CUDA builds run on runners with GPU passthrough
+        OMPI_MCA_accelerator: "cuda"
     rules:
         - changes:
             - Documentation/**/*
