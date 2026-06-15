@@ -2,6 +2,7 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
 
+#include <limits>
 #include <iostream>
 
 #include <gtest/gtest.h>
@@ -223,6 +224,82 @@ TYPED_TEST( GraphTest, test_SSSPIf_inducedSubgraph )
    };
 
    TNL::Graphs::Algorithms::singleSourceShortestPathIf( graph, 0, firstThreeVertices, distances );
+
+   for( IndexType i = 0; i < graph.getVertexCount(); i++ )
+      ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_byEdges_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 5.0 },
+         { 1, 2, 1.0 }, { 1, 3, 10.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0.0, 1.0, 3.0, 4.0 } );
+   VectorType distances;
+   const auto transformWeights = [ = ] __cuda_callable__( IndexType source, IndexType target, RealType weight )
+   {
+      if( source == 0 && target == 2 )
+         return std::numeric_limits< RealType >::infinity();
+      if( source == 1 && target == 2 )
+         return weight * static_cast< RealType >( 2.0 );
+      return weight;
+   };
+
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, transformWeights, distances );
+
+   for( IndexType i = 0; i < graph.getVertexCount(); i++ )
+      ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_byEdgesIf_inducedSubgraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 5.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0.0, 1.0, -1.0, -1.0, -1.0 } );
+   VectorType distances;
+   const auto firstFourVertices = [ = ] __cuda_callable__( IndexType vertex )
+   {
+      return vertex <= 3;
+   };
+   const auto blockEdgesToTwo = [ = ] __cuda_callable__( IndexType source, IndexType target, RealType weight )
+   {
+      if( source == 0 && target == 2 )
+         return std::numeric_limits< RealType >::infinity();
+      if( source == 1 && target == 2 )
+         return std::numeric_limits< RealType >::infinity();
+      return weight;
+   };
+
+   TNL::Graphs::Algorithms::singleSourceShortestPathIf(
+      graph, static_cast< IndexType >( 0 ), firstFourVertices, blockEdgesToTwo, distances );
 
    for( IndexType i = 0; i < graph.getVertexCount(); i++ )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
