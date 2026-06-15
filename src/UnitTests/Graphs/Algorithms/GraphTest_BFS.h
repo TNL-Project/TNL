@@ -235,7 +235,7 @@ TYPED_TEST( GraphTest, test_BFS_withIndexes_visitor )
       visitedDistancesView[ vertex ] = distance;
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, vertexIndexes, distances, visitor );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, vertexIndexes, visitor, distances );
 
    ASSERT_EQ( distances, expectedDistances );
    EXPECT_EQ( visitedDistances.getElement( 0 ), -1 );
@@ -243,6 +243,70 @@ TYPED_TEST( GraphTest, test_BFS_withIndexes_visitor )
    EXPECT_EQ( visitedDistances.getElement( 2 ), 2 );
    EXPECT_EQ( visitedDistances.getElement( 3 ), -1 );
    EXPECT_EQ( visitedDistances.getElement( 4 ), -1 );
+}
+
+TYPED_TEST( GraphTest, test_BFS_byEdges_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0, 1, -1, 2, 1 } );
+   VectorType distances;
+   const auto forbidOneToTwo =
+      [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType weight )
+   {
+      return ! ( source == 1 && target == 2 );
+   };
+
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, forbidOneToTwo, distances );
+
+   ASSERT_EQ( distances, expectedDistances );
+}
+
+TYPED_TEST( GraphTest, test_BFS_byEdges_withIndexes_inducedSubgraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType vertexIndexes( { 0, 1, 2, 3 } );
+   const VectorType expectedDistances( { 0, 1, -1, -1, -1 } );
+   VectorType distances;
+
+   const auto allowUnitWeightOnly =
+      [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType weight )
+   {
+      return weight == static_cast< typename GraphType::ValueType >( 1 ) && ! ( source == 1 && target == 2 );
+   };
+
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, vertexIndexes, allowUnitWeightOnly, distances );
+
+   ASSERT_EQ( distances, expectedDistances );
 }
 
 TYPED_TEST( GraphTest, test_BFS_withInactiveStart_throws )

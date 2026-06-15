@@ -32,6 +32,30 @@ singleSourceShortestPath(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Computes single-source shortest paths with edge-weight transformation.
+ *
+ * The edge-weight callable must provide the signature:
+ * \code
+ * typename Graph::ValueType operator()( Index source, Index target, typename Graph::ValueType weight ) const;
+ * \endcode
+ * Returning infinity (for example `std::numeric_limits< ValueType >::infinity()`)
+ * marks the edge as non-traversable.
+ */
+template<
+   typename Graph,
+   typename Vector,
+   typename EdgeWeightCallable,
+   typename Index = typename Graph::IndexType,
+   typename = std::enable_if_t< !IsArrayType< EdgeWeightCallable >::value > >
+void
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   EdgeWeightCallable&& edgeWeightCallable,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Computes single-source shortest paths on the subgraph induced by the given vertex indexes.
  *
  * The entries in \e vertexIndexes must be unique valid graph vertices and the
@@ -53,6 +77,27 @@ singleSourceShortestPath(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Computes single-source shortest paths on an induced subgraph with edge-weight transformation.
+ *
+ * The edge-weight callable has the same requirements as in the whole-graph overload.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename EdgeWeightCallable,
+   typename Index = typename Graph::IndexType,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   const VertexIndexes& vertexIndexes,
+   EdgeWeightCallable&& edgeWeightCallable,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Computes single-source shortest paths on the subgraph selected by a vertex predicate.
  *
  * The predicate decides which vertices belong to the induced subgraph. It must
@@ -69,6 +114,24 @@ singleSourceShortestPathIf(
    const Graph& graph,
    Index start,
    VertexPredicate&& vertexPredicate,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Computes single-source shortest paths on a predicate-induced subgraph with edge-weight transformation.
+ */
+template<
+   typename Graph,
+   typename VertexPredicate,
+   typename Vector,
+   typename EdgeWeightCallable,
+   typename Index = typename Graph::IndexType >
+void
+singleSourceShortestPathIf(
+   const Graph& graph,
+   Index start,
+   VertexPredicate&& vertexPredicate,
+   EdgeWeightCallable&& edgeWeightCallable,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
