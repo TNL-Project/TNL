@@ -32,6 +32,29 @@ breadthFirstSearch(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Performs breadth-first search (BFS) with edge filtering.
+ *
+ * The edge predicate decides if a traversed edge can be used. It must provide
+ * a call operator with the signature:
+ * \code
+ * bool operator()( typename Graph::IndexType source, typename Graph::IndexType target,
+ *                  typename Graph::ValueType weight ) const;
+ * \endcode
+ */
+template<
+   typename Graph,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+void
+breadthFirstSearch(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   EdgePredicate&& edgePredicate,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Performs breadth-first search (BFS) on the subgraph induced by the given vertex indexes.
  *
  * The entries in \e vertexIndexes must be unique valid graph vertices and the
@@ -49,6 +72,26 @@ breadthFirstSearch(
    const Graph& graph,
    typename Graph::IndexType start,
    const VertexIndexes& vertexIndexes,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Performs BFS on the induced subgraph with edge filtering.
+ *
+ * The edge predicate has the same requirements as in the whole-graph overload.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+breadthFirstSearch(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
@@ -73,6 +116,22 @@ breadthFirstSearchIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Performs BFS on the predicate-induced subgraph with edge filtering.
+ *
+ * The vertex predicate selects active vertices and edge predicate decides if a
+ * traversed edge may be used.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+void
+breadthFirstSearchIf(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Performs breadth-first search (BFS) on the given graph starting from the specified node.
  *
  * See. [Wikipedia page](https://en.wikipedia.org/wiki/Breadth-first_search) for more details about the BFS algorithm.
@@ -86,13 +145,17 @@ breadthFirstSearchIf(
  *        the node index and its distance from the start node.
  * \param launchConfig is the configuration for launching the segments traversal.
  */
-template< typename Graph, typename Vector, typename Visitor >
+template<
+   typename Graph,
+   typename Vector,
+   typename Visitor,
+   typename = std::enable_if_t< !IsArrayType< Visitor >::value > >
 void
-breadthFirstSearch(
+breadthFirstSearchWithVisitor(
    const Graph& graph,
    typename Graph::IndexType start,
-   Vector& distances,
    Visitor&& visitor,
+   Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -108,12 +171,12 @@ template<
    typename Visitor,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
-breadthFirstSearch(
+breadthFirstSearchWithVisitor(
    const Graph& graph,
    typename Graph::IndexType start,
    const VertexIndexes& vertexIndexes,
-   Vector& distances,
    Visitor&& visitor,
+   Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -127,12 +190,12 @@ breadthFirstSearch(
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename Visitor >
 void
-breadthFirstSearchIf(
+breadthFirstSearchIfWithVisitor(
    const Graph& graph,
    typename Graph::IndexType start,
    VertexPredicate&& vertexPredicate,
-   Vector& distances,
    Visitor&& visitor,
+   Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Graphs::Algorithms

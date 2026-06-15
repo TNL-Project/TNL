@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <limits>
 #include <queue>
 #include <stdexcept>
+#include <type_traits>
 
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Graphs/traverse.h>
@@ -22,13 +24,43 @@
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Graph, typename Vector, typename ActivePredicate, typename Index = typename Graph::IndexType >
+namespace detail {
+
+template< typename EdgeWeightCallable, typename Graph >
+struct IsSsspEdgeWeightCallable : std::bool_constant< std::is_invocable_r_v<
+                                     typename Graph::ValueType,
+                                     EdgeWeightCallable,
+                                     typename Graph::IndexType,
+                                     typename Graph::IndexType,
+                                     typename Graph::ValueType > >
+{};
+
+template< typename EdgeWeightCallable, typename Graph >
+constexpr bool isSsspEdgeWeightCallable_v = IsSsspEdgeWeightCallable< EdgeWeightCallable, Graph >::value;
+
+template< typename Real >
+__cuda_callable__
+bool
+isBlockedSsspEdgeWeight( const Real& weight )
+{
+   return weight == std::numeric_limits< Real >::infinity() || weight == -std::numeric_limits< Real >::infinity();
+}
+
+}  // namespace detail
+
+template<
+   typename Graph,
+   typename Vector,
+   typename ActivePredicate,
+   typename EdgeWeightCallable,
+   typename Index = typename Graph::IndexType >
 void
 parallelSingleSourceShortestPath(
    const Graph& graph,
    Index start,
-   Vector& distances,
    ActivePredicate&& isActive,
+   EdgeWeightCallable&& edgeWeightCallable,
+   Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
@@ -61,7 +93,11 @@ parallelSingleSourceShortestPath(
             [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
                if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) ) {
-                  Real new_distance = y_view[ sourceIdx ] + weight;
+                  const Real transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
+                  if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
+                     return;
+
+                  Real new_distance = y_view[ sourceIdx ] + transformedWeight;
                   if( new_distance < y_view[ targetIdx ] ) {
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
@@ -92,7 +128,11 @@ parallelSingleSourceShortestPath(
                TNL_ASSERT_GE( targetIdx, 0, "" );
                TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
                if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) ) {
-                  Real new_distance = y_view[ sourceIdx ] + weight;
+                  const Real transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
+                  if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
+                     return;
+
+                  Real new_distance = y_view[ sourceIdx ] + transformedWeight;
                   if( new_distance < y_view[ targetIdx ] ) {
                      atomicMin( &y_view[ targetIdx ], new_distance );
                      atomicMin( &predecessors_view[ targetIdx ], sourceIdx );
@@ -121,13 +161,14 @@ parallelSingleSourceShortestPath(
    }
 }
 
-template< typename Graph, typename Vector, typename ActivePredicate, typename Index >
+template< typename Graph, typename Vector, typename ActivePredicate, typename EdgeWeightCallable, typename Index >
 void
 singleSourceShortestPath_impl(
    const Graph& graph,
    Index start,
-   Vector& distances,
    ActivePredicate&& isActive,
+   EdgeWeightCallable&& edgeWeightCallable,
+   Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
@@ -172,7 +213,12 @@ singleSourceShortestPath_impl(
                continue;
             if( ! isActive( neighbor ) )
                continue;
-            double distance = current_distance + edge_weight;
+
+            const Real transformedWeight = edgeWeightCallable( current, neighbor, edge_weight );
+            if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
+               continue;
+
+            const Real distance = current_distance + transformedWeight;
 
             if( distance < distances[ neighbor ] ) {
                distances[ neighbor ] = distance;
@@ -182,7 +228,7 @@ singleSourceShortestPath_impl(
       }
    }
    else {
-      parallelSingleSourceShortestPath( graph, start, distances, isActive, launchConfig );
+      parallelSingleSourceShortestPath( graph, start, isActive, edgeWeightCallable, distances, launchConfig );
    }
    distances.forAllElements(
       [] __cuda_callable__( Index i, Real & x )
@@ -202,11 +248,40 @@ singleSourceShortestPath(
    singleSourceShortestPath_impl(
       graph,
       start,
-      distances,
       [] __cuda_callable__( Index )
       {
          return true;
       },
+      [] __cuda_callable__( Index, Index, auto weight )
+      {
+         return weight;
+      },
+      distances,
+      launchConfig );
+}
+
+template< typename Graph, typename Vector, typename EdgeWeightCallable, typename Index, typename >
+void
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   EdgeWeightCallable&& edgeWeightCallable,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   static_assert(
+      detail::isSsspEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
+      "SSSP edge callable must return Graph::ValueType and accept (source, target) or (source, target, weight)." );
+
+   singleSourceShortestPath_impl(
+      graph,
+      start,
+      [] __cuda_callable__( Index )
+      {
+         return true;
+      },
+      std::forward< EdgeWeightCallable >( edgeWeightCallable ),
+      distances,
       launchConfig );
 }
 
@@ -229,7 +304,44 @@ singleSourceShortestPath(
    {
       return static_cast< bool >( activeVerticesView[ vertex ] );
    };
-   singleSourceShortestPath_impl( graph, start, distances, isActive, launchConfig );
+   singleSourceShortestPath_impl(
+      graph,
+      start,
+      isActive,
+      [] __cuda_callable__( Index, Index, auto weight )
+      {
+         return weight;
+      },
+      distances,
+      launchConfig );
+}
+
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgeWeightCallable, typename Index, typename >
+void
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   const VertexIndexes& vertexIndexes,
+   EdgeWeightCallable&& edgeWeightCallable,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using Device = typename Graph::DeviceType;
+   using IndexVector = Containers::Vector< Index, Device, Index >;
+
+   static_assert(
+      detail::isSsspEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
+      "SSSP edge callable must return Graph::ValueType and accept (source, target) or (source, target, weight)." );
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   const auto activeVerticesView = activeVertices.getConstView();
+   const auto isActive = [ = ] __cuda_callable__( Index vertex )
+   {
+      return static_cast< bool >( activeVerticesView[ vertex ] );
+   };
+   singleSourceShortestPath_impl(
+      graph, start, isActive, std::forward< EdgeWeightCallable >( edgeWeightCallable ), distances, launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename Index >
@@ -242,7 +354,35 @@ singleSourceShortestPathIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
-   singleSourceShortestPath_impl( graph, start, distances, predicate, launchConfig );
+   singleSourceShortestPath_impl(
+      graph,
+      start,
+      predicate,
+      [] __cuda_callable__( Index, Index, auto weight )
+      {
+         return weight;
+      },
+      distances,
+      launchConfig );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgeWeightCallable, typename Index >
+void
+singleSourceShortestPathIf(
+   const Graph& graph,
+   Index start,
+   VertexPredicate&& vertexPredicate,
+   EdgeWeightCallable&& edgeWeightCallable,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   static_assert(
+      detail::isSsspEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
+      "SSSP edge callable must return Graph::ValueType and accept (source, target) or (source, target, weight)." );
+
+   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
+   singleSourceShortestPath_impl(
+      graph, start, predicate, std::forward< EdgeWeightCallable >( edgeWeightCallable ), distances, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
