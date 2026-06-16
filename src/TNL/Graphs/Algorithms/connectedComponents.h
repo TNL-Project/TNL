@@ -30,6 +30,31 @@ connectedComponents(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Finds connected components with edge filtering.
+ *
+ * The edge predicate decides if an edge can be traversed. It must provide
+ * a call operator with the signature:
+ * \code
+ * bool operator()( typename Graph::IndexType source, typename Graph::IndexType target,
+ *                  typename Graph::ValueType weight ) const;
+ * \endcode
+ * The algorithm treats the graph as undirected: for each stored edge (u,v)
+ * it may also traverse in the reverse direction (v,u), using the same
+ * predicate call with the natural orientation of the stored edge.
+ */
+template<
+   typename Graph,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+void
+connectedComponents(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Finds connected components in the subgraph induced by the given vertex indexes.
  *
  * The entries in \e vertexIndexes must be unique valid graph vertices.
@@ -49,6 +74,25 @@ connectedComponents(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Finds connected components in the indexed-induced subgraph with edge filtering.
+ *
+ * The edge predicate has the same requirements as in the whole-graph overload.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+connectedComponents(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Finds connected components in the subgraph selected by a vertex predicate.
  *
  * The predicate decides which vertices belong to the induced subgraph. It must
@@ -64,6 +108,21 @@ void
 connectedComponentsIf(
    const Graph& graph,
    VertexPredicate&& vertexPredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Finds connected components in the predicate-induced subgraph with edge filtering.
+ *
+ * The vertex predicate selects active vertices and the edge predicate decides
+ * if a traversed edge may be used.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+void
+connectedComponentsIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
    Vector& components,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
