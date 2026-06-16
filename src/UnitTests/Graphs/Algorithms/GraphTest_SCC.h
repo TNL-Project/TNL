@@ -499,3 +499,116 @@ TYPED_TEST( GraphTest, test_SCC_predicate_select_subset )
    ComponentsType expected( { 1, 1, 1, -1, -1, -1 } );
    ASSERT_EQ( components, expected );
 }
+
+TYPED_TEST( GraphTest, test_SCC_edge_predicate_break_cycle )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   // Cycle: 0 -> 1 -> 2 -> 0 (all weight 1.0), plus a side edge 1 -> 2 with weight 99.0
+   // Actually make it simple: one cycle 0->1(w=1), 1->2(w=1), 2->0(w=2)
+   const GraphType graph(
+      3,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 0, 2.0 },
+      } );
+   // clang-format on
+
+   // Block edge with weight >= 2.0 (the back-edge 2->0).
+   // Without it: 0 can reach 1,2 but not return from 2 -> each vertex is its own SCC.
+   ComponentsType components;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < 2.0;
+   };
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, edgePredicate, components );
+
+   ComponentsType expected( { 3, 2, 1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_SCC_edge_predicate_identity )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      10,
+      {
+         { 1, 5, 1.0 },
+         { 2, 0, 1.0 }, { 2, 3, 1.0 }, { 2, 5, 1.0 },
+         { 3, 0, 1.0 }, { 3, 1, 1.0 }, { 3, 5, 1.0 }, { 3, 7, 1.0 },
+         { 5, 2, 1.0 }, { 5, 7, 1.0 },
+         { 6, 1, 1.0 },
+         { 7, 6, 1.0 },
+         { 8, 3, 1.0 },
+         { 9, 6, 1.0 }, { 9, 8, 1.0 },
+      } );
+   // clang-format on
+
+   // Allow all edges -> same as whole-graph SCC.
+   ComponentsType components;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return true;
+   };
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, edgePredicate, components );
+
+   ComponentsType expected( { 5, 3, 3, 3, 4, 3, 3, 3, 2, 1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_SCC_vertex_and_edge_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   // Two cycles: 0->1->2->0 and 3->4->5->3
+   const GraphType graph(
+      6,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 2.0 },
+         { 2, 0, 1.0 },
+         { 3, 4, 1.0 },
+         { 4, 5, 1.0 },
+         { 5, 3, 1.0 },
+      } );
+   // clang-format on
+
+   // Vertex predicate: only vertices 0,1,2 active.
+   // Edge predicate: block weight >= 2.0 (blocks 1->2).
+   // With the edge blocked, in the induced subgraph {0,1,2}:
+   // 0 reaches 1 (via 0->1), but 1 cannot reach 0 (1->2 is blocked).
+   // So all three are singletons.
+   ComponentsType components;
+   auto vertexPredicate = [] __cuda_callable__( IndexType v )
+   {
+      return v < 3;
+   };
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < 2.0;
+   };
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+
+   ComponentsType expected( { 3, 2, 1, -1, -1, -1 } );
+   ASSERT_EQ( components, expected );
+}
