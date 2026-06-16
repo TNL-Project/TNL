@@ -540,10 +540,305 @@ TYPED_TEST( GraphTest, test_CC_vertex_and_edge_predicate )
       return weight <= 1.0;
    };
 
-   TNL::Graphs::Algorithms::connectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+    TNL::Graphs::Algorithms::connectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
 
-   ComponentsType expected( { 0, 0, 2, 2, 4, -1 } );
-   ASSERT_EQ( components, expected );
+    ComponentsType expected( { 0, 0, 2, 2, 4, -1 } );
+    ASSERT_EQ( components, expected );
+}
+
+template< typename GraphType >
+GraphType
+makeUndirectedGraphA()
+{
+   using Real = typename GraphType::ValueType;
+   // clang-format off
+   // 10 vertices. Edges with weight 2 are "expensive" and can be filtered.
+   //     0---1---2---5---8---9
+   //     |   | / | / | / |
+   //     3---4---+   6---7
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) }, { 1, 4, Real( 2 ) },
+         { 2, 5, Real( 1 ) },
+         { 3, 4, Real( 1 ) }, { 3, 6, Real( 1 ) },
+         { 4, 5, Real( 2 ) }, { 4, 7, Real( 1 ) },
+         { 5, 8, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+         { 8, 9, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeUndirectedSubgraphB()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7,9} -> remapped to {0,1,2,3,4,5,6}
+   // clang-format off
+   return GraphType(
+      7,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 2, Real( 1 ) },
+         { 1, 3, Real( 2 ) },
+         { 2, 3, Real( 1 ) }, { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 5, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeUndirectedSubgraphD()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,2,3,5,6,7,8,9} -> remapped to {0,1,2,3,4,5,6,7,8}
+   // Cut-vertex 4 removed: graph splits into {0,1,2,3} and {5,6,7,8,9}
+   // clang-format off
+   return GraphType(
+      9,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) },
+         { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 7, Real( 1 ) },
+         { 5, 6, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeUndirectedSubgraphC()
+{
+   using Real = typename GraphType::ValueType;
+   // All 10 vertices, edges with weight >= 2 removed ({1,4} and {4,5}).
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) },
+         { 2, 5, Real( 1 ) },
+         { 3, 4, Real( 1 ) }, { 3, 6, Real( 1 ) },
+         { 4, 7, Real( 1 ) },
+         { 5, 8, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+         { 8, 9, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeUndirectedSubgraphE_edgeOnly()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7}, edges with weight >= 2 also removed.
+   // Remap: 0->0, 1->1, 3->2, 4->3, 6->4, 7->5
+   // clang-format off
+   return GraphType(
+      6,
+      {
+         { 0, 1, Real( 1 ) },
+         { 0, 2, Real( 1 ) },
+         { 2, 3, Real( 1 ) }, { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 5, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeUndirectedSubgraphE_bridge()
+{
+   using Real = typename GraphType::ValueType;
+   // All 10 vertices, bridge edge {8,9} removed.
+   // Vertex 9 becomes an isolated component.
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) }, { 1, 4, Real( 2 ) },
+         { 2, 5, Real( 1 ) },
+         { 3, 4, Real( 1 ) }, { 3, 6, Real( 1 ) },
+         { 4, 5, Real( 2 ) }, { 4, 7, Real( 1 ) },
+         { 5, 8, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename VectorA, typename VectorB >
+void
+expectPartitionEquiv(
+   const VectorA& compA,
+   const VectorB& compB,
+   const std::vector< int >& oldToNew,
+   int origSize )
+{
+   for( int u = 0; u < origSize; u++ ) {
+      if( oldToNew[ u ] < 0 )
+         continue;
+      for( int v = u + 1; v < origSize; v++ ) {
+         if( oldToNew[ v ] < 0 )
+            continue;
+         bool sameCompA = compA.getElement( u ) == compA.getElement( v );
+         bool sameCompB = compB.getElement( oldToNew[ u ] ) == compB.getElement( oldToNew[ v ] );
+         ASSERT_EQ( sameCompA, sameCompB ) << "vertices " << u << " and " << v;
+      }
+   }
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeUndirectedGraphA< GraphType >();
+   const auto subgraphB = makeUndirectedSubgraphB< GraphType >();
+
+   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 2 && v != 5 && v != 8;
+   };
+
+   ComponentsType compA, compB;
+   TNL::Graphs::Algorithms::connectedComponentsIf( graphA, excludeVertices, compA );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphB, compB );
+
+   // oldToNew: -1 for removed vertices
+   const std::vector< int > oldToNew = { 0, 1, -1, 2, 3, -1, 4, 5, -1, 6 };
+   expectPartitionEquiv( compA, compB, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeUndirectedGraphA< GraphType >();
+   const auto subgraphB = makeUndirectedSubgraphB< GraphType >();
+
+   const ComponentsType vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
+
+   ComponentsType compA, compB;
+   TNL::Graphs::Algorithms::connectedComponents( graphA, vertexIndexes, compA );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphB, compB );
+
+   const std::vector< int > oldToNew = { 0, 1, -1, 2, 3, -1, 4, 5, -1, 6 };
+   expectPartitionEquiv( compA, compB, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_disconnected )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeUndirectedGraphA< GraphType >();
+   const auto subgraphD = makeUndirectedSubgraphD< GraphType >();
+
+   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 4;
+   };
+
+   ComponentsType compA, compD;
+   TNL::Graphs::Algorithms::connectedComponentsIf( graphA, excludeFour, compA );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphD, compD );
+
+   const std::vector< int > oldToNew = { 0, 1, 2, 3, -1, 4, 5, 6, 7, 8 };
+   expectPartitionEquiv( compA, compD, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeUndirectedGraphA< GraphType >();
+   const auto subgraphC = makeUndirectedSubgraphC< GraphType >();
+
+   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < ValueType( 2 );
+   };
+
+   ComponentsType compA, compC;
+   TNL::Graphs::Algorithms::connectedComponents( graphA, blockWeight2, compA );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphC, compC );
+
+   const std::vector< int > identity = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   expectPartitionEquiv( compA, compC, identity, 10 );
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeUndirectedGraphA< GraphType >();
+   const auto subgraphE2 = makeUndirectedSubgraphE_edgeOnly< GraphType >();
+
+   const ComponentsType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
+   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < ValueType( 2 );
+   };
+
+   ComponentsType compA, compE2;
+   TNL::Graphs::Algorithms::connectedComponents( graphA, vertexIndexes, blockWeight2, compA );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphE2, compE2 );
+
+   const std::vector< int > oldToNew = { 0, 1, -1, 2, 3, -1, 4, 5, -1, -1 };
+   expectPartitionEquiv( compA, compE2, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_bridge )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeUndirectedGraphA< GraphType >();
+   const auto subgraphBridge = makeUndirectedSubgraphE_bridge< GraphType >();
+
+   const auto blockEdge89 = [=] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( ( src == 8 && tgt == 9 ) || ( src == 9 && tgt == 8 ) );
+   };
+
+   ComponentsType compA, compBridge;
+   TNL::Graphs::Algorithms::connectedComponents( graphA, blockEdge89, compA );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphBridge, compBridge );
+
+   const std::vector< int > identity = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   expectPartitionEquiv( compA, compBridge, identity, 10 );
 }
 
 #include "../../main.h"
