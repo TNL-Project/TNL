@@ -234,4 +234,178 @@ TYPED_TEST( GraphTest, test_CC_large )
    ASSERT_EQ( components, expected );
 }
 
+TYPED_TEST( GraphTest, test_CC_indexed_small )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      10,
+      {
+         { 2, 6, 1.0 },
+         { 4, 6, 1.0 },
+         { 4, 7, 1.0 },
+      } );
+   // clang-format on
+
+   // Induced subgraph on {2, 4, 6, 7} -- the component {2,4,6,7} stays connected.
+   ComponentsType vertexIndexes( { 2, 4, 6, 7 } );
+   ComponentsType components;
+
+   TNL::Graphs::Algorithms::connectedComponents( graph, vertexIndexes, components );
+
+   ComponentsType expected( { -1, -1, 2, -1, 2, -1, 2, 2, -1, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_indexed_alternating )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      6,
+      {
+         { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 4, 1.0 },
+         { 3, 5, 1.0 },
+      } );
+   // clang-format on
+
+   // Select only even vertices: {0, 2, 4} -- they form one connected component in the induced subgraph.
+   ComponentsType vertexIndexes( { 0, 2, 4 } );
+   ComponentsType components;
+
+   TNL::Graphs::Algorithms::connectedComponents( graph, vertexIndexes, components );
+
+   ComponentsType expected( { 0, -1, 0, -1, 0, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_indexed_all_vertices )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   // All vertices active -> same as whole-graph CC.
+   ComponentsType vertexIndexes( { 0, 1, 2, 3, 4 } );
+   ComponentsType components;
+
+   TNL::Graphs::Algorithms::connectedComponents( graph, vertexIndexes, components );
+
+   ComponentsType expected( { 0, 0, 0, 0, 0 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_predicate_small )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      10,
+      {
+         { 2, 6, 1.0 },
+         { 4, 6, 1.0 },
+         { 4, 7, 1.0 },
+      } );
+   // clang-format on
+
+   // Predicate: select vertices >= 2 and <= 7 -> {2,3,4,5,6,7}
+   // In the induced subgraph, {2,4,6,7} is one component; {3} and {5} are isolated.
+   ComponentsType components;
+   auto predicate = [] __cuda_callable__( IndexType v )
+   {
+      return v >= 2 && v <= 7;
+   };
+
+   TNL::Graphs::Algorithms::connectedComponentsIf( graph, predicate, components );
+
+   ComponentsType expected( { -1, -1, 2, 3, 2, 5, 2, 2, -1, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_predicate_even_vertices )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      6,
+      {
+         { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 4, 1.0 },
+         { 3, 5, 1.0 },
+      } );
+   // clang-format on
+
+   // Predicate: even vertices -> {0, 2, 4}, all connected via edges (0,2) and (2,4).
+   ComponentsType components;
+   auto predicate = [] __cuda_callable__( IndexType v )
+   {
+      return v % 2 == 0;
+   };
+
+   TNL::Graphs::Algorithms::connectedComponentsIf( graph, predicate, components );
+
+   ComponentsType expected( { 0, -1, 0, -1, 0, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_predicate_none_active )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+      } );
+   // clang-format on
+
+   // No vertex is active -> all should get -1.
+   ComponentsType components;
+   auto predicate = [] __cuda_callable__( IndexType )
+   {
+      return false;
+   };
+
+   TNL::Graphs::Algorithms::connectedComponentsIf( graph, predicate, components );
+
+   ComponentsType expected( { -1, -1, -1, -1, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
 #include "../../main.h"
