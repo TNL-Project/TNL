@@ -22,6 +22,26 @@ void
 graphColoring( const Graph& graph, Vector& colors );
 
 /**
+ * \brief Colors an undirected graph with edge filtering by greedy algorithm.
+ *
+ * The edge predicate decides if an edge connects two vertices that are
+ * considered adjacent for coloring purposes. It must provide a call operator
+ * with the signature:
+ * \code
+ * bool operator()( typename Graph::IndexType vertex, typename Graph::IndexType neighbor,
+ *                  typename Graph::ValueType weight ) const;
+ * \endcode
+ * Vertices connected only by blocked edges may receive the same color.
+ */
+template<
+   typename Graph,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+void
+graphColoring( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors );
+
+/**
  * \brief Colors the subgraph induced by the given vertex indexes with zero-based labels by greedy algorithm.
  *
  * The entries in \e vertexIndexes must be unique valid graph vertices.
@@ -34,6 +54,24 @@ template<
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 graphColoring( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors );
+
+/**
+ * \brief Colors the indexed-induced subgraph with edge filtering by greedy algorithm.
+ *
+ * The edge predicate has the same requirements as in the whole-graph overload.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+graphColoring(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Vector& colors );
 
 /**
  * \brief Colors the subgraph defined by a vertex predicate with zero-based labels by greedy algorithm.
@@ -50,6 +88,16 @@ void
 graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors );
 
 /**
+ * \brief Colors the predicate-induced subgraph with edge filtering by greedy algorithm.
+ *
+ * The vertex predicate selects active vertices and the edge predicate decides
+ * if a traversed edge connects two adjacent vertices for coloring purposes.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+void
+graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate&& edgePredicate, Vector& colors );
+
+/**
  * \brief Colors an undirected graph by repeated Luby-style MIS extraction.
  *
  * Each color class is built by finding one maximal independent set on the
@@ -58,6 +106,19 @@ graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& 
 template< typename Graph, typename Vector >
 void
 graphColoringLubi( const Graph& graph, Vector& colors );
+
+/**
+ * \brief Colors an undirected graph with edge filtering by repeated Luby-style MIS extraction.
+ *
+ * The edge predicate has the same requirements as in the greedy overload.
+ */
+template<
+   typename Graph,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+void
+graphColoringLubi( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors );
 
 /**
  * \brief Colors the subgraph induced by the given vertex indexes by repeated Luby-style MIS extraction.
@@ -74,6 +135,24 @@ void
 graphColoringLubi( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors );
 
 /**
+ * \brief Colors the indexed-induced subgraph with edge filtering by Luby-style MIS extraction.
+ *
+ * The edge predicate has the same requirements as in the whole-graph overload.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+graphColoringLubi(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Vector& colors );
+
+/**
  * \brief Colors the subgraph defined by a vertex predicate by repeated Luby-style MIS extraction.
  *
  * The predicate decides which vertices belong to the induced subgraph. It must
@@ -88,11 +167,36 @@ void
 graphColoringLubiIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors );
 
 /**
+ * \brief Colors the predicate-induced subgraph with edge filtering by Luby-style MIS extraction.
+ *
+ * The vertex predicate selects active vertices and the edge predicate decides
+ * if a traversed edge connects two adjacent vertices for coloring purposes.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+void
+graphColoringLubiIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Vector& colors );
+
+/**
  * \brief Checks that all color labels are non-negative and adjacent vertices differ.
  */
 template< typename Graph, typename Vector >
 bool
 isProperlyColored( const Graph& graph, const Vector& colors );
+
+/**
+ * \brief Checks that the coloring is proper considering only allowed edges.
+ */
+template<
+   typename Graph,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+bool
+isProperlyColored( const Graph& graph, EdgePredicate&& edgePredicate, const Vector& colors );
 
 /**
  * \brief Checks that the active part of the given coloring is proper on the
@@ -110,6 +214,23 @@ bool
 isProperlyColored( const Graph& graph, const VertexIndexes& vertexIndexes, const Vector& colors );
 
 /**
+ * \brief Checks that the coloring is proper on the indexed-induced subgraph
+ * considering only allowed edges.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename EdgePredicate,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+bool
+isProperlyColored(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   const Vector& colors );
+
+/**
  * \brief Checks that the active part of the given coloring is proper on the
  * subgraph selected by a vertex predicate.
  *
@@ -123,6 +244,18 @@ isProperlyColored( const Graph& graph, const VertexIndexes& vertexIndexes, const
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
 isProperlyColoredIf( const Graph& graph, VertexPredicate&& vertexPredicate, const Vector& colors );
+
+/**
+ * \brief Checks that the coloring is proper on the predicate-induced subgraph
+ * considering only allowed edges.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+bool
+isProperlyColoredIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   const Vector& colors );
 
 }  // namespace TNL::Graphs::Algorithms
 
