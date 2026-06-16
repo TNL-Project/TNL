@@ -821,4 +821,246 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_large )
    expectComputedLubiColoringIsProper( graph );
 }
 
+template< typename GraphType, typename EdgePredicate >
+void
+expectComputedColoringWithEdgePredicateIsProper( const GraphType& graph, EdgePredicate&& edgePredicate )
+{
+   using ColorsType = ColoringVector< GraphType >;
+
+   ColorsType colors;
+   TNL::Graphs::Algorithms::graphColoring( graph, edgePredicate, colors );
+
+   EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+}
+
+template< typename GraphType, typename EdgePredicate >
+void
+expectComputedLubiColoringWithEdgePredicateIsProper( const GraphType& graph, EdgePredicate&& edgePredicate )
+{
+   using ColorsType = ColoringVector< GraphType >;
+
+   ColorsType colors;
+   TNL::Graphs::Algorithms::graphColoringLubi( graph, edgePredicate, colors );
+
+   EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_weight_threshold )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   // clang-format off
+   // Chain with varying weights: 0--(1)--1--(2)--2--(1)--3--(3)--4
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 2.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 3.0 },
+      } );
+   // clang-format on
+
+   // Allow only edges with weight <= 1.0 -> usable edges: (0,1), (2,3).
+   // Vertices 0 and 1 conflict; vertices 2 and 3 conflict; vertex 4 is isolated.
+   // So we need at most 2 colors (alternating 0-1 and 2-3, and 4 can be color 0).
+   ColorsType colors;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight <= 1.0;
+   };
+
+   TNL::Graphs::Algorithms::graphColoring( graph, edgePredicate, colors );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_block_all )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   // Block all edges -> no conflicts, 1 color suffices.
+   ColorsType colors;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return false;
+   };
+
+   TNL::Graphs::Algorithms::graphColoring( graph, edgePredicate, colors );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 1 ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_identity )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return true;
+   };
+
+   expectComputedColoringWithEdgePredicateIsProper( graph, edgePredicate );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_vertex_and_edge_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      6,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 2.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 2.0 },
+         { 4, 5, 1.0 },
+      } );
+   // clang-format on
+
+   // Vertex predicate: active vertices 0..4 (exclude 5).
+   // Edge predicate: allow weight <= 1.0 -> usable edges: (0,1), (2,3).
+   ColorsType colors;
+   auto vertexPredicate = [] __cuda_callable__( IndexType v )
+   {
+      return v < 5;
+   };
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight <= 1.0;
+   };
+
+   TNL::Graphs::Algorithms::graphColoringIf( graph, vertexPredicate, edgePredicate, colors );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, vertexPredicate, edgePredicate, colors ) );
+   EXPECT_EQ( colors.getElement( 5 ), -1 );
+}
+
+TYPED_TEST( GraphTest, test_graphColoringLubi_edge_predicate_block_all )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   // Block all edges -> no conflicts, 1 color suffices.
+   ColorsType colors;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return false;
+   };
+
+   TNL::Graphs::Algorithms::graphColoringLubi( graph, edgePredicate, colors );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 1 ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoringLubi_edge_predicate_weight_threshold )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   // clang-format off
+   // Chain with varying weights: 0--(1)--1--(2)--2--(1)--3--(3)--4
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 2.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 3.0 },
+      } );
+   // clang-format on
+
+   ColorsType colors;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight <= 1.0;
+   };
+
+   TNL::Graphs::Algorithms::graphColoringLubi( graph, edgePredicate, colors );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
+}
+
+TYPED_TEST( GraphTest, test_isProperlyColored_edge_predicate_blocked_edge_no_conflict )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      3,
+      {
+         { 0, 1, 2.0 },
+         { 1, 2, 1.0 },
+      } );
+   // clang-format on
+
+   // Both vertices 0 and 1 have the same color, but the edge (0,1) has weight 2.0.
+   // If we block weight >= 2.0, this coloring should be proper.
+   const ColorsType colors( { 0, 0, 1 } );
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < 2.0;
+   };
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+}
+
 #include "../../main.h"
