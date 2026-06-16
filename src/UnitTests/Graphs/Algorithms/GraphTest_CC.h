@@ -408,4 +408,142 @@ TYPED_TEST( GraphTest, test_CC_predicate_none_active )
    ASSERT_EQ( components, expected );
 }
 
+TYPED_TEST( GraphTest, test_CC_edge_predicate_weight_threshold )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   // Chain: 0--(1)--1--(2)--2--(3)--3--(4)--4
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 2.0 },
+         { 2, 3, 3.0 },
+         { 3, 4, 4.0 },
+      } );
+   // clang-format on
+
+   // Allow only edges with weight <= 2.0 -> edges (0,1) and (1,2) are usable,
+   // so {0,1,2} form one component, {3} and {4} are singletons.
+   ComponentsType components;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight <= 2.0;
+   };
+
+   TNL::Graphs::Algorithms::connectedComponents( graph, edgePredicate, components );
+
+   ComponentsType expected( { 0, 0, 0, 3, 4 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_edge_predicate_block_all )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   // Block all edges -> every vertex is its own component.
+   ComponentsType components;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return false;
+   };
+
+   TNL::Graphs::Algorithms::connectedComponents( graph, edgePredicate, components );
+
+   ComponentsType expected( { 0, 1, 2, 3, 4 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_edge_predicate_identity )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   // Allow all edges -> same as whole-graph CC.
+   ComponentsType components;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return true;
+   };
+
+   TNL::Graphs::Algorithms::connectedComponents( graph, edgePredicate, components );
+
+   ComponentsType expected( { 0, 0, 0, 0, 0 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_vertex_and_edge_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      6,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 2.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 2.0 },
+         { 4, 5, 1.0 },
+      } );
+   // clang-format on
+
+   // Vertex predicate: active vertices 0..4 (exclude 5).
+   // Edge predicate: allow weight <= 1.0 -> edges (0,1), (2,3), (4,5).
+   // In the induced subgraph {0,1,2,3,4}: usable edges are (0,1) and (2,3).
+   // So components are {0,1}, {2,3}, {4}.
+   ComponentsType components;
+   auto vertexPredicate = [] __cuda_callable__( IndexType v )
+   {
+      return v < 5;
+   };
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight <= 1.0;
+   };
+
+   TNL::Graphs::Algorithms::connectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+
+   ComponentsType expected( { 0, 0, 2, 2, 4, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
 #include "../../main.h"
