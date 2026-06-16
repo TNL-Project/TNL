@@ -1060,7 +1060,298 @@ TYPED_TEST( GraphTest, test_isProperlyColored_edge_predicate_blocked_edge_no_con
       return weight < 2.0;
    };
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+}
+
+template< typename GraphType >
+GraphType
+makeColoringGraphA()
+{
+   using Real = typename GraphType::ValueType;
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) }, { 1, 4, Real( 2 ) },
+         { 2, 5, Real( 1 ) },
+         { 3, 4, Real( 1 ) }, { 3, 6, Real( 1 ) },
+         { 4, 5, Real( 2 ) }, { 4, 7, Real( 1 ) },
+         { 5, 8, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+         { 8, 9, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeColoringSubgraphB()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7,9} -> remapped to {0,1,2,3,4,5,6}
+   // clang-format off
+   return GraphType(
+      7,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 2, Real( 1 ) },
+         { 1, 3, Real( 2 ) },
+         { 2, 3, Real( 1 ) }, { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 5, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeColoringSubgraphD()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,2,3,5,6,7,8,9} -> remapped to {0,1,2,3,4,5,6,7,8}
+   // clang-format off
+   return GraphType(
+      9,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) },
+         { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 7, Real( 1 ) },
+         { 5, 6, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeColoringSubgraphC()
+{
+   using Real = typename GraphType::ValueType;
+   // All 10 vertices, edges with weight >= 2 removed.
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) },
+         { 2, 5, Real( 1 ) },
+         { 3, 4, Real( 1 ) }, { 3, 6, Real( 1 ) },
+         { 4, 7, Real( 1 ) },
+         { 5, 8, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+         { 8, 9, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeColoringSubgraphE2()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7}, edges with weight >= 2 also removed.
+   // Remap: 0->0, 1->1, 3->2, 4->3, 6->4, 7->5
+   // clang-format off
+   return GraphType(
+      6,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 2, Real( 1 ) },
+         { 2, 3, Real( 1 ) }, { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 5, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   const auto graphA = makeColoringGraphA< GraphType >();
+   const auto subgraphB = makeColoringSubgraphB< GraphType >();
+
+   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 2 && v != 5 && v != 8;
+   };
+
+   ColorsType colorsA, colorsB;
+   TNL::Graphs::Algorithms::graphColoringIf( graphA, excludeVertices, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( subgraphB, colorsB );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graphA, excludeVertices, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphB, colorsB ) );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
+   for( int i = 0; i < (int) newToOld.size(); i++ )
+      ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
+   EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsB ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoringLubi_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   const auto graphA = makeColoringGraphA< GraphType >();
+   const auto subgraphB = makeColoringSubgraphB< GraphType >();
+
+   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 2 && v != 5 && v != 8;
+   };
+
+   ColorsType colorsA, colorsB;
+   TNL::Graphs::Algorithms::graphColoringLubiIf( graphA, excludeVertices, colorsA );
+   TNL::Graphs::Algorithms::graphColoringLubi( subgraphB, colorsB );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graphA, excludeVertices, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphB, colorsB ) );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
+   for( int i = 0; i < (int) newToOld.size(); i++ )
+      ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
+   EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsB ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   const auto graphA = makeColoringGraphA< GraphType >();
+   const auto subgraphB = makeColoringSubgraphB< GraphType >();
+
+   const ColorsType vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
+
+   ColorsType colorsA, colorsB;
+   TNL::Graphs::Algorithms::graphColoring( graphA, vertexIndexes, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( subgraphB, colorsB );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, vertexIndexes, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphB, colorsB ) );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
+   for( int i = 0; i < (int) newToOld.size(); i++ )
+      ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
+   EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsB ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_disconnected )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   const auto graphA = makeColoringGraphA< GraphType >();
+   const auto subgraphD = makeColoringSubgraphD< GraphType >();
+
+   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 4;
+   };
+
+   ColorsType colorsA, colorsD;
+   TNL::Graphs::Algorithms::graphColoringIf( graphA, excludeFour, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( subgraphD, colorsD );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graphA, excludeFour, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphD, colorsD ) );
+
+   const std::vector< int > newToOld = { 0, 1, 2, 3, 5, 6, 7, 8, 9 };
+   for( int i = 0; i < (int) newToOld.size(); i++ )
+      ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
+   EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsD ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   const auto graphA = makeColoringGraphA< GraphType >();
+   const auto subgraphC = makeColoringSubgraphC< GraphType >();
+
+   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < ValueType( 2 );
+   };
+
+   ColorsType colorsA, colorsC;
+   TNL::Graphs::Algorithms::graphColoring( graphA, blockWeight2, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( subgraphC, colorsC );
+
+    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
+    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoringLubi_subgraph_edge_removal_wholeGraph )
+{
+    using GraphType = typename TestFixture::GraphType;
+    using IndexType = typename GraphType::IndexType;
+    using ValueType = typename GraphType::ValueType;
+    using ColorsType = ColoringVector< GraphType >;
+
+    const auto graphA = makeColoringGraphA< GraphType >();
+    const auto subgraphC = makeColoringSubgraphC< GraphType >();
+
+    const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+    {
+       return weight < ValueType( 2 );
+    };
+
+    ColorsType colorsA, colorsC;
+    TNL::Graphs::Algorithms::graphColoringLubi( graphA, blockWeight2, colorsA );
+    TNL::Graphs::Algorithms::graphColoringLubi( subgraphC, colorsC );
+
+    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
+    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
+
+    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsC ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   const auto graphA = makeColoringGraphA< GraphType >();
+   const auto subgraphE2 = makeColoringSubgraphE2< GraphType >();
+
+   const ColorsType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
+   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < ValueType( 2 );
+   };
+
+   ColorsType colorsA, colorsE2;
+   TNL::Graphs::Algorithms::graphColoring( graphA, vertexIndexes, blockWeight2, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( subgraphE2, colorsE2 );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, vertexIndexes, blockWeight2, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphE2, colorsE2 ) );
+
+    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
+    for( int i = 0; i < (int) newToOld.size(); i++ )
+       ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
 }
 
 #include "../../main.h"
