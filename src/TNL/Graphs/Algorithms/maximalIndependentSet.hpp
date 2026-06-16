@@ -35,17 +35,18 @@ maximalIndependentSetPriority( Index vertex, Index roundSeed, Index iteration )
    return x;
 }
 
-template< typename Graph, typename ActiveVector, typename Vector >
+template< typename Graph, typename ActiveVector, typename Vector, typename EdgePredicate >
 void
 maximalIndependentSetOnActiveVertices(
    const Graph& graph,
    const ActiveVector& activeVertices,
    Vector& independentSet,
-   typename Graph::IndexType roundSeed = 0 )
+   typename Graph::IndexType roundSeed,
+   EdgePredicate&& edgePredicate )
 {
    static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
 
-   // Deterministic Luby-style MIS on the induced subgraph given by activeVertices:
+   // Deterministic Luby-style MIS on the induced subgraph given by activeVertices and edgePredicate:
    // each round keeps local priority winners, adds them to the MIS, and removes
    // both the winners and their active neighbors from further competition.
 
@@ -68,11 +69,8 @@ maximalIndependentSetOnActiveVertices(
 
    const auto graphView = graph.getConstView();
 
-   // Vertices still allowed to compete for the current MIS.
    IndexVector available( verticesCount, 0 );
-   // Local winners of the current priority round.
    IndexVector candidates( verticesCount, 0 );
-   // Vertices removed from further competition in this MIS build.
    IndexVector blocked( verticesCount, 0 );
 
    available = activeVertices;
@@ -89,7 +87,6 @@ maximalIndependentSetOnActiveVertices(
       auto candidatesView = candidates.getView();
       const IndexType iterationRound = iteration;
 
-      // Each round picks one priority-maximal independent set from the still-active vertices.
       TNL::Algorithms::parallelFor< DeviceType >(
          0,
          verticesCount,
@@ -109,6 +106,10 @@ maximalIndependentSetOnActiveVertices(
                if( ! available_view[ neighbor ] )
                   continue;
 
+               const auto weight = vertexView.getEdgeWeight( localIdx );
+               if( ! edgePredicate( vertex, neighbor, weight ) )
+                  continue;
+
                const auto neighborPriority = maximalIndependentSetPriority( neighbor, roundSeed, iterationRound );
                if( neighborPriority > priority || ( neighborPriority == priority && neighbor < vertex ) ) {
                   wins = false;
@@ -126,7 +127,6 @@ maximalIndependentSetOnActiveVertices(
          throw std::logic_error( "Maximal independent set made no progress in a Luby round." );
 
       auto blocked_view = blocked.getView();
-      // Winners and their neighbors leave the active set, so the accumulated result stays independent.
       TNL::Algorithms::parallelFor< DeviceType >(
          0,
          verticesCount,
@@ -146,6 +146,10 @@ maximalIndependentSetOnActiveVertices(
             for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
                if( ! available_view[ neighbor ] )
+                  continue;
+
+               const auto weight = vertexView.getEdgeWeight( localIdx );
+               if( ! edgePredicate( vertex, neighbor, weight ) )
                   continue;
 
                if( candidates_view[ neighbor ] ) {
@@ -175,9 +179,13 @@ maximalIndependentSetOnActiveVertices(
    }
 }
 
-template< typename Graph, typename ActiveVector, typename Vector >
+template< typename Graph, typename ActiveVector, typename Vector, typename EdgePredicate >
 bool
-isMaximalIndependentSetOnActiveVertices( const Graph& graph, const ActiveVector& activeVertices, const Vector& independentSet )
+isMaximalIndependentSetOnActiveVertices(
+   const Graph& graph,
+   const ActiveVector& activeVertices,
+   const Vector& independentSet,
+   EdgePredicate&& edgePredicate )
 {
    static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
 
@@ -211,6 +219,10 @@ isMaximalIndependentSetOnActiveVertices( const Graph& graph, const ActiveVector&
             if( ! activeVerticesView[ neighbor ] )
                continue;
 
+            const auto weight = vertexView.getEdgeWeight( localIdx );
+            if( ! edgePredicate( vertex, neighbor, weight ) )
+               continue;
+
             if( static_cast< bool >( independentSetView[ neighbor ] ) ) {
                if( isSelected )
                   return false;
@@ -235,7 +247,29 @@ maximalIndependentSet( const Graph& graph, Vector& independentSet )
 
    IndexVector activeVertices;
    detail::activateAllVertices( graph, activeVertices );
-   detail::maximalIndependentSetOnActiveVertices( graph, activeVertices, independentSet );
+   detail::maximalIndependentSetOnActiveVertices(
+      graph,
+      activeVertices,
+      independentSet,
+      0,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      } );
+}
+
+template< typename Graph, typename Vector, typename EdgePredicate, typename >
+void
+maximalIndependentSet( const Graph& graph, EdgePredicate&& edgePredicate, Vector& independentSet )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateAllVertices( graph, activeVertices );
+   detail::maximalIndependentSetOnActiveVertices(
+      graph, activeVertices, independentSet, 0, std::forward< EdgePredicate >( edgePredicate ) );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename >
@@ -248,7 +282,33 @@ maximalIndependentSet( const Graph& graph, const VertexIndexes& vertexIndexes, V
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   detail::maximalIndependentSetOnActiveVertices( graph, activeVertices, independentSet );
+   detail::maximalIndependentSetOnActiveVertices(
+      graph,
+      activeVertices,
+      independentSet,
+      0,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      } );
+}
+
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+void
+maximalIndependentSet(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Vector& independentSet )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   detail::maximalIndependentSetOnActiveVertices(
+      graph, activeVertices, independentSet, 0, std::forward< EdgePredicate >( edgePredicate ) );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector >
@@ -261,7 +321,33 @@ maximalIndependentSetIf( const Graph& graph, VertexPredicate&& vertexPredicate, 
 
    IndexVector activeVertices;
    detail::activateVerticesIf( graph, std::forward< VertexPredicate >( vertexPredicate ), activeVertices );
-   detail::maximalIndependentSetOnActiveVertices( graph, activeVertices, independentSet );
+   detail::maximalIndependentSetOnActiveVertices(
+      graph,
+      activeVertices,
+      independentSet,
+      0,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      } );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+void
+maximalIndependentSetIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Vector& independentSet )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateVerticesIf( graph, std::forward< VertexPredicate >( vertexPredicate ), activeVertices );
+   detail::maximalIndependentSetOnActiveVertices(
+      graph, activeVertices, independentSet, 0, std::forward< EdgePredicate >( edgePredicate ) );
 }
 
 template< typename Graph, typename Vector >
@@ -274,7 +360,28 @@ isMaximalIndependentSet( const Graph& graph, const Vector& independentSet )
 
    IndexVector activeVertices;
    detail::activateAllVertices( graph, activeVertices );
-   return detail::isMaximalIndependentSetOnActiveVertices( graph, activeVertices, independentSet );
+   return detail::isMaximalIndependentSetOnActiveVertices(
+      graph,
+      activeVertices,
+      independentSet,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      } );
+}
+
+template< typename Graph, typename Vector, typename EdgePredicate, typename >
+bool
+isMaximalIndependentSet( const Graph& graph, EdgePredicate&& edgePredicate, const Vector& independentSet )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateAllVertices( graph, activeVertices );
+   return detail::isMaximalIndependentSetOnActiveVertices(
+      graph, activeVertices, independentSet, std::forward< EdgePredicate >( edgePredicate ) );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename >
@@ -287,7 +394,32 @@ isMaximalIndependentSet( const Graph& graph, const VertexIndexes& vertexIndexes,
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   return detail::isMaximalIndependentSetOnActiveVertices( graph, activeVertices, independentSet );
+   return detail::isMaximalIndependentSetOnActiveVertices(
+      graph,
+      activeVertices,
+      independentSet,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      } );
+}
+
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+bool
+isMaximalIndependentSet(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   const Vector& independentSet )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   return detail::isMaximalIndependentSetOnActiveVertices(
+      graph, activeVertices, independentSet, std::forward< EdgePredicate >( edgePredicate ) );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector >
@@ -300,7 +432,32 @@ isMaximalIndependentSetIf( const Graph& graph, VertexPredicate&& vertexPredicate
 
    IndexVector activeVertices;
    detail::activateVerticesIf( graph, std::forward< VertexPredicate >( vertexPredicate ), activeVertices );
-   return detail::isMaximalIndependentSetOnActiveVertices( graph, activeVertices, independentSet );
+   return detail::isMaximalIndependentSetOnActiveVertices(
+      graph,
+      activeVertices,
+      independentSet,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      } );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+bool
+isMaximalIndependentSetIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   const Vector& independentSet )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateVerticesIf( graph, std::forward< VertexPredicate >( vertexPredicate ), activeVertices );
+   return detail::isMaximalIndependentSetOnActiveVertices(
+      graph, activeVertices, independentSet, std::forward< EdgePredicate >( edgePredicate ) );
 }
 
 }  // namespace TNL::Graphs::Algorithms
