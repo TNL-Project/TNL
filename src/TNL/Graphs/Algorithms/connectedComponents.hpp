@@ -13,19 +13,23 @@
 #include <TNL/Graphs/traverse.h>
 #include <TNL/Matrices/MatrixBase.h>
 
+#include "details/activeVertices.hpp"
 #include "connectedComponents.h"
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Index, typename VisitedView, typename ComponentsView >
+template< typename Index, typename VisitedView, typename ComponentsView, typename IsActive >
 void
 enqueueComponentVertex(
    const Index componentLabel,
    const Index vertex,
    VisitedView visited,
    ComponentsView components,
-   std::queue< Index >& queue )
+   std::queue< Index >& queue,
+   IsActive&& isActive )
 {
+   if( ! isActive( vertex ) )
+      return;
    if( visited[ vertex ] )
       return;
 
@@ -34,9 +38,9 @@ enqueueComponentVertex(
    queue.push( vertex );
 }
 
-template< typename Graph, typename Vector >
+template< typename Graph, typename Vector, typename IsActive >
 void
-connectedComponentsSequential( const Graph& graph, Vector& components )
+connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&& isActive )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -54,12 +58,13 @@ connectedComponentsSequential( const Graph& graph, Vector& components )
    components = static_cast< IndexType >( -1 );
 
    for( IndexType componentLabel = 0; componentLabel < verticesCount; componentLabel++ ) {
+      if( ! isActive( componentLabel ) )
+         continue;
       if( visitedView[ componentLabel ] )
          continue;
 
-      // Expand one component in the undirected closure of the adjacency relation.
       std::queue< IndexType > queue;
-      enqueueComponentVertex( componentLabel, componentLabel, visitedView, componentsView, queue );
+      enqueueComponentVertex( componentLabel, componentLabel, visitedView, componentsView, queue, isActive );
 
       while( ! queue.empty() ) {
          const IndexType currentVertex = queue.front();
@@ -70,7 +75,7 @@ connectedComponentsSequential( const Graph& graph, Vector& components )
             const IndexType neighbor = currentRow.getColumnIndex( localIdx );
             if( neighbor == Matrices::paddingIndex< IndexType > )
                continue;
-            enqueueComponentVertex( componentLabel, neighbor, visitedView, componentsView, queue );
+            enqueueComponentVertex( componentLabel, neighbor, visitedView, componentsView, queue, isActive );
          }
 
          for( IndexType rowIdx = 0; rowIdx < verticesCount; rowIdx++ ) {
@@ -83,7 +88,7 @@ connectedComponentsSequential( const Graph& graph, Vector& components )
                if( target == Matrices::paddingIndex< IndexType > )
                   continue;
                if( target == currentVertex ) {
-                  enqueueComponentVertex( componentLabel, rowIdx, visitedView, componentsView, queue );
+                  enqueueComponentVertex( componentLabel, rowIdx, visitedView, componentsView, queue, isActive );
                   break;
                }
             }
@@ -92,11 +97,12 @@ connectedComponentsSequential( const Graph& graph, Vector& components )
    }
 }
 
-template< typename Graph, typename Vector >
+template< typename Graph, typename Vector, typename IsActive >
 void
 connectedComponentsParallel(
    const Graph& graph,
    Vector& components,
+   IsActive&& isActive,
    const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    using ValueType = typename Graph::ValueType;
@@ -117,9 +123,9 @@ connectedComponentsParallel(
       hostAtomicComponents.setSize( verticesCount );
 
    components.forAllElements(
-      [] __cuda_callable__( IndexType vertex, IndexType & value )
+      [ = ] __cuda_callable__( IndexType vertex, IndexType & value )
       {
-         value = vertex;
+         value = isActive( vertex ) ? vertex : static_cast< IndexType >( -1 );
       } );
    previous = static_cast< IndexType >( -1 );
 
@@ -148,12 +154,15 @@ connectedComponentsParallel(
             {
                if( targetIdx == paddingIndex )
                   return;
+               if( ! isActive( sourceIdx ) || ! isActive( targetIdx ) )
+                  return;
 
                const IndexType sourceLabel = previousView[ sourceIdx ];
                const IndexType targetLabel = previousView[ targetIdx ];
+               if( sourceLabel == static_cast< IndexType >( -1 ) || targetLabel == static_cast< IndexType >( -1 ) )
+                  return;
                const IndexType componentLabel = sourceLabel < targetLabel ? sourceLabel : targetLabel;
 
-               // Host traversals relax endpoints independently via per-entry atomic minima.
                hostAtomicComponentsView[ sourceIdx ].fetch_min( componentLabel );
                hostAtomicComponentsView[ targetIdx ].fetch_min( componentLabel );
             },
@@ -175,9 +184,13 @@ connectedComponentsParallel(
             {
                if( targetIdx == paddingIndex )
                   return;
+               if( ! isActive( sourceIdx ) || ! isActive( targetIdx ) )
+                  return;
 
                const IndexType sourceLabel = previousView[ sourceIdx ];
                const IndexType targetLabel = previousView[ targetIdx ];
+               if( sourceLabel == static_cast< IndexType >( -1 ) || targetLabel == static_cast< IndexType >( -1 ) )
+                  return;
                const IndexType componentLabel = sourceLabel < targetLabel ? sourceLabel : targetLabel;
 
                atomicMin( &componentsView[ sourceIdx ], componentLabel );
@@ -195,22 +208,75 @@ connectedComponentsParallel(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            componentsView[ vertex ] = relaxedView[ relaxedView[ vertex ] ];
+            if( relaxedView[ vertex ] != static_cast< IndexType >( -1 ) )
+               componentsView[ vertex ] = relaxedView[ relaxedView[ vertex ] ];
          } );
    }
+}
+
+template< typename Graph, typename Vector, typename IsActive >
+void
+connectedComponents_impl(
+   const Graph& graph,
+   Vector& components,
+   IsActive&& isActive,
+   const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
+{
+   using DeviceType = typename Graph::DeviceType;
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Sequential > || std::is_same_v< DeviceType, Devices::Host > )
+      connectedComponentsSequential( graph, components, isActive );
+   else
+      connectedComponentsParallel( graph, components, isActive, launchConfig );
 }
 
 template< typename Graph, typename Vector >
 void
 connectedComponents( const Graph& graph, Vector& components, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   connectedComponents_impl(
+      graph,
+      components,
+      [] __cuda_callable__( IndexType )
+      {
+         return true;
+      },
+      launchConfig );
+}
 
-   // Host backends currently use the traversal formulation; GPU backends use parallel relaxation.
-   if constexpr( std::is_same_v< DeviceType, Devices::Sequential > || std::is_same_v< DeviceType, Devices::Host > )
-      connectedComponentsSequential( graph, components );
-   else
-      connectedComponentsParallel( graph, components, launchConfig );
+template< typename Graph, typename VertexIndexes, typename Vector, typename >
+void
+connectedComponents(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   const auto activeVerticesView = activeVertices.getConstView();
+   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
+   {
+      return static_cast< bool >( activeVerticesView[ vertex ] );
+   };
+   connectedComponents_impl( graph, components, isActive, launchConfig );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector >
+void
+connectedComponentsIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
+   connectedComponents_impl( graph, components, predicate, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
