@@ -527,16 +527,271 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_identity )
       } );
    // clang-format on
 
-   // Allow all edges -> same as whole-graph MIS.
-   MISVectorType independentSet;
-   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+    // Allow all edges -> same as whole-graph MIS.
+    MISVectorType independentSet;
+    auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+    {
+       return true;
+    };
+
+    TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+
+    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
+}
+
+template< typename GraphType >
+GraphType
+makeMISGraphA()
+{
+   using Real = typename GraphType::ValueType;
+   // clang-format off
+   // 10 vertices, same topology as undirected graph A for CC.
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) }, { 1, 4, Real( 2 ) },
+         { 2, 5, Real( 1 ) },
+         { 3, 4, Real( 1 ) }, { 3, 6, Real( 1 ) },
+         { 4, 5, Real( 2 ) }, { 4, 7, Real( 1 ) },
+         { 5, 8, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+         { 8, 9, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeMISSubgraphB()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7,9} -> remapped to {0,1,2,3,4,5,6}
+   // clang-format off
+   return GraphType(
+      7,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 2, Real( 1 ) },
+         { 1, 3, Real( 2 ) },
+         { 2, 3, Real( 1 ) }, { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 5, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeMISSubgraphD()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,2,3,5,6,7,8,9} -> remapped to {0,1,2,3,4,5,6,7,8}
+   // clang-format off
+   return GraphType(
+      9,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) },
+         { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 7, Real( 1 ) },
+         { 5, 6, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeMISSubgraphC()
+{
+   using Real = typename GraphType::ValueType;
+   // All 10 vertices, edges with weight >= 2 removed.
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 3, Real( 1 ) },
+         { 1, 2, Real( 1 ) },
+         { 2, 5, Real( 1 ) },
+         { 3, 4, Real( 1 ) }, { 3, 6, Real( 1 ) },
+         { 4, 7, Real( 1 ) },
+         { 5, 8, Real( 1 ) },
+         { 6, 7, Real( 1 ) },
+         { 7, 8, Real( 1 ) },
+         { 8, 9, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeMISSubgraphE2()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7}, edges with weight >= 2 also removed.
+   // Remap: 0->0, 1->1, 3->2, 4->3, 6->4, 7->5
+   // clang-format off
+   return GraphType(
+      6,
+      {
+         { 0, 1, Real( 1 ) }, { 0, 2, Real( 1 ) },
+         { 2, 3, Real( 1 ) }, { 2, 4, Real( 1 ) },
+         { 3, 5, Real( 1 ) },
+         { 4, 5, Real( 1 ) },
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   // clang-format on
+}
+
+TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using MISVectorType = MISVector< GraphType >;
+
+   const auto graphA = makeMISGraphA< GraphType >();
+   const auto subgraphB = makeMISSubgraphB< GraphType >();
+
+   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
    {
-      return true;
+      return v != 2 && v != 5 && v != 8;
    };
 
-   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+   MISVectorType misA, misB;
+   TNL::Graphs::Algorithms::maximalIndependentSetIf( graphA, excludeVertices, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphB, misB );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graphA, excludeVertices, misA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphB, misB ) );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
+   int sumA = 0, sumB = 0;
+   for( int i = 0; i < (int) newToOld.size(); i++ ) {
+      sumA += misA.getElement( newToOld[ i ] );
+      sumB += misB.getElement( i );
+   }
+   EXPECT_EQ( sumA, sumB );
+}
+
+TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using MISVectorType = MISVector< GraphType >;
+
+   const auto graphA = makeMISGraphA< GraphType >();
+   const auto subgraphB = makeMISSubgraphB< GraphType >();
+
+   const MISVectorType vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
+
+   MISVectorType misA, misB;
+   TNL::Graphs::Algorithms::maximalIndependentSet( graphA, vertexIndexes, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphB, misB );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graphA, vertexIndexes, misA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphB, misB ) );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
+   int sumA = 0, sumB = 0;
+   for( int i = 0; i < (int) newToOld.size(); i++ ) {
+      sumA += misA.getElement( newToOld[ i ] );
+      sumB += misB.getElement( i );
+   }
+   EXPECT_EQ( sumA, sumB );
+}
+
+TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_disconnected )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using MISVectorType = MISVector< GraphType >;
+
+   const auto graphA = makeMISGraphA< GraphType >();
+   const auto subgraphD = makeMISSubgraphD< GraphType >();
+
+   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 4;
+   };
+
+   MISVectorType misA, misD;
+   TNL::Graphs::Algorithms::maximalIndependentSetIf( graphA, excludeFour, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphD, misD );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graphA, excludeFour, misA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphD, misD ) );
+
+   const std::vector< int > newToOld = { 0, 1, 2, 3, 5, 6, 7, 8, 9 };
+   int sumA = 0, sumD = 0;
+   for( int i = 0; i < (int) newToOld.size(); i++ ) {
+      sumA += misA.getElement( newToOld[ i ] );
+      sumD += misD.getElement( i );
+   }
+   EXPECT_EQ( sumA, sumD );
+}
+
+TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using MISVectorType = MISVector< GraphType >;
+
+   const auto graphA = makeMISGraphA< GraphType >();
+   const auto subgraphC = makeMISSubgraphC< GraphType >();
+
+   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < ValueType( 2 );
+   };
+
+   MISVectorType misA, misC;
+   TNL::Graphs::Algorithms::maximalIndependentSet( graphA, blockWeight2, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphC, misC );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graphA, blockWeight2, misA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphC, misC ) );
+
+   EXPECT_EQ( TNL::sum( misA ), TNL::sum( misC ) );
+}
+
+TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using MISVectorType = MISVector< GraphType >;
+
+   const auto graphA = makeMISGraphA< GraphType >();
+   const auto subgraphE2 = makeMISSubgraphE2< GraphType >();
+
+   const MISVectorType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
+   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < ValueType( 2 );
+   };
+
+   MISVectorType misA, misE2;
+   TNL::Graphs::Algorithms::maximalIndependentSet( graphA, vertexIndexes, blockWeight2, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphE2, misE2 );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graphA, vertexIndexes, blockWeight2, misA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphE2, misE2 ) );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
+   int sumA = 0, sumE2 = 0;
+   for( int i = 0; i < (int) newToOld.size(); i++ ) {
+      sumA += misA.getElement( newToOld[ i ] );
+      sumE2 += misE2.getElement( i );
+   }
+   EXPECT_EQ( sumA, sumE2 );
 }
 
 #include "../../main.h"
