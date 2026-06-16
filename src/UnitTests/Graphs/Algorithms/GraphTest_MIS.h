@@ -446,4 +446,97 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_large )
    expectComputedMISIsValid( graph );
 }
 
+TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_one_edge )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using MISVectorType = MISVector< GraphType >;
+
+   // clang-format off
+   // Triangle: 0-1, 1-2, 0-2 with different weights.
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      3,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 2.0 },
+         { 0, 2, 1.0 },
+      } );
+   // clang-format on
+
+   // Block edge with weight >= 2.0 (the edge 1-2).
+   // In the filtered graph, 0 is adjacent to both 1 and 2, but 1 and 2 are not adjacent.
+   // So {1, 2} should be a valid MIS.
+   MISVectorType independentSet;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < 2.0;
+   };
+
+   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, edgePredicate, independentSet ) );
+}
+
+TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_all )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using MISVectorType = MISVector< GraphType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   // Block all edges -> every vertex is isolated, so the entire vertex set is an MIS.
+   MISVectorType independentSet;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return false;
+   };
+
+   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+
+   EXPECT_EQ( TNL::sum( independentSet ), graph.getVertexCount() );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, edgePredicate, independentSet ) );
+}
+
+TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_identity )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using MISVectorType = MISVector< GraphType >;
+
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 3, 4, 1.0 },
+      } );
+   // clang-format on
+
+   // Allow all edges -> same as whole-graph MIS.
+   MISVectorType independentSet;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return true;
+   };
+
+   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
+}
+
 #include "../../main.h"
