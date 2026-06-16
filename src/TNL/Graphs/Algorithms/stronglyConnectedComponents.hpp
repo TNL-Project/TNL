@@ -10,15 +10,17 @@
 #include <TNL/Functional.h>
 
 #include "breadthFirstSearch.h"
+#include "details/activeVertices.hpp"
 #include "stronglyConnectedComponents.h"
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Graph, typename Vector >
+template< typename Graph, typename Vector, typename IsActive >
 void
-stronglyConnectedComponents(
+stronglyConnectedComponents_impl(
    const Graph& graph,
    Vector& components,
+   IsActive&& isActive,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( Graph::isDirected(), "SCC requires a directed graph." );
@@ -32,8 +34,15 @@ stronglyConnectedComponents(
 
    components.setSize( verticesCount );
 
-   components = 0;
+   // Initialize: active vertices get 0 (unassigned), inactive get -1.
    auto componentsView = components.getView();
+   TNL::Algorithms::parallelFor< DeviceType >(
+      0,
+      verticesCount,
+      [ =, isActive = isActive ] __cuda_callable__( IndexType vertex ) mutable
+      {
+         componentsView[ vertex ] = isActive( vertex ) ? 0 : static_cast< IndexType >( -1 );
+      } );
 
    typename Graph::AdjacencyMatrixType reverseAdjacencyMatrix;
    reverseAdjacencyMatrix.getTransposition( graph.getAdjacencyMatrix() );
@@ -49,16 +58,15 @@ stronglyConnectedComponents(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) -> IndexType
          {
-            return componentsView[ vertex ] == 0 ? vertex : -1;
+            return componentsView[ vertex ] == 0 ? vertex : static_cast< IndexType >( -1 );
          },
          TNL::Max{} );
 
       if( pivot < 0 )
          return;
 
-      // A pivot SCC is exactly the intersection of forward and reverse reachability.
-      breadthFirstSearch( graph, pivot, forwardReachability, launchConfig );
-      breadthFirstSearch( reverseGraph, pivot, reverseReachability, launchConfig );
+      breadthFirstSearchIf( graph, pivot, isActive, forwardReachability, launchConfig );
+      breadthFirstSearchIf( reverseGraph, pivot, isActive, reverseReachability, launchConfig );
 
       const auto forwardReachabilityView = forwardReachability.getConstView();
       const auto reverseReachabilityView = reverseReachability.getConstView();
@@ -76,6 +84,58 @@ stronglyConnectedComponents(
 
       currentComponent++;
    }
+}
+
+template< typename Graph, typename Vector >
+void
+stronglyConnectedComponents(
+   const Graph& graph,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Graph::IndexType;
+   stronglyConnectedComponents_impl(
+      graph,
+      components,
+      [] __cuda_callable__( IndexType )
+      {
+         return true;
+      },
+      launchConfig );
+}
+
+template< typename Graph, typename VertexIndexes, typename Vector, typename >
+void
+stronglyConnectedComponents(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   const auto activeVerticesView = activeVertices.getConstView();
+   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
+   {
+      return static_cast< bool >( activeVerticesView[ vertex ] );
+   };
+   stronglyConnectedComponents_impl( graph, components, isActive, launchConfig );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector >
+void
+stronglyConnectedComponentsIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
+   stronglyConnectedComponents_impl( graph, components, predicate, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
