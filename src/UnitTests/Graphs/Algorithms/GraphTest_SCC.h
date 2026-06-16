@@ -366,3 +366,136 @@ TYPED_TEST( GraphTest, test_SCC_huge_dense )
 }
 
 #include "../../main.h"
+
+TYPED_TEST( GraphTest, test_SCC_indexed_small )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      10,
+      {
+         { 1, 5, 1.0 },
+         { 2, 0, 1.0 }, { 2, 3, 1.0 }, { 2, 5, 1.0 },
+         { 3, 0, 1.0 }, { 3, 1, 1.0 }, { 3, 5, 1.0 }, { 3, 7, 1.0 },
+         { 5, 2, 1.0 }, { 5, 7, 1.0 },
+         { 6, 1, 1.0 },
+         { 7, 6, 1.0 },
+         { 8, 3, 1.0 },
+         { 9, 6, 1.0 }, { 9, 8, 1.0 },
+      } );
+   // clang-format on
+
+   // Select only vertices {1, 3, 5, 6, 7} which form a subgraph.
+   // In the full graph: SCCs are {0,2,3,5,1,7,6}, {8}, {9}, {4}.
+   // Restricting to {1,3,5,6,7}: edges among them include 1->5, 3->1, 3->5, 3->7, 5->7, 6->1, 7->6.
+   // The cycle 1->5->7->6->1 makes {1,5,6,7} one SCC; 3 reaches into it but is not reached back -> own SCC.
+   ComponentsType vertexIndexes( { 1, 3, 5, 6, 7 } );
+   ComponentsType components;
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, vertexIndexes, components );
+
+   // Vertex 0,2,4,8,9 are inactive -> -1
+   // Active: 1,3,5,6,7 -- 1,5,6,7 form SCC (label 1), 3 forms singleton (label 2)
+   ComponentsType expected( { -1, 1, -1, 2, -1, 1, 1, 1, -1, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_SCC_indexed_all_vertices )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      10,
+      {
+         { 1, 5, 1.0 },
+         { 2, 0, 1.0 }, { 2, 3, 1.0 }, { 2, 5, 1.0 },
+         { 3, 0, 1.0 }, { 3, 1, 1.0 }, { 3, 5, 1.0 }, { 3, 7, 1.0 },
+         { 5, 2, 1.0 }, { 5, 7, 1.0 },
+         { 6, 1, 1.0 },
+         { 7, 6, 1.0 },
+         { 8, 3, 1.0 },
+         { 9, 6, 1.0 }, { 9, 8, 1.0 },
+      } );
+   // clang-format on
+
+   // All vertices active -> same as whole-graph SCC.
+   ComponentsType vertexIndexes( { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
+   ComponentsType components;
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, vertexIndexes, components );
+
+   ComponentsType expected( { 5, 3, 3, 3, 4, 3, 3, 3, 2, 1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_SCC_predicate_none_active )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 0, 1.0 },
+      } );
+   // clang-format on
+
+   // No vertex is active -> all should get -1.
+   ComponentsType components;
+   auto predicate = [] __cuda_callable__( IndexType )
+   {
+      return false;
+   };
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, predicate, components );
+
+   ComponentsType expected( { -1, -1, -1, -1, -1 } );
+   ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_SCC_predicate_select_subset )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      6,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 0, 1.0 },
+         { 3, 4, 1.0 },
+         { 4, 5, 1.0 },
+         { 5, 3, 1.0 },
+      } );
+   // clang-format on
+
+   // Full graph: two SCCs {0,1,2} and {3,4,5}.
+   // Predicate: select only vertices < 3 -> {0,1,2} form one SCC.
+   ComponentsType components;
+   auto predicate = [] __cuda_callable__( IndexType v )
+   {
+      return v < 3;
+   };
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, predicate, components );
+
+   ComponentsType expected( { 1, 1, 1, -1, -1, -1 } );
+   ASSERT_EQ( components, expected );
+}
