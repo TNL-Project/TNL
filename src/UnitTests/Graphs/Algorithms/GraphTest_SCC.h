@@ -597,18 +597,241 @@ TYPED_TEST( GraphTest, test_SCC_vertex_and_edge_predicate )
    // With the edge blocked, in the induced subgraph {0,1,2}:
    // 0 reaches 1 (via 0->1), but 1 cannot reach 0 (1->2 is blocked).
    // So all three are singletons.
-   ComponentsType components;
-   auto vertexPredicate = [] __cuda_callable__( IndexType v )
+    ComponentsType components;
+    auto vertexPredicate = [] __cuda_callable__( IndexType v )
+    {
+       return v < 3;
+    };
+    auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+    {
+       return weight < 2.0;
+    };
+
+    TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+
+    ComponentsType expected( { 3, 2, 1, -1, -1, -1 } );
+    ASSERT_EQ( components, expected );
+}
+
+template< typename VectorA, typename VectorB >
+void
+expectPartitionEquiv(
+   const VectorA& compA,
+   const VectorB& compB,
+   const std::vector< int >& oldToNew,
+   int origSize )
+{
+   for( int u = 0; u < origSize; u++ ) {
+      if( oldToNew[ u ] < 0 )
+         continue;
+      for( int v = u + 1; v < origSize; v++ ) {
+         if( oldToNew[ v ] < 0 )
+            continue;
+         bool sameCompA = compA.getElement( u ) == compA.getElement( v );
+         bool sameCompB = compB.getElement( oldToNew[ u ] ) == compB.getElement( oldToNew[ v ] );
+         ASSERT_EQ( sameCompA, sameCompB ) << "vertices " << u << " and " << v;
+      }
+   }
+}
+
+template< typename GraphType >
+GraphType
+makeDirectedSCCGraphA()
+{
+   // clang-format off
+   // Same as test_SCC_small: two main SCCs {0,2,3,5,1,7,6} and {8,9}
+   return GraphType(
+      10,
+      {
+         { 1, 5, 1 }, { 2, 0, 1 }, { 2, 3, 1 }, { 2, 5, 1 },
+         { 3, 0, 1 }, { 3, 1, 1 }, { 3, 5, 1 }, { 3, 7, 1 },
+         { 5, 2, 1 }, { 5, 7, 1 },
+         { 6, 1, 1 }, { 7, 6, 1 },
+         { 8, 3, 1 }, { 9, 6, 1 }, { 9, 8, 1 },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeSCCSubgraphB()
+{
+   // Vertices {1,2,3,5,6,7,8,9} -> remapped to {0,1,2,3,4,5,6,7}
+   // Removed vertices {0,4}. Vertex 4 was isolated anyway.
+   // clang-format off
+   return GraphType(
+      8,
+      {
+         { 0, 3, 1 }, { 1, 2, 1 }, { 1, 3, 1 },
+         { 2, 0, 1 }, { 2, 3, 1 }, { 2, 5, 1 },
+         { 3, 1, 1 }, { 3, 5, 1 },
+         { 4, 0, 1 }, { 5, 4, 1 },
+         { 6, 2, 1 }, { 7, 4, 1 }, { 7, 6, 1 },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeSCCSubgraphD()
+{
+   // Vertex {4} removed (was isolated). Remaining: {0,1,2,3,5,6,7,8,9}
+   // Remap: 0->0, 1->1, 2->2, 3->3, 5->4, 6->5, 7->6, 8->7, 9->8
+   // clang-format off
+   return GraphType(
+      9,
+      {
+         { 1, 4, 1 }, { 2, 0, 1 }, { 2, 3, 1 }, { 2, 4, 1 },
+         { 3, 0, 1 }, { 3, 1, 1 }, { 3, 4, 1 }, { 3, 6, 1 },
+         { 4, 2, 1 }, { 4, 6, 1 },
+         { 5, 1, 1 }, { 6, 5, 1 },
+         { 7, 3, 1 }, { 8, 5, 1 }, { 8, 7, 1 },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeSCCSubgraphC()
+{
+   // All 10 vertices, edge {5,2} removed (breaks the large SCC cycle).
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 1, 5, 1 }, { 2, 0, 1 }, { 2, 3, 1 }, { 2, 5, 1 },
+         { 3, 0, 1 }, { 3, 1, 1 }, { 3, 5, 1 }, { 3, 7, 1 },
+         { 5, 7, 1 },
+         { 6, 1, 1 }, { 7, 6, 1 },
+         { 8, 3, 1 }, { 9, 6, 1 }, { 9, 8, 1 },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeSCCSubgraphE2()
+{
+   // Vertices {1,2,3,5,6,7} with edge {5,2} also removed.
+   // Remap: 1->0, 2->1, 3->2, 5->3, 6->4, 7->5
+   // clang-format off
+   return GraphType(
+      6,
+      {
+         { 0, 3, 1 }, { 1, 2, 1 }, { 1, 3, 1 },
+         { 2, 0, 1 }, { 2, 3, 1 }, { 2, 5, 1 },
+         { 3, 5, 1 },
+         { 4, 0, 1 }, { 5, 4, 1 },
+      } );
+   // clang-format on
+}
+
+TYPED_TEST( GraphTest, test_SCC_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeDirectedSCCGraphA< GraphType >();
+   const auto subgraphB = makeSCCSubgraphB< GraphType >();
+
+   const auto exclude04 = [=] __cuda_callable__( IndexType v )
    {
-      return v < 3;
-   };
-   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
-   {
-      return weight < 2.0;
+      return v != 0 && v != 4;
    };
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+   ComponentsType compA, compB;
+   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graphA, exclude04, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphB, compB );
 
-   ComponentsType expected( { 3, 2, 1, -1, -1, -1 } );
-   ASSERT_EQ( components, expected );
+   const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, 6, 7 };
+   expectPartitionEquiv( compA, compB, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_SCC_subgraph_vertex_removal_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeDirectedSCCGraphA< GraphType >();
+   const auto subgraphB = makeSCCSubgraphB< GraphType >();
+
+   const ComponentsType vertexIndexes( { 1, 2, 3, 5, 6, 7, 8, 9 } );
+
+   ComponentsType compA, compB;
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graphA, vertexIndexes, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphB, compB );
+
+   const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, 6, 7 };
+   expectPartitionEquiv( compA, compB, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_SCC_subgraph_vertex_removal_disconnected )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeDirectedSCCGraphA< GraphType >();
+   const auto subgraphD = makeSCCSubgraphD< GraphType >();
+
+   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 4;
+   };
+
+   ComponentsType compA, compD;
+   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graphA, excludeFour, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphD, compD );
+
+   const std::vector< int > oldToNew = { 0, 1, 2, 3, -1, 4, 5, 6, 7, 8 };
+   expectPartitionEquiv( compA, compD, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_SCC_subgraph_edge_removal_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeDirectedSCCGraphA< GraphType >();
+   const auto subgraphC = makeSCCSubgraphC< GraphType >();
+
+   const auto blockEdge52 = [=] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( src == 5 && tgt == 2 );
+   };
+
+   ComponentsType compA, compC;
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graphA, blockEdge52, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphC, compC );
+
+   const std::vector< int > identity = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+   expectPartitionEquiv( compA, compC, identity, 10 );
+}
+
+TYPED_TEST( GraphTest, test_SCC_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeDirectedSCCGraphA< GraphType >();
+   const auto subgraphE2 = makeSCCSubgraphE2< GraphType >();
+
+   const ComponentsType vertexIndexes( { 1, 2, 3, 5, 6, 7 } );
+   const auto blockEdge52 = [=] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( src == 5 && tgt == 2 );
+   };
+
+   ComponentsType compA, compE2;
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graphA, vertexIndexes, blockEdge52, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphE2, compE2 );
+
+    const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, -1, -1 };
+    expectPartitionEquiv( compA, compE2, oldToNew, 10 );
 }

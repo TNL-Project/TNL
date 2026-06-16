@@ -322,4 +322,270 @@ TYPED_TEST( GraphTest, test_SSSP_withInactiveStart_throws )
       std::invalid_argument );
 }
 
+template< typename GraphType >
+GraphType
+makeWeightedDirectedGraphA()
+{
+   using Real = typename GraphType::ValueType;
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 0.5 ) }, { 0, 3, Real( 1.0 ) },
+         { 1, 0, Real( 0.5 ) }, { 1, 2, Real( 0.5 ) }, { 1, 4, Real( 2.0 ) },
+         { 2, 1, Real( 0.5 ) }, { 2, 5, Real( 0.5 ) },
+         { 3, 0, Real( 1.0 ) }, { 3, 4, Real( 0.8 ) }, { 3, 6, Real( 0.5 ) },
+         { 4, 1, Real( 2.0 ) }, { 4, 3, Real( 0.8 ) }, { 4, 5, Real( 2.0 ) }, { 4, 7, Real( 0.8 ) },
+         { 5, 2, Real( 0.5 ) }, { 5, 4, Real( 2.0 ) }, { 5, 8, Real( 0.5 ) },
+         { 6, 3, Real( 0.5 ) }, { 6, 7, Real( 0.5 ) },
+         { 7, 4, Real( 0.8 ) }, { 7, 6, Real( 0.5 ) }, { 7, 8, Real( 0.5 ) },
+         { 8, 5, Real( 0.5 ) }, { 8, 7, Real( 0.5 ) }, { 8, 9, Real( 0.5 ) },
+         { 9, 8, Real( 0.5 ) },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeWeightedSubgraphB()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7,9} -> remapped to {0,1,2,3,4,5,6}
+   // clang-format off
+   return GraphType(
+      7,
+      {
+         { 0, 1, Real( 0.5 ) }, { 0, 2, Real( 1.0 ) },
+         { 1, 0, Real( 0.5 ) }, { 1, 3, Real( 2.0 ) },
+         { 2, 0, Real( 1.0 ) }, { 2, 3, Real( 0.8 ) }, { 2, 4, Real( 0.5 ) },
+         { 3, 1, Real( 2.0 ) }, { 3, 2, Real( 0.8 ) }, { 3, 5, Real( 0.8 ) },
+         { 4, 2, Real( 0.5 ) }, { 4, 5, Real( 0.5 ) },
+         { 5, 3, Real( 0.8 ) }, { 5, 4, Real( 0.5 ) },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeWeightedSubgraphD()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,2,3,5,6,7,8,9} -> remapped to {0,1,2,3,4,5,6,7,8}
+   // clang-format off
+   return GraphType(
+      9,
+      {
+         { 0, 1, Real( 0.5 ) }, { 0, 3, Real( 1.0 ) },
+         { 1, 0, Real( 0.5 ) }, { 1, 2, Real( 0.5 ) },
+         { 2, 1, Real( 0.5 ) }, { 2, 4, Real( 0.5 ) },
+         { 3, 0, Real( 1.0 ) }, { 3, 5, Real( 0.5 ) },
+         { 4, 2, Real( 0.5 ) }, { 4, 7, Real( 0.5 ) },
+         { 5, 3, Real( 0.5 ) }, { 5, 6, Real( 0.5 ) },
+         { 6, 5, Real( 0.5 ) }, { 6, 7, Real( 0.5 ) },
+         { 7, 4, Real( 0.5 ) }, { 7, 6, Real( 0.5 ) }, { 7, 8, Real( 0.5 ) },
+         { 8, 7, Real( 0.5 ) },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeWeightedSubgraphC()
+{
+   using Real = typename GraphType::ValueType;
+   // All 10 vertices, edges {0,3} and {3,0} removed.
+   // clang-format off
+   return GraphType(
+      10,
+      {
+         { 0, 1, Real( 0.5 ) },
+         { 1, 0, Real( 0.5 ) }, { 1, 2, Real( 0.5 ) }, { 1, 4, Real( 2.0 ) },
+         { 2, 1, Real( 0.5 ) }, { 2, 5, Real( 0.5 ) },
+         { 3, 4, Real( 0.8 ) }, { 3, 6, Real( 0.5 ) },
+         { 4, 1, Real( 2.0 ) }, { 4, 3, Real( 0.8 ) }, { 4, 5, Real( 2.0 ) }, { 4, 7, Real( 0.8 ) },
+         { 5, 2, Real( 0.5 ) }, { 5, 4, Real( 2.0 ) }, { 5, 8, Real( 0.5 ) },
+         { 6, 3, Real( 0.5 ) }, { 6, 7, Real( 0.5 ) },
+         { 7, 4, Real( 0.8 ) }, { 7, 6, Real( 0.5 ) }, { 7, 8, Real( 0.5 ) },
+         { 8, 5, Real( 0.5 ) }, { 8, 7, Real( 0.5 ) }, { 8, 9, Real( 0.5 ) },
+         { 9, 8, Real( 0.5 ) },
+      } );
+   // clang-format on
+}
+
+template< typename GraphType >
+GraphType
+makeWeightedSubgraphE2()
+{
+   using Real = typename GraphType::ValueType;
+   // Vertices {0,1,3,4,6,7} -> remapped to {0,1,2,3,4,5}
+   // Edges {0,3} and {3,0} also removed.
+   // clang-format off
+   return GraphType(
+      6,
+      {
+         { 0, 1, Real( 0.5 ) },
+         { 1, 0, Real( 0.5 ) }, { 1, 3, Real( 2.0 ) },
+         { 2, 3, Real( 0.8 ) }, { 2, 4, Real( 0.5 ) },
+         { 3, 1, Real( 2.0 ) }, { 3, 2, Real( 0.8 ) }, { 3, 5, Real( 0.8 ) },
+         { 4, 2, Real( 0.5 ) }, { 4, 5, Real( 0.5 ) },
+         { 5, 3, Real( 0.8 ) }, { 5, 4, Real( 0.5 ) },
+      } );
+   // clang-format on
+}
+
+template< typename VectorType >
+void
+remapAndCompareFloatDistances(
+   const VectorType& distA,
+   const VectorType& distB,
+   const std::vector< int >& newToOld )
+{
+   using RealType = typename VectorType::ValueType;
+   for( int i = 0; i < (int) newToOld.size(); i++ ) {
+      RealType expected = distB.getElement( i );
+      RealType actual = distA.getElement( newToOld[ i ] );
+      if( expected < 0 && actual < 0 )
+         continue;
+      ASSERT_FLOAT_EQ( actual, expected ) << "vertex " << newToOld[ i ] << " (subgraph idx " << i << ")";
+   }
+}
+
+TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeWeightedDirectedGraphA< GraphType >();
+   const auto subgraphB = makeWeightedSubgraphB< GraphType >();
+
+   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 2 && v != 5 && v != 8;
+   };
+
+   VectorType distA, distB;
+   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graphA, 0, excludeVertices, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphB, 0, distB );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
+   remapAndCompareFloatDistances( distA, distB, newToOld );
+
+   EXPECT_FLOAT_EQ( distA.getElement( 2 ), RealType( -1 ) );
+   EXPECT_FLOAT_EQ( distA.getElement( 5 ), RealType( -1 ) );
+   EXPECT_FLOAT_EQ( distA.getElement( 8 ), RealType( -1 ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeWeightedDirectedGraphA< GraphType >();
+   const auto subgraphB = makeWeightedSubgraphB< GraphType >();
+
+   const TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType > vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
+
+   VectorType distA, distB;
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graphA, 0, vertexIndexes, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphB, 0, distB );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
+   remapAndCompareFloatDistances( distA, distB, newToOld );
+
+   EXPECT_FLOAT_EQ( distA.getElement( 2 ), RealType( -1 ) );
+   EXPECT_FLOAT_EQ( distA.getElement( 5 ), RealType( -1 ) );
+   EXPECT_FLOAT_EQ( distA.getElement( 8 ), RealType( -1 ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_disconnected )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeWeightedDirectedGraphA< GraphType >();
+   const auto subgraphD = makeWeightedSubgraphD< GraphType >();
+
+   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   {
+      return v != 4;
+   };
+
+   VectorType distA, distD;
+   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graphA, 0, excludeFour, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphD, 0, distD );
+
+   const std::vector< int > newToOld = { 0, 1, 2, 3, 5, 6, 7, 8, 9 };
+   remapAndCompareFloatDistances( distA, distD, newToOld );
+
+   EXPECT_FLOAT_EQ( distA.getElement( 4 ), RealType( -1 ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeWeightedDirectedGraphA< GraphType >();
+   const auto subgraphC = makeWeightedSubgraphC< GraphType >();
+
+   const auto blockEdge03 = [=] __cuda_callable__( IndexType source, IndexType target, RealType weight )
+   {
+      if( ( source == 0 && target == 3 ) || ( source == 3 && target == 0 ) )
+         return std::numeric_limits< RealType >::infinity();
+      return weight;
+   };
+
+   VectorType distA, distC;
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graphA, 0, blockEdge03, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphC, 0, distC );
+
+   for( IndexType i = 0; i < graphA.getVertexCount(); i++ ) {
+      RealType a = distA.getElement( i );
+      RealType c = distC.getElement( i );
+      if( a < 0 && c < 0 )
+         continue;
+      ASSERT_FLOAT_EQ( a, c ) << "vertex " << i;
+   }
+}
+
+TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeWeightedDirectedGraphA< GraphType >();
+   const auto subgraphE2 = makeWeightedSubgraphE2< GraphType >();
+
+   const TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType > vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
+
+   const auto blockEdge03 = [=] __cuda_callable__( IndexType source, IndexType target, RealType weight )
+   {
+      if( ( source == 0 && target == 3 ) || ( source == 3 && target == 0 ) )
+         return std::numeric_limits< RealType >::infinity();
+      return weight;
+   };
+
+   VectorType distA, distE2;
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graphA, 0, vertexIndexes, blockEdge03, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphE2, 0, distE2 );
+
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
+   remapAndCompareFloatDistances( distA, distE2, newToOld );
+
+   EXPECT_FLOAT_EQ( distA.getElement( 2 ), RealType( -1 ) );
+   EXPECT_FLOAT_EQ( distA.getElement( 5 ), RealType( -1 ) );
+   EXPECT_FLOAT_EQ( distA.getElement( 8 ), RealType( -1 ) );
+   EXPECT_FLOAT_EQ( distA.getElement( 9 ), RealType( -1 ) );
+}
+
 #include "../../main.h"
