@@ -15,12 +15,13 @@
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Graph, typename Vector, typename IsActive >
+template< typename Graph, typename Vector, typename IsActive, typename EdgePredicate >
 void
 stronglyConnectedComponents_impl(
    const Graph& graph,
    Vector& components,
    IsActive&& isActive,
+   EdgePredicate&& edgePredicate,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( Graph::isDirected(), "SCC requires a directed graph." );
@@ -65,8 +66,12 @@ stronglyConnectedComponents_impl(
       if( pivot < 0 )
          return;
 
-      breadthFirstSearchIf( graph, pivot, isActive, forwardReachability, launchConfig );
-      breadthFirstSearchIf( reverseGraph, pivot, isActive, reverseReachability, launchConfig );
+      breadthFirstSearchIf( graph, pivot, isActive, edgePredicate, forwardReachability, launchConfig );
+
+      // For the reverse graph, the edge predicate is called with the natural
+      // orientation of each stored edge in the transposed matrix, which
+      // corresponds to (target, source, weight) of the original graph.
+      breadthFirstSearchIf( reverseGraph, pivot, isActive, edgePredicate, reverseReachability, launchConfig );
 
       const auto forwardReachabilityView = forwardReachability.getConstView();
       const auto reverseReachabilityView = reverseReachability.getConstView();
@@ -101,6 +106,30 @@ stronglyConnectedComponents(
       {
          return true;
       },
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      },
+      launchConfig );
+}
+
+template< typename Graph, typename Vector, typename EdgePredicate, typename >
+void
+stronglyConnectedComponents(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Graph::IndexType;
+   stronglyConnectedComponents_impl(
+      graph,
+      components,
+      [] __cuda_callable__( IndexType )
+      {
+         return true;
+      },
+      std::forward< EdgePredicate >( edgePredicate ),
       launchConfig );
 }
 
@@ -123,7 +152,38 @@ stronglyConnectedComponents(
    {
       return static_cast< bool >( activeVerticesView[ vertex ] );
    };
-   stronglyConnectedComponents_impl( graph, components, isActive, launchConfig );
+   stronglyConnectedComponents_impl(
+      graph,
+      components,
+      isActive,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      },
+      launchConfig );
+}
+
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+void
+stronglyConnectedComponents(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   const auto activeVerticesView = activeVertices.getConstView();
+   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
+   {
+      return static_cast< bool >( activeVerticesView[ vertex ] );
+   };
+   stronglyConnectedComponents_impl( graph, components, isActive, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector >
@@ -134,8 +194,30 @@ stronglyConnectedComponentsIf(
    Vector& components,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   using IndexType = typename Graph::IndexType;
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
-   stronglyConnectedComponents_impl( graph, components, predicate, launchConfig );
+   stronglyConnectedComponents_impl(
+      graph,
+      components,
+      predicate,
+      [] __cuda_callable__( IndexType, IndexType, auto )
+      {
+         return true;
+      },
+      launchConfig );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+void
+stronglyConnectedComponentsIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Vector& components,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   auto vPredicate = std::forward< VertexPredicate >( vertexPredicate );
+   stronglyConnectedComponents_impl( graph, components, vPredicate, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
