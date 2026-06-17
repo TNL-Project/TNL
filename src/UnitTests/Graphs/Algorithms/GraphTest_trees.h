@@ -35,22 +35,24 @@ using GraphTestTypes = ::testing::Types<
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
+template< typename GraphType >
+GraphType
+makeUndirectedGraph(
+   typename GraphType::IndexType vertexCount,
+   std::initializer_list<
+      std::tuple< typename GraphType::IndexType, typename GraphType::IndexType, typename GraphType::ValueType > > edges )
+{
+   return GraphType( vertexCount, edges, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+}
+
 TYPED_TEST( GraphTest, test_isTree_small )
 {
    using GraphType = typename TestFixture::GraphType;
-   // Create a sample graph.
-   // clang-format off
+
    GraphType graph(
-        10, // number of graph nodes
-        {   // definition of graph edges
-                       {0, 1, 1},    {0, 2, 1},
-                                                {1, 3, 1},  {1, 4, 1},
-                                                                        {2, 5, 1},  {2, 6, 1},
-                                                                                               {3, 7, 1},
-                                                                                                           {4, 8, 1},
-                                                                                                                       {5, 9, 1}
-        }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
-   // clang-format on
+      10,
+      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph ) );
 }
@@ -59,35 +61,26 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
 {
    using GraphType = typename TestFixture::GraphType;
 
-   // Create a sample graph.
-   // clang-format off
    GraphType graph(
-        10, // number of graph nodes
-        {   // definition of graph edges
-                       {0, 1, 1},    {0, 2, 1},
-                                                {1, 3, 1},  {1, 4, 1},
-                                                                        {2, 5, 1},  {2, 6, 1},
-                                                                                               {3, 7, 1},
-                                                                                                           {4, 8, 1},
-            { 5, 0, 1 },                                                                                              {5, 9, 1}
-        }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
-   // clang-format on
+      10,
+      { { 0, 1, 1 },
+        { 0, 2, 1 },
+        { 1, 3, 1 },
+        { 1, 4, 1 },
+        { 2, 5, 1 },
+        { 2, 6, 1 },
+        { 3, 7, 1 },
+        { 4, 8, 1 },
+        { 5, 0, 1 },
+        { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph ) );
 
-   // Create another sample graph.
-   // clang-format off
    GraphType graph2(
-        10, // number of graph nodes
-        {   // definition of graph edges
-                       {0, 1, 1},    {0, 2, 1},
-                                                {1, 3, 1},  {1, 4, 1},
-                                                                        {2, 5, 1},  {2, 6, 1},
-                                                                                               {3, 7, 1},
-                                                                                                           {4, 8, 1},
-            { 5, 0, 1 }
-        }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
-   // clang-format on
+      10,
+      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 0, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph2 ) );
 }
@@ -110,11 +103,252 @@ TYPED_TEST( GraphTest, test_large_tree )
 TYPED_TEST( GraphTest, test_small_forest )
 {
    using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
 
    GraphType graph( 5, { { 0, 3, 1.0 }, { 0, 4, 1.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph ) );
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph ) );
+
+   IndexVector roots( { 0, 1, 2 } );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, roots ) );
+}
+
+// Subgraph tests for isTree
+
+TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+
+   // Tree with 10 vertices: 0-1-3-7, 0-2-5-9, 1-4-8, 2-6
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   auto isActive = [ = ] __cuda_callable__( IndexType v )
+   {
+      return v != 6 && v != 9;
+   };
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTreeIf( graph, 0, isActive ) );
+}
+
+TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   IndexVector vertexIndexes( { 0, 1, 2, 3, 4, 5, 7, 8 } );
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph, 0, vertexIndexes ) );
+}
+
+TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+
+   // Tree with weighted edges: weight 1 and weight 2
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 2 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Block edge (0,2) -> disconnects the graph
+   auto blockEdge02 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+   };
+
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph, 0, blockEdge02 ) );
+
+   // Allow all edges -> is a tree
+   auto allowAll = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return true;
+   };
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph, 0, allowAll ) );
+}
+
+TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // Tree with weighted edges
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 2 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Restrict to vertices {0,1,2,3,5} and block edge (0,2)
+   // Induced subgraph without edge (0,2): {0,1,3} connected, {5} isolated -> not a tree
+   IndexVector vertexIndexes( { 0, 1, 2, 3, 5 } );
+   auto blockEdge02 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+   };
+
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph, 0, vertexIndexes, blockEdge02 ) );
+}
+
+// Subgraph tests for isForest
+
+TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_predicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+
+   // Tree on 10 vertices
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Remove vertex 0 -> becomes a forest of 3 trees: {1,3,4,7,8}, {2,5,6,9}
+   auto excludeZero = [ = ] __cuda_callable__( IndexType v )
+   {
+      return v != 0;
+   };
+
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTreeIf( graph, 1, excludeZero ) );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestIf( graph, excludeZero ) );
+}
+
+TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Remove vertex 0 -> forest
+   IndexVector vertexIndexes( { 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, vertexIndexes ) );
+}
+
+TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 2 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Block edge (0,2) -> graph becomes a forest (two trees: {0,1,3,4,7,8} and {2,5,6,9})
+   auto blockEdge02 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+   };
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, blockEdge02 ) );
+}
+
+TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 2 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Vertices {0,1,2,3,5}, block edge (0,2)
+   // Two components: {0,1,3} and {5} -> forest
+   IndexVector vertexIndexes( { 0, 1, 2, 3, 5 } );
+   auto blockEdge02 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+   };
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, vertexIndexes, blockEdge02 ) );
+}
+
+// Subgraph tests for isForestWithRoots
+
+TYPED_TEST( GraphTest, test_isForestWithRoots_basic )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph( 5, { { 0, 3, 1.0 }, { 0, 4, 1.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   IndexVector roots( { 0, 1, 2 } );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, roots ) );
+}
+
+TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_indexed )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Remove vertex 0 -> forest with two trees rooted at 1 and 2
+   IndexVector vertexIndexes( { 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
+   IndexVector roots( { 1, 2 } );
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, vertexIndexes, roots ) );
+}
+
+TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_edge_removal_withIndexes )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph(
+      10,
+      { { 0, 1, 1 }, { 0, 2, 2 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   // Vertices {0,1,2,3,5}, block edge (0,2), roots {0,5}
+   IndexVector vertexIndexes( { 0, 1, 2, 3, 5 } );
+   auto blockEdge02 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   {
+      return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+   };
+   IndexVector roots( { 0, 5 } );
+
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, vertexIndexes, blockEdge02, roots ) );
 }
 
 #include "../../main.h"
