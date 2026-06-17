@@ -29,7 +29,7 @@ struct GraphBenchmarkColoring : public GraphBenchmarkBase< Real, Index, GraphBen
    {
       SequentialGraph sequentialGraph( graph );
       SequentialIndexVector sequentialColors( sequentialGraph.getVertexCount(), 0 );
-      SequentialIndexVector sequentialLubiColors( sequentialGraph.getVertexCount(), 0 );
+      SequentialIndexVector sequentialLubyColors( sequentialGraph.getVertexCount(), 0 );
 
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataElement( { "solver", "TNL" } );
@@ -49,13 +49,13 @@ struct GraphBenchmarkColoring : public GraphBenchmarkBase< Real, Index, GraphBen
       }
 
       benchmark.setMetadataElement( { "problem", "coloring luby seq" } );
-      auto coloringLubiSequential = [ & ]() mutable
+      auto coloringLubySequential = [ & ]() mutable
       {
-         TNL::Graphs::Algorithms::graphColoringLubi( sequentialGraph, sequentialLubiColors );
+         TNL::Graphs::Algorithms::graphColoringLuby( sequentialGraph, sequentialLubyColors );
       };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", coloringLubiSequential );
+      benchmark.time< TNL::Devices::Sequential >( "sequential", coloringLubySequential );
 
-      if( ! TNL::Graphs::Algorithms::isProperlyColored( sequentialGraph, sequentialLubiColors ) ) {
+      if( ! TNL::Graphs::Algorithms::isProperlyColored( sequentialGraph, sequentialLubyColors ) ) {
          std::cout << "Sequential Luby graph coloring produced an invalid coloring.\n";
          this->errors++;
       }
@@ -100,11 +100,11 @@ struct GraphBenchmarkColoring : public GraphBenchmarkBase< Real, Index, GraphBen
 
          benchmark.setMetadataElement( { "problem", "coloring luby" } );
          benchmark.setMetadataElement( { "launch cfg.", "N/A" } );
-         auto coloringLubi = [ & ]() mutable
+         auto coloringLuby = [ & ]() mutable
          {
-            TNL::Graphs::Algorithms::graphColoringLubi( graph, lubiColors );
+            TNL::Graphs::Algorithms::graphColoringLuby( graph, lubiColors );
          };
-         benchmark.time< Device >( device, coloringLubi );
+         benchmark.time< Device >( device, coloringLuby );
 
          if( ! TNL::Graphs::Algorithms::isProperlyColored( graph, lubiColors ) ) {
             std::cout << "Luby graph coloring produced an invalid coloring on device " << device << ".\n";

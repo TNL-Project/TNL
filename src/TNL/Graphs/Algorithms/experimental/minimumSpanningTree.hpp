@@ -106,7 +106,7 @@ template<
    typename Real = typename InGraph::ValueType,
    typename Index = typename InGraph::IndexType >
 void
-kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roots )
+kruskal( const InGraph& graph, OutGraph& tree, RootsVector& roots )
 {
    static_assert( InGraph::isUndirected(), "Both input and output graph must be undirected." );
    static_assert( OutGraph::isUndirected(), "Both input and output graph must be undirected." );
@@ -132,8 +132,8 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
    IndexVector nodeCapacities( n );
    IndexVector tree_filling( n, 0 );
    graph.getAdjacencyMatrix().getRowCapacities( nodeCapacities );
-   minimum_spanning_tree.setVertexCount( n );
-   minimum_spanning_tree.setVertexCapacities( nodeCapacities );
+   tree.setVertexCount( n );
+   tree.setVertexCapacities( nodeCapacities );
 
    for( const auto& edge : edges ) {
       auto source = edge.getSource();
@@ -141,10 +141,10 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
       auto source_root = forest.getRoot( source );
       auto target_root = forest.getRoot( target );
       if( source_root != target_root ) {
-         minimum_spanning_tree.getAdjacencyMatrix().getRow( source ).setElement(
+         tree.getAdjacencyMatrix().getRow( source ).setElement(
             tree_filling[ source ]++, target, edge.getWeight() );
          if constexpr( OutGraph::isUndirected() && ! OutGraph::AdjacencyMatrixType::isSymmetric() )
-            minimum_spanning_tree.getAdjacencyMatrix().getRow( target ).setElement(
+            tree.getAdjacencyMatrix().getRow( target ).setElement(
                tree_filling[ target ]++, source, edge.getWeight() );
          forest.mergeTrees( source, target );
       }
@@ -606,7 +606,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
 
 template< typename InGraph, typename OutGraph, typename RootsVector, typename Value, typename Index >
 void
-minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector& roots )
+minimumSpanningTree( const InGraph& graph, OutGraph& tree, RootsVector& roots )
 {
    static_assert( InGraph::isUndirected(), "The input graph must be undirected." );
    static_assert( OutGraph::isUndirected(), "The output graph must be undirected." );
@@ -614,10 +614,10 @@ minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector&
    //using Device = typename InGraph::DeviceType;
 
    //if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value )
-   kruskal( graph, spanning_tree, roots );
+   kruskal( graph, tree, roots );
    //else
    // TODO: The parallel MST algorithm is not working properly. It works only for sequential devices and in debug build.
-   //   parallelMST( graph, spanning_tree );
+   //   parallelMST( graph, tree );
 }
 
 }  //namespace TNL::Graphs::Algorithms::experimental

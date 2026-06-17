@@ -52,15 +52,15 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
    IndexVectorType visited( n, 0 );
    IndexVectorType visited_old( n, -1 );
    IndexVectorType parents( n, 0 );
-   IndexType start_node = 0;
+   IndexType start = 0;
    IndexType rootsIdx = 0;
    if( ! roots.empty() )
-      start_node = roots.getElement( rootsIdx++ );
+      start = roots.getElement( rootsIdx++ );
    while( true ) {
-      visited.setElement( start_node, 1 );
+      visited.setElement( start, 1 );
       if( std::is_same_v< DeviceType, Devices::Sequential > ) {
          std::queue< IndexType > q;
-         q.push( start_node );
+         q.push( start );
          while( ! q.empty() ) {
             IndexType current = q.front();
             q.pop();
@@ -131,22 +131,22 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
          return false;
       if( ! roots.empty() ) {
          if( rootsIdx < roots.getSize() )
-            start_node = roots.getElement( rootsIdx++ );
+             start = roots.getElement( rootsIdx++ );
          else
             return false;
       }
       else
-         start_node = TNL::Algorithms::find( visited, 0 ).second;
+         start = TNL::Algorithms::find( visited, 0 ).second;
    }
 }
 
 template< typename Graph >
 bool
-isTree( const Graph& graph, typename Graph::IndexType start_node )
+isTree( const Graph& graph, typename Graph::IndexType start )
 {
    using IndexType = typename Graph::IndexType;
 
-   Containers::Vector< IndexType > roots( 1, start_node );
+   Containers::Vector< IndexType > roots( 1, start );
    return isTree_impl( graph, roots, TreeType::Tree );
 }
 
