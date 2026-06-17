@@ -352,7 +352,7 @@ graphColoringOnActiveVertices(
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
-graphColoringLubiOnActiveVertices(
+graphColoringLubyOnActiveVertices(
    const Graph& graph,
    VertexPredicate&& isActive,
    Vector& colors,
@@ -540,11 +540,11 @@ graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePred
 
 template< typename Graph, typename Vector >
 void
-graphColoringLubi( const Graph& graph, Vector& colors )
+graphColoringLuby( const Graph& graph, Vector& colors )
 {
    using IndexType = typename Graph::IndexType;
 
-   detail::graphColoringLubiOnActiveVertices(
+   detail::graphColoringLubyOnActiveVertices(
       graph,
       [] __cuda_callable__( IndexType )
       {
@@ -560,11 +560,11 @@ graphColoringLubi( const Graph& graph, Vector& colors )
 
 template< typename Graph, typename Vector, typename EdgePredicate, typename >
 void
-graphColoringLubi( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoringLuby( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors )
 {
    using IndexType = typename Graph::IndexType;
 
-   detail::graphColoringLubiOnActiveVertices(
+   detail::graphColoringLubyOnActiveVertices(
       graph,
       [] __cuda_callable__( IndexType )
       {
@@ -577,7 +577,7 @@ graphColoringLubi( const Graph& graph, EdgePredicate&& edgePredicate, Vector& co
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename >
 void
-graphColoringLubi( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors )
+graphColoringLuby( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -586,7 +586,7 @@ graphColoringLubi( const Graph& graph, const VertexIndexes& vertexIndexes, Vecto
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
-   detail::graphColoringLubiOnActiveVertices(
+   detail::graphColoringLubyOnActiveVertices(
       graph,
       [ = ] __cuda_callable__( IndexType vertex )
       {
@@ -602,7 +602,7 @@ graphColoringLubi( const Graph& graph, const VertexIndexes& vertexIndexes, Vecto
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
 void
-graphColoringLubi( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoringLuby( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&& edgePredicate, Vector& colors )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -611,7 +611,7 @@ graphColoringLubi( const Graph& graph, const VertexIndexes& vertexIndexes, EdgeP
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
-   detail::graphColoringLubiOnActiveVertices(
+   detail::graphColoringLubyOnActiveVertices(
       graph,
       [ = ] __cuda_callable__( IndexType vertex )
       {
@@ -624,11 +624,11 @@ graphColoringLubi( const Graph& graph, const VertexIndexes& vertexIndexes, EdgeP
 
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
-graphColoringLubiIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors )
+graphColoringLubyIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors )
 {
    using IndexType = typename Graph::IndexType;
 
-   detail::graphColoringLubiOnActiveVertices(
+   detail::graphColoringLubyOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
       colors,
@@ -641,9 +641,9 @@ graphColoringLubiIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vect
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
-graphColoringLubiIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoringLubyIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate&& edgePredicate, Vector& colors )
 {
-   detail::graphColoringLubiOnActiveVertices(
+   detail::graphColoringLubyOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
       colors,
