@@ -149,10 +149,10 @@ expectComputedColoringIsProperIf( const GraphType& graph, VertexPredicate&& vert
 
 template< typename GraphType >
 void
-expectComputedLubiColoringIsProper( const GraphType& graph )
+expectComputedLubyColoringIsProper( const GraphType& graph )
 {
    ColoringVector< GraphType > colors;
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
    EXPECT_EQ( TNL::min( colors ), 0 );
@@ -162,10 +162,10 @@ expectComputedLubiColoringIsProper( const GraphType& graph )
 
 template< typename GraphType, typename VertexIndexes >
 void
-expectComputedLubiColoringIsProper( const GraphType& graph, const VertexIndexes& vertexIndexes )
+expectComputedLubyColoringIsProper( const GraphType& graph, const VertexIndexes& vertexIndexes )
 {
    ColoringVector< GraphType > colors;
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, vertexIndexes, colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
@@ -174,10 +174,10 @@ expectComputedLubiColoringIsProper( const GraphType& graph, const VertexIndexes&
 
 template< typename GraphType, typename VertexPredicate >
 void
-expectComputedLubiColoringIsProperIf( const GraphType& graph, VertexPredicate&& vertexPredicate )
+expectComputedLubyColoringIsProperIf( const GraphType& graph, VertexPredicate&& vertexPredicate )
 {
    ColoringVector< GraphType > colors;
-   TNL::Graphs::Algorithms::graphColoringLubiIf( graph, vertexPredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLubyIf( graph, vertexPredicate, colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, vertexPredicate, colors ) );
@@ -545,7 +545,7 @@ TYPED_TEST( GraphTest, test_graphColoringIf )
    EXPECT_EQ( colors.getElement( 4 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_result_isProperlyColored )
+TYPED_TEST( GraphTest, test_graphColoringLuby_result_isProperlyColored )
 {
    using GraphType = typename TestFixture::GraphType;
    using ColorsType = ColoringVector< GraphType >;
@@ -562,13 +562,13 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_result_isProperlyColored )
    // clang-format on
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, colors );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, colors ) );
    expectZeroColorClassIsMaximalIndependentSet( graph, colors );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_withIndexes )
+TYPED_TEST( GraphTest, test_graphColoringLuby_withIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
    using ColorsType = ColoringVector< GraphType >;
@@ -587,14 +587,14 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_withIndexes )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, vertexIndexes, colors );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
    EXPECT_EQ( colors.getElement( 4 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_star_usesAtMostTwoColors )
+TYPED_TEST( GraphTest, test_graphColoringLuby_star_usesAtMostTwoColors )
 {
    using GraphType = typename TestFixture::GraphType;
    using ColorsType = ColoringVector< GraphType >;
@@ -611,12 +611,12 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_star_usesAtMostTwoColors )
    // clang-format on
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, colors );
 
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_withIndexes_usesAtMostTwoColors )
+TYPED_TEST( GraphTest, test_graphColoringLuby_withIndexes_usesAtMostTwoColors )
 {
    using GraphType = typename TestFixture::GraphType;
    using ColorsType = ColoringVector< GraphType >;
@@ -635,12 +635,12 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_withIndexes_usesAtMostTwoColors )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, vertexIndexes, colors );
 
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubiIf )
+TYPED_TEST( GraphTest, test_graphColoringLubyIf )
 {
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
@@ -662,7 +662,7 @@ TYPED_TEST( GraphTest, test_graphColoringLubiIf )
    };
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLubiIf( graph, middleVertices, colors );
+   TNL::Graphs::Algorithms::graphColoringLubyIf( graph, middleVertices, colors );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
@@ -746,7 +746,7 @@ TYPED_TEST( GraphTest, test_graphColoring_large )
    expectComputedColoringIsProper( graph );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_star )
+TYPED_TEST( GraphTest, test_graphColoringLuby_star )
 {
    using GraphType = typename TestFixture::GraphType;
 
@@ -761,10 +761,10 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_star )
       } );
    // clang-format on
 
-   expectComputedLubiColoringIsProper( graph );
+   expectComputedLubyColoringIsProper( graph );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_chain )
+TYPED_TEST( GraphTest, test_graphColoringLuby_chain )
 {
    using GraphType = typename TestFixture::GraphType;
 
@@ -779,10 +779,10 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_chain )
       } );
    // clang-format on
 
-   expectComputedLubiColoringIsProper( graph );
+   expectComputedLubyColoringIsProper( graph );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_medium )
+TYPED_TEST( GraphTest, test_graphColoringLuby_medium )
 {
    using GraphType = typename TestFixture::GraphType;
 
@@ -797,10 +797,10 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_medium )
       } );
    // clang-format on
 
-   expectComputedLubiColoringIsProper( graph );
+   expectComputedLubyColoringIsProper( graph );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_large )
+TYPED_TEST( GraphTest, test_graphColoringLuby_large )
 {
    using GraphType = typename TestFixture::GraphType;
 
@@ -818,7 +818,7 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_large )
       } );
    // clang-format on
 
-   expectComputedLubiColoringIsProper( graph );
+   expectComputedLubyColoringIsProper( graph );
 }
 
 template< typename GraphType, typename EdgePredicate >
@@ -836,12 +836,12 @@ expectComputedColoringWithEdgePredicateIsProper( const GraphType& graph, EdgePre
 
 template< typename GraphType, typename EdgePredicate >
 void
-expectComputedLubiColoringWithEdgePredicateIsProper( const GraphType& graph, EdgePredicate&& edgePredicate )
+expectComputedLubyColoringWithEdgePredicateIsProper( const GraphType& graph, EdgePredicate&& edgePredicate )
 {
    using ColorsType = ColoringVector< GraphType >;
 
    ColorsType colors;
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, edgePredicate, colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
@@ -974,7 +974,7 @@ TYPED_TEST( GraphTest, test_graphColoring_vertex_and_edge_predicate )
    EXPECT_EQ( colors.getElement( 5 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_edge_predicate_block_all )
+TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_block_all )
 {
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
@@ -999,13 +999,13 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_edge_predicate_block_all )
       return false;
    };
 
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, edgePredicate, colors );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 1 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_edge_predicate_weight_threshold )
+TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_weight_threshold )
 {
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
@@ -1030,7 +1030,7 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_edge_predicate_weight_threshold )
       return weight <= 1.0;
    };
 
-   TNL::Graphs::Algorithms::graphColoringLubi( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, edgePredicate, colors );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
@@ -1200,7 +1200,7 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_predicate )
    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsB ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_subgraph_vertex_removal_predicate )
+TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_vertex_removal_predicate )
 {
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
@@ -1215,8 +1215,8 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_subgraph_vertex_removal_predicate 
    };
 
    ColorsType colorsA, colorsB;
-   TNL::Graphs::Algorithms::graphColoringLubiIf( graphA, excludeVertices, colorsA );
-   TNL::Graphs::Algorithms::graphColoringLubi( subgraphB, colorsB );
+   TNL::Graphs::Algorithms::graphColoringLubyIf( graphA, excludeVertices, colorsA );
+   TNL::Graphs::Algorithms::graphColoringLuby( subgraphB, colorsB );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graphA, excludeVertices, colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphB, colorsB ) );
@@ -1301,7 +1301,7 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_wholeGraph )
     EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubi_subgraph_edge_removal_wholeGraph )
+TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_edge_removal_wholeGraph )
 {
     using GraphType = typename TestFixture::GraphType;
     using IndexType = typename GraphType::IndexType;
@@ -1317,8 +1317,8 @@ TYPED_TEST( GraphTest, test_graphColoringLubi_subgraph_edge_removal_wholeGraph )
     };
 
     ColorsType colorsA, colorsC;
-    TNL::Graphs::Algorithms::graphColoringLubi( graphA, blockWeight2, colorsA );
-    TNL::Graphs::Algorithms::graphColoringLubi( subgraphC, colorsC );
+    TNL::Graphs::Algorithms::graphColoringLuby( graphA, blockWeight2, colorsA );
+    TNL::Graphs::Algorithms::graphColoringLuby( subgraphC, colorsC );
 
     EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
     EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
