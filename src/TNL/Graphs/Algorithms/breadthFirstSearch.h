@@ -11,17 +11,119 @@
 
 namespace TNL::Graphs::Algorithms {
 
+// clang-format off
+/**
+ * \page BFSOverview Overview of Breadth-first Search Functions
+ *
+ * \tableofcontents
+ *
+ * This page provides an overview of all breadth-first search (BFS) functions,
+ * helping to understand the differences between variants and choose the right
+ * function for your needs.
+ *
+ * See [Wikipedia](https://en.wikipedia.org/wiki/Breadth-first_search) for more
+ * details about the BFS algorithm.
+ *
+ * \section BFSWhatIs What is BFS?
+ *
+ * Breadth-first search traverses a graph layer by layer starting from a given
+ * source vertex. The result is a distance vector where each entry holds the
+ * number of edges on the shortest path from the source, or \c -1 for
+ * unreachable vertices.
+ *
+ * \section BFSVariants Function Variants
+ *
+ * All BFS functions follow this naming pattern:
+ * `breadthFirstSearch[If][WithVisitor]`
+ *
+ * \subsection BFSBasicFunctions Basic BFS (no visitor)
+ *
+ * | Function                                    | Scope          | Edge filter | Overloads |
+ * |---------------------------------------------|----------------|-------------|-----------|
+ * | \ref breadthFirstSearch (basic)             | Whole graph    | No          | 1         |
+ * | \ref breadthFirstSearch (edge predicate)    | Whole graph    | Yes         | 1         |
+ * | \ref breadthFirstSearch (vertex indexes)    | Vertex indexes | No          | 1         |
+ * | \ref breadthFirstSearch (idx + edge pred.)  | Vertex indexes | Yes         | 1         |
+ * | \ref breadthFirstSearchIf                   | Vertex pred.   | No          | 1         |
+ * | \ref breadthFirstSearchIf (edge predicate)  | Vertex pred.   | Yes         | 1         |
+ *
+ * \subsection BFSVisitorFunctions BFS with visitor
+ *
+ * | Function                                          | Scope          | Edge filter | Overloads |
+ * |---------------------------------------------------|----------------|-------------|-----------|
+ * | \ref breadthFirstSearchWithVisitor (basic)        | Whole graph    | No          | 1         |
+ * | \ref breadthFirstSearchWithVisitor (vertex idx.)  | Vertex indexes | No          | 1         |
+ * | \ref breadthFirstSearchIfWithVisitor              | Vertex pred.   | No          | 1         |
+ *
+ * \section BFSSubgraphVariants Subgraph Variants
+ *
+ * BFS can operate on different subsets of the graph:
+ *
+ * BFS can operate on different subsets of the graph and with optional edge
+ * filtering. These two dimensions combine independently:
+ *
+ * | Variant         | Vertices processed                           | Parameter added      |
+ * |-----------------|----------------------------------------------|----------------------|
+ * | **Whole graph** | All vertices                                 | None                 |
+ * | **Indexed**     | Only vertices listed in a vertex-index array | `vertexIndexes`      |
+ * | **If**          | Vertices selected by a vertex predicate      | `vertexPredicate`    |
+ *
+ * | Edge filter | Edges usable                          | Parameter added   |
+ * |-------------|---------------------------------------|-------------------|
+ * | **None**    | All edges are traversed               | None              |
+ * | **Yes**     | Only edges allowed by the predicate   | `edgePredicate`   |
+ *
+ * Vertices outside the active subgraph keep distance \c -1 in the output.
+ *
+ * \section BFSLambdaSignatures Lambda Signatures
+ *
+ * \subsection BFSEdgePredicate Edge predicate
+ *
+ * Decides if a traversed edge may be used:
+ *
+ * ```cpp
+ * auto edgePredicate = [=] __cuda_callable__( typename Graph::IndexType source,
+ *                                              typename Graph::IndexType target,
+ *                                              typename Graph::ValueType weight ) -> bool { ... };
+ * ```
+ *
+ * \subsection BFSVertexPredicate Vertex predicate
+ *
+ * Decides which vertices belong to the induced subgraph:
+ *
+ * ```cpp
+ * auto vertexPredicate = [=] __cuda_callable__( typename Graph::IndexType vertex ) -> bool { ... };
+ * ```
+ *
+ * \subsection BFSVisitor Visitor callable
+ *
+ * Invoked upon visiting each node:
+ *
+ * ```cpp
+ * auto visitor = [=] __cuda_callable__( typename Graph::IndexType node,
+ *                                       typename Graph::IndexType distance ) { ... };
+ * ```
+ *
+ * \section BFSCommonParameters Common Parameters
+ *
+ * - **graph** — The input graph (const reference).
+ * - **start** — The index of the source vertex.
+ * - **distances** — Output vector for distances from the source vertex.
+ * - **launchConfig** — Configuration for parallel execution (optional).
+ */
+// clang-format on
+
 /**
  * \brief Performs breadth-first search (BFS) on the given graph starting from the specified node.
  *
- * See. [Wikipedia page](https://en.wikipedia.org/wiki/Breadth-first_search) for more details about the BFS algorithm.
+ * See [Wikipedia](https://en.wikipedia.org/wiki/Breadth-first_search) for more details about the BFS algorithm.
  *
- * \tparam Graph Type of the graph.
- * \tparam Vector Type of the vector used to store distances.
- * \param graph is the graph on which BFS is performed.
- * \param start is the starting node for BFS.
- * \param distances is the vector where distances from the start node will be stored.
- * \param launchConfig is the configuration for launching the segments traversal.
+ * \tparam Graph The type of the graph.
+ * \tparam Vector The type of the vector used to store distances.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template< typename Graph, typename Vector >
 void
@@ -37,9 +139,18 @@ breadthFirstSearch(
  * The edge predicate decides if a traversed edge can be used. It must provide
  * a call operator with the signature:
  * \code
- * bool operator()( typename Graph::IndexType source, typename Graph::IndexType target,
- *                  typename Graph::ValueType weight ) const;
+ * [=] __cuda_callable__( typename Graph::IndexType source, typename Graph::IndexType target,
+ *                        typename Graph::ValueType weight ) -> bool
  * \endcode
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam EdgePredicate The type of the edge predicate callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param edgePredicate The callable deciding if an edge can be traversed.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template<
    typename Graph,
@@ -61,6 +172,15 @@ breadthFirstSearch(
  * start vertex must belong to the induced subgraph. Vertices outside of the
  * induced subgraph are treated as absent, so they are never traversed and keep
  * distance \c -1 in the output.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexIndexes The type of the array containing the vertex indexes.
+ * \tparam Vector The type of the vector used to store distances.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template<
    typename Graph,
@@ -79,6 +199,17 @@ breadthFirstSearch(
  * \brief Performs BFS on the induced subgraph with edge filtering.
  *
  * The edge predicate has the same requirements as in the whole-graph overload.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexIndexes The type of the array containing the vertex indexes.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam EdgePredicate The type of the edge predicate callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
+ * \param edgePredicate The callable deciding if an edge can be traversed.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template<
    typename Graph,
@@ -101,10 +232,19 @@ breadthFirstSearch(
  * The predicate decides which vertices belong to the induced subgraph. It must
  * provide a call operator with the signature
  * \code
- * bool operator()( typename Graph::IndexType vertex ) const;
+ * [=] __cuda_callable__( typename Graph::IndexType vertex ) -> bool
  * \endcode
  * The start vertex must belong to the induced subgraph. Vertices not selected
  * by the predicate are never traversed and keep distance \c -1 in the output.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexPredicate The type of the vertex predicate callable.
+ * \tparam Vector The type of the vector used to store distances.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
@@ -120,6 +260,17 @@ breadthFirstSearchIf(
  *
  * The vertex predicate selects active vertices and edge predicate decides if a
  * traversed edge may be used.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexPredicate The type of the vertex predicate callable.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam EdgePredicate The type of the edge predicate callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
+ * \param edgePredicate The callable deciding if an edge can be traversed.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
@@ -132,18 +283,19 @@ breadthFirstSearchIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Performs breadth-first search (BFS) on the given graph starting from the specified node.
+ * \brief Performs breadth-first search (BFS) on the given graph with a visitor callback.
  *
- * See. [Wikipedia page](https://en.wikipedia.org/wiki/Breadth-first_search) for more details about the BFS algorithm.
+ * The visitor is invoked upon visiting each node. It must accept two parameters:
+ * the node index and its distance from the start node.
  *
- * \tparam Graph Type of the graph.
- * \tparam Vector Type of the vector used to store distances.
- * \param graph is the graph on which BFS is performed.
- * \param start is the starting node for BFS.
- * \param distances is the vector where distances from the start node will be stored.
- * \param visitor is a callable object that will be invoked upon visiting each node. It should accept two parameters:
- *        the node index and its distance from the start node.
- * \param launchConfig is the configuration for launching the segments traversal.
+ * \tparam Graph The type of the graph.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam Visitor The type of the visitor callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param visitor The callable invoked upon visiting each node.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template<
    typename Graph,
@@ -159,10 +311,21 @@ breadthFirstSearchWithVisitor(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Performs breadth-first search (BFS) on the induced subgraph given by vertex indexes.
+ * \brief Performs breadth-first search (BFS) on the induced subgraph with a visitor callback.
  *
  * The entries in \e vertexIndexes must be unique valid graph vertices and the
  * start vertex must belong to the induced subgraph.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexIndexes The type of the array containing the vertex indexes.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam Visitor The type of the visitor callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
+ * \param visitor The callable invoked upon visiting each node.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template<
    typename Graph,
@@ -180,13 +343,24 @@ breadthFirstSearchWithVisitor(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Performs breadth-first search (BFS) on the induced subgraph selected by a vertex predicate.
+ * \brief Performs BFS on the predicate-induced subgraph with a visitor callback.
  *
  * The predicate must provide
  * \code
- * bool operator()( typename Graph::IndexType vertex ) const;
+ * [=] __cuda_callable__( typename Graph::IndexType vertex ) -> bool
  * \endcode
  * and the start vertex must belong to the induced subgraph.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexPredicate The type of the vertex predicate callable.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam Visitor The type of the visitor callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
+ * \param visitor The callable invoked upon visiting each node.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename Visitor >
 void
