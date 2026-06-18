@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+
 namespace TNL::Graphs::Algorithms::experimental {
 
 /**
@@ -42,7 +44,11 @@ namespace TNL::Graphs::Algorithms::experimental {
  */
 template< typename InGraph, typename OutGraph = InGraph, typename Real = typename InGraph::ValueType >
 void
-boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum );
+boruvkaMST(
+   const InGraph& graph,
+   OutGraph& tree,
+   Real& sum,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Computes minimum spanning forest using Boruvka's algorithm (edge-list variant).
@@ -78,7 +84,11 @@ boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum );
  */
 template< typename InGraph, typename OutGraph = InGraph, typename Real = typename InGraph::ValueType >
 void
-boruvkaMST_edgeList( const InGraph& graph, OutGraph& tree, Real& sum );
+boruvkaMST_edgeList(
+   const InGraph& graph,
+   OutGraph& tree,
+   Real& sum,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Verifies that the given tree is a valid minimum spanning forest of the graph.
@@ -105,7 +115,11 @@ boruvkaMST_edgeList( const InGraph& graph, OutGraph& tree, Real& sum );
  */
 template< typename InGraph, typename OutGraph = InGraph, typename Real = typename InGraph::ValueType >
 bool
-isValidMSF( const InGraph& graph, const OutGraph& tree, Real sum );
+isValidMSF(
+   const InGraph& graph,
+   const OutGraph& tree,
+   Real sum,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 }  // namespace TNL::Graphs::Algorithms::experimental
 

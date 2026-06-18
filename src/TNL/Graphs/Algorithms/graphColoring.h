@@ -5,6 +5,7 @@
 
 #include <type_traits>
 
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/TypeTraits.h>
 
 namespace TNL::Graphs::Algorithms {
@@ -132,7 +133,10 @@ namespace TNL::Graphs::Algorithms {
  */
 template< typename Graph, typename Vector >
 void
-graphColoring( const Graph& graph, Vector& colors );
+graphColoring(
+   const Graph& graph,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors an undirected graph with edge filtering by greedy algorithm.
@@ -157,9 +161,13 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
-graphColoring( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors );
+graphColoring(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the subgraph induced by the given vertex indexes with zero-based labels by greedy algorithm.
@@ -180,7 +188,11 @@ template<
    typename Vector,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
-graphColoring( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors );
+graphColoring(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the indexed-induced subgraph with edge filtering by greedy algorithm.
@@ -207,7 +219,8 @@ graphColoring(
    const Graph& graph,
    const VertexIndexes& vertexIndexes,
    EdgePredicate&& edgePredicate,
-   Vector& colors );
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the subgraph defined by a vertex predicate with zero-based labels by greedy algorithm.
@@ -228,7 +241,11 @@ graphColoring(
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
-graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors );
+graphColoringIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the predicate-induced subgraph with edge filtering by greedy algorithm.
@@ -247,7 +264,12 @@ graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& 
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
-graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate&& edgePredicate, Vector& colors );
+graphColoringIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors an undirected graph by repeated Luby-style MIS extraction.
@@ -262,7 +284,10 @@ graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePred
  */
 template< typename Graph, typename Vector >
 void
-graphColoringLuby( const Graph& graph, Vector& colors );
+graphColoringLuby(
+   const Graph& graph,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors an undirected graph with edge filtering by repeated Luby-style MIS extraction.
@@ -280,9 +305,13 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
-graphColoringLuby( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors );
+graphColoringLuby(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the subgraph induced by the given vertex indexes by repeated Luby-style MIS extraction.
@@ -303,7 +332,11 @@ template<
    typename Vector,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
-graphColoringLuby( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors );
+graphColoringLuby(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the indexed-induced subgraph with edge filtering by Luby-style MIS extraction.
@@ -330,7 +363,8 @@ graphColoringLuby(
    const Graph& graph,
    const VertexIndexes& vertexIndexes,
    EdgePredicate&& edgePredicate,
-   Vector& colors );
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the subgraph defined by a vertex predicate by repeated Luby-style MIS extraction.
@@ -351,7 +385,11 @@ graphColoringLuby(
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
-graphColoringLubyIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors );
+graphColoringLubyIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors the predicate-induced subgraph with edge filtering by Luby-style MIS extraction.
@@ -374,7 +412,8 @@ graphColoringLubyIf(
    const Graph& graph,
    VertexPredicate&& vertexPredicate,
    EdgePredicate&& edgePredicate,
-   Vector& colors );
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that all color labels are non-negative and adjacent vertices differ.
@@ -387,7 +426,10 @@ graphColoringLubyIf(
  */
 template< typename Graph, typename Vector >
 bool
-isProperlyColored( const Graph& graph, const Vector& colors );
+isProperlyColored(
+   const Graph& graph,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the coloring is proper considering only allowed edges.
@@ -404,9 +446,13 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
-isProperlyColored( const Graph& graph, EdgePredicate&& edgePredicate, const Vector& colors );
+isProperlyColored(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the active part of the given coloring is proper on the
@@ -429,7 +475,11 @@ template<
    typename Vector,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
-isProperlyColored( const Graph& graph, const VertexIndexes& vertexIndexes, const Vector& colors );
+isProperlyColored(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the coloring is proper on the indexed-induced subgraph
@@ -456,7 +506,8 @@ isProperlyColored(
    const Graph& graph,
    const VertexIndexes& vertexIndexes,
    EdgePredicate&& edgePredicate,
-   const Vector& colors );
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the active part of the given coloring is proper on the
@@ -479,7 +530,11 @@ isProperlyColored(
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
-isProperlyColoredIf( const Graph& graph, VertexPredicate&& vertexPredicate, const Vector& colors );
+isProperlyColoredIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the coloring is proper on the predicate-induced subgraph
@@ -501,7 +556,8 @@ isProperlyColoredIf(
    const Graph& graph,
    VertexPredicate&& vertexPredicate,
    EdgePredicate&& edgePredicate,
-   const Vector& colors );
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 }  // namespace TNL::Graphs::Algorithms
 
