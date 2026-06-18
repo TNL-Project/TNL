@@ -25,7 +25,6 @@ stronglyConnectedComponents_impl(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( Graph::isDirected(), "SCC requires a directed graph." );
-
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
 
@@ -45,15 +44,22 @@ stronglyConnectedComponents_impl(
          componentsView[ vertex ] = isActive( vertex ) ? 0 : static_cast< IndexType >( -1 );
       } );
 
+   // Build the reverse (transposed) adjacency matrix once up front; it is
+   // reused in every iteration below.
    typename Graph::AdjacencyMatrixType reverseAdjacencyMatrix;
    reverseAdjacencyMatrix.getTransposition( graph.getAdjacencyMatrix() );
    Graph reverseGraph( std::move( reverseAdjacencyMatrix ) );
 
    Vector forwardReachability( verticesCount );
    Vector reverseReachability( verticesCount );
-   IndexType currentComponent = 1;
 
+   // Pivot-based SCC: in each round we pick any still-unassigned vertex as
+   // the pivot, run a forward BFS on the original graph and a backward BFS
+   // on the transposed graph.  Vertices reachable in BOTH directions form
+   // exactly one strongly connected component.
+   IndexType componentLabel = 1;
    while( true ) {
+      // Pick the largest-indexed unassigned vertex as the next pivot.
       const IndexType pivot = TNL::Algorithms::reduce< DeviceType >(
          0,
          verticesCount,
@@ -64,7 +70,7 @@ stronglyConnectedComponents_impl(
          TNL::Max{} );
 
       if( pivot < 0 )
-         return;
+         return;  // all vertices assigned
 
       breadthFirstSearchIf( graph, pivot, isActive, edgePredicate, forwardReachability, launchConfig );
 
@@ -75,8 +81,10 @@ stronglyConnectedComponents_impl(
 
       const auto forwardReachabilityView = forwardReachability.getConstView();
       const auto reverseReachabilityView = reverseReachability.getConstView();
-      const IndexType componentLabel = currentComponent;
+      const IndexType currentLabel = componentLabel;
 
+      // A vertex belongs to this SCC iff it is reachable from the pivot in
+      // both the forward and the reverse direction.
       TNL::Algorithms::parallelFor< DeviceType >(
          0,
          verticesCount,
@@ -84,10 +92,10 @@ stronglyConnectedComponents_impl(
          {
             if( componentsView[ vertex ] == 0 && forwardReachabilityView[ vertex ] >= 0
                 && reverseReachabilityView[ vertex ] >= 0 )
-               componentsView[ vertex ] = componentLabel;
+               componentsView[ vertex ] = currentLabel;
          } );
 
-      currentComponent++;
+      componentLabel++;
    }
 }
 
@@ -183,7 +191,8 @@ stronglyConnectedComponents(
    {
       return static_cast< bool >( activeVerticesView[ vertex ] );
    };
-   stronglyConnectedComponents_impl( graph, components, isActive, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
+   stronglyConnectedComponents_impl(
+      graph, components, isActive, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector >
@@ -217,7 +226,8 @@ stronglyConnectedComponentsIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto vPredicate = std::forward< VertexPredicate >( vertexPredicate );
-   stronglyConnectedComponents_impl( graph, components, vPredicate, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
+   stronglyConnectedComponents_impl(
+      graph, components, vPredicate, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
