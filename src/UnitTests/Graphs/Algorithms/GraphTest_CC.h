@@ -16,11 +16,15 @@ protected:
 using GraphTestTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
 #elif defined( __CUDACC__ )
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
 #elif defined( __HIP__ )
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix >
 #endif
    >;
 
@@ -552,10 +556,16 @@ makeUndirectedGraphA()
 {
    using Real = typename GraphType::ValueType;
    // clang-format off
-   // 10 vertices. Edges with weight 2 are "expensive" and can be filtered.
-   //     0---1---2---5---8---9
-   //     |   | / | / | / |
-   //     3---4---+   6---7
+   // 10 vertices, same topology as graph A for BFS/SSSP.
+   // Edges with weight 2 are "expensive" and can be filtered.
+   //
+   //     0---1---2
+   //     |   |   |
+   //     3---4---5
+   //     |   |   |
+   //     6---7---8---9
+   //
+   // Weight-2 edges: 1-4, 4-5.  All others have weight 1.
    return GraphType(
       10,
       {
