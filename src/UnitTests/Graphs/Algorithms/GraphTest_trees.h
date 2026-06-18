@@ -45,15 +45,34 @@ makeUndirectedGraph(
    return GraphType( vertexCount, edges, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 }
 
+// clang-format off
+// Main tree topology (10 vertices, used across most tree tests).
+// 9 edges, no cycles — a valid tree rooted at 0.
+//
+//            0
+//           / \
+//          1   2
+//         / \ / \
+//        3  4 5  6
+//        |  | |
+//        7  8 9
+// clang-format on
+
 TYPED_TEST( GraphTest, test_isTree_small )
 {
    using GraphType = typename TestFixture::GraphType;
 
+   // clang-format off
    GraphType graph(
       10,
-      { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
+      { { 0, 1, 1 }, { 0, 2, 1 },
+        { 1, 3, 1 }, { 1, 4, 1 },
+        { 2, 5, 1 }, { 2, 6, 1 },
+        { 3, 7, 1 },
+        { 4, 8, 1 },
+        { 5, 9, 1 } },
       TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
-
+   // clang-format on
    ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph ) );
 }
 
@@ -61,6 +80,17 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
 {
    using GraphType = typename TestFixture::GraphType;
 
+   // clang-format off
+   // Same tree + extra edge (5,0) creates cycle 0-2-5-0.  Not a tree.
+   //
+   //            0
+   //           / \
+   //          1   2
+   //         / \ / \
+   //        3  4 5  6
+   //        |  | |
+   //        7  8 9
+   // clang-format on
    GraphType graph(
       10,
       { { 0, 1, 1 },
@@ -107,6 +137,13 @@ TYPED_TEST( GraphTest, test_small_forest )
    using DeviceType = typename GraphType::DeviceType;
    using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
 
+   // clang-format off
+   // Forest (5 vertices): tree {0,3,4}, isolated {1}, {2}.
+   //
+   //   0     1     2
+   //  / \
+   // 3   4
+   // clang-format on
    GraphType graph( 5, { { 0, 3, 1.0 }, { 0, 4, 1.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph ) );
@@ -123,7 +160,7 @@ TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_predicate )
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
 
-   // Tree with 10 vertices: 0-1-3-7, 0-2-5-9, 1-4-8, 2-6
+   // Main tree topology (see diagram above test_isTree_small).
    GraphType graph(
       10,
       { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },

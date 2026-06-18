@@ -46,6 +46,7 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
    using IndexType = typename Graph::IndexType;
    using ValueType = typename Graph::ValueType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+   using AdjacencyMatrixType = typename Graph::AdjacencyMatrixType;
 
    const IndexType verticesCount = graph.getVertexCount();
    components.setSize( verticesCount );
@@ -58,6 +59,8 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
    auto componentsView = components.getView();
    components = static_cast< IndexType >( -1 );
 
+   // BFS from each unvisited active vertex.  CC treats the graph as
+   // undirected, so we must traverse both outgoing and incoming edges.
    for( IndexType componentLabel = 0; componentLabel < verticesCount; componentLabel++ ) {
       if( ! isActive( componentLabel ) )
          continue;
@@ -71,6 +74,7 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
          const IndexType currentVertex = queue.front();
          queue.pop();
 
+         // Forward edges: currentVertex -> neighbor
          const auto currentRow = adjacencyMatrix.getRow( currentVertex );
          for( IndexType localIdx = 0; localIdx < currentRow.getSize(); localIdx++ ) {
             const IndexType neighbor = currentRow.getColumnIndex( localIdx );
@@ -82,21 +86,28 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
             enqueueComponentVertex( componentLabel, neighbor, visitedView, componentsView, queue, isActive );
          }
 
-         for( IndexType rowIdx = 0; rowIdx < verticesCount; rowIdx++ ) {
-            if( rowIdx == currentVertex )
-               continue;
-
-            const auto row = adjacencyMatrix.getRow( rowIdx );
-            for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
-               const IndexType target = row.getColumnIndex( localIdx );
-               if( target == Matrices::paddingIndex< IndexType > )
+         // Reverse edges: rowIdx -> currentVertex.
+         // Symmetric matrices store only the lower triangle, so getRow(current)
+         // misses neighbors j > current.  We must scan all rows to find edges
+         // pointing TO the current vertex (O(n) per dequeue).  Non-symmetric
+         // matrices already store both directions, so this scan is skipped.
+         if constexpr( AdjacencyMatrixType::isSymmetric() ) {
+            for( IndexType rowIdx = 0; rowIdx < verticesCount; rowIdx++ ) {
+               if( rowIdx == currentVertex )
                   continue;
-               if( target == currentVertex ) {
-                  const ValueType weight = row.getValue( localIdx );
-                  if( ! edgePredicate( rowIdx, currentVertex, weight ) )
+
+               const auto row = adjacencyMatrix.getRow( rowIdx );
+               for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+                  const IndexType target = row.getColumnIndex( localIdx );
+                  if( target == Matrices::paddingIndex< IndexType > )
+                     continue;
+                  if( target == currentVertex ) {
+                     const ValueType weight = row.getValue( localIdx );
+                     if( ! edgePredicate( rowIdx, currentVertex, weight ) )
+                        break;
+                     enqueueComponentVertex( componentLabel, rowIdx, visitedView, componentsView, queue, isActive );
                      break;
-                  enqueueComponentVertex( componentLabel, rowIdx, visitedView, componentsView, queue, isActive );
-                  break;
+                  }
                }
             }
          }

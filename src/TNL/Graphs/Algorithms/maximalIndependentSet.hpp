@@ -20,6 +20,11 @@ namespace TNL::Graphs::Algorithms {
 
 namespace detail {
 
+// Deterministic pseudo-random priority for Luby's MIS algorithm.
+// Uses a splitmix64-style hash to map (vertex, roundSeed, iteration) to a
+// uniformly distributed 64-bit value.  The hash is deterministic so that
+// every vertex computes the same priority for a given neighbor in each
+// round, enabling lock-free local winner selection.
 template< typename Index >
 unsigned long long __cuda_callable__
 maximalIndependentSetPriority( Index vertex, Index roundSeed, Index iteration )
@@ -86,7 +91,7 @@ maximalIndependentSetOnActiveVertices(
    IndexType iteration = 0;
 
    while( true ) {
-      const auto available_view = available.getConstView();
+      const auto availableView = available.getConstView();
       const IndexType activeCount = sum( available );
 
       if( activeCount == 0 )
@@ -100,7 +105,7 @@ maximalIndependentSetOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            if( ! available_view[ vertex ] ) {
+            if( ! availableView[ vertex ] ) {
                candidatesView[ vertex ] = 0;
                return;
             }
@@ -111,7 +116,7 @@ maximalIndependentSetOnActiveVertices(
 
             for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-               if( ! available_view[ neighbor ] )
+               if( ! availableView[ neighbor ] )
                   continue;
 
                const auto weight = vertexView.getEdgeWeight( localIdx );
@@ -128,59 +133,59 @@ maximalIndependentSetOnActiveVertices(
             candidatesView[ vertex ] = wins ? 1 : 0;
          } );
 
-      const auto candidates_view = candidates.getConstView();
+      const auto candidatesConstView = candidates.getConstView();
       const IndexType selectedThisIteration = sum( candidates );
 
       if( selectedThisIteration == 0 )
          throw std::logic_error( "Maximal independent set made no progress in a Luby round." );
 
-      auto blocked_view = blocked.getView();
+      auto blockedView = blocked.getView();
       TNL::Algorithms::parallelFor< DeviceType >(
          0,
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            if( ! available_view[ vertex ] ) {
-               blocked_view[ vertex ] = 1;
+            if( ! availableView[ vertex ] ) {
+               blockedView[ vertex ] = 1;
                return;
             }
 
-            if( candidates_view[ vertex ] ) {
-               blocked_view[ vertex ] = 1;
+            if( candidatesConstView[ vertex ] ) {
+               blockedView[ vertex ] = 1;
                return;
             }
 
             const auto vertexView = graphView.getVertex( vertex );
             for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-               if( ! available_view[ neighbor ] )
+               if( ! availableView[ neighbor ] )
                   continue;
 
                const auto weight = vertexView.getEdgeWeight( localIdx );
                if( ! edgePredicate( vertex, neighbor, weight ) )
                   continue;
 
-               if( candidates_view[ neighbor ] ) {
-                  blocked_view[ vertex ] = 1;
+               if( candidatesConstView[ neighbor ] ) {
+                  blockedView[ vertex ] = 1;
                   return;
                }
             }
 
-            blocked_view[ vertex ] = 0;
+            blockedView[ vertex ] = 0;
          } );
 
       const auto blockedConstView = blocked.getConstView();
-      auto independentSet_view = independentSet.getView();
-      auto availableMutable_view = available.getView();
+      auto independentSetView = independentSet.getView();
+      auto availableMutableView = available.getView();
       TNL::Algorithms::parallelFor< DeviceType >(
          0,
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            if( candidates_view[ vertex ] )
-               independentSet_view[ vertex ] = static_cast< SetValueType >( 1 );
+            if( candidatesConstView[ vertex ] )
+               independentSetView[ vertex ] = static_cast< SetValueType >( 1 );
 
-            availableMutable_view[ vertex ] = ( availableMutable_view[ vertex ] && ! blockedConstView[ vertex ] ) ? 1 : 0;
+            availableMutableView[ vertex ] = ( availableMutableView[ vertex ] && ! blockedConstView[ vertex ] ) ? 1 : 0;
          } );
 
       iteration++;
