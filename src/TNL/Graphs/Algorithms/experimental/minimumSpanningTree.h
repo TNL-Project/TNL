@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Containers/Vector.h>
 
 namespace TNL::Graphs::Algorithms::experimental {
@@ -83,11 +84,15 @@ namespace TNL::Graphs::Algorithms::experimental {
 template<
    typename InGraph,
    typename OutGraph = InGraph,
-   typename RootsVector = TNL::Containers::Vector< typename InGraph::IndexType >,
+   typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
    typename Value = typename InGraph::ValueType,
    typename Index = typename InGraph::IndexType >
 void
-minimumSpanningTree( const InGraph& graph, OutGraph& tree, RootsVector& roots );
+minimumSpanningTree(
+   const InGraph& graph,
+   OutGraph& tree,
+   RootsVector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 }  //namespace TNL::Graphs::Algorithms::experimental
 
