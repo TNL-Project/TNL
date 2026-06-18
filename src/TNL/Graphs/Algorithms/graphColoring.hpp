@@ -13,6 +13,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Functional.h>
 #include <TNL/Graphs/Algorithms/maximalIndependentSet.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Matrices/MatrixBase.h>
 
 #include "graphColoring.h"
@@ -40,7 +41,8 @@ isProperlyColoredOnActiveVertices(
    const Vector& colors,
    const typename Vector::ValueType minimumColor,
    const typename Vector::ValueType inactiveColor,
-   EdgePredicate&& edgePredicate )
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
 
@@ -86,7 +88,7 @@ isProperlyColoredOnActiveVertices(
 
          return true;
       },
-      TNL::LogicalAnd{} );
+      LogicalAnd{} );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
@@ -96,11 +98,12 @@ finalizeZeroBasedColoringOnActiveVertices(
    VertexPredicate&& isActive,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
-   EdgePredicate&& edgePredicate )
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    TNL_ASSERT_TRUE(
       isProperlyColoredOnActiveVertices(
-         graph, isActive, colors, static_cast< typename Vector::ValueType >( 1 ), inactiveColor, edgePredicate ),
+         graph, isActive, colors, static_cast< typename Vector::ValueType >( 1 ), inactiveColor, edgePredicate, launchConfig ),
       "Internal graph coloring must be proper before conversion to zero-based labels." );
 
    using DeviceType = typename Graph::DeviceType;
@@ -128,7 +131,8 @@ graphColoringOnActiveVerticesSequential(
    VertexPredicate&& isActive,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
-   EdgePredicate&& edgePredicate )
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
 
@@ -173,7 +177,7 @@ graphColoringOnActiveVerticesSequential(
       }
    }
 
-   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate );
+   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
@@ -183,7 +187,8 @@ graphColoringOnActiveVertices(
    VertexPredicate&& isActive,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
-   EdgePredicate&& edgePredicate )
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
 
@@ -215,7 +220,7 @@ graphColoringOnActiveVertices(
    }
 
    if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
-      graphColoringOnActiveVerticesSequential( graph, isActive, colors, inactiveColor, edgePredicate );
+      graphColoringOnActiveVerticesSequential( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
       return;
    }
 
@@ -244,7 +249,7 @@ graphColoringOnActiveVertices(
          {
             return ( isActive( vertex ) && colorsView[ vertex ] == static_cast< ColorType >( 0 ) ) ? 1 : 0;
          },
-         TNL::Plus{} );
+         Plus{} );
 
       if( uncoloredVertices == 0 )
          break;
@@ -339,7 +344,7 @@ graphColoringOnActiveVertices(
             keepColorView[ vertex ] = keep;
          } );
 
-      const IndexType coloredThisRound = TNL::sum( keepColor );
+      const IndexType coloredThisRound = sum( keepColor );
 
       if( coloredThisRound == 0 )
          throw std::logic_error( "Graph coloring made no progress in a round." );
@@ -347,7 +352,7 @@ graphColoringOnActiveVertices(
       colors += keepColor * proposedColors;
    }
 
-   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate );
+   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
@@ -357,7 +362,8 @@ graphColoringLubyOnActiveVertices(
    VertexPredicate&& isActive,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
-   EdgePredicate&& edgePredicate )
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
 
@@ -398,7 +404,7 @@ graphColoringLubyOnActiveVertices(
    ColorType currentColor = static_cast< ColorType >( 1 );
 
    while( true ) {
-      const IndexType uncoloredVertices = TNL::sum( remaining );
+      const IndexType uncoloredVertices = sum( remaining );
 
       if( uncoloredVertices == 0 )
          break;
@@ -412,7 +418,8 @@ graphColoringLubyOnActiveVertices(
          },
          selected,
          static_cast< IndexType >( currentColor ),
-         edgePredicate );
+         edgePredicate,
+         launchConfig );
 
       colors += currentColor * selected;
       remaining -= selected;
@@ -420,14 +427,14 @@ graphColoringLubyOnActiveVertices(
       currentColor++;
    }
 
-   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate );
+   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
 }
 
 }  // namespace detail
 
 template< typename Graph, typename Vector >
 void
-graphColoring( const Graph& graph, Vector& colors )
+graphColoring( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -442,12 +449,17 @@ graphColoring( const Graph& graph, Vector& colors )
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename EdgePredicate, typename >
 void
-graphColoring( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoring(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -459,12 +471,17 @@ graphColoring( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors
       },
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename >
 void
-graphColoring( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors )
+graphColoring(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -484,12 +501,18 @@ graphColoring( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& c
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
 void
-graphColoring( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoring(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -506,12 +529,17 @@ graphColoring( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredi
       },
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
-graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors )
+graphColoringIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -523,24 +551,31 @@ graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& 
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
-graphColoringIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoringIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::graphColoringOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename Vector >
 void
-graphColoringLuby( const Graph& graph, Vector& colors )
+graphColoringLuby( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -555,12 +590,17 @@ graphColoringLuby( const Graph& graph, Vector& colors )
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename EdgePredicate, typename >
 void
-graphColoringLuby( const Graph& graph, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoringLuby(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -572,12 +612,17 @@ graphColoringLuby( const Graph& graph, EdgePredicate&& edgePredicate, Vector& co
       },
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename >
 void
-graphColoringLuby( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& colors )
+graphColoringLuby(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -597,12 +642,18 @@ graphColoringLuby( const Graph& graph, const VertexIndexes& vertexIndexes, Vecto
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
 void
-graphColoringLuby( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoringLuby(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -619,12 +670,17 @@ graphColoringLuby( const Graph& graph, const VertexIndexes& vertexIndexes, EdgeP
       },
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
-graphColoringLubyIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& colors )
+graphColoringLubyIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -636,24 +692,31 @@ graphColoringLubyIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vect
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
-graphColoringLubyIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate&& edgePredicate, Vector& colors )
+graphColoringLubyIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::graphColoringLubyOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename Vector >
 bool
-isProperlyColored( const Graph& graph, const Vector& colors )
+isProperlyColored( const Graph& graph, const Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -669,12 +732,17 @@ isProperlyColored( const Graph& graph, const Vector& colors )
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename EdgePredicate, typename >
 bool
-isProperlyColored( const Graph& graph, EdgePredicate&& edgePredicate, const Vector& colors )
+isProperlyColored(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -687,12 +755,17 @@ isProperlyColored( const Graph& graph, EdgePredicate&& edgePredicate, const Vect
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
       static_cast< typename Vector::ValueType >( 0 ),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename >
 bool
-isProperlyColored( const Graph& graph, const VertexIndexes& vertexIndexes, const Vector& colors )
+isProperlyColored(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -713,12 +786,18 @@ isProperlyColored( const Graph& graph, const VertexIndexes& vertexIndexes, const
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
 bool
-isProperlyColored( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&& edgePredicate, const Vector& colors )
+isProperlyColored(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -736,12 +815,17 @@ isProperlyColored( const Graph& graph, const VertexIndexes& vertexIndexes, EdgeP
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
-isProperlyColoredIf( const Graph& graph, VertexPredicate&& vertexPredicate, const Vector& colors )
+isProperlyColoredIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -754,7 +838,8 @@ isProperlyColoredIf( const Graph& graph, VertexPredicate&& vertexPredicate, cons
       [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
-      } );
+      },
+      launchConfig );
 }
 
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
@@ -763,7 +848,8 @@ isProperlyColoredIf(
    const Graph& graph,
    VertexPredicate&& vertexPredicate,
    EdgePredicate&& edgePredicate,
-   const Vector& colors )
+   const Vector& colors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    return detail::isProperlyColoredOnActiveVertices(
       graph,
@@ -771,7 +857,8 @@ isProperlyColoredIf(
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ) );
+      std::forward< EdgePredicate >( edgePredicate ),
+      launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms

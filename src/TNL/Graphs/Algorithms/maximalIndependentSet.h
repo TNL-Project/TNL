@@ -5,6 +5,7 @@
 
 #include <type_traits>
 
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/TypeTraits.h>
 
 namespace TNL::Graphs::Algorithms {
@@ -113,7 +114,10 @@ namespace TNL::Graphs::Algorithms {
  */
 template< typename Graph, typename Vector >
 void
-maximalIndependentSet( const Graph& graph, Vector& independentSet );
+maximalIndependentSet(
+   const Graph& graph,
+   Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Finds a maximal independent set with edge filtering.
@@ -137,9 +141,13 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
-maximalIndependentSet( const Graph& graph, EdgePredicate&& edgePredicate, Vector& independentSet );
+maximalIndependentSet(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Finds a maximal independent set in the subgraph induced by the given vertex indexes.
@@ -161,7 +169,11 @@ template<
    typename Vector,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
-maximalIndependentSet( const Graph& graph, const VertexIndexes& vertexIndexes, Vector& independentSet );
+maximalIndependentSet(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Finds a maximal independent set in the indexed-induced subgraph with edge filtering.
@@ -188,7 +200,8 @@ maximalIndependentSet(
    const Graph& graph,
    const VertexIndexes& vertexIndexes,
    EdgePredicate&& edgePredicate,
-   Vector& independentSet );
+   Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Finds a maximal independent set in the subgraph defined by a vertex predicate.
@@ -209,7 +222,11 @@ maximalIndependentSet(
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
-maximalIndependentSetIf( const Graph& graph, VertexPredicate&& vertexPredicate, Vector& independentSet );
+maximalIndependentSetIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Finds a maximal independent set in the predicate-induced subgraph with edge filtering.
@@ -232,7 +249,8 @@ maximalIndependentSetIf(
    const Graph& graph,
    VertexPredicate&& vertexPredicate,
    EdgePredicate&& edgePredicate,
-   Vector& independentSet );
+   Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the given 0/1 mask defines a maximal independent set in the whole graph.
@@ -245,7 +263,10 @@ maximalIndependentSetIf(
  */
 template< typename Graph, typename Vector >
 bool
-isMaximalIndependentSet( const Graph& graph, const Vector& independentSet );
+isMaximalIndependentSet(
+   const Graph& graph,
+   const Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the given 0/1 mask defines a maximal independent set
@@ -263,9 +284,13 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
-isMaximalIndependentSet( const Graph& graph, EdgePredicate&& edgePredicate, const Vector& independentSet );
+isMaximalIndependentSet(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   const Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the given 0/1 mask defines a maximal independent set in the
@@ -287,7 +312,11 @@ template<
    typename Vector,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
-isMaximalIndependentSet( const Graph& graph, const VertexIndexes& vertexIndexes, const Vector& independentSet );
+isMaximalIndependentSet(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   const Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the given 0/1 mask defines a maximal independent set in the
@@ -314,7 +343,8 @@ isMaximalIndependentSet(
    const Graph& graph,
    const VertexIndexes& vertexIndexes,
    EdgePredicate&& edgePredicate,
-   const Vector& independentSet );
+   const Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the given 0/1 mask defines a maximal independent set in the
@@ -330,7 +360,11 @@ isMaximalIndependentSet(
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
-isMaximalIndependentSetIf( const Graph& graph, VertexPredicate&& vertexPredicate, const Vector& independentSet );
+isMaximalIndependentSetIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   const Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the given 0/1 mask defines a maximal independent set in the
@@ -344,7 +378,8 @@ isMaximalIndependentSetIf( const Graph& graph, VertexPredicate&& vertexPredicate
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param independentSet The 0/1 mask to verify.
- * \return true If the mask defines a maximal independent set in the predicate-induced subgraph with respect to the allowed edges.
+ * \return true If the mask defines a maximal independent set in the predicate-induced subgraph with respect to the allowed
+ * edges.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 bool
@@ -352,7 +387,8 @@ isMaximalIndependentSetIf(
    const Graph& graph,
    VertexPredicate&& vertexPredicate,
    EdgePredicate&& edgePredicate,
-   const Vector& independentSet );
+   const Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 }  // namespace TNL::Graphs::Algorithms
 

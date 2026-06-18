@@ -141,11 +141,9 @@ kruskal( const InGraph& graph, OutGraph& tree, RootsVector& roots )
       auto source_root = forest.getRoot( source );
       auto target_root = forest.getRoot( target );
       if( source_root != target_root ) {
-         tree.getAdjacencyMatrix().getRow( source ).setElement(
-            tree_filling[ source ]++, target, edge.getWeight() );
+         tree.getAdjacencyMatrix().getRow( source ).setElement( tree_filling[ source ]++, target, edge.getWeight() );
          if constexpr( OutGraph::isUndirected() && ! OutGraph::AdjacencyMatrixType::isSymmetric() )
-            tree.getAdjacencyMatrix().getRow( target ).setElement(
-               tree_filling[ target ]++, source, edge.getWeight() );
+            tree.getAdjacencyMatrix().getRow( target ).setElement( tree_filling[ target ]++, source, edge.getWeight() );
          forest.mergeTrees( source, target );
       }
    }
@@ -505,7 +503,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
          else
             return 0;
       };
-      sum += TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), hooking_fetch, TNL::Plus{} );
+      sum += TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), hooking_fetch, Plus{} );
       //TNL::Algorithms::parallelFor< DeviceType >( 0, p.getSize(), hooking_fetch );
       /*std::cout << " After hooking: p     = " << p     << "                         sum = " << sum << '\n';
       std::cout << " After hooking: p_old = " << p_old << "                         sum = " << sum << '\n';
@@ -537,7 +535,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
          else
             return 0;
       };
-      auto add = TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), cycles_fetch, TNL::Plus{} );
+      auto add = TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), cycles_fetch, Plus{} );
       sum -= add;
       /*std::cout << " After cycles: p      = " << p     << "                         sum = " << sum << '\n';
       std::cout << " After cycles: p_old  = " << p_old << "                         sum = " << sum << '\n';
@@ -583,7 +581,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
             else
                return 0;
          },
-         TNL::Plus{} ) )
+         Plus{} ) )
          ;
 
       //std::cout << " After shortcutting:       p = " << p << '\n';
@@ -606,7 +604,11 @@ parallelMST( const InGraph& graph, OutGraph& tree )
 
 template< typename InGraph, typename OutGraph, typename RootsVector, typename Value, typename Index >
 void
-minimumSpanningTree( const InGraph& graph, OutGraph& tree, RootsVector& roots )
+minimumSpanningTree(
+   const InGraph& graph,
+   OutGraph& tree,
+   RootsVector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( InGraph::isUndirected(), "The input graph must be undirected." );
    static_assert( OutGraph::isUndirected(), "The output graph must be undirected." );
