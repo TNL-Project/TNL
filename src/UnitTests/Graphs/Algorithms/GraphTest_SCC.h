@@ -54,6 +54,7 @@ TYPED_TEST( GraphTest, test_SCC_small )
    ComponentsType components( graph.getVertexCount(), 0 );
    TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, components );
 
+   // Expected SCC IDs: {0}=5, {1,2,3,5,6,7}=3, {4}=4, {8}=2, {9}=1
    ComponentsType expected( { 5, 3, 3, 3, 4, 3, 3, 3, 2, 1 } );
    ASSERT_EQ( components, expected );
 }
@@ -597,29 +598,25 @@ TYPED_TEST( GraphTest, test_SCC_vertex_and_edge_predicate )
    // With the edge blocked, in the induced subgraph {0,1,2}:
    // 0 reaches 1 (via 0->1), but 1 cannot reach 0 (1->2 is blocked).
    // So all three are singletons.
-    ComponentsType components;
-    auto vertexPredicate = [] __cuda_callable__( IndexType v )
-    {
-       return v < 3;
-    };
-    auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
-    {
-       return weight < 2.0;
-    };
+   ComponentsType components;
+   auto vertexPredicate = [] __cuda_callable__( IndexType v )
+   {
+      return v < 3;
+   };
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < 2.0;
+   };
 
-    TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
 
-    ComponentsType expected( { 3, 2, 1, -1, -1, -1 } );
-    ASSERT_EQ( components, expected );
+   ComponentsType expected( { 3, 2, 1, -1, -1, -1 } );
+   ASSERT_EQ( components, expected );
 }
 
 template< typename VectorA, typename VectorB >
 void
-expectPartitionEquiv(
-   const VectorA& compA,
-   const VectorB& compB,
-   const std::vector< int >& oldToNew,
-   int origSize )
+expectPartitionEquiv( const VectorA& compA, const VectorB& compB, const std::vector< int >& oldToNew, int origSize )
 {
    for( int u = 0; u < origSize; u++ ) {
       if( oldToNew[ u ] < 0 )
@@ -639,7 +636,6 @@ GraphType
 makeDirectedSCCGraphA()
 {
    // clang-format off
-   // Same as test_SCC_small: two main SCCs {0,2,3,5,1,7,6} and {8,9}
    return GraphType(
       10,
       {
@@ -735,7 +731,7 @@ TYPED_TEST( GraphTest, test_SCC_subgraph_vertex_removal_predicate )
    const auto graphA = makeDirectedSCCGraphA< GraphType >();
    const auto subgraphB = makeSCCSubgraphB< GraphType >();
 
-   const auto exclude04 = [=] __cuda_callable__( IndexType v )
+   const auto exclude04 = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 0 && v != 4;
    };
@@ -776,7 +772,7 @@ TYPED_TEST( GraphTest, test_SCC_subgraph_vertex_removal_disconnected )
    const auto graphA = makeDirectedSCCGraphA< GraphType >();
    const auto subgraphD = makeSCCSubgraphD< GraphType >();
 
-   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   const auto excludeFour = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 4;
    };
@@ -799,7 +795,7 @@ TYPED_TEST( GraphTest, test_SCC_subgraph_edge_removal_wholeGraph )
    const auto graphA = makeDirectedSCCGraphA< GraphType >();
    const auto subgraphC = makeSCCSubgraphC< GraphType >();
 
-   const auto blockEdge52 = [=] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   const auto blockEdge52 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
    {
       return ! ( src == 5 && tgt == 2 );
    };
@@ -823,7 +819,7 @@ TYPED_TEST( GraphTest, test_SCC_subgraph_edge_removal_withIndexes )
    const auto subgraphE2 = makeSCCSubgraphE2< GraphType >();
 
    const ComponentsType vertexIndexes( { 1, 2, 3, 5, 6, 7 } );
-   const auto blockEdge52 = [=] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   const auto blockEdge52 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
    {
       return ! ( src == 5 && tgt == 2 );
    };
@@ -832,6 +828,6 @@ TYPED_TEST( GraphTest, test_SCC_subgraph_edge_removal_withIndexes )
    TNL::Graphs::Algorithms::stronglyConnectedComponents( graphA, vertexIndexes, blockEdge52, compA );
    TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphE2, compE2 );
 
-    const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, -1, -1 };
-    expectPartitionEquiv( compA, compE2, oldToNew, 10 );
+   const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, -1, -1 };
+   expectPartitionEquiv( compA, compE2, oldToNew, 10 );
 }

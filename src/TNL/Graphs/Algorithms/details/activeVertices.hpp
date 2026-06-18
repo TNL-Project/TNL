@@ -26,16 +26,16 @@ activateIndexedVertices( const Graph& graph, const VertexIndexes& vertexIndexes,
    if( selectedVerticesCount == 0 )
       return;
 
-   const auto vertexIndexes_view = vertexIndexes.getConstView();
-   auto activeVertices_view = activeVertices.getView();
+   const auto vertexIndexesView = vertexIndexes.getConstView();
+   auto activeVerticesView = activeVertices.getView();
    const bool validIndexes = TNL::Algorithms::reduce< DeviceType >(
       0,
       selectedVerticesCount,
       [ = ] __cuda_callable__( IndexType index ) mutable -> bool
       {
-         const IndexType vertex = vertexIndexes_view[ index ];
+         const IndexType vertex = vertexIndexesView[ index ];
          if( vertex >= 0 && vertex < verticesCount ) {
-            activeVertices_view[ vertex ] = static_cast< IndexType >( 1 );
+            activeVerticesView[ vertex ] = static_cast< IndexType >( 1 );
             return true;
          }
          else
@@ -44,7 +44,7 @@ activateIndexedVertices( const Graph& graph, const VertexIndexes& vertexIndexes,
       TNL::LogicalAnd{} );
 
    if( ! validIndexes )
-      throw std::invalid_argument( "Vertex indexes for maximalIndependentSet must be valid graph vertices." );
+      throw std::invalid_argument( "Vertex indexes must be valid graph vertices." );
 }
 
 }  // namespace TNL::Graphs::Algorithms::detail
