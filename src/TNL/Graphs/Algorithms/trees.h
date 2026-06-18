@@ -5,6 +5,7 @@
 
 #include <type_traits>
 
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/TypeTraits.h>
 
 namespace TNL::Graphs::Algorithms {
@@ -146,7 +147,10 @@ namespace TNL::Graphs::Algorithms {
  */
 template< typename Graph >
 bool
-isTree( const Graph& graph, typename Graph::IndexType start = 0 );
+isTree(
+   const Graph& graph,
+   typename Graph::IndexType start = 0,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the given graph is a tree considering only allowed edges.
@@ -171,7 +175,11 @@ isTree( const Graph& graph, typename Graph::IndexType start = 0 );
  */
 template< typename Graph, typename EdgePredicate, typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
-isTree( const Graph& graph, typename Graph::IndexType start, EdgePredicate&& edgePredicate );
+isTree(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the subgraph induced by the given vertex indexes is a tree.
@@ -190,7 +198,11 @@ isTree( const Graph& graph, typename Graph::IndexType start, EdgePredicate&& edg
  */
 template< typename Graph, typename VertexIndexes, typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
-isTree( const Graph& graph, typename Graph::IndexType start, const VertexIndexes& vertexIndexes );
+isTree(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   const VertexIndexes& vertexIndexes,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the indexed-induced subgraph is a tree considering only allowed edges.
@@ -217,7 +229,8 @@ isTree(
    const Graph& graph,
    typename Graph::IndexType start,
    const VertexIndexes& vertexIndexes,
-   EdgePredicate&& edgePredicate );
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the subgraph selected by a vertex predicate is a tree.
@@ -239,7 +252,11 @@ isTree(
  */
 template< typename Graph, typename VertexPredicate >
 bool
-isTreeIf( const Graph& graph, typename Graph::IndexType start, VertexPredicate&& vertexPredicate );
+isTreeIf(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   VertexPredicate&& vertexPredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the predicate-induced subgraph is a tree considering only allowed edges.
@@ -263,7 +280,8 @@ isTreeIf(
    const Graph& graph,
    typename Graph::IndexType start,
    VertexPredicate&& vertexPredicate,
-   EdgePredicate&& edgePredicate );
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the given graph is a forest with auto-detected roots.
@@ -280,7 +298,9 @@ isTreeIf(
  */
 template< typename Graph >
 bool
-isForest( const Graph& graph );
+isForest(
+   const Graph& graph,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the given graph is a forest considering only allowed edges.
@@ -297,7 +317,10 @@ isForest( const Graph& graph );
  */
 template< typename Graph, typename EdgePredicate, typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
-isForest( const Graph& graph, EdgePredicate&& edgePredicate );
+isForest(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the subgraph induced by the given vertex indexes is a forest.
@@ -314,7 +337,10 @@ isForest( const Graph& graph, EdgePredicate&& edgePredicate );
  */
 template< typename Graph, typename VertexIndexes, typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
-isForest( const Graph& graph, const VertexIndexes& vertexIndexes );
+isForest(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the indexed-induced subgraph is a forest considering only allowed edges.
@@ -337,7 +363,11 @@ template<
    typename EdgePredicate,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
-isForest( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&& edgePredicate );
+isForest(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the subgraph selected by a vertex predicate is a forest.
@@ -358,7 +388,10 @@ isForest( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&
  */
 template< typename Graph, typename VertexPredicate >
 bool
-isForestIf( const Graph& graph, VertexPredicate&& vertexPredicate );
+isForestIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the predicate-induced subgraph is a forest considering only allowed edges.
@@ -377,7 +410,11 @@ isForestIf( const Graph& graph, VertexPredicate&& vertexPredicate );
  */
 template< typename Graph, typename VertexPredicate, typename EdgePredicate >
 bool
-isForestIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate&& edgePredicate );
+isForestIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the given graph is a forest using the provided root candidates.
@@ -395,7 +432,10 @@ isForestIf( const Graph& graph, VertexPredicate&& vertexPredicate, EdgePredicate
  */
 template< typename Graph, typename Vector >
 bool
-isForestWithRoots( const Graph& graph, const Vector& roots );
+isForestWithRoots(
+   const Graph& graph,
+   const Vector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the given graph is a forest with edge filtering using the provided root candidates.
@@ -417,7 +457,11 @@ template<
    typename Vector,
    typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
-isForestWithRoots( const Graph& graph, EdgePredicate&& edgePredicate, const Vector& roots );
+isForestWithRoots(
+   const Graph& graph,
+   EdgePredicate&& edgePredicate,
+   const Vector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the subgraph induced by the given vertex indexes is a forest using the provided root candidates.
@@ -439,7 +483,11 @@ template<
    typename Vector,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
-isForestWithRoots( const Graph& graph, const VertexIndexes& vertexIndexes, const Vector& roots );
+isForestWithRoots(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   const Vector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the indexed-induced subgraph is a forest with edge filtering using the provided root candidates.
@@ -464,7 +512,12 @@ template<
    typename Vector,
    typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
-isForestWithRoots( const Graph& graph, const VertexIndexes& vertexIndexes, EdgePredicate&& edgePredicate, const Vector& roots );
+isForestWithRoots(
+   const Graph& graph,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   const Vector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the subgraph selected by a vertex predicate is a forest using the provided root candidates.
@@ -486,7 +539,11 @@ isForestWithRoots( const Graph& graph, const VertexIndexes& vertexIndexes, EdgeP
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
-isForestWithRootsIf( const Graph& graph, VertexPredicate&& vertexPredicate, const Vector& roots );
+isForestWithRootsIf(
+   const Graph& graph,
+   VertexPredicate&& vertexPredicate,
+   const Vector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the predicate-induced subgraph is a forest with edge filtering using the provided root candidates.
@@ -511,7 +568,8 @@ isForestWithRootsIf(
    const Graph& graph,
    VertexPredicate&& vertexPredicate,
    EdgePredicate&& edgePredicate,
-   const Vector& roots );
+   const Vector& roots,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 }  // namespace TNL::Graphs::Algorithms
 

@@ -16,6 +16,7 @@
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Graphs/Edge.h>
 #include <TNL/Graphs/Algorithms/trees.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include "boruvkaMST.h"
@@ -24,7 +25,7 @@ namespace TNL::Graphs::Algorithms::experimental {
 
 template< typename InGraph, typename OutGraph, typename Real >
 void
-boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum )
+boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( InGraph::isUndirected(), "The input graph must be undirected." );
    static_assert( OutGraph::isUndirected(), "The output graph must be undirected." );
@@ -32,9 +33,9 @@ boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum )
    using DeviceType = typename InGraph::DeviceType;
    using IndexType = typename InGraph::IndexType;
    using RealType = typename InGraph::ValueType;
-   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
-   using RealVector = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
-   using BoolVector = TNL::Containers::Vector< bool, DeviceType, IndexType >;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+   using RealVector = Containers::Vector< RealType, DeviceType, IndexType >;
+   using BoolVector = Containers::Vector< bool, DeviceType, IndexType >;
 
    sum = 0;
    RealVector sumV( 1, 0 );
@@ -165,11 +166,11 @@ boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum )
       };
       TNL::Algorithms::parallelFor< DeviceType >( 0, size, minPerStar );
 
-   // Hook stars using their minimum outgoing edges
-   // Algorithm 8, lines 22-27 (Cichra 2024, Sec. 5.4): "By hooking, we mean changing
-   // the parent of the root in p vector, so that it now shares parent with the endpoint
-   // of the smallest weighted outgoing edge."
-   auto starHook = [ = ] __cuda_callable__( IndexType vertexIdx ) mutable
+      // Hook stars using their minimum outgoing edges
+      // Algorithm 8, lines 22-27 (Cichra 2024, Sec. 5.4): "By hooking, we mean changing
+      // the parent of the root in p vector, so that it now shares parent with the endpoint
+      // of the smallest weighted outgoing edge."
+      auto starHook = [ = ] __cuda_callable__( IndexType vertexIdx ) mutable
       {
          if( starRootView[ vertexIdx ] && minOutWeightsToView[ vertexIdx ] > -1 ) {
             // Use pOldView for reading target's parent to avoid race conditions
@@ -227,14 +228,14 @@ boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum )
       TNL::Algorithms::parallelFor< DeviceType >( 0, size, fetchUnique );
 
       // Build tree edges — device-specific paths
-      if constexpr( std::is_same_v< DeviceType, TNL::Devices::Cuda > ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
          auto sumView = sumV.getView();
          auto updateTree = [ = ] __cuda_callable__( IndexType weightIdx ) mutable
          {
             if( uniqueWeightsView[ weightIdx ] > -1 ) {
-               auto i = TNL::Algorithms::AtomicOperations< TNL::Devices::Cuda >::add(
+               auto i = TNL::Algorithms::AtomicOperations< Devices::Cuda >::add(
                   rowCapacitiesTrackerView[ minOutWeightsFromView[ weightIdx ] ], 1 );
-               auto j = TNL::Algorithms::AtomicOperations< TNL::Devices::Cuda >::add(
+               auto j = TNL::Algorithms::AtomicOperations< Devices::Cuda >::add(
                   rowCapacitiesTrackerView[ minOutWeightsToView[ weightIdx ] ], 1 );
 
                auto rowFrom = tempGraphMatrixView.getRow( minOutWeightsFromView[ weightIdx ] );
@@ -243,7 +244,7 @@ boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum )
                auto rowTo = tempGraphMatrixView.getRow( minOutWeightsToView[ weightIdx ] );
 
                if( ! ( rowFrom.getValue( i ) ) ) {
-                  TNL::Algorithms::AtomicOperations< TNL::Devices::Cuda >::add( sumView[ 0 ], uniqueWeightsView[ weightIdx ] );
+                  TNL::Algorithms::AtomicOperations< Devices::Cuda >::add( sumView[ 0 ], uniqueWeightsView[ weightIdx ] );
                   rowFrom.setElement( i, minOutWeightsToView[ weightIdx ], uniqueWeightsView[ weightIdx ] );
                   rowTo.setElement( j, minOutWeightsFromView[ weightIdx ], uniqueWeightsView[ weightIdx ] );
                }
@@ -296,7 +297,11 @@ boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum )
 
 template< typename InGraph, typename OutGraph, typename Real >
 void
-boruvkaMST_edgeList( const InGraph& graph, OutGraph& tree, Real& sum )
+boruvkaMST_edgeList(
+   const InGraph& graph,
+   OutGraph& tree,
+   Real& sum,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( InGraph::isUndirected(), "The input graph must be undirected." );
    static_assert( OutGraph::isUndirected(), "The output graph must be undirected." );
@@ -304,9 +309,9 @@ boruvkaMST_edgeList( const InGraph& graph, OutGraph& tree, Real& sum )
    using DeviceType = typename InGraph::DeviceType;
    using IndexType = typename InGraph::IndexType;
    using RealType = typename InGraph::ValueType;
-   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
-   using RealVector = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
-   using BoolVector = TNL::Containers::Vector< bool, DeviceType, IndexType >;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+   using RealVector = Containers::Vector< RealType, DeviceType, IndexType >;
+   using BoolVector = Containers::Vector< bool, DeviceType, IndexType >;
 
    sum = 0;
 
@@ -544,7 +549,7 @@ boruvkaMST_edgeList( const InGraph& graph, OutGraph& tree, Real& sum )
 
 template< typename InGraph, typename OutGraph, typename Real >
 bool
-isValidMSF( const InGraph& graph, const OutGraph& tree, Real sum )
+isValidMSF( const InGraph& graph, const OutGraph& tree, Real sum, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using DeviceType = typename InGraph::DeviceType;
    using IndexType = typename InGraph::IndexType;
@@ -564,16 +569,16 @@ isValidMSF( const InGraph& graph, const OutGraph& tree, Real sum )
       auto i = cellIdx % size;
       auto j = cellIdx / size;
       if( treeMatrixView.getElement( i, j ) != 0 ) {
-         return ( graphMatrixView.getElement( i, j ) == treeMatrixView.getElement( i, j ) );
+         return graphMatrixView.getElement( i, j ) == treeMatrixView.getElement( i, j );
       }
       return true;
    };
-   bool edgeCheck = TNL::Algorithms::reduce< DeviceType >( 0, size * size, verifyEdge, TNL::LogicalAnd{} );
+   bool edgeCheck = TNL::Algorithms::reduce< DeviceType >( 0, size * size, verifyEdge, LogicalAnd{} );
    std::cout << "are all edges valid? --> " << ( edgeCheck ? "yes" : "no" ) << "\n";
 
    // Check 2: the tree is a valid tree or forest
-   bool forestCheck = TNL::Graphs::Algorithms::isForest< OutGraph >( tree );
-   bool treeCheck = TNL::Graphs::Algorithms::isTree< OutGraph >( tree );
+   bool forestCheck = TNL::Graphs::Algorithms::isForest< OutGraph >( tree, launchConfig );
+   bool treeCheck = TNL::Graphs::Algorithms::isTree< OutGraph >( tree, 0, launchConfig );
    std::cout << "is it a tree? --> " << ( treeCheck ? "yes" : "no" ) << "\n";
    std::cout << "is it a forest? --> " << ( forestCheck ? "yes" : "no" ) << "\n";
 
@@ -583,13 +588,13 @@ isValidMSF( const InGraph& graph, const OutGraph& tree, Real sum )
    {
       auto i = idx / size;
       auto j = idx % size;
-      return ( treeMatrixView.getElement( i, j ) );
+      return treeMatrixView.getElement( i, j );
    };
-   RealType sumCheck = TNL::Algorithms::reduce< DeviceType >( 0, size * size, sumUp, TNL::Plus{} ) / 2;
+   RealType sumCheck = TNL::Algorithms::reduce< DeviceType >( 0, size * size, sumUp, Plus{} ) / 2;
    std::cout << "is the edge weight sum " << sumCheck << " == " << sum << "? --> " << ( sumCheck == sum ? "yes" : "no" )
-            << "\n";
+             << "\n";
 
-   return ( edgeCheck && ( sumCheck == sum ) && ( treeCheck || forestCheck ) );
+   return edgeCheck && ( sumCheck == sum ) && ( treeCheck || forestCheck );
 }
 
 }  // namespace TNL::Graphs::Algorithms::experimental
