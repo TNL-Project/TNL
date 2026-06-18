@@ -18,6 +18,7 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 #include "details/activeVertices.hpp"
+#include "details/parallelTraversal.hpp"
 #include "breadthFirstSearch.h"
 
 namespace TNL::Graphs::Algorithms {
@@ -47,51 +48,58 @@ breadthFirstSearchParallel(
    Vector& distances,
    const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Real = typename Graph::ValueType;
-   using Device = typename Graph::DeviceType;
-   using Index = typename Graph::IndexType;
-   const Index n = graph.getVertexCount();
+   using ValueType = typename Graph::ValueType;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   const IndexType n = graph.getVertexCount();
    distances.setSize( n );
 
+   // Level-synchronous BFS: each iteration processes one frontier (all vertices
+   // at the same distance from the source) and builds the next frontier.
+   //
+   // y           – working copy of distances (updated by concurrent threads)
+   // predecessors – parent vertex for each visited node
+   // marks       – 1 if the vertex was newly discovered in this iteration, 0 otherwise
+   // marksScan   – inclusive prefix sum of marks (used to compact the next frontier)
+   // frontier    – dense array of vertex indices forming the current frontier
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecessors( n, -1 );
-   Containers::Vector< Index, Device, Index > marks( n );
-   Containers::Vector< Index, Device, Index > marks_scan( n, 0 );
-   Containers::Vector< Index, Device, Index > frontier( n, 0 );
+   Containers::Vector< IndexType, DeviceType, IndexType > predecessors( n, -1 );
+   Containers::Vector< IndexType, DeviceType, IndexType > marks( n );
+   Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
+   Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
    distances = -1;
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
-   Index frontier_size( 1 );
+   IndexType frontierSize( 1 );
    y = distances;
-   auto y_view = y.getView();
-   auto predecessors_view = predecessors.getView();
-   auto marks_view = marks.getView();
-   auto marks_scan_view = marks_scan.getView();
-   for( Index i = 0; i <= n; i++ ) {
+   auto yView = y.getView();
+   auto predecessorsView = predecessors.getView();
+   auto marksView = marks.getView();
+   for( IndexType i = 0; i <= n; i++ ) {
       marks = 0;
-      if constexpr( std::is_same_v< Device, Devices::Host > )
+      if constexpr( std::is_same_v< DeviceType, Devices::Host > )
          forEdges(
             graph,
             frontier,
             0,
-            frontier_size,
-            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
+            frontierSize,
+            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
-               if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) && y_view[ targetIdx ] == -1
+               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) && yView[ targetIdx ] == -1
                    && edgePredicate( sourceIdx, targetIdx, weight ) )
                {
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
-                  y_view[ targetIdx ] = i + 1;
+                  yView[ targetIdx ] = i + 1;
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
-                  predecessors_view[ targetIdx ] = sourceIdx;
+                  predecessorsView[ targetIdx ] = sourceIdx;
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
-                  marks_view[ targetIdx ] = 1;
+                  marksView[ targetIdx ] = 1;
                   visitor( targetIdx, i + 1 );
                }
             },
@@ -101,40 +109,36 @@ breadthFirstSearchParallel(
             graph,
             frontier,
             0,
-            frontier_size,
-            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
+            frontierSize,
+            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
                TNL_ASSERT_GE( sourceIdx, 0, "" );
-               TNL_ASSERT_LT( sourceIdx, y_view.getSize(), "" );
+               TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
-               TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
-               if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) && y_view[ targetIdx ] == -1
+               TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
+               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) && yView[ targetIdx ] == -1
                    && edgePredicate( sourceIdx, targetIdx, weight ) )
                {
-                  atomicMax( &y_view[ targetIdx ], i + 1 );
-                  atomicMax( &predecessors_view[ targetIdx ], sourceIdx );
-                  atomicMax( &marks_view[ targetIdx ], 1 );
+                  // atomicMax is safe for distances: i+1 is always >= -1 (the
+                  // initial sentinel), so the first writer wins and concurrent
+                  // writers in the same layer write the same value.
+                  // The predecessor, however, is set to the *largest* source
+                  // index among concurrent discoverers, not necessarily the
+                  // first one.  This is acceptable for BFS (all sources are in
+                  // the same layer), but makes the result non-deterministic
+                  // with respect to the sequential version.
+                  atomicMax( &yView[ targetIdx ], i + 1 );
+                  atomicMax( &predecessorsView[ targetIdx ], sourceIdx );
+                  atomicMax( &marksView[ targetIdx ], 1 );
                   visitor( targetIdx, i + 1 );
                }
             },
             launchConfig );
       }
-      TNL::Algorithms::inclusiveScan( marks, marks_scan );
-      frontier_size = marks_scan.getElement( n - 1 );
-      if( frontier_size == 0 )
+       // Compact newly discovered vertices into the next frontier
+      frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+      if( frontierSize == 0 )
          break;
-      frontier = 0;
-      auto frontier_view = frontier.getView();
-      auto f = [ = ] __cuda_callable__( const Index idx, const Index value ) mutable
-      {
-         if( idx == 0 ) {
-            if( marks_scan_view[ 0 ] == 1 )
-               frontier_view[ 0 ] = idx;
-         }
-         else if( marks_scan_view[ idx ] - marks_scan_view[ idx - 1 ] == 1 )
-            frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
-      };
-      marks_scan.forAllElements( f );
 
       distances = y;
    }
@@ -153,36 +157,36 @@ breadthFirstSearch_impl(
 {
    static_assert(
       ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(), "BFS requires general adjacency matrix, not symmetric." );
-   using Index = typename Graph::IndexType;
-   using Device = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using DeviceType = typename Graph::DeviceType;
    const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
-   const Index n = graph.getVertexCount();
+   const IndexType n = graph.getVertexCount();
 
    distances.setSize( n );
    if( n == 0 )
       return;
-   TNL_ASSERT_GE( start, static_cast< Index >( 0 ), "Start vertex index must be non-negative." );
+   TNL_ASSERT_GE( start, static_cast< IndexType >( 0 ), "Start vertex index must be non-negative." );
    TNL_ASSERT_LT( start, n, "Start vertex index must be less than the number of vertices." );
 
    if( ! isActive( start ) )
       throw std::invalid_argument( "Start vertex must belong to the induced active subgraph." );
 
-   if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
+   if constexpr( std::is_same_v< DeviceType, TNL::Devices::Sequential > ) {
       distances = -1;
       distances.setElement( start, 0.0 );
 
-      std::queue< Index > q;
+      std::queue< IndexType > q;
       q.push( start );
 
       while( ! q.empty() ) {
-         Index current = q.front();
+         IndexType current = q.front();
          q.pop();
 
          const auto row = adjacencyMatrix.getRow( current );
-         for( Index i = 0; i < row.getSize(); i++ ) {
+         for( IndexType i = 0; i < row.getSize(); i++ ) {
             const auto& edgeWeight = row.getValue( i );
             const auto& neighbor = row.getColumnIndex( i );
-            if( neighbor == Matrices::paddingIndex< Index > )
+            if( neighbor == Matrices::paddingIndex< IndexType > )
                continue;
             if( ! isActive( neighbor ) )
                continue;
@@ -190,7 +194,7 @@ breadthFirstSearch_impl(
                continue;
 
             if( distances[ neighbor ] == -1 ) {
-               Index distance = distances[ current ] + 1;
+               IndexType distance = distances[ current ] + 1;
                distances[ neighbor ] = distance;
                visitor( neighbor, distance );
                q.push( neighbor );
@@ -211,16 +215,16 @@ breadthFirstSearch(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
+   using IndexType = typename Graph::IndexType;
    breadthFirstSearch_impl(
       graph,
       start,
-      [] __cuda_callable__( Index, Index ) {},
-      [] __cuda_callable__( Index )
+      [] __cuda_callable__( IndexType, IndexType ) {},
+      [] __cuda_callable__( IndexType )
       {
          return true;
       },
-      [] __cuda_callable__( Index, Index, auto )
+      [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
       },
@@ -237,7 +241,7 @@ breadthFirstSearch(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
+   using IndexType = typename Graph::IndexType;
    static_assert(
       detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
       "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
@@ -245,8 +249,8 @@ breadthFirstSearch(
    breadthFirstSearch_impl(
       graph,
       start,
-      [] __cuda_callable__( Index, Index ) {},
-      [] __cuda_callable__( Index )
+      [] __cuda_callable__( IndexType, IndexType ) {},
+      [] __cuda_callable__( IndexType )
       {
          return true;
       },
@@ -264,16 +268,16 @@ breadthFirstSearchWithVisitor(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
+   using IndexType = typename Graph::IndexType;
    breadthFirstSearch_impl(
       graph,
       start,
       visitor,
-      [] __cuda_callable__( Index )
+      [] __cuda_callable__( IndexType )
       {
          return true;
       },
-      [] __cuda_callable__( Index, Index, auto )
+      [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
       },
@@ -290,23 +294,23 @@ breadthFirstSearch(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Device = typename Graph::DeviceType;
-   using Index = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< Index, Device, Index >;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( Index vertex )
+   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
    {
       return static_cast< bool >( activeVerticesView[ vertex ] );
    };
    breadthFirstSearch_impl(
       graph,
       start,
-      [] __cuda_callable__( Index, Index ) {},
+      [] __cuda_callable__( IndexType, IndexType ) {},
       isActive,
-      [] __cuda_callable__( Index, Index, auto )
+      [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
       },
@@ -324,9 +328,9 @@ breadthFirstSearch(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Device = typename Graph::DeviceType;
-   using Index = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< Index, Device, Index >;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    static_assert(
       detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
@@ -335,14 +339,14 @@ breadthFirstSearch(
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( Index vertex )
+   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
    {
       return static_cast< bool >( activeVerticesView[ vertex ] );
    };
    breadthFirstSearch_impl(
       graph,
       start,
-      [] __cuda_callable__( Index, Index ) {},
+      [] __cuda_callable__( IndexType, IndexType ) {},
       isActive,
       std::forward< EdgePredicate >( edgePredicate ),
       distances,
@@ -358,14 +362,14 @@ breadthFirstSearchIf(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
+   using IndexType = typename Graph::IndexType;
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    breadthFirstSearch_impl(
       graph,
       start,
-      [] __cuda_callable__( Index, Index ) {},
+      [] __cuda_callable__( IndexType, IndexType ) {},
       predicate,
-      [] __cuda_callable__( Index, Index, auto )
+      [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
       },
@@ -383,7 +387,7 @@ breadthFirstSearchIf(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
+   using IndexType = typename Graph::IndexType;
 
    static_assert(
       detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
@@ -393,7 +397,7 @@ breadthFirstSearchIf(
    breadthFirstSearch_impl(
       graph,
       start,
-      [] __cuda_callable__( Index, Index ) {},
+      [] __cuda_callable__( IndexType, IndexType ) {},
       predicate,
       std::forward< EdgePredicate >( edgePredicate ),
       distances,
@@ -410,14 +414,14 @@ breadthFirstSearchWithVisitor(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Device = typename Graph::DeviceType;
-   using Index = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< Index, Device, Index >;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( Index vertex )
+   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
    {
       return static_cast< bool >( activeVerticesView[ vertex ] );
    };
@@ -426,7 +430,7 @@ breadthFirstSearchWithVisitor(
       start,
       visitor,
       isActive,
-      [] __cuda_callable__( Index, Index, auto )
+      [] __cuda_callable__( IndexType, IndexType, auto )
       {
          return true;
       },
@@ -444,15 +448,15 @@ breadthFirstSearchIfWithVisitor(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
-   using Real = typename Graph::ValueType;
+   using IndexType = typename Graph::IndexType;
+   using ValueType = typename Graph::ValueType;
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    breadthFirstSearch_impl(
       graph,
       start,
       visitor,
       predicate,
-      [] __cuda_callable__( Index, Index, const Real& )
+      [] __cuda_callable__( IndexType, IndexType, const ValueType& )
       {
          return true;
       },

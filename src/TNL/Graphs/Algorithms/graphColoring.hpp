@@ -91,6 +91,9 @@ isProperlyColoredOnActiveVertices(
       LogicalAnd{} );
 }
 
+// Convert 1-based colors to 0-based by subtracting 1 from each active vertex.
+// Internally, colors start at 1 (0 means "uncolored"); this function shifts
+// them down so the final result uses 0, 1, 2, ...
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
 finalizeZeroBasedColoringOnActiveVertices(
@@ -124,6 +127,8 @@ finalizeZeroBasedColoringOnActiveVertices(
       } );
 }
 
+// Sequential greedy coloring: process vertices in index order, assign each
+// vertex the smallest color not used by any already-colored neighbor.
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
 graphColoringOnActiveVerticesSequential(
@@ -355,6 +360,9 @@ graphColoringOnActiveVertices(
    finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
 }
 
+// Luby-based coloring: repeatedly find a maximal independent set among
+// uncolored vertices and assign all MIS members the same color.  Each
+// iteration produces one color class.
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
 graphColoringLubyOnActiveVertices(

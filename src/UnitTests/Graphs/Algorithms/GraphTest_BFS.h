@@ -327,11 +327,11 @@ TYPED_TEST( GraphTest, test_BFS_withInactiveStart_throws )
 // Directed graph A (10 vertices, unit weights, symmetric adjacency).
 // Used as the common "large" graph for subgraph cross-validation tests.
 //
-//     0---1---2---5---8---9
-//     |   |   |   |   |
-//     3---4---+   6---7
-//     |   |       |   |
-//     +---6-------+---+
+//     0---1---2
+//     |   |   |
+//     3---4---5
+//     |   |   |
+//     6---7---8---9
 //
 // Edges (both directions):
 //   0-1, 0-3, 1-2, 1-4, 2-5, 3-4, 3-6, 4-5, 4-7, 5-8, 6-7, 7-8, 8-9

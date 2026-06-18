@@ -180,9 +180,14 @@ countActiveVertices( const Graph& graph, IsActive&& isActive, TNL::Algorithms::S
 
 }  // namespace detail
 
+// Visit a neighbor during sequential BFS tree-checking.
+// Returns true if the edge (current -> neighbor) is a valid tree edge
+// (neighbor was unvisited or is the parent of current).
+// Returns false if a cycle/cross-edge is detected (neighbor already
+// visited and is not the parent of current).
 template< typename Vector, typename Index = typename Vector::IndexType >
 bool
-visitNeighbour( const Index current, const Index neighbor, Vector& visited, Vector& parents, std::queue< Index >& q )
+visitNeighbor( const Index current, const Index neighbor, Vector& visited, Vector& parents, std::queue< Index >& q )
 {
    if( neighbor == parents[ current ] )
       return true;
@@ -213,7 +218,12 @@ isTree_impl(
    const IndexType n = graph.getVertexCount();
 
    if( treeType == TreeType::Tree ) {
+      // A tree on n vertices has exactly n-1 edges.  Guard against the
+      // unsigned underflow when nActive == 0 (an empty graph is trivially
+      // a tree — zero vertices, zero edges).
       const IndexType nActive = detail::countActiveVertices( graph, isActive, launchConfig );
+      if( nActive == 0 )
+         return true;
       const IndexType activeEdgeCount = detail::countActiveEdges( graph, isActive, edgePredicate, launchConfig );
       if( activeEdgeCount != nActive - 1 )
          return false;
@@ -234,6 +244,10 @@ isTree_impl(
          }
       }
    }
+   // BFS from the start vertex.  If TreeType::Tree, we return false as
+   // soon as a cycle/cross-edge is found or not all active vertices are
+   // reached.  For TreeType::Forest we restart from the next unvisited
+   // active vertex (or the next explicit root) until all are covered.
    while( true ) {
       if( ! isActive( start ) )
          return false;
@@ -254,10 +268,14 @@ isTree_impl(
                const ValueType weight = row.getValue( i );
                if( ! edgePredicate( current, neighbor, weight ) )
                   continue;
-               if( ! visitNeighbour( current, neighbor, visited, parents, q ) )
+               if( ! visitNeighbor( current, neighbor, visited, parents, q ) )
                   return false;
             }
             if constexpr( AdjacencyMatrixType::isSymmetric() ) {
+               // Symmetric matrices store only the lower triangle, so
+               // getRow(current) misses neighbors j > current.  Scan all
+               // rows to find edges pointing TO current (rowIdx -> current),
+               // which correspond to the missing upper-triangle entries.
                for( IndexType rowIdx = 0; rowIdx < graph.getVertexCount(); rowIdx++ ) {
                   if( rowIdx == current )
                      continue;
@@ -271,7 +289,7 @@ isTree_impl(
                      const ValueType weight = row2.getValue( i );
                      if( ! edgePredicate( rowIdx, current, weight ) )
                         continue;
-                     if( ! visitNeighbour( current, rowIdx, visited, parents, q ) )
+                     if( ! visitNeighbor( current, rowIdx, visited, parents, q ) )
                         return false;
                   }
                }
@@ -281,10 +299,18 @@ isTree_impl(
       else {
          auto isActiveCopy = isActive;
          auto edgePredicateCopy = edgePredicate;
+         // Iterative BFS: each round propagates "visited" from the current
+         // frontier to its neighbors via reduceAllRows.  If a vertex is
+         // reached more than once per round (visited > 1), it indicates a
+         // cycle or cross-edge, so the graph is not a tree/forest.
          while( visited_old != visited ) {
             visited_old = visited;
             auto visited_view = visited.getView();
             auto visited_old_view = visited_old.getView();
+            // For symmetric matrices (lower-triangle storage), we must also
+            // propagate in the reverse direction: when rowIdx is visited and
+            // columnIdx is not, mark columnIdx.  This extra atomic add
+            // compensates for the missing upper-triangle entries.
             auto symmetric_fetch =
                [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType
             {
@@ -300,6 +326,8 @@ isTree_impl(
                   return 0;
                return visited_old_view[ columnIdx ] != 0;
             };
+            // For non-symmetric matrices, both directions are stored
+            // explicitly, so forward propagation suffices.
             auto fetch =
                [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType
             {
@@ -322,6 +350,8 @@ isTree_impl(
             else
                graph.getAdjacencyMatrix().reduceAllRows( fetch, Plus{}, keep, (IndexType) 0, launchConfig );
 
+            // If any active vertex was reached more than once, the graph
+            // contains a cycle or cross-edge and is not a tree/forest.
             bool anyExceeded = false;
             for( IndexType i = 0; i < n; i++ ) {
                if( isActive( i ) && visited[ i ] > 1 ) {
@@ -360,14 +390,16 @@ isTree_impl(
             return false;
       }
       else {
+         bool foundNext = false;
          for( IndexType i = 0; i < n; i++ ) {
             if( isActive( i ) && visited[ i ] == 0 ) {
                start = i;
-               goto found_next;
+               foundNext = true;
+               break;
             }
          }
-         return true;
-found_next:;
+         if( ! foundNext )
+            return true;
       }
    }
 }

@@ -20,6 +20,7 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 #include "details/activeVertices.hpp"
+#include "details/parallelTraversal.hpp"
 #include "singleSourceShortestPath.h"
 
 namespace TNL::Graphs::Algorithms {
@@ -43,6 +44,8 @@ __cuda_callable__
 bool
 isBlockedSsspEdgeWeight( const Real& weight )
 {
+   // Returning +/- infinity from the edge-weight callable signals that the
+   // edge is non-traversable (treated as if it does not exist).
    return weight == std::numeric_limits< Real >::infinity() || weight == -std::numeric_limits< Real >::infinity();
 }
 
@@ -53,111 +56,143 @@ template<
    typename Vector,
    typename ActivePredicate,
    typename EdgeWeightCallable,
-   typename Index = typename Graph::IndexType >
+   typename IndexType = typename Graph::IndexType >
 void
 parallelSingleSourceShortestPath(
    const Graph& graph,
-   Index start,
+   IndexType start,
    ActivePredicate&& isActive,
    EdgeWeightCallable&& edgeWeightCallable,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Real = typename Graph::ValueType;
-   using Device = typename Graph::DeviceType;
-   const Index n = graph.getVertexCount();
+   using ValueType = typename Graph::ValueType;
+   using DeviceType = typename Graph::DeviceType;
+   const IndexType n = graph.getVertexCount();
    distances.setSize( n );
 
+   // Bellman-Ford-style parallel relaxation: each iteration processes the
+   // current frontier and relaxes all outgoing edges.  A vertex enters the
+   // next frontier when its distance was improved in this round.
+   //
+   // y            – working copy of distances (updated concurrently)
+   // predecessors – parent vertex for each visited node
+   // marks        – 1 if the vertex was improved in this iteration, 0 otherwise
+   // marksScan    – inclusive prefix sum of marks (compacts the next frontier)
+   // frontier     – dense array of vertex indices forming the current frontier
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecessors( n, -1 );
-   Containers::Vector< Index, Device, Index > marks( n );
-   Containers::Vector< Index, Device, Index > marks_scan( n, 0 );
-   Containers::Vector< Index, Device, Index > frontier( n, 0 );
-   distances = std::numeric_limits< Real >::max();
+   Containers::Vector< IndexType, DeviceType, IndexType > predecessors( n, -1 );
+   Containers::Vector< IndexType, DeviceType, IndexType > marks( n );
+   Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
+   Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
+   distances = std::numeric_limits< ValueType >::max();
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
-   Index frontier_size( 1 );
+   IndexType frontierSize( 1 );
    y = distances;
-   auto y_view = y.getView();
-   auto predecessors_view = predecessors.getView();
-   auto marks_view = marks.getView();
-   auto marks_scan_view = marks_scan.getView();
-   for( Index i = 0; i <= n; i++ ) {
+   auto yView = y.getView();
+   auto predecessorsView = predecessors.getView();
+   auto marksView = marks.getView();
+
+   // On Host we need an atomic copy of y to avoid the check-then-write race
+   // when multiple OpenMP threads relax the same target vertex concurrently.
+   using HostAtomicRealVec = Containers::Vector< Atomic< ValueType, Devices::Host >, Devices::Host, IndexType >;
+   HostAtomicRealVec hostAtomicY;
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > )
+      hostAtomicY.setSize( n );
+
+   for( IndexType i = 0; i <= n; i++ ) {
       marks = 0;
-      if constexpr( std::is_same_v< Device, Devices::Host > )
+      if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
+         // Copy current distances into the atomic buffer
+         auto hostAtomicYView = hostAtomicY.getView();
+         TNL::Algorithms::parallelFor< DeviceType >(
+            0,
+            n,
+            [ = ] __cuda_callable__( IndexType idx ) mutable
+            {
+               hostAtomicYView[ idx ] = yView[ idx ];
+            } );
+
          forEdges(
             graph,
             frontier,
             0,
-            frontier_size,
-            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
+            frontierSize,
+            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
-               if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) ) {
-                  const Real transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
+               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) ) {
+                  const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
 
-                  Real new_distance = y_view[ sourceIdx ] + transformedWeight;
-                  if( new_distance < y_view[ targetIdx ] ) {
+                  ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
+                  // Atomically reduce: only update if newDistance is smaller.
+                  // fetch_min returns the old value; if it was larger, our
+                  // update took effect and we record the predecessor.
+                  const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
+                  if( newDistance < oldDistance ) {
+                     // The predecessor may be overwritten by a concurrent
+                     // thread that achieves an even shorter distance — this
+                     // is benign: the distance is always correct, and the
+                     // predecessor will be fixed in a subsequent iteration.
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
-                     y_view[ targetIdx ] = new_distance;
+                     predecessorsView[ targetIdx ] = sourceIdx;
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
-                     predecessors_view[ targetIdx ] = sourceIdx;
-#if defined( HAVE_OPENMP )
-   #pragma omp atomic write
-#endif
-                     marks_view[ targetIdx ] = 1;
+                     marksView[ targetIdx ] = 1;
                   }
                }
             },
             launchConfig );
+
+         // Copy atomic results back to y
+         TNL::Algorithms::parallelFor< DeviceType >(
+            0,
+            n,
+            [ = ] __cuda_callable__( IndexType idx ) mutable
+            {
+               yView[ idx ] = hostAtomicYView[ idx ].load();
+            } );
+      }
       else
          forEdges(
             graph,
             frontier,
             0,
-            frontier_size,
-            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
+            frontierSize,
+            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
                TNL_ASSERT_GE( sourceIdx, 0, "" );
-               TNL_ASSERT_LT( sourceIdx, y_view.getSize(), "" );
+               TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
-               TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
-               if( targetIdx != Matrices::paddingIndex< Index > && isActive( targetIdx ) ) {
-                  const Real transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
+               TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
+               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) ) {
+                  const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
 
-                  Real new_distance = y_view[ sourceIdx ] + transformedWeight;
-                  if( new_distance < y_view[ targetIdx ] ) {
-                     atomicMin( &y_view[ targetIdx ], new_distance );
-                     atomicMin( &predecessors_view[ targetIdx ], sourceIdx );
-                     atomicMax( &marks_view[ targetIdx ], 1 );
+                  ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
+                  if( newDistance < yView[ targetIdx ] ) {
+                     atomicMin( &yView[ targetIdx ], newDistance );
+                     // The predecessor is set to the *smallest* source index
+                     // among concurrent relaxers, not necessarily the one that
+                     // provided the shortest path.  The distance itself is
+                     // always correct (atomicMin guarantees the minimum).
+                     atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
+                     atomicMax( &marksView[ targetIdx ], 1 );
                   }
                }
             },
             launchConfig );
-      TNL::Algorithms::inclusiveScan( marks, marks_scan );
-      frontier_size = marks_scan.getElement( n - 1 );
-      if( frontier_size == 0 )
-         break;
-      frontier = 0;
-      auto frontier_view = frontier.getView();
-      auto f = [ = ] __cuda_callable__( const Index idx, const Index value ) mutable
-      {
-         if( idx == 0 ) {
-            if( marks_scan_view[ 0 ] == 1 )
-               frontier_view[ 0 ] = idx;
-         }
-         else if( marks_scan_view[ idx ] - marks_scan_view[ idx - 1 ] == 1 )
-            frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
-      };
-      marks_scan.forAllElements( f );
-      distances = y;
+       // Compact improved vertices into the next frontier
+       frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+       if( frontierSize == 0 )
+          break;
+       distances = y;
    }
 }
 
@@ -174,8 +209,8 @@ singleSourceShortestPath_impl(
    static_assert(
       ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(), "SSSP requires general adjacency matrix, not symmetric." );
 
-   using Real = typename Graph::ValueType;
-   using Device = typename Graph::DeviceType;
+   using ValueType = typename Graph::ValueType;
+   using DeviceType = typename Graph::DeviceType;
 
    distances.setSize( graph.getVertexCount() );
    if( graph.getVertexCount() == 0 )
@@ -186,39 +221,38 @@ singleSourceShortestPath_impl(
    if( ! isActive( start ) )
       throw std::invalid_argument( "Start vertex must belong to the induced active subgraph." );
 
-   distances = std::numeric_limits< Real >::max();
+   distances = std::numeric_limits< ValueType >::max();
    distances.setElement( start, 0.0 );
 
-   // In the sequential version, we use the Dijkstra algorithm.
-   if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
+   // Sequential backend: Dijkstra with a priority queue.
+   if constexpr( std::is_same_v< DeviceType, TNL::Devices::Sequential > ) {
       // The priority queue stores pairs of (distance, vertex)
-      std::priority_queue< std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater<> > pq;
+      std::priority_queue< std::pair< ValueType, Index >, std::vector< std::pair< ValueType, Index > >, std::greater<> > pq;
       pq.emplace( 0, start );
 
       while( ! pq.empty() ) {
-         Real current_distance;
+         ValueType currentDistance;
          Index current;
-         std::tie( current_distance, current ) = pq.top();
+         std::tie( currentDistance, current ) = pq.top();
          pq.pop();
 
-         if( current_distance > distances[ current ] ) {
+         if( currentDistance > distances[ current ] )
             continue;
-         }
 
          const auto row = graph.getAdjacencyMatrix().getRow( current );
          for( Index i = 0; i < row.getSize(); i++ ) {
-            const auto& edge_weight = row.getValue( i );
+            const auto& edgeWeight = row.getValue( i );
             const auto& neighbor = row.getColumnIndex( i );
             if( neighbor == Matrices::paddingIndex< Index > )
                continue;
             if( ! isActive( neighbor ) )
                continue;
 
-            const Real transformedWeight = edgeWeightCallable( current, neighbor, edge_weight );
+            const ValueType transformedWeight = edgeWeightCallable( current, neighbor, edgeWeight );
             if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                continue;
 
-            const Real distance = current_distance + transformedWeight;
+            const ValueType distance = currentDistance + transformedWeight;
 
             if( distance < distances[ neighbor ] ) {
                distances[ neighbor ] = distance;
@@ -230,10 +264,11 @@ singleSourceShortestPath_impl(
    else {
       parallelSingleSourceShortestPath( graph, start, isActive, edgeWeightCallable, distances, launchConfig );
    }
+   // Replace infinity sentinel with -1 for unreachable vertices
    distances.forAllElements(
-      [] __cuda_callable__( Index i, Real & x )
+      [] __cuda_callable__( Index i, ValueType & x )
       {
-         x = ( x == std::numeric_limits< Real >::max() ) ? -1.0 : x;
+         x = ( x == std::numeric_limits< ValueType >::max() ) ? -1.0 : x;
       } );
 }
 
@@ -294,8 +329,8 @@ singleSourceShortestPath(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Device = typename Graph::DeviceType;
-   using IndexVector = Containers::Vector< Index, Device, Index >;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexVector = Containers::Vector< Index, DeviceType, Index >;
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
@@ -326,8 +361,8 @@ singleSourceShortestPath(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Device = typename Graph::DeviceType;
-   using IndexVector = Containers::Vector< Index, Device, Index >;
+   using DeviceType = typename Graph::DeviceType;
+   using IndexVector = Containers::Vector< Index, DeviceType, Index >;
 
    static_assert(
       detail::isSsspEdgeWeightCallable_v< EdgeWeightCallable, Graph >,

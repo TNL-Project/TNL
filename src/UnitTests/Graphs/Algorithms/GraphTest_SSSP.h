@@ -322,6 +322,22 @@ TYPED_TEST( GraphTest, test_SSSP_withInactiveStart_throws )
       std::invalid_argument );
 }
 
+// clang-format off
+// Weighted directed graph A (10 vertices, symmetric adjacency, varied weights).
+// Used as the common "large" graph for subgraph cross-validation tests.
+//
+//     0---1---2
+//     |   |   |
+//     3---4---5
+//     |   |   |
+//     6---7---8---9
+//
+// Edge weights (both directions):
+//   0-1:0.5, 0-3:1.0, 1-2:0.5, 1-4:2.0, 2-5:0.5,
+//   3-4:0.8, 3-6:0.5, 4-5:2.0, 4-7:0.8, 5-8:0.5,
+//   6-7:0.5, 7-8:0.5, 8-9:0.5
+// clang-format on
+
 template< typename GraphType >
 GraphType
 makeWeightedDirectedGraphA()

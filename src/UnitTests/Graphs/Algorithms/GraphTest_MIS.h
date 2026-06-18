@@ -20,11 +20,15 @@ protected:
 using GraphTestTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
 #elif defined( __CUDACC__ )
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
 #elif defined( __HIP__ )
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix >
 #endif
    >;
 
@@ -538,6 +542,19 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_identity )
 
     EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
 }
+
+// clang-format off
+// 10 vertices, same topology as graph A for BFS/SSSP/CC.
+// Edges with weight 2 are "expensive".
+//
+//     0---1---2
+//     |   |   |
+//     3---4---5
+//     |   |   |
+//     6---7---8---9
+//
+// Weight-2 edges: 1-4, 4-5.  All others have weight 1.
+// clang-format on
 
 template< typename GraphType >
 GraphType
