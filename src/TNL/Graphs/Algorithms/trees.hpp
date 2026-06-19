@@ -49,9 +49,11 @@ countActiveEdges(
    using IndexType = typename Graph::IndexType;
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
+   using AdjacencyMatrixType = typename Graph::AdjacencyMatrixType;
    const IndexType n = graph.getVertexCount();
    const auto& matrix = graph.getAdjacencyMatrix();
    constexpr bool isUndirected = Graph::isUndirected();
+   constexpr bool isSymmetric = AdjacencyMatrixType::isSymmetric();
 
    if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
       IndexType edgeCount = 0;
@@ -68,7 +70,7 @@ countActiveEdges(
             const ValueType weight = row.getValue( i );
             if( ! edgePredicate( rowIdx, col, weight ) )
                continue;
-            if constexpr( isUndirected ) {
+            if constexpr( isUndirected && ! isSymmetric ) {
                if( col <= rowIdx )
                   continue;
             }
@@ -94,20 +96,20 @@ countActiveEdges(
    }
    else {
       Containers::Vector< IndexType, DeviceType, IndexType > edgeCounts( n, 0 );
-      auto edgeCounts_view = edgeCounts.getView();
-      auto active_view = std::forward< IsActive >( isActive );
-      auto edge_pred = std::forward< EdgePredicate >( edgePredicate );
+      auto edgeCountsView = edgeCounts.getView();
+      auto activeView = std::forward< IsActive >( isActive );
+      auto edgePredicateView = std::forward< EdgePredicate >( edgePredicate );
 
       auto fetch_edge =
          [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType
       {
          if( columnIdx == Matrices::paddingIndex< IndexType > )
             return 0;
-         if( ! active_view( rowIdx ) || ! active_view( columnIdx ) )
+         if( ! activeView( rowIdx ) || ! activeView( columnIdx ) )
             return 0;
-         if( ! edge_pred( rowIdx, columnIdx, value ) )
+         if( ! edgePredicateView( rowIdx, columnIdx, value ) )
             return 0;
-         if constexpr( isUndirected ) {
+         if constexpr( isUndirected && ! isSymmetric ) {
             if( columnIdx <= rowIdx )
                return 0;
          }
@@ -115,7 +117,7 @@ countActiveEdges(
       };
       auto keep = [ = ] __cuda_callable__( IndexType rowIdx, const IndexType value ) mutable
       {
-         edgeCounts_view[ rowIdx ] = value;
+         edgeCountsView[ rowIdx ] = value;
       };
       matrix.reduceAllRows( fetch_edge, Plus{}, keep, (IndexType) 0, launchConfig );
 
@@ -124,27 +126,27 @@ countActiveEdges(
          n,
          [ = ] __cuda_callable__( IndexType idx ) -> IndexType
          {
-            return edgeCounts_view[ idx ];
+            return edgeCountsView[ idx ];
          },
          Plus{} );
 
       if constexpr( isUndirected ) {
          Containers::Vector< IndexType, DeviceType, IndexType > diagonalCounts( n, 0 );
-         auto diag_view = diagonalCounts.getView();
+         auto diagView = diagonalCounts.getView();
          auto diag_fetch =
             [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType
          {
             if( columnIdx != rowIdx || columnIdx == Matrices::paddingIndex< IndexType > )
                return 0;
-            if( ! active_view( rowIdx ) )
+            if( ! activeView( rowIdx ) )
                return 0;
-            if( ! edge_pred( rowIdx, columnIdx, value ) )
+            if( ! edgePredicateView( rowIdx, columnIdx, value ) )
                return 0;
             return 1;
          };
          auto diag_keep = [ = ] __cuda_callable__( IndexType rowIdx, const IndexType value ) mutable
          {
-            diag_view[ rowIdx ] = value;
+            diagView[ rowIdx ] = value;
          };
          matrix.reduceAllRows( diag_fetch, Plus{}, diag_keep, (IndexType) 0, launchConfig );
          total += TNL::Algorithms::reduce< DeviceType >(
@@ -152,7 +154,7 @@ countActiveEdges(
             n,
             [ = ] __cuda_callable__( IndexType idx ) -> IndexType
             {
-               return diag_view[ idx ];
+               return diagView[ idx ];
             },
             Plus{} );
       }
@@ -231,7 +233,7 @@ isTree_impl(
 
    IndexVectorType visited( n, 0 );
    IndexVectorType visited_old( n, -1 );
-   IndexVectorType parents( n, 0 );
+   IndexVectorType parents( n, -1 );
    IndexType start = 0;
    IndexType rootsIdx = 0;
    if( ! roots.empty() )
@@ -252,6 +254,7 @@ isTree_impl(
       if( ! isActive( start ) )
          return false;
       visited.setElement( start, 1 );
+      parents.setElement( start, start );
       if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
          std::queue< IndexType > q;
          q.push( start );
@@ -305,8 +308,8 @@ isTree_impl(
          // cycle or cross-edge, so the graph is not a tree/forest.
          while( visited_old != visited ) {
             visited_old = visited;
-            auto visited_view = visited.getView();
-            auto visited_old_view = visited_old.getView();
+            auto visitedView = visited.getView();
+            auto visitedOldView = visited_old.getView();
             // For symmetric matrices (lower-triangle storage), we must also
             // propagate in the reverse direction: when rowIdx is visited and
             // columnIdx is not, mark columnIdx.  This extra atomic add
@@ -320,11 +323,11 @@ isTree_impl(
                   return 0;
                if( ! edgePredicateCopy( rowIdx, columnIdx, value ) )
                   return 0;
-               if( ! visited_old_view[ columnIdx ] )
-                  TNL::Algorithms::AtomicOperations< DeviceType >::add( visited_view[ columnIdx ], visited_old_view[ rowIdx ] );
-               if( visited_old_view[ rowIdx ] )
+               if( ! visitedOldView[ columnIdx ] )
+                  TNL::Algorithms::AtomicOperations< DeviceType >::add( visitedView[ columnIdx ], visitedOldView[ rowIdx ] );
+               if( visitedOldView[ rowIdx ] )
                   return 0;
-               return visited_old_view[ columnIdx ] != 0;
+               return visitedOldView[ columnIdx ] != 0;
             };
             // For non-symmetric matrices, both directions are stored
             // explicitly, so forward propagation suffices.
@@ -337,19 +340,22 @@ isTree_impl(
                   return 0;
                if( ! edgePredicateCopy( rowIdx, columnIdx, value ) )
                   return 0;
-               if( visited_old_view[ rowIdx ] )
+               if( visitedOldView[ rowIdx ] )
                   return 0;
-               return visited_old_view[ columnIdx ] != 0;
+               return visitedOldView[ columnIdx ] != 0;
             };
             auto keep = [ = ] __cuda_callable__( IndexType rowIdx, const IndexType value ) mutable
             {
-               visited_view[ rowIdx ] = visited_view[ rowIdx ] + value;
+               visitedView[ rowIdx ] = visitedView[ rowIdx ] + value;
             };
             if constexpr( AdjacencyMatrixType::isSymmetric() )
                graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, Plus{}, keep, (IndexType) 0, launchConfig );
             else
                graph.getAdjacencyMatrix().reduceAllRows( fetch, Plus{}, keep, (IndexType) 0, launchConfig );
 
+            // NOTE: These sequential loops over all vertices cause host-device synchronization
+            // on GPU backends and scale poorly for large graphs. Consider replacing with
+            // parallel reduce in a future optimization.
             // If any active vertex was reached more than once, the graph
             // contains a cycle or cross-edge and is not a tree/forest.
             bool anyExceeded = false;

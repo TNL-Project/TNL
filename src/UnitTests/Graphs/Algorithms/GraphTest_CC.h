@@ -1,3 +1,5 @@
+#pragma once
+
 #include <TNL/Graphs/Algorithms/connectedComponents.h>
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Matrices/SparseMatrix.h>
@@ -544,10 +546,10 @@ TYPED_TEST( GraphTest, test_CC_vertex_and_edge_predicate )
       return weight <= 1.0;
    };
 
-    TNL::Graphs::Algorithms::connectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+   TNL::Graphs::Algorithms::connectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
 
-    ComponentsType expected( { 0, 0, 2, 2, 4, -1 } );
-    ASSERT_EQ( components, expected );
+   ComponentsType expected( { 0, 0, 2, 2, 4, -1 } );
+   ASSERT_EQ( components, expected );
 }
 
 template< typename GraphType >
@@ -698,11 +700,7 @@ makeUndirectedSubgraphE_bridge()
 
 template< typename VectorA, typename VectorB >
 void
-expectPartitionEquiv(
-   const VectorA& compA,
-   const VectorB& compB,
-   const std::vector< int >& oldToNew,
-   int origSize )
+expectPartitionEquiv( const VectorA& compA, const VectorB& compB, const std::vector< int >& oldToNew, int origSize )
 {
    for( int u = 0; u < origSize; u++ ) {
       if( oldToNew[ u ] < 0 )
@@ -726,7 +724,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_predicate )
    const auto graphA = makeUndirectedGraphA< GraphType >();
    const auto subgraphB = makeUndirectedSubgraphB< GraphType >();
 
-   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   const auto excludeVertices = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 2 && v != 5 && v != 8;
    };
@@ -768,7 +766,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_disconnected )
    const auto graphA = makeUndirectedGraphA< GraphType >();
    const auto subgraphD = makeUndirectedSubgraphD< GraphType >();
 
-   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   const auto excludeFour = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 4;
    };
@@ -791,7 +789,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_wholeGraph )
    const auto graphA = makeUndirectedGraphA< GraphType >();
    const auto subgraphC = makeUndirectedSubgraphC< GraphType >();
 
-   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   const auto blockWeight2 = [ = ] __cuda_callable__( IndexType, IndexType, ValueType weight )
    {
       return weight < ValueType( 2 );
    };
@@ -815,7 +813,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_withIndexes )
    const auto subgraphE2 = makeUndirectedSubgraphE_edgeOnly< GraphType >();
 
    const ComponentsType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
-   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   const auto blockWeight2 = [ = ] __cuda_callable__( IndexType, IndexType, ValueType weight )
    {
       return weight < ValueType( 2 );
    };
@@ -838,7 +836,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_bridge )
    const auto graphA = makeUndirectedGraphA< GraphType >();
    const auto subgraphBridge = makeUndirectedSubgraphE_bridge< GraphType >();
 
-   const auto blockEdge89 = [=] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
+   const auto blockEdge89 = [ = ] __cuda_callable__( IndexType src, IndexType tgt, ValueType )
    {
       return ! ( ( src == 8 && tgt == 9 ) || ( src == 9 && tgt == 8 ) );
    };

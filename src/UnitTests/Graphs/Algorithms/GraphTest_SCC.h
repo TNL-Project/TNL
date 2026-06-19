@@ -29,6 +29,21 @@ using GraphTestTypes = ::testing::Types<
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
+TYPED_TEST( GraphTest, test_SCC_empty )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph;
+   ComponentsType components;
+
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, components );
+
+   EXPECT_EQ( components.getSize(), 0 );
+}
+
 TYPED_TEST( GraphTest, test_SCC_small )
 {
    using GraphType = typename TestFixture::GraphType;
@@ -365,8 +380,6 @@ TYPED_TEST( GraphTest, test_SCC_huge_dense )
                               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1 } );
    ASSERT_EQ( components, expected );
 }
-
-#include "../../main.h"
 
 TYPED_TEST( GraphTest, test_SCC_indexed_small )
 {
@@ -831,3 +844,5 @@ TYPED_TEST( GraphTest, test_SCC_subgraph_edge_removal_withIndexes )
    const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, -1, -1 };
    expectPartitionEquiv( compA, compE2, oldToNew, 10 );
 }
+
+#include "../../main.h"

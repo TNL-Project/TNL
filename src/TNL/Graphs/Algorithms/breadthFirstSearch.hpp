@@ -43,7 +43,7 @@ breadthFirstSearchParallel(
    const Graph& graph,
    typename Graph::IndexType start,
    Visitor&& visitor,
-   ActivePredicate&& isActive,
+   ActivePredicate&& vertexPredicate,
    EdgePredicate&& edgePredicate,
    Vector& distances,
    const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
@@ -75,7 +75,7 @@ breadthFirstSearchParallel(
    auto yView = y.getView();
    auto predecessorsView = predecessors.getView();
    auto marksView = marks.getView();
-   for( IndexType i = 0; i <= n; i++ ) {
+   for( IndexType i = 0; i < n; i++ ) {
       marks = 0;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > )
          forEdges(
@@ -83,9 +83,14 @@ breadthFirstSearchParallel(
             frontier,
             0,
             frontierSize,
-            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+            [ = ] __cuda_callable__(
+               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
-               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) && yView[ targetIdx ] == -1
+               // NOTE: Reading yView[targetIdx] without synchronization while another
+               // thread may write to it is technically a data race. In practice all
+               // concurrent writers in the same layer write the same value (i+1), so
+               // the result is correct, but this is undefined behavior per the C++ standard.
+               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1 && vertexPredicate( targetIdx )
                    && edgePredicate( sourceIdx, targetIdx, weight ) )
                {
 #if defined( HAVE_OPENMP )
@@ -110,13 +115,14 @@ breadthFirstSearchParallel(
             frontier,
             0,
             frontierSize,
-            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+            [ = ] __cuda_callable__(
+               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
                TNL_ASSERT_GE( sourceIdx, 0, "" );
                TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
                TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
-               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) && yView[ targetIdx ] == -1
+               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1 && vertexPredicate( targetIdx )
                    && edgePredicate( sourceIdx, targetIdx, weight ) )
                {
                   // atomicMax is safe for distances: i+1 is always >= -1 (the
@@ -135,7 +141,7 @@ breadthFirstSearchParallel(
             },
             launchConfig );
       }
-       // Compact newly discovered vertices into the next frontier
+      // Compact newly discovered vertices into the next frontier
       frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
       if( frontierSize == 0 )
          break;

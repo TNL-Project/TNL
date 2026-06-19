@@ -90,7 +90,8 @@ Some algorithms require a specific graph orientation, enforced at compile time v
 | BFS, SSSP           | General (non-symmetric) adjacency matrix — `static_assert` enforced |
 | SCC                 | Directed graph — `static_assert` enforced                           |
 | MIS, Graph Coloring | Undirected graph — `static_assert` enforced                         |
-| CC, Trees           | Both symmetric and general accepted                                 |
+| CC                  | Both symmetric and general accepted                                 |
+| Trees               | Undirected graph — `static_assert` enforced                         |
 
 ### Output vector conventions (table)
 
@@ -219,7 +220,7 @@ The output looks as follows:
 
 [Connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) label each vertex with
 the identifier of the component it belongs to. TNL treats the graph as undirected, so for directed
-graphs the algorithm computes *weakly* connected components. Each component is labelled with the
+graphs the algorithm computes *weakly* connected components. Each component is labeled with the
 smallest vertex index it contains; inactive vertices receive the value `-1`. See
 \ref TNL::Graphs::Algorithms::connectedComponents and \ref ConnectedComponentsOverview for details.
 

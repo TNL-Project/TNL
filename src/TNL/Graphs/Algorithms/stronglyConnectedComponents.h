@@ -41,8 +41,6 @@ namespace TNL::Graphs::Algorithms {
  *
  * \section SCSubgraphVariants Subgraph Variants
  *
- * Strongly connected components can be computed on different subsets of the graph:
- *
  * Strongly connected components can be computed on different subsets of the
  * graph and with optional edge filtering. These two dimensions combine
  * independently:
@@ -138,7 +136,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 stronglyConnectedComponents(
    const Graph& graph,

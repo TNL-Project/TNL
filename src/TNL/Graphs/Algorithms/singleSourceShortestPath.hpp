@@ -119,7 +119,8 @@ parallelSingleSourceShortestPath(
             frontier,
             0,
             frontierSize,
-            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+            [ = ] __cuda_callable__(
+               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
                if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) ) {
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
@@ -132,10 +133,10 @@ parallelSingleSourceShortestPath(
                   // update took effect and we record the predecessor.
                   const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
                   if( newDistance < oldDistance ) {
-                     // The predecessor may be overwritten by a concurrent
-                     // thread that achieves an even shorter distance — this
-                     // is benign: the distance is always correct, and the
-                     // predecessor will be fixed in a subsequent iteration.
+                  // The predecessor may be overwritten by a concurrent
+                  // thread that achieves an even shorter distance — this
+                  // is benign: the distance is always correct, and the
+                  // predecessor will be fixed in a subsequent iteration.
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
@@ -158,13 +159,14 @@ parallelSingleSourceShortestPath(
                yView[ idx ] = hostAtomicYView[ idx ].load();
             } );
       }
-      else
+      else  // if constexpr( std::is_same_v< DeviceType, Devices::Host > )
          forEdges(
             graph,
             frontier,
             0,
             frontierSize,
-            [ = ] __cuda_callable__( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+            [ = ] __cuda_callable__(
+               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
                TNL_ASSERT_GE( sourceIdx, 0, "" );
                TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
@@ -188,11 +190,11 @@ parallelSingleSourceShortestPath(
                }
             },
             launchConfig );
-       // Compact improved vertices into the next frontier
-       frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
-       if( frontierSize == 0 )
-          break;
-       distances = y;
+      // Compact improved vertices into the next frontier
+      frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+      if( frontierSize == 0 )
+         break;
+      distances = y;
    }
 }
 

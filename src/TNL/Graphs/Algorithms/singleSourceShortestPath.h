@@ -35,14 +35,14 @@ namespace TNL::Graphs::Algorithms {
  * All SSSP functions follow this naming pattern:
  * `singleSourceShortestPath[If]`
  *
- * | Function                                           | Scope          | Edge weight transform | Overloads |
- * |----------------------------------------------------|----------------|-----------------------|-----------|
- * | \ref singleSourceShortestPath (basic)              | Whole graph    | No                    | 1         |
- * | \ref singleSourceShortestPath (edge weight call.)  | Whole graph    | Yes                   | 1         |
- * | \ref singleSourceShortestPath (vertex indexes)     | Vertex indexes | No                    | 1         |
- * | \ref singleSourceShortestPath (idx + edge weight)  | Vertex indexes | Yes                   | 1         |
- * | \ref singleSourceShortestPathIf                    | Vertex pred.   | No                    | 1         |
- * | \ref singleSourceShortestPathIf (edge weight call.)| Vertex pred.   | Yes                   | 1         |
+ * | Function                                           | Scope          | Edge weight transform |
+ * |----------------------------------------------------|----------------|-----------------------|
+ * | \ref singleSourceShortestPath (basic)              | Whole graph    | No                    |
+ * | \ref singleSourceShortestPath (edge weight call.)  | Whole graph    | Yes                   |
+ * | \ref singleSourceShortestPath (vertex indexes)     | Vertex indexes | No                    |
+ * | \ref singleSourceShortestPath (idx + edge weight)  | Vertex indexes | Yes                   |
+ * | \ref singleSourceShortestPathIf                    | Vertex pred.   | No                    |
+ * | \ref singleSourceShortestPathIf (edge weight call.)| Vertex pred.   | Yes                   |
  *
  * \section SSSPSubgraphVariants Subgraph Variants
  *
