@@ -146,6 +146,56 @@ breadthFirstSearchExample()
    TNL::Graphs::Algorithms::breadthFirstSearchIfWithVisitor( graph, 0, isActive, visitorIf, distancesVisitorIf );
    std::cout << "Visited distances (active if vertex < 4): " << visitedDistancesIf << "\n";
    //! [bfs visitor if]
+
+   //! [bfs visitor edge predicate]
+   /***
+    * Edge-predicate visitor BFS: combine the edge predicate skipTarget3 with
+    * a visitor callback that records the distance of each visited vertex.
+    */
+   VectorType distancesVisitorEdge;
+   VectorType visitedDistancesEdge( graph.getVertexCount(), -1 );
+   auto visitedDistancesEdgeView = visitedDistancesEdge.getView();
+   auto visitorEdge = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesEdgeView[ vertex ] = distance;
+   };
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, skipTarget3, visitorEdge, distancesVisitorEdge );
+   std::cout << "Visited distances (skipping edges to 3): " << visitedDistancesEdge << "\n";
+   //! [bfs visitor edge predicate]
+
+   //! [bfs visitor induced edge predicate]
+   /***
+    * Induced-subgraph + edge-predicate visitor BFS: restrict traversal to
+    * vertices {0, 1, 2, 3} and skip edges targeting vertex 3.
+    */
+   VectorType distancesVisitorInducedEdge;
+   VectorType visitedDistancesInducedEdge( graph.getVertexCount(), -1 );
+   auto visitedDistancesInducedEdgeView = visitedDistancesInducedEdge.getView();
+   auto visitorInducedEdge = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesInducedEdgeView[ vertex ] = distance;
+   };
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
+      graph, 0, activeVertices, skipTarget3, visitorInducedEdge, distancesVisitorInducedEdge );
+   std::cout << "Visited distances (induced on {0,1,2,3}, skipping edges to 3): " << visitedDistancesInducedEdge << "\n";
+   //! [bfs visitor induced edge predicate]
+
+   //! [bfs visitor if edge predicate]
+   /***
+    * Predicate + edge-predicate visitor BFS: activate only vertices with
+    * index < 4 and skip edges targeting vertex 3.
+    */
+   VectorType distancesVisitorIfEdge;
+   VectorType visitedDistancesIfEdge( graph.getVertexCount(), -1 );
+   auto visitedDistancesIfEdgeView = visitedDistancesIfEdge.getView();
+   auto visitorIfEdge = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesIfEdgeView[ vertex ] = distance;
+   };
+   TNL::Graphs::Algorithms::breadthFirstSearchIfWithVisitor(
+      graph, 0, isActive, skipTarget3, visitorIfEdge, distancesVisitorIfEdge );
+   std::cout << "Visited distances (active if vertex < 4, skipping edges to 3): " << visitedDistancesIfEdge << "\n";
+   //! [bfs visitor if edge predicate]
 }
 
 int

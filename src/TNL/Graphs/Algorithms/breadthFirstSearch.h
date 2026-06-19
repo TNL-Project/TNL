@@ -54,8 +54,11 @@ namespace TNL::Graphs::Algorithms {
  * | Function                                          | Scope          | Edge filter |
  * |---------------------------------------------------|----------------|-------------|
  * | \ref breadthFirstSearchWithVisitor (basic)        | Whole graph    | No          |
+ * | \ref breadthFirstSearchWithVisitor (edge pred.)   | Whole graph    | Yes         |
  * | \ref breadthFirstSearchWithVisitor (vertex idx.)  | Vertex indexes | No          |
+ * | \ref breadthFirstSearchWithVisitor (idx + edge)   | Vertex indexes | Yes         |
  * | \ref breadthFirstSearchIfWithVisitor              | Vertex pred.   | No          |
+ * | \ref breadthFirstSearchIfWithVisitor (edge pred.) | Vertex pred.   | Yes         |
  *
  * \section BFSSubgraphVariants Subgraph Variants
  *
@@ -342,6 +345,50 @@ breadthFirstSearchWithVisitor(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Performs breadth-first search (BFS) with edge filtering and a visitor callback.
+ *
+ * The edge predicate decides if a traversed edge can be used, and the visitor is
+ * invoked upon visiting each node. The edge predicate must provide a call operator
+ * with the signature:
+ * \code
+ * [=] __cuda_callable__( typename Graph::IndexType source, typename Graph::IndexType target,
+ *                        typename Graph::ValueType weight ) -> bool
+ * \endcode
+ * The visitor must accept two parameters: the node index and its distance from the
+ * start node.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam EdgePredicate The type of the edge predicate callable.
+ * \tparam Visitor The type of the visitor callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param edgePredicate The callable deciding if an edge can be traversed.
+ * \param visitor The callable invoked upon visiting each node.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor edge predicate
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
+ */
+template<
+   typename Graph,
+   typename Vector,
+   typename EdgePredicate,
+   typename Visitor,
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
+void
+breadthFirstSearchWithVisitor(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   EdgePredicate&& edgePredicate,
+   Visitor&& visitor,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Performs breadth-first search (BFS) on the induced subgraph with a visitor callback.
  *
  * The entries in \e vertexIndexes must be unique valid graph vertices and the
@@ -379,6 +426,49 @@ breadthFirstSearchWithVisitor(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Performs BFS on the induced subgraph with edge filtering and a visitor callback.
+ *
+ * The entries in \e vertexIndexes must be unique valid graph vertices and the
+ * start vertex must belong to the induced subgraph. The edge predicate has the
+ * same requirements as in the whole-graph overload, and the visitor is invoked
+ * upon visiting each node.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexIndexes The type of the array containing the vertex indexes.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam EdgePredicate The type of the edge predicate callable.
+ * \tparam Visitor The type of the visitor callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
+ * \param edgePredicate The callable deciding if an edge can be traversed.
+ * \param visitor The callable invoked upon visiting each node.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor induced edge predicate
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
+ */
+template<
+   typename Graph,
+   typename VertexIndexes,
+   typename Vector,
+   typename EdgePredicate,
+   typename Visitor,
+   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+void
+breadthFirstSearchWithVisitor(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Visitor&& visitor,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Performs BFS on the predicate-induced subgraph with a visitor callback.
  *
  * The predicate must provide
@@ -409,6 +499,41 @@ breadthFirstSearchIfWithVisitor(
    const Graph& graph,
    typename Graph::IndexType start,
    VertexPredicate&& vertexPredicate,
+   Visitor&& visitor,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Performs BFS on the predicate-induced subgraph with edge filtering and a visitor callback.
+ *
+ * The vertex predicate selects active vertices, the edge predicate decides if a
+ * traversed edge may be used, and the visitor is invoked upon visiting each node.
+ *
+ * \tparam Graph The type of the graph.
+ * \tparam VertexPredicate The type of the vertex predicate callable.
+ * \tparam Vector The type of the vector used to store distances.
+ * \tparam EdgePredicate The type of the edge predicate callable.
+ * \tparam Visitor The type of the visitor callable.
+ * \param graph The graph on which BFS is performed.
+ * \param start The starting node for BFS.
+ * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
+ * \param edgePredicate The callable deciding if an edge can be traversed.
+ * \param visitor The callable invoked upon visiting each node.
+ * \param distances The vector where distances from the start node will be stored.
+ * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor if edge predicate
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
+ */
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate, typename Visitor >
+void
+breadthFirstSearchIfWithVisitor(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
    Visitor&& visitor,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );

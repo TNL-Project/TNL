@@ -291,6 +291,34 @@ breadthFirstSearchWithVisitor(
       launchConfig );
 }
 
+template< typename Graph, typename Vector, typename EdgePredicate, typename Visitor, typename >
+void
+breadthFirstSearchWithVisitor(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   EdgePredicate&& edgePredicate,
+   Visitor&& visitor,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Graph::IndexType;
+   static_assert(
+      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+
+   breadthFirstSearch_impl(
+      graph,
+      start,
+      std::forward< Visitor >( visitor ),
+      [] __cuda_callable__( IndexType )
+      {
+         return true;
+      },
+      std::forward< EdgePredicate >( edgePredicate ),
+      distances,
+      launchConfig );
+}
+
 template< typename Graph, typename VertexIndexes, typename Vector, typename >
 void
 breadthFirstSearch(
@@ -444,6 +472,42 @@ breadthFirstSearchWithVisitor(
       launchConfig );
 }
 
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Visitor, typename >
+void
+breadthFirstSearchWithVisitor(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   const VertexIndexes& vertexIndexes,
+   EdgePredicate&& edgePredicate,
+   Visitor&& visitor,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   static_assert(
+      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+
+   IndexVector activeVertices;
+   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
+   const auto activeVerticesView = activeVertices.getConstView();
+   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
+   {
+      return static_cast< bool >( activeVerticesView[ vertex ] );
+   };
+   breadthFirstSearch_impl(
+      graph,
+      start,
+      std::forward< Visitor >( visitor ),
+      isActive,
+      std::forward< EdgePredicate >( edgePredicate ),
+      distances,
+      launchConfig );
+}
+
 template< typename Graph, typename VertexPredicate, typename Vector, typename Visitor >
 void
 breadthFirstSearchIfWithVisitor(
@@ -466,6 +530,32 @@ breadthFirstSearchIfWithVisitor(
       {
          return true;
       },
+      distances,
+      launchConfig );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate, typename Visitor >
+void
+breadthFirstSearchIfWithVisitor(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   VertexPredicate&& vertexPredicate,
+   EdgePredicate&& edgePredicate,
+   Visitor&& visitor,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   static_assert(
+      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+
+   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
+   breadthFirstSearch_impl(
+      graph,
+      start,
+      std::forward< Visitor >( visitor ),
+      predicate,
+      std::forward< EdgePredicate >( edgePredicate ),
       distances,
       launchConfig );
 }
