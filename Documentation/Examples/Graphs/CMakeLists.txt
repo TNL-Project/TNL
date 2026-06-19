@@ -1,3 +1,4 @@
+add_subdirectory(Algorithms)
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
