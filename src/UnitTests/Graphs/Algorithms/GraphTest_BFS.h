@@ -1,7 +1,8 @@
+#pragma once
+
 #include <TNL/Graphs/Algorithms/breadthFirstSearch.h>
-#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Graphs/Graph.h>
-#include <TNL/Containers/StaticVector.h>
+#include <TNL/Matrices/SparseMatrix.h>
 
 #include <iostream>
 
@@ -452,11 +453,7 @@ makeSubgraphE2_directed()
 
 template< typename VectorType >
 void
-remapAndCompareDistances(
-   const VectorType& distA,
-   const VectorType& distB,
-   const std::vector< int >& newToOld,
-   int origSize )
+remapAndCompareDistances( const VectorType& distA, const VectorType& distB, const std::vector< int >& newToOld )
 {
    using IndexType = typename VectorType::IndexType;
    for( int i = 0; i < (int) newToOld.size(); i++ ) {
@@ -475,7 +472,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_predicate )
    const auto graphA = makeDirectedGraphA< GraphType >();
    const auto subgraphB = makeSubgraphB_directed< GraphType >();
 
-   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   const auto excludeVertices = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 2 && v != 5 && v != 8;
    };
@@ -487,7 +484,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_predicate )
    // oldToNew: 0->0, 1->1, 3->2, 4->3, 6->4, 7->5, 9->6
    // newToOld: 0, 1, 3, 4, 6, 7, 9
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
-   remapAndCompareDistances( distA, distB, newToOld, 10 );
+   remapAndCompareDistances( distA, distB, newToOld );
 
    ASSERT_EQ( distA.getElement( 2 ), -1 );
    ASSERT_EQ( distA.getElement( 5 ), -1 );
@@ -510,7 +507,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_indexed )
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphB, 0, distB );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
-   remapAndCompareDistances( distA, distB, newToOld, 10 );
+   remapAndCompareDistances( distA, distB, newToOld );
 
    ASSERT_EQ( distA.getElement( 2 ), -1 );
    ASSERT_EQ( distA.getElement( 5 ), -1 );
@@ -526,7 +523,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_disconnected )
    const auto graphA = makeDirectedGraphA< GraphType >();
    const auto subgraphD = makeSubgraphD_directed< GraphType >();
 
-   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   const auto excludeFour = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 4;
    };
@@ -538,7 +535,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_disconnected )
    // oldToNew: 0->0, 1->1, 2->2, 3->3, 5->4, 6->5, 7->6, 8->7, 9->8
    // newToOld: 0, 1, 2, 3, 5, 6, 7, 8, 9
    const std::vector< int > newToOld = { 0, 1, 2, 3, 5, 6, 7, 8, 9 };
-   remapAndCompareDistances( distA, distD, newToOld, 10 );
+   remapAndCompareDistances( distA, distD, newToOld );
 
    ASSERT_EQ( distA.getElement( 4 ), -1 );
 }
@@ -552,7 +549,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_wholeGraph )
    const auto graphA = makeDirectedGraphA< GraphType >();
    const auto subgraphC = makeSubgraphC_directed< GraphType >();
 
-   const auto blockEdge03 = [=] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType )
+   const auto blockEdge03 = [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType )
    {
       return ! ( source == 0 && target == 3 ) && ! ( source == 3 && target == 0 );
    };
@@ -574,7 +571,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withIndexes )
    const auto subgraphE2 = makeSubgraphE2_directed< GraphType >();
 
    const VectorType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
-   const auto blockEdge03 = [=] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType )
+   const auto blockEdge03 = [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType )
    {
       return ! ( source == 0 && target == 3 ) && ! ( source == 3 && target == 0 );
    };
@@ -585,7 +582,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withIndexes )
 
    // newToOld: 0, 1, 3, 4, 6, 7
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
-   remapAndCompareDistances( distA, distE2, newToOld, 10 );
+   remapAndCompareDistances( distA, distE2, newToOld );
 
    ASSERT_EQ( distA.getElement( 2 ), -1 );
    ASSERT_EQ( distA.getElement( 5 ), -1 );

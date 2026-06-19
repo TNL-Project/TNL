@@ -1,6 +1,8 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
+#pragma once
+
 #include <TNL/Containers/Vector.h>
 #include <TNL/Graphs/Algorithms/graphColoring.h>
 #include <TNL/Graphs/Algorithms/maximalIndependentSet.h>
@@ -1064,7 +1066,7 @@ TYPED_TEST( GraphTest, test_isProperlyColored_edge_predicate_blocked_edge_no_con
       return weight < 2.0;
    };
 
-    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
 }
 
 // clang-format off
@@ -1199,7 +1201,7 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_predicate )
    const auto graphA = makeColoringGraphA< GraphType >();
    const auto subgraphB = makeColoringSubgraphB< GraphType >();
 
-   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   const auto excludeVertices = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 2 && v != 5 && v != 8;
    };
@@ -1226,7 +1228,7 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_vertex_removal_predicate 
    const auto graphA = makeColoringGraphA< GraphType >();
    const auto subgraphB = makeColoringSubgraphB< GraphType >();
 
-   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   const auto excludeVertices = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 2 && v != 5 && v != 8;
    };
@@ -1277,7 +1279,7 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_disconnected )
    const auto graphA = makeColoringGraphA< GraphType >();
    const auto subgraphD = makeColoringSubgraphD< GraphType >();
 
-   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   const auto excludeFour = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 4;
    };
@@ -1305,7 +1307,7 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_wholeGraph )
    const auto graphA = makeColoringGraphA< GraphType >();
    const auto subgraphC = makeColoringSubgraphC< GraphType >();
 
-   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   const auto blockWeight2 = [ = ] __cuda_callable__( IndexType, IndexType, ValueType weight )
    {
       return weight < ValueType( 2 );
    };
@@ -1314,33 +1316,33 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_wholeGraph )
    TNL::Graphs::Algorithms::graphColoring( graphA, blockWeight2, colorsA );
    TNL::Graphs::Algorithms::graphColoring( subgraphC, colorsC );
 
-    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
-    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
 }
 
 TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_edge_removal_wholeGraph )
 {
-    using GraphType = typename TestFixture::GraphType;
-    using IndexType = typename GraphType::IndexType;
-    using ValueType = typename GraphType::ValueType;
-    using ColorsType = ColoringVector< GraphType >;
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   using ColorsType = ColoringVector< GraphType >;
 
-    const auto graphA = makeColoringGraphA< GraphType >();
-    const auto subgraphC = makeColoringSubgraphC< GraphType >();
+   const auto graphA = makeColoringGraphA< GraphType >();
+   const auto subgraphC = makeColoringSubgraphC< GraphType >();
 
-    const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
-    {
-       return weight < ValueType( 2 );
-    };
+   const auto blockWeight2 = [ = ] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   {
+      return weight < ValueType( 2 );
+   };
 
-    ColorsType colorsA, colorsC;
-    TNL::Graphs::Algorithms::graphColoringLuby( graphA, blockWeight2, colorsA );
-    TNL::Graphs::Algorithms::graphColoringLuby( subgraphC, colorsC );
+   ColorsType colorsA, colorsC;
+   TNL::Graphs::Algorithms::graphColoringLuby( graphA, blockWeight2, colorsA );
+   TNL::Graphs::Algorithms::graphColoringLuby( subgraphC, colorsC );
 
-    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
-    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
 
-    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsC ) );
+   EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsC ) );
 }
 
 TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_withIndexes )
@@ -1354,7 +1356,7 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_withIndexes )
    const auto subgraphE2 = makeColoringSubgraphE2< GraphType >();
 
    const ColorsType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
-   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   const auto blockWeight2 = [ = ] __cuda_callable__( IndexType, IndexType, ValueType weight )
    {
       return weight < ValueType( 2 );
    };
@@ -1366,9 +1368,9 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_withIndexes )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, vertexIndexes, blockWeight2, colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphE2, colorsE2 ) );
 
-    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
-    for( int i = 0; i < (int) newToOld.size(); i++ )
-       ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
+   for( int i = 0; i < (int) newToOld.size(); i++ )
+      ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
 }
 
 #include "../../main.h"

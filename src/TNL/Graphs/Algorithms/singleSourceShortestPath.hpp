@@ -159,7 +159,7 @@ parallelSingleSourceShortestPath(
                yView[ idx ] = hostAtomicYView[ idx ].load();
             } );
       }
-      else
+      else  // if constexpr( std::is_same_v< DeviceType, Devices::Host > )
          forEdges(
             graph,
             frontier,

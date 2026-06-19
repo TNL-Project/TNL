@@ -203,6 +203,10 @@ graphColoringOnActiveVertices(
    // only the winners commit their color in the current round.
 
    using DeviceType = typename Graph::DeviceType;
+   static_assert(
+      std::is_same_v< DeviceType, Devices::Sequential > || ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
+      "Parallel graph coloring requires a general (non-symmetric) adjacency matrix. "
+      "Use a Sequential device for symmetric matrices." );
    using IndexType = typename Graph::IndexType;
    using ColorType = typename Vector::ValueType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;

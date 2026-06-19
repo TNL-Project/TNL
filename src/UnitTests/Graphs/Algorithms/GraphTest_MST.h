@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <cstdint>
 
@@ -6,7 +8,6 @@
 #include <TNL/Graphs/Algorithms/trees.h>
 #include <TNL/Graphs/Writers/EdgeListWriter.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Containers/StaticVector.h>
 
 #include <gtest/gtest.h>
 
