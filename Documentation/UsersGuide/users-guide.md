@@ -18,6 +18,7 @@
 2. [Matrices](#ug_Matrices)
 3. [Segments (sparse formats)](#ug_Segments)
 4. [Graphs](#ug_Graphs)
+   - [Graph algorithms](#ug_GraphAlgorithms)
 5. [Orthogonal grids](#ug_Grids)
 6. [Unstructured meshes](#ug_Meshes)
 

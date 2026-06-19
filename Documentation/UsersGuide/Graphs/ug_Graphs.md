@@ -577,6 +577,7 @@ using EllpackGraph = TNL::Graphs::Graph< float, Device, int,
 
 ## Further Reading
 
+- \subpage ug_GraphAlgorithms "Graph algorithms" - BFS, SSSP, connected components, tree detection, MIS, graph coloring
 - \ref TNL::Graphs::Graph - Main graph class documentation
 - \ref TNL::Graphs::GraphView - Graph view documentation
 - \ref TNL::Graphs::GraphVertexView - Vertex view documentation
