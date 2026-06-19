@@ -59,6 +59,8 @@ stronglyConnectedComponents_impl(
    // exactly one strongly connected component.
    IndexType componentLabel = 1;
    while( true ) {
+      // NOTE: Finding the pivot via reduce is O(n) per SCC iteration.
+      // For graphs with many small SCCs this leads to O(n^2) total work.
       // Pick the largest-indexed unassigned vertex as the next pivot.
       const IndexType pivot = TNL::Algorithms::reduce< DeviceType >(
          0,

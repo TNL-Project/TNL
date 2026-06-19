@@ -1,6 +1,8 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
+#pragma once
+
 #include <TNL/Containers/Vector.h>
 #include <TNL/Graphs/Algorithms/maximalIndependentSet.h>
 #include <TNL/Graphs/Graph.h>
@@ -531,16 +533,16 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_identity )
       } );
    // clang-format on
 
-    // Allow all edges -> same as whole-graph MIS.
-    MISVectorType independentSet;
-    auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
-    {
-       return true;
-    };
+   // Allow all edges -> same as whole-graph MIS.
+   MISVectorType independentSet;
+   auto edgePredicate = [] __cuda_callable__( IndexType, IndexType, ValueType )
+   {
+      return true;
+   };
 
-    TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
 
-    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
 }
 
 // clang-format off
@@ -676,7 +678,7 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_predicate )
    const auto graphA = makeMISGraphA< GraphType >();
    const auto subgraphB = makeMISSubgraphB< GraphType >();
 
-   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   const auto excludeVertices = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 2 && v != 5 && v != 8;
    };
@@ -733,7 +735,7 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_disconnected )
    const auto graphA = makeMISGraphA< GraphType >();
    const auto subgraphD = makeMISSubgraphD< GraphType >();
 
-   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   const auto excludeFour = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 4;
    };
@@ -764,7 +766,7 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_wholeGraph )
    const auto graphA = makeMISGraphA< GraphType >();
    const auto subgraphC = makeMISSubgraphC< GraphType >();
 
-   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   const auto blockWeight2 = [ = ] __cuda_callable__( IndexType, IndexType, ValueType weight )
    {
       return weight < ValueType( 2 );
    };
@@ -790,7 +792,7 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_withIndexes )
    const auto subgraphE2 = makeMISSubgraphE2< GraphType >();
 
    const MISVectorType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
-   const auto blockWeight2 = [=] __cuda_callable__( IndexType, IndexType, ValueType weight )
+   const auto blockWeight2 = [ = ] __cuda_callable__( IndexType, IndexType, ValueType weight )
    {
       return weight < ValueType( 2 );
    };

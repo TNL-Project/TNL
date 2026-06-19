@@ -1,9 +1,10 @@
+#pragma once
+
 #include <iostream>
 #include <cstdint>
 #include <TNL/Graphs/Algorithms/trees.h>
-#include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Containers/StaticVector.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Matrices/SparseMatrix.h>
 
 #include <gtest/gtest.h>
 
@@ -34,6 +35,14 @@ using GraphTestTypes = ::testing::Types<
    >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
+
+TYPED_TEST( GraphTest, test_isTree_empty )
+{
+   using GraphType = typename TestFixture::GraphType;
+
+   GraphType graph;
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph ) );
+}
 
 template< typename GraphType >
 GraphType
@@ -90,6 +99,8 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
    //        3  4 5  6
    //        |  | |
    //        7  8 9
+   //            :
+   //            '--> 0   (extra edge 5->0 creates cycle 0-2-5-0)
    // clang-format on
    GraphType graph(
       10,

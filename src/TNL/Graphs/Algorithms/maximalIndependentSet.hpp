@@ -52,6 +52,10 @@ maximalIndependentSetOnActiveVertices(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
+   static_assert(
+      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
+      "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
+      "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
 
    // Deterministic Luby-style MIS on the induced subgraph given by isActive predicate and edgePredicate:
    // each round keeps local priority winners, adds them to the MIS, and removes
@@ -202,6 +206,10 @@ isMaximalIndependentSetOnActiveVertices(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
+   static_assert(
+      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
+      "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
+      "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
 
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
