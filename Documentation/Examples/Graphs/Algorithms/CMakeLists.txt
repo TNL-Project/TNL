@@ -1,9 +1,12 @@
-add_subdirectory(Algorithms)
-add_subdirectory(Reduce)
-add_subdirectory(Traverse)
-
-# Graph construction and manipulation examples
-set(COMMON_EXAMPLES GraphExample_Constructors GraphExample_setEdges GraphExample_VertexView)
+set(COMMON_EXAMPLES
+    GraphExample_BFS
+    GraphExample_SSSP
+    GraphExample_ConnectedComponents
+    GraphExample_StronglyConnectedComponents
+    GraphExample_Trees
+    GraphExample_MaximalIndependentSet
+    GraphExample_GraphColoring
+)
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${COMMON_EXAMPLES})
@@ -29,7 +32,7 @@ else()
     endforeach()
 endif()
 
-add_custom_target(RunGraphsExamples ALL DEPENDS ${DOC_OUTPUTS})
+add_custom_target(RunGraphsAlgorithmsExamples ALL DEPENDS ${DOC_OUTPUTS})
 
 # add the dependency to the main target
-add_dependencies(run-doc-examples RunGraphsExamples)
+add_dependencies(run-doc-examples RunGraphsAlgorithmsExamples)
