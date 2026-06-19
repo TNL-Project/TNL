@@ -35,29 +35,29 @@ namespace TNL::Graphs::Algorithms {
  *
  * All BFS functions follow this naming pattern:
  * `breadthFirstSearch[If][WithVisitor]`
+ * - The **If** suffix adds a vertex predicate parameter to select the active subgraph.
+ * - The **WithVisitor** suffix adds a visitor callable invoked on each visited node.
  *
  * \subsection BFSBasicFunctions Basic BFS (no visitor)
  *
- * | Function                                    | Scope          | Edge filter | Overloads |
- * |---------------------------------------------|----------------|-------------|-----------|
- * | \ref breadthFirstSearch (basic)             | Whole graph    | No          | 1         |
- * | \ref breadthFirstSearch (edge predicate)    | Whole graph    | Yes         | 1         |
- * | \ref breadthFirstSearch (vertex indexes)    | Vertex indexes | No          | 1         |
- * | \ref breadthFirstSearch (idx + edge pred.)  | Vertex indexes | Yes         | 1         |
- * | \ref breadthFirstSearchIf                   | Vertex pred.   | No          | 1         |
- * | \ref breadthFirstSearchIf (edge predicate)  | Vertex pred.   | Yes         | 1         |
+ * | Function                                    | Scope          | Edge filter |
+ * |---------------------------------------------|----------------|-------------|
+ * | \ref breadthFirstSearch (basic)             | Whole graph    | No          |
+ * | \ref breadthFirstSearch (edge predicate)    | Whole graph    | Yes         |
+ * | \ref breadthFirstSearch (vertex indexes)    | Vertex indexes | No          |
+ * | \ref breadthFirstSearch (idx + edge pred.)  | Vertex indexes | Yes         |
+ * | \ref breadthFirstSearchIf                   | Vertex pred.   | No          |
+ * | \ref breadthFirstSearchIf (edge predicate)  | Vertex pred.   | Yes         |
  *
  * \subsection BFSVisitorFunctions BFS with visitor
  *
- * | Function                                          | Scope          | Edge filter | Overloads |
- * |---------------------------------------------------|----------------|-------------|-----------|
- * | \ref breadthFirstSearchWithVisitor (basic)        | Whole graph    | No          | 1         |
- * | \ref breadthFirstSearchWithVisitor (vertex idx.)  | Vertex indexes | No          | 1         |
- * | \ref breadthFirstSearchIfWithVisitor              | Vertex pred.   | No          | 1         |
+ * | Function                                          | Scope          | Edge filter |
+ * |---------------------------------------------------|----------------|-------------|
+ * | \ref breadthFirstSearchWithVisitor (basic)        | Whole graph    | No          |
+ * | \ref breadthFirstSearchWithVisitor (vertex idx.)  | Vertex indexes | No          |
+ * | \ref breadthFirstSearchIfWithVisitor              | Vertex pred.   | No          |
  *
  * \section BFSSubgraphVariants Subgraph Variants
- *
- * BFS can operate on different subsets of the graph:
  *
  * BFS can operate on different subsets of the graph and with optional edge
  * filtering. These two dimensions combine independently:
@@ -83,8 +83,8 @@ namespace TNL::Graphs::Algorithms {
  *
  * ```cpp
  * auto edgePredicate = [=] __cuda_callable__( typename Graph::IndexType source,
- *                                              typename Graph::IndexType target,
- *                                              typename Graph::ValueType weight ) -> bool { ... };
+ *                                             typename Graph::IndexType target,
+ *                                             typename Graph::ValueType weight ) -> bool { ... };
  * ```
  *
  * \subsection BFSVertexPredicate Vertex predicate
@@ -166,7 +166,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 breadthFirstSearch(
    const Graph& graph,
@@ -332,11 +332,7 @@ breadthFirstSearchIf(
  *
  * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
-template<
-   typename Graph,
-   typename Vector,
-   typename Visitor,
-   typename = std::enable_if_t< !IsArrayType< Visitor >::value > >
+template< typename Graph, typename Vector, typename Visitor, typename = std::enable_if_t< ! IsArrayType< Visitor >::value > >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
@@ -416,7 +412,6 @@ breadthFirstSearchIfWithVisitor(
    Visitor&& visitor,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
-
 }  // namespace TNL::Graphs::Algorithms
 
 #include "breadthFirstSearch.hpp"

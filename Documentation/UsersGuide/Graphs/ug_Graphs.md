@@ -454,7 +454,7 @@ Their corresponding `indexOfVertexIdx` values are 0, 1, and 2, respectively.
 - `vertexIdx` – the index of the vertex whose reduction result is currently being stored.
 - `sum` – the result of the reduction, i.e. the sum of the weights of all edges connected to the vertex.
 
-The whole exmpale reads as follows:
+The whole example reads as follows:
 
 \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithIndexes.cpp
 
@@ -587,4 +587,4 @@ using EllpackGraph = TNL::Graphs::Graph< float, Device, int,
 - \ref TNL::Graphs::forEdges - Range-based edge traversal
 - \ref TNL::Graphs::forAllEdgesIf - Conditional edge traversal
 - \ref GraphTraversalOverview - Complete overview of all traversal functions
-- \ref GraphReductionOverview - Complete overview of all traversal functions
+- \ref GraphReductionOverview - Complete overview of all reduction functions

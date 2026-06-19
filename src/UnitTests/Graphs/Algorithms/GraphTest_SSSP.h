@@ -1,6 +1,7 @@
+#pragma once
+
 #include <TNL/Graphs/Algorithms/singleSourceShortestPath.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Containers/StaticVector.h>
 
 #include <limits>
 #include <iostream>
@@ -45,7 +46,7 @@ TYPED_TEST( GraphTest, test_SSSP_empty )
    EXPECT_EQ( distances.getSize(), 0 );
 }
 
-TYPED_TEST( GraphTest, test_BFS_small )
+TYPED_TEST( GraphTest, test_SSSP_small )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
@@ -79,7 +80,7 @@ TYPED_TEST( GraphTest, test_BFS_small )
    }
 }
 
-TYPED_TEST( GraphTest, test_BFS_larger )
+TYPED_TEST( GraphTest, test_SSSP_larger )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
@@ -124,7 +125,7 @@ TYPED_TEST( GraphTest, test_BFS_larger )
    }
 }
 
-TYPED_TEST( GraphTest, test_BFS_largest )
+TYPED_TEST( GraphTest, test_SSSP_largest )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
@@ -451,10 +452,7 @@ makeWeightedSubgraphE2()
 
 template< typename VectorType >
 void
-remapAndCompareFloatDistances(
-   const VectorType& distA,
-   const VectorType& distB,
-   const std::vector< int >& newToOld )
+remapAndCompareFloatDistances( const VectorType& distA, const VectorType& distB, const std::vector< int >& newToOld )
 {
    using RealType = typename VectorType::ValueType;
    for( int i = 0; i < (int) newToOld.size(); i++ ) {
@@ -476,7 +474,7 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_predicate )
    const auto graphA = makeWeightedDirectedGraphA< GraphType >();
    const auto subgraphB = makeWeightedSubgraphB< GraphType >();
 
-   const auto excludeVertices = [=] __cuda_callable__( IndexType v )
+   const auto excludeVertices = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 2 && v != 5 && v != 8;
    };
@@ -503,7 +501,8 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_indexed )
    const auto graphA = makeWeightedDirectedGraphA< GraphType >();
    const auto subgraphB = makeWeightedSubgraphB< GraphType >();
 
-   const TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType > vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
+   const TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType > vertexIndexes(
+      { 0, 1, 3, 4, 6, 7, 9 } );
 
    VectorType distA, distB;
    TNL::Graphs::Algorithms::singleSourceShortestPath( graphA, 0, vertexIndexes, distA );
@@ -527,7 +526,7 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_disconnected )
    const auto graphA = makeWeightedDirectedGraphA< GraphType >();
    const auto subgraphD = makeWeightedSubgraphD< GraphType >();
 
-   const auto excludeFour = [=] __cuda_callable__( IndexType v )
+   const auto excludeFour = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 4;
    };
@@ -552,7 +551,7 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_wholeGraph )
    const auto graphA = makeWeightedDirectedGraphA< GraphType >();
    const auto subgraphC = makeWeightedSubgraphC< GraphType >();
 
-   const auto blockEdge03 = [=] __cuda_callable__( IndexType source, IndexType target, RealType weight )
+   const auto blockEdge03 = [ = ] __cuda_callable__( IndexType source, IndexType target, RealType weight )
    {
       if( ( source == 0 && target == 3 ) || ( source == 3 && target == 0 ) )
          return std::numeric_limits< RealType >::infinity();
@@ -584,7 +583,7 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withIndexes )
 
    const TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType > vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
 
-   const auto blockEdge03 = [=] __cuda_callable__( IndexType source, IndexType target, RealType weight )
+   const auto blockEdge03 = [ = ] __cuda_callable__( IndexType source, IndexType target, RealType weight )
    {
       if( ( source == 0 && target == 3 ) || ( source == 3 && target == 0 ) )
          return std::numeric_limits< RealType >::infinity();
