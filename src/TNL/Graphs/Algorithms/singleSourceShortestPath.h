@@ -106,6 +106,11 @@ namespace TNL::Graphs::Algorithms {
  * \param start The starting node for the algorithm.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp basic
+ *
+ * See \ref SSSPOverview for an overview of all single-source shortest path variants.
  */
 template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
 void
@@ -134,6 +139,11 @@ singleSourceShortestPath(
  * \param edgeWeightCallable The callable transforming edge weights during traversal.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp edge weight callable
+ *
+ * See \ref SSSPOverview for an overview of all single-source shortest path variants.
  */
 template<
    typename Graph,
@@ -165,6 +175,11 @@ singleSourceShortestPath(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp induced
+ *
+ * See \ref SSSPOverview for an overview of all single-source shortest path variants.
  */
 template<
    typename Graph,
@@ -196,6 +211,11 @@ singleSourceShortestPath(
  * \param edgeWeightCallable The callable transforming edge weights during traversal.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp induced edge weight callable
+ *
+ * See \ref SSSPOverview for an overview of all single-source shortest path variants.
  */
 template<
    typename Graph,
@@ -233,6 +253,11 @@ singleSourceShortestPath(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp if
+ *
+ * See \ref SSSPOverview for an overview of all single-source shortest path variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename Index = typename Graph::IndexType >
 void
@@ -257,6 +282,11 @@ singleSourceShortestPathIf(
  * \param edgeWeightCallable The callable transforming edge weights during traversal.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp if edge weight callable
+ *
+ * See \ref SSSPOverview for an overview of all single-source shortest path variants.
  */
 template<
    typename Graph,

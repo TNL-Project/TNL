@@ -98,6 +98,11 @@ namespace TNL::Graphs::Algorithms {
  * \param graph The directed graph on which the algorithm is performed.
  * \param components The vector where the labels of strongly connected components are stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc basic
+ *
+ * See \ref StronglyConnectedComponentsOverview for an overview of all strongly connected components variants.
  */
 template< typename Graph, typename Vector >
 void
@@ -123,6 +128,11 @@ stronglyConnectedComponents(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param components The vector where the labels of strongly connected components are stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc edge predicate
+ *
+ * See \ref StronglyConnectedComponentsOverview for an overview of all strongly connected components variants.
  */
 template<
    typename Graph,
@@ -150,6 +160,11 @@ stronglyConnectedComponents(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param components The vector where the labels of strongly connected components are stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc induced
+ *
+ * See \ref StronglyConnectedComponentsOverview for an overview of all strongly connected components variants.
  */
 template<
    typename Graph,
@@ -177,6 +192,11 @@ stronglyConnectedComponents(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param components The vector where the labels of strongly connected components are stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc induced edge predicate
+ *
+ * See \ref StronglyConnectedComponentsOverview for an overview of all strongly connected components variants.
  */
 template<
    typename Graph,
@@ -210,6 +230,11 @@ stronglyConnectedComponents(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param components The vector where the labels of strongly connected components are stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc if
+ *
+ * See \ref StronglyConnectedComponentsOverview for an overview of all strongly connected components variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
@@ -234,6 +259,11 @@ stronglyConnectedComponentsIf(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param components The vector where the labels of strongly connected components are stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc if edge predicate
+ *
+ * See \ref StronglyConnectedComponentsOverview for an overview of all strongly connected components variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
