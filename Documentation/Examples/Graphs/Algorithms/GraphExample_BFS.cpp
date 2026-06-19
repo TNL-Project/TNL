@@ -116,6 +116,36 @@ breadthFirstSearchExample()
    TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distancesVisitor );
    std::cout << "Visited distances: " << visitedDistances << "\n";
    //! [bfs visitor]
+
+   //! [bfs visitor induced]
+   /***
+    * Induced-subgraph visitor BFS: restrict traversal to vertices {0, 1, 2, 3}.
+    */
+   VectorType distancesVisitorInduced;
+   VectorType visitedDistancesInduced( graph.getVertexCount(), -1 );
+   auto visitedDistancesInducedView = visitedDistancesInduced.getView();
+   auto visitorInduced = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesInducedView[ vertex ] = distance;
+   };
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, activeVertices, visitorInduced, distancesVisitorInduced );
+   std::cout << "Visited distances (induced on {0,1,2,3}): " << visitedDistancesInduced << "\n";
+   //! [bfs visitor induced]
+
+   //! [bfs visitor if]
+   /***
+    * Predicate-based visitor BFS: activate only vertices with index < 4.
+    */
+   VectorType distancesVisitorIf;
+   VectorType visitedDistancesIf( graph.getVertexCount(), -1 );
+   auto visitedDistancesIfView = visitedDistancesIf.getView();
+   auto visitorIf = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesIfView[ vertex ] = distance;
+   };
+   TNL::Graphs::Algorithms::breadthFirstSearchIfWithVisitor( graph, 0, isActive, visitorIf, distancesVisitorIf );
+   std::cout << "Visited distances (active if vertex < 4): " << visitedDistancesIf << "\n";
+   //! [bfs visitor if]
 }
 
 int
