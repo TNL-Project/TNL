@@ -144,6 +144,11 @@ namespace TNL::Graphs::Algorithms {
  * \param start The starting vertex for the tree check.
  * \return true If the graph is a tree.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree basic
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph >
 bool
@@ -172,6 +177,11 @@ isTree(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \return true If the graph is a tree with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename EdgePredicate, typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
@@ -195,6 +205,11 @@ isTree(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \return true If the induced subgraph is a tree.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree induced
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexIndexes, typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
@@ -218,6 +233,11 @@ isTree(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \return true If the induced subgraph is a tree with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree induced edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template<
    typename Graph,
@@ -249,6 +269,11 @@ isTree(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \return true If the predicate-induced subgraph is a tree.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree if
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexPredicate >
 bool
@@ -273,6 +298,11 @@ isTreeIf(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \return true If the predicate-induced subgraph is a tree with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree if edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexPredicate, typename EdgePredicate >
 bool
@@ -295,6 +325,11 @@ isTreeIf(
  * \param graph The graph to check.
  * \return true If the graph is a forest.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest basic
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph >
 bool
@@ -314,6 +349,11 @@ isForest(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \return true If the graph is a forest with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename EdgePredicate, typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
@@ -334,6 +374,11 @@ isForest(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \return true If the induced subgraph is a forest.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest induced
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexIndexes, typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
@@ -356,6 +401,11 @@ isForest(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \return true If the induced subgraph is a forest with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest induced edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template<
    typename Graph,
@@ -385,6 +435,11 @@ isForest(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \return true If the predicate-induced subgraph is a forest.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest if
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexPredicate >
 bool
@@ -407,6 +462,11 @@ isForestIf(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \return true If the predicate-induced subgraph is a forest with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest if edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexPredicate, typename EdgePredicate >
 bool
@@ -429,6 +489,11 @@ isForestIf(
  * \param roots The root candidates of the trees in the forest.
  * \return true If the graph is a forest.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots basic
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename Vector >
 bool
@@ -450,6 +515,11 @@ isForestWithRoots(
  * \param roots The root candidates of the trees in the forest.
  * \return true If the graph is a forest with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template<
    typename Graph,
@@ -476,6 +546,11 @@ isForestWithRoots(
  * \param roots The root candidates of the trees in the forest.
  * \return true If the induced subgraph is a forest.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots induced
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template<
    typename Graph,
@@ -504,6 +579,11 @@ isForestWithRoots(
  * \param roots The root candidates of the trees in the forest.
  * \return true If the induced subgraph is a forest with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots induced edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template<
    typename Graph,
@@ -536,6 +616,11 @@ isForestWithRoots(
  * \param roots The root candidates of the trees in the forest.
  * \return true If the predicate-induced subgraph is a forest.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots if
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
@@ -561,6 +646,11 @@ isForestWithRootsIf(
  * \param roots The root candidates of the trees in the forest.
  * \return true If the predicate-induced subgraph is a forest with respect to the allowed edges.
  * \return false Otherwise.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots if edge predicate
+ *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
 template< typename Graph, typename VertexPredicate, typename EdgePredicate, typename Vector >
 bool
