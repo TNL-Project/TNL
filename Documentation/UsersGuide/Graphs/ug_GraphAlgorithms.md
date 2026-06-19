@@ -159,6 +159,18 @@ The predicate-based visitor overload:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor if
 
+The visitor overload combined with an edge predicate:
+
+\snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor edge predicate
+
+The induced-subgraph visitor overload combined with an edge predicate:
+
+\snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor induced edge predicate
+
+The predicate-based visitor overload combined with an edge predicate:
+
+\snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor if edge predicate
+
 The whole example reads as follows:
 
 \includelineno Graphs/Algorithms/GraphExample_BFS.cpp

@@ -590,4 +590,141 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withIndexes )
    ASSERT_EQ( distA.getElement( 9 ), -1 );
 }
 
+// NEW#1: whole-graph BFS with an edge predicate and a visitor callback.
+// Mirrors test_BFS_byEdges_wholeGraph (same graph + forbidOneToTwo) plus a
+// visitor that records each visited node's distance into a view-backed vector.
+TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_wholeGraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5,
+      {
+         { 0, 1, 1.0 }, { 0, 4, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 3, 1.0 },
+         { 4, 3, 1.0 },
+      } );
+   // clang-format on
+
+   // Edge 1->2 is blocked, so vertex 2 becomes unreachable and vertex 3 is
+   // reached via 0->4->3 instead.
+   const VectorType expectedDistances( { 0, 1, -1, 2, 1 } );
+   // The visitor is not invoked on the start node, so entry 0 stays at -1.
+   const VectorType expectedVisited( { -1, 1, -1, 2, 1 } );
+   VectorType distances;
+   VectorType visitedDistances( graph.getVertexCount(), -1 );
+   auto visitedDistancesView = visitedDistances.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesView[ vertex ] = distance;
+   };
+   const auto forbidOneToTwo =
+      [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType weight )
+   {
+      return ! ( source == 1 && target == 2 );
+   };
+
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, forbidOneToTwo, visitor, distances );
+
+   ASSERT_EQ( distances, expectedDistances );
+   EXPECT_EQ( visitedDistances, expectedVisited );
+}
+
+// NEW#2: indexed-subgraph BFS with an edge predicate and a visitor callback.
+// Mirrors test_BFS_subgraph_edge_removal_withIndexes (same graph A, subgraph E2,
+// vertex indexes, and blockEdge03) plus a visitor, cross-validating distances
+// against the materialized subgraph.
+TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_subgraph )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeDirectedGraphA< GraphType >();
+   const auto subgraphE2 = makeSubgraphE2_directed< GraphType >();
+
+   const VectorType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
+   const auto blockEdge03 = [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType )
+   {
+      return ! ( source == 0 && target == 3 ) && ! ( source == 3 && target == 0 );
+   };
+
+   VectorType distA, distE2;
+   VectorType visitedDistances( graphA.getVertexCount(), -1 );
+   auto visitedDistancesView = visitedDistances.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesView[ vertex ] = distance;
+   };
+
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graphA, 0, vertexIndexes, blockEdge03, visitor, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearch( subgraphE2, 0, distE2 );
+
+   // newToOld: 0, 1, 3, 4, 6, 7
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
+   remapAndCompareDistances( distA, distE2, newToOld );
+
+   ASSERT_EQ( distA.getElement( 2 ), -1 );
+   ASSERT_EQ( distA.getElement( 5 ), -1 );
+   ASSERT_EQ( distA.getElement( 8 ), -1 );
+   ASSERT_EQ( distA.getElement( 9 ), -1 );
+
+   // Visitor records the distance of every visited node; the start node (0) is
+   // not passed to the visitor and excluded vertices stay at -1.
+   const VectorType expectedVisited( { -1, 1, -1, 3, 2, -1, 4, 3, -1, -1 } );
+   EXPECT_EQ( visitedDistances, expectedVisited );
+}
+
+// NEW#3: predicate-induced subgraph BFS with an edge predicate and a visitor.
+// Excluding vertices {2,5,8} and blocking edge 0-3 yields the same reachable
+// set as subgraph E2 (vertices {0,1,3,4,6,7} with edge 0-3 removed), so the
+// distances are cross-validated against it. Vertex 9 is active but unreachable
+// (its only edge goes to the excluded vertex 8).
+TYPED_TEST( GraphTest, test_BFS_ifWithVisitor_edgePredicate )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graphA = makeDirectedGraphA< GraphType >();
+   const auto subgraphE2 = makeSubgraphE2_directed< GraphType >();
+
+   const auto excludeVertices = [ = ] __cuda_callable__( IndexType v )
+   {
+      return v != 2 && v != 5 && v != 8;
+   };
+   const auto blockEdge03 = [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType )
+   {
+      return ! ( source == 0 && target == 3 ) && ! ( source == 3 && target == 0 );
+   };
+
+   VectorType distA, distE2;
+   VectorType visitedDistances( graphA.getVertexCount(), -1 );
+   auto visitedDistancesView = visitedDistances.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesView[ vertex ] = distance;
+   };
+
+   TNL::Graphs::Algorithms::breadthFirstSearchIfWithVisitor( graphA, 0, excludeVertices, blockEdge03, visitor, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearch( subgraphE2, 0, distE2 );
+
+   // newToOld: 0, 1, 3, 4, 6, 7
+   const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
+   remapAndCompareDistances( distA, distE2, newToOld );
+
+   ASSERT_EQ( distA.getElement( 2 ), -1 );
+   ASSERT_EQ( distA.getElement( 5 ), -1 );
+   ASSERT_EQ( distA.getElement( 8 ), -1 );
+   ASSERT_EQ( distA.getElement( 9 ), -1 );  // active but unreachable (only edge goes to excluded 8)
+
+   const VectorType expectedVisited( { -1, 1, -1, 3, 2, -1, 4, 3, -1, -1 } );
+   EXPECT_EQ( visitedDistances, expectedVisited );
+}
+
 #include "../../main.h"
