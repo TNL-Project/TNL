@@ -150,6 +150,14 @@ for every reached vertex. The callable receives the vertex index and its distanc
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor
 
+The visitor overload restricted to an induced subgraph:
+
+\snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor induced
+
+The predicate-based visitor overload:
+
+\snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor if
+
 The whole example reads as follows:
 
 \includelineno Graphs/Algorithms/GraphExample_BFS.cpp
