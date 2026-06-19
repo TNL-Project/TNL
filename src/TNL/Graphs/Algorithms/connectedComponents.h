@@ -45,8 +45,6 @@ namespace TNL::Graphs::Algorithms {
  *
  * \section CCSubgraphVariants Subgraph Variants
  *
- * Connected components can be computed on different subsets of the graph:
- *
  * Connected components can be computed on different subsets of the graph and
  * with optional edge filtering. These two dimensions combine independently:
  *
@@ -153,7 +151,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< !IsArrayType< EdgePredicate >::value > >
+   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 connectedComponents(
    const Graph& graph,
