@@ -111,6 +111,11 @@ namespace TNL::Graphs::Algorithms {
  * \tparam Vector The type of the vector used to store the 0/1 mask.
  * \param graph The input undirected graph.
  * \param independentSet The output 0/1 mask (1 = vertex in the MIS).
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis basic
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template< typename Graph, typename Vector >
 void
@@ -136,6 +141,11 @@ maximalIndependentSet(
  * \param graph The input undirected graph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param independentSet The output 0/1 mask (1 = vertex in the MIS).
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis edge predicate
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template<
    typename Graph,
@@ -162,6 +172,11 @@ maximalIndependentSet(
  * \param graph The input undirected graph.
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param independentSet The output 0/1 mask (1 = vertex in the MIS).
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis induced
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template<
    typename Graph,
@@ -188,6 +203,11 @@ maximalIndependentSet(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param independentSet The output 0/1 mask (1 = vertex in the MIS).
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis induced edge predicate
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template<
    typename Graph,
@@ -219,6 +239,11 @@ maximalIndependentSet(
  * \param graph The input undirected graph.
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param independentSet The output 0/1 mask (1 = vertex in the MIS).
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis if
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
@@ -242,6 +267,11 @@ maximalIndependentSetIf(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param independentSet The output 0/1 mask (1 = vertex in the MIS).
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis if edge predicate
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
@@ -260,6 +290,11 @@ maximalIndependentSetIf(
  * \param graph The input undirected graph.
  * \param independentSet The 0/1 mask to verify.
  * \return true If the mask defines a maximal independent set.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis basic
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template< typename Graph, typename Vector >
 bool
@@ -279,6 +314,11 @@ isMaximalIndependentSet(
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param independentSet The 0/1 mask to verify.
  * \return true If the mask defines a maximal independent set with respect to the allowed edges.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis edge predicate
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template<
    typename Graph,
@@ -305,6 +345,11 @@ isMaximalIndependentSet(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param independentSet The 0/1 mask to verify.
  * \return true If the mask defines a maximal independent set in the induced subgraph.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis induced
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template<
    typename Graph,
@@ -331,6 +376,11 @@ isMaximalIndependentSet(
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param independentSet The 0/1 mask to verify.
  * \return true If the mask defines a maximal independent set in the induced subgraph with respect to the allowed edges.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis induced edge predicate
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template<
    typename Graph,
@@ -357,6 +407,11 @@ isMaximalIndependentSet(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param independentSet The 0/1 mask to verify.
  * \return true If the mask defines a maximal independent set in the predicate-induced subgraph.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis if
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
@@ -380,6 +435,11 @@ isMaximalIndependentSetIf(
  * \param independentSet The 0/1 mask to verify.
  * \return true If the mask defines a maximal independent set in the predicate-induced subgraph with respect to the allowed
  * edges.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis if edge predicate
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all maximal independent set variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 bool
