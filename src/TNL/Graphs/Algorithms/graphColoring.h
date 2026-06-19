@@ -130,6 +130,11 @@ namespace TNL::Graphs::Algorithms {
  * \tparam Vector The type of the vector used to store color labels.
  * \param graph The input undirected graph.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring basic
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename Vector >
 void
@@ -156,6 +161,11 @@ graphColoring(
  * \param graph The input undirected graph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -181,6 +191,11 @@ graphColoring(
  * \param graph The input undirected graph.
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring induced
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -207,6 +222,11 @@ graphColoring(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring induced edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -238,6 +258,11 @@ graphColoring(
  * \param graph The input undirected graph.
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring if
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
@@ -261,6 +286,11 @@ graphColoringIf(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring if edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
@@ -281,6 +311,11 @@ graphColoringIf(
  * \tparam Vector The type of the vector used to store color labels.
  * \param graph The input undirected graph.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby basic
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename Vector >
 void
@@ -300,6 +335,11 @@ graphColoringLuby(
  * \param graph The input undirected graph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -325,6 +365,11 @@ graphColoringLuby(
  * \param graph The input undirected graph.
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby induced
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -351,6 +396,11 @@ graphColoringLuby(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby induced edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -382,6 +432,11 @@ graphColoringLuby(
  * \param graph The input undirected graph.
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby if
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
@@ -405,6 +460,11 @@ graphColoringLubyIf(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The output vector of zero-based color labels.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby if edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
@@ -423,6 +483,11 @@ graphColoringLubyIf(
  * \param graph The input undirected graph.
  * \param colors The vector of color labels to verify.
  * \return true If the coloring is proper (no adjacent vertices share a color and all labels are non-negative).
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored basic
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename Vector >
 bool
@@ -441,6 +506,11 @@ isProperlyColored(
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The vector of color labels to verify.
  * \return true If the coloring is proper with respect to the allowed edges.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -468,6 +538,11 @@ isProperlyColored(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param colors The vector of color labels to verify.
  * \return true If the coloring is proper on the induced subgraph.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored induced
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -494,6 +569,11 @@ isProperlyColored(
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The vector of color labels to verify.
  * \return true If the coloring is proper on the induced subgraph with respect to the allowed edges.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored induced edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template<
    typename Graph,
@@ -527,6 +607,11 @@ isProperlyColored(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param colors The vector of color labels to verify.
  * \return true If the coloring is proper on the predicate-induced subgraph.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored if
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 bool
@@ -549,6 +634,11 @@ isProperlyColoredIf(
  * \param edgePredicate The callable deciding if an edge connects adjacent vertices.
  * \param colors The vector of color labels to verify.
  * \return true If the coloring is proper on the predicate-induced subgraph with respect to the allowed edges.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored if edge predicate
+ *
+ * See \ref GraphColoringOverview for an overview of all graph coloring variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 bool

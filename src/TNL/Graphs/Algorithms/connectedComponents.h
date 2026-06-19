@@ -110,6 +110,11 @@ namespace TNL::Graphs::Algorithms {
  * \param graph The graph on which the algorithm is performed.
  * \param components The vector where the representative vertex of each component is stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc basic
+ *
+ * See \ref ConnectedComponentsOverview for an overview of all connected components variants.
  */
 template< typename Graph, typename Vector >
 void
@@ -138,6 +143,11 @@ connectedComponents(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param components The vector where the representative vertex of each component is stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc edge predicate
+ *
+ * See \ref ConnectedComponentsOverview for an overview of all connected components variants.
  */
 template<
    typename Graph,
@@ -165,6 +175,11 @@ connectedComponents(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param components The vector where the representative vertex of each component is stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc induced
+ *
+ * See \ref ConnectedComponentsOverview for an overview of all connected components variants.
  */
 template<
    typename Graph,
@@ -192,6 +207,11 @@ connectedComponents(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param components The vector where the representative vertex of each component is stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc induced edge predicate
+ *
+ * See \ref ConnectedComponentsOverview for an overview of all connected components variants.
  */
 template<
    typename Graph,
@@ -225,6 +245,11 @@ connectedComponents(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param components The vector where the representative vertex of each component is stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc if
+ *
+ * See \ref ConnectedComponentsOverview for an overview of all connected components variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
@@ -249,6 +274,11 @@ connectedComponentsIf(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param components The vector where the representative vertex of each component is stored.
  * \param launchConfig The configuration for graph traversal on parallel backends.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc if edge predicate
+ *
+ * See \ref ConnectedComponentsOverview for an overview of all connected components variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void

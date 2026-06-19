@@ -124,6 +124,11 @@ namespace TNL::Graphs::Algorithms {
  * \param start The starting node for BFS.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs basic
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template< typename Graph, typename Vector >
 void
@@ -151,6 +156,11 @@ breadthFirstSearch(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs edge predicate
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template<
    typename Graph,
@@ -181,6 +191,11 @@ breadthFirstSearch(
  * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs induced
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template<
    typename Graph,
@@ -210,6 +225,11 @@ breadthFirstSearch(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs induced edge predicate
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template<
    typename Graph,
@@ -245,6 +265,11 @@ breadthFirstSearch(
  * \param vertexPredicate The callable deciding which vertices belong to the subgraph.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs if
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector >
 void
@@ -271,6 +296,11 @@ breadthFirstSearchIf(
  * \param edgePredicate The callable deciding if an edge can be traversed.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs if edge predicate
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
@@ -296,6 +326,11 @@ breadthFirstSearchIf(
  * \param visitor The callable invoked upon visiting each node.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template<
    typename Graph,
@@ -326,6 +361,11 @@ breadthFirstSearchWithVisitor(
  * \param visitor The callable invoked upon visiting each node.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor induced
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template<
    typename Graph,
@@ -361,6 +401,11 @@ breadthFirstSearchWithVisitor(
  * \param visitor The callable invoked upon visiting each node.
  * \param distances The vector where distances from the start node will be stored.
  * \param launchConfig The configuration for launching the segments traversal.
+ *
+ * \par Example
+ * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor if
+ *
+ * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
 template< typename Graph, typename VertexPredicate, typename Vector, typename Visitor >
 void
