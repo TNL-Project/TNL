@@ -603,4 +603,51 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withIndexes )
    EXPECT_FLOAT_EQ( distA.getElement( 9 ), RealType( -1 ) );
 }
 
+// Regression test for the sequential Dijkstra lazy-deletion invariant.
+//
+// The re-emplace of a vertex already in the priority queue and the stale-entry
+// guard (`if( currentDistance > distances[ current ] ) continue;`) live inside
+// the `if constexpr( DeviceType == Devices::Sequential )` branch of
+// singleSourceShortestPath_impl, so only the Sequential type exercises them
+// directly.  The Host type dispatches to parallelSingleSourceShortestPath
+// (atomicMin / fetch_min, no priority queue); this TYPED_TEST validates its
+// parallel-relaxation correctness on the same graph.  Both runs are valuable.
+//
+// Pinned graph (vertex 4 is isolated, to also lock the -1 unreachable
+// sentinel):  0->1 (w=1), 0->2 (w=5), 1->3 (w=10), 2->3 (w=1)
+// Expected relaxation/pop order from source 0 (sequential backend):
+//   pop (0,0)  -> relax 0->1: dist[1] = 1,  emplace (1,1)
+//              -> relax 0->2: dist[2] = 5,  emplace (5,2)
+//   pop (1,1)  -> relax 1->3: dist[3] = 11, emplace (11,3)   [first discovery]
+//   pop (5,2)  -> relax 2->3: dist[3] = 6,  emplace (6,3)    [re-emplace, smaller]
+//   pop (6,3)  -> currentDistance == distances[3], processed (no out-edges)
+//   pop (11,3) -> currentDistance > distances[3]  => skip    [lazy-deletion guard]
+// Hand-computed expected distances: {0, 1, 5, 6, -1}.
+TYPED_TEST( GraphTest, test_SSSP_multi_relaxation )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      5, // vertex 4 is isolated -> unreachable sentinel (-1)
+      {
+         { 0, 1, 1.0 }, { 0, 2, 5.0 },
+         { 1, 3, 10.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0.0, 1.0, 5.0, 6.0, -1.0 } );
+   VectorType distances( graph.getVertexCount() );
+
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, distances );
+
+   for( IndexType i = 0; i < graph.getVertexCount(); i++ )
+      ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) ) << "vertex " << i;
+}
+
 #include "../../main.h"
