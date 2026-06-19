@@ -101,7 +101,7 @@ parallelSingleSourceShortestPath(
    if constexpr( std::is_same_v< DeviceType, Devices::Host > )
       hostAtomicY.setSize( n );
 
-   for( IndexType i = 0; i <= n; i++ ) {
+   for( IndexType i = 0; i < n; i++ ) {
       marks = 0;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
          // Copy current distances into the atomic buffer
@@ -258,6 +258,10 @@ singleSourceShortestPath_impl(
 
             if( distance < distances[ neighbor ] ) {
                distances[ neighbor ] = distance;
+               // Lazy deletion: re-inserting a vertex already in the queue is
+               // safe.  std::greater<> pops the smallest entry first, so the
+               // guard above skips the stale larger copy (no decrease-key in
+               // std::priority_queue).  O(E) pushes, standard for Dijkstra.
                pq.emplace( distance, neighbor );
             }
          }
