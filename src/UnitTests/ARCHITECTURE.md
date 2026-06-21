@@ -90,3 +90,43 @@ serialized:
 ```bash
 ctest --preset hip-tests
 ```
+
+### CUDA extended lambdas in typed tests
+
+NVCC forbids extended `__host__ __device__` lambdas inside private or
+protected member functions. Google Test's `TYPED_TEST` macro generates
+`TestBody()` as a **private** method, so any `__cuda_callable__` lambda
+written directly inside a `TYPED_TEST` body fails to compile with NVCC.
+
+**Workaround**: extract the test body into a free function template and
+have the `TYPED_TEST` call it:
+
+```cpp
+template< typename GraphType >
+void
+test_something_impl()
+{
+   // lambda is now in a free function, not a private method
+   auto pred = [=] __cuda_callable__( typename GraphType::IndexType v )
+   {
+      return v < 3;
+   };
+   // ... assertions ...
+}
+
+TYPED_TEST( GraphTest, test_something )
+{
+   test_something_impl< typename TestFixture::GraphType >();
+}
+```
+
+Rules for applying this pattern:
+
+- Only extract tests that contain `__cuda_callable__` lambdas; tests
+  without lambdas compile fine as-is.
+- The free function is `template< typename GraphType >` and named
+  `<test_name>_impl`, placed **before** the `TYPED_TEST`.
+- Remove `using GraphType = typename TestFixture::GraphType;` inside
+  the `_impl` function — `GraphType` is now the template parameter.
+- Keep all other `using` declarations, comments, formatting, and
+  assertions unchanged.

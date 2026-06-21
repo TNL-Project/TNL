@@ -458,14 +458,14 @@ graphColoring( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::La
       },
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 void
 graphColoring(
    const Graph& graph,
@@ -487,7 +487,7 @@ graphColoring(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 void
 graphColoring(
    const Graph& graph,
@@ -510,14 +510,14 @@ graphColoring(
       },
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 void
 graphColoring(
    const Graph& graph,
@@ -560,7 +560,7 @@ graphColoringIf(
       std::forward< VertexPredicate >( vertexPredicate ),
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -599,14 +599,14 @@ graphColoringLuby( const Graph& graph, Vector& colors, TNL::Algorithms::Segments
       },
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 void
 graphColoringLuby(
    const Graph& graph,
@@ -628,7 +628,7 @@ graphColoringLuby(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 void
 graphColoringLuby(
    const Graph& graph,
@@ -651,14 +651,14 @@ graphColoringLuby(
       },
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 void
 graphColoringLuby(
    const Graph& graph,
@@ -701,7 +701,7 @@ graphColoringLubyIf(
       std::forward< VertexPredicate >( vertexPredicate ),
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -741,14 +741,14 @@ isProperlyColored( const Graph& graph, const Vector& colors, TNL::Algorithms::Se
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
       static_cast< typename Vector::ValueType >( 0 ),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 bool
 isProperlyColored(
    const Graph& graph,
@@ -771,7 +771,7 @@ isProperlyColored(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 bool
 isProperlyColored(
    const Graph& graph,
@@ -795,14 +795,14 @@ isProperlyColored(
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 bool
 isProperlyColored(
    const Graph& graph,
@@ -847,7 +847,7 @@ isProperlyColoredIf(
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },

@@ -151,7 +151,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
+   typename Enable = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 connectedComponents(
    const Graph& graph,
@@ -183,7 +183,7 @@ template<
    typename Graph,
    typename VertexIndexes,
    typename Vector,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 connectedComponents(
    const Graph& graph,
@@ -216,7 +216,7 @@ template<
    typename VertexIndexes,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 connectedComponents(
    const Graph& graph,
