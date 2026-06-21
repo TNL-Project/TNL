@@ -158,10 +158,15 @@ isTree(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
- * \brief Checks if the given graph is a tree considering only allowed edges.
+ * \brief Checks if the given graph is a tree considering only allowed edges,
+ *        or checks if the subgraph induced by the given vertex indexes is a tree.
  *
- * The edge predicate decides if an edge can be traversed. It must provide
- * a call operator with the signature:
+ * If \e arg is an array type (e.g. \ref Containers::Vector), it is interpreted
+ * as vertex indexes defining the induced subgraph. The entries must be unique
+ * valid graph vertices and the start vertex must belong to the induced subgraph.
+ *
+ * If \e arg is a callable, it is interpreted as an edge predicate that decides
+ * if an edge can be traversed. It must provide a call operator with the signature:
  * \code
  * [=] __cuda_callable__( typename Graph::IndexType source, typename Graph::IndexType target,
  *                        typename Graph::ValueType weight ) -> bool
@@ -170,53 +175,32 @@ isTree(
  * The edge count check uses only active edges instead of the total graph
  * edge count.
  *
+ * \note The dispatch between edge-predicate and vertex-indexes is performed
+ * at compile time via \c if constexpr on \ref IsArrayType. This avoids NVCC
+ * SFINAE issues with extended lambda wrappers.
+ *
  * \tparam Graph The type of the graph.
- * \tparam EdgePredicate The type of the edge predicate callable.
+ * \tparam T The type of the third argument (edge predicate callable or vertex index array).
  * \param graph The graph to check.
  * \param start The starting vertex for the tree check.
- * \param edgePredicate The callable deciding if an edge can be traversed.
- * \return true If the graph is a tree with respect to the allowed edges.
+ * \param arg Either the callable deciding if an edge can be traversed, or the
+ *           array of vertex indexes defining the induced subgraph.
+ * \return true If the (sub)graph is a tree.
  * \return false Otherwise.
  *
  * \par Example
  * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree edge predicate
- *
- * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
- */
-template< typename Graph, typename EdgePredicate, typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
-bool
-isTree(
-   const Graph& graph,
-   typename Graph::IndexType start,
-   EdgePredicate&& edgePredicate,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
-
-/**
- * \brief Checks if the subgraph induced by the given vertex indexes is a tree.
- *
- * The entries in \e vertexIndexes must be unique valid graph vertices and the
- * start vertex must belong to the induced subgraph. Vertices outside of the
- * induced subgraph are treated as absent.
- *
- * \tparam Graph The type of the graph.
- * \tparam VertexIndexes The type of the array containing the vertex indexes.
- * \param graph The graph to check.
- * \param start The starting vertex for the tree check.
- * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
- * \return true If the induced subgraph is a tree.
- * \return false Otherwise.
- *
- * \par Example
+ * \par
  * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree induced
  *
  * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
-template< typename Graph, typename VertexIndexes, typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+template< typename Graph, typename T >
 bool
 isTree(
    const Graph& graph,
    typename Graph::IndexType start,
-   const VertexIndexes& vertexIndexes,
+   T&& arg,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
@@ -243,7 +227,7 @@ template<
    typename Graph,
    typename VertexIndexes,
    typename EdgePredicate,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
 isTree(
    const Graph& graph,
@@ -333,59 +317,40 @@ isTreeIf(
  */
 template< typename Graph >
 bool
-isForest(
-   const Graph& graph,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
+isForest( const Graph& graph, TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
- * \brief Checks if the given graph is a forest considering only allowed edges.
+ * \brief Checks if the given graph is a forest considering only allowed edges,
+ *        or checks if the subgraph induced by the given vertex indexes is a forest.
  *
- * Roots are detected automatically. The edge predicate decides if an edge can
- * be traversed.
+ * If \e arg is an array type, it is interpreted as vertex indexes defining the
+ * induced subgraph. Roots are detected automatically among the active vertices.
+ *
+ * If \e arg is a callable, it is interpreted as an edge predicate. Roots are
+ * detected automatically. The edge predicate decides if an edge can be traversed.
+ *
+ * \note The dispatch between edge-predicate and vertex-indexes is performed
+ * at compile time via \c if constexpr on \ref IsArrayType. This avoids NVCC
+ * SFINAE issues with extended lambda wrappers.
  *
  * \tparam Graph The type of the graph.
- * \tparam EdgePredicate The type of the edge predicate callable.
+ * \tparam T The type of the second argument (edge predicate callable or vertex index array).
  * \param graph The graph to check.
- * \param edgePredicate The callable deciding if an edge can be traversed.
- * \return true If the graph is a forest with respect to the allowed edges.
+ * \param arg Either the callable deciding if an edge can be traversed, or the
+ *           array of vertex indexes defining the induced subgraph.
+ * \return true If the (sub)graph is a forest.
  * \return false Otherwise.
  *
  * \par Example
  * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest edge predicate
- *
- * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
- */
-template< typename Graph, typename EdgePredicate, typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
-bool
-isForest(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
-
-/**
- * \brief Checks if the subgraph induced by the given vertex indexes is a forest.
- *
- * The entries in \e vertexIndexes must be unique valid graph vertices.
- * Roots are detected automatically among the active vertices.
- *
- * \tparam Graph The type of the graph.
- * \tparam VertexIndexes The type of the array containing the vertex indexes.
- * \param graph The graph to check.
- * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
- * \return true If the induced subgraph is a forest.
- * \return false Otherwise.
- *
- * \par Example
+ * \par
  * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest induced
  *
  * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
-template< typename Graph, typename VertexIndexes, typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+template< typename Graph, typename T >
 bool
-isForest(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
+isForest( const Graph& graph, T&& arg, TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks if the indexed-induced subgraph is a forest considering only allowed edges.
@@ -411,7 +376,7 @@ template<
    typename Graph,
    typename VertexIndexes,
    typename EdgePredicate,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
 isForest(
    const Graph& graph,
@@ -497,70 +462,44 @@ isForestIf(
  */
 template< typename Graph, typename Vector >
 bool
-isForestWithRoots(
-   const Graph& graph,
-   const Vector& roots,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
+isForestWithRoots( const Graph& graph, const Vector& roots, TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
- * \brief Checks if the given graph is a forest with edge filtering using the provided root candidates.
+ * \brief Checks if the given graph is a forest with edge filtering using the provided root candidates,
+ *        or checks if the subgraph induced by the given vertex indexes is a forest using the provided root candidates.
  *
- * The edge predicate decides if an edge can be traversed.
+ * If \e arg is an array type, it is interpreted as vertex indexes defining the
+ * induced subgraph. The entries must be unique valid graph vertices.
+ *
+ * If \e arg is a callable, it is interpreted as an edge predicate that decides
+ * if an edge can be traversed.
+ *
+ * \note The dispatch between edge-predicate and vertex-indexes is performed
+ * at compile time via \c if constexpr on \ref IsArrayType. This avoids NVCC
+ * SFINAE issues with extended lambda wrappers.
  *
  * \tparam Graph The type of the graph.
- * \tparam EdgePredicate The type of the edge predicate callable.
+ * \tparam T The type of the second argument (edge predicate callable or vertex index array).
  * \tparam Vector The type of the vector containing the root candidates.
  * \param graph The graph to check.
- * \param edgePredicate The callable deciding if an edge can be traversed.
+ * \param arg Either the callable deciding if an edge can be traversed, or the
+ *           array of vertex indexes defining the induced subgraph.
  * \param roots The root candidates of the trees in the forest.
- * \return true If the graph is a forest with respect to the allowed edges.
+ * \return true If the (sub)graph is a forest.
  * \return false Otherwise.
  *
  * \par Example
  * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots edge predicate
- *
- * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
- */
-template<
-   typename Graph,
-   typename EdgePredicate,
-   typename Vector,
-   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
-bool
-isForestWithRoots(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   const Vector& roots,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
-
-/**
- * \brief Checks if the subgraph induced by the given vertex indexes is a forest using the provided root candidates.
- *
- * The entries in \e vertexIndexes must be unique valid graph vertices.
- *
- * \tparam Graph The type of the graph.
- * \tparam VertexIndexes The type of the array containing the vertex indexes.
- * \tparam Vector The type of the vector containing the root candidates.
- * \param graph The graph to check.
- * \param vertexIndexes The array of vertex indexes defining the induced subgraph.
- * \param roots The root candidates of the trees in the forest.
- * \return true If the induced subgraph is a forest.
- * \return false Otherwise.
- *
- * \par Example
+ * \par
  * \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots induced
  *
  * See \ref TreeDetectionOverview for an overview of all tree and forest detection variants.
  */
-template<
-   typename Graph,
-   typename VertexIndexes,
-   typename Vector,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+template< typename Graph, typename T, typename Vector >
 bool
 isForestWithRoots(
    const Graph& graph,
-   const VertexIndexes& vertexIndexes,
+   T&& arg,
    const Vector& roots,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
@@ -590,7 +529,7 @@ template<
    typename VertexIndexes,
    typename EdgePredicate,
    typename Vector,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
 isForestWithRoots(
    const Graph& graph,
