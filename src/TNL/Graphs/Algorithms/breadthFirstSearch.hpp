@@ -174,7 +174,19 @@ breadthFirstSearch_impl(
    TNL_ASSERT_GE( start, static_cast< IndexType >( 0 ), "Start vertex index must be non-negative." );
    TNL_ASSERT_LT( start, n, "Start vertex index must be less than the number of vertices." );
 
-   if( ! isActive( start ) )
+   // Use 5-arg reduce (explicit Result+identity) to avoid decltype(fetch(0)):
+   // NVCC may evaluate it on host when fetch captures a GPU view via nested
+   // extended-lambda forwarding (SCC → breadthFirstSearchIf → _impl).
+   const bool startActive = TNL::Algorithms::reduce< DeviceType, IndexType, bool >(
+      0,
+      1,
+      [ = ] __cuda_callable__( IndexType ) -> bool
+      {
+         return isActive( start );
+      },
+      TNL::LogicalAnd{},
+      true );
+   if( ! startActive )
       throw std::invalid_argument( "Start vertex must belong to the induced active subgraph." );
 
    if constexpr( std::is_same_v< DeviceType, TNL::Devices::Sequential > ) {

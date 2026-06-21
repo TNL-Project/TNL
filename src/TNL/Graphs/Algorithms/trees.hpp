@@ -121,14 +121,15 @@ countActiveEdges(
       };
       matrix.reduceAllRows( fetch_edge, Plus{}, keep, (IndexType) 0, launchConfig );
 
-      IndexType total = TNL::Algorithms::reduce< DeviceType >(
+      IndexType total = TNL::Algorithms::reduce< DeviceType, IndexType, IndexType >(
          0,
          n,
          [ = ] __cuda_callable__( IndexType idx ) -> IndexType
          {
             return edgeCountsView[ idx ];
          },
-         Plus{} );
+         Plus{},
+         (IndexType) 0 );
 
       if constexpr( isUndirected ) {
          Containers::Vector< IndexType, DeviceType, IndexType > diagonalCounts( n, 0 );
@@ -149,14 +150,15 @@ countActiveEdges(
             diagView[ rowIdx ] = value;
          };
          matrix.reduceAllRows( diag_fetch, Plus{}, diag_keep, (IndexType) 0, launchConfig );
-         total += TNL::Algorithms::reduce< DeviceType >(
+         total += TNL::Algorithms::reduce< DeviceType, IndexType, IndexType >(
             0,
             n,
             [ = ] __cuda_callable__( IndexType idx ) -> IndexType
             {
                return diagView[ idx ];
             },
-            Plus{} );
+            Plus{},
+            (IndexType) 0 );
       }
       return total;
    }
@@ -171,14 +173,15 @@ countActiveVertices( const Graph& graph, IsActive&& isActive, TNL::Algorithms::S
    const IndexType n = graph.getVertexCount();
 
    auto pred = std::forward< IsActive >( isActive );
-   return TNL::Algorithms::reduce< DeviceType >(
+   return TNL::Algorithms::reduce< DeviceType, IndexType, IndexType >(
       0,
       n,
       [ = ] __cuda_callable__( IndexType idx ) -> IndexType
       {
          return pred( idx ) ? 1 : 0;
       },
-      Plus{} );
+      Plus{},
+      (IndexType) 0 );
 }
 
 }  // namespace detail
@@ -240,19 +243,33 @@ isTree_impl(
    if( ! roots.empty() )
       start = roots.getElement( rootsIdx++ );
    else {
-      for( IndexType i = 0; i < n; i++ ) {
-         if( isActive( i ) ) {
-            start = i;
-            break;
-         }
-      }
+      start = TNL::Algorithms::reduce< DeviceType, IndexType, IndexType >(
+         0,
+         n,
+         [ = ] __cuda_callable__( IndexType i ) -> IndexType
+         {
+            return isActive( i ) ? i : std::numeric_limits< IndexType >::max();
+         },
+         TNL::Min{},
+         std::numeric_limits< IndexType >::max() );
+      if( start == std::numeric_limits< IndexType >::max() )
+         return treeType == TreeType::Forest;
    }
    // BFS from the start vertex.  If TreeType::Tree, we return false as
    // soon as a cycle/cross-edge is found or not all active vertices are
    // reached.  For TreeType::Forest we restart from the next unvisited
    // active vertex (or the next explicit root) until all are covered.
    while( true ) {
-      if( ! isActive( start ) )
+      bool startActive = TNL::Algorithms::reduce< DeviceType, IndexType, bool >(
+         0,
+         1,
+         [ = ] __cuda_callable__( IndexType ) -> bool
+         {
+            return isActive( start );
+         },
+         TNL::LogicalAnd{},
+         true );
+      if( ! startActive )
          return false;
       visited.setElement( start, 1 );
       parents.setElement( start, start );
@@ -354,38 +371,40 @@ isTree_impl(
             else
                graph.getAdjacencyMatrix().reduceAllRows( fetch, Plus{}, keep, (IndexType) 0, launchConfig );
 
-            // NOTE: These sequential loops over all vertices cause host-device synchronization
-            // on GPU backends and scale poorly for large graphs. Consider replacing with
-            // parallel reduce in a future optimization.
-            // If any active vertex was reached more than once, the graph
-            // contains a cycle or cross-edge and is not a tree/forest.
-            bool anyExceeded = false;
-            for( IndexType i = 0; i < n; i++ ) {
-               if( isActive( i ) && visited[ i ] > 1 ) {
-                  anyExceeded = true;
-                  break;
-               }
-            }
+            bool anyExceeded = ! TNL::Algorithms::reduce< DeviceType, IndexType, bool >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType i ) -> bool
+               {
+                  return ! ( isActiveCopy( i ) && visitedView[ i ] > 1 );
+               },
+               TNL::LogicalAnd{},
+               true );
             if( anyExceeded )
                return false;
-            bool allVisited = true;
-            for( IndexType i = 0; i < n; i++ ) {
-               if( isActive( i ) && visited[ i ] != 1 ) {
-                  allVisited = false;
-                  break;
-               }
-            }
+            bool allVisited = TNL::Algorithms::reduce< DeviceType, IndexType, bool >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType i ) -> bool
+               {
+                  return ! isActiveCopy( i ) || visitedView[ i ] == 1;
+               },
+               TNL::LogicalAnd{},
+               true );
             if( allVisited )
                return true;
          }
       }
-      bool allVisitedSeq = true;
-      for( IndexType i = 0; i < n; i++ ) {
-         if( isActive( i ) && visited[ i ] != 1 ) {
-            allVisitedSeq = false;
-            break;
-         }
-      }
+      auto visitedViewOuter = visited.getConstView();
+      bool allVisitedSeq = TNL::Algorithms::reduce< DeviceType, IndexType, bool >(
+         0,
+         n,
+         [ = ] __cuda_callable__( IndexType i ) -> bool
+         {
+            return ! isActive( i ) || visitedViewOuter[ i ] == 1;
+         },
+         TNL::LogicalAnd{},
+         true );
       if( allVisitedSeq )
          return true;
       if( treeType == TreeType::Tree )
@@ -397,15 +416,16 @@ isTree_impl(
             return false;
       }
       else {
-         bool foundNext = false;
-         for( IndexType i = 0; i < n; i++ ) {
-            if( isActive( i ) && visited[ i ] == 0 ) {
-               start = i;
-               foundNext = true;
-               break;
-            }
-         }
-         if( ! foundNext )
+         start = TNL::Algorithms::reduce< DeviceType, IndexType, IndexType >(
+            0,
+            n,
+            [ = ] __cuda_callable__( IndexType i ) -> IndexType
+            {
+               return ( isActive( i ) && visitedViewOuter[ i ] == 0 ) ? i : std::numeric_limits< IndexType >::max();
+            },
+            TNL::Min{},
+            std::numeric_limits< IndexType >::max() );
+         if( start == std::numeric_limits< IndexType >::max() )
             return true;
       }
    }
