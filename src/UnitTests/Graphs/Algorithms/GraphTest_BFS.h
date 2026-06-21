@@ -96,8 +96,8 @@ TYPED_TEST( GraphTest, test_BFS_larger )
                                       {5, 2, 1.0},                                       {5, 6, 1.0},               {5, 8, 1.0},
                                                    {6, 3, 1.0},              {6, 5, 1.0},                                        {6, 9, 1.0},
                                                                 {7, 4, 1.0},                                        {7, 8, 1.0},
-                                                                             {8, 5, 1.0},              {8, 7, 1.0},              {8, 9, 1.0},
-                                                                                          {9, 6, 1.0},               {9, 8, 1.0},
+                                                                                     {8, 5, 1.0},              {8, 7, 1.0},              {8, 9, 1.0},
+                                                                                                  {9, 6, 1.0},               {9, 8, 1.0},
         });
    // clang-format on
 
@@ -180,9 +180,10 @@ TYPED_TEST( GraphTest, test_BFS_withIndexes_inducedSubgraph )
    ASSERT_EQ( distances, expectedDistances );
 }
 
-TYPED_TEST( GraphTest, test_BFSIf_inducedSubgraph )
+template< typename GraphType >
+void
+test_BFSIf_inducedSubgraph_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -209,9 +210,15 @@ TYPED_TEST( GraphTest, test_BFSIf_inducedSubgraph )
    ASSERT_EQ( distances, expectedDistances );
 }
 
-TYPED_TEST( GraphTest, test_BFS_withIndexes_visitor )
+TYPED_TEST( GraphTest, test_BFSIf_inducedSubgraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_BFSIf_inducedSubgraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_withIndexes_visitor_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -246,9 +253,15 @@ TYPED_TEST( GraphTest, test_BFS_withIndexes_visitor )
    EXPECT_EQ( visitedDistances.getElement( 4 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_BFS_byEdges_wholeGraph )
+TYPED_TEST( GraphTest, test_BFS_withIndexes_visitor )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_BFS_withIndexes_visitor_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_byEdges_wholeGraph_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -277,9 +290,15 @@ TYPED_TEST( GraphTest, test_BFS_byEdges_wholeGraph )
    ASSERT_EQ( distances, expectedDistances );
 }
 
-TYPED_TEST( GraphTest, test_BFS_byEdges_withIndexes_inducedSubgraph )
+TYPED_TEST( GraphTest, test_BFS_byEdges_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_BFS_byEdges_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_byEdges_withIndexes_inducedSubgraph_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -308,6 +327,11 @@ TYPED_TEST( GraphTest, test_BFS_byEdges_withIndexes_inducedSubgraph )
    TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, vertexIndexes, allowUnitWeightOnly, distances );
 
    ASSERT_EQ( distances, expectedDistances );
+}
+
+TYPED_TEST( GraphTest, test_BFS_byEdges_withIndexes_inducedSubgraph )
+{
+   test_BFS_byEdges_withIndexes_inducedSubgraph_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_BFS_withInactiveStart_throws )
@@ -463,9 +487,10 @@ remapAndCompareDistances( const VectorType& distA, const VectorType& distB, cons
    }
 }
 
-TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_predicate )
+template< typename GraphType >
+void
+test_BFS_subgraph_vertex_removal_predicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -491,6 +516,11 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_predicate )
    ASSERT_EQ( distA.getElement( 8 ), -1 );
 }
 
+TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_predicate )
+{
+   test_BFS_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
+}
+
 TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_indexed )
 {
    using GraphType = typename TestFixture::GraphType;
@@ -514,9 +544,10 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_indexed )
    ASSERT_EQ( distA.getElement( 8 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_disconnected )
+template< typename GraphType >
+void
+test_BFS_subgraph_vertex_removal_disconnected_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -540,9 +571,15 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_disconnected )
    ASSERT_EQ( distA.getElement( 4 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_wholeGraph )
+TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_disconnected )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_BFS_subgraph_vertex_removal_disconnected_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_subgraph_edge_removal_wholeGraph_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -561,9 +598,15 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_wholeGraph )
    ASSERT_EQ( distA, distC );
 }
 
-TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_BFS_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_subgraph_edge_removal_withIndexes_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -590,12 +633,18 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withIndexes )
    ASSERT_EQ( distA.getElement( 9 ), -1 );
 }
 
+TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withIndexes )
+{
+   test_BFS_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
+}
+
 // NEW#1: whole-graph BFS with an edge predicate and a visitor callback.
 // Mirrors test_BFS_byEdges_wholeGraph (same graph + forbidOneToTwo) plus a
 // visitor that records each visited node's distance into a view-backed vector.
-TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_wholeGraph )
+template< typename GraphType >
+void
+test_BFS_withVisitor_edgePredicate_wholeGraph_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -635,13 +684,19 @@ TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_wholeGraph )
    EXPECT_EQ( visitedDistances, expectedVisited );
 }
 
+TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_wholeGraph )
+{
+   test_BFS_withVisitor_edgePredicate_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
 // NEW#2: indexed-subgraph BFS with an edge predicate and a visitor callback.
 // Mirrors test_BFS_subgraph_edge_removal_withIndexes (same graph A, subgraph E2,
 // vertex indexes, and blockEdge03) plus a visitor, cross-validating distances
 // against the materialized subgraph.
-TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_subgraph )
+template< typename GraphType >
+void
+test_BFS_withVisitor_edgePredicate_subgraph_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -680,14 +735,20 @@ TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_subgraph )
    EXPECT_EQ( visitedDistances, expectedVisited );
 }
 
+TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_subgraph )
+{
+   test_BFS_withVisitor_edgePredicate_subgraph_impl< typename TestFixture::GraphType >();
+}
+
 // NEW#3: predicate-induced subgraph BFS with an edge predicate and a visitor.
 // Excluding vertices {2,5,8} and blocking edge 0-3 yields the same reachable
 // set as subgraph E2 (vertices {0,1,3,4,6,7} with edge 0-3 removed), so the
 // distances are cross-validated against it. Vertex 9 is active but unreachable
 // (its only edge goes to the excluded vertex 8).
-TYPED_TEST( GraphTest, test_BFS_ifWithVisitor_edgePredicate )
+template< typename GraphType >
+void
+test_BFS_ifWithVisitor_edgePredicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -725,6 +786,11 @@ TYPED_TEST( GraphTest, test_BFS_ifWithVisitor_edgePredicate )
 
    const VectorType expectedVisited( { -1, 1, -1, 3, 2, -1, 4, 3, -1, -1 } );
    EXPECT_EQ( visitedDistances, expectedVisited );
+}
+
+TYPED_TEST( GraphTest, test_BFS_ifWithVisitor_edgePredicate )
+{
+   test_BFS_ifWithVisitor_edgePredicate_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"

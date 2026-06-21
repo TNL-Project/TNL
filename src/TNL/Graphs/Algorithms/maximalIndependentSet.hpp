@@ -272,14 +272,14 @@ maximalIndependentSet( const Graph& graph, Vector& independentSet, TNL::Algorith
       },
       independentSet,
       0,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 void
 maximalIndependentSet(
    const Graph& graph,
@@ -301,7 +301,7 @@ maximalIndependentSet(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 void
 maximalIndependentSet(
    const Graph& graph,
@@ -324,14 +324,14 @@ maximalIndependentSet(
       },
       independentSet,
       0,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 void
 maximalIndependentSet(
    const Graph& graph,
@@ -374,7 +374,7 @@ maximalIndependentSetIf(
       std::forward< VertexPredicate >( vertexPredicate ),
       independentSet,
       0,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -415,14 +415,14 @@ isMaximalIndependentSet(
          return true;
       },
       independentSet,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 bool
 isMaximalIndependentSet(
    const Graph& graph,
@@ -443,7 +443,7 @@ isMaximalIndependentSet(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 bool
 isMaximalIndependentSet(
    const Graph& graph,
@@ -465,14 +465,14 @@ isMaximalIndependentSet(
          return static_cast< bool >( activeVerticesView[ vertex ] );
       },
       independentSet,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 bool
 isMaximalIndependentSet(
    const Graph& graph,
@@ -513,7 +513,7 @@ isMaximalIndependentSetIf(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
       independentSet,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },

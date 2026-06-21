@@ -241,9 +241,10 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withIndexes_false )
    EXPECT_FALSE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, vertexIndexes, independentSet ) );
 }
 
-TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_true )
+template< typename GraphType >
+void
+test_isMaximalIndependentSet_withPredicate_true_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using MISVectorType = MISVector< GraphType >;
 
@@ -266,9 +267,15 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_true )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graph, middleVertices, independentSet ) );
 }
 
-TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_false )
+TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_true )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_isMaximalIndependentSet_withPredicate_true_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_isMaximalIndependentSet_withPredicate_false_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using MISVectorType = MISVector< GraphType >;
 
@@ -289,6 +296,11 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_false )
    };
 
    EXPECT_FALSE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graph, middleVertices, independentSet ) );
+}
+
+TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_false )
+{
+   test_isMaximalIndependentSet_withPredicate_false_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_maximalIndependentSet_empty )
@@ -370,9 +382,10 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_withIndexes )
    expectComputedMISIsValid( graph, vertexIndexes );
 }
 
-TYPED_TEST( GraphTest, test_maximalIndependentSetIf )
+template< typename GraphType >
+void
+test_maximalIndependentSetIf_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
 
    // clang-format off
@@ -391,6 +404,11 @@ TYPED_TEST( GraphTest, test_maximalIndependentSetIf )
    };
 
    expectComputedMISIsValidIf( graph, middleVertices, static_cast< IndexType >( 3 ) );
+}
+
+TYPED_TEST( GraphTest, test_maximalIndependentSetIf )
+{
+   test_maximalIndependentSetIf_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_maximalIndependentSet_small )
@@ -452,9 +470,10 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_large )
    expectComputedMISIsValid( graph );
 }
 
-TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_one_edge )
+template< typename GraphType >
+void
+test_maximalIndependentSet_edge_predicate_block_one_edge_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using MISVectorType = MISVector< GraphType >;
@@ -484,9 +503,15 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_one_edge 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, edgePredicate, independentSet ) );
 }
 
-TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_all )
+TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_one_edge )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_maximalIndependentSet_edge_predicate_block_one_edge_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_maximalIndependentSet_edge_predicate_block_all_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using MISVectorType = MISVector< GraphType >;
@@ -515,9 +540,15 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_all )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, edgePredicate, independentSet ) );
 }
 
-TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_identity )
+TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_all )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_maximalIndependentSet_edge_predicate_block_all_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_maximalIndependentSet_edge_predicate_identity_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using MISVectorType = MISVector< GraphType >;
@@ -543,6 +574,11 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_identity )
    TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
+}
+
+TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_identity )
+{
+   test_maximalIndependentSet_edge_predicate_identity_impl< typename TestFixture::GraphType >();
 }
 
 // clang-format off
@@ -669,9 +705,10 @@ makeMISSubgraphE2()
    // clang-format on
 }
 
-TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_predicate )
+template< typename GraphType >
+void
+test_MIS_subgraph_vertex_removal_predicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using MISVectorType = MISVector< GraphType >;
 
@@ -697,6 +734,11 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_predicate )
       sumB += misB.getElement( i );
    }
    EXPECT_EQ( sumA, sumB );
+}
+
+TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_predicate )
+{
+   test_MIS_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_indexed )
@@ -726,9 +768,10 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_indexed )
    EXPECT_EQ( sumA, sumB );
 }
 
-TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_disconnected )
+template< typename GraphType >
+void
+test_MIS_subgraph_vertex_removal_disconnected_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using MISVectorType = MISVector< GraphType >;
 
@@ -756,9 +799,15 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_disconnected )
    EXPECT_EQ( sumA, sumD );
 }
 
-TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_wholeGraph )
+TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_disconnected )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_MIS_subgraph_vertex_removal_disconnected_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_MIS_subgraph_edge_removal_wholeGraph_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using MISVectorType = MISVector< GraphType >;
@@ -781,9 +830,15 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_wholeGraph )
    EXPECT_EQ( TNL::sum( misA ), TNL::sum( misC ) );
 }
 
-TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_MIS_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_MIS_subgraph_edge_removal_withIndexes_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using MISVectorType = MISVector< GraphType >;
@@ -811,6 +866,11 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_withIndexes )
       sumE2 += misE2.getElement( i );
    }
    EXPECT_EQ( sumA, sumE2 );
+}
+
+TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_withIndexes )
+{
+   test_MIS_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"

@@ -166,9 +166,10 @@ TYPED_TEST( GraphTest, test_small_forest )
 
 // Subgraph tests for isTree
 
-TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_predicate )
+template< typename GraphType >
+void
+test_isTree_subgraph_vertex_removal_predicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
 
    // Main tree topology (see diagram above test_isTree_small).
@@ -183,6 +184,11 @@ TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_predicate )
    };
 
    ASSERT_TRUE( TNL::Graphs::Algorithms::isTreeIf( graph, 0, isActive ) );
+}
+
+TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_predicate )
+{
+   test_isTree_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_indexed )
@@ -202,9 +208,10 @@ TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_indexed )
    ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph, 0, vertexIndexes ) );
 }
 
-TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_wholeGraph )
+template< typename GraphType >
+void
+test_isTree_subgraph_edge_removal_wholeGraph_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
 
@@ -231,9 +238,15 @@ TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_wholeGraph )
    ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph, 0, allowAll ) );
 }
 
-TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_isTree_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_isTree_subgraph_edge_removal_withIndexes_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
@@ -256,11 +269,17 @@ TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_withIndexes )
    ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph, 0, vertexIndexes, blockEdge02 ) );
 }
 
+TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_withIndexes )
+{
+   test_isTree_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
+}
+
 // Subgraph tests for isForest
 
-TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_predicate )
+template< typename GraphType >
+void
+test_isForest_subgraph_vertex_removal_predicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
 
    // Tree on 10 vertices
@@ -277,6 +296,11 @@ TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_predicate )
 
    ASSERT_FALSE( TNL::Graphs::Algorithms::isTreeIf( graph, 1, excludeZero ) );
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForestIf( graph, excludeZero ) );
+}
+
+TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_predicate )
+{
+   test_isForest_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_indexed )
@@ -297,9 +321,10 @@ TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_indexed )
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, vertexIndexes ) );
 }
 
-TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_wholeGraph )
+template< typename GraphType >
+void
+test_isForest_subgraph_edge_removal_wholeGraph_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
 
@@ -317,9 +342,15 @@ TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_wholeGraph )
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, blockEdge02 ) );
 }
 
-TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_isForest_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_isForest_subgraph_edge_removal_withIndexes_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
@@ -339,6 +370,11 @@ TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_withIndexes )
    };
 
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, vertexIndexes, blockEdge02 ) );
+}
+
+TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_withIndexes )
+{
+   test_isForest_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
 }
 
 // Subgraph tests for isForestWithRoots
@@ -375,9 +411,10 @@ TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_indexed )
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, vertexIndexes, roots ) );
 }
 
-TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_edge_removal_withIndexes )
+template< typename GraphType >
+void
+test_isForestWithRoots_subgraph_edge_removal_withIndexes_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
@@ -397,6 +434,11 @@ TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_edge_removal_withIndexes 
    IndexVector roots( { 0, 5 } );
 
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, vertexIndexes, blockEdge02, roots ) );
+}
+
+TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_edge_removal_withIndexes )
+{
+   test_isForestWithRoots_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"

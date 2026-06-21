@@ -160,16 +160,27 @@ struct IsScalarType
  * \brief Type trait for checking if T is an array type, e.g.
  *        \ref Containers::Array or \ref Containers::Vector.
  *
- * The trait combines \ref HasGetArrayDataMethod, \ref HasGetSizeMethod,
- * and \ref HasSubscriptOperator.
+ * The trait requires the nested types \c DeviceType and \c IndexType
+ * (which all TNL containers expose) in addition to the methods checked by
+ * \ref HasGetArrayDataMethod, \ref HasGetSizeMethod, and
+ * \ref HasSubscriptOperator.
+ *
+ * The nested-type requirement is essential for NVCC: the internal
+ * \c __nv_hdl_wrapper_t used for extended lambdas falsely satisfies
+ * expression-based SFINAE (member-function detection) but does not have
+ * these nested typedefs, so it is correctly rejected.
  */
+template< typename T, typename = void >
+struct IsArrayType : std::false_type {};
+
 template< typename T >
-struct IsArrayType
-: public std::conjunction<
-            HasGetArrayDataMethod< T >,
-            HasSubscriptOperator< T >,
-            HasGetSizeMethod< T > >
-{};
+struct IsArrayType< T, std::void_t<
+   typename std::decay_t< T >::DeviceType,
+   typename std::decay_t< T >::IndexType,
+   decltype( std::declval< T >().getArrayData() ),
+   decltype( std::declval< T >().getSize() ),
+   decltype( std::declval< T >()[ std::declval< typename std::decay_t< T >::IndexType >() ] )
+> > : std::true_type {};
 
 /**
  * \brief Type trait for checking if T is a vector type, e.g.

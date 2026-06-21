@@ -266,14 +266,14 @@ connectedComponents( const Graph& graph, Vector& components, TNL::Algorithms::Se
       {
          return true;
       },
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 void
 connectedComponents(
    const Graph& graph,
@@ -293,7 +293,7 @@ connectedComponents(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 void
 connectedComponents(
    const Graph& graph,
@@ -316,14 +316,14 @@ connectedComponents(
       graph,
       components,
       isActive,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 void
 connectedComponents(
    const Graph& graph,
@@ -360,7 +360,7 @@ connectedComponentsIf(
       graph,
       components,
       predicate,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },

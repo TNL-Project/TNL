@@ -109,7 +109,7 @@ countActiveEdges(
             return 0;
          if( ! edgePredicateView( rowIdx, columnIdx, value ) )
             return 0;
-         if constexpr( isUndirected && ! isSymmetric ) {
+         if( isUndirected && ! isSymmetric ) {
             if( columnIdx <= rowIdx )
                return 0;
          }
@@ -170,10 +170,11 @@ countActiveVertices( const Graph& graph, IsActive&& isActive, TNL::Algorithms::S
    using DeviceType = typename Graph::DeviceType;
    const IndexType n = graph.getVertexCount();
 
+   auto pred = std::forward< IsActive >( isActive );
    return TNL::Algorithms::reduce< DeviceType >(
       0,
       n,
-      [ pred = std::forward< IsActive >( isActive ) ] __cuda_callable__( IndexType idx ) -> IndexType
+      [ = ] __cuda_callable__( IndexType idx ) -> IndexType
       {
          return pred( idx ) ? 1 : 0;
       },
@@ -427,74 +428,67 @@ isTree( const Graph& graph, typename Graph::IndexType start, TNL::Algorithms::Se
       {
          return true;
       },
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename EdgePredicate, typename >
+template< typename Graph, typename T >
 bool
 isTree(
    const Graph& graph,
    typename Graph::IndexType start,
-   EdgePredicate&& edgePredicate,
+   T&& arg,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
-   static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
-      "isTree edge predicate must return bool and accept (source, target, weight)." );
-
    Containers::Vector< IndexType > roots( 1, start );
-   return isTree_impl(
-      graph,
-      roots,
-      TreeType::Tree,
-      [] __cuda_callable__( IndexType )
+
+   if constexpr( IsArrayType< std::decay_t< T > >::value ) {
+      using DeviceType = typename Graph::DeviceType;
+      using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+      IndexVector activeVertices;
+      detail::activateIndexedVertices( graph, arg, activeVertices );
+      const auto activeVerticesView = activeVertices.getConstView();
+      const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
       {
-         return true;
-      },
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
+         return static_cast< bool >( activeVerticesView[ vertex ] );
+      };
+
+      return isTree_impl(
+         graph,
+         roots,
+         TreeType::Tree,
+         isActive,
+         [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
+         {
+            return true;
+         },
+         launchConfig );
+   }
+   else {
+      static_assert(
+         detail::isTreeEdgePredicate_v< T, Graph >,
+         "isTree edge predicate must return bool and accept (source, target, weight)." );
+
+      return isTree_impl(
+         graph,
+         roots,
+         TreeType::Tree,
+         [] __cuda_callable__( IndexType )
+         {
+            return true;
+         },
+         std::forward< T >( arg ),
+         launchConfig );
+   }
 }
 
-template< typename Graph, typename VertexIndexes, typename >
-bool
-isTree(
-   const Graph& graph,
-   typename Graph::IndexType start,
-   const VertexIndexes& vertexIndexes,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
-   {
-      return static_cast< bool >( activeVerticesView[ vertex ] );
-   };
-
-   Containers::Vector< IndexType > roots( 1, start );
-   return isTree_impl(
-      graph,
-      roots,
-      TreeType::Tree,
-      isActive,
-      [] __cuda_callable__( IndexType, IndexType, auto )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename EdgePredicate, typename Enable >
 bool
 isTree(
    const Graph& graph,
@@ -540,7 +534,7 @@ isTreeIf(
       roots,
       TreeType::Tree,
       predicate,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -584,66 +578,63 @@ isForest( const Graph& graph, TNL::Algorithms::Segments::LaunchConfiguration lau
       {
          return true;
       },
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename EdgePredicate, typename >
+template< typename Graph, typename T >
 bool
-isForest( const Graph& graph, EdgePredicate&& edgePredicate, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+isForest( const Graph& graph, T&& arg, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
 
-   static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
-      "isForest edge predicate must return bool and accept (source, target, weight)." );
-
    Containers::Vector< IndexType > roots;
-   return isTree_impl(
-      graph,
-      roots,
-      TreeType::Forest,
-      [] __cuda_callable__( IndexType )
+
+   if constexpr( IsArrayType< std::decay_t< T > >::value ) {
+      using DeviceType = typename Graph::DeviceType;
+      using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+      IndexVector activeVertices;
+      detail::activateIndexedVertices( graph, arg, activeVertices );
+      const auto activeVerticesView = activeVertices.getConstView();
+      const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
       {
-         return true;
-      },
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
+         return static_cast< bool >( activeVerticesView[ vertex ] );
+      };
+
+      return isTree_impl(
+         graph,
+         roots,
+         TreeType::Forest,
+         isActive,
+         [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
+         {
+            return true;
+         },
+         launchConfig );
+   }
+   else {
+      static_assert(
+         detail::isTreeEdgePredicate_v< T, Graph >,
+         "isForest edge predicate must return bool and accept (source, target, weight)." );
+
+      return isTree_impl(
+         graph,
+         roots,
+         TreeType::Forest,
+         [] __cuda_callable__( IndexType )
+         {
+            return true;
+         },
+         std::forward< T >( arg ),
+         launchConfig );
+   }
 }
 
-template< typename Graph, typename VertexIndexes, typename >
-bool
-isForest( const Graph& graph, const VertexIndexes& vertexIndexes, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
-   {
-      return static_cast< bool >( activeVerticesView[ vertex ] );
-   };
-
-   Containers::Vector< IndexType > roots;
-   return isTree_impl(
-      graph,
-      roots,
-      TreeType::Forest,
-      isActive,
-      [] __cuda_callable__( IndexType, IndexType, auto )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename EdgePredicate, typename Enable >
 bool
 isForest(
    const Graph& graph,
@@ -684,7 +675,7 @@ isForestIf( const Graph& graph, VertexPredicate&& vertexPredicate, TNL::Algorith
       roots,
       TreeType::Forest,
       predicate,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -725,70 +716,64 @@ isForestWithRoots( const Graph& graph, const Vector& roots, TNL::Algorithms::Seg
       {
          return true;
       },
-      [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType, auto )
+      [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename EdgePredicate, typename Vector, typename >
+template< typename Graph, typename T, typename Vector >
 bool
 isForestWithRoots(
    const Graph& graph,
-   EdgePredicate&& edgePredicate,
+   T&& arg,
    const Vector& roots,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
-      "isForestWithRoots edge predicate must return bool and accept (source, target, weight)." );
+   if constexpr( IsArrayType< std::decay_t< T > >::value ) {
+      using DeviceType = typename Graph::DeviceType;
+      using IndexType = typename Graph::IndexType;
+      using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
-   return isTree_impl(
-      graph,
-      roots,
-      TreeType::Forest,
-      [] __cuda_callable__( typename Graph::IndexType )
+      IndexVector activeVertices;
+      detail::activateIndexedVertices( graph, arg, activeVertices );
+      const auto activeVerticesView = activeVertices.getConstView();
+      const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
       {
-         return true;
-      },
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
+         return static_cast< bool >( activeVerticesView[ vertex ] );
+      };
+
+      return isTree_impl(
+         graph,
+         roots,
+         TreeType::Forest,
+         isActive,
+         [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
+         {
+            return true;
+         },
+         launchConfig );
+   }
+   else {
+      static_assert(
+         detail::isTreeEdgePredicate_v< T, Graph >,
+         "isForestWithRoots edge predicate must return bool and accept (source, target, weight)." );
+
+      return isTree_impl(
+         graph,
+         roots,
+         TreeType::Forest,
+         [] __cuda_callable__( typename Graph::IndexType )
+         {
+            return true;
+         },
+         std::forward< T >( arg ),
+         launchConfig );
+   }
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
-bool
-isForestWithRoots(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   const Vector& roots,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
-   {
-      return static_cast< bool >( activeVerticesView[ vertex ] );
-   };
-
-   return isTree_impl(
-      graph,
-      roots,
-      TreeType::Forest,
-      isActive,
-      [] __cuda_callable__( IndexType, IndexType, auto )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename EdgePredicate, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename EdgePredicate, typename Vector, typename Enable >
 bool
 isForestWithRoots(
    const Graph& graph,
@@ -830,7 +815,7 @@ isForestWithRootsIf(
       roots,
       TreeType::Forest,
       predicate,
-      [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType, auto )
+      [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType )
       {
          return true;
       },

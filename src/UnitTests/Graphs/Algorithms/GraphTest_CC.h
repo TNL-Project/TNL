@@ -323,9 +323,10 @@ TYPED_TEST( GraphTest, test_CC_indexed_all_vertices )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_predicate_small )
+template< typename GraphType >
+void
+test_CC_predicate_small_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -354,9 +355,15 @@ TYPED_TEST( GraphTest, test_CC_predicate_small )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_predicate_even_vertices )
+TYPED_TEST( GraphTest, test_CC_predicate_small )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_predicate_small_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_predicate_even_vertices_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -385,9 +392,15 @@ TYPED_TEST( GraphTest, test_CC_predicate_even_vertices )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_predicate_none_active )
+TYPED_TEST( GraphTest, test_CC_predicate_even_vertices )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_predicate_even_vertices_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_predicate_none_active_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -414,9 +427,15 @@ TYPED_TEST( GraphTest, test_CC_predicate_none_active )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_edge_predicate_weight_threshold )
+TYPED_TEST( GraphTest, test_CC_predicate_none_active )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_predicate_none_active_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_edge_predicate_weight_threshold_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
@@ -448,9 +467,15 @@ TYPED_TEST( GraphTest, test_CC_edge_predicate_weight_threshold )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_edge_predicate_block_all )
+TYPED_TEST( GraphTest, test_CC_edge_predicate_weight_threshold )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_edge_predicate_weight_threshold_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_edge_predicate_block_all_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
@@ -480,9 +505,15 @@ TYPED_TEST( GraphTest, test_CC_edge_predicate_block_all )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_edge_predicate_identity )
+TYPED_TEST( GraphTest, test_CC_edge_predicate_block_all )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_edge_predicate_block_all_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_edge_predicate_identity_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
@@ -512,9 +543,15 @@ TYPED_TEST( GraphTest, test_CC_edge_predicate_identity )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_vertex_and_edge_predicate )
+TYPED_TEST( GraphTest, test_CC_edge_predicate_identity )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_edge_predicate_identity_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_vertex_and_edge_predicate_impl()
+{
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
@@ -550,6 +587,11 @@ TYPED_TEST( GraphTest, test_CC_vertex_and_edge_predicate )
 
    ComponentsType expected( { 0, 0, 2, 2, 4, -1 } );
    ASSERT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_CC_vertex_and_edge_predicate )
+{
+   test_CC_vertex_and_edge_predicate_impl< typename TestFixture::GraphType >();
 }
 
 template< typename GraphType >
@@ -715,9 +757,10 @@ expectPartitionEquiv( const VectorA& compA, const VectorB& compB, const std::vec
    }
 }
 
-TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_predicate )
+template< typename GraphType >
+void
+test_CC_subgraph_vertex_removal_predicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -736,6 +779,11 @@ TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_predicate )
    // oldToNew: -1 for removed vertices
    const std::vector< int > oldToNew = { 0, 1, -1, 2, 3, -1, 4, 5, -1, 6 };
    expectPartitionEquiv( compA, compB, oldToNew, 10 );
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_predicate )
+{
+   test_CC_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_indexed )
@@ -757,9 +805,10 @@ TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_indexed )
    expectPartitionEquiv( compA, compB, oldToNew, 10 );
 }
 
-TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_disconnected )
+template< typename GraphType >
+void
+test_CC_subgraph_vertex_removal_disconnected_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
 
@@ -779,9 +828,15 @@ TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_disconnected )
    expectPartitionEquiv( compA, compD, oldToNew, 10 );
 }
 
-TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_wholeGraph )
+TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_disconnected )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_subgraph_vertex_removal_disconnected_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_subgraph_edge_removal_wholeGraph_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
@@ -802,9 +857,15 @@ TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_wholeGraph )
    expectPartitionEquiv( compA, compC, identity, 10 );
 }
 
-TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_subgraph_edge_removal_withIndexes_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
@@ -826,9 +887,15 @@ TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_withIndexes )
    expectPartitionEquiv( compA, compE2, oldToNew, 10 );
 }
 
-TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_bridge )
+TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_withIndexes )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_CC_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_CC_subgraph_edge_removal_bridge_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ComponentsType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
@@ -847,6 +914,11 @@ TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_bridge )
 
    const std::vector< int > identity = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
    expectPartitionEquiv( compA, compBridge, identity, 10 );
+}
+
+TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_bridge )
+{
+   test_CC_subgraph_edge_removal_bridge_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"
