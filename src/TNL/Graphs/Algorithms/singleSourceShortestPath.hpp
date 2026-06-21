@@ -291,7 +291,7 @@ singleSourceShortestPath(
       {
          return true;
       },
-      [] __cuda_callable__( Index, Index, auto weight )
+      [] __cuda_callable__( Index, Index, typename Graph::ValueType weight )
       {
          return weight;
       },
@@ -299,7 +299,7 @@ singleSourceShortestPath(
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgeWeightCallable, typename Index, typename >
+template< typename Graph, typename Vector, typename EdgeWeightCallable, typename Index, typename Enable >
 void
 singleSourceShortestPath(
    const Graph& graph,
@@ -324,7 +324,7 @@ singleSourceShortestPath(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename Index, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Index, typename Enable >
 void
 singleSourceShortestPath(
    const Graph& graph,
@@ -347,7 +347,7 @@ singleSourceShortestPath(
       graph,
       start,
       isActive,
-      [] __cuda_callable__( Index, Index, auto weight )
+      [] __cuda_callable__( Index, Index, typename Graph::ValueType weight )
       {
          return weight;
       },
@@ -355,7 +355,7 @@ singleSourceShortestPath(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgeWeightCallable, typename Index, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgeWeightCallable, typename Index, typename Enable >
 void
 singleSourceShortestPath(
    const Graph& graph,
@@ -397,7 +397,7 @@ singleSourceShortestPathIf(
       graph,
       start,
       predicate,
-      [] __cuda_callable__( Index, Index, auto weight )
+      [] __cuda_callable__( Index, Index, typename Graph::ValueType weight )
       {
          return weight;
       },

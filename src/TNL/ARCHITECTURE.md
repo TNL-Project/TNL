@@ -34,7 +34,7 @@ This creates a host/device compilation split on HIP because architecture macros 
 Use the warp-size API from `<TNL/Backend/LaunchHelpers.h>`:
 
 | Function                | Scope         | Return value                                  |
-|-------------------------|---------------|-----------------------------------------------|
+| ----------------------- | ------------- | --------------------------------------------- |
 | `getWarpSize()`         | Device only   | Actual warp size for the target architecture  |
 | `getMaxWarpSize()`      | Host + device | Maximum across all architectures in the build |
 | `getMinWarpSize()`      | Host + device | Always 32                                     |
@@ -100,6 +100,25 @@ HIP shuffle intrinsics (`__shfl_down_sync` etc.) differ from CUDA in two ways:
    CUDA uses a 32-bit mask.
    Use `Backend::getWarpFullMask()` which returns the correct type and value for the target architecture.
    Do **not** call it from host code — it relies on `__GFX8__`/`__GFX9__` macros that are undefined on the host.
+
+### Extended lambdas in private or protected member functions
+
+NVCC forbids extended `__host__ __device__` lambdas (i.e. lambdas declared
+with `__cuda_callable__`) inside private or protected member functions.
+The compiler reports:
+
+```
+error: The enclosing parent function ("TestBody") for an extended
+       __host__ __device__ lambda cannot have private or protected
+       access within its class
+```
+
+This affects any code that uses `__cuda_callable__` lambdas from within
+class methods that are not public — including operators, virtual overrides,
+and template methods.
+
+To work around this limitation, code utilizing `__cuda_callable__` lambdas
+must be extracted from private or protected methods into free functions.
 
 ### Backend-safe API calls
 

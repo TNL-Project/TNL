@@ -199,9 +199,10 @@ TYPED_TEST( GraphTest, test_SSSP_withIndexes_inducedSubgraph )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
 }
 
-TYPED_TEST( GraphTest, test_SSSPIf_inducedSubgraph )
+template< typename GraphType >
+void
+test_SSSPIf_inducedSubgraph_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
@@ -230,9 +231,15 @@ TYPED_TEST( GraphTest, test_SSSPIf_inducedSubgraph )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
 }
 
-TYPED_TEST( GraphTest, test_SSSP_byEdges_wholeGraph )
+TYPED_TEST( GraphTest, test_SSSPIf_inducedSubgraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_SSSPIf_inducedSubgraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_SSSP_byEdges_wholeGraph_impl()
+{
    using RealType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
@@ -265,9 +272,15 @@ TYPED_TEST( GraphTest, test_SSSP_byEdges_wholeGraph )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
 }
 
-TYPED_TEST( GraphTest, test_SSSP_byEdgesIf_inducedSubgraph )
+TYPED_TEST( GraphTest, test_SSSP_byEdges_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_SSSP_byEdges_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_SSSP_byEdgesIf_inducedSubgraph_impl()
+{
    using RealType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
@@ -304,6 +317,11 @@ TYPED_TEST( GraphTest, test_SSSP_byEdgesIf_inducedSubgraph )
 
    for( IndexType i = 0; i < graph.getVertexCount(); i++ )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_byEdgesIf_inducedSubgraph )
+{
+   test_SSSP_byEdgesIf_inducedSubgraph_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_SSSP_withInactiveStart_throws )
@@ -464,9 +482,10 @@ remapAndCompareFloatDistances( const VectorType& distA, const VectorType& distB,
    }
 }
 
-TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_predicate )
+template< typename GraphType >
+void
+test_SSSP_subgraph_vertex_removal_predicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
@@ -489,6 +508,11 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_predicate )
    EXPECT_FLOAT_EQ( distA.getElement( 2 ), RealType( -1 ) );
    EXPECT_FLOAT_EQ( distA.getElement( 5 ), RealType( -1 ) );
    EXPECT_FLOAT_EQ( distA.getElement( 8 ), RealType( -1 ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_predicate )
+{
+   test_SSSP_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_indexed )
@@ -516,9 +540,10 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_indexed )
    EXPECT_FLOAT_EQ( distA.getElement( 8 ), RealType( -1 ) );
 }
 
-TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_disconnected )
+template< typename GraphType >
+void
+test_SSSP_subgraph_vertex_removal_disconnected_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
@@ -541,9 +566,15 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_disconnected )
    EXPECT_FLOAT_EQ( distA.getElement( 4 ), RealType( -1 ) );
 }
 
-TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_wholeGraph )
+TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_disconnected )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_SSSP_subgraph_vertex_removal_disconnected_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_SSSP_subgraph_edge_removal_wholeGraph_impl()
+{
    using RealType = typename GraphType::ValueType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
@@ -571,9 +602,15 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_wholeGraph )
    }
 }
 
-TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_SSSP_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_SSSP_subgraph_edge_removal_withIndexes_impl()
+{
    using RealType = typename GraphType::ValueType;
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, typename GraphType::DeviceType, IndexType >;
@@ -601,6 +638,11 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withIndexes )
    EXPECT_FLOAT_EQ( distA.getElement( 5 ), RealType( -1 ) );
    EXPECT_FLOAT_EQ( distA.getElement( 8 ), RealType( -1 ) );
    EXPECT_FLOAT_EQ( distA.getElement( 9 ), RealType( -1 ) );
+}
+
+TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withIndexes )
+{
+   test_SSSP_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
 }
 
 // Regression test for the sequential Dijkstra lazy-deletion invariant.

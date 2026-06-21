@@ -33,7 +33,7 @@ struct GraphBenchmarkCC : public GraphBenchmarkBase< Real, Index, GraphBenchmark
 
       auto ccSequential = [ & ]() mutable
       {
-         TNL::Graphs::Algorithms::connectedComponentsSequential( graph, referenceComponents );
+         TNL::Graphs::Algorithms::connectedComponents( graph, referenceComponents );
       };
       benchmark.time< TNL::Devices::Sequential >( "TNL", ccSequential );
    }
@@ -74,7 +74,7 @@ struct GraphBenchmarkCC : public GraphBenchmarkBase< Real, Index, GraphBenchmark
 
             auto cc = [ &, launchConfig ]() mutable
             {
-               TNL::Graphs::Algorithms::connectedComponentsParallel( graph, components, launchConfig );
+               TNL::Graphs::Algorithms::connectedComponents( graph, components, launchConfig );
             };
             benchmark.time< Device >( "TNL", cc );
 

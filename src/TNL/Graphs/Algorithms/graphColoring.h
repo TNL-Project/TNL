@@ -138,10 +138,7 @@ namespace TNL::Graphs::Algorithms {
  */
 template< typename Graph, typename Vector >
 void
-graphColoring(
-   const Graph& graph,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
+graphColoring( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors an undirected graph with edge filtering by greedy algorithm.
@@ -171,7 +168,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
+   typename Enable = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 graphColoring(
    const Graph& graph,
@@ -201,7 +198,7 @@ template<
    typename Graph,
    typename VertexIndexes,
    typename Vector,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 graphColoring(
    const Graph& graph,
@@ -233,7 +230,7 @@ template<
    typename VertexIndexes,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 graphColoring(
    const Graph& graph,
@@ -319,10 +316,7 @@ graphColoringIf(
  */
 template< typename Graph, typename Vector >
 void
-graphColoringLuby(
-   const Graph& graph,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
+graphColoringLuby( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Colors an undirected graph with edge filtering by repeated Luby-style MIS extraction.
@@ -345,7 +339,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
+   typename Enable = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 graphColoringLuby(
    const Graph& graph,
@@ -375,7 +369,7 @@ template<
    typename Graph,
    typename VertexIndexes,
    typename Vector,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 graphColoringLuby(
    const Graph& graph,
@@ -407,7 +401,7 @@ template<
    typename VertexIndexes,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 graphColoringLuby(
    const Graph& graph,
@@ -491,10 +485,7 @@ graphColoringLubyIf(
  */
 template< typename Graph, typename Vector >
 bool
-isProperlyColored(
-   const Graph& graph,
-   const Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
+isProperlyColored( const Graph& graph, const Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Checks that the coloring is proper considering only allowed edges.
@@ -516,7 +507,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
+   typename Enable = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 bool
 isProperlyColored(
    const Graph& graph,
@@ -548,7 +539,7 @@ template<
    typename Graph,
    typename VertexIndexes,
    typename Vector,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
 isProperlyColored(
    const Graph& graph,
@@ -580,7 +571,7 @@ template<
    typename VertexIndexes,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 bool
 isProperlyColored(
    const Graph& graph,
