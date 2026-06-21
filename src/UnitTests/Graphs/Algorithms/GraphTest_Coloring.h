@@ -325,9 +325,10 @@ TYPED_TEST( GraphTest, test_isProperlyColored_withIndexes_false )
    EXPECT_FALSE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
 }
 
-TYPED_TEST( GraphTest, test_isProperlyColoredIf_true )
+template< typename GraphType >
+void
+test_isProperlyColoredIf_true_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
@@ -350,9 +351,15 @@ TYPED_TEST( GraphTest, test_isProperlyColoredIf_true )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
 }
 
-TYPED_TEST( GraphTest, test_isProperlyColoredIf_false )
+TYPED_TEST( GraphTest, test_isProperlyColoredIf_true )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_isProperlyColoredIf_true_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_isProperlyColoredIf_false_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
@@ -373,6 +380,11 @@ TYPED_TEST( GraphTest, test_isProperlyColoredIf_false )
    };
 
    EXPECT_FALSE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
+}
+
+TYPED_TEST( GraphTest, test_isProperlyColoredIf_false )
+{
+   test_isProperlyColoredIf_false_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_isProperlyColored_medium_false )
@@ -522,9 +534,10 @@ TYPED_TEST( GraphTest, test_graphColoring_withIndexes_usesAtMostTwoColors )
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringIf )
+template< typename GraphType >
+void
+test_graphColoringIf_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
@@ -549,6 +562,11 @@ TYPED_TEST( GraphTest, test_graphColoringIf )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
    EXPECT_EQ( colors.getElement( 4 ), -1 );
+}
+
+TYPED_TEST( GraphTest, test_graphColoringIf )
+{
+   test_graphColoringIf_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_graphColoringLuby_result_isProperlyColored )
@@ -646,9 +664,10 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_withIndexes_usesAtMostTwoColors )
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLubyIf )
+template< typename GraphType >
+void
+test_graphColoringLubyIf_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
@@ -673,6 +692,11 @@ TYPED_TEST( GraphTest, test_graphColoringLubyIf )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
    EXPECT_EQ( colors.getElement( 4 ), -1 );
+}
+
+TYPED_TEST( GraphTest, test_graphColoringLubyIf )
+{
+   test_graphColoringLubyIf_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_graphColoring_chain )
@@ -853,9 +877,10 @@ expectComputedLubyColoringWithEdgePredicateIsProper( const GraphType& graph, Edg
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_weight_threshold )
+template< typename GraphType >
+void
+test_graphColoring_edge_predicate_weight_threshold_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -887,9 +912,15 @@ TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_weight_threshold )
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_block_all )
+TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_weight_threshold )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoring_edge_predicate_weight_threshold_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoring_edge_predicate_block_all_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -918,9 +949,15 @@ TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_block_all )
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 1 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_identity )
+TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_block_all )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoring_edge_predicate_block_all_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoring_edge_predicate_identity_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
 
@@ -943,9 +980,15 @@ TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_identity )
    expectComputedColoringWithEdgePredicateIsProper( graph, edgePredicate );
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_vertex_and_edge_predicate )
+TYPED_TEST( GraphTest, test_graphColoring_edge_predicate_identity )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoring_edge_predicate_identity_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoring_vertex_and_edge_predicate_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -980,9 +1023,15 @@ TYPED_TEST( GraphTest, test_graphColoring_vertex_and_edge_predicate )
    EXPECT_EQ( colors.getElement( 5 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_block_all )
+TYPED_TEST( GraphTest, test_graphColoring_vertex_and_edge_predicate )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoring_vertex_and_edge_predicate_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoringLuby_edge_predicate_block_all_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -1011,9 +1060,15 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_block_all )
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 1 ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_weight_threshold )
+TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_block_all )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoringLuby_edge_predicate_block_all_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoringLuby_edge_predicate_weight_threshold_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -1042,9 +1097,15 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_weight_threshold )
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
-TYPED_TEST( GraphTest, test_isProperlyColored_edge_predicate_blocked_edge_no_conflict )
+TYPED_TEST( GraphTest, test_graphColoringLuby_edge_predicate_weight_threshold )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoringLuby_edge_predicate_weight_threshold_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_isProperlyColored_edge_predicate_blocked_edge_no_conflict_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -1067,6 +1128,11 @@ TYPED_TEST( GraphTest, test_isProperlyColored_edge_predicate_blocked_edge_no_con
    };
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+}
+
+TYPED_TEST( GraphTest, test_isProperlyColored_edge_predicate_blocked_edge_no_conflict )
+{
+   test_isProperlyColored_edge_predicate_blocked_edge_no_conflict_impl< typename TestFixture::GraphType >();
 }
 
 // clang-format off
@@ -1192,9 +1258,10 @@ makeColoringSubgraphE2()
    // clang-format on
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_predicate )
+template< typename GraphType >
+void
+test_graphColoring_subgraph_vertex_removal_predicate_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
@@ -1219,9 +1286,15 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_predicate )
    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsB ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_vertex_removal_predicate )
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_predicate )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoring_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoringLuby_subgraph_vertex_removal_predicate_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
@@ -1244,6 +1317,11 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_vertex_removal_predicate 
    for( int i = 0; i < (int) newToOld.size(); i++ )
       ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsB ) );
+}
+
+TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_vertex_removal_predicate )
+{
+   test_graphColoringLuby_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_indexed )
@@ -1270,9 +1348,10 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_indexed )
    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsB ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_disconnected )
+template< typename GraphType >
+void
+test_graphColoring_subgraph_vertex_removal_disconnected_impl()
 {
-   using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
@@ -1297,9 +1376,15 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_disconnected )
    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsD ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_wholeGraph )
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_disconnected )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoring_subgraph_vertex_removal_disconnected_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoring_subgraph_edge_removal_wholeGraph_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -1320,9 +1405,15 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_wholeGraph )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_edge_removal_wholeGraph )
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoring_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoringLuby_subgraph_edge_removal_wholeGraph_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -1345,9 +1436,15 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_edge_removal_wholeGraph )
    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsC ) );
 }
 
-TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_edge_removal_wholeGraph )
 {
-   using GraphType = typename TestFixture::GraphType;
+   test_graphColoringLuby_subgraph_edge_removal_wholeGraph_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_graphColoring_subgraph_edge_removal_withIndexes_impl()
+{
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using ColorsType = ColoringVector< GraphType >;
@@ -1371,6 +1468,11 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_withIndexes )
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
    for( int i = 0; i < (int) newToOld.size(); i++ )
       ASSERT_NE( colorsA.getElement( newToOld[ i ] ), -1 ) << "vertex " << newToOld[ i ];
+}
+
+TYPED_TEST( GraphTest, test_graphColoring_subgraph_edge_removal_withIndexes )
+{
+   test_graphColoring_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"

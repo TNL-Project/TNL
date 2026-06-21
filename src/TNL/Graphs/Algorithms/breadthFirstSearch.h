@@ -169,7 +169,7 @@ template<
    typename Graph,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
+   typename Enable = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 breadthFirstSearch(
    const Graph& graph,
@@ -204,7 +204,7 @@ template<
    typename Graph,
    typename VertexIndexes,
    typename Vector,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 breadthFirstSearch(
    const Graph& graph,
@@ -239,7 +239,7 @@ template<
    typename VertexIndexes,
    typename Vector,
    typename EdgePredicate,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 breadthFirstSearch(
    const Graph& graph,
@@ -335,7 +335,11 @@ breadthFirstSearchIf(
  *
  * See \ref BFSOverview for an overview of all breadth-first search variants.
  */
-template< typename Graph, typename Vector, typename Visitor, typename = std::enable_if_t< ! IsArrayType< Visitor >::value > >
+template<
+   typename Graph,
+   typename Vector,
+   typename Visitor,
+   typename Enable = std::enable_if_t< ! IsArrayType< Visitor >::value > >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
@@ -378,7 +382,7 @@ template<
    typename Vector,
    typename EdgePredicate,
    typename Visitor,
-   typename = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
+   typename Enable = std::enable_if_t< ! IsArrayType< EdgePredicate >::value > >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
@@ -415,7 +419,7 @@ template<
    typename VertexIndexes,
    typename Vector,
    typename Visitor,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
@@ -457,7 +461,7 @@ template<
    typename Vector,
    typename EdgePredicate,
    typename Visitor,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,

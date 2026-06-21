@@ -231,7 +231,7 @@ breadthFirstSearch(
       {
          return true;
       },
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -239,7 +239,7 @@ breadthFirstSearch(
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 void
 breadthFirstSearch(
    const Graph& graph,
@@ -266,7 +266,7 @@ breadthFirstSearch(
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename Visitor, typename >
+template< typename Graph, typename Vector, typename Visitor, typename Enable >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
@@ -284,7 +284,7 @@ breadthFirstSearchWithVisitor(
       {
          return true;
       },
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -292,7 +292,7 @@ breadthFirstSearchWithVisitor(
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename Visitor, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Visitor, typename Enable >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
@@ -320,7 +320,7 @@ breadthFirstSearchWithVisitor(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 void
 breadthFirstSearch(
    const Graph& graph,
@@ -345,7 +345,7 @@ breadthFirstSearch(
       start,
       [] __cuda_callable__( IndexType, IndexType ) {},
       isActive,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -353,7 +353,7 @@ breadthFirstSearch(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 void
 breadthFirstSearch(
    const Graph& graph,
@@ -404,7 +404,7 @@ breadthFirstSearchIf(
       start,
       [] __cuda_callable__( IndexType, IndexType ) {},
       predicate,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -439,7 +439,7 @@ breadthFirstSearchIf(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename Visitor, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Visitor, typename Enable >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
@@ -465,7 +465,7 @@ breadthFirstSearchWithVisitor(
       start,
       visitor,
       isActive,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
@@ -473,7 +473,7 @@ breadthFirstSearchWithVisitor(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Visitor, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Visitor, typename Enable >
 void
 breadthFirstSearchWithVisitor(
    const Graph& graph,
