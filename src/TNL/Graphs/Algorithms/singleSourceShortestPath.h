@@ -150,7 +150,7 @@ template<
    typename Vector,
    typename EdgeWeightCallable,
    typename Index = typename Graph::IndexType,
-   typename = std::enable_if_t< ! IsArrayType< EdgeWeightCallable >::value > >
+   typename Enable = std::enable_if_t< ! IsArrayType< EdgeWeightCallable >::value > >
 void
 singleSourceShortestPath(
    const Graph& graph,
@@ -186,7 +186,7 @@ template<
    typename VertexIndexes,
    typename Vector,
    typename Index = typename Graph::IndexType,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 singleSourceShortestPath(
    const Graph& graph,
@@ -223,7 +223,7 @@ template<
    typename Vector,
    typename EdgeWeightCallable,
    typename Index = typename Graph::IndexType,
-   typename = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
+   typename Enable = std::enable_if_t< IsArrayType< VertexIndexes >::value > >
 void
 singleSourceShortestPath(
    const Graph& graph,

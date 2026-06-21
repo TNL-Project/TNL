@@ -36,12 +36,13 @@ stronglyConnectedComponents_impl(
 
    // Initialize: active vertices get 0 (unassigned), inactive get -1.
    auto componentsView = components.getView();
+   auto isActiveCopy = isActive;
    TNL::Algorithms::parallelFor< DeviceType >(
       0,
       verticesCount,
-      [ =, isActive = isActive ] __cuda_callable__( IndexType vertex ) mutable
+      [ = ] __cuda_callable__( IndexType vertex ) mutable
       {
-         componentsView[ vertex ] = isActive( vertex ) ? 0 : static_cast< IndexType >( -1 );
+         componentsView[ vertex ] = isActiveCopy( vertex ) ? 0 : static_cast< IndexType >( -1 );
       } );
 
    // Build the reverse (transposed) adjacency matrix once up front; it is
@@ -116,14 +117,14 @@ stronglyConnectedComponents(
       {
          return true;
       },
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
 void
 stronglyConnectedComponents(
    const Graph& graph,
@@ -143,7 +144,7 @@ stronglyConnectedComponents(
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
 void
 stronglyConnectedComponents(
    const Graph& graph,
@@ -166,14 +167,14 @@ stronglyConnectedComponents(
       graph,
       components,
       isActive,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
       launchConfig );
 }
 
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename >
+template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
 void
 stronglyConnectedComponents(
    const Graph& graph,
@@ -211,7 +212,7 @@ stronglyConnectedComponentsIf(
       graph,
       components,
       predicate,
-      [] __cuda_callable__( IndexType, IndexType, auto )
+      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
       {
          return true;
       },
