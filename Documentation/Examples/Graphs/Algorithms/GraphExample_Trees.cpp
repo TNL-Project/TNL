@@ -81,13 +81,17 @@ treesExample()
    //! [is tree edge predicate]
    /***
     * Edge-predicate isTree: block edge (0, 2).
+    * The lambda (src, tgt, weight) -> bool returns false for blocked edges.
     * This disconnects vertices 2 and 5, so it is not a tree.
     */
-   auto blockEdge02 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
-   {
-      return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
-   };
-   bool isTreeEdgeResult = TNL::Graphs::Algorithms::isTree( treeGraph, 0, blockEdge02 );
+   bool isTreeEdgeResult = TNL::Graphs::Algorithms::isTree(
+      treeGraph,
+      // edge predicate
+      0,
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+      } );
    std::cout << "isTree(treeGraph, 0, block 0-2): " << ( isTreeEdgeResult ? "true" : "false" ) << "\n";
    //! [is tree edge predicate]
 
@@ -96,8 +100,7 @@ treesExample()
     * Induced-subgraph isTree: restrict to vertices {0, 1, 2, 3}.
     * The induced subgraph has edges {0-1, 0-2, 1-3} — a tree of 4 vertices.
     */
-   VectorType activeVertices{ 0, 1, 2, 3 };
-   bool isTreeInducedResult = TNL::Graphs::Algorithms::isTree( treeGraph, 0, activeVertices );
+   bool isTreeInducedResult = TNL::Graphs::Algorithms::isTree( treeGraph, 0, VectorType{ 0, 1, 2, 3 } );
    std::cout << "isTree(treeGraph, 0, {0,1,2,3}): " << ( isTreeInducedResult ? "true" : "false" ) << "\n";
    //! [is tree induced]
 
@@ -105,19 +108,31 @@ treesExample()
    /***
     * Combined induced-subgraph + edge-predicate isTree.
     */
-   bool isTreeInducedEdgeResult = TNL::Graphs::Algorithms::isTree( treeGraph, 0, activeVertices, blockEdge02 );
+   bool isTreeInducedEdgeResult = TNL::Graphs::Algorithms::isTree(
+      treeGraph,
+      0,
+      // edge predicate
+      VectorType{ 0, 1, 2, 3 },
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+      } );
    std::cout << "isTree(treeGraph, 0, {0,1,2,3}, block 0-2): " << ( isTreeInducedEdgeResult ? "true" : "false" ) << "\n";
    //! [is tree induced edge predicate]
 
    //! [is tree if]
    /***
     * Predicate-based isTree: activate only vertices with index <= 3.
+    * The vertex predicate (vertex) -> bool selects active vertices.
     */
-   auto isActive = [] __cuda_callable__( IndexType vertex )
-   {
-      return vertex <= 3;
-   };
-   bool isTreeIfResult = TNL::Graphs::Algorithms::isTreeIf( treeGraph, 0, isActive );
+   bool isTreeIfResult = TNL::Graphs::Algorithms::isTreeIf(
+      treeGraph,
+      // vertex predicate
+      0,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex <= 3;
+      } );
    std::cout << "isTreeIf(treeGraph, 0, vertex <= 3): " << ( isTreeIfResult ? "true" : "false" ) << "\n";
    //! [is tree if]
 
@@ -125,7 +140,19 @@ treesExample()
    /***
     * Combined predicate + edge-predicate isTree.
     */
-   bool isTreeIfEdgeResult = TNL::Graphs::Algorithms::isTreeIf( treeGraph, 0, isActive, blockEdge02 );
+   bool isTreeIfEdgeResult = TNL::Graphs::Algorithms::isTreeIf(
+      treeGraph,
+      // vertex predicate
+      0,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex <= 3;
+         // edge predicate
+      },
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+      } );
    std::cout << "isTreeIf(treeGraph, 0, vertex <= 3, block 0-2): " << ( isTreeIfEdgeResult ? "true" : "false" ) << "\n";
    //! [is tree if edge predicate]
 
@@ -142,13 +169,16 @@ treesExample()
    //! [is forest edge predicate]
    /***
     * Edge-predicate isForest on the cyclic graph.
-    * Blocking edge (4, 1) removes the cycle, making it a path (which is a tree, hence a forest).
+    * Blocking edge (4, 1) removes the cycle, making it a path
+    * (which is a tree, hence a forest).
     */
-   auto blockEdge41 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
-   {
-      return ! ( ( src == 4 && tgt == 1 ) || ( src == 1 && tgt == 4 ) );
-   };
-   bool isForestEdgeResult = TNL::Graphs::Algorithms::isForest( cyclicGraph, blockEdge41 );
+   bool isForestEdgeResult = TNL::Graphs::Algorithms::isForest(
+      // edge predicate
+      cyclicGraph,
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 4 && tgt == 1 ) || ( src == 1 && tgt == 4 ) );
+      } );
    std::cout << "isForest(cyclicGraph, block 4-1): " << ( isForestEdgeResult ? "true" : "false" ) << "\n";
    //! [is forest edge predicate]
 
@@ -157,8 +187,7 @@ treesExample()
     * Induced-subgraph isForest: restrict forestGraph to {0, 1, 3, 4}.
     * Edges {2-3, 3-4} become {3-4} (vertex 2 removed) — a forest.
     */
-   VectorType forestActive{ 0, 1, 3, 4 };
-   bool isForestInducedResult = TNL::Graphs::Algorithms::isForest( forestGraph, forestActive );
+   bool isForestInducedResult = TNL::Graphs::Algorithms::isForest( forestGraph, VectorType{ 0, 1, 3, 4 } );
    std::cout << "isForest(forestGraph, {0,1,3,4}): " << ( isForestInducedResult ? "true" : "false" ) << "\n";
    //! [is forest induced]
 
@@ -166,7 +195,14 @@ treesExample()
    /***
     * Combined induced-subgraph + edge-predicate isForest.
     */
-   bool isForestInducedEdgeResult = TNL::Graphs::Algorithms::isForest( forestGraph, forestActive, blockEdge41 );
+   bool isForestInducedEdgeResult = TNL::Graphs::Algorithms::isForest(
+      forestGraph,
+      // edge predicate
+      VectorType{ 0, 1, 3, 4 },
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 4 && tgt == 1 ) || ( src == 1 && tgt == 4 ) );
+      } );
    std::cout << "isForest(forestGraph, {0,1,3,4}, block 4-1): " << ( isForestInducedEdgeResult ? "true" : "false" ) << "\n";
    //! [is forest induced edge predicate]
 
@@ -174,11 +210,13 @@ treesExample()
    /***
     * Predicate-based isForest: activate only even vertices.
     */
-   auto isEven = [] __cuda_callable__( IndexType vertex )
-   {
-      return vertex % 2 == 0;
-   };
-   bool isForestIfResult = TNL::Graphs::Algorithms::isForestIf( forestGraph, isEven );
+   bool isForestIfResult = TNL::Graphs::Algorithms::isForestIf(
+      // vertex predicate
+      forestGraph,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex % 2 == 0;
+      } );
    std::cout << "isForestIf(forestGraph, even vertices): " << ( isForestIfResult ? "true" : "false" ) << "\n";
    //! [is forest if]
 
@@ -186,7 +224,18 @@ treesExample()
    /***
     * Combined predicate + edge-predicate isForest.
     */
-   bool isForestIfEdgeResult = TNL::Graphs::Algorithms::isForestIf( forestGraph, isEven, blockEdge41 );
+   bool isForestIfEdgeResult = TNL::Graphs::Algorithms::isForestIf(
+      // vertex predicate
+      forestGraph,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex % 2 == 0;
+         // edge predicate
+      },
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 4 && tgt == 1 ) || ( src == 1 && tgt == 4 ) );
+      } );
    std::cout << "isForestIf(forestGraph, even, block 4-1): " << ( isForestIfEdgeResult ? "true" : "false" ) << "\n";
    //! [is forest if edge predicate]
 
@@ -197,8 +246,7 @@ treesExample()
     * Basic isForestWithRoots: use explicit root candidates {0, 2}.
     * Each root starts a BFS for one tree component.
     */
-   VectorType roots{ 0, 2 };
-   bool isForestWithRootsResult = TNL::Graphs::Algorithms::isForestWithRoots( forestGraph, roots );
+   bool isForestWithRootsResult = TNL::Graphs::Algorithms::isForestWithRoots( forestGraph, VectorType{ 0, 2 } );
    std::cout << "isForestWithRoots(forestGraph, {0,2}): " << ( isForestWithRootsResult ? "true" : "false" ) << "\n";
    //! [is forest with roots basic]
 
@@ -208,12 +256,14 @@ treesExample()
     * This splits the tree {2-3-4} into {2-3} and {4}, so vertex 4 must
     * be added as an extra root to cover the whole forest.
     */
-   auto blockEdge34 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
-   {
-      return ! ( ( src == 3 && tgt == 4 ) || ( src == 4 && tgt == 3 ) );
-   };
-   VectorType rootsBlocked{ 0, 2, 4 };
-   bool isForestWithRootsEdgeResult = TNL::Graphs::Algorithms::isForestWithRoots( forestGraph, blockEdge34, rootsBlocked );
+   bool isForestWithRootsEdgeResult = TNL::Graphs::Algorithms::isForestWithRoots(
+      // edge predicate
+      forestGraph,
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 3 && tgt == 4 ) || ( src == 4 && tgt == 3 ) );
+      },
+      VectorType{ 0, 2, 4 } );
    std::cout << "isForestWithRoots(forestGraph, block 3-4, {0,2,4}): " << ( isForestWithRootsEdgeResult ? "true" : "false" )
              << "\n";
    //! [is forest with roots edge predicate]
@@ -222,8 +272,8 @@ treesExample()
    /***
     * Induced-subgraph isForestWithRoots: restrict to {0, 1, 3, 4} with roots {0, 3}.
     */
-   VectorType rootsInduced{ 0, 3 };
-   bool isForestWithRootsInducedResult = TNL::Graphs::Algorithms::isForestWithRoots( forestGraph, forestActive, rootsInduced );
+   bool isForestWithRootsInducedResult =
+      TNL::Graphs::Algorithms::isForestWithRoots( forestGraph, VectorType{ 0, 1, 3, 4 }, VectorType{ 0, 3 } );
    std::cout << "isForestWithRoots(forestGraph, {0,1,3,4}, {0,3}): " << ( isForestWithRootsInducedResult ? "true" : "false" )
              << "\n";
    //! [is forest with roots induced]
@@ -234,9 +284,15 @@ treesExample()
     * Block edge (3, 4) in the induced subgraph on {0, 1, 3, 4}:
     * edges {0-1, 3-4} become {0-1}, so vertex 4 needs its own root.
     */
-   VectorType rootsInducedBlocked{ 0, 3, 4 };
-   bool isForestWithRootsInducedEdgeResult =
-      TNL::Graphs::Algorithms::isForestWithRoots( forestGraph, forestActive, blockEdge34, rootsInducedBlocked );
+   bool isForestWithRootsInducedEdgeResult = TNL::Graphs::Algorithms::isForestWithRoots(
+      forestGraph,
+      // edge predicate
+      VectorType{ 0, 1, 3, 4 },
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 3 && tgt == 4 ) || ( src == 4 && tgt == 3 ) );
+      },
+      VectorType{ 0, 3, 4 } );
    std::cout << "isForestWithRoots(forestGraph, {0,1,3,4}, block 3-4, {0,3,4}): "
              << ( isForestWithRootsInducedEdgeResult ? "true" : "false" ) << "\n";
    //! [is forest with roots induced edge predicate]
@@ -245,7 +301,14 @@ treesExample()
    /***
     * Predicate-based isForestWithRoots: activate vertices <= 3 via predicate, roots {0, 3}.
     */
-   bool isForestWithRootsIfResult = TNL::Graphs::Algorithms::isForestWithRootsIf( forestGraph, isActive, rootsInduced );
+   bool isForestWithRootsIfResult = TNL::Graphs::Algorithms::isForestWithRootsIf(
+      // vertex predicate
+      forestGraph,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex <= 3;
+      },
+      VectorType{ 0, 3 } );
    std::cout << "isForestWithRootsIf(forestGraph, vertex <= 3, {0,3}): " << ( isForestWithRootsIfResult ? "true" : "false" )
              << "\n";
    //! [is forest with roots if]
@@ -254,8 +317,19 @@ treesExample()
    /***
     * Combined predicate + edge-predicate isForestWithRoots.
     */
-   bool isForestWithRootsIfEdgeResult =
-      TNL::Graphs::Algorithms::isForestWithRootsIf( forestGraph, isActive, blockEdge34, rootsInduced );
+   bool isForestWithRootsIfEdgeResult = TNL::Graphs::Algorithms::isForestWithRootsIf(
+      // vertex predicate
+      forestGraph,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex <= 3;
+         // edge predicate
+      },
+      [] __cuda_callable__( IndexType src, IndexType tgt, float )
+      {
+         return ! ( ( src == 3 && tgt == 4 ) || ( src == 4 && tgt == 3 ) );
+      },
+      VectorType{ 0, 3 } );
    std::cout << "isForestWithRootsIf(forestGraph, vertex <= 3, block 3-4, {0,3}): "
              << ( isForestWithRootsIfEdgeResult ? "true" : "false" ) << "\n";
    //! [is forest with roots if edge predicate]

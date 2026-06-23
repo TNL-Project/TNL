@@ -15,6 +15,7 @@ singleSourceShortestPathExample()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    using VectorType = TNL::Containers::Vector< ValueType, Device, IndexType >;
+   using IndexVectorType = TNL::Containers::Vector< IndexType, Device, IndexType >;
    //! [graph type definition]
 
    /***
@@ -47,16 +48,22 @@ singleSourceShortestPathExample()
    //! [sssp edge weight callable]
    /***
     * Edge-weight callable SSSP: double the weight of edge (0,1).
-    * Returning infinity marks an edge as non-traversable.
+    * The callable (src, tgt, weight) -> ValueType returns the modified
+    * edge weight. Returning infinity marks an edge as non-traversable.
     */
-   auto transformWeights = [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
-   {
-      if( src == 0 && tgt == 1 )
-         return w * 2;
-      return w;
-   };
    VectorType distancesEdge;
-   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, transformWeights, distancesEdge );
+   TNL::Graphs::Algorithms::singleSourceShortestPath(
+      graph,
+      0,
+      // edge weight callable
+      // edge weight callable: double the weight of edge (0,1)
+      [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
+      {
+         if( src == 0 && tgt == 1 )
+            return w * 2;
+         return w;
+      },
+      distancesEdge );
    std::cout << "Distances from 0 (edge 0->1 doubled): " << distancesEdge << "\n";
    //! [sssp edge weight callable]
 
@@ -65,9 +72,8 @@ singleSourceShortestPathExample()
     * Induced-subgraph SSSP: restrict to vertices {0, 1, 2, 3}.
     * Vertices 4 and 5 are inactive and stay at distance -1.
     */
-   TNL::Containers::Vector< IndexType, Device, IndexType > activeVertices{ 0, 1, 2, 3 };
    VectorType distancesInduced;
-   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, activeVertices, distancesInduced );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, IndexVectorType{ 0, 1, 2, 3 }, distancesInduced );
    std::cout << "Distances from 0 (induced on {0,1,2,3}): " << distancesInduced << "\n";
    //! [sssp induced]
 
@@ -76,20 +82,36 @@ singleSourceShortestPathExample()
     * Combined induced-subgraph + edge-weight callable SSSP.
     */
    VectorType distancesInducedEdge;
-   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, activeVertices, transformWeights, distancesInducedEdge );
+   TNL::Graphs::Algorithms::singleSourceShortestPath(
+      graph,
+      0,
+      // edge weight callable
+      IndexVectorType{ 0, 1, 2, 3 },
+      [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
+      {
+         if( src == 0 && tgt == 1 )
+            return w * 2;
+         return w;
+      },
+      distancesInducedEdge );
    std::cout << "Distances from 0 (induced on {0,1,2,3}, edge 0->1 doubled): " << distancesInducedEdge << "\n";
    //! [sssp induced edge weight callable]
 
    //! [sssp if]
    /***
     * Predicate-based SSSP: activate only vertices with index < 4.
+    * The vertex predicate (vertex) -> bool selects active vertices.
     */
-   auto isActive = [] __cuda_callable__( IndexType vertex )
-   {
-      return vertex < 4;
-   };
    VectorType distancesIf;
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graph, 0, isActive, distancesIf );
+   TNL::Graphs::Algorithms::singleSourceShortestPathIf(
+      graph,
+      // vertex predicate
+      0,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex < 4;
+      },
+      distancesIf );
    std::cout << "Distances from 0 (active if vertex < 4): " << distancesIf << "\n";
    //! [sssp if]
 
@@ -98,7 +120,22 @@ singleSourceShortestPathExample()
     * Combined predicate + edge-weight callable SSSP.
     */
    VectorType distancesIfEdge;
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graph, 0, isActive, transformWeights, distancesIfEdge );
+   TNL::Graphs::Algorithms::singleSourceShortestPathIf(
+      graph,
+      // vertex predicate
+      0,
+      [] __cuda_callable__( IndexType vertex )
+      {
+         return vertex < 4;
+         // edge weight callable
+      },
+      [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
+      {
+         if( src == 0 && tgt == 1 )
+            return w * 2;
+         return w;
+      },
+      distancesIfEdge );
    std::cout << "Distances from 0 (active if vertex < 4, edge 0->1 doubled): " << distancesIfEdge << "\n";
    //! [sssp if edge weight callable]
 }
