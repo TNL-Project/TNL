@@ -129,7 +129,10 @@ Use `git` for managing the local repository and `glab` for the remote repository
 - **Subject line**: ≤72 characters, no period at end, imperative mood
 - **Body**: ≤72 characters per line, blank line after subject
 - **Content**: Describe what changed and why, not how
-- **Attribution**: All AI-generated commits should have a `Assisted-by:` attribution at the end, e.g. `Assisted-by: Qwen 3.5 via Opencode`
+- **Attribution**: When AI tools contribute, add `Assisted-by: AGENT_NAME:MODEL_VERSION` (Linux kernel convention from `Documentation/process/coding-assistants.rst`).
+  Example: `Assisted-by: Opencode:glm-5.2`.
+  Optional tool names may follow: `Assisted-by: Claude:claude-3-opus coccinelle sparse`.
+  Do NOT use `Signed-off-by` for AI — only humans certify DCO.
 - **Workflow**: Human developers use rebase-based workflow and squash small commits.
   Hence, small commits that fix issues in previous commits should be marked accordingly.
   Create such commits with `git commit --squash=<commit-hash-to-squash-into>`.
