@@ -16,6 +16,7 @@
 #include <TNL/Matrices/MatrixBase.h>
 
 #include "details/activeVertices.hpp"
+#include "details/lambdaTraits.hpp"
 #include "trees.h"
 
 namespace TNL::Graphs::Algorithms {
@@ -27,16 +28,6 @@ enum class TreeType : std::uint8_t
 };
 
 namespace detail {
-
-template< typename EdgePredicate, typename Graph >
-struct IsTreeEdgePredicate
-: std::bool_constant<
-     std::
-        is_invocable_r_v< bool, EdgePredicate, typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType > >
-{};
-
-template< typename EdgePredicate, typename Graph >
-constexpr bool isTreeEdgePredicate_v = IsTreeEdgePredicate< EdgePredicate, Graph >::value;
 
 template< typename Graph, typename IsActive, typename EdgePredicate >
 typename Graph::IndexType
@@ -494,8 +485,7 @@ isTree(
    }
    else {
       static_assert(
-         detail::isTreeEdgePredicate_v< T, Graph >,
-         "isTree edge predicate must return bool and accept (source, target, weight)." );
+         detail::isEdgePredicate_v< T, Graph >, "isTree edge predicate must return bool and accept (source, target, weight)." );
 
       return isTree_impl(
          graph,
@@ -524,7 +514,7 @@ isTree(
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
       "isTree edge predicate must return bool and accept (source, target, weight)." );
 
    IndexVector activeVertices;
@@ -549,6 +539,8 @@ isTreeIf(
 {
    using IndexType = typename Graph::IndexType;
 
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "isTree vertex predicate must return bool and accept (vertex)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    Containers::Vector< IndexType > roots( 1, start );
    return isTree_impl(
@@ -575,7 +567,9 @@ isTreeIf(
    using IndexType = typename Graph::IndexType;
 
    static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "isTree vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
       "isTree edge predicate must return bool and accept (source, target, weight)." );
 
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
@@ -640,7 +634,7 @@ isForest( const Graph& graph, T&& arg, TNL::Algorithms::Segments::LaunchConfigur
    }
    else {
       static_assert(
-         detail::isTreeEdgePredicate_v< T, Graph >,
+         detail::isEdgePredicate_v< T, Graph >,
          "isForest edge predicate must return bool and accept (source, target, weight)." );
 
       return isTree_impl(
@@ -669,7 +663,7 @@ isForest(
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
       "isForest edge predicate must return bool and accept (source, target, weight)." );
 
    IndexVector activeVertices;
@@ -690,6 +684,9 @@ isForestIf( const Graph& graph, VertexPredicate&& vertexPredicate, TNL::Algorith
 {
    using IndexType = typename Graph::IndexType;
 
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >,
+      "isForest vertex predicate must return bool and accept (vertex)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    Containers::Vector< IndexType > roots;
    return isTree_impl(
@@ -715,7 +712,10 @@ isForestIf(
    using IndexType = typename Graph::IndexType;
 
    static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
+      detail::isVertexPredicate_v< VertexPredicate, Graph >,
+      "isForest vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
       "isForest edge predicate must return bool and accept (source, target, weight)." );
 
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
@@ -779,7 +779,7 @@ isForestWithRoots(
    }
    else {
       static_assert(
-         detail::isTreeEdgePredicate_v< T, Graph >,
+         detail::isEdgePredicate_v< T, Graph >,
          "isForestWithRoots edge predicate must return bool and accept (source, target, weight)." );
 
       return isTree_impl(
@@ -809,7 +809,7 @@ isForestWithRoots(
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
       "isForestWithRoots edge predicate must return bool and accept (source, target, weight)." );
 
    IndexVector activeVertices;
@@ -831,6 +831,9 @@ isForestWithRootsIf(
    const Vector& roots,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >,
+      "isForestWithRoots vertex predicate must return bool and accept (vertex)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    return isTree_impl(
       graph,
@@ -854,8 +857,11 @@ isForestWithRootsIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
-      detail::isTreeEdgePredicate_v< EdgePredicate, Graph >,
-      "isForestWithRootsIf edge predicate must return bool and accept (source, target, weight)." );
+      detail::isVertexPredicate_v< VertexPredicate, Graph >,
+      "isForestWithRoots vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "isForestWithRoots edge predicate must return bool and accept (source, target, weight)." );
 
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    return isTree_impl(

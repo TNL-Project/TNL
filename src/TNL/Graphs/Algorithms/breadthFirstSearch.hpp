@@ -18,24 +18,11 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 #include "details/activeVertices.hpp"
+#include "details/lambdaTraits.hpp"
 #include "details/parallelTraversal.hpp"
 #include "breadthFirstSearch.h"
 
 namespace TNL::Graphs::Algorithms {
-
-namespace detail {
-
-template< typename EdgePredicate, typename Graph >
-struct IsBfsEdgePredicate
-: std::bool_constant<
-     std::
-        is_invocable_r_v< bool, EdgePredicate, typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType > >
-{};
-
-template< typename EdgePredicate, typename Graph >
-constexpr bool isBfsEdgePredicate_v = IsBfsEdgePredicate< EdgePredicate, Graph >::value;
-
-}  // namespace detail
 
 template< typename Graph, typename Visitor, typename ActivePredicate, typename EdgePredicate, typename Vector >
 void
@@ -129,13 +116,13 @@ breadthFirstSearchParallel(
                   // atomicMax is safe for distances: i+1 is always >= -1 (the
                   // initial sentinel), so the first writer wins and concurrent
                   // writers in the same layer write the same value.
-                  // The predecessor, however, is set to the *largest* source
+                  // The predecessor, however, is set to the *smallest* source
                   // index among concurrent discoverers, not necessarily the
                   // first one.  This is acceptable for BFS (all sources are in
                   // the same layer), but makes the result non-deterministic
                   // with respect to the sequential version.
                   atomicMax( &yView[ targetIdx ], i + 1 );
-                  atomicMax( &predecessorsView[ targetIdx ], sourceIdx );
+                  atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
                   atomicMax( &marksView[ targetIdx ], 1 );
                   visitor( targetIdx, i + 1 );
                }
@@ -262,8 +249,8 @@ breadthFirstSearch(
 {
    using IndexType = typename Graph::IndexType;
    static_assert(
-      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
-      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target, weight)." );
 
    breadthFirstSearch_impl(
       graph,
@@ -288,6 +275,7 @@ breadthFirstSearchWithVisitor(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    breadthFirstSearch_impl(
       graph,
       start,
@@ -316,8 +304,9 @@ breadthFirstSearchWithVisitor(
 {
    using IndexType = typename Graph::IndexType;
    static_assert(
-      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
-      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target, weight)." );
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
 
    breadthFirstSearch_impl(
       graph,
@@ -380,8 +369,8 @@ breadthFirstSearch(
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    static_assert(
-      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
-      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target, weight)." );
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
@@ -410,6 +399,8 @@ breadthFirstSearchIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "BFS vertex predicate must return bool and accept (vertex)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    breadthFirstSearch_impl(
       graph,
@@ -437,8 +428,10 @@ breadthFirstSearchIf(
    using IndexType = typename Graph::IndexType;
 
    static_assert(
-      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
-      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "BFS vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target, weight)." );
 
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    breadthFirstSearch_impl(
@@ -464,6 +457,8 @@ breadthFirstSearchWithVisitor(
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
@@ -501,8 +496,9 @@ breadthFirstSearchWithVisitor(
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    static_assert(
-      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
-      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target, weight)." );
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
@@ -533,6 +529,9 @@ breadthFirstSearchIfWithVisitor(
 {
    using IndexType = typename Graph::IndexType;
    using ValueType = typename Graph::ValueType;
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "BFS vertex predicate must return bool and accept (vertex)." );
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    breadthFirstSearch_impl(
       graph,
@@ -559,8 +558,11 @@ breadthFirstSearchIfWithVisitor(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
-      detail::isBfsEdgePredicate_v< EdgePredicate, Graph >,
-      "BFS edge predicate must return bool and accept (source, target) or (source, target, weight)." );
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "BFS vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "BFS edge predicate must return bool and accept (source, target, weight)." );
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
 
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    breadthFirstSearch_impl(

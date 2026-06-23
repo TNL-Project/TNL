@@ -11,6 +11,7 @@
 
 #include "breadthFirstSearch.h"
 #include "details/activeVertices.hpp"
+#include "details/lambdaTraits.hpp"
 #include "stronglyConnectedComponents.h"
 
 namespace TNL::Graphs::Algorithms {
@@ -133,6 +134,9 @@ stronglyConnectedComponents(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "SCC edge predicate must return bool and accept (source, target, weight)." );
    stronglyConnectedComponents_impl(
       graph,
       components,
@@ -187,6 +191,10 @@ stronglyConnectedComponents(
    using IndexType = typename Graph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "SCC edge predicate must return bool and accept (source, target, weight)." );
+
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
@@ -207,6 +215,8 @@ stronglyConnectedComponentsIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "SCC vertex predicate must return bool and accept (vertex)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    stronglyConnectedComponents_impl(
       graph,
@@ -228,6 +238,11 @@ stronglyConnectedComponentsIf(
    Vector& components,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "SCC vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "SCC edge predicate must return bool and accept (source, target, weight)." );
    auto vPredicate = std::forward< VertexPredicate >( vertexPredicate );
    stronglyConnectedComponents_impl(
       graph, components, vPredicate, std::forward< EdgePredicate >( edgePredicate ), launchConfig );

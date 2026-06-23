@@ -14,6 +14,7 @@
 #include <TNL/Matrices/MatrixBase.h>
 
 #include "details/activeVertices.hpp"
+#include "details/lambdaTraits.hpp"
 #include "connectedComponents.h"
 
 namespace TNL::Graphs::Algorithms {
@@ -282,6 +283,9 @@ connectedComponents(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "CC edge predicate must return bool and accept (source, target, weight)." );
    connectedComponents_impl(
       graph,
       components,
@@ -336,6 +340,10 @@ connectedComponents(
    using IndexType = typename Graph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "CC edge predicate must return bool and accept (source, target, weight)." );
+
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
@@ -355,6 +363,8 @@ connectedComponentsIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "CC vertex predicate must return bool and accept (vertex)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    connectedComponents_impl(
       graph,
@@ -376,6 +386,11 @@ connectedComponentsIf(
    Vector& components,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "CC vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "CC edge predicate must return bool and accept (source, target, weight)." );
    auto vPredicate = std::forward< VertexPredicate >( vertexPredicate );
    connectedComponents_impl( graph, components, vPredicate, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
 }
