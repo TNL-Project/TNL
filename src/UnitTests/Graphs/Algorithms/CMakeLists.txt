@@ -1,4 +1,4 @@
-foreach(test IN ITEMS GraphTest_BFS GraphTest_CC GraphTest_Coloring GraphTest_MIS GraphTest_SCC GraphTest_SSSP GraphTest_trees)
+foreach(test IN ITEMS GraphTest_BFS GraphTest_CC GraphTest_Coloring GraphTest_MIS GraphTest_SCC GraphTest_SSSP GraphTest_trees GraphTest_LambdaTraits)
     tnl_add_test_executables(${test} SOURCES ${test}.h)
 endforeach()
 
