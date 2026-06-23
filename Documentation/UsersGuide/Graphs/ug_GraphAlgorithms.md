@@ -13,7 +13,7 @@ and the set of traversable edges are defined:
 * **Induced subgraph** – an explicit list of active vertex indices restricts the algorithm to an induced subgraph.
 * **Induced subgraph + edge predicate** – combines the two restrictions above.
 * **Vertex predicate (`...If`)** – a vertex predicate lambda decides which vertices are active.
-* **Vertex predicate + edge predicate** – combines the vertex predicate with an edge predicate.
+* **Vertex predicate (`...If`) + edge predicate** – combines the vertex predicate with an edge predicate.
 
 The examples below demonstrate every overload variant for each algorithm. They are all structured as
 function templates parameterised by the device type and instantiated for the host, CUDA, and HIP.
@@ -98,15 +98,15 @@ Some algorithms require a specific graph orientation, enforced at compile time v
 The following table summarises the output type and the sentinel value used for unreachable or
 inactive vertices:
 
-| Algorithm        | Output                                            | Unreachable/Inactive sentinel           |
-| ---------------- | ------------------------------------------------- | ----------------------------------------|
-| BFS distances    | `IndexType` values                                | `-1` = unreachable                      |
-| SSSP distances   | `ValueType` values                                | `-1` = unreachable                      |
-| CC components    | `IndexType` values; label = smallest vertex index | `-1` = inactive                         |
-| SCC components   | `IndexType` values; labels start at `1`           | `-1` = inactive                         |
-| MIS mask         | 0/1 values                                        | `0` = not in MIS                        |
-| Coloring         | 0-based color labels                              | `-1` = inactive (masked overloads only) |
-| Trees            | return `bool`, no output vector                   | N/A                                     |
+| Algorithm      | Output                                            | Unreachable/Inactive sentinel           |
+| -------------- | ------------------------------------------------- | --------------------------------------- |
+| BFS distances  | `IndexType` values                                | `-1` = unreachable                      |
+| SSSP distances | `ValueType` values                                | `-1` = unreachable                      |
+| CC components  | `IndexType` values; label = smallest vertex index | `-1` = inactive                         |
+| SCC components | `IndexType` values; labels start at `1`           | `-1` = inactive                         |
+| MIS mask       | 0/1 values                                        | `0` = not in MIS                        |
+| Coloring       | 0-based color labels                              | `-1` = inactive (masked overloads only) |
+| Trees          | return `bool`, no output vector                   | N/A                                     |
 
 
 ## Breadth-First Search
