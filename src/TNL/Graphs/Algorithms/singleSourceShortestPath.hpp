@@ -20,24 +20,13 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 #include "details/activeVertices.hpp"
+#include "details/lambdaTraits.hpp"
 #include "details/parallelTraversal.hpp"
 #include "singleSourceShortestPath.h"
 
 namespace TNL::Graphs::Algorithms {
 
 namespace detail {
-
-template< typename EdgeWeightCallable, typename Graph >
-struct IsSsspEdgeWeightCallable : std::bool_constant< std::is_invocable_r_v<
-                                     typename Graph::ValueType,
-                                     EdgeWeightCallable,
-                                     typename Graph::IndexType,
-                                     typename Graph::IndexType,
-                                     typename Graph::ValueType > >
-{};
-
-template< typename EdgeWeightCallable, typename Graph >
-constexpr bool isSsspEdgeWeightCallable_v = IsSsspEdgeWeightCallable< EdgeWeightCallable, Graph >::value;
 
 template< typename Real >
 __cuda_callable__
@@ -323,8 +312,8 @@ singleSourceShortestPath(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
-      detail::isSsspEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
-      "SSSP edge callable must return Graph::ValueType and accept (source, target) or (source, target, weight)." );
+      detail::isEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
+      "SSSP edge-weight callable must return ValueType and accept (source, target, weight)." );
 
    singleSourceShortestPath_impl(
       graph,
@@ -383,8 +372,8 @@ singleSourceShortestPath(
    using IndexVector = Containers::Vector< Index, DeviceType, Index >;
 
    static_assert(
-      detail::isSsspEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
-      "SSSP edge callable must return Graph::ValueType and accept (source, target) or (source, target, weight)." );
+      detail::isEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
+      "SSSP edge-weight callable must return ValueType and accept (source, target, weight)." );
 
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
@@ -406,6 +395,8 @@ singleSourceShortestPathIf(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "SSSP vertex predicate must return bool and accept (vertex)." );
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    singleSourceShortestPath_impl(
       graph,
@@ -430,8 +421,10 @@ singleSourceShortestPathIf(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
-      detail::isSsspEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
-      "SSSP edge callable must return Graph::ValueType and accept (source, target) or (source, target, weight)." );
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "SSSP vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
+      "SSSP edge-weight callable must return ValueType and accept (source, target, weight)." );
 
    auto predicate = std::forward< VertexPredicate >( vertexPredicate );
    singleSourceShortestPath_impl(

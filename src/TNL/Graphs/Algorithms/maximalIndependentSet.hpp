@@ -14,6 +14,7 @@
 #include <TNL/Matrices/MatrixBase.h>
 
 #include "details/activeVertices.hpp"
+#include "details/lambdaTraits.hpp"
 #include "maximalIndependentSet.h"
 
 namespace TNL::Graphs::Algorithms {
@@ -289,6 +290,9 @@ maximalIndependentSet(
 {
    using IndexType = typename Graph::IndexType;
 
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "MIS edge predicate must return bool and accept (source, target, weight)." );
    detail::maximalIndependentSetOnActiveVertices(
       graph,
       [] __cuda_callable__( IndexType )
@@ -344,6 +348,10 @@ maximalIndependentSet(
    using IndexType = typename Graph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "MIS edge predicate must return bool and accept (source, target, weight)." );
+
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
@@ -369,6 +377,8 @@ maximalIndependentSetIf(
 {
    using IndexType = typename Graph::IndexType;
 
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "MIS vertex predicate must return bool and accept (vertex)." );
    detail::maximalIndependentSetOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
@@ -390,6 +400,11 @@ maximalIndependentSetIf(
    Vector& independentSet,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >, "MIS vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "MIS edge predicate must return bool and accept (source, target, weight)." );
    detail::maximalIndependentSetOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
@@ -432,6 +447,9 @@ isMaximalIndependentSet(
 {
    using IndexType = typename Graph::IndexType;
 
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "MIS verifier edge predicate must return bool and accept (source, target, weight)." );
    return detail::isMaximalIndependentSetOnActiveVertices(
       graph,
       [] __cuda_callable__( IndexType )
@@ -485,6 +503,10 @@ isMaximalIndependentSet(
    using IndexType = typename Graph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "MIS verifier edge predicate must return bool and accept (source, target, weight)." );
+
    IndexVector activeVertices;
    detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
    const auto activeVerticesView = activeVertices.getConstView();
@@ -509,6 +531,9 @@ isMaximalIndependentSetIf(
 {
    using IndexType = typename Graph::IndexType;
 
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >,
+      "MIS verifier vertex predicate must return bool and accept (vertex)." );
    return detail::isMaximalIndependentSetOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
@@ -529,6 +554,12 @@ isMaximalIndependentSetIf(
    const Vector& independentSet,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   static_assert(
+      detail::isVertexPredicate_v< VertexPredicate, Graph >,
+      "MIS verifier vertex predicate must return bool and accept (vertex)." );
+   static_assert(
+      detail::isEdgePredicate_v< EdgePredicate, Graph >,
+      "MIS verifier edge predicate must return bool and accept (source, target, weight)." );
    return detail::isMaximalIndependentSetOnActiveVertices(
       graph,
       std::forward< VertexPredicate >( vertexPredicate ),
