@@ -6,7 +6,7 @@
 #endif
 
 void
-gurobiBenchmark( TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& fileName )
+gurobiBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::String& fileName )
 {
 #ifdef HAVE_GUROBI
    // Initialize Gurobi environment

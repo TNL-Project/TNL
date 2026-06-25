@@ -21,7 +21,7 @@
 #include <TNL/Solvers/Optimization/LPProblem.h>
 #include <TNL/Solvers/Optimization/LPProblemReader.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 #ifdef HAVE_GUROBI
    #include "GurobiLPBenchmark.h"
@@ -36,7 +36,7 @@ using namespace TNL::Benchmarks;
 
 template< typename Value, typename Index >
 void
-benchmarkLPSolvers( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
+benchmarkLPSolvers( Benchmark& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
 {}
 
 template< typename Value, typename Device, typename Index >
@@ -45,11 +45,11 @@ struct LPSolversBenchmark
    using ValueType = Value;
    using DeviceType = Device;
    using IndexType = Index;
-   using SolverMonitorType = typename Benchmark<>::SolverMonitorType;
+   using SolverMonitorType = typename Benchmark::SolverMonitorType;
 
    template< typename SolverType >
    static bool
-   benchmarkSolver( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, const char* solverName )
+   benchmarkSolver( Benchmark& benchmark, const Config::ParameterContainer& parameters, const char* solverName )
    {
       using ValueType = typename SolverType::ValueType;
       using VectorType = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
@@ -66,7 +66,7 @@ struct LPSolversBenchmark
    }
 
    static bool
-   run( Benchmark<>& benchmark, const Config::ParameterContainer& parameters )
+   run( Benchmark& benchmark, const Config::ParameterContainer& parameters )
    {
       using MatrixType = TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType >;
       using LPProblemType = TNL::Solvers::Optimization::LPProblem< MatrixType >;
@@ -122,7 +122,7 @@ struct LPSolversBenchmark
 
 template< typename Real, typename Device >
 bool
-resolveIndexType( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
+resolveIndexType( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
    const String& index = parameters.getParameter< String >( "index-type" );
    if( index == "int" && ! LPSolversBenchmark< Real, Device, int >::run( benchmark, parameters ) )
@@ -134,7 +134,7 @@ resolveIndexType( Benchmark<>& benchmark, Config::ParameterContainer& parameters
 
 template< typename Real >
 bool
-resolveDeviceType( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
+resolveDeviceType( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
    const String& device = parameters.getParameter< String >( "device" );
    if( ( device == "sequential" || device == "all" )
@@ -155,7 +155,7 @@ resolveDeviceType( Benchmark<>& benchmark, Config::ParameterContainer& parameter
 }
 
 bool
-resolveRealTypes( Benchmark<>& benchmark, Config::ParameterContainer& parameters )
+resolveRealTypes( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
    const String& realType = parameters.getParameter< String >( "precision" );
    if( ( realType == "float" || realType == "all" ) && ! resolveDeviceType< float >( benchmark, parameters ) )
@@ -168,14 +168,9 @@ resolveRealTypes( Benchmark<>& benchmark, Config::ParameterContainer& parameters
 void
 configSetup( Config::ConfigDescription& config )
 {
+   Benchmark::configSetup( config );
    config.addDelimiter( "Benchmark settings:" );
    config.addEntry< String >( "input-file", "Input file name." );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-lp-solvers.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addList< String >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
    config.addEntry< String >( "device", "Run benchmarks using given device.", "host" );
    config.addEntryEnum( "sequential" );
@@ -215,34 +210,14 @@ main( int argc, char* argv[] )
 
    configSetup( conf_desc );
 
-   //TNL::MPI::ScopedInitializer mpi( argc, argv );
-   //const int rank = TNL::MPI::GetRank();
-
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )  // || ! TNL::MPI::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   //const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
-   const int verbose = parameters.getParameter< int >( "verbose" );
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile;
-   //if( rank == 0 )
-   logFile.open( logFileName, mode );
-
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
-
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   Benchmark benchmark;
+   benchmark.setup( parameters, argv[ 0 ] );
 
    std::cout << "Running benchmarks for LP solvers." << std::endl;
    return ! resolveRealTypes( benchmark, parameters );

@@ -166,7 +166,8 @@ forElementsBlockMergeKernel_CSR(
 
    Index idx = threadIdx.x;
    while( idx + first_idx < last_idx ) {
-      auto [ found, local_segmentIdx ] = Algorithms::findUpperBound( shared_offsets, segments_in_block + 1, idx + first_idx );
+      auto [ found, local_segmentIdx ] = Algorithms::findUpperBound(
+         shared_offsets, static_cast< Index >( segments_in_block + 1 ), static_cast< Index >( idx + first_idx ) );
       if( found ) {
          local_segmentIdx--;
          TNL_ASSERT_LT( first_idx + idx, last_idx, "" );

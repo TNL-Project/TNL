@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tuple>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
@@ -71,22 +72,24 @@ using MatrixTypes = ::testing::Types<
 
 TYPED_TEST_SUITE( MatrixTest, MatrixTypes );
 
-TYPED_TEST( MatrixOperationsTest, getDiagonal_DenseMatrix )
+TYPED_TEST( MatrixTest, getDiagonal_DenseMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
    using RealType = typename MatrixType::RealType;
    using DeviceType = typename MatrixType::DeviceType;
    using IndexType = typename MatrixType::IndexType;
+   using TripleType = std::tuple< RealType, DeviceType, IndexType >;
 
    getDiagonal_DenseMatrix_test< TripleType >();
 }
 
-TYPED_TEST( MatrixOperationsTest, getDiagonal_SparseMatrix )
+TYPED_TEST( MatrixTest, getDiagonal_SparseMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
    using RealType = typename MatrixType::RealType;
    using DeviceType = typename MatrixType::DeviceType;
    using IndexType = typename MatrixType::IndexType;
+   using TripleType = std::tuple< RealType, DeviceType, IndexType >;
 
    getDiagonal_SparseMatrix_test< TripleType >();
 }

@@ -23,9 +23,10 @@ void
 PDLP< LPProblem_, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {
    IterativeSolver< RealType, IndexType, SolverMonitor >::configSetup( config, prefix );
-   config.addEntry< bool >( prefix + "inequalities-first",
-                            "The first rows of the constraint matrix are just inequalities, equalities are in the rest.",
-                            true );
+   config.addEntry< bool >(
+      prefix + "inequalities-first",
+      "The first rows of the constraint matrix are just inequalities, equalities are in the rest.",
+      true );
    config.addEntry< std::string >( prefix + "restarting", "Restarting strategy.", "kkt" );
    config.addEntryEnum( "none" );
    config.addEntryEnum( "constant" );
@@ -153,15 +154,16 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
    auto l_view = l.getConstView();
    auto u_view = u.getConstView();
-   x.forElements( 0,
-                  n,
-                  [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
-                  {
-                     if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() )
-                        value = min( u_view[ i ], 0 );
-                     else
-                        value = l_view[ i ];
-                  } );
+   x.forElements(
+      0,
+      n,
+      [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
+      {
+         if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() )
+            value = min( u_view[ i ], 0 );
+         else
+            value = l_view[ i ];
+      } );
    y = 0;
 
    if( writeConvergenceGraphs )
@@ -243,8 +245,9 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 #endif
             eta_sum += current_eta;
 
-            TNL_ASSERT_TRUE( all( lessEqual( z_averaged.getView( 0, n ), u + std::numeric_limits< RealType >::round_error() ) ),
-                             "x is not in the feasible region" );
+            TNL_ASSERT_TRUE(
+               all( lessEqual( z_averaged.getView( 0, n ), u + std::numeric_limits< RealType >::round_error() ) ),
+               "x is not in the feasible region" );
             TNL_ASSERT_TRUE(
                all( greaterEqual( z_averaged.getView( 0, n ), l - std::numeric_limits< RealType >::round_error() ) ),
                "x is not in the feasible region" );
@@ -329,8 +332,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                             << " at k = " << k << " t = " << t << std::endl;
                   mu_last_restart = mu_candidate;
                   kkt_last_restart = kkt_candidate;
-                  this->monitor.setRestarting( RestartingType::Artificial,
-                                               mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
+                  this->monitor.setRestarting(
+                     RestartingType::Artificial, mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
                   break;
                }
 
@@ -350,8 +353,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                             << " at k = " << k << " t = " << t << std::endl;
                   mu_last_restart = mu_candidate;
                   kkt_last_restart = kkt_candidate;
-                  this->monitor.setRestarting( RestartingType::Sufficient,
-                                               mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
+                  this->monitor.setRestarting(
+                     RestartingType::Sufficient, mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
                   break;
                }
 
@@ -367,8 +370,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
                   mu_last_restart = mu_candidate;
                   kkt_last_restart = kkt_candidate;
-                  this->monitor.setRestarting( RestartingType::Necessary,
-                                               mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
+                  this->monitor.setRestarting(
+                     RestartingType::Necessary, mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
                   break;
                }
             }  // if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::DualityGap || restarting ==
@@ -482,12 +485,13 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
 template< typename LPProblem_, typename SolverMonitor >
 bool
-PDLP< LPProblem_, SolverMonitor >::stochasticRestarting( const VectorType& z_current,
-                                                         const VectorType& Kz_current,
-                                                         const VectorType& z_averaged,
-                                                         const VectorType& Kz_averaged,
-                                                         VectorType& z_restarted,
-                                                         VectorType& Kz_restarted )
+PDLP< LPProblem_, SolverMonitor >::stochasticRestarting(
+   const VectorType& z_current,
+   const VectorType& Kz_current,
+   const VectorType& z_averaged,
+   const VectorType& Kz_averaged,
+   VectorType& z_restarted,
+   VectorType& Kz_restarted )
 {
    VectorType z_base( z_current );
    VectorType x_candidate( n ), Kx_candidate( n );
@@ -500,16 +504,18 @@ PDLP< LPProblem_, SolverMonitor >::stochasticRestarting( const VectorType& z_cur
    auto l_view = l.getConstView();
    auto u_view = u.getConstView();
    auto x_base_view = z_base.getConstView( 0, n );
-   Algorithms::parallelFor< DeviceType >( 0,
-                                          n,
-                                          [ = ] __cuda_callable__( IndexType i ) mutable
-                                          {
-                                             if( l_view[ i ] > std::numeric_limits< RealType >::infinity()
-                                                 && u_view[ i ] < std::numeric_limits< RealType >::infinity() )
-                                                x_random[ i ] = l_view[ i ] + x_random[ i ] * ( u_view[ i ] - l_view[ i ] );
-                                             else
-                                                x_random[ i ] = x_base_view[ i ];
-                                          } );
+   auto x_random_view = x_random.getView();
+   Algorithms::parallelFor< DeviceType >(
+      0,
+      n,
+      [ = ] __cuda_callable__( IndexType i ) mutable
+      {
+         if( l_view[ i ] > std::numeric_limits< RealType >::infinity()
+             && u_view[ i ] < std::numeric_limits< RealType >::infinity() )
+            x_random_view[ i ] = l_view[ i ] + x_random_view[ i ] * ( u_view[ i ] - l_view[ i ] );
+         else
+            x_random_view[ i ] = x_base_view[ i ];
+      } );
    RealType alpha = 1.0;
    const RealType alpha_min = 1.0e-4;  // TODO: Check this in Yassins code
    const RealType gamma = 0.5;         // TODO: Check this in Yassins code
@@ -540,11 +546,12 @@ PDLP< LPProblem_, SolverMonitor >::stochasticRestarting( const VectorType& z_cur
 
 template< typename LPProblem_, typename SolverMonitor >
 void
-PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
-                                                 VectorType& out_z,
-                                                 const IndexType k,
-                                                 RealType& current_omega,
-                                                 RealType& current_eta )
+PDLP< LPProblem_, SolverMonitor >::adaptiveStep(
+   const VectorType& in_z,
+   VectorType& out_z,
+   const IndexType k,
+   RealType& current_omega,
+   RealType& current_eta )
 {
    auto in_x = in_z.getConstView( 0, n );
    auto in_y = in_z.getConstView( n, N );
@@ -596,8 +603,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       if( this->adaptive_k == 0 && max_eta == std::numeric_limits< RealType >::infinity() )
          new_eta = ( 1.0 + pow( this->adaptive_k + 1, -0.6 ) ) * current_eta;
       else
-         new_eta = min( ( 1.0 - pow( this->adaptive_k + 1, -0.3 ) ) * max_eta,
-                        ( 1.0 + pow( this->adaptive_k + 1, -0.6 ) ) * current_eta );
+         new_eta = min(
+            ( 1.0 - pow( this->adaptive_k + 1, -0.3 ) ) * max_eta, ( 1.0 + pow( this->adaptive_k + 1, -0.6 ) ) * current_eta );
       TNL_ASSERT_GT( new_eta, 0, "new_eta <= 0" );
       //std::cout << "   Adaptive step: k = " << this->adaptive_k << " new eta = " << new_eta << std::endl;
 
@@ -667,21 +674,23 @@ PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y, VectorV
 
 template< typename LPProblem_, typename SolverMonitor >
 void
-PDLP< LPProblem_, SolverMonitor >::computePrimalStep( const ConstVectorView& x,
-                                                      const VectorView& KTy,
-                                                      const RealType& tau,
-                                                      VectorView& x_new )
+PDLP< LPProblem_, SolverMonitor >::computePrimalStep(
+   const ConstVectorView& x,
+   const VectorView& KTy,
+   const RealType& tau,
+   VectorView& x_new )
 {
    x_new = minimum( u, maximum( l, x - tau * ( c - KTy ) ) );
 }
 
 template< typename LPProblem_, typename SolverMonitor >
 void
-PDLP< LPProblem_, SolverMonitor >::computeDualStep( const ConstVectorView& y,
-                                                    const VectorView& Kx,
-                                                    const VectorView& Kx_new,
-                                                    const RealType& sigma,
-                                                    VectorView& y_new )
+PDLP< LPProblem_, SolverMonitor >::computeDualStep(
+   const ConstVectorView& y,
+   const VectorView& Kx,
+   const VectorView& Kx_new,
+   const RealType& sigma,
+   VectorView& y_new )
 {
    y_new = y + sigma * ( q - 2 * Kx_new + Kx );
    if( this->inequalitiesFirst ) {
@@ -696,11 +705,12 @@ PDLP< LPProblem_, SolverMonitor >::computeDualStep( const ConstVectorView& y,
 
 template< typename LPProblem_, typename SolverMonitor >
 void
-PDLP< LPProblem_, SolverMonitor >::computeLambda( const VectorType& c,
-                                                  const ConstVectorView& KTy,
-                                                  const VectorType& l,
-                                                  const VectorType& u,
-                                                  VectorType& lambda )
+PDLP< LPProblem_, SolverMonitor >::computeLambda(
+   const VectorType& c,
+   const ConstVectorView& KTy,
+   const VectorType& l,
+   const VectorType& u,
+   VectorType& lambda )
 {
    auto c_view = c.getConstView();
    auto KTy_view = KTy.getConstView();

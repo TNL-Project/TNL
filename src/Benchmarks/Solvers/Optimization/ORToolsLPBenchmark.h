@@ -53,7 +53,7 @@ PrintModel( const operations_research::MPSolver& solver )
 
 template< typename LPProblem >
 void
-orToolsLPBenchmark( TNL::Benchmarks::Benchmark<>& benchmark, const LPProblem& lpProblem )
+orToolsLPBenchmark( TNL::Benchmarks::Benchmark& benchmark, const LPProblem& lpProblem )
 {
    using RealType = typename LPProblem::RealType;
    using IndexType = typename LPProblem::IndexType;
