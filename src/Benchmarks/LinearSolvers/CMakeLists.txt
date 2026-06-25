@@ -16,8 +16,40 @@ if(TNL_BUILD_CUDA)
 
     find_package(cudss)
     if(cudss_FOUND)
-        target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_CUDSS")
-        target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC cudss)
+        # Verify that cuDSS is compatible with the installed CUDA version
+        # (cuDSS may have been built against a different CUDA major version)
+        set(_cudss_compatible TRUE)
+        if(DEFINED CUDAToolkit_VERSION_MAJOR)
+            get_target_property(_cudss_location cudss IMPORTED_LOCATION_RELEASE)
+            if(NOT _cudss_location)
+                get_target_property(_cudss_location cudss IMPORTED_LOCATION)
+            endif()
+            if(_cudss_location AND EXISTS "${_cudss_location}")
+                execute_process(
+                    COMMAND readelf -d "${_cudss_location}"
+                    OUTPUT_VARIABLE _cudss_readelf_output
+                    ERROR_QUIET
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                )
+                string(REGEX MATCH "libcublas\\.so\\.([0-9]+)" _cudss_cublas_match "${_cudss_readelf_output}")
+                if(_cudss_cublas_match)
+                    set(_cudss_cublas_major "${CMAKE_MATCH_1}")
+                    if(NOT "${_cudss_cublas_major}" STREQUAL "${CUDAToolkit_VERSION_MAJOR}")
+                        message(STATUS "cuDSS was built against CUDA ${_cudss_cublas_major} but CUDA ${CUDAToolkit_VERSION_MAJOR} is installed, disabling cuDSS")
+                        set(_cudss_compatible FALSE)
+                    endif()
+                endif()
+            endif()
+        endif()
+        if(_cudss_compatible)
+            target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_CUDSS")
+            target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC cudss)
+        endif()
+        unset(_cudss_compatible)
+        unset(_cudss_location)
+        unset(_cudss_readelf_output)
+        unset(_cudss_cublas_match)
+        unset(_cudss_cublas_major)
     endif()
 
     if(TNL_BUILD_MPI)
