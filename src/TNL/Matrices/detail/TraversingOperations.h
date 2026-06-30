@@ -13,3 +13,6 @@ struct TraversingOperations
 
 #include "TraversingOperations_DenseMatrixView.h"
 #include "TraversingOperations_SparseMatrixView.h"
+#include "TraversingOperations_TridiagonalMatrixView.h"
+#include "TraversingOperations_MultidiagonalMatrixView.h"
+#include "TraversingOperations_LambdaMatrix.h"
