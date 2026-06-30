@@ -1,0 +1,220 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+#include <TNL/Matrices/TridiagonalMatrix.h>
+#include <TNL/Matrices/reduce.h>
+#include <TNL/Containers/Vector.h>
+#include <gtest/gtest.h>
+
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   #define TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Host
+#elif defined( __CUDACC__ )
+   #define TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Cuda
+#elif defined( __HIP__ )
+   #define TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Hip
+#endif
+
+namespace TridiagonalMatrixReduceTestNamespace {
+
+template< typename MatrixType >
+void
+setupTestMatrix( MatrixType& matrix )
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+
+   auto view = matrix.getView();
+
+   view.setElement( (IndexType) 0, (IndexType) 0, (RealType) 1.0 );
+   view.setElement( (IndexType) 0, (IndexType) 1, (RealType) 2.0 );
+
+   view.setElement( (IndexType) 1, (IndexType) 0, (RealType) 3.0 );
+   view.setElement( (IndexType) 1, (IndexType) 1, (RealType) 4.0 );
+   view.setElement( (IndexType) 1, (IndexType) 2, (RealType) 5.0 );
+
+   view.setElement( (IndexType) 2, (IndexType) 1, (RealType) 6.0 );
+   view.setElement( (IndexType) 2, (IndexType) 2, (RealType) 7.0 );
+   view.setElement( (IndexType) 2, (IndexType) 3, (RealType) 8.0 );
+
+   view.setElement( (IndexType) 3, (IndexType) 2, (RealType) 9.0 );
+   view.setElement( (IndexType) 3, (IndexType) 3, (RealType) 10.0 );
+   view.setElement( (IndexType) 3, (IndexType) 4, (RealType) 11.0 );
+
+   view.setElement( (IndexType) 4, (IndexType) 3, (RealType) 12.0 );
+   view.setElement( (IndexType) 4, (IndexType) 4, (RealType) 13.0 );
+}
+
+template< typename MatrixType >
+void
+test_reduceRows()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   MatrixType matrix( 5, 5 );
+   setupTestMatrix( matrix );
+
+   VectorType rowSums( 5, 0 );
+   auto rowSumsView = rowSums.getView();
+
+   auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
+   {
+      // For TridiagonalMatrix, the second fetch argument is the actual column index.
+      EXPECT_GE( columnIdx, row - 1 );
+      EXPECT_LE( columnIdx, row + 1 );
+      return value;
+   };
+   auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
+   {
+      return sum + value;
+   };
+   auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
+   {
+      rowSumsView[ row ] = value;
+   };
+
+   TNL::Matrices::reduceRows( matrix, (IndexType) 1, (IndexType) 4, fetch, reduce, keep, (RealType) 0 );
+
+   EXPECT_EQ( rowSums.getElement( 0 ), 0 );
+   EXPECT_EQ( rowSums.getElement( 1 ), 12 );
+   EXPECT_EQ( rowSums.getElement( 2 ), 21 );
+   EXPECT_EQ( rowSums.getElement( 3 ), 30 );
+   EXPECT_EQ( rowSums.getElement( 4 ), 0 );
+   const auto constMatrix( matrix );
+   rowSums = 0;
+
+   TNL::Matrices::reduceRows( constMatrix, (IndexType) 1, (IndexType) 4, fetch, reduce, keep, (RealType) 0 );
+
+   EXPECT_EQ( rowSums.getElement( 0 ), 0 );
+   EXPECT_EQ( rowSums.getElement( 1 ), 12 );
+   EXPECT_EQ( rowSums.getElement( 2 ), 21 );
+   EXPECT_EQ( rowSums.getElement( 3 ), 30 );
+   EXPECT_EQ( rowSums.getElement( 4 ), 0 );
+}
+
+template< typename MatrixType >
+void
+test_reduceAllRows_explicit_identity()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   MatrixType matrix( 5, 5 );
+   setupTestMatrix( matrix );
+
+   VectorType rowSums( 5, 0 );
+   auto rowSumsView = rowSums.getView();
+
+   auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
+   {
+      return value;
+   };
+   auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
+   {
+      return sum + value;
+   };
+   auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
+   {
+      rowSumsView[ row ] = value;
+   };
+
+   TNL::Matrices::reduceAllRows( matrix, fetch, reduce, keep, (RealType) 0 );
+
+   EXPECT_EQ( rowSums.getElement( 0 ), 3 );
+   EXPECT_EQ( rowSums.getElement( 1 ), 12 );
+   EXPECT_EQ( rowSums.getElement( 2 ), 21 );
+   EXPECT_EQ( rowSums.getElement( 3 ), 30 );
+   EXPECT_EQ( rowSums.getElement( 4 ), 25 );
+
+   const auto constMatrix( matrix );
+   rowSums = 0;
+
+   TNL::Matrices::reduceAllRows( constMatrix, fetch, reduce, keep, (RealType) 0 );
+
+   EXPECT_EQ( rowSums.getElement( 0 ), 3 );
+   EXPECT_EQ( rowSums.getElement( 1 ), 12 );
+   EXPECT_EQ( rowSums.getElement( 2 ), 21 );
+   EXPECT_EQ( rowSums.getElement( 3 ), 30 );
+   EXPECT_EQ( rowSums.getElement( 4 ), 25 );
+}
+
+template< typename MatrixType >
+void
+test_reduceAllRows_deduced_identity()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   MatrixType matrix( 5, 5 );
+   setupTestMatrix( matrix );
+
+   VectorType rowMax( 5, 0 );
+   auto rowMaxView = rowMax.getView();
+
+   auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
+   {
+      return value;
+   };
+   auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
+   {
+      rowMaxView[ row ] = value;
+   };
+
+   // Deduced identity requires a reduction object that exposes getIdentity(),
+   // hence we use TNL::Max here instead of a plain lambda.
+   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Max{}, keep );
+
+   EXPECT_EQ( rowMax.getElement( 0 ), 2 );
+   EXPECT_EQ( rowMax.getElement( 1 ), 5 );
+   EXPECT_EQ( rowMax.getElement( 2 ), 8 );
+   EXPECT_EQ( rowMax.getElement( 3 ), 11 );
+   EXPECT_EQ( rowMax.getElement( 4 ), 13 );
+
+   const auto constMatrix( matrix );
+   rowMax = 0;
+
+   TNL::Matrices::reduceAllRows( constMatrix, fetch, TNL::Max{}, keep );
+
+   EXPECT_EQ( rowMax.getElement( 0 ), 2 );
+   EXPECT_EQ( rowMax.getElement( 1 ), 5 );
+   EXPECT_EQ( rowMax.getElement( 2 ), 8 );
+   EXPECT_EQ( rowMax.getElement( 3 ), 11 );
+   EXPECT_EQ( rowMax.getElement( 4 ), 13 );
+}
+
+}  // namespace TridiagonalMatrixReduceTestNamespace
+
+TEST( TridiagonalMatrixReduceTest, reduceRows )
+{
+   using namespace TridiagonalMatrixReduceTestNamespace;
+   test_reduceRows< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int > >();
+   test_reduceRows< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, long > >();
+}
+
+TEST( TridiagonalMatrixReduceTest, reduceAllRows_explicit_identity )
+{
+   using namespace TridiagonalMatrixReduceTestNamespace;
+   test_reduceAllRows_explicit_identity<
+      TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int > >();
+   test_reduceAllRows_explicit_identity<
+      TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, long > >();
+}
+
+TEST( TridiagonalMatrixReduceTest, reduceAllRows_deduced_identity )
+{
+   using namespace TridiagonalMatrixReduceTestNamespace;
+   test_reduceAllRows_deduced_identity<
+      TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int > >();
+   test_reduceAllRows_deduced_identity<
+      TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, long > >();
+}
+
+#undef TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE
