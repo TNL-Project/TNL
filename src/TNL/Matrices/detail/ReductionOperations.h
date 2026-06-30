@@ -13,3 +13,6 @@ struct ReductionOperations
 
 #include "ReductionOperations_DenseMatrixView.h"
 #include "ReductionOperations_SparseMatrixView.h"
+#include "ReductionOperations_TridiagonalMatrixView.h"
+#include "ReductionOperations_MultidiagonalMatrixView.h"
+#include "ReductionOperations_LambdaMatrix.h"

@@ -5,6 +5,7 @@
 
 #include <TNL/TypeTraits.h>
 #include "LaunchConfiguration.h"
+#include "TypeTraits.h"
 #include "detail/FetchLambdaAdapter.h"
 
 namespace TNL::Algorithms::Segments {

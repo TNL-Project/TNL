@@ -89,6 +89,16 @@ public:
     */
    using ConstRowView = RowView;
 
+   /**
+    * \brief Type of related matrix view.
+    */
+   using ViewType = LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >;
+
+   /**
+    * \brief Matrix view type for constant instances.
+    */
+   using ConstViewType = ViewType;
+
    [[nodiscard]] static constexpr bool
    isSymmetric()
    {
@@ -253,6 +263,28 @@ public:
    [[nodiscard]] __cuda_callable__
    ConstRowView
    getRow( IndexType rowIdx ) const;
+
+   /**
+    * \brief Returns a modifiable view of the lambda matrix.
+    *
+    * \return lambda matrix view.
+    */
+   [[nodiscard]] ViewType
+   getView()
+   {
+      return *this;
+   }
+
+   /**
+    * \brief Returns a non-modifiable view of the lambda matrix.
+    *
+    * \return lambda matrix view.
+    */
+   [[nodiscard]] ConstViewType
+   getConstView() const
+   {
+      return *this;
+   }
 
    /**
     * \brief Returns value of matrix element at position given by its row and column index.

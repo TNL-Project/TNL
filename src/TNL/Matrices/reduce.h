@@ -7,10 +7,6 @@
 
 namespace TNL::Matrices {
 
-// TODO: The following is incomplete implementation of traversing functions for matrices. It is necessary
-// for traversing of graphs and it currently supports sparse and dense matrices only. It should be extended to support
-// other matrix types as well. Also, documentation and examples should be added.
-
 // clang-format off
 /**
  * \page MatrixReductionOverview Overview of Matrix Reduction Functions
