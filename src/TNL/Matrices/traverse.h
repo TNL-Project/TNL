@@ -7,10 +7,6 @@
 
 namespace TNL::Matrices {
 
-// TODO: The following is incomplete implementation of traversing functions for matrices. It is necessary
-// for traversing of graphs and it currently supports sparse and dense matrices only. It should be extended to support
-// other matrix types as well. Also, documentation and examples should be added.
-
 // clang-format off
 /**
  * \page MatrixTraversalOverview Overview of Matrix Traversal Functions
@@ -119,9 +115,10 @@ namespace TNL::Matrices {
  *   - Column indices are implicit
  *   - Element traversal processes all elements in each row
  *
- * - **Structured matrices** (Tridiagonal, Multidiagonal) (NOT IMPLEMENTED YET):
- *   - Column indices follow fixed patterns
- *   - Element traversal only processes non-zero structure
+ * - **Structured matrices** (Tridiagonal, Multidiagonal):
+ *   - Implemented and supported by the free-function traversal API.
+ *   - Column indices follow fixed patterns.
+ *   - Element traversal only processes non-zero structure.
  *
  * **Performance considerations:**
  * - Element-wise traversal is is parallel within rows, i.e. one matrix row can be processed by multiple threads

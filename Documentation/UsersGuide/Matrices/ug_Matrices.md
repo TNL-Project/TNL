@@ -2,7 +2,7 @@
 
 [TOC]
 
-TODO: Add description of forRows and sequentialForRows.
+All matrix types share a unified interface for traversing rows and elements. In addition to the member functions documented below, there is a cross-cutting free-function API described in [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api).
 
 ## Introduction
 
@@ -901,15 +901,25 @@ The result looks as follows:
 
 #### Method forRows
 
-As in the case of other matrix types, the method `forRows` (\ref TNL::Matrices::TridiagonalMatrix::forRows) calls the method `getRow` (\ref TNL::Matrices::TridiagonalMatrix::getRow) in parallel. It is demonstrated by the following example which we may directly compare with the previous one:
+The method `forRows` (\ref TNL::Matrices::TridiagonalMatrix::forRows) iterates in parallel over matrix rows and calls the user lambda with a row view object. It is the tridiagonal equivalent of the dense and sparse variants described above. The full family of member functions consists of:
+
+* `forAllRows(function)` - processes all rows.
+* `forRows(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
+* `forRows(rowIndexes, function)` - processes rows listed in an array of row indexes.
+* `forRows(begin, end, rowCondition, function)` - processes rows in an interval for which the condition returns `true`.
+* `forAllRows(rowCondition, function)` - processes all rows satisfying a condition.
+
+The same traversal is also available through the free function `TNL::Matrices::forRows`, which supports all five matrix types (see [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api)).
+
+The following example demonstrates the basic use:
 
 \includelineno TridiagonalMatrixViewExample_forRows.cpp
 
-The differences are:
+The differences compared to `getRow` + `parallelFor` are:
 
 1. We do not need to get the matrix view as we did in the previous example.
 2. We call the method `forAllRows` (\ref TNL::Matrices::TridiagonalMatrix::forAllRows) (line 33) instead of \ref TNL::Algorithms::parallelFor "parallelFor" which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither.
-3. The lambda function `f` (lines 25-31) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::TridiagonalMatrix::RowView which is \ref TNL::Matrices::TridiagonalMatrixRowView) instead of the index of the matrix row. Therefore we do not need to call the method `getRow` (\ref TNL::Matrices::TridiagonalMatrix::getRow). On the other hand, we need the method `geRowIndex` (\ref TNL::Matrices::TridiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 24).
+3. The lambda function `f` (lines 25-31) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::TridiagonalMatrix::RowView which is \ref TNL::Matrices::TridiagonalMatrixRowView) instead of the index of the matrix row. Therefore we do not need to call the method `getRow` (\ref TNL::Matrices::TridiagonalMatrix::getRow). On the other hand, we need the method `geRowIndex` (\ref TNL::Matrices::TridiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 24). The row view also provides `setElement(localIdx, value)` to modify the element stored at the given local index.
 
 Next, we compute sum of absolute values of matrix elements in each row and store it in a vector (lines 39-46). Firstly we create the vector `sum_vector` for storing the sums (line 39) and get a vector view `sum_view` to get access to the vector from a lambda function. On the lines 41-46, we call lambda function for each matrix row which iterates over all matrix elements and sum their absolute values. Finally we store the result to the output vector (line 45).
 
@@ -919,11 +929,28 @@ The result looks as follows:
 
 #### Method forElements
 
-Finally, even a bit more simple way of matrix elements manipulation with the method `forElements` (\ref TNL::Matrices::TridiagonalMatrix::forElements) is demonstrated in the following example:
+The method `forElements` (\ref TNL::Matrices::TridiagonalMatrix::forElements) is the element-wise counterpart of `forRows`. It iterates in parallel over the matrix elements lying on the stored subdiagonals and passes the following data to the user lambda:
+
+* `rowIdx` is the row index of the matrix element.
+* `localIdx` is the rank of the nonzero matrix element within the row (see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices)).
+* `columnIdx` is the column index of the matrix element.
+* `value` is a reference to the matrix element value and can be modified.
+
+The full family of member functions consists of:
+
+* `forAllElements(function)` - processes all rows.
+* `forElements(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
+* `forElements(rowIndexes, function)` - processes rows listed in an array of row indexes.
+* `forElementsIf(begin, end, condition, function)` - processes rows in an interval for which the condition returns `true`.
+* `forAllElementsIf(condition, function)` - processes all rows satisfying a condition.
+
+The free-function equivalents in `TNL::Matrices` support all five matrix types (see [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api)).
+
+The following example sets all elements on the three tridiagonal subdiagonals:
 
 \includelineno TridiagonalMatrixViewExample_forElements.cpp
 
-On the line 41, we call the method `forElements` (\ref TNL::Matrices::TridiagonalMatrix::forElements) instead of \ref TNL::Algorithms::parallelFor "parallelFor". This method iterates over all matrix rows and all nonzero matrix elements. The lambda function on the line 24 therefore do not receive only the matrix row index but also local index of the matrix element (`localIdx`) which is a rank of the nonzero matrix element in given row  - see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices). Next parameter, `columnIdx` received by the lambda function, is the column index of the matrix element. The fourth parameter `value` is a reference on the matrix element which we use for its modification.
+We call `forElements` (line 43) instead of \ref TNL::Algorithms::parallelFor "parallelFor". This method iterates over all matrix rows and all nonzero matrix elements. The lambda function on line 25 receives the matrix row index, the local index of the matrix element (`localIdx`), the column index (`columnIdx`), and a reference to the element value (`value`) which we use for its modification. Note that the first and the last row contain padding artificial elements; their local indexes and values are iterated as well.
 
 The result looks as follows:
 
@@ -1175,11 +1202,21 @@ We use \ref TNL::Algorithms::parallelFor "parallelFor" to iterate over all nodes
 
 #### Method forRows
 
-As in the case of other matrix types, the method `forRows` (\ref TNL::Matrices::MultidiagonalMatrix::forRows) calls the method `getRow` (\ref TNL::Matrices::MultidiagonalMatrix::getRow) in parallel. It is demonstrated by the following example:
+The method `forRows` (\ref TNL::Matrices::MultidiagonalMatrix::forRows) iterates in parallel over matrix rows and passes a row view to the user lambda. It is the multidiagonal equivalent of the dense and sparse variants described above. The full family of member functions consists of:
+
+* `forAllRows(function)` - processes all rows.
+* `forRows(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
+* `forRows(rowIndexes, function)` - processes rows listed in an array of row indexes.
+* `forRows(begin, end, rowCondition, function)` - processes rows in an interval for which the condition returns `true`.
+* `forAllRows(rowCondition, function)` - processes all rows satisfying a condition.
+
+The same traversal is also available through the free function `TNL::Matrices::forRows`, which supports all five matrix types (see [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api)).
+
+The following example demonstrates the basic use:
 
 \includelineno MultidiagonalMatrixViewExample_forRows.cpp
 
- We call the method `forAllRows` (\ref TNL::Matrices::MultidiagonalMatrix::forAllRows) (line 36) instead of \ref TNL::Algorithms::parallelFor "parallelFor" which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither. The lambda function `f` (lines 28-35) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::MultidiagonalMatrix::RowView which is \ref TNL::Matrices::MultidiagonalMatrixRowView). At the beginning of the lambda function, we call the method `geRowIndex` (\ref TNL::Matrices::MultidiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 29).
+We call the method `forAllRows` (\ref TNL::Matrices::MultidiagonalMatrix::forAllRows) (line 39) instead of \ref TNL::Algorithms::parallelFor "parallelFor" which is simpler since we do not have to state the device type explicitly. The method `forAllRows` calls the method `forRows` for all matrix rows so we do not have to state explicitly the interval of matrix rows neither. The lambda function `f` (lines 30-38) accepts one parameter `row` of the type `RowView` (\ref TNL::Matrices::MultidiagonalMatrix::RowView which is \ref TNL::Matrices::MultidiagonalMatrixRowView). At the beginning of the lambda function, we call the method `geRowIndex` (\ref TNL::Matrices::MultidiagonalMatrixRowView::getRowIndex) to get the index of the matrix row (line 29). The row view also provides `setElement(localIdx, value)` to modify the element stored at the given local index.
 
 Next, we compute sum of absolute values of matrix elements in each row and store it in a vector (lines 39-46). Firstly we create the vector `sum_vector` for storing the sums (line 39) and get a vector view `sum_view` to get access to the vector from a lambda function. On the lines 41-46, we call lambda function for each matrix row which iterates over all matrix elements and sum their absolute values. Finally we store the result to the output vector (line 45).
 
@@ -1189,18 +1226,30 @@ The result looks as follows:
 
 #### Method forElements
 
-Similar and even a bit simpler way of setting the matrix elements is offered by the method `forElements` (\ref TNL::Matrices::MultidiagonalMatrix::forElements, \ref TNL::Matrices::MultidiagonalMatrixView::forElements) as demonstrated in the following example:
+The method `forElements` (\ref TNL::Matrices::MultidiagonalMatrix::forElements, \ref TNL::Matrices::MultidiagonalMatrixView::forElements) is the element-wise counterpart of `forRows`. It iterates in parallel over the matrix elements lying on the stored subdiagonals and passes the following data to the user lambda:
+
+* `rowIdx` is the row index of the matrix element.
+* `localIdx` is the index of the matrix subdiagonal (rank of the nonzero element within the row, see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices)).
+* `columnIdx` is the column index of the matrix element.
+* `value` is a reference to the matrix element value and can be modified.
+
+The full family of member functions consists of:
+
+* `forAllElements(function)` - processes all rows.
+* `forElements(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
+* `forElements(rowIndexes, function)` - processes rows listed in an array of row indexes.
+* `forElementsIf(begin, end, condition, function)` - processes rows in an interval for which the condition returns `true`.
+* `forAllElementsIf(condition, function)` - processes all rows satisfying a condition.
+
+The free-function equivalents in `TNL::Matrices` support all five matrix types (see [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api)).
+
+The following example demonstrates the basic use:
 
 \includelineno MultidiagonalMatrixViewExample_forElements.cpp
 
-In this case, we need to provide a lambda function `f` (lines 27-43) which is called for each matrix row just by the method `forElements` (line 44). The lambda function `f` provides the following parameters
+We provide a lambda function `f` (lines 28-45) which is called for each matrix element by the method `forElements` (line 46). In this example, the matrix element value depends only on the subdiagonal index `localIdx` (see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices)) as we can see on line 44. Padding artificial elements outside the matrix are iterated as well.
 
-* `rowIdx` is an index of the matrix row.
-* `localIdx` is in index of the matrix subdiagonal.
-* `columnIdx` is a column index of the matrix element.
-* `value` is a reference to the matrix element value. It can be used even for changing the value.
-
-In this example, the matrix element value depends only on the subdiagonal index `localIdx` (see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices)) as we can see on the line 42. The result looks as follows:
+The result looks as follows:
 
 \include MultidiagonalMatrixViewExample_forElements.out
 
@@ -1257,17 +1306,23 @@ The result looks as follows:
 
 #### Method forRows
 
-Method `forRows` (\ref TNL::Matrices::LambdaMatrix::forRows, \ref TNL::Matrices::LambdaMatrix::forAllRows) iterates in parallel over all matrix rows. In the case of lambda matrices, it cannot be used for changing the matrix elements since they cannot be changed. In the following example, we show how to use this method to copy the matrix elements values to the dense matrix:
+The method `forRows` (\ref TNL::Matrices::LambdaMatrix::forRows, \ref TNL::Matrices::LambdaMatrix::forAllRows) iterates in parallel over matrix rows. Because a lambda matrix does not store its elements explicitly, the traversal is read-only; the matrix elements cannot be changed through the row view. The available member functions are:
+
+* `forAllRows(function)` - processes all rows.
+* `forRows(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
+* `forRows(rowIndexes, function)` - processes rows listed in an array of row indexes.
+
+The row view passed to the lambda offers the same read-only interface as for other matrix types: `getRowIndex()`, `getSize()`, `getColumnIndex(localIdx)`, `getValue(localIdx)`, and range-based iteration over the elements. The free-function `TNL::Matrices::forRows` also works with lambda matrices, but only through the const overloads (see [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api)).
+
+The following example shows how to copy the lambda matrix into a dense matrix and how to compute the sum of absolute values in each row:
 
 \includelineno LambdaMatrixExample_forRows.cpp
 
 We start with the lambda functions (lines 17-61) defining the elements of the lambda matrix. Next, we create the lambda matrix `matrix` (lines 62-64) and the dense matrix `denseMatrix` (lines 67-68) together with the dense matrix view (line 69). The lambda function `f` (lines 70-74) serves for copying matrix elements from the lambda matrix to the dense matrix. The process of matrix elements copying is started by calling the method `forAllRows` (\ref TNL::Matrices::LambdaMatrix::forRows, \ref TNL::Matrices::LambdaMatrix::forAllRows) (line 75).
 
-Note, however, that use of `forElements` method (\ref TNL::Matrices::LambdaMatrix::forElements) would be more convenient.
+Note, however, that use of the `forElements` method (\ref TNL::Matrices::LambdaMatrix::forElements) would be more convenient for the copy operation.
 
 Next, we compute sum of absolute values of matrix elements in each row and store it in a vector (lines 83-90). Firstly we create the vector `sum_vector` for storing the sums (line 83) and get a vector view `sum_view` to get access to the vector from a lambda function. On the lines 85-90, we call lambda function for each matrix row which iterates over all matrix elements and sum their absolute values. Finally we store the result to the output vector (line 92).
-
-
 
 The result looks as follows:
 
@@ -1275,7 +1330,14 @@ The result looks as follows:
 
 #### Method forElements
 
-The lambda matrix has the same interface as other matrix types except of the method `getRow`. The following example demonstrates the use of the method `forElements` (\ref TNL::Matrices::LambdaMatrix::forElements) to copy the lambda matrix into the dense matrix:
+The lambda matrix has the same element-wise interface as other matrix types, except that the matrix has no mutable storage. The available member functions are:
+
+* `forAllElements(function)` - processes all rows.
+* `forElements(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
+
+The lambda receives the row index, the local index, the column index, and a read-only value of the matrix element. Because the element value is evaluated on-the-fly, it is passed as `const Real&` regardless of whether the matrix object itself is const. The free-function `TNL::Matrices::forElements` supports lambda matrices through the const overloads only (see [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api)).
+
+The following example demonstrates the use of the method `forElements` (\ref TNL::Matrices::LambdaMatrix::forElements) to copy the lambda matrix into the dense matrix:
 
 \includelineno LambdaMatrixExample_forElements.cpp
 
@@ -1518,6 +1580,51 @@ We want to compute maximal absolute value of matrix elements in each row. For th
 Note that the interface of the lambda functions is the same as for other matrix types. The result looks as follows:
 
 \include LambdaMatrixExample_reduceRows.out
+
+## Free-function traverse and reduce API
+
+In addition to the member functions described above, TNL provides a generic free-function API in the namespace `TNL::Matrices` for matrix traversal and row reduction. The free functions now support all five matrix types: dense, sparse, tridiagonal, multidiagonal, and lambda matrices.
+
+The traversal functions are:
+
+* `TNL::Matrices::forElements(matrix, begin, end, function)`
+* `TNL::Matrices::forAllElements(matrix, function)`
+* `TNL::Matrices::forElements(matrix, rowIndexes, function)`
+* `TNL::Matrices::forElementsIf(matrix, begin, end, condition, function)`
+* `TNL::Matrices::forAllElementsIf(matrix, condition, function)`
+* `TNL::Matrices::forRows(matrix, begin, end, function)`
+* `TNL::Matrices::forAllRows(matrix, function)`
+* `TNL::Matrices::forRows(matrix, rowIndexes, function)`
+* `TNL::Matrices::forRowsIf(matrix, begin, end, condition, function)`
+* `TNL::Matrices::forAllRowsIf(matrix, condition, function)`
+
+The reduction functions are:
+
+* `TNL::Matrices::reduceRows(matrix, begin, end, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceAllRows(matrix, fetch, reduce, keep, identity)`
+
+Both reduction functions also have overloads that accept a function object for `reduce` and deduce the identity value automatically.
+
+These functions mirror the corresponding member functions and use the same lambda signatures described in the previous sections. The following example demonstrates `TNL::Matrices::forElements` on dense and sparse matrices:
+
+\includelineno Matrices/Traverse/MatrixExample_forElements.cpp
+
+The output is:
+
+\include MatrixExample_forElements.out
+
+### Scope differences
+
+Although the free-function API is available for all five matrix types, the supported variants differ because tridiagonal, multidiagonal, and lambda matrices do not use the same segment-based backend as dense and sparse matrices.
+
+* **Tridiagonal and multidiagonal matrices** support the full traversal surface (`forElements`, `forAllElements`, `forRows`, `forAllRows`, and all conditional and row-index variants). For reduction, only `reduceRows` and `reduceAllRows` are supported. The `*If`, `*WithArgument`, and row-index overloads of `reduceRows` are not supported.
+* **Lambda matrices** support a traversal subset: `forElements`, `forAllElements`, `forRows`, and `forAllRows`. Only the const overloads are available because a lambda matrix has no mutable storage. For reduction, only `reduceRows` and `reduceAllRows` are supported, again const-only.
+
+### Important notes
+
+* **launchConfig**: The `launchConfig` parameter is honored for Dense/Sparse matrix types (forwarded to `Algorithms::Segments::*`) but silently ignored for Tridiagonal/Multidiagonal/Lambda, which dispatch via `Algorithms::parallelFor` with an auto-selected configuration.
+* **LambdaMatrix immutability**: For `LambdaMatrix`, the `value` parameter of the user lambda is always `const Real&` regardless of which free-function overload is used, because `LambdaMatrix` has no mutable storage. Mutation attempts will fail to compile.
+* **Fetch lambda semantics**: The `reduceRows`/`reduceAllRows` fetch lambda arg #2 is `localIdx` for Dense/Sparse but `columnIdx` for Tridiagonal/Multidiagonal/Lambda.
 
 ## Matrix-vector product
 

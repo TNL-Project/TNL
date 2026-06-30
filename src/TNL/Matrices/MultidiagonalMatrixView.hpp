@@ -42,7 +42,7 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 auto
 MultidiagonalMatrixView< Real, Device, Index, Organization >::getConstView() const -> ConstViewType
 {
-   return { this->getValues.getConstView(),
+   return { this->getValues().getConstView(),
             this->diagonalOffsets.getConstView(),
             this->hostDiagonalOffsets.getConstView(),
             this->getIndexer() };

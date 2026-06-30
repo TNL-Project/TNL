@@ -1,5 +1,8 @@
 set(COMMON_TESTS
     DenseMatrixTraverseTest
+    LambdaMatrixTraverseTest
+    MultidiagonalMatrixTraverseTest
+    TridiagonalMatrixTraverseTest
     SparseMatrixTraverseTest_CSR
     SparseMatrixTraverseTest_Ellpack
     SparseMatrixTraverseTest_BiEllpack
