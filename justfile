@@ -252,7 +252,7 @@ create-gitlab-release:
         release_notes+="## Merge requests\n\n$(git log --pretty=format:"* %w(0,0,2)%b" --merges "$previous_version..$current_version")\n\n"
         release_notes+="## Detailed changes\n\n$(git log --pretty=format:"* %s (%H)" --no-merges "$previous_version..$current_version")\n\n"
     fi
-    # Run through printf to interpret escapes such as \n
+    # Run through echo to interpret escapes such as \n
     release_notes="$(echo -e "$release_notes")"
 
     just _ensure-command glab
