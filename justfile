@@ -115,7 +115,7 @@ format:
 # Checks justfile recipe for shell issues using shellcheck
 _check-recipe recipe:
     just _ensure-command grep shellcheck
-    just -vv -n {{ recipe }} 2>&1 | grep -v '===> Running recipe' | shellcheck -
+    just -vv -n {{ recipe }} 2>&1 | grep -iv '===> Running recipe' | shellcheck -
 
 # Checks all justfile recipes with inline bash for shell issues using shellcheck
 check-recipes:
