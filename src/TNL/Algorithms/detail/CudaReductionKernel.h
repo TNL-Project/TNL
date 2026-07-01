@@ -167,7 +167,7 @@ struct CudaBlockReduceShfl
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
+         const ValueType otherValue = Backend::warp_shuffle_xor( threadValue, i );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -194,7 +194,7 @@ struct CudaBlockReduceShfl
          GroupSize * Stride <= Backend::getMaxWarpSize(), "GroupSize * Stride must not exceed the maximum warp size" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i * Stride );
+         const ValueType otherValue = Backend::warp_shuffle_down( threadValue, i * Stride );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -375,8 +375,8 @@ struct CudaBlockReduceWithArgument
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
-         const IndexType otherArgument = __shfl_xor_sync( Backend::getWarpFullMask(), threadArgument, i );
+         const ValueType otherValue = Backend::warp_shuffle_xor( threadValue, i );
+         const IndexType otherArgument = Backend::warp_shuffle_xor( threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );
@@ -398,8 +398,8 @@ struct CudaBlockReduceWithArgument
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i );
-         const IndexType otherArgument = __shfl_down_sync( Backend::getWarpFullMask(), threadArgument, i );
+         const ValueType otherValue = Backend::warp_shuffle_down( threadValue, i );
+         const IndexType otherArgument = Backend::warp_shuffle_down( threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );

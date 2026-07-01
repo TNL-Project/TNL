@@ -23,14 +23,14 @@ using MatrixTypes = ::testing::Types<
    TestMatrixType< int, TNL::Devices::Cuda, int >,
    TestMatrixType< long, TNL::Devices::Cuda, long >,
    TestMatrixType< float, TNL::Devices::Cuda, int >,
-   TestMatrixType< double, TNL::Devices::Cuda, long >
-//,TestMatrixType< TNL::Arithmetics::Complex<float>,   TNL::Devices::Cuda, long >
+   TestMatrixType< double, TNL::Devices::Cuda, long >,
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
    TestMatrixType< int, TNL::Devices::Hip, int >,
    TestMatrixType< long, TNL::Devices::Hip, long >,
    TestMatrixType< float, TNL::Devices::Hip, int >,
-   TestMatrixType< double, TNL::Devices::Hip, long >
-//,TestMatrixType< TNL::Arithmetics::Complex<float>,   TNL::Devices::Hip, long >
+   TestMatrixType< double, TNL::Devices::Hip, long >,
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Hip, long >
 #endif
    >;
 

@@ -264,7 +264,9 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       const Index row = ( threadIdx.x / ( SliceSize * ThreadsPerSegment ) ) * SliceSize  // the first row of this slice
                       + inSliceThreadIdx % SliceSize;                                    // the in-slice index within the row
       TNL_ASSERT_LT( row, BlockSize / ThreadsPerSegment, "" );
-      __shared__ ReturnType sharedResults[ BlockSize ];
+
+      // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+      __shared__ Backend::Uninitialized< ReturnType > sharedResults[ BlockSize ];
 
       if( column < ThreadsPerSegment ) {
          TNL_ASSERT_LT( row * ThreadsPerSegment + column, BlockSize, "" );
@@ -288,7 +290,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       //          |  T14/W3 | T15/W3 |
       //          +---------+--------+
       /////
-      result = sharedResults[ threadIdx.x ];
+      result = sharedResults[ threadIdx.x ].get();
       auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
       warp.sync();
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;

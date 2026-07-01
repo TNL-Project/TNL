@@ -104,9 +104,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if constexpr( std::is_same_v< Device, TNL::Devices::Host > || std::is_same_v< Device, TNL::Devices::Sequential >
-                    || is_complex_v< Value > )  // Complex numbers are not supported in CUDA kernels due to use of shfl.
-      {
+      if constexpr( std::is_same_v< Device, TNL::Devices::Host > || std::is_same_v< Device, TNL::Devices::Sequential > ) {
          reduceSegmentsSequential(
             segments,
             begin,

@@ -40,8 +40,9 @@ reduceSegmentsCSRAdaptiveKernel(
    constexpr std::size_t StreamedSharedElementsPerWarp =
       detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::StreamedSharedElementsPerWarp();
 
-   __shared__ ReturnType streamShared[ WarpsCount ][ StreamedSharedElementsPerWarp ];
-   __shared__ ReturnType multivectorShared[ CudaBlockSize / WarpSize ];
+   // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+   __shared__ Backend::Uninitialized< ReturnType > streamShared[ WarpsCount ][ StreamedSharedElementsPerWarp ];
+   __shared__ Backend::Uninitialized< ReturnType > multivectorShared[ CudaBlockSize / WarpSize ];
 
    const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
    const Index blockIdx = index / WarpSize;
@@ -74,7 +75,7 @@ reduceSegmentsCSRAdaptiveKernel(
          result = identity;
          // Scalar reduction
          for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++ )
-            result = reduction( result, streamShared[ warpIdx ][ sharedIdx ] );
+            result = reduction( result, streamShared[ warpIdx ][ sharedIdx ].get() );
          store( i, result );
       }
    }
@@ -118,7 +119,7 @@ reduceSegmentsCSRAdaptiveKernel(
       // Reduction in multivectorShared using warp-level shuffle
       if( block.getWarpIdx() == 0 ) {
          constexpr int totalWarps = CudaBlockSize / WarpSize;
-         auto myValue = ( laneIdx < totalWarps ) ? multivectorShared[ laneIdx ] : identity;
+         auto myValue = ( laneIdx < totalWarps ) ? multivectorShared[ laneIdx ].get() : identity;
          myValue = BlockReduce::warpReduce( reduction, myValue );
          if( laneIdx == 0 )
             multivectorShared[ 0 ] = myValue;
@@ -126,7 +127,7 @@ reduceSegmentsCSRAdaptiveKernel(
       __syncthreads();
 
       if( laneIdx == 0 ) {
-         store( segmentIdx, multivectorShared[ 0 ] );
+         store( segmentIdx, multivectorShared[ 0 ].get() );
       }
    }
 #endif
@@ -159,8 +160,9 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
    constexpr std::size_t StreamedSharedElementsPerWarp =
       detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::StreamedSharedElementsPerWarp();
 
-   __shared__ ReturnType streamShared_result[ WarpsCount ][ StreamedSharedElementsPerWarp ];
-   __shared__ ReturnType multivectorShared_result[ CudaBlockSize / WarpSize ];
+   // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+   __shared__ Backend::Uninitialized< ReturnType > streamShared_result[ WarpsCount ][ StreamedSharedElementsPerWarp ];
+   __shared__ Backend::Uninitialized< ReturnType > multivectorShared_result[ CudaBlockSize / WarpSize ];
    __shared__ Index multivectorShared_argument[ CudaBlockSize / WarpSize ];
 
    const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
@@ -196,7 +198,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
          // Scalar reduction
          Index localIdx = 0;
          for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++, localIdx++ )
-            reduction( result, streamShared_result[ warpIdx ][ sharedIdx ], argument, localIdx );
+            reduction( result, streamShared_result[ warpIdx ][ sharedIdx ].get(), argument, localIdx );
          bool emptySegment = ( offsets[ i ] == offsets[ i + 1 ] );
          store( i, argument, result, emptySegment );
       }
@@ -245,7 +247,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
       // Reduction in multivectorShared using warp-level shuffle
       if( block.getWarpIdx() == 0 ) {
          constexpr int totalWarps = CudaBlockSize / WarpSize;
-         auto myResult = ( laneIdx < totalWarps ) ? multivectorShared_result[ laneIdx ] : identity;
+         auto myResult = ( laneIdx < totalWarps ) ? multivectorShared_result[ laneIdx ].get() : identity;
          auto myArgument = ( laneIdx < totalWarps ) ? multivectorShared_argument[ laneIdx ] : Index{};
          auto [ reducedResult, reducedArgument ] = BlockReduce::warpReduceWithArgument( reduction, myResult, myArgument );
          if( laneIdx == 0 ) {
@@ -257,7 +259,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
 
       if( laneIdx == 0 ) {
          bool emptySegment = ( begin == end );
-         store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ], emptySegment );
+         store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ].get(), emptySegment );
       }
    }
 #endif

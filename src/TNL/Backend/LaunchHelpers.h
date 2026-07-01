@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstdint>
 #include <iostream>
 #include <limits>       // std::numeric_limits
 #include <memory>       // std::unique_ptr
@@ -177,31 +176,6 @@ getWarpSize( int deviceId )
 #else
    (void) deviceId;
    return 32;
-#endif
-}
-
-/**
- * \brief Returns the full mask for warp shuffle operations.
- *
- * HIP shfl intrinsics require a 64-bit mask regardless of the wavefront size
- * (unused upper bits are zero for wave32). CUDA uses a 32-bit mask.
- *
- * Warning: this function relies on `__GFX8__`/`__GFX9__` arch macros which are
- * defined only during device compilation. On the host side, it falls through
- * to the wavefront=32 mask. Do not call from host code — use only in
- * `__device__` functions or inside `#if defined(__CUDACC__) || defined(__HIP__)`
- * guards.
- */
-[[nodiscard]] constexpr auto
-getWarpFullMask()
-{
-#if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
-   return std::uint32_t{ 0xffffffff };
-#elif defined( __GFX8__ ) || defined( __GFX9__ )
-   // gfx8/gfx9 (GCN) use wave64, all others use wave32
-   return std::uint64_t{ 0xffffffffffffffffULL };
-#else
-   return std::uint64_t{ 0xffffffffULL };
 #endif
 }
 
