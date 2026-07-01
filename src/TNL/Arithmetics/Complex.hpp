@@ -32,14 +32,6 @@ constexpr Complex< Value >::Complex( const Value& re, const Value& im )
 }
 
 template< typename Value >
-__cuda_callable__
-constexpr Complex< Value >::Complex( const Complex< Value >& c )
-{
-   this->real_ = c.real();
-   this->imag_ = c.imag();
-}
-
-template< typename Value >
 template< typename Value_ >
 __cuda_callable__
 constexpr Complex< Value >::Complex( const Complex< Value_ >& c )
@@ -63,16 +55,6 @@ Complex< Value >::operator=( const Value& v )
 {
    this->real_ = v;
    this->imag_ = (ValueType) 0.0;
-   return *this;
-}
-
-template< typename Value >
-__cuda_callable__
-constexpr Complex< Value >&
-Complex< Value >::operator=( const Complex< Value >& c )
-{
-   this->real_ = c.real();
-   this->imag_ = c.imag();
    return *this;
 }
 
