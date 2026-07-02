@@ -115,7 +115,7 @@ format:
 # Checks justfile recipe for shell issues using shellcheck
 _check-recipe recipe:
     just _ensure-command grep shellcheck
-    just -vv -n {{ recipe }} 2>&1 | grep -v '===> Running recipe' | shellcheck -
+    just -vv -n {{ recipe }} 2>&1 | grep -iv '===> Running recipe' | shellcheck -
 
 # Checks all justfile recipes with inline bash for shell issues using shellcheck
 check-recipes:
@@ -252,7 +252,7 @@ create-gitlab-release:
         release_notes+="## Merge requests\n\n$(git log --pretty=format:"* %w(0,0,2)%b" --merges "$previous_version..$current_version")\n\n"
         release_notes+="## Detailed changes\n\n$(git log --pretty=format:"* %s (%H)" --no-merges "$previous_version..$current_version")\n\n"
     fi
-    # Run through printf to interpret escapes such as \n
+    # Run through echo to interpret escapes such as \n
     release_notes="$(echo -e "$release_notes")"
 
     just _ensure-command glab

@@ -34,7 +34,7 @@ struct Complex
    constexpr Complex( const Value& re, const Value& im );
 
    __cuda_callable__
-   constexpr Complex( const Complex< Value >& c );
+   constexpr Complex( const Complex& ) = default;
 
    template< typename Value_ >
    __cuda_callable__
@@ -49,7 +49,7 @@ struct Complex
 
    __cuda_callable__
    constexpr Complex&
-   operator=( const Complex< Value >& c );
+   operator=( const Complex& ) = default;
 
    template< typename Value_ >
    __cuda_callable__

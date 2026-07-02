@@ -7,6 +7,7 @@
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/detail/CudaReductionKernel.h>
 #include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/Functions.h>
 #include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 
@@ -165,7 +166,9 @@ reduceSegmentsCSRLightMultivectorKernel(
    constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   __shared__ ReturnType shared[ warpsCount ];
+
+   // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+   __shared__ Backend::Uninitialized< ReturnType > shared[ warpsCount ];
 
    // Write results of parallel reduction to shared memory
    __syncthreads();
@@ -175,7 +178,7 @@ reduceSegmentsCSRLightMultivectorKernel(
    // The first warp performs the remaining reduction
    __syncthreads();
    if( warpIdx == 0 ) {
-      ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
+      ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ].get() : identity;
       partial = BlockReduce::template warpReduce< warpsPerSegment >( reduce, partial );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
@@ -258,9 +261,10 @@ reduceSegmentsCSRDynamicGroupingKernel(
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
-      __shared__ typename BlockReduce::Storage storage;
+      // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+      __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
-      result = BlockReduce::reduce( reduce, identity, result, storage, threadIdx.x );
+      result = BlockReduce::reduce( reduce, identity, result, storage.get(), threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 ) {
@@ -516,7 +520,9 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes(
    constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   __shared__ ReturnType shared[ warpsCount ];
+
+   // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+   __shared__ Backend::Uninitialized< ReturnType > shared[ warpsCount ];
 
    // Write results of parallel reduction to shared memory
    __syncthreads();
@@ -526,7 +532,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes(
    // The first warp performs the remaining reduction
    __syncthreads();
    if( warpIdx == 0 ) {
-      ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
+      ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ].get() : identity;
       partial = BlockReduce::template warpReduce< warpsPerSegment >( reduce, partial );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
@@ -623,9 +629,10 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
-      __shared__ typename BlockReduce::Storage storage;
+      // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+      __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
-      result = BlockReduce::reduce( reduce, identity, result, storage, threadIdx.x );
+      result = BlockReduce::reduce( reduce, identity, result, storage.get(), threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 )
@@ -872,7 +879,9 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument(
    constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   __shared__ ReturnType shared_results[ warpsCount ];
+
+   // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+   __shared__ Backend::Uninitialized< ReturnType > shared_results[ warpsCount ];
    __shared__ Index shared_arguments[ warpsCount ];
 
    // Write results of parallel reduction to shared memory
@@ -885,7 +894,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument(
    // The first warp performs the remaining reduction
    __syncthreads();
    if( warpIdx == 0 ) {
-      ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
+      ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ].get() : identity;
       Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
       auto [ final_result, final_argument ] =
          BlockReduce::template warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
@@ -977,9 +986,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
-      __shared__ typename BlockReduce::Storage storage;
+      // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+      __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
-      auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, storage, threadIdx.x );
+      auto [ result_, argument_ ] =
+         BlockReduce::reduceWithArgument( reduce, identity, result, argument, storage.get(), threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 ) {
@@ -1239,7 +1250,9 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
    constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   __shared__ ReturnType shared_results[ warpsCount ];
+
+   // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+   __shared__ Backend::Uninitialized< ReturnType > shared_results[ warpsCount ];
    __shared__ Index shared_arguments[ warpsCount ];
 
    // Write results of parallel reduction to shared memory
@@ -1252,7 +1265,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
    // The first warp performs the remaining reduction
    __syncthreads();
    if( warpIdx == 0 ) {
-      ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
+      ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ].get() : identity;
       Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
       auto [ final_result, final_argument ] =
          BlockReduce::template warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
@@ -1350,9 +1363,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
-      __shared__ typename BlockReduce::Storage storage;
+      // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+      __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
-      auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, storage, threadIdx.x );
+      auto [ result_, argument_ ] =
+         BlockReduce::reduceWithArgument( reduce, identity, result, argument, storage.get(), threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 ) {

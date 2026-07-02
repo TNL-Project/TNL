@@ -107,7 +107,8 @@ reduceSegmentsKernel(
    Index groupHeight = SegmentsView::getWarpSize();
 
    // Allocate shared memory
-   __shared__ ReturnType results[ BlockDim ];
+   // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
+   __shared__ Backend::Uninitialized< ReturnType > results[ BlockDim ];
    results[ threadIdx.x ] = identity;
    __shared__ Index sharedGroupPointers[ groupsInStrip * warpsCount + 1 ];
 
@@ -138,7 +139,7 @@ reduceSegmentsKernel(
                   Index globalIdx = groupBegin + inWarpIdx * groupWidth;
                   for( Index i = 0; i < groupWidth; i++ ) {
                      TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-                     results[ threadIdx.x ] = reduction( results[ threadIdx.x ], fetch( globalIdx++ ) );
+                     results[ threadIdx.x ] = reduction( results[ threadIdx.x ].get(), fetch( globalIdx++ ) );
                   }
                }
             }
@@ -171,7 +172,7 @@ reduceSegmentsKernel(
                }
 
                if( inWarpIdx < groupHeight )
-                  results[ threadIdx.x ] = reduction( results[ threadIdx.x ], temp[ threadIdx.x ] );
+                  results[ threadIdx.x ] = reduction( results[ threadIdx.x ].get(), temp[ threadIdx.x ] );
             }
             groupHeight >>= 1;
          }
@@ -184,7 +185,7 @@ reduceSegmentsKernel(
    if( storeActive ) {
       storer(
          warpStart + inWarpIdx,
-         results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
+         results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ].get() );
    }
 #endif
 }

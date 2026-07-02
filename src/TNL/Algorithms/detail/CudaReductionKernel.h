@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <utility>  // std::pair
+#include <type_traits>  // std::conditional_t, std::is_trivially_copyable_v
+#include <utility>      // std::pair
 
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
@@ -167,7 +168,7 @@ struct CudaBlockReduceShfl
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
+         const ValueType otherValue = Backend::warp_shuffle_xor( threadValue, i );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -194,7 +195,7 @@ struct CudaBlockReduceShfl
          GroupSize * Stride <= Backend::getMaxWarpSize(), "GroupSize * Stride must not exceed the maximum warp size" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i * Stride );
+         const ValueType otherValue = Backend::warp_shuffle_down( threadValue, i * Stride );
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
@@ -205,16 +206,21 @@ struct CudaBlockReduceShfl
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
  *
- * The default implementation is generic and the reduction is done using
- * shared memory. Specializations can be made based on `Reduction` and
- * `ValueType`, e.g. using the `__shfl_sync` intrinsics for supported
- * value types.
+ * Trivially copyable types are reduced using `__shfl_sync` intrinsics
+ * (via \ref CudaBlockReduceShfl). Other types fall back to shared memory
+ * (via \ref CudaBlockReduceSharedMemory).
  */
 template< int blockSize, typename Reduction, typename ValueType >
-struct CudaBlockReduce : public CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >
+struct CudaBlockReduce
 {
+private:
+   using ShflImpl = CudaBlockReduceShfl< blockSize, Reduction, ValueType >;
+   using ShmemImpl = CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >;
+
+public:
    // storage to be allocated in shared memory
-   using Storage = typename CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >::Storage;
+   using Storage =
+      std::conditional_t< std::is_trivially_copyable_v< ValueType >, typename ShflImpl::Storage, typename ShmemImpl::Storage >;
 
    /* Cooperative reduction across the CUDA block - each thread will get the
     * result of the reduction
@@ -232,44 +238,12 @@ struct CudaBlockReduce : public CudaBlockReduceSharedMemory< blockSize, Reductio
    static ValueType
    reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, Storage& storage, int tid )
    {
-      return CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >::reduce(
-         reduction, identity, threadValue, storage, tid, tid );
+      if constexpr( std::is_trivially_copyable_v< ValueType > )
+         return ShflImpl::reduce( reduction, identity, threadValue, storage, tid );
+      else
+         return ShmemImpl::reduce( reduction, identity, threadValue, storage, tid, tid );
    }
 };
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, int > : public CudaBlockReduceShfl< blockSize, Reduction, int >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, unsigned int > : public CudaBlockReduceShfl< blockSize, Reduction, unsigned int >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, long > : public CudaBlockReduceShfl< blockSize, Reduction, long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, unsigned long >
-: public CudaBlockReduceShfl< blockSize, Reduction, unsigned long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, long long > : public CudaBlockReduceShfl< blockSize, Reduction, long long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, unsigned long long >
-: public CudaBlockReduceShfl< blockSize, Reduction, unsigned long long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, float > : public CudaBlockReduceShfl< blockSize, Reduction, float >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, double > : public CudaBlockReduceShfl< blockSize, Reduction, double >
-{};
 
 /* Template for cooperative reduction with argument across the CUDA block of
  * threads. It is a *cooperative* operation - all threads must call the
@@ -375,8 +349,8 @@ struct CudaBlockReduceWithArgument
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_xor_sync( Backend::getWarpFullMask(), threadValue, i );
-         const IndexType otherArgument = __shfl_xor_sync( Backend::getWarpFullMask(), threadArgument, i );
+         const ValueType otherValue = Backend::warp_shuffle_xor( threadValue, i );
+         const IndexType otherArgument = Backend::warp_shuffle_xor( threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );
@@ -398,8 +372,8 @@ struct CudaBlockReduceWithArgument
       static_assert( ( GroupSize & ( GroupSize - 1 ) ) == 0, "GroupSize must be a power of two" );
       #pragma unroll
       for( int i = GroupSize / 2; i > 0; i /= 2 ) {
-         const ValueType otherValue = __shfl_down_sync( Backend::getWarpFullMask(), threadValue, i );
-         const IndexType otherArgument = __shfl_down_sync( Backend::getWarpFullMask(), threadArgument, i );
+         const ValueType otherValue = Backend::warp_shuffle_down( threadValue, i );
+         const IndexType otherArgument = Backend::warp_shuffle_down( threadArgument, i );
          reduction( threadValue, otherValue, threadArgument, otherArgument );
       }
       return std::make_pair( threadValue, threadArgument );
@@ -423,16 +397,7 @@ CudaReductionKernel(
 
    // allocate shared memory
    using BlockReduce = CudaBlockReduce< blockSize, Reduction, Result >;
-   union Shared
-   {
-      typename BlockReduce::Storage blockReduceStorage;
-
-      // initialization is not allowed for __shared__ variables, so we need to
-      // disable initialization in the implicit default constructor
-      __device__
-      Shared() {}
-   };
-   __shared__ Shared storage;
+   __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
    // Calculate the grid size (stride of the sequential reduction loop).
    const Index gridSize = blockDim.x * gridDim.x;
@@ -460,7 +425,7 @@ CudaReductionKernel(
    __syncthreads();
 
    // Perform the parallel reduction.
-   result = BlockReduce::reduce( reduction, identity, result, storage.blockReduceStorage, threadIdx.x );
+   result = BlockReduce::reduce( reduction, identity, result, storage.get(), threadIdx.x );
 
    // Store the result back in the global memory.
    if( threadIdx.x == 0 )
@@ -486,16 +451,7 @@ CudaReductionWithArgumentKernel(
 
    // allocate shared memory
    using BlockReduce = CudaBlockReduceWithArgument< blockSize, Reduction, Result, Index >;
-   union Shared
-   {
-      typename BlockReduce::Storage blockReduceStorage;
-
-      // initialization is not allowed for __shared__ variables, so we need to
-      // disable initialization in the implicit default constructor
-      __device__
-      Shared() {}
-   };
-   __shared__ Shared storage;
+   __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
    // Calculate the grid size (stride of the sequential reduction loop).
    const Index gridSize = blockDim.x * gridDim.x;
@@ -557,7 +513,7 @@ CudaReductionWithArgumentKernel(
 
    // Perform the parallel reduction.
    const std::pair< Result, Index > result_pair =
-      BlockReduce::reduceWithArgument( reduction, identity, result, initialIndex, storage.blockReduceStorage, threadIdx.x );
+      BlockReduce::reduceWithArgument( reduction, identity, result, initialIndex, storage.get(), threadIdx.x );
 
    // Store the result back in the global memory.
    if( threadIdx.x == 0 ) {

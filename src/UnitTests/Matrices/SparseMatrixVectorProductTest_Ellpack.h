@@ -27,13 +27,15 @@ using MatrixTypes = ::testing::Types<
    TestMatrixType< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::RowMajorOrder >,
    TestMatrixType< long, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TestMatrixType< float, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::RowMajorOrder >
 #elif defined( __HIP__ )
    TestMatrixType< int, TNL::Devices::Hip, int, TNL::Algorithms::Segments::RowMajorOrder >,
    TestMatrixType< double, TNL::Devices::Hip, long, TNL::Algorithms::Segments::RowMajorOrder >,
    TestMatrixType< long, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TestMatrixType< float, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Hip, long, TNL::Algorithms::Segments::RowMajorOrder >
 #endif
    >;
 
