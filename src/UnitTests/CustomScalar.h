@@ -25,7 +25,11 @@ public:
    : value( v.value )
    {}
 
-   constexpr CustomScalar( const CustomScalar& ) = default;
+   // User-provided (not = default) to make CustomScalar non-trivially-copyable,
+   // which forces CudaBlockReduce to use the shared-memory reduction path.
+   constexpr CustomScalar( const CustomScalar& v )
+   : value( v.value )
+   {}
 
    constexpr CustomScalar( CustomScalar&& ) noexcept = default;
 

@@ -51,14 +51,14 @@ using ArrayTypes = ::testing::Types<
 //Array< Quad< float >,  Devices::Host, long >,
 //Array< Quad< double >, Devices::Host, long >
 #elif defined( __CUDACC__ )
-   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   // CustomScalar is non-trivially-copyable, so it exercises the shared-memory reduction path
    Array< CustomScalar< int >, Devices::Cuda, int >,
    Array< int, Devices::Cuda, int >,
    Array< long, Devices::Cuda, int >,
    Array< double, Devices::Cuda, int >,
    //Array< Quad< float >,  Devices::Cuda, int >,
    //Array< Quad< double >, Devices::Cuda, int >,
-   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   // CustomScalar is non-trivially-copyable, so it exercises the shared-memory reduction path
    Array< CustomScalar< int >, Devices::Cuda, long >,
    Array< int, Devices::Cuda, long >,
    Array< long, Devices::Cuda, long >,
@@ -66,14 +66,14 @@ using ArrayTypes = ::testing::Types<
 //Array< Quad< float >,  Devices::Cuda, long >,
 //Array< Quad< double >, Devices::Cuda, long >
 #elif defined( __HIP__ )
-   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   // CustomScalar is non-trivially-copyable, so it exercises the shared-memory reduction path
    Array< CustomScalar< int >, Devices::Hip, int >,
    Array< int, Devices::Hip, int >,
    Array< long, Devices::Hip, int >,
    Array< double, Devices::Hip, int >,
    //Array< Quad< float >,  Devices::Hip, int >,
    //Array< Quad< double >, Devices::Hip, int >,
-   // the reduction kernel for CustomScalar is not specialized with __shfl instructions
+   // CustomScalar is non-trivially-copyable, so it exercises the shared-memory reduction path
    Array< CustomScalar< int >, Devices::Hip, long >,
    Array< int, Devices::Hip, long >,
    Array< long, Devices::Hip, long >,

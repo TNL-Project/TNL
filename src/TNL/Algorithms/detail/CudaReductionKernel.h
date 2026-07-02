@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <utility>  // std::pair
+#include <type_traits>  // std::conditional_t, std::is_trivially_copyable_v
+#include <utility>      // std::pair
 
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
@@ -205,16 +206,21 @@ struct CudaBlockReduceShfl
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
  *
- * The default implementation is generic and the reduction is done using
- * shared memory. Specializations can be made based on `Reduction` and
- * `ValueType`, e.g. using the `__shfl_sync` intrinsics for supported
- * value types.
+ * Trivially copyable types are reduced using `__shfl_sync` intrinsics
+ * (via \ref CudaBlockReduceShfl). Other types fall back to shared memory
+ * (via \ref CudaBlockReduceSharedMemory).
  */
 template< int blockSize, typename Reduction, typename ValueType >
-struct CudaBlockReduce : public CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >
+struct CudaBlockReduce
 {
+private:
+   using ShflImpl = CudaBlockReduceShfl< blockSize, Reduction, ValueType >;
+   using ShmemImpl = CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >;
+
+public:
    // storage to be allocated in shared memory
-   using Storage = typename CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >::Storage;
+   using Storage =
+      std::conditional_t< std::is_trivially_copyable_v< ValueType >, typename ShflImpl::Storage, typename ShmemImpl::Storage >;
 
    /* Cooperative reduction across the CUDA block - each thread will get the
     * result of the reduction
@@ -232,44 +238,12 @@ struct CudaBlockReduce : public CudaBlockReduceSharedMemory< blockSize, Reductio
    static ValueType
    reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, Storage& storage, int tid )
    {
-      return CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >::reduce(
-         reduction, identity, threadValue, storage, tid, tid );
+      if constexpr( std::is_trivially_copyable_v< ValueType > )
+         return ShflImpl::reduce( reduction, identity, threadValue, storage, tid );
+      else
+         return ShmemImpl::reduce( reduction, identity, threadValue, storage, tid, tid );
    }
 };
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, int > : public CudaBlockReduceShfl< blockSize, Reduction, int >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, unsigned int > : public CudaBlockReduceShfl< blockSize, Reduction, unsigned int >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, long > : public CudaBlockReduceShfl< blockSize, Reduction, long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, unsigned long >
-: public CudaBlockReduceShfl< blockSize, Reduction, unsigned long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, long long > : public CudaBlockReduceShfl< blockSize, Reduction, long long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, unsigned long long >
-: public CudaBlockReduceShfl< blockSize, Reduction, unsigned long long >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, float > : public CudaBlockReduceShfl< blockSize, Reduction, float >
-{};
-
-template< int blockSize, typename Reduction >
-struct CudaBlockReduce< blockSize, Reduction, double > : public CudaBlockReduceShfl< blockSize, Reduction, double >
-{};
 
 /* Template for cooperative reduction with argument across the CUDA block of
  * threads. It is a *cooperative* operation - all threads must call the
