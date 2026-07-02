@@ -374,6 +374,36 @@ warp_shuffle_down( T val, int delta )
 #endif
 }
 
+/**
+ * \brief Generic warp shuffle up for any bit-copyable type.
+ *
+ * See \ref warp_shuffle_xor for details.
+ */
+template< typename T >
+__device__
+T
+warp_shuffle_up( T val, int delta )
+{
+   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
+   if constexpr( is_warp_shuffle_native_v< T > ) {
+      return __shfl_up_sync( getWarpFullMask(), val, delta );
+   }
+   else {
+      // Use store()/load() — see warp_shuffle_xor for the aliasing rationale.
+      using U = Uninitialized< T, 4 >;
+      U u;
+      u.store( val );
+      #pragma unroll
+      for( int i = 0; i < U::WORDS; ++i )
+         u.storage[ i ] = __shfl_up_sync( getWarpFullMask(), u.storage[ i ], delta );
+      return u.load();
+   }
+#else
+   return val;
+#endif
+}
+
 }  // namespace TNL::Backend
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )

@@ -204,7 +204,7 @@ struct CudaBlockScanShfl
       // perform an inclusive scan
       #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
-         const ValueType otherValue = __shfl_up_sync( Backend::getWarpFullMask(), threadValue, stride );
+         const ValueType otherValue = Backend::warp_shuffle_up( threadValue, stride );
          if( lane_id >= stride )
             threadValue = reduction( threadValue, otherValue );
       }
@@ -214,7 +214,7 @@ struct CudaBlockScanShfl
 
       // shift the result for exclusive scan
       if( warpScanType == ScanType::Exclusive ) {
-         threadValue = __shfl_up_sync( Backend::getWarpFullMask(), threadValue, 1 );
+         threadValue = Backend::warp_shuffle_up( threadValue, 1 );
          if( lane_id == 0 )
             threadValue = identity;
       }
