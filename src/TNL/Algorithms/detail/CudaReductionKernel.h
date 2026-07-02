@@ -397,16 +397,7 @@ CudaReductionKernel(
 
    // allocate shared memory
    using BlockReduce = CudaBlockReduce< blockSize, Reduction, Result >;
-   union Shared
-   {
-      typename BlockReduce::Storage blockReduceStorage;
-
-      // initialization is not allowed for __shared__ variables, so we need to
-      // disable initialization in the implicit default constructor
-      __device__
-      Shared() {}
-   };
-   __shared__ Shared storage;
+   __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
    // Calculate the grid size (stride of the sequential reduction loop).
    const Index gridSize = blockDim.x * gridDim.x;
@@ -434,7 +425,7 @@ CudaReductionKernel(
    __syncthreads();
 
    // Perform the parallel reduction.
-   result = BlockReduce::reduce( reduction, identity, result, storage.blockReduceStorage, threadIdx.x );
+   result = BlockReduce::reduce( reduction, identity, result, storage.get(), threadIdx.x );
 
    // Store the result back in the global memory.
    if( threadIdx.x == 0 )
@@ -460,16 +451,7 @@ CudaReductionWithArgumentKernel(
 
    // allocate shared memory
    using BlockReduce = CudaBlockReduceWithArgument< blockSize, Reduction, Result, Index >;
-   union Shared
-   {
-      typename BlockReduce::Storage blockReduceStorage;
-
-      // initialization is not allowed for __shared__ variables, so we need to
-      // disable initialization in the implicit default constructor
-      __device__
-      Shared() {}
-   };
-   __shared__ Shared storage;
+   __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
    // Calculate the grid size (stride of the sequential reduction loop).
    const Index gridSize = blockDim.x * gridDim.x;
@@ -531,7 +513,7 @@ CudaReductionWithArgumentKernel(
 
    // Perform the parallel reduction.
    const std::pair< Result, Index > result_pair =
-      BlockReduce::reduceWithArgument( reduction, identity, result, initialIndex, storage.blockReduceStorage, threadIdx.x );
+      BlockReduce::reduceWithArgument( reduction, identity, result, initialIndex, storage.get(), threadIdx.x );
 
    // Store the result back in the global memory.
    if( threadIdx.x == 0 ) {
