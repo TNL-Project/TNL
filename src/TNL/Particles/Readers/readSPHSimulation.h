@@ -1,10 +1,48 @@
 #pragma once
 
 #include <cfloat>  //FLT_MAX
+#include <string>
+#include <type_traits>
+#include <variant>
+#include <vector>
+
 #include "../Particles.h"
 
 namespace TNL {
 namespace ParticleSystem {
+
+/**
+ * \brief Extracts the scalar component type of an array's ValueType.
+ *
+ * Yields \e T for scalar arrays and the underlying real type for
+ * \e StaticVector< N, T > arrays.
+ */
+template< typename T >
+struct ReadComponentType
+{
+   using type = T;
+};
+
+template< typename T, int Size >
+struct ReadComponentType< Containers::StaticVector< Size, T > >
+{
+   using type = T;
+};
+
+template< typename T >
+using ReadComponentType_t = typename ReadComponentType< T >::type;
+
+/// Checks if an array's ValueType is a StaticVector.
+template< typename T >
+struct ReadIsStaticVector : std::false_type
+{};
+
+template< typename T, int Size >
+struct ReadIsStaticVector< Containers::StaticVector< Size, T > > : std::true_type
+{};
+
+template< typename T >
+inline constexpr bool ReadIsStaticVector_v = ReadIsStaticVector< T >::value;
 
 // Custom Particles config to read data always in doubles
 // This is used in case that particle positions use special real type which is incompatible with Readers
@@ -30,14 +68,19 @@ class ReadParticles
 public:
    using GlobalIndexType = typename ParticlesConfig::GlobalIndexType;
 
-   ReadParticles( const std::string& inputFileName, const GlobalIndexType& numberOfParticles, const GlobalIndexType numberOfAllocatedParticles )
-   : reader( inputFileName ), numberOfParticles( numberOfParticles ), numberOfAllocatedParticles( numberOfAllocatedParticles )
+   ReadParticles( const std::string& inputFileName,
+                  const GlobalIndexType& numberOfParticles,
+                  const GlobalIndexType numberOfAllocatedParticles )
+   : reader( inputFileName ),
+     numberOfParticles( numberOfParticles ),
+     numberOfAllocatedParticles( numberOfAllocatedParticles )
    {
       reader.detectParticleSystem();
    }
 
    template< typename PointArray >
-   void readParticles( PointArray& particles )
+   void
+   readParticles( PointArray& particles )
    {
       // Custom Particle config to read data
       using ParticleSystemToReadData = typename ParticleSystem::Particles<
@@ -48,97 +91,65 @@ public:
       reader.template loadParticle< ParticleSystemToReadData >( particlesToRead );
 
       PointArray pointsLoaded( numberOfParticles );
-      //std::cout << "ParticlesLoaded size: " << particlesToRead.getPoints() << std::endl;
       pointsLoaded = particlesToRead.getPoints();
       pointsLoaded.resize( numberOfAllocatedParticles, FLT_MAX );
       particles = pointsLoaded;
    }
 
-   template< typename Array, typename Type >
-   void readParticleVariable( Array& array, const std::string& name )
+   /**
+    * \brief Reads a particle variable from the file into \e array.
+    *
+    * Dispatches on the array's ValueType: scalar arrays copy the flat buffer
+    * directly, vector arrays read the 3 components stored per particle in the
+    * legacy VTK format and keep the first N (dropping unused components for 2D).
+    *
+    * \tparam Array type of the target array.
+    * \param array output array (resized to numberOfAllocatedParticles, unused
+    *    tail padded with FLT_MAX).
+    * \param name is the name of the data array in the file.
+    */
+   template< typename Array >
+   void
+   readParticleVariable( Array& array, const std::string& name )
    {
-      //Array arrayLoaded( array.getSize() );
-      Array arrayLoaded(  reader.getNumberOfPoints()  );
-      arrayLoaded = std::get< std::vector< Type > >( reader.readPointData( name ) );
-      //it would be nice to have type from Array::ValueType, but I need float for vector anyway.
-      arrayLoaded.resize( numberOfAllocatedParticles, FLT_MAX );
-      array = arrayLoaded;
-   }
+      using ValueType = typename Array::ValueType;
+      using CompType = ReadComponentType_t< ValueType >;
+      const std::size_t pointsInFile = reader.getNumberOfPoints();
 
-   template< typename Array, typename Type >
-   void readParticleVariable2D( Array& array, const std::string& name )
-   {
-      //Array arrayLoaded( array.getSize() );
-      Array arrayLoaded(  reader.getNumberOfPoints()  );
-      std::vector< Type > temporary = std::get< std::vector< Type > >( reader.readPointData( name ) );
+      if constexpr( ReadIsStaticVector_v< ValueType > ) {
+         // vector path: the legacy VTK format stores 3 components per vector.
+         // Read the flat buffer and reshape, keeping the first N components
+         // (N = ValueType::getSize(), i.e. the simulation space dimension).
+         std::vector< CompType > flat = std::get< std::vector< CompType > >( reader.readPointData( name ) );
 
-      using HostArray = typename Array::
-         template Self< std::remove_const_t< typename Array::ValueType >, Devices::Host, typename Array::IndexType >;
+         using HostArray = typename Array::
+            template Self< std::remove_const_t< typename Array::ValueType >, Devices::Host, typename Array::IndexType >;
+         HostArray hostArray( pointsInFile );
 
-      //HostArray hostArray( array.getSize() );
-      HostArray hostArray( reader.getNumberOfPoints() );
+         for( std::size_t i = 0; i < pointsInFile; i++ ) {
+            ValueType v;
+            for( int j = 0; j < ValueType::getSize(); j++ )
+               v[ j ] = flat[ 3 * i + j ];
+            hostArray[ i ] = v;
+         }
 
-      std::vector< Type > hostBuffer;
-      for( long unsigned int i = 1; i < temporary.size() + 1; i ++ ){
-         if( ( i % 3 == 0 ) )
-          continue;
-         hostBuffer.push_back( temporary[ i - 1 ] );
+         hostArray.resize( numberOfAllocatedParticles, FLT_MAX );
+         array = hostArray;
       }
-
-      int counter = 0;
-      for( long unsigned int i = 0; i < hostBuffer.size(); i++ ){
-         if( i % 2 == 0 )
-            continue;
-         typename HostArray::ValueType aux = { hostBuffer[ i - 1 ], hostBuffer[ i ] };
-         hostArray[ counter ] = aux;
-         counter++;
+      else {
+         // scalar path: the flat buffer maps one-to-one onto the array
+         Array arrayLoaded( pointsInFile );
+         arrayLoaded = std::get< std::vector< CompType > >( reader.readPointData( name ) );
+         arrayLoaded.resize( numberOfAllocatedParticles, FLT_MAX );
+         array = arrayLoaded;
       }
-
-      hostArray.resize( numberOfAllocatedParticles, FLT_MAX );
-      array = hostArray;
-   }
-
-   template< typename Array, typename Type >
-   void readParticleVariable3D( Array& array, const std::string& name )
-   {
-      //Array arrayLoaded( array.getSize() );
-      Array arrayLoaded(  reader.getNumberOfPoints()  );
-      std::vector< Type > temporary = std::get< std::vector< Type > >( reader.readPointData( name ) );
-
-      using HostArray = typename Array::
-         template Self< std::remove_const_t< typename Array::ValueType >, Devices::Host, typename Array::IndexType >;
-
-      //HostArray hostArray( array.getSize() );
-      HostArray hostArray( reader.getNumberOfPoints() );
-
-      //std::vector< Type > hostBuffer;
-      //for( long unsigned int i = 1; i < temporary.size() + 1; i ++ ){
-      //   if( ( i % 3 == 0 ) )
-      //    continue;
-      //   hostBuffer.push_back( temporary[ i - 1 ] );
-      //}
-
-      int counter = 0;
-      for( long unsigned int i = 0; i < temporary.size(); i++ ){
-         if( ( i + 1 ) % 3 != 0 )
-            continue;
-         typename HostArray::ValueType aux = { temporary[ i - 2 ], temporary[ i - 1 ], temporary[ i ] };
-         hostArray[ counter ] = aux;
-         counter++;
-      }
-
-      hostArray.resize( numberOfAllocatedParticles, FLT_MAX );
-      array = hostArray;
    }
 
 protected:
-
    Reader reader;
    GlobalIndexType numberOfParticles;
    GlobalIndexType numberOfAllocatedParticles;
-
 };
 
-} //ParticleSystem
-} //TNL
-
+}  //namespace ParticleSystem
+}  //namespace TNL
