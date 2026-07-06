@@ -31,7 +31,6 @@ Checks: >
 WarningsAsErrors: >
   clang-analyzer-core.*,
   modernize-*,
-  -modernize-avoid-c-style-cast,
   performance-*,
   mpi-*,
   clang-diagnostic-extra-semi*,
