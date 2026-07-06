@@ -77,8 +77,9 @@ CSRBase< Device, Index >::getSegmentSize( IndexType segmentIdx ) const -> IndexT
       return offsets.getElement( segmentIdx + 1 ) - offsets.getElement( segmentIdx );
 #endif
    }
-   else
+   else {
       return offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ];
+   }
 }
 
 template< typename Device, typename Index >
@@ -109,8 +110,9 @@ CSRBase< Device, Index >::getStorageSize() const -> IndexType
       return offsets.getElement( getSegmentCount() );
 #endif
    }
-   else
+   else {
       return offsets[ getSegmentCount() ];
+   }
 }
 
 template< typename Device, typename Index >
@@ -125,8 +127,9 @@ CSRBase< Device, Index >::getGlobalIndex( const Index segmentIdx, const Index lo
       return offsets.getElement( segmentIdx ) + localIdx;
 #endif
    }
-   else
+   else {
       return offsets[ segmentIdx ] + localIdx;
+   }
 }
 
 template< typename Device, typename Index >

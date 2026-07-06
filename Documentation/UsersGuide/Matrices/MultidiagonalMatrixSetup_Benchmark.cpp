@@ -36,8 +36,9 @@ setElement_on_host( const int gridSize, Matrix& matrix )
    for( int j = 0; j < gridSize; j++ )
       for( int i = 0; i < gridSize; i++ ) {
          const int rowIdx = j * gridSize + i;
-         if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 )
+         if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 ) {
             matrix.setElement( rowIdx, rowIdx, 1.0 );
+         }
          else {
             matrix.setElement( rowIdx, rowIdx - gridSize, 1.0 );
             matrix.setElement( rowIdx, rowIdx - 1, 1.0 );
@@ -61,8 +62,9 @@ setElement_on_host_and_transfer( const int gridSize, Matrix& matrix )
    for( int j = 0; j < gridSize; j++ )
       for( int i = 0; i < gridSize; i++ ) {
          const int rowIdx = j * gridSize + i;
-         if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 )
+         if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 ) {
             hostMatrix.setElement( rowIdx, rowIdx, 1.0 );
+         }
          else {
             hostMatrix.setElement( rowIdx, rowIdx - gridSize, 1.0 );
             hostMatrix.setElement( rowIdx, rowIdx - 1, 1.0 );
@@ -90,8 +92,9 @@ setElement_on_device( const int gridSize, Matrix& matrix )
    auto f = [ = ] __cuda_callable__( TNL::Containers::StaticArray< 2, int > i ) mutable
    {
       const int rowIdx = i[ 1 ] * gridSize + i[ 0 ];
-      if( i[ 0 ] == 0 || i[ 1 ] == 0 || i[ 0 ] == gridSize - 1 || i[ 1 ] == gridSize - 1 )
+      if( i[ 0 ] == 0 || i[ 1 ] == 0 || i[ 0 ] == gridSize - 1 || i[ 1 ] == gridSize - 1 ) {
          matrixView.setElement( rowIdx, rowIdx, 1.0 );
+      }
       else {
          matrixView.setElement( rowIdx, rowIdx - gridSize, 1.0 );
          matrixView.setElement( rowIdx, rowIdx - 1, 1.0 );
@@ -122,8 +125,9 @@ getRow( const int gridSize, Matrix& matrix )
       const int i = rowIdx % gridSize;
       const int j = rowIdx / gridSize;
       auto row = matrixView.getRow( rowIdx );
-      if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 )
+      if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 ) {
          row.setElement( 2, 1.0 );
+      }
       else {
          row.setElement( 0, 1.0 );
          row.setElement( 1, 1.0 );

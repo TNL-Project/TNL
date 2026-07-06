@@ -46,10 +46,12 @@ forAllRowsExample()
       const int rowIdx = row.getRowIndex();
       const int size = 5;
 
-      if( rowIdx == 0 )
+      if( rowIdx == 0 ) {
          row.setElement( 0, rowIdx, 2.0 );
-      else if( rowIdx == size - 1 )
+      }
+      else if( rowIdx == size - 1 ) {
          row.setElement( 0, rowIdx, 2.0 );
+      }
       else {
          row.setElement( 0, rowIdx - 1, 1.0 );
          row.setElement( 1, rowIdx, 2.0 );

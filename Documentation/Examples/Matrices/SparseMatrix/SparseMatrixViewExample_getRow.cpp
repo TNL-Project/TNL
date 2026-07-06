@@ -27,10 +27,12 @@ getRowExample()
    auto f = [ = ] __cuda_callable__( int rowIdx ) mutable
    {
       auto row = view.getRow( rowIdx );
-      if( rowIdx == 0 )
+      if( rowIdx == 0 ) {
          row.setElement( 0, rowIdx, 2.0 );  // diagonal element
-      else if( rowIdx == size - 1 )
+      }
+      else if( rowIdx == size - 1 ) {
          row.setElement( 0, rowIdx, 2.0 );  // diagonal element
+      }
       else {
          row.setElement( 0, rowIdx - 1, 1.0 );  // elements below the diagonal
          row.setElement( 1, rowIdx, 2.0 );      // diagonal element

@@ -118,8 +118,9 @@ public:
       if constexpr( Organization == RowMajorOrder ) {
          return offset + inStripIdx * groupsWidth[ groupIdx ] + localIdx;
       }
-      else
+      else {
          return offset + inStripIdx + localIdx * groupHeight;
+      }
    }
 
    /**

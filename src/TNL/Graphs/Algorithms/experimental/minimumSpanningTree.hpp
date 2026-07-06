@@ -502,8 +502,9 @@ parallelMST( const InGraph& graph, OutGraph& tree )
             new_links_weight_view[ target ] = hook_weights_view[ i ];
             return hook_weights_view[ i ];
          }
-         else
+         else {
             return 0;
+         }
       };
       sum += TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), hooking_fetch, TNL::Plus{} );
       //TNL::Algorithms::parallelFor< DeviceType >( 0, p.getSize(), hooking_fetch );
@@ -534,8 +535,9 @@ parallelMST( const InGraph& graph, OutGraph& tree )
             p_i = i;
             return hook_weights_view[ i ];
          }
-         else
+         else {
             return 0;
+         }
       };
       auto add = TNL::Algorithms::reduce< DeviceType >( 0, p.getSize(), cycles_fetch, TNL::Plus{} );
       sum -= add;
@@ -580,8 +582,9 @@ parallelMST( const InGraph& graph, OutGraph& tree )
                p_i = p_view[ p_i ];
                return 1;
             }
-            else
+            else {
                return 0;
+            }
          },
          TNL::Plus{} ) )
          ;

@@ -205,8 +205,9 @@ public:
             std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark.\n";
             this->errors++;
          }
-         else
+         else {
             benchmark.time< Device >( device, sssp_tnl_dir );
+         }
 
 #ifdef HAVE_BOOST
          if( withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
@@ -275,8 +276,9 @@ public:
             std::cout << "ERROR: Negative weights in the graph! Skipping semiring SSSP benchmark.\n";
             this->errors++;
          }
-         else
+         else {
             benchmark.time< Device >( device, semiring_sssp_dir );
+         }
 
          // Benchmarking semiring-based SSSP with undirected graph
          semiringSsspDistances = std::numeric_limits< Real >::max();

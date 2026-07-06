@@ -80,8 +80,9 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentSize( con
 {
    const Index sliceIdx = segmentIdx / SliceSize;
    TNL_ASSERT_LT( sliceIdx, this->sliceSegmentSizes.getSize(), "" );
-   if constexpr( std::is_same_v< DeviceType, Devices::Host > )
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       return this->sliceSegmentSizes[ sliceIdx ];
+   }
    else {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return this->sliceSegmentSizes[ sliceIdx ];

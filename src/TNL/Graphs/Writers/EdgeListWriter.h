@@ -38,8 +38,9 @@ struct EdgeListWriter
          hostMatrix = graph.getAdjacencyMatrix();
          writeEdgeList( str, hostMatrix );
       }
-      else
+      else {
          writeEdgeList( str, graph.getAdjacencyMatrix() );
+      }
    }
 
    /**

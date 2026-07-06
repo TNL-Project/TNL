@@ -262,8 +262,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -290,8 +291,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -340,8 +342,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -374,8 +377,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -424,8 +428,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -458,8 +463,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }

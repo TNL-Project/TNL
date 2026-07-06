@@ -177,7 +177,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                               storer,
                               identity );
                         }
-                        else
+                        else {
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
                               + std::string(
@@ -185,6 +185,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 2, warp size = " + std::to_string( warpSize ) + "." );
+                        }
                         break;
                      }
                   case 4:
@@ -214,7 +215,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                               storer,
                               identity );
                         }
-                        else
+                        else {
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
                               + std::string(
@@ -222,6 +223,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 4, warp size = " + std::to_string( warpSize ) + "." );
+                        }
 
                         break;
                      }
@@ -252,7 +254,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                               storer,
                               identity );
                         }
-                        else
+                        else {
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
                               + std::string(
@@ -260,6 +262,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 8, warp size = " + std::to_string( warpSize ) + "." );
+                        }
 
                         break;
                      }
@@ -290,7 +293,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                               storer,
                               identity );
                         }
-                        else
+                        else {
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
                               + std::string(
@@ -298,6 +301,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 16, warp size = " + std::to_string( warpSize ) + "." );
+                        }
 
                         break;
                      }
@@ -328,7 +332,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                               storer,
                               identity );
                         }
-                        else
+                        else {
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
                               + std::string(
@@ -336,19 +340,22 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 32, warp size = " + std::to_string( warpSize ) + "." );
+                        }
 
                         break;
                      }
                   case 64:
                      {
-                        if constexpr( Backend::getMaxWarpSize() == 32 )
+                        if constexpr( Backend::getMaxWarpSize() == 32 ) {
                            throw std::invalid_argument(
                               "Unsupported threads per segment ( 64 ) for SlicedEllpack segments on GPU with warp size "
                               + std::to_string( warpSize ) + "." );
-                        else if( warpSize == 32 )
+                        }
+                        else if( warpSize == 32 ) {
                            throw std::invalid_argument(
                               "Unsupported threads per segment ( 64 ) for SlicedEllpack segments on GPU with warp size "
                               + std::to_string( warpSize ) + "." );
+                        }
                         else if constexpr( SlicedEllpackReductionSupported< ConstViewType, 64, 256 >() ) {
                            constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
                               256,
@@ -372,7 +379,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                               storer,
                               identity );
                         }
-                        else
+                        else {
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
                               + std::string(
@@ -380,6 +387,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                                 : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 64, warp size = " + std::to_string( warpSize ) + "." );
+                        }
 
                         break;
                      }

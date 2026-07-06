@@ -134,8 +134,9 @@ public:
       // TNL_ASSERT_LE( localIdx, segmentChunksCount * chunkSize, "" );
       TNL_ASSERT_LE( localIdx, ( segmentsToChunksMapping.getElement( segmentIdx ) - firstChunkOfSegment ) * chunkSize, "" );
 
-      if constexpr( Organization == RowMajorOrder )
+      if constexpr( Organization == RowMajorOrder ) {
          return sliceOffset + firstChunkOfSegment * chunkSize + localIdx;
+      }
       else {
          const IndexType inChunkOffset = localIdx % chunkSize;
          const IndexType chunkIdx = localIdx / chunkSize;

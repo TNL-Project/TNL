@@ -25,8 +25,9 @@ compress_impl( MarksVector&& marksVector, OutputVector& outputVector, Index shif
          if( value == 1 )
             outputView[ 0 ] = idx + shift;
       }
-      else if( value - marksView[ idx - 1 ] == 1 )
+      else if( value - marksView[ idx - 1 ] == 1 ) {
          outputView[ value - 1 ] = idx + shift;
+      }
    };
    marksView.forAllElements( f );
    return outputSize;

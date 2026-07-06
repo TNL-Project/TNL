@@ -103,12 +103,13 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 Index
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getNonzeroElementsCount() const
 {
-   if constexpr( ! Base::isSymmetric() )
+   if constexpr( ! Base::isSymmetric() ) {
       if constexpr( Base::isBinary() )
          return sum( notEqualTo( this->getColumnIndexes(), paddingIndex< Index > ) );
       else
          return sum(
             notEqualTo( this->getColumnIndexes(), paddingIndex< Index > ) && notEqualTo( this->getValues(), RealType{ 0 } ) );
+   }
    else {
       const auto rows = this->getRows();
       const auto columns = this->getColumns();
@@ -764,8 +765,9 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
          function( rowIdx, localIdx, columns_view[ globalIdx ], one );
       }
-      else
+      else {
          function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      }
    };
    Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
@@ -828,8 +830,9 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
          function( rowIdx, localIdx, columns_view[ globalIdx ], one );
       }
-      else
+      else {
          function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      }
    };
    Algorithms::Segments::forElements( this->segments, rowIndexes.getConstView( begin, end ), f, launchConfig );
 }
@@ -894,8 +897,9 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
          function( rowIdx, localIdx, columns_view[ globalIdx ], one );
       }
-      else
+      else {
          function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      }
    };
    Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
 }

@@ -489,9 +489,10 @@ protected:
                const int overlap = array_view.getOverlaps()[ dim ];
                bufferSize[ dim ] = overlap;
             }
-            else
+            else {
                // skip allocation if the array does not have overlap for these directions
                continue;
+            }
          }
          if( ( direction & SyncDirection::Back ) != SyncDirection::None
              || ( direction & SyncDirection::Front ) != SyncDirection::None )
@@ -501,9 +502,10 @@ protected:
                const int overlap = array_view.getOverlaps()[ dim ];
                bufferSize[ dim ] = overlap;
             }
-            else
+            else {
                // skip allocation if the array does not have overlap for these directions
                continue;
+            }
          }
 
          // allocate buffers

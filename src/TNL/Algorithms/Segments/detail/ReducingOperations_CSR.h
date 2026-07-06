@@ -72,8 +72,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
             l( segmentIdx );
       }
-      else
+      else {
          Algorithms::parallelFor< Device >( begin, end, l );
+      }
    }
 
    template<
@@ -97,7 +98,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
+         {
             reduceSegmentsSequential( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
+         }
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -327,8 +330,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::streamSynchronize( launch_config.stream );
          }
       }
-      else
+      else {
          reduceSegmentsSequential( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
+      }
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
@@ -377,8 +381,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );
       }
-      else
+      else {
          Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
+      }
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
@@ -396,7 +401,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
+         {
             reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
+         }
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -636,8 +643,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::streamSynchronize( launch_config.stream );
          }
       }
-      else
+      else {
          reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
+      }
    }
 
    template<
@@ -691,8 +699,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
             l( segmentIdx );
       }
-      else
+      else {
          Algorithms::parallelFor< Device >( begin, end, l );
+      }
    }
 
    template<
@@ -716,7 +725,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
+         {
             reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
+         }
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -946,8 +957,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             }
          }
       }
-      else
+      else {
          reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
+      }
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
@@ -997,8 +1009,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );
       }
-      else
+      else {
          Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
+      }
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
@@ -1016,8 +1029,10 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
+         {
             reduceSegmentsWithIndexesAndArgumentSequential(
                segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
+         }
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -1257,9 +1272,10 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::streamSynchronize( launch_config.stream );
          }
       }
-      else
+      else {
          reduceSegmentsWithIndexesAndArgumentSequential(
             segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
+      }
    }
 };
 }  // namespace TNL::Algorithms::Segments::detail

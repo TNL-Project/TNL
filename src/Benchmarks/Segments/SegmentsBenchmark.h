@@ -221,8 +221,9 @@ struct SegmentsBenchmark
             if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
                dataView[ globalIdx ] = 1;
             }
-            else
+            else {
                dataView[ globalIdx ] = 0;
+            }
          } );
       benchmark.setMetadataElement( { "function", "reduceSegments" } );
       benchmark.setDatasetSize( sum( segmentsSizes ) * sizeof( Index ) );

@@ -195,8 +195,9 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator=
    static_assert( std::is_same_v< Device_, Devices::Host > || std::is_same_v< Device_, Devices::Cuda >, "unknown device" );
 
    this->setLike( matrix );
-   if constexpr( Organization == Organization_ )
+   if constexpr( Organization == Organization_ ) {
       this->values = matrix.getValues();
+   }
    else if constexpr( std::is_same_v< Device, Device_ > ) {
       const auto matrix_view = matrix.getConstView();
       auto f = [ = ] __cuda_callable__( const Index& rowIdx, const Index& localIdx, const Index& column, Real& value ) mutable

@@ -49,7 +49,7 @@ breadthFirstSearchParallel(
    auto marks_scan_view = marks_scan.getView();
    for( Index i = 0; i <= n; i++ ) {
       marks = 0;
-      if constexpr( std::is_same_v< Device, Devices::Host > )
+      if constexpr( std::is_same_v< Device, Devices::Host > ) {
          forEdges(
             graph,
             frontier,
@@ -59,21 +59,22 @@ breadthFirstSearchParallel(
             {
                if( targetIdx != Matrices::paddingIndex< Index > && y_view[ targetIdx ] == -1 ) {
 #if defined( HAVE_OPENMP )
-            #pragma omp atomic write
+               #pragma omp atomic write
 #endif
                   y_view[ targetIdx ] = i + 1;
 #if defined( HAVE_OPENMP )
-            #pragma omp atomic write
+               #pragma omp atomic write
 #endif
                   predecessors_view[ targetIdx ] = sourceIdx;
 #if defined( HAVE_OPENMP )
-            #pragma omp atomic write
+               #pragma omp atomic write
 #endif
                   marks_view[ targetIdx ] = 1;
                   visitor( targetIdx, i + 1 );
                }
             },
             launchConfig );
+      }
       else {
          forEdges(
             graph,
@@ -107,8 +108,9 @@ breadthFirstSearchParallel(
             if( marks_scan_view[ 0 ] == 1 )
                frontier_view[ 0 ] = idx;
          }
-         else if( marks_scan_view[ idx ] - marks_scan_view[ idx - 1 ] == 1 )
+         else if( marks_scan_view[ idx ] - marks_scan_view[ idx - 1 ] == 1 ) {
             frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
+         }
       };
       marks_scan.forAllElements( f );
 

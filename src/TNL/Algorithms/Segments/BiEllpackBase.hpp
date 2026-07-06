@@ -83,9 +83,10 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentSize( IndexTyp
          segmentsPermutation, groupPointers, segmentIdx );
 #endif
    }
-   else
+   else {
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentSizeDirect(
          segmentsPermutation, groupPointers, segmentIdx );
+   }
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -126,9 +127,10 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getGlobalIndex( Index se
          segmentsPermutation, groupPointers, segmentIdx, localIdx );
 #endif
    }
-   else
+   else {
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getGlobalIndexDirect(
          segmentsPermutation, groupPointers, segmentIdx, localIdx );
+   }
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -145,9 +147,10 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentView( IndexTyp
          segmentsPermutation, groupPointers, segmentIdx );
 #endif
    }
-   else
+   else {
       return detail::BiEllpack< IndexType, DeviceType, Organization, WarpSize >::getSegmentViewDirect(
          segmentsPermutation, groupPointers, segmentIdx );
+   }
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >

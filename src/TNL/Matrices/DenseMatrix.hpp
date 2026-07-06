@@ -104,11 +104,12 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
                   const Index symmetricColumn = rowIdx;
                   this->setElement( symmetricRow, symmetricColumn, element );
                }
-               else if( columnIdx > rowIdx )
+               else if( columnIdx > rowIdx ) {
                   throw std::logic_error(
                      "The input data are supposed to be a lower part of a symmetric matrix (matrix elements encoding equals "
                      "SymmetricLower) but it is not. The matrix element at position ("
                      + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") is located above the diagonal." );
+               }
             }
             columnIdx++;
          }

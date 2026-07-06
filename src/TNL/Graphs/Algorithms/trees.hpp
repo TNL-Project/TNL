@@ -135,8 +135,9 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
          else
             return false;
       }
-      else
+      else {
          start_node = TNL::Algorithms::find( visited, 0 ).second;
+      }
    }
 }
 

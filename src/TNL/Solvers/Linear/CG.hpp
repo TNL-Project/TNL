@@ -25,8 +25,9 @@ CG< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       this->preconditioner->solve( b, r );
       normb = lpNorm( r, 2.0 );
    }
-   else
+   else {
       normb = lpNorm( b, 2.0 );
+   }
 
    // check for zero rhs - solution is the null vector
    if( normb == 0 ) {

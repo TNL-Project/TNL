@@ -109,8 +109,9 @@ parallelSingleSourceShortestPath(
             if( marks_scan_view[ 0 ] == 1 )
                frontier_view[ 0 ] = idx;
          }
-         else if( marks_scan_view[ idx ] - marks_scan_view[ idx - 1 ] == 1 )
+         else if( marks_scan_view[ idx ] - marks_scan_view[ idx - 1 ] == 1 ) {
             frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
+         }
       };
       marks_scan.forAllElements( f );
       distances = y;
