@@ -11,6 +11,7 @@ struct TraversingOperations
 
 }  // namespace TNL::Matrices::detail
 
+#include "TraversingOperationsBase.h"
 #include "TraversingOperations_DenseMatrixView.h"
 #include "TraversingOperations_SparseMatrixView.h"
 #include "TraversingOperations_TridiagonalMatrixView.h"
