@@ -538,6 +538,157 @@ reduceRowsIf(
       launchConfig );
 }
 
+// ===================== reduceRowsIf (array) =====================
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T >
+typename Matrix::IndexType
+reduceRowsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   auto matrix_view = matrix.getView();
+   return detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsIf(
+      matrix_view,
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      reduction,
+      std::forward< Store >( store ),
+      identity,
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T >
+typename Matrix::IndexType
+reduceRowsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   return detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsIf(
+      matrix.getConstView(),
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      reduction,
+      std::forward< Store >( store ),
+      identity,
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T >
+typename Matrix::IndexType
+reduceRowsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using FetchValue =
+      decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
+   return reduceRowsIf(
+      matrix,
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      reduction,
+      std::forward< Store >( store ),
+      Reduction::template getIdentity< FetchValue >(),
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T >
+typename Matrix::IndexType
+reduceRowsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using FetchValue =
+      decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
+   return reduceRowsIf(
+      matrix,
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      reduction,
+      std::forward< Store >( store ),
+      Reduction::template getIdentity< FetchValue >(),
+      launchConfig );
+}
+
 template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRowsWithArgument(
