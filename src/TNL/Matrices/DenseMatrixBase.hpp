@@ -390,6 +390,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forElements( IndexType beg
    auto values = this->getValues().getView();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
    {
+      // NOLINTNEXTLINE(readability-suspicious-call-argument)
       function( rowIdx, columnIdx, globalIdx, values[ globalIdx ] );
    };
    Algorithms::Segments::forElements( this->segments, begin, end, f );

@@ -219,6 +219,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
       for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
          IndexType elementColumn( 0 );
          RealType elementValue( 0.0 );
+         // NOLINTNEXTLINE(readability-suspicious-call-argument)
          matrixElements( rows, columns, rowIdx, localIdx, elementColumn, elementValue );
          FetchType fetchValue = identity;
          if( elementValue != 0.0 )
@@ -260,6 +261,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
       for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
          IndexType elementColumn( 0 );
          RealType elementValue( 0.0 );
+         // NOLINTNEXTLINE(readability-suspicious-call-argument)
          matrixElements( rows, columns, rowIdx, localIdx, elementColumn, elementValue );
          if( elementValue != 0.0 )
             function( rowIdx, localIdx, elementColumn, elementValue );
