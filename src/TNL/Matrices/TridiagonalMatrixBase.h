@@ -333,7 +333,7 @@ public:
     * \include TridiagonalMatrixViewExample_reduceRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-   void
+   [[deprecated( "Use free function TNL::Matrices::reduceRows instead" )]] void
    reduceRows( IndexType begin, IndexType end, Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity )
       const;
 
@@ -375,7 +375,7 @@ public:
     * \include TridiagonalMatrixViewExample_reduceAllRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-   void
+   [[deprecated( "Use free function TNL::Matrices::reduceAllRows instead" )]] void
    reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity ) const;
 
    /**
@@ -395,7 +395,7 @@ public:
     * \param function is an instance of the lambda function to be called in each row.
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -420,7 +420,7 @@ public:
     * \include TridiagonalMatrixViewExample_forElements.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( IndexType begin, IndexType end, Function&& function );
 
    /**
@@ -437,7 +437,7 @@ public:
     * \include TridiagonalMatrixViewExample_forAllElements.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllElements instead" )]] void
    forAllElements( Function&& function ) const;
 
    /**
@@ -454,7 +454,7 @@ public:
     * \include TridiagonalMatrixViewExample_forAllElements.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllElements instead" )]] void
    forAllElements( Function&& function );
 
    /**
@@ -482,7 +482,7 @@ public:
     * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -510,7 +510,7 @@ public:
     * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function );
 
    /**
@@ -536,7 +536,7 @@ public:
     * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( const Array& rowIndexes, Function&& function ) const;
 
    /**
@@ -562,7 +562,7 @@ public:
     * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( const Array& rowIndexes, Function&& function );
 
    /**
@@ -595,7 +595,7 @@ public:
     * \include TridiagonalMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElementsIf instead" )]] void
    forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function ) const;
 
    /**
@@ -628,7 +628,7 @@ public:
     * \include TridiagonalMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElementsIf instead" )]] void
    forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function );
 
    /**
@@ -643,7 +643,7 @@ public:
     * \param function is an instance of the lambda function to be called in each row.
     */
    template< typename Condition, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllElementsIf instead" )]] void
    forAllElementsIf( Condition&& condition, Function&& function ) const;
 
    /**
@@ -658,7 +658,7 @@ public:
     * \param function is an instance of the lambda function to be called in each row.
     */
    template< typename Condition, typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllElementsIf instead" )]] void
    forAllElementsIf( Condition&& condition, Function&& function );
 
    /**
@@ -685,7 +685,7 @@ public:
     * \include TridiagonalMatrixViewExample_forRows.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forRows instead" )]] void
    forRows( IndexType begin, IndexType end, Function&& function );
 
    /**
@@ -707,7 +707,7 @@ public:
     * \e ConstRowView represents matrix row - see \ref TNL::Matrices::TridiagonalMatrixBase::ConstRowView.
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forRows instead" )]] void
    forRows( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -732,7 +732,7 @@ public:
     * \include TridiagonalMatrixViewExample_forRows.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllRows instead" )]] void
    forAllRows( Function&& function );
 
    /**
@@ -752,7 +752,7 @@ public:
     * \e ConstRowView represents matrix row - see \ref TNL::Matrices::TridiagonalMatrixBase::ConstRowView.
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllRows instead" )]] void
    forAllRows( Function&& function ) const;
 
    /**

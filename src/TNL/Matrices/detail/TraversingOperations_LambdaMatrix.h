@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "../LambdaMatrix.h"
 #include "TraversingOperations.h"
@@ -18,7 +19,9 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using RowView = typename Matrix::RowView;
-   using ConstRowView = typename Matrix::ConstRowView;
+   using ConstRowView = typename ConstMatrixView::ConstRowView;
+
+   // ===================== forElements (range) =====================
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
@@ -29,7 +32,22 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElements( begin, end, function );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue != 0.0 )
+               function( rowIdx, localIdx, columnIdx, elementValue );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -41,22 +59,149 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElements( begin, end, function );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue != 0.0 )
+               function( rowIdx, localIdx, columnIdx, elementValue );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Function >
+   // ===================== forElements (array) =====================
+
+   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forAllElements( Matrix& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      Matrix& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forAllElements( function );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue != 0.0 )
+               function( rowIdx, localIdx, columnIdx, elementValue );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Function >
+   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forAllElements( const ConstMatrixView& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forAllElements( function );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue != 0.0 )
+               function( rowIdx, localIdx, columnIdx, elementValue );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
+
+   // ===================== forElementsIf =====================
+
+   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+   static void
+   forElementsIf(
+      Matrix& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue != 0.0 )
+               function( rowIdx, localIdx, columnIdx, elementValue );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+   }
+
+   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+   static void
+   forElementsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue != 0.0 )
+               function( rowIdx, localIdx, columnIdx, elementValue );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+   }
+
+   // ===================== forRows (range) =====================
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
@@ -67,7 +212,12 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forRows( begin, end, function );
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         auto rowView = matrix.getRow( rowIdx );
+         function( rowView );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -79,21 +229,96 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forRows( begin, end, function );
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         auto rowView = matrix.getRow( rowIdx );
+         function( rowView );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Function >
+   // ===================== forRows (array) =====================
+
+   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forAllRows( Matrix& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      Matrix& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forAllRows( function );
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         auto rowIdx = rowIndexes_view[ idx ];
+         auto rowView = matrix.getRow( rowIdx );
+         function( rowView );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Function >
+   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forAllRows( const ConstMatrixView& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forAllRows( function );
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         auto rowIdx = rowIndexes_view[ idx ];
+         auto rowView = matrix.getRow( rowIdx );
+         function( rowView );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+   }
+
+   // ===================== forRowsIf =====================
+
+   template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
+   static void
+   forRowsIf(
+      Matrix& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      RowCondition&& rowCondition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( rowCondition( rowIdx ) ) {
+            auto rowView = matrix.getRow( rowIdx );
+            function( rowView );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+   }
+
+   template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
+   static void
+   forRowsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      RowCondition&& rowCondition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( rowCondition( rowIdx ) ) {
+            auto rowView = matrix.getRow( rowIdx );
+            function( rowView );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 };
 

@@ -2,7 +2,7 @@
 
 [TOC]
 
-All matrix types share a unified interface for traversing rows and elements. In addition to the member functions documented below, there is a cross-cutting free-function API described in [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api).
+All matrix types share a unified interface for traversing rows and elements. In addition to the member functions documented below, there is a cross-cutting free-function API described in [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api). The member traversal and reduction methods on tridiagonal, multidiagonal, and lambda matrices are deprecated; users should prefer the free functions.
 
 ## Introduction
 
@@ -901,7 +901,11 @@ The result looks as follows:
 
 #### Method forRows
 
-The method `forRows` (\ref TNL::Matrices::TridiagonalMatrix::forRows) iterates in parallel over matrix rows and calls the user lambda with a row view object. It is the tridiagonal equivalent of the dense and sparse variants described above. The full family of member functions consists of:
+The method `forRows` (\ref TNL::Matrices::TridiagonalMatrix::forRows) iterates in parallel over matrix rows and calls the user lambda with a row view object. It is the tridiagonal equivalent of the dense and sparse variants described above.
+
+> **Note:** The member methods `forRows`, `forAllRows`, `forElements`, `forAllElements`, `forElementsIf`, `forAllElementsIf`, `reduceRows`, and `reduceAllRows` on tridiagonal matrices are deprecated. Use the free functions `TNL::Matrices::forRows`, `TNL::Matrices::forAllRows`, `TNL::Matrices::forElements`, etc. instead. See [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api).
+
+The full family of member functions consists of:
 
 * `forAllRows(function)` - processes all rows.
 * `forRows(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
@@ -1202,7 +1206,11 @@ We use \ref TNL::Algorithms::parallelFor "parallelFor" to iterate over all nodes
 
 #### Method forRows
 
-The method `forRows` (\ref TNL::Matrices::MultidiagonalMatrix::forRows) iterates in parallel over matrix rows and passes a row view to the user lambda. It is the multidiagonal equivalent of the dense and sparse variants described above. The full family of member functions consists of:
+The method `forRows` (\ref TNL::Matrices::MultidiagonalMatrix::forRows) iterates in parallel over matrix rows and passes a row view to the user lambda. It is the multidiagonal equivalent of the dense and sparse variants described above.
+
+> **Note:** The member methods `forRows`, `forAllRows`, `forElements`, `forAllElements`, `forElementsIf`, `forAllElementsIf`, `reduceRows`, and `reduceAllRows` on multidiagonal matrices are deprecated. Use the free functions `TNL::Matrices::forRows`, `TNL::Matrices::forAllRows`, `TNL::Matrices::forElements`, etc. instead. See [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api).
+
+The full family of member functions consists of:
 
 * `forAllRows(function)` - processes all rows.
 * `forRows(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
@@ -1306,7 +1314,11 @@ The result looks as follows:
 
 #### Method forRows
 
-The method `forRows` (\ref TNL::Matrices::LambdaMatrix::forRows, \ref TNL::Matrices::LambdaMatrix::forAllRows) iterates in parallel over matrix rows. Because a lambda matrix does not store its elements explicitly, the traversal is read-only; the matrix elements cannot be changed through the row view. The available member functions are:
+The method `forRows` (\ref TNL::Matrices::LambdaMatrix::forRows, \ref TNL::Matrices::LambdaMatrix::forAllRows) iterates in parallel over matrix rows. Because a lambda matrix does not store its elements explicitly, the traversal is read-only; the matrix elements cannot be changed through the row view.
+
+> **Note:** The member methods `forRows`, `forAllRows`, `forElements`, `forAllElements`, `reduceRows`, and `reduceAllRows` on lambda matrices are deprecated. Use the free functions `TNL::Matrices::forRows`, `TNL::Matrices::forAllRows`, `TNL::Matrices::forElements`, etc. instead. See [Free-function traverse and reduce API](#free-function-traverse-and-reduce-api).
+
+The available member functions are:
 
 * `forAllRows(function)` - processes all rows.
 * `forRows(begin, end, function)` - processes rows in a half-open interval `[begin, end)`.
@@ -1602,8 +1614,17 @@ The reduction functions are:
 
 * `TNL::Matrices::reduceRows(matrix, begin, end, fetch, reduce, keep, identity)`
 * `TNL::Matrices::reduceAllRows(matrix, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceRows(matrix, rowIndexes, fetch, reduce, keep, identity)` (row-index array variant)
+* `TNL::Matrices::reduceAllRowsIf(matrix, condition, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceRowsIf(matrix, begin, end, condition, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceAllRowsWithArgument(matrix, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceRowsWithArgument(matrix, begin, end, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceRowsWithArgument(matrix, rowIndexes, fetch, reduce, keep, identity)` (row-index array variant)
+* `TNL::Matrices::reduceAllRowsWithArgumentIf(matrix, condition, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceRowsWithArgumentIf(matrix, begin, end, condition, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceRowsWithArgumentIf(matrix, rowIndexes, begin, end, condition, fetch, reduce, keep, identity)` (row-index array variant)
 
-Both reduction functions also have overloads that accept a function object for `reduce` and deduce the identity value automatically.
+All reduction functions also have overloads that accept a function object for `reduce` and deduce the identity value automatically.
 
 These functions mirror the corresponding member functions and use the same lambda signatures described in the previous sections. The following example demonstrates `TNL::Matrices::forElements` on dense and sparse matrices:
 
@@ -1615,13 +1636,13 @@ The output is:
 
 ### Scope differences
 
-Although the free-function API is available for all five matrix types, the supported variants differ because tridiagonal, multidiagonal, and lambda matrices do not use the same segment-based backend as dense and sparse matrices.
+All five matrix types support the full free-function API surface: all traversal functions (`forElements`, `forAllElements`, `forRows`, `forAllRows`, and all conditional and row-index variants) and all reduction functions (`reduceRows`, `reduceAllRows`, `reduceRowsIf`, `reduceAllRowsIf`, `reduceRowsWithArgument`, `reduceAllRowsWithArgument`, `reduceRowsWithArgumentIf`, `reduceAllRowsWithArgumentIf`, including row-index array variants).
 
-* **Tridiagonal and multidiagonal matrices** support the full traversal surface (`forElements`, `forAllElements`, `forRows`, `forAllRows`, and all conditional and row-index variants). For reduction, only `reduceRows` and `reduceAllRows` are supported. The `*If`, `*WithArgument`, and row-index overloads of `reduceRows` are not supported.
-* **Lambda matrices** support a traversal subset: `forElements`, `forAllElements`, `forRows`, and `forAllRows`. Only the const overloads are available because a lambda matrix has no mutable storage. For reduction, only `reduceRows` and `reduceAllRows` are supported, again const-only.
+The only difference is that **lambda matrices** have only `const` overloads available, because a lambda matrix has no mutable storage. The `value` parameter of the user lambda is always `const Real&`.
 
 ### Important notes
 
+* **Member method deprecation**: The member methods `forElements`, `forAllElements`, `forRows`, `forAllRows`, `forElementsIf`, `forAllElementsIf`, `reduceRows`, and `reduceAllRows` on `TridiagonalMatrixBase`, `MultidiagonalMatrixBase`, and `LambdaMatrix` are deprecated. Use the corresponding free functions in `TNL::Matrices` namespace instead. The member methods on `DenseMatrix` and `SparseMatrix` remain non-deprecated.
 * **launchConfig**: The `launchConfig` parameter is honored for Dense/Sparse matrix types (forwarded to `Algorithms::Segments::*`) but silently ignored for Tridiagonal/Multidiagonal/Lambda, which dispatch via `Algorithms::parallelFor` with an auto-selected configuration.
 * **LambdaMatrix immutability**: For `LambdaMatrix`, the `value` parameter of the user lambda is always `const Real&` regardless of which free-function overload is used, because `LambdaMatrix` has no mutable storage. Mutation attempts will fail to compile.
 * **Fetch lambda semantics**: The `reduceRows`/`reduceAllRows` fetch lambda arg #2 is `localIdx` for Dense/Sparse but `columnIdx` for Tridiagonal/Multidiagonal/Lambda.
