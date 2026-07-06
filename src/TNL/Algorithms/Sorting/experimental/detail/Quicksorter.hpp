@@ -93,9 +93,9 @@ Quicksorter< Value, Devices::Cuda, Index >::init(
    this->aux.bind( auxMem.getView() );
    this->desiredSecondPhaseElementsPerBlock = desiredElementsPerBlock;
    this->maxTasks = static_cast< int >( min( arr.getSize(), static_cast< Index >( maxTasksLimit ) ) );
-   this->cuda_tasks.setSize( static_cast< int >( maxTasks ) );
-   this->cuda_newTasks.setSize( static_cast< int >( maxTasks ) );
-   this->cuda_secondPhaseTasks.setSize( static_cast< int >( maxTasks ) );
+   this->cuda_tasks.setSize( maxTasks );
+   this->cuda_newTasks.setSize( maxTasks );
+   this->cuda_secondPhaseTasks.setSize( maxTasks );
    this->cuda_newTasksAmount.setSize( 1 );
    this->cuda_secondPhaseTasksAmount.setSize( 1 );
    this->cuda_blockToTaskMapping.setSize( maxBlocks );
