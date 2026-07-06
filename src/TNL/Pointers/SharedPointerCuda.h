@@ -475,7 +475,11 @@ public:
          std::cerr << "   ( " << sizeof( Object ) << " bytes, CUDA address " << this->cuda_pointer << " )\n";
 #endif
          TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
-         Backend::memcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), Backend::MemcpyHostToDevice );
+         Backend::memcpy(
+            reinterpret_cast< void* >( this->cuda_pointer ),
+            reinterpret_cast< const void* >( &this->pd->data ),
+            sizeof( Object ),
+            Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
@@ -547,7 +551,10 @@ protected:
    set_last_sync_state()
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
-      std::memcpy( (void*) &this->pd->data_image, (void*) &this->pd->data, sizeof( Object ) );
+      std::memcpy(
+         reinterpret_cast< void* >( &this->pd->data_image ),
+         reinterpret_cast< const void* >( &this->pd->data ),
+         sizeof( Object ) );
       this->pd->maybe_modified = false;
    }
 

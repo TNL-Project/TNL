@@ -224,7 +224,7 @@ laplaceOperatorSparseMatrix()
          STL_Map( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
       std::cout << "   setElement on host: ";
       timer.reset();
@@ -234,7 +234,7 @@ laplaceOperatorSparseMatrix()
          setElement_on_host( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
       if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
          std::cout << "   setElement on host and transfer on GPU: ";
@@ -245,7 +245,7 @@ laplaceOperatorSparseMatrix()
             setElement_on_host_and_transfer( gridSize, matrix );
          }
          timer.stop();
-         std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+         std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
       }
 
       std::cout << "   setElement on device: ";
@@ -256,7 +256,7 @@ laplaceOperatorSparseMatrix()
          setElement_on_device( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
       std::cout << "   getRow: ";
       timer.reset();
@@ -266,7 +266,7 @@ laplaceOperatorSparseMatrix()
          getRow( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
       std::cout << "   forElements: ";
       timer.reset();
@@ -276,7 +276,7 @@ laplaceOperatorSparseMatrix()
          forElements( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
    }
 }
 

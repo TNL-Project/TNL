@@ -48,7 +48,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          {
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
-                  function( segmentIdx, localIdx, columns_view[ globalIdx ], (ValueType) 1.0 );
+                  function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
                else
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
             }
@@ -77,7 +77,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          {
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
-                  function( segmentIdx, localIdx, columns_view[ globalIdx ], (ValueType) 1.0 );
+                  function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
                else
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
             }
@@ -107,7 +107,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          {
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
-                  function( segmentIdx, localIdx, columns_view[ globalIdx ], (ValueType) 1.0 );
+                  function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
                else
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
             }
@@ -137,7 +137,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          {
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
-                  function( segmentIdx, localIdx, columns_view[ globalIdx ], (ValueType) 1.0 );
+                  function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
                else
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
             }
@@ -169,7 +169,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          {
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
-                  function( segmentIdx, localIdx, columns_view[ globalIdx ], (ValueType) 1.0 );
+                  function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
                else
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
             }
@@ -200,7 +200,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          {
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
-                  function( segmentIdx, localIdx, columns_view[ globalIdx ], (ValueType) 1.0 );
+                  function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
                else
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
             }

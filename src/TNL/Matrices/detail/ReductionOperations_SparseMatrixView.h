@@ -47,7 +47,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
             else
                // For non-constant matrix, we allow modification of columns indexes
                // and values during the data fetching for the sake of kernels merging.
@@ -81,7 +81,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, (ValueType) 1 );
+               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1 ) );
             else
                return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
          }
@@ -111,7 +111,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
             else
                // For non-constant matrix, we allow modification of columns indexes
                // and values during the data fetching for the sake of kernels merging.
@@ -149,7 +149,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, (ValueType) 1 );
+               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1 ) );
             else
                return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
          }
@@ -193,7 +193,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
             else
                // For non-constant matrix, we allow modification of columns indexes
                // and values during the data fetching for the sake of kernels merging.
@@ -243,7 +243,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          IndexType columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, (ValueType) 1 );
+               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1 ) );
             else
                return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
          }
@@ -283,7 +283,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
             else
                // For non-constant matrix, we allow modification of columns indexes
                // and values during the data fetching for the sake of kernels merging.
@@ -308,7 +308,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             store( rowIdx, localIdx, columnIdx, value, emptySegment );
          }
          else {
-            store( rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptySegment );
          }
       };
 
@@ -339,7 +339,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, (ValueType) 1 );
+               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1 ) );
             else
                return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
          }
@@ -353,7 +353,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             store( rowIdx, localIdx, columnIdx, value, emptySegment );
          }
          else {
-            store( rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptySegment );
          }
       };
 
@@ -426,7 +426,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          IndexType columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, (ValueType) 1 );
+               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1 ) );
             else
                return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
          }
@@ -544,7 +544,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, ValueType( 1.0 ) );
+               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1.0 ) );
             else
                return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
          }
@@ -672,7 +672,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, ValueType( 1.0 ) );
+               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1.0 ) );
             else
                return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
          }

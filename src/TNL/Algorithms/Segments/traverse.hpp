@@ -13,7 +13,8 @@ void
 forAllElements( const Segments& segments, Function&& function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   forElements( segments, (IndexType) 0, segments.getSegmentCount(), std::forward< Function >( function ), launchConfig );
+   forElements(
+      segments, static_cast< IndexType >( 0 ), segments.getSegmentCount(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
@@ -39,7 +40,7 @@ forAllElementsIf( const Segments& segments, Condition condition, Function functi
    using IndexType = typename Segments::IndexType;
    detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIf(
       segments.getConstView(),
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Condition >( condition ),
       std::forward< Function >( function ),
@@ -71,7 +72,11 @@ forAllSegments( const Segments& segments, Function&& function, LaunchConfigurati
 {
    using IndexType = typename Segments::IndexType;
    forSegments(
-      segments.getConstView(), (IndexType) 0, segments.getSegmentCount(), std::forward< Function >( function ), launchConfig );
+      segments.getConstView(),
+      static_cast< IndexType >( 0 ),
+      segments.getSegmentCount(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function, typename T >
@@ -100,7 +105,7 @@ forAllSegmentsIf(
 {
    forSegmentsIf(
       segments.getConstView(),
-      (typename Segments::IndexType) 0,
+      static_cast< typename Segments::IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< SegmentCondition >( segmentCondition ),
       std::forward< Function >( function ),

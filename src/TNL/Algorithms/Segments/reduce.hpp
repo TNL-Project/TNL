@@ -23,7 +23,7 @@ reduceAllSegments(
    using IndexType = typename Segments::IndexType;
    reduceSegments(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
@@ -45,7 +45,7 @@ reduceAllSegments(
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
    reduceSegments(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
@@ -178,7 +178,7 @@ reduceAllSegmentsIf(
    using IndexType = typename Segments::IndexType;
    return reduceSegmentsIf(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -202,7 +202,7 @@ reduceAllSegmentsIf(
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
    return reduceSegmentsIf(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -292,7 +292,7 @@ reduceAllSegmentsWithArgument(
    using IndexType = typename Segments::IndexType;
    reduceSegmentsWithArgument(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
@@ -314,7 +314,7 @@ reduceAllSegmentsWithArgument(
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
    reduceSegmentsWithArgument(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
@@ -439,7 +439,7 @@ reduceAllSegmentsWithArgumentIf(
    using IndexType = typename Segments::IndexType;
    return reduceSegmentsWithArgumentIf(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -463,7 +463,7 @@ reduceAllSegmentsWithArgumentIf(
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
    return reduceSegmentsWithArgumentIf(
       segments,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -561,7 +561,7 @@ reduceAll(
 {
    return reduce(
       segments,
-      (typename Segments::IndexType) 0,
+      static_cast< typename Segments::IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< SegmentFetch >( segmentFetch ),
       std::forward< SegmentReduction >( segmentReduction ),
@@ -586,7 +586,7 @@ reduceAll(
    using FinalValue = typename detail::FetchLambdaAdapter< typename Segments::IndexType, FinalFetch >::ReturnType;
    return reduce(
       segments,
-      (typename Segments::IndexType) 0,
+      static_cast< typename Segments::IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< SegmentFetch >( segmentFetch ),
       std::forward< SegmentReduction >( segmentReduction ),
@@ -647,7 +647,7 @@ reduce(
 
    // Then reduce segment results using the result fetch and reduction
    return TNL::Algorithms::reduce< DeviceType >(
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       segmentResults.getSize(),
       [ segmentResultsView, finalFetch ] __cuda_callable__( IndexType idx ) mutable
       {

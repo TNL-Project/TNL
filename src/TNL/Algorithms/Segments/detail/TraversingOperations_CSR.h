@@ -72,7 +72,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                launchConfig.blockSize.x = 256;
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -177,12 +177,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
                      || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
             {
                launchConfig.blockSize.x = 256;
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -345,7 +345,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             const Index segmentsCount = end - begin;
             std::size_t threadsCount = segmentsCount;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );

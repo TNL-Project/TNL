@@ -41,7 +41,7 @@ forAllEdges( Graph& graph, Function&& function, TNL::Algorithms::Segments::Launc
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forEdges(
-      graph_view, (IndexType) 0, graph.getVertexCount(), std::forward< Function >( function ), launchConfig );
+      graph_view, static_cast< IndexType >( 0 ), graph.getVertexCount(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Graph, typename Function >
@@ -50,7 +50,11 @@ forAllEdges( const Graph& graph, Function&& function, TNL::Algorithms::Segments:
 {
    using IndexType = typename Graph::IndexType;
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdges(
-      graph.getConstView(), (IndexType) 0, graph.getVertexCount(), std::forward< Function >( function ), launchConfig );
+      graph.getConstView(),
+      static_cast< IndexType >( 0 ),
+      graph.getVertexCount(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Graph, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -93,7 +97,12 @@ forEdges(
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forEdges(
-      graph_view, vertexIndexes, (IndexType) 0, vertexIndexes.getSize(), std::forward< Function >( function ), launchConfig );
+      graph_view,
+      vertexIndexes,
+      static_cast< IndexType >( 0 ),
+      vertexIndexes.getSize(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Graph, typename Array, typename Function >
@@ -108,7 +117,7 @@ forEdges(
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdges(
       graph.getConstView(),
       vertexIndexes,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       vertexIndexes.getSize(),
       std::forward< Function >( function ),
       launchConfig );
@@ -160,7 +169,7 @@ forAllEdgesIf(
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forEdgesIf(
       graph_view,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Function >( function ),
@@ -178,7 +187,7 @@ forAllEdgesIf(
    using IndexType = typename Graph::IndexType;
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdgesIf(
       graph.getConstView(),
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Function >( function ),
@@ -218,7 +227,8 @@ forAllVertices( Graph& graph, Function&& function, TNL::Algorithms::Segments::La
 {
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
-   forVertices( graph_view, (IndexType) 0, graph.getVertexCount(), std::forward< Function >( function ), launchConfig );
+   forVertices(
+      graph_view, static_cast< IndexType >( 0 ), graph.getVertexCount(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Graph, typename Function >
@@ -227,7 +237,11 @@ forAllVertices( const Graph& graph, Function&& function, TNL::Algorithms::Segmen
 {
    using IndexType = typename Graph::IndexType;
    forVertices(
-      graph.getConstView(), (IndexType) 0, graph.getVertexCount(), std::forward< Function >( function ), launchConfig );
+      graph.getConstView(),
+      static_cast< IndexType >( 0 ),
+      graph.getVertexCount(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Graph, typename Array, typename IndexBegin, typename IndexEnd, typename Function, typename T >
@@ -270,7 +284,12 @@ forVertices(
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
    forVertices(
-      graph_view, vertexIndexes, (IndexType) 0, vertexIndexes.getSize(), std::forward< Function >( function ), launchConfig );
+      graph_view,
+      vertexIndexes,
+      static_cast< IndexType >( 0 ),
+      vertexIndexes.getSize(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Graph, typename Array, typename Function, typename T >
@@ -283,7 +302,12 @@ forVertices(
 {
    using IndexType = typename Graph::IndexType;
    forVertices(
-      graph, vertexIndexes, (IndexType) 0, vertexIndexes.getSize(), std::forward< Function >( function ), launchConfig );
+      graph,
+      vertexIndexes,
+      static_cast< IndexType >( 0 ),
+      vertexIndexes.getSize(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Graph, typename IndexBegin, typename IndexEnd, typename VertexCondition, typename Function, typename T >
@@ -335,7 +359,7 @@ forAllVerticesIf(
 {
    forVerticesIf(
       graph,
-      (typename Graph::IndexType) 0,
+      static_cast< typename Graph::IndexType >( 0 ),
       graph.getVertexCount(),
       std::forward< VertexCondition >( vertexCondition ),
       std::forward< Function >( function ),
@@ -352,7 +376,7 @@ forAllVerticesIf(
 {
    forVerticesIf(
       graph,
-      (typename Graph::IndexType) 0,
+      static_cast< typename Graph::IndexType >( 0 ),
       graph.getVertexCount(),
       std::forward< VertexCondition >( vertexCondition ),
       std::forward< Function >( function ),

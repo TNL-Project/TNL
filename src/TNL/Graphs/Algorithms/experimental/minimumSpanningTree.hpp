@@ -79,7 +79,7 @@ struct Forest
    void
    getRoots( std::vector< Index >& roots ) const
    {
-      for( Index u = 0; u < (Index) parent.size(); u++ ) {
+      for( Index u = 0; u < static_cast< Index >( parent.size() ); u++ ) {
          if( u == parent[ u ] )
             roots.push_back( u );
       }
@@ -190,14 +190,14 @@ parallelMST( const InGraph& graph, OutGraph& tree )
    RealVector star_hook_candidates_weights( n, std::numeric_limits< Real >::max() );
    RealVector star_hook_weights( n, std::numeric_limits< Real >::max() );
    RealVector hook_weights( n, std::numeric_limits< Real >::max() );
-   IndexVector hook_candidates_sources( hook_candidates.getStorageSize(), (IndexType) 0 );
-   IndexVector hook_candidates_targets( hook_candidates.getStorageSize(), (IndexType) 0 );
-   IndexVector star_hook_candidates_sources( n, (IndexType) 0 );
-   IndexVector star_hook_candidates_targets( n, (IndexType) 0 );
-   IndexVector star_hook_sources( n, (IndexType) 0 );
-   IndexVector star_hook_targets( n, (IndexType) 0 );
-   IndexVector hook_targets( n, (IndexType) -1 );
-   IndexVector hook_sources( n, (IndexType) -1 );
+   IndexVector hook_candidates_sources( hook_candidates.getStorageSize(), static_cast< IndexType >( 0 ) );
+   IndexVector hook_candidates_targets( hook_candidates.getStorageSize(), static_cast< IndexType >( 0 ) );
+   IndexVector star_hook_candidates_sources( n, static_cast< IndexType >( 0 ) );
+   IndexVector star_hook_candidates_targets( n, static_cast< IndexType >( 0 ) );
+   IndexVector star_hook_sources( n, static_cast< IndexType >( 0 ) );
+   IndexVector star_hook_targets( n, static_cast< IndexType >( 0 ) );
+   IndexVector hook_targets( n, static_cast< IndexType >( -1 ) );
+   IndexVector hook_sources( n, static_cast< IndexType >( -1 ) );
    p.forAllElements(
       [] __cuda_callable__( Index i, Index & value )
       {
@@ -388,7 +388,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       star_hook_candidates_sources_view = -1;
       star_hook_candidates_weights_view = std::numeric_limits< Real >::max();
       TNL::Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         static_cast< IndexType >( 0 ),
          n,
          [ = ] __cuda_callable__( Index i ) mutable
          {
@@ -417,7 +417,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       star_hook_sources_view = -1;
       star_hook_weights_view = std::numeric_limits< Real >::max();
       TNL::Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         static_cast< IndexType >( 0 ),
          n,
          [ = ] __cuda_callable__( Index i ) mutable
          {
@@ -443,7 +443,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
 
       //std::cout << "p_old= " << p_old << '\n';
       TNL::Algorithms::parallelFor< DeviceType >(  //
-         (IndexType) 0,
+         static_cast< IndexType >( 0 ),
          n,
          [ = ] __cuda_callable__( Index i ) mutable
          {

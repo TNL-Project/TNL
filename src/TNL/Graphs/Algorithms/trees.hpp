@@ -115,9 +115,9 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
                visited_view[ rowIdx ] = visited_view[ rowIdx ] + value;
             };
             if constexpr( AdjacencyMatrixType::isSymmetric() )
-               graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, TNL::Plus{}, keep, (IndexType) 0 );
+               graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, TNL::Plus{}, keep, static_cast< IndexType >( 0 ) );
             else
-               graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, (IndexType) 0 );
+               graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, static_cast< IndexType >( 0 ) );
 
             if( max( visited ) > 1 )
                return false;

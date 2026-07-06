@@ -159,7 +159,7 @@ void
 MatrixReader< Matrix, TNL::Devices::Host >::checkMtxHeader( const String& header, bool& symmetric, bool& matrixPattern )
 {
    std::vector< String > parsedLine = header.split( ' ', String::SplitSkip::SkipEmpty );
-   if( (int) parsedLine.size() < 5 || parsedLine[ 0 ] != "%%MatrixMarket" )
+   if( static_cast< int >( parsedLine.size() ) < 5 || parsedLine[ 0 ] != "%%MatrixMarket" )
       throw std::runtime_error(
          "Unknown format of the source file. We expect line like this: %%MatrixMarket matrix coordinate real general" );
    if( parsedLine[ 1 ] != "matrix" )
@@ -207,7 +207,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader(
          continue;
 
       parsedLine = line.split( ' ', String::SplitSkip::SkipEmpty );
-      if( (int) parsedLine.size() != 3 )
+      if( static_cast< int >( parsedLine.size() ) != 3 )
          throw std::runtime_error( "Wrong number of parameters in the matrix header - should be 3." );
       rows = atoi( parsedLine[ 0 ].getString() );
       columns = atoi( parsedLine[ 1 ].getString() );
@@ -308,7 +308,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::parseMtxLineWithElement(
    RealType& value )
 {
    std::vector< String > parsedLine = line.split( ' ', String::SplitSkip::SkipEmpty );
-   if( (int) parsedLine.size() != 3 - (int) matrixPattern ) {
+   if( static_cast< int >( parsedLine.size() ) != 3 - static_cast< int >( matrixPattern ) ) {
       std::stringstream str;
       str << "Wrong number of parameters in the matrix row at line:" << line;
       throw std::runtime_error( str.str() );
@@ -319,7 +319,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::parseMtxLineWithElement(
       // If the MTX file stores only the matrix pattern, there is no value in the file.
       value = RealType{ 1 };
    else
-      value = (RealType) atof( parsedLine[ 2 ].getString() );
+      value = static_cast< RealType >( atof( parsedLine[ 2 ].getString() ) );
 }
 /// \endcond
 

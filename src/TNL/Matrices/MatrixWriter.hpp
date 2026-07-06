@@ -85,7 +85,7 @@ MatrixWriter< Matrix, TNL::Devices::Host >::writeGnuplot( std::ostream& str, con
    for( IndexType row = 0; row < matrix.getRows(); row++ ) {
       for( IndexType column = 0; column < matrix.getColumns(); column++ ) {
          RealType elementValue = matrix.getElement( row, column );
-         if( elementValue != (RealType) 0.0 )
+         if( elementValue != static_cast< RealType >( 0.0 ) )
             str << column << " " << row << " " << elementValue << "\n";
       }
       if( verbose )
@@ -178,7 +178,7 @@ MatrixWriter< Matrix, TNL::Devices::Host >::writeEpsBody(
    for( IndexType row = 0; row < matrix.getRows(); row++ ) {
       for( IndexType column = 0; column < matrix.getColumns(); column++ ) {
          RealType elementValue = matrix.getElement( row, column );
-         if( elementValue != (RealType) 0.0 ) {
+         if( elementValue != static_cast< RealType >( 0.0 ) ) {
             str << ( column - lastColumn ) * elementSize << " " << -( row - lastRow ) * elementSize << " translate newpath 0 0 "
                 << elementSize << " " << elementSize << " rectstroke\n";
             lastColumn = column;

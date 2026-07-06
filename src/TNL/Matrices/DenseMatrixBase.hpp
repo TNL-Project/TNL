@@ -192,7 +192,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCount() 
    {
       return values_view[ i ] != RealType{ 0 };
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, this->values.getSize(), fetch, std::plus<>{}, 0 );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, std::plus<>{}, 0 );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -358,7 +358,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows(
    Keep&& keep,
    const FetchReal& identity ) const
 {
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
+   this->reduceRows( static_cast< IndexType >( 0 ), this->getRows(), fetch, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -366,7 +366,7 @@ template< typename Fetch, typename Reduce, typename Keep >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep ) const
 {
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep );
+   this->reduceRows( static_cast< IndexType >( 0 ), this->getRows(), fetch, reduce, keep );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -400,7 +400,7 @@ template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function ) const
 {
-   this->forElements( (IndexType) 0, this->getRows(), function );
+   this->forElements( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -408,7 +408,7 @@ template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function )
 {
-   this->forElements( (IndexType) 0, this->getRows(), function );
+   this->forElements( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -450,7 +450,7 @@ template< typename Array, typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function ) const
 {
-   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+   this->forElements( rowIndexes, static_cast< Index >( 0 ), rowIndexes.getSize(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -458,7 +458,7 @@ template< typename Array, typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function )
 {
-   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+   this->forElements( rowIndexes, static_cast< Index >( 0 ), rowIndexes.getSize(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -500,7 +500,7 @@ template< typename Condition, typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function ) const
 {
-   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+   this->forElementsIf( static_cast< IndexType >( 0 ), this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -508,7 +508,7 @@ template< typename Condition, typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function )
 {
-   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+   this->forElementsIf( static_cast< IndexType >( 0 ), this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -546,7 +546,7 @@ template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forAllRows( Function&& function )
 {
-   this->forRows( (IndexType) 0, this->getRows(), function );
+   this->forRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -554,7 +554,7 @@ template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forAllRows( Function&& function ) const
 {
-   this->forRows( (IndexType) 0, this->getRows(), function );
+   this->forRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -581,7 +581,7 @@ template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::sequentialForAllRows( Function&& function ) const
 {
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
+   this->sequentialForRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -589,7 +589,7 @@ template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::sequentialForAllRows( Function&& function )
 {
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
+   this->sequentialForRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

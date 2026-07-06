@@ -41,7 +41,7 @@ forAllElements( Matrix& matrix, Function&& function, Algorithms::Segments::Launc
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
-      matrix_view, (IndexType) 0, matrix.getRows(), std::forward< Function >( function ), launchConfig );
+      matrix_view, static_cast< IndexType >( 0 ), matrix.getRows(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Matrix, typename Function >
@@ -50,7 +50,11 @@ forAllElements( const Matrix& matrix, Function&& function, Algorithms::Segments:
 {
    using IndexType = typename Matrix::IndexType;
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
-      matrix.getConstView(), (IndexType) 0, matrix.getRows(), std::forward< Function >( function ), launchConfig );
+      matrix.getConstView(),
+      static_cast< IndexType >( 0 ),
+      matrix.getRows(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Matrix, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -93,7 +97,12 @@ forElements(
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
-      matrix_view, rowIndexes, (IndexType) 0, rowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
+      matrix_view,
+      rowIndexes,
+      static_cast< IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Matrix, typename Array, typename Function >
@@ -108,7 +117,7 @@ forElements(
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
       matrix.getConstView(),
       rowIndexes,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       rowIndexes.getSize(),
       std::forward< Function >( function ),
       launchConfig );
@@ -160,7 +169,7 @@ forAllElementsIf(
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElementsIf(
       matrix_view,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Function >( function ),
@@ -178,7 +187,7 @@ forAllElementsIf(
    using IndexType = typename Matrix::IndexType;
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElementsIf(
       matrix.getConstView(),
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Function >( function ),
@@ -218,7 +227,7 @@ forAllRows( Matrix& matrix, Function&& function, Algorithms::Segments::LaunchCon
 {
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
-   forRows( matrix_view, (IndexType) 0, matrix.getRows(), std::forward< Function >( function ), launchConfig );
+   forRows( matrix_view, static_cast< IndexType >( 0 ), matrix.getRows(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Matrix, typename Function >
@@ -226,7 +235,12 @@ void
 forAllRows( const Matrix& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Matrix::IndexType;
-   forRows( matrix.getConstView(), (IndexType) 0, matrix.getRows(), std::forward< Function >( function ), launchConfig );
+   forRows(
+      matrix.getConstView(),
+      static_cast< IndexType >( 0 ),
+      matrix.getRows(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Matrix, typename Array, typename IndexBegin, typename IndexEnd, typename Function, typename T >
@@ -264,7 +278,13 @@ forRows( Matrix& matrix, const Array& rowIndexes, Function&& function, Algorithm
 {
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
-   forRows( matrix_view, rowIndexes, (IndexType) 0, rowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
+   forRows(
+      matrix_view,
+      rowIndexes,
+      static_cast< IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Matrix, typename Array, typename Function, typename T >
@@ -276,7 +296,13 @@ forRows(
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Matrix::IndexType;
-   forRows( matrix, rowIndexes, (IndexType) 0, rowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
+   forRows(
+      matrix,
+      rowIndexes,
+      static_cast< IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function, typename T >
@@ -328,7 +354,7 @@ forAllRowsIf(
 {
    forRowsIf(
       matrix,
-      (typename Matrix::IndexType) 0,
+      static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
       std::forward< RowCondition >( rowCondition ),
       std::forward< Function >( function ),
@@ -345,7 +371,7 @@ forAllRowsIf(
 {
    forRowsIf(
       matrix,
-      (typename Matrix::IndexType) 0,
+      static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
       std::forward< RowCondition >( rowCondition ),
       std::forward< Function >( function ),

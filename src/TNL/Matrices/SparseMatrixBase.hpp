@@ -126,7 +126,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       {
          row_sums_view[ row ] = value;
       };
-      Algorithms::Segments::reduceSegments( this->segments, 0, this->getRows(), fetch, std::plus<>{}, keeper, (IndexType) 0 );
+      Algorithms::Segments::reduceSegments(
+         this->segments, 0, this->getRows(), fetch, std::plus<>{}, keeper, static_cast< IndexType >( 0 ) );
       return sum( row_sums );
    }
 }
@@ -309,11 +310,11 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          if( column < row ) {
             if constexpr( Base::isBinary() )
                Algorithms::AtomicOperations< DeviceType >::add(
-                  outVectorView[ column ], (OutVectorReal) matrixMultiplicator * inVectorView[ row ] );
+                  outVectorView[ column ], static_cast< OutVectorReal >( matrixMultiplicator * inVectorView[ row ] ) );
             else
                Algorithms::AtomicOperations< DeviceType >::add(
                   outVectorView[ column ],
-                  (OutVectorReal) matrixMultiplicator * valuesView[ globalIdx ] * inVectorView[ row ] );
+                  static_cast< OutVectorReal >( matrixMultiplicator * valuesView[ globalIdx ] * inVectorView[ row ] ) );
          }
          if constexpr( Base::isBinary() )
             return inVectorView[ column ];
@@ -325,7 +326,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
       };
       Algorithms::Segments::reduceSegments(
-         this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+         this->segments, begin, end, fetch, Plus{}, keep, static_cast< ComputeRealType >( 0.0 ), launchConfig );
    }
    else {
       auto fetch =
@@ -352,7 +353,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                outVectorView[ row ] = value;
             };
             Algorithms::Segments::reduceSegments(
-               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+               this->segments, begin, end, fetch, Plus{}, keep, static_cast< ComputeRealType >( 0.0 ), launchConfig );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
@@ -362,7 +363,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                outVectorView[ row ] = matrixMultiplicator * value;
             };
             Algorithms::Segments::reduceSegments(
-               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+               this->segments, begin, end, fetch, Plus{}, keep, static_cast< ComputeRealType >( 0.0 ), launchConfig );
          }
       }
       else {
@@ -374,7 +375,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
             };
             Algorithms::Segments::reduceSegments(
-               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+               this->segments, begin, end, fetch, Plus{}, keep, static_cast< ComputeRealType >( 0.0 ), launchConfig );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
@@ -384,7 +385,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
             };
             Algorithms::Segments::reduceSegments(
-               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+               this->segments, begin, end, fetch, Plus{}, keep, static_cast< ComputeRealType >( 0.0 ), launchConfig );
          }
       }
    }
@@ -447,11 +448,11 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          if( column < row ) {
             if constexpr( Base::isBinary() )
                Algorithms::AtomicOperations< DeviceType >::add(
-                  outVectorView[ column ], (OutVectorReal) matrixMultiplicator * inVectorView[ row ] );
+                  outVectorView[ column ], static_cast< OutVectorReal >( matrixMultiplicator * inVectorView[ row ] ) );
             else
                Algorithms::AtomicOperations< DeviceType >::add(
                   outVectorView[ column ],
-                  (OutVectorReal) matrixMultiplicator * valuesView[ globalIdx ] * inVectorView[ row ] );
+                  static_cast< OutVectorReal >( matrixMultiplicator * valuesView[ globalIdx ] * inVectorView[ row ] ) );
          }
          if constexpr( Base::isBinary() )
             return inVectorView[ column ];
@@ -462,7 +463,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          typename OutVector::RealType aux = matrixMultiplicator * value;
          Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
       };
-      kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+      kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, static_cast< ComputeRealType >( 0.0 ) );
    }
    else {
       auto fetch =
@@ -489,7 +490,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_LT( row, outVectorView.getSize(), "Row index must be smaller than the number of elements." );
                outVectorView[ row ] = value;
             };
-            kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            kernel.reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, static_cast< ComputeRealType >( 0.0 ) );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
@@ -497,7 +499,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = matrixMultiplicator * value;
             };
-            kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            kernel.reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, static_cast< ComputeRealType >( 0.0 ) );
          }
       }
       else {
@@ -507,7 +510,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
             };
-            kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            kernel.reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, static_cast< ComputeRealType >( 0.0 ) );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
@@ -515,7 +519,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
             };
-            kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
+            kernel.reduceSegments(
+               this->segments, begin, end, fetch, std::plus<>{}, keep, static_cast< ComputeRealType >( 0.0 ) );
          }
       }
    }
@@ -581,7 +586,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       if( column >= begin && column < end ) {
          if( column != paddingIndex< IndexType > )
             Algorithms::AtomicOperations< DeviceType >::add(
-               outVectorView[ column ], (OutVectorReal) matrixMultiplicator * inVectorView[ row ] * value );
+               outVectorView[ column ], static_cast< OutVectorReal >( matrixMultiplicator * inVectorView[ row ] * value ) );
       }
    };
    this->forAllElements( compute );
@@ -694,7 +699,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    const FetchValue& identity,
    const SegmentsReductionKernel& kernel ) const
 {
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity, kernel );
+   this->reduceRows( static_cast< IndexType >( 0 ), this->getRows(), fetch, reduce, keep, identity, kernel );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -720,7 +725,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    const FetchValue& identity,
    const Algorithms::Segments::LaunchConfiguration& launchConfig ) const
 {
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity, launchConfig );
+   this->reduceRows( static_cast< IndexType >( 0 ), this->getRows(), fetch, reduce, keep, identity, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -736,7 +741,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
       if( Base::isBinary() )
-         function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+         function( rowIdx, localIdx, columns_view[ globalIdx ], static_cast< RealType >( 1.0 ) );
       else
          function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
@@ -770,7 +775,7 @@ template< typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forAllElements( Function&& function ) const
 {
-   this->forElements( (IndexType) 0, this->getRows(), function );
+   this->forElements( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -778,7 +783,7 @@ template< typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forAllElements( Function&& function )
 {
-   this->forElements( (IndexType) 0, this->getRows(), function );
+   this->forElements( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -798,7 +803,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
       TNL_ASSERT_LT( globalIdx, columns_view.getSize(), "Global index must be smaller than the number of all column indexes." );
       if( Base::isBinary() )
-         function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+         function( rowIdx, localIdx, columns_view[ globalIdx ], static_cast< RealType >( 1.0 ) );
       else
          function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
@@ -837,7 +842,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig ) const
 {
-   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function, launchConfig );
+   this->forElements( rowIndexes, static_cast< Index >( 0 ), rowIndexes.getSize(), function, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -848,7 +853,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function, launchConfig );
+   this->forElements( rowIndexes, static_cast< IndexType >( 0 ), rowIndexes.getSize(), function, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -865,7 +870,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
       if( Base::isBinary() )
-         function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+         function( rowIdx, localIdx, columns_view[ globalIdx ], static_cast< RealType >( 1.0 ) );
       else
          function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
@@ -902,7 +907,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    Condition&& condition,
    Function&& function ) const
 {
-   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+   this->forElementsIf( static_cast< IndexType >( 0 ), this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -912,7 +917,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    Condition&& condition,
    Function&& function )
 {
-   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+   this->forElementsIf( static_cast< IndexType >( 0 ), this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -958,7 +963,7 @@ template< typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forAllRows( Function&& function )
 {
-   this->forRows( (IndexType) 0, this->getRows(), function );
+   this->forRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -966,7 +971,7 @@ template< typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forAllRows( Function&& function ) const
 {
-   this->forRows( (IndexType) 0, this->getRows(), function );
+   this->forRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -999,7 +1004,7 @@ void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sequentialForAllRows(
    Function&& function ) const
 {
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
+   this->sequentialForRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -1007,7 +1012,7 @@ template< typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sequentialForAllRows( Function&& function )
 {
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
+   this->sequentialForRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -1021,7 +1026,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    {
       return view1.getRow( i ) == view2.getRow( i );
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, this->getRows(), fetch, std::logical_and<>{}, true );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->getRows(), fetch, std::logical_and<>{}, true );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -1080,7 +1085,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          str << "Row: " << row << " -> ";
          for( IndexType column = 0; column < this->getColumns(); column++ ) {
             auto value = this->getElement( row, column );
-            if( value != (RealType) 0 )
+            if( value != static_cast< RealType >( 0 ) )
                str << column << ":" << value << "\t";
          }
          str << '\n';
@@ -1097,10 +1102,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                break;
             RealType value;
             if( Base::isBinary() )
-               value = (RealType) 1.0;
+               value = static_cast< RealType >( 1.0 );
             else
                value = this->values.getElement( globalIdx );
-            if( value != (RealType) 0 ) {
+            if( value != static_cast< RealType >( 0 ) ) {
                std::stringstream str_;
                str_ << std::setw( 4 ) << std::right << column << ":" << std::setw( 4 ) << std::left << value;
                str << std::setw( 10 ) << str_.str();

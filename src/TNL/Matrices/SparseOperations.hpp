@@ -229,7 +229,7 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
                   TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
                   TNL_ASSERT_LT( localIdx, maxRowLength, "" );
                   const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
-                  TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
+                  TNL_ASSERT_LT( bufferIdx, static_cast< Index >( bufferSize ), "" );
                   matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
                   matrixValuesBuffer_view[ bufferIdx ] = value;
                }
@@ -322,7 +322,7 @@ copyMatrixElementsToBuffers_SymmetricToGeneral(
                TNL_ASSERT_LT( localIdx, maxRowLength, "" );
                const IndexType bufferIdx = ( rowIdx - baseRow ) * maxRowLength
                                          + Algorithms::AtomicOperations< DeviceType >::add(
-                                              bufferRowLocalIndexes_view[ rowIdx - baseRow ], (Index) 1 );
+                                              bufferRowLocalIndexes_view[ rowIdx - baseRow ], static_cast< Index >( 1 ) );
                matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
                matrixValuesBuffer_view[ bufferIdx ] = value;
             }
@@ -331,7 +331,7 @@ copyMatrixElementsToBuffers_SymmetricToGeneral(
          {
             const IndexType bufferIdx = ( columnIndex - baseRow ) * maxRowLength
                                       + Algorithms::AtomicOperations< DeviceType >::add(
-                                           bufferRowLocalIndexes_view[ columnIndex - baseRow ], (Index) 1 );
+                                           bufferRowLocalIndexes_view[ columnIndex - baseRow ], static_cast< Index >( 1 ) );
             matrixColumnsBuffer_view[ bufferIdx ] = rowIdx;
             matrixValuesBuffer_view[ bufferIdx ] = value;
          }
@@ -365,7 +365,8 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
          SourceIndexType rowIdx, SourceIndexType columnIdx, const SourceRealType& value ) mutable -> SourceIndexType
       {
          if( rowIdx != columnIdx )
-            Algorithms::AtomicOperations< SourceDeviceType >::add( rowCapacities_view[ columnIdx ], (SourceIndexType) 1 );
+            Algorithms::AtomicOperations< SourceDeviceType >::add(
+               rowCapacities_view[ columnIdx ], static_cast< SourceIndexType >( 1 ) );
          return 1;
       },
       TNL::Plus{},
@@ -394,7 +395,8 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
                const SourceRealType value = row.getValue( bLocalIdx );
 
                Index thisGlobalIdx = segments_view.getGlobalIndex(
-                  rowIdx, Algorithms::AtomicOperations< Device >::add( aLocalIndexes_view[ rowIdx ], (Index) 1 ) );
+                  rowIdx,
+                  Algorithms::AtomicOperations< Device >::add( aLocalIndexes_view[ rowIdx ], static_cast< Index >( 1 ) ) );
                TNL_ASSERT_GE(
                   thisGlobalIdx,
                   0,
@@ -404,7 +406,9 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
                   values_view[ thisGlobalIdx ] = value;
                if( rowIdx != columnIdx ) {  // Transpose element
                   thisGlobalIdx = segments_view.getGlobalIndex(
-                     columnIdx, Algorithms::AtomicOperations< Device >::add( aLocalIndexes_view[ columnIdx ], (Index) 1 ) );
+                     columnIdx,
+                     Algorithms::AtomicOperations< Device >::add(
+                        aLocalIndexes_view[ columnIdx ], static_cast< Index >( 1 ) ) );
                   TNL_ASSERT_GE(
                      thisGlobalIdx,
                      0,
@@ -468,8 +472,8 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
                      TNL_ASSERT_LT( localIdx, maxRowLength, "" );
                      const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength
                                            + Algorithms::AtomicOperations< SourceDeviceType >::add(
-                                                bufferRowLocalIndexes_view[ rowIdx - baseRow ], (Index) 1 );
-                     TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
+                                                bufferRowLocalIndexes_view[ rowIdx - baseRow ], static_cast< Index >( 1 ) );
+                     TNL_ASSERT_LT( bufferIdx, static_cast< Index >( bufferSize ), "" );
                      matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
                      matrixValuesBuffer_view[ bufferIdx ] = value;
                   }
@@ -479,8 +483,8 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
                   TNL_ASSERT_LT( columnIndex - baseRow, bufferRowsCount, "" );
                   const Index bufferIdx = ( columnIndex - baseRow ) * maxRowLength
                                         + Algorithms::AtomicOperations< SourceDeviceType >::add(
-                                             bufferRowLocalIndexes_view[ columnIndex - baseRow ], (Index) 1 );
-                  TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
+                                             bufferRowLocalIndexes_view[ columnIndex - baseRow ], static_cast< Index >( 1 ) );
+                  TNL_ASSERT_LT( bufferIdx, static_cast< Index >( bufferSize ), "" );
                   matrixColumnsBuffer_view[ bufferIdx ] = rowIdx;
                   matrixValuesBuffer_view[ bufferIdx ] = value;
                }

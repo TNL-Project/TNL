@@ -223,7 +223,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
                launchConfig.blockSize.x = 256;
@@ -355,7 +355,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 

@@ -14,7 +14,7 @@ findInAllSegments( const Segments& segments, Condition&& condition, ResultStorer
 {
    findInSegments(
       segments,
-      (typename Segments::IndexType) 0,
+      static_cast< typename Segments::IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< Condition >( condition ),
       std::forward< ResultStorer >( storer ),
@@ -70,7 +70,7 @@ findInAllSegmentsIf(
 {
    findInSegmentsIf(
       segments,
-      (typename Segments::IndexType) 0,
+      static_cast< typename Segments::IndexType >( 0 ),
       segments.getSegmentCount(),
       std::forward< SegmentCondition >( segmentCondition ),
       std::forward< Condition >( condition ),

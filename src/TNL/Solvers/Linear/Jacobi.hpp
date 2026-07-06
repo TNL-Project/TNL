@@ -87,7 +87,7 @@ Jacobi< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
    auto bView = b.getView();
    auto xView = x.getView();
    auto auxView = aux.getView();
-   RealType bNorm = lpNorm( b, (RealType) 2.0 );
+   RealType bNorm = lpNorm( b, static_cast< RealType >( 2.0 ) );
    aux = x;
    while( this->nextIteration() ) {
       this->performIteration( bView, diagonalView, xView, auxView );

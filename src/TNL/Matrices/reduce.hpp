@@ -20,7 +20,7 @@ reduceAllRows(
    using IndexType = typename Matrix::IndexType;
    reduceRows(
       matrix,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -42,7 +42,7 @@ reduceAllRows(
    using IndexType = typename Matrix::IndexType;
    reduceRows(
       matrix,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -65,7 +65,7 @@ reduceAllRows(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRows(
       matrix,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -88,7 +88,7 @@ reduceAllRows(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRows(
       matrix,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -324,7 +324,7 @@ reduceAllRowsIf(
 {
    return reduceRowsIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -347,7 +347,7 @@ reduceAllRowsIf(
 {
    return reduceRowsIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -371,7 +371,7 @@ reduceAllRowsIf(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -395,7 +395,7 @@ reduceAllRowsIf(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -857,7 +857,7 @@ reduceAllRowsWithArgumentIf(
 {
    return reduceRowsWithArgumentIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -880,7 +880,7 @@ reduceAllRowsWithArgumentIf(
 {
    return reduceRowsWithArgumentIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -904,7 +904,7 @@ reduceAllRowsWithArgumentIf(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsWithArgumentIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -928,7 +928,7 @@ reduceAllRowsWithArgumentIf(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsWithArgumentIf(
       matrix,
-      (decltype( matrix.getRows() )) 0,
+      static_cast< decltype( matrix.getRows() ) >( 0 ),
       matrix.getRows(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),

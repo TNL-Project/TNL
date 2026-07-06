@@ -106,7 +106,7 @@ struct GrowingSegments : public Segments
    void
    reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Value& identity ) const
    {
-      this->reduceSegments( (IndexType) 0, this->getSegmentCount(), fetch, reduction, keeper, identity );
+      this->reduceSegments( static_cast< IndexType >( 0 ), this->getSegmentCount(), fetch, reduction, keeper, identity );
    }
 
    void

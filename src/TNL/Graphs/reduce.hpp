@@ -41,7 +41,7 @@ reduceAllVertices(
    using IndexType = typename Graph::IndexType;
    reduceVertices(
       graph,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       graph.getVertexCount(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -64,7 +64,7 @@ reduceAllVertices(
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices(
       graph,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       graph.getVertexCount(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -87,7 +87,7 @@ reduceAllVertices(
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices(
       graph,
-      (IndexType) 0,
+      static_cast< IndexType >( 0 ),
       graph.getVertexCount(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -309,7 +309,7 @@ reduceAllVerticesIf(
 {
    return reduceVerticesIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -332,7 +332,7 @@ reduceAllVerticesIf(
 {
    return reduceVerticesIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -356,7 +356,7 @@ reduceAllVerticesIf(
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -380,7 +380,7 @@ reduceAllVerticesIf(
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -828,7 +828,7 @@ reduceAllVerticesWithArgumentIf(
 {
    return reduceVerticesWithArgumentIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -851,7 +851,7 @@ reduceAllVerticesWithArgumentIf(
 {
    return reduceVerticesWithArgumentIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -875,7 +875,7 @@ reduceAllVerticesWithArgumentIf(
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesWithArgumentIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
@@ -899,7 +899,7 @@ reduceAllVerticesWithArgumentIf(
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesWithArgumentIf(
       graph,
-      (decltype( graph.getVertexCount() )) 0,
+      static_cast< decltype( graph.getVertexCount() ) >( 0 ),
       graph.getVertexCount(),
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),

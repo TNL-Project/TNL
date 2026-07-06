@@ -394,7 +394,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmen
          const Index groupSize =
             detail::BiEllpack< Index, Device, Organization, WarpSize >::getGroupSize( this->groupPointers, strip, group );
          for( Index i = 0; i < groupSize; i++ ) {
-            for( Index j = 0; j < discretePow( (Index) 2, group ); j++ ) {
+            for( Index j = 0; j < discretePow( static_cast< Index >( 2 ), group ); j++ ) {
                segmentLength++;
             }
          }

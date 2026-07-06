@@ -336,7 +336,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice(
    for( Index i = sliceBegin; i < sliceEnd; i++ ) {
       double segmentRatio = 0.0;
       if( allocatedElementsInSlice != 0 )
-         segmentRatio = (double) segmentsSizes[ i ] / (double) allocatedElementsInSlice;
+         segmentRatio = static_cast< double >( segmentsSizes[ i ] ) / static_cast< double >( allocatedElementsInSlice );
       const Index addedChunks = freeChunks * segmentRatio;
       totalAddedChunks += addedChunks;
       this->segmentToChunkMapping[ i ] += addedChunks;
