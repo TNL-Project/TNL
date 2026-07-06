@@ -320,7 +320,7 @@ public:
     * \include LambdaMatrixExample_forElements.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( IndexType begin, IndexType end, Function& function ) const;
 
    /**
@@ -337,7 +337,7 @@ public:
     * \include LambdaMatrixExample_forAllElements.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllElements instead" )]] void
    forAllElements( Function& function ) const;
 
    /**
@@ -364,7 +364,7 @@ public:
     * \include LambdaMatrixExample_forRows.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forRows instead" )]] void
    forRows( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -389,7 +389,7 @@ public:
     * \include LambdaMatrixExample_forRows.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllRows instead" )]] void
    forAllRows( Function&& function ) const;
 
    /**
@@ -464,7 +464,7 @@ public:
     * \include LambdaMatrixExample_reduceRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-   void
+   [[deprecated( "Use free function TNL::Matrices::reduceRows instead" )]] void
    reduceRows( IndexType begin, IndexType end, Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity )
       const;
 
@@ -506,7 +506,7 @@ public:
     * \include LambdaMatrixExample_reduceAllRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-   void
+   [[deprecated( "Use free function TNL::Matrices::reduceAllRows instead" )]] void
    reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity ) const;
 
    /**

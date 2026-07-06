@@ -5,6 +5,9 @@
 
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Algorithms/compress.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/Vector.h>
 #include "../DenseMatrixView.h"
 #include "ReductionOperations.h"
 
@@ -452,6 +455,157 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          keepWrapper,
          identity,
          launchConfig );
+   }
+
+   // ===================== reduceRowsWithArgumentIf (array) =====================
+
+   template<
+      typename Array,
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsWithArgumentIf(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      if( end <= begin )
+         return 0;
+
+      using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+      auto rowIndexes_view = rowIndexes.getConstView();
+
+      // Evaluate conditions and compress to get filtered indices
+      VectorType conditions( end - begin );
+      conditions.forAllElements(
+         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         {
+            value = condition( i + begin ) ? 1 : 0;
+         } );
+      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
+
+      if( filteredIndices.getSize() == 0 )
+         return 0;
+
+      // Gather the filtered row indexes
+      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      auto filteredRowIndexes_view = filteredRowIndexes.getView();
+      auto filteredIndices_view = filteredIndices.getConstView();
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         filteredIndices.getSize(),
+         [ = ] __cuda_callable__( IndexType i ) mutable
+         {
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+         } );
+
+      // Call reduceSegmentsWithArgument with the filtered row indexes
+      auto values_view = matrix.getValues().getView();
+      const auto columns = matrix.getColumns();
+      auto fetchWrapper =
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
+      {
+         if( localIdx < columns )
+            return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
+         return identity;
+      };
+      auto keepWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+      {
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
+      };
+
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), filteredRowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+
+      return filteredRowIndexes.getSize();
+   }
+
+   template<
+      typename Array,
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsWithArgumentIf(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      if( end <= begin )
+         return 0;
+
+      using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+      auto rowIndexes_view = rowIndexes.getConstView();
+
+      // Evaluate conditions and compress to get filtered indices
+      VectorType conditions( end - begin );
+      conditions.forAllElements(
+         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         {
+            value = condition( i + begin ) ? 1 : 0;
+         } );
+      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
+
+      if( filteredIndices.getSize() == 0 )
+         return 0;
+
+      // Gather the filtered row indexes
+      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      auto filteredRowIndexes_view = filteredRowIndexes.getView();
+      auto filteredIndices_view = filteredIndices.getConstView();
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         filteredIndices.getSize(),
+         [ = ] __cuda_callable__( IndexType i ) mutable
+         {
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+         } );
+
+      // Call reduceSegmentsWithArgument with the filtered row indexes
+      const auto values_view = matrix.getValues().getConstView();
+      const auto columns = matrix.getColumns();
+      auto fetchWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
+      {
+         if( localIdx < columns )
+            return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
+         return identity;
+      };
+      auto keepWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+      {
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
+      };
+
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), filteredRowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+
+      return filteredRowIndexes.getSize();
    }
 };
 }  // namespace TNL::Matrices::detail

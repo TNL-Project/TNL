@@ -5,6 +5,9 @@
 
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Algorithms/compress.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/MatrixBase.h>
 #include "../SparseMatrixView.h"
 #include "ReductionOperations.h"
@@ -628,15 +631,40 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         rowIndexes.getConstView( begin, end ),
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         storeWrapper,
-         identity,
-         launchConfig );
+      if( end <= begin )
+         return 0;
+
+      using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+      auto rowIndexes_view = rowIndexes.getConstView();
+
+      // Evaluate conditions and compress to get filtered indices
+      VectorType conditions( end - begin );
+      conditions.forAllElements(
+         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         {
+            value = condition( i + begin ) ? 1 : 0;
+         } );
+      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
+
+      if( filteredIndices.getSize() == 0 )
+         return 0;
+
+      // Gather the filtered row indexes
+      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      auto filteredRowIndexes_view = filteredRowIndexes.getView();
+      auto filteredIndices_view = filteredIndices.getConstView();
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         filteredIndices.getSize(),
+         [ = ] __cuda_callable__( IndexType i ) mutable
+         {
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+         } );
+
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), filteredRowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
+
+      return filteredRowIndexes.getSize();
    }
 
    template<
@@ -691,15 +719,40 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         rowIndexes.getConstView( begin, end ),
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         storeWrapper,
-         identity,
-         launchConfig );
+      if( end <= begin )
+         return 0;
+
+      using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+      auto rowIndexes_view = rowIndexes.getConstView();
+
+      // Evaluate conditions and compress to get filtered indices
+      VectorType conditions( end - begin );
+      conditions.forAllElements(
+         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         {
+            value = condition( i + begin ) ? 1 : 0;
+         } );
+      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
+
+      if( filteredIndices.getSize() == 0 )
+         return 0;
+
+      // Gather the filtered row indexes
+      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      auto filteredRowIndexes_view = filteredRowIndexes.getView();
+      auto filteredIndices_view = filteredIndices.getConstView();
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         filteredIndices.getSize(),
+         [ = ] __cuda_callable__( IndexType i ) mutable
+         {
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+         } );
+
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), filteredRowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
+
+      return filteredRowIndexes.getSize();
    }
 };
 
