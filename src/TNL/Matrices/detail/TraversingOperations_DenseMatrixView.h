@@ -6,11 +6,13 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "../DenseMatrixView.h"
 #include "TraversingOperations.h"
+#include "TraversingOperationsBase.h"
 
 namespace TNL::Matrices::detail {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization > >
+: public TraversingOperationsBase< DenseMatrixView< Real, Device, Index, Organization > >
 {
    using MatrixView = DenseMatrixView< Real, Device, Index, Organization >;
    using ConstMatrixView = typename MatrixView::ConstViewType;
@@ -215,46 +217,6 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
          function( rowView );
       };
       Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
-   static void
-   forRowsIf(
-      MatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      RowCondition&& rowCondition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      auto values_view = matrix.getValues().getView();
-      using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
-      {
-         auto rowView = RowView( segmentView, values_view );
-         function( rowView );
-      };
-      Algorithms::Segments::forSegmentsIf( matrix.getSegments(), begin, end, rowCondition, f, launchConfig );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
-   static void
-   forRowsIf(
-      const ConstMatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      RowCondition&& rowCondition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      const auto values_view = matrix.getValues().getConstView();
-      using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( const SegmentViewType& segmentView ) mutable
-      {
-         auto rowView = ConstRowView( segmentView, values_view );
-         function( rowView );
-      };
-      Algorithms::Segments::forSegmentsIf( matrix.getSegments(), begin, end, rowCondition, f, launchConfig );
    }
 };
 
