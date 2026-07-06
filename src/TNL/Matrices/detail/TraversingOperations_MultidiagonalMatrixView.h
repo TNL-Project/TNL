@@ -21,6 +21,8 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
    using RowView = typename MatrixView::RowView;
    using ConstRowView = typename ConstMatrixView::ConstRowView;
 
+   // ===================== forElements (range) =====================
+
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forElements(
@@ -30,7 +32,20 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElements( begin, end, function );
+      auto values_view = matrix.getValues().getView();
+      const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
+      const IndexType diagonalsCount = matrix.getDiagonalsCount();
+      const IndexType columns = matrix.getColumns();
+      const auto indexer = matrix.getIndexer();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -42,8 +57,23 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElements( begin, end, function );
+      const auto values_view = matrix.getValues().getConstView();
+      const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
+      const IndexType diagonalsCount = matrix.getDiagonalsCount();
+      const IndexType columns = matrix.getColumns();
+      const auto indexer = matrix.getIndexer();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
+
+   // ===================== forElements (array) =====================
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
@@ -55,7 +85,22 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElements( rowIndexes, begin, end, function );
+      auto values_view = matrix.getValues().getView();
+      const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
+      const IndexType diagonalsCount = matrix.getDiagonalsCount();
+      const IndexType columns = matrix.getColumns();
+      const auto indexer = matrix.getIndexer();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -68,44 +113,25 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElements( rowIndexes, begin, end, function );
+      const auto values_view = matrix.getValues().getConstView();
+      const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
+      const IndexType diagonalsCount = matrix.getDiagonalsCount();
+      const IndexType columns = matrix.getColumns();
+      const auto indexer = matrix.getIndexer();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Array, typename Function >
-   static void
-   forElements(
-      MatrixView& matrix,
-      const Array& rowIndexes,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forElements( rowIndexes, function );
-   }
-
-   template< typename Array, typename Function >
-   static void
-   forElements(
-      const ConstMatrixView& matrix,
-      const Array& rowIndexes,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forElements( rowIndexes, function );
-   }
-
-   template< typename Function >
-   static void
-   forAllElements( MatrixView& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forAllElements( function );
-   }
-
-   template< typename Function >
-   static void
-   forAllElements( const ConstMatrixView& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forAllElements( function );
-   }
+   // ===================== forElementsIf =====================
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
@@ -117,7 +143,22 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElementsIf( begin, end, condition, function );
+      auto values_view = matrix.getValues().getView();
+      const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
+      const IndexType diagonalsCount = matrix.getDiagonalsCount();
+      const IndexType columns = matrix.getColumns();
+      const auto indexer = matrix.getIndexer();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -130,30 +171,25 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forElementsIf( begin, end, condition, function );
+      const auto values_view = matrix.getValues().getConstView();
+      const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
+      const IndexType diagonalsCount = matrix.getDiagonalsCount();
+      const IndexType columns = matrix.getColumns();
+      const auto indexer = matrix.getIndexer();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Condition, typename Function >
-   static void
-   forAllElementsIf(
-      MatrixView& matrix,
-      Condition&& condition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forAllElementsIf( condition, function );
-   }
-
-   template< typename Condition, typename Function >
-   static void
-   forAllElementsIf(
-      const ConstMatrixView& matrix,
-      Condition&& condition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forAllElementsIf( condition, function );
-   }
+   // ===================== forRows (range) =====================
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
@@ -164,7 +200,12 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forRows( begin, end, function );
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         auto rowView = matrix.getRow( rowIdx );
+         function( rowView );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -176,26 +217,15 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.forRows( begin, end, function );
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         auto rowView = matrix.getRow( rowIdx );
+         function( rowView );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Function >
-   static void
-   forAllRows( MatrixView& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forAllRows( function );
-   }
-
-   template< typename Function >
-   static void
-   forAllRows( const ConstMatrixView& matrix, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      matrix.forAllRows( function );
-   }
-
-   // MultidiagonalMatrixBase does not provide forRows(rowIndexes, ...) or forRowsIf(...). The
-   // following overloads emulate them via Algorithms::parallelFor + getRow, which still avoids
-   // re-implementing the multidiagonal indexer logic (getRow encapsulates that).
+   // ===================== forRows (array) =====================
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
@@ -214,7 +244,7 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
          auto rowView = matrix.getRow( rowIdx );
          function( rowView );
       };
-      TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -234,30 +264,10 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
          auto rowView = matrix.getRow( rowIdx );
          function( rowView );
       };
-      TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Array, typename Function >
-   static void
-   forRows(
-      MatrixView& matrix,
-      const Array& rowIndexes,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forRows( matrix, rowIndexes, (IndexType) 0, rowIndexes.getSize(), function, launchConfig );
-   }
-
-   template< typename Array, typename Function >
-   static void
-   forRows(
-      const ConstMatrixView& matrix,
-      const Array& rowIndexes,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forRows( matrix, rowIndexes, (IndexType) 0, rowIndexes.getSize(), function, launchConfig );
-   }
+   // ===================== forRowsIf =====================
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
    static void
@@ -276,7 +286,7 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
             function( rowView );
          }
       };
-      TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
@@ -296,29 +306,7 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
             function( rowView );
          }
       };
-      TNL::Algorithms::parallelFor< DeviceType >( begin, end, f );
-   }
-
-   template< typename RowCondition, typename Function >
-   static void
-   forAllRowsIf(
-      MatrixView& matrix,
-      RowCondition&& rowCondition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forRowsIf( matrix, (IndexType) 0, matrix.getRows(), rowCondition, function, launchConfig );
-   }
-
-   template< typename RowCondition, typename Function >
-   static void
-   forAllRowsIf(
-      const ConstMatrixView& matrix,
-      RowCondition&& rowCondition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forRowsIf( matrix, (IndexType) 0, matrix.getRows(), rowCondition, function, launchConfig );
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 };
 

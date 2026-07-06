@@ -293,3 +293,161 @@ test_reduceAllRows_AutoIdentity()
    EXPECT_EQ( rowSums.getElement( 4 ), 166 );
    EXPECT_EQ( rowSums.getElement( 5 ), 153 );
 }
+
+template< typename MatrixType >
+void
+test_reduceRowsWithArgument()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using IndexVectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   MatrixType matrix;
+   setupTestMatrix( matrix );
+
+   VectorType maxValues( matrix.getRows(), 0 );
+   IndexVectorType maxColumns( matrix.getRows(), -1 );
+   auto maxValuesView = maxValues.getView();
+   auto maxColumnsView = maxColumns.getView();
+
+   auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
+   {
+      return value;
+   };
+   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
+   {
+      if( b > a ) {
+         a = b;
+         aIdx = bIdx;
+      }
+   };
+   auto store = [ = ] __cuda_callable__(
+                   IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value, bool emptyRow ) mutable
+   {
+      maxValuesView[ rowIdx ] = value;
+      if( ! emptyRow )
+         maxColumnsView[ rowIdx ] = columnIdx;
+   };
+   auto storeWithIdx = [ = ] __cuda_callable__(
+                          IndexType idx,
+                          IndexType rowIdx,
+                          IndexType localIdx,
+                          IndexType columnIdx,
+                          const RealType& value,
+                          bool emptyRow ) mutable
+   {
+      maxValuesView[ rowIdx ] = value;
+      if( ! emptyRow )
+         maxColumnsView[ rowIdx ] = columnIdx;
+   };
+
+   // reduceAllRowsWithArgument
+   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduce, store, (RealType) 0 );
+   EXPECT_EQ( maxValues.getElement( 0 ), 4 );
+   EXPECT_EQ( maxColumns.getElement( 0 ), 2 );
+   EXPECT_EQ( maxValues.getElement( 5 ), 52 );
+   EXPECT_EQ( maxColumns.getElement( 5 ), 5 );
+
+   // reduceRowsWithArgument (range)
+   auto view = matrix.getView();
+   maxValues = 0;
+   maxColumns = -1;
+   TNL::Matrices::reduceRowsWithArgument( view, (IndexType) 1, (IndexType) 4, fetch, reduce, store, (RealType) 0 );
+   EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
+   EXPECT_EQ( maxValues.getElement( 1 ), 14 );
+   EXPECT_EQ( maxColumns.getElement( 1 ), 3 );
+   EXPECT_EQ( maxValues.getElement( 3 ), 34 );
+   EXPECT_EQ( maxColumns.getElement( 3 ), 5 );
+   EXPECT_EQ( maxValues.getElement( 4 ), 0 );  // skipped
+
+   // reduceRowsWithArgument (array)
+   IndexVectorType rowIndexes{ 0, 2, 5 };
+   maxValues = 0;
+   maxColumns = -1;
+   TNL::Matrices::reduceRowsWithArgument( matrix, rowIndexes, fetch, reduce, storeWithIdx, (RealType) 0 );
+   EXPECT_EQ( maxValues.getElement( 0 ), 4 );
+   EXPECT_EQ( maxColumns.getElement( 0 ), 2 );
+   EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped
+   EXPECT_EQ( maxValues.getElement( 2 ), 24 );
+   EXPECT_EQ( maxColumns.getElement( 2 ), 4 );
+   EXPECT_EQ( maxValues.getElement( 5 ), 52 );
+   EXPECT_EQ( maxColumns.getElement( 5 ), 5 );
+}
+
+template< typename MatrixType >
+void
+test_reduceRowsWithArgumentIf()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using IndexVectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   MatrixType matrix;
+   setupTestMatrix( matrix );
+
+   VectorType maxValues( matrix.getRows(), 0 );
+   IndexVectorType maxColumns( matrix.getRows(), -1 );
+   auto maxValuesView = maxValues.getView();
+   auto maxColumnsView = maxColumns.getView();
+
+   auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
+   {
+      return value;
+   };
+   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
+   {
+      if( b > a ) {
+         a = b;
+         aIdx = bIdx;
+      }
+   };
+   auto condition = [] __cuda_callable__( IndexType rowIdx ) -> bool
+   {
+      return rowIdx >= 2;
+   };
+   auto store = [ = ] __cuda_callable__(
+                   IndexType rank,
+                   IndexType rowIdx,
+                   IndexType localIdx,
+                   IndexType columnIdx,
+                   const RealType& value,
+                   bool emptyRow ) mutable
+   {
+      maxValuesView[ rowIdx ] = value;
+      if( ! emptyRow )
+         maxColumnsView[ rowIdx ] = columnIdx;
+   };
+
+   // reduceAllRowsWithArgumentIf (range)
+   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, reduce, store, (RealType) 0 );
+   EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
+   EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped
+   EXPECT_EQ( maxValues.getElement( 2 ), 24 );
+   EXPECT_EQ( maxColumns.getElement( 2 ), 4 );
+   EXPECT_EQ( maxValues.getElement( 5 ), 52 );
+   EXPECT_EQ( maxColumns.getElement( 5 ), 5 );
+
+   // reduceRowsWithArgumentIf (array)
+   auto view2 = matrix.getView();
+   IndexVectorType rowIndexes{ 0, 2, 3, 5 };
+   auto conditionArray = [] __cuda_callable__( IndexType idx ) -> bool
+   {
+      return idx >= 1;
+   };
+   maxValues = 0;
+   maxColumns = -1;
+   TNL::Matrices::reduceRowsWithArgumentIf(
+      view2, rowIndexes, (IndexType) 0, rowIndexes.getSize(), conditionArray, fetch, reduce, store, (RealType) 0 );
+   EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition (idx=0)
+   EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // not in array
+   EXPECT_EQ( maxValues.getElement( 2 ), 24 );  // processed
+   EXPECT_EQ( maxColumns.getElement( 2 ), 4 );
+   EXPECT_EQ( maxValues.getElement( 3 ), 34 );  // processed
+   EXPECT_EQ( maxColumns.getElement( 3 ), 5 );
+   EXPECT_EQ( maxValues.getElement( 5 ), 52 );  // processed
+   EXPECT_EQ( maxColumns.getElement( 5 ), 5 );
+}

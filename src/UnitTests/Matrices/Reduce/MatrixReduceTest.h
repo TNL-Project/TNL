@@ -464,6 +464,56 @@ test_reduceRowsWithArgumentIf()
       //EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
       EXPECT_EQ( maxValues.getElement( 4 ), 0 );  // skipped
       EXPECT_EQ( maxColumns.getElement( 4 ), -1 );
+
+      // Test reduceRowsWithArgumentIf with array of row indexes
+      // rowIndexes = {1, 2, 4}, condition filters idx >= 1 (so idx 0=row 1 is skipped, idx 1=row 2 and idx 2=row 4 are
+      // processed)
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 1, 2, 4 };
+      auto conditionArray = [] __cuda_callable__( IndexType idx ) -> bool
+      {
+         return idx >= 1;
+      };
+      maxValues = 0;
+      maxColumns = -1;
+      TNL::Matrices::reduceRowsWithArgumentIf(
+         matrix, rowIndexes, 0, rowIndexes.getSize(), conditionArray, fetch, reduce, store, (RealType) 0, launch_config );
+
+      EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition (idx=0, condition fails)
+      EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
+      EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 4 ), 16 );  // max of {13, 14, 15, 16}
+      EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
+
+      // Const version
+      maxValues = 0;
+      maxColumns = -1;
+      TNL::Matrices::reduceRowsWithArgumentIf(
+         constMatrix.getConstView(),
+         rowIndexes,
+         0,
+         rowIndexes.getSize(),
+         conditionArray,
+         fetch,
+         reduce,
+         store,
+         (RealType) 0,
+         launch_config );
+
+      EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition
+      EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
+      EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 4 ), 16 );  // max of {13, 14, 15, 16}
+      EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
    }
 }
 

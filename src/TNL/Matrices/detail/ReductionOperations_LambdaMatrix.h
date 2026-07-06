@@ -3,7 +3,10 @@
 
 #pragma once
 
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Containers/Array.h>
 #include "../LambdaMatrix.h"
 #include "ReductionOperations.h"
 
@@ -18,6 +21,8 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
+   // ===================== reduceRows (range) =====================
+
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRows(
@@ -30,7 +35,26 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.reduceRows( begin, end, fetch, reduction, store, identity );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue sum = identity;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            FetchValue fetchValue = identity;
+            if( elementValue != 0.0 )
+               fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            sum = reduction( sum, fetchValue );
+         }
+         store( rowIdx, sum );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -45,33 +69,660 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.reduceRows( begin, end, fetch, reduction, store, identity );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue sum = identity;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            FetchValue fetchValue = identity;
+            if( elementValue != 0.0 )
+               fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            sum = reduction( sum, fetchValue );
+         }
+         store( rowIdx, sum );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
-   template< typename Fetch, typename Reduction, typename Store, typename FetchValue >
+   // ===================== reduceRows (array) =====================
+
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceAllRows(
+   reduceRows(
       Matrix& matrix,
+      const Array& rowIndexes,
       Fetch&& fetch,
       Reduction&& reduction,
       Store&& store,
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.reduceAllRows( fetch, reduction, store, identity );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue sum = identity;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            FetchValue fetchValue = identity;
+            if( elementValue != 0.0 )
+               fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            sum = reduction( sum, fetchValue );
+         }
+         store( idx, rowIdx, sum );
+      };
+      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
    }
 
-   template< typename Fetch, typename Reduction, typename Store, typename FetchValue >
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceAllRows(
+   reduceRows(
       const ConstMatrixView& matrix,
+      const Array& rowIndexes,
       Fetch&& fetch,
       Reduction&& reduction,
       Store&& store,
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      matrix.reduceAllRows( fetch, reduction, store, identity );
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue sum = identity;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            FetchValue fetchValue = identity;
+            if( elementValue != 0.0 )
+               fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            sum = reduction( sum, fetchValue );
+         }
+         store( idx, rowIdx, sum );
+      };
+      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
+   }
+
+   // ===================== reduceRowsIf (range) =====================
+
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsIf(
+      Matrix& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      Containers::Array< IndexType, DeviceType > counterArray( 1 );
+      counterArray = 0;
+      auto counter = counterArray.getView();
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue sum = identity;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            FetchValue fetchValue = identity;
+            if( elementValue != 0.0 )
+               fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            sum = reduction( sum, fetchValue );
+         }
+         const auto rank = Algorithms::AtomicOperations< DeviceType >::add( counter[ 0 ], (IndexType) 1 );
+         store( rank, rowIdx, sum );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+      return counterArray.getElement( 0 );
+   }
+
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      Containers::Array< IndexType, DeviceType > counterArray( 1 );
+      counterArray = 0;
+      auto counter = counterArray.getView();
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue sum = identity;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            FetchValue fetchValue = identity;
+            if( elementValue != 0.0 )
+               fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            sum = reduction( sum, fetchValue );
+         }
+         const auto rank = Algorithms::AtomicOperations< DeviceType >::add( counter[ 0 ], (IndexType) 1 );
+         store( rank, rowIdx, sum );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+      return counterArray.getElement( 0 );
+   }
+
+   // ===================== reduceRowsWithArgument (range) =====================
+
+   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
+   static void
+   reduceRowsWithArgument(
+      Matrix& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         store( rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+   }
+
+   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
+   static void
+   reduceRowsWithArgument(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         store( rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+   }
+
+   // ===================== reduceRowsWithArgument (array) =====================
+
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
+   static void
+   reduceRowsWithArgument(
+      Matrix& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
+   }
+
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
+   static void
+   reduceRowsWithArgument(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
+   }
+
+   // ===================== reduceRowsWithArgumentIf (range) =====================
+
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsWithArgumentIf(
+      Matrix& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      Containers::Array< IndexType, DeviceType > counterArray( 1 );
+      counterArray = 0;
+      auto counter = counterArray.getView();
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         const auto rank = Algorithms::AtomicOperations< DeviceType >::add( counter[ 0 ], (IndexType) 1 );
+         store( rank, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+      return counterArray.getElement( 0 );
+   }
+
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsWithArgumentIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      Containers::Array< IndexType, DeviceType > counterArray( 1 );
+      counterArray = 0;
+      auto counter = counterArray.getView();
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         if( ! condition( rowIdx ) )
+            return;
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         const auto rank = Algorithms::AtomicOperations< DeviceType >::add( counter[ 0 ], (IndexType) 1 );
+         store( rank, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+      return counterArray.getElement( 0 );
+   }
+
+   // ===================== reduceRowsWithArgumentIf (array) =====================
+
+   template<
+      typename Array,
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsWithArgumentIf(
+      Matrix& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      Containers::Array< IndexType, DeviceType > counterArray( 1 );
+      counterArray = 0;
+      auto counter = counterArray.getView();
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         if( ! condition( idx ) )
+            return;
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         const auto rank = Algorithms::AtomicOperations< DeviceType >::add( counter[ 0 ], (IndexType) 1 );
+         store( rank, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+      return counterArray.getElement( 0 );
+   }
+
+   template<
+      typename Array,
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
+   static IndexType
+   reduceRowsWithArgumentIf(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
+   {
+      Containers::Array< IndexType, DeviceType > counterArray( 1 );
+      counterArray = 0;
+      auto counter = counterArray.getView();
+      const IndexType rows = matrix.getRows();
+      const IndexType columns = matrix.getColumns();
+      auto rowLengths = matrix.getCompressedRowLengthsLambda();
+      auto matrixElements = matrix.getMatrixElementsLambda();
+      auto rowIndexes_view = rowIndexes.getConstView();
+      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         if( ! condition( idx ) )
+            return;
+         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
+         FetchValue result = identity;
+         IndexType resultLocalIdx = 0;
+         IndexType resultColumnIdx = 0;
+         bool empty = true;
+         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
+            IndexType columnIdx( 0 );
+            Real elementValue( 0.0 );
+            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
+            if( elementValue == 0.0 )
+               continue;
+            auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
+            if( empty ) {
+               result = fetchValue;
+               resultLocalIdx = localIdx;
+               resultColumnIdx = columnIdx;
+               empty = false;
+            }
+            else {
+               auto prev = resultLocalIdx;
+               reduction( result, fetchValue, resultLocalIdx, localIdx );
+               if( resultLocalIdx != prev )
+                  resultColumnIdx = columnIdx;
+            }
+         }
+         const auto rank = Algorithms::AtomicOperations< DeviceType >::add( counter[ 0 ], (IndexType) 1 );
+         store( rank, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+      };
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
+      return counterArray.getElement( 0 );
    }
 };
 
