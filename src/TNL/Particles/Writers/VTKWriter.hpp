@@ -77,19 +77,8 @@ VTKWriter< ParticleSystem >::writeParticles( const ParticleSystem& particles )
 template< typename ParticleSystem >
 template< typename Array >
 void
-VTKWriter< ParticleSystem >::writePointData( const Array& array, const std::string& name, const int numberOfComponents )
+VTKWriter< ParticleSystem >::writePointData( const Array& array, const std::string& name )
 {
-   if constexpr( IsStaticVector_v< typename Array::ValueType > ) {
-      if( array.getSize() != typename Array::IndexType( pointsCount ) )
-         throw std::length_error( "Mismatched array size for POINT_DATA section: " + std::to_string( array.getSize() )
-                                  + " (there are " + std::to_string( pointsCount ) + " points in the file)" );
-   }
-   else {
-      if( array.getSize() / numberOfComponents != typename Array::IndexType( pointsCount ) )
-         throw std::length_error( "Mismatched array size for POINT_DATA section: " + std::to_string( array.getSize() )
-                                  + " (there are " + std::to_string( pointsCount ) + " points in the file)" );
-   }
-
    // check that we won't start the section second time
    if( currentSection != VTK::DataType::PointData && cellDataArrays * pointDataArrays != 0 )
       throw std::logic_error( "The requested data section is not the current section and it has already been written." );
@@ -99,7 +88,8 @@ VTKWriter< ParticleSystem >::writePointData( const Array& array, const std::stri
       str << std::endl << "POINT_DATA " << pointsCount << std::endl;
    ++pointDataArrays;
 
-   writeDataArray( array, name, numberOfComponents );
+   // write only the active-particle slice (pointsCount is logged by writeParticles)
+   writeDataArray( array, name, pointsCount );
 }
 
 template< typename ParticleSystem >
@@ -107,8 +97,7 @@ template< typename Array >
 void
 VTKWriter< ParticleSystem >::writePointData( const Array& array,
                                              const std::string& name,
-                                             const GlobalIndexType numberOfParticles,
-                                             const int numberOfComponents )
+                                             const GlobalIndexType numberOfParticles )
 {
    // check that we won't start the section second time
    if( currentSection != VTK::DataType::PointData && cellDataArrays * pointDataArrays != 0 )
@@ -119,39 +108,51 @@ VTKWriter< ParticleSystem >::writePointData( const Array& array,
       str << std::endl << "POINT_DATA " << pointsCount << std::endl;
    ++pointDataArrays;
 
-   writeDataArray( array, name, numberOfParticles, numberOfComponents );
+   writeDataArray( array, name, numberOfParticles );
 }
 
 template< typename ParticleSystem >
 template< typename Array >
 void
-VTKWriter< ParticleSystem >::writeDataArray( const Array& array, const std::string& name, const int numberOfComponents )
+VTKWriter< ParticleSystem >::writeDataArray( const Array& array, const std::string& name )
 {
    if( std::is_same< typename Array::DeviceType, Devices::Cuda >::value ) {
       using HostArray = typename Array::
          template Self< std::remove_const_t< typename Array::ValueType >, Devices::Host, typename Array::IndexType >;
       HostArray hostBuffer;
       hostBuffer = array;
-      writeDataArray( hostBuffer, name, numberOfComponents );
+      writeDataArray( hostBuffer, name );
       return;
    }
-
-   if( numberOfComponents != 1 && numberOfComponents != 3 )
-      throw std::logic_error( "Unsupported numberOfComponents parameter: " + std::to_string( numberOfComponents ) );
 
    using ValueType = typename Array::ValueType;
    using CompType = ComponentType_t< ValueType >;
 
-   // write DataArray header
-   if( numberOfComponents == 1 ) {
+   // write DataArray header (section selected from ValueType)
+   if constexpr( IsStaticMatrix_v< ValueType > )
+      str << "TENSORS " << name << " " << getType< CompType >() << std::endl;
+   else if constexpr( IsStaticVector_v< ValueType > )
+      str << "VECTORS " << name << " " << getType< CompType >() << std::endl;
+   else {
       str << "SCALARS " << name << " " << getType< ValueType >() << std::endl;
       str << "LOOKUP_TABLE default" << std::endl;
    }
-   else {
-      str << "VECTORS " << name << " " << getType< CompType >() << std::endl;
-   }
 
-   if constexpr( IsStaticVector_v< ValueType > ) {
+   if constexpr( IsStaticMatrix_v< ValueType > ) {
+      // matrix: write Rows*Columns components per particle, zero-pad to 9
+      // (the legacy VTK format always stores 3x3 = 9 values per tensor)
+      for( typename Array::IndexType i = 0; i < array.getSize(); i++ ) {
+         const auto& mat = array[ i ];
+         for( std::size_t row = 0; row < ValueType::getRows(); row++ )
+            for( std::size_t col = 0; col < ValueType::getColumns(); col++ )
+               writeValue( format, str, mat( row, col ) );
+         for( std::size_t pad = ValueType::getRows() * ValueType::getColumns(); pad < 9; pad++ )
+            writeValue( format, str, (CompType) 0 );
+         if( format == VTK::FileFormat::ascii )
+            str << "\n";
+      }
+   }
+   else if constexpr( IsStaticVector_v< ValueType > ) {
       // vector: write each component, zero-pad unused dimensions up to 3
       for( typename Array::IndexType i = 0; i < array.getSize(); i++ ) {
          const auto& vec = array[ i ];
@@ -178,34 +179,45 @@ template< typename Array >
 void
 VTKWriter< ParticleSystem >::writeDataArray( const Array& array,
                                              const std::string& name,
-                                             const GlobalIndexType numberOfParticles,
-                                             const int numberOfComponents )
+                                             const GlobalIndexType numberOfParticles )
 {
    if( std::is_same< typename Array::DeviceType, Devices::Cuda >::value ) {
       using HostArray = typename Array::
          template Self< std::remove_const_t< typename Array::ValueType >, Devices::Host, typename Array::IndexType >;
       HostArray hostBuffer;
       hostBuffer = array;
-      writeDataArray( hostBuffer, name, numberOfParticles, numberOfComponents );
+      writeDataArray( hostBuffer, name, numberOfParticles );
       return;
    }
-
-   if( numberOfComponents != 1 && numberOfComponents != 3 )
-      throw std::logic_error( "Unsupported numberOfComponents parameter: " + std::to_string( numberOfComponents ) );
 
    using ValueType = typename Array::ValueType;
    using CompType = ComponentType_t< ValueType >;
 
-   // write DataArray header
-   if( numberOfComponents == 1 ) {
+   // write DataArray header (section selected from ValueType)
+   if constexpr( IsStaticMatrix_v< ValueType > )
+      str << "TENSORS " << name << " " << getType< CompType >() << std::endl;
+   else if constexpr( IsStaticVector_v< ValueType > )
+      str << "VECTORS " << name << " " << getType< CompType >() << std::endl;
+   else {
       str << "SCALARS " << name << " " << getType< ValueType >() << std::endl;
       str << "LOOKUP_TABLE default" << std::endl;
    }
-   else {
-      str << "VECTORS " << name << " " << getType< CompType >() << std::endl;
-   }
 
-   if constexpr( IsStaticVector_v< ValueType > ) {
+   if constexpr( IsStaticMatrix_v< ValueType > ) {
+      // matrix: write Rows*Columns components per particle, zero-pad to 9
+      // (the legacy VTK format always stores 3x3 = 9 values per tensor)
+      for( GlobalIndexType i = 0; i < numberOfParticles; i++ ) {
+         const auto& mat = array[ i ];
+         for( std::size_t row = 0; row < ValueType::getRows(); row++ )
+            for( std::size_t col = 0; col < ValueType::getColumns(); col++ )
+               writeValue( format, str, mat( row, col ) );
+         for( std::size_t pad = ValueType::getRows() * ValueType::getColumns(); pad < 9; pad++ )
+            writeValue( format, str, (CompType) 0 );
+         if( format == VTK::FileFormat::ascii )
+            str << "\n";
+      }
+   }
+   else if constexpr( IsStaticVector_v< ValueType > ) {
       // vector: write each component, zero-pad unused dimensions up to 3
       for( GlobalIndexType i = 0; i < numberOfParticles; i++ ) {
          const auto& vec = array[ i ];

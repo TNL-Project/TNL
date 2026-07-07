@@ -9,6 +9,7 @@
 
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Endianness.h>
+#include <TNL/Matrices/StaticMatrix.h>
 
 #include "../Readers/VTKTraits.h"
 
@@ -34,6 +35,12 @@ struct ComponentType< Containers::StaticVector< Size, T > >
    using type = T;
 };
 
+template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
+struct ComponentType< Matrices::StaticMatrix< Value, Rows, Columns, Permutation > >
+{
+   using type = Value;
+};
+
 template< typename T >
 using ComponentType_t = typename ComponentType< T >::type;
 
@@ -48,6 +55,18 @@ struct IsStaticVector< Containers::StaticVector< Size, T > > : std::true_type
 
 template< typename T >
 inline constexpr bool IsStaticVector_v = IsStaticVector< T >::value;
+
+/// Checks if an array's ValueType is a StaticMatrix.
+template< typename T >
+struct IsStaticMatrix : std::false_type
+{};
+
+template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
+struct IsStaticMatrix< Matrices::StaticMatrix< Value, Rows, Columns, Permutation > > : std::true_type
+{};
+
+template< typename T >
+inline constexpr bool IsStaticMatrix_v = IsStaticMatrix< T >::value;
 
 template< typename ParticleSystem >
 class VTKWriter
@@ -70,68 +89,59 @@ public:
    writeParticles( const ParticleSystem& particles );
 
    /**
-    * \brief Writes data linked with particles (whole array).
+    * \brief Writes data linked with particles (active particles only).
     *
-    * Mirrors \ref TNL::Meshes::Writers::VTKWriter::writePointData. The whole
-    * \e array is written, the number of particles is taken from the particle
-    * system written by \ref writeParticles.
+    * Writes the first \ref pointsCount entries of \e array, where
+    * \ref pointsCount is the number of particles logged by the prior
+    * \ref writeParticles call. The array may be allocated larger than
+    * \ref pointsCount (e.g. SPH simulations where arrays are sized to
+    * \c numberOfAllocatedParticles); only the leading active range is
+    * written.
     *
-    * \tparam Array type of array holding the data.
-    * \param array instance of an array holding the data.
-    * \param name is a name of data which will appear in the output file.
-    * \param numberOfComponents is number of components of the data for each
-    *    particle (1 for scalars, 3 for vectors - the legacy VTK format always
-    *    stores 3 components per vector, unused dimensions are zero-padded).
-    */
-   template< typename Array >
-   void
-   writePointData( const Array& array, const std::string& name, int numberOfComponents = 1 );
-
-   /**
-    * \brief Writes a slice of particle data (active particles only).
-    *
-    * Writes the first \e numberOfParticles entries out of \e array. This
-    * overload serves SPH simulations where the array is allocated larger than
-    * the number of active particles and only the leading range carries
-    * meaningful data.
+    * The VTK section header (SCALARS / VECTORS / TENSORS) is selected
+    * automatically from the array's ValueType - scalar types yield SCALARS,
+    * \ref Containers::StaticVector yields VECTORS, \ref Matrices::StaticMatrix
+    * yields TENSORS. The legacy VTK format zero-pads vectors to 3 and tensors
+    * to 3x3 = 9 components.
     *
     * \tparam Array type of array holding the data.
     * \param array instance of an array holding the data.
     * \param name is a name of data which will appear in the output file.
-    * \param numberOfParticles is the number of particles to write from the
-    *    start of the array.
-    * \param numberOfComponents is number of components of the data for each
-    *    particle (1 for scalars, 3 for vectors).
     */
    template< typename Array >
    void
-   writePointData( const Array& array,
-                   const std::string& name,
-                   const GlobalIndexType numberOfParticles,
-                   int numberOfComponents = 1 );
+   writePointData( const Array& array, const std::string& name );
 
    /**
-    * \brief Writes a DataArray (SCALARS or VECTORS) - whole array.
+    * \brief Writes a slice of particle data with an explicit count.
     *
-    * Dispatches on the array's ValueType: StaticVector elements are serialized
-    * component-by-component (zero-padded to 3 for the legacy VTK format), scalar
-    * elements are written directly. This mirrors the unified \ref writePointData
-    * interface of the Mesh writers - a single method serves both scalars and
-    * vectors.
+    * Writes the first \e numberOfParticles entries out of \e array. Use this
+    * overload when the count differs from \ref pointsCount (e.g. mass-node
+    * data in multiresolution simulations). The VTK section header is selected
+    * automatically from the array's ValueType, as in the count-less overload.
     */
    template< typename Array >
    void
-   writeDataArray( const Array& array, const std::string& name, int numberOfComponents = 1 );
+   writePointData( const Array& array, const std::string& name, const GlobalIndexType numberOfParticles );
 
    /**
-    * \brief Writes a DataArray (SCALARS or VECTORS) - slice of active particles.
+    * \brief Writes a DataArray (SCALARS / VECTORS / TENSORS) - whole array.
+    *
+    * Dispatches on the array's ValueType: StaticMatrix elements are serialized
+    * as TENSORS (zero-padded to 3x3), StaticVector elements as VECTORS
+    * (zero-padded to 3), scalar elements as SCALARS.
     */
    template< typename Array >
    void
-   writeDataArray( const Array& array,
-                   const std::string& name,
-                   const GlobalIndexType numberOfParticles,
-                   int numberOfComponents = 1 );
+   writeDataArray( const Array& array, const std::string& name );
+
+   /**
+    * \brief Writes a DataArray (SCALARS / VECTORS / TENSORS) - slice of
+    *        active particles.
+    */
+   template< typename Array >
+   void
+   writeDataArray( const Array& array, const std::string& name, const GlobalIndexType numberOfParticles );
 
 protected:
    void
@@ -146,9 +156,6 @@ protected:
    std::ostream str;
 
    VTK::FileFormat format;
-
-   // number of cells (in the VTK sense) written to the file
-   std::uint64_t cellsCount = 0;
 
    // number of points written to the file
    std::uint64_t pointsCount = 0;

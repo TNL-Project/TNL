@@ -10,6 +10,7 @@
 
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Exceptions/NotImplementedError.h>
+#include <TNL/Matrices/StaticMatrix.h>
 #include <TNL/Particles/Particles.h>
 
 #include "VTKTraits.h"
@@ -43,6 +44,12 @@ struct ComponentType< Containers::StaticVector< Size, T > >
    using type = T;
 };
 
+template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
+struct ComponentType< Matrices::StaticMatrix< Value, Rows, Columns, Permutation > >
+{
+   using type = Value;
+};
+
 template< typename T >
 using ComponentType_t = typename ComponentType< T >::type;
 
@@ -57,6 +64,18 @@ struct IsStaticVector< Containers::StaticVector< Size, T > > : std::true_type
 
 template< typename T >
 inline constexpr bool IsStaticVector_v = IsStaticVector< T >::value;
+
+/// Checks if an array's ValueType is a StaticMatrix.
+template< typename T >
+struct IsStaticMatrix : std::false_type
+{};
+
+template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
+struct IsStaticMatrix< Matrices::StaticMatrix< Value, Rows, Columns, Permutation > > : std::true_type
+{};
+
+template< typename T >
+inline constexpr bool IsStaticMatrix_v = IsStaticMatrix< T >::value;
 
 class ParticleReader
 {
@@ -194,7 +213,18 @@ public:
 
       std::vector< CompType > flat = std::get< std::vector< CompType > >( readPointData( name ) );
 
-      if constexpr( IsStaticVector_v< ValueType > ) {
+      if constexpr( IsStaticMatrix_v< ValueType > ) {
+         // matrix: the legacy VTK format stores 9 components (3x3) per
+         // particle; keep the first Rows*Columns entries.
+         for( std::size_t i = 0; i < pointsInFile; i++ ) {
+            ValueType m;
+            for( std::size_t row = 0; row < ValueType::getRows(); row++ )
+               for( std::size_t col = 0; col < ValueType::getColumns(); col++ )
+                  m( row, col ) = flat[ 9 * i + row * 3 + col ];
+            array.setElement( i, m );
+         }
+      }
+      else if constexpr( IsStaticVector_v< ValueType > ) {
          for( std::size_t i = 0; i < pointsInFile; i++ ) {
             ValueType v;
             for( int j = 0; j < ValueType::getSize(); j++ )
