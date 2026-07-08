@@ -155,6 +155,20 @@ struct GraphBase
       return this->getVertex( nodeIdx ).getDegree();
    }
 
+   [[nodiscard]] __cuda_callable__
+   bool
+   isActive( IndexType ) const
+   {
+      return true;
+   }
+
+   [[nodiscard]] __cuda_callable__
+   bool
+   edgeExists( IndexType, IndexType, const ValueType& ) const
+   {
+      return true;
+   }
+
    //! \brief Destructor.
    ~GraphBase() = default;
 
