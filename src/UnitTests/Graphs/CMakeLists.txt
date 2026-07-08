@@ -5,6 +5,9 @@ set(CPP_TESTS
     GraphTest_Traverse_DenseMatrix
     GraphTest_Reduce_SparseMatrix
     GraphTest_Reduce_DenseMatrix
+    SubGraphTest
+    SubGraphTest_Traverse
+    SubGraphTest_Reduce
 )
 
 set(CUDA_TESTS
@@ -14,6 +17,9 @@ set(CUDA_TESTS
     GraphTest_Traverse_DenseMatrix_cuda
     GraphTest_Reduce_SparseMatrix_cuda
     GraphTest_Reduce_DenseMatrix_cuda
+    SubGraphTest_cuda
+    SubGraphTest_Traverse_cuda
+    SubGraphTest_Reduce_cuda
 )
 
 set(HIP_TESTS
@@ -23,6 +29,9 @@ set(HIP_TESTS
     GraphTest_Traverse_DenseMatrix_hip
     GraphTest_Reduce_SparseMatrix_hip
     GraphTest_Reduce_DenseMatrix_hip
+    SubGraphTest_hip
+    SubGraphTest_Traverse_hip
+    SubGraphTest_Reduce_hip
 )
 
 add_subdirectory(Algorithms)
