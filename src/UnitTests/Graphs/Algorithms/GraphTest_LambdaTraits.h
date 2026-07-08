@@ -35,7 +35,7 @@ TYPED_TEST_SUITE( LambdaTraitsTest, LambdaTraitsTestTypes );
 TYPED_TEST( LambdaTraitsTest, isEdgePredicate_accepts_valid_signature )
 {
    using Graph = typename TestFixture::GraphType;
-   auto good = [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType ) -> bool
+   auto good = []( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType ) -> bool
    {
       return true;
    };
@@ -58,7 +58,7 @@ TYPED_TEST( LambdaTraitsTest, isEdgePredicate_rejects_non_callable )
 TYPED_TEST( LambdaTraitsTest, isEdgePredicate_rejects_wrong_arity )
 {
    using Graph = typename TestFixture::GraphType;
-   auto bad = [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType ) -> bool
+   auto bad = []( typename Graph::IndexType, typename Graph::IndexType ) -> bool
    {
       return true;
    };
@@ -71,7 +71,7 @@ TYPED_TEST( LambdaTraitsTest, isEdgePredicate_rejects_wrong_arity )
 TYPED_TEST( LambdaTraitsTest, isVertexPredicate_accepts_valid_signature )
 {
    using Graph = typename TestFixture::GraphType;
-   auto good = [] __cuda_callable__( typename Graph::IndexType ) -> bool
+   auto good = []( typename Graph::IndexType ) -> bool
    {
       return true;
    };
@@ -84,7 +84,7 @@ TYPED_TEST( LambdaTraitsTest, isVertexPredicate_accepts_valid_signature )
 TYPED_TEST( LambdaTraitsTest, isVertexPredicate_rejects_wrong_arity )
 {
    using Graph = typename TestFixture::GraphType;
-   auto bad = [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType ) -> bool
+   auto bad = []( typename Graph::IndexType, typename Graph::IndexType ) -> bool
    {
       return true;
    };
@@ -97,7 +97,7 @@ TYPED_TEST( LambdaTraitsTest, isVertexPredicate_rejects_wrong_arity )
 TYPED_TEST( LambdaTraitsTest, isEdgeWeightCallable_accepts_valid_signature )
 {
    using Graph = typename TestFixture::GraphType;
-   auto good = [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType ) ->
+   auto good = []( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType ) ->
       typename Graph::ValueType
    {
       return {};
@@ -121,7 +121,7 @@ TYPED_TEST( LambdaTraitsTest, isEdgeWeightCallable_rejects_non_callable )
 TYPED_TEST( LambdaTraitsTest, isBfsVisitor_accepts_valid_signature )
 {
    using Graph = typename TestFixture::GraphType;
-   auto good = [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType ) -> void {};
+   auto good = []( typename Graph::IndexType, typename Graph::IndexType ) -> void {};
    static_assert(
       TNL::Graphs::Algorithms::detail::isBfsVisitor_v< decltype( good ), Graph >,
       "Valid BFS visitor (node, distance) -> void must be accepted." );
@@ -131,8 +131,7 @@ TYPED_TEST( LambdaTraitsTest, isBfsVisitor_accepts_valid_signature )
 TYPED_TEST( LambdaTraitsTest, isBfsVisitor_rejects_wrong_arity )
 {
    using Graph = typename TestFixture::GraphType;
-   auto bad =
-      [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType ) -> void {};
+   auto bad = []( typename Graph::IndexType, typename Graph::IndexType, typename Graph::ValueType ) -> void {};
    static_assert(
       ! TNL::Graphs::Algorithms::detail::isBfsVisitor_v< decltype( bad ), Graph >,
       "BFS visitor with wrong arity must be rejected." );

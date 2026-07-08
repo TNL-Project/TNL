@@ -560,6 +560,50 @@ Graph views are particularly useful when:
 - Working with graphs in lambda functions
 - Creating shallow copies for parallel algorithms
 
+## Subgraphs
+
+A **subgraph** is a lightweight, non-owning view of a graph that applies a **vertex filter** and/or an **edge filter** to restrict which vertices and edges are visible during traversal and reductions. Subgraphs are created with the \ref TNL::Graphs::makeSubGraph "makeSubGraph" factory functions and work transparently with all graph traversal functions (\ref TNL::Graphs::forAllEdges "forAllEdges", \ref TNL::Graphs::forEdges "forEdges", ...) and reductions (\ref TNL::Graphs::reduceAllVertices "reduceAllVertices", ...).
+
+### Vertex filters
+
+A vertex filter is a callable `(IndexType vertexIdx) -> bool` that decides which vertices are active. Inactive vertices are skipped during traversal — their outgoing edges are not visited.
+
+\snippet Graphs/SubGraphExample_VertexFilter.cpp vertex filter
+
+### Edge filters
+
+An edge filter is a callable `(IndexType source, IndexType target, ValueType weight) -> bool` that decides which edges may be traversed. Use the \ref TNL::Graphs::edgeOnly "edgeOnly" tag to create a SubGraph with an edge filter only (no vertex filter):
+
+\snippet Graphs/SubGraphExample_EdgeFilter.cpp edge filter
+
+Both filters can be combined:
+
+\snippet Graphs/SubGraphExample_EdgeFilter.cpp both filters
+
+### Traversing subgraphs
+
+All traversal functions work with SubGraph transparently. The filters are applied during traversal — no algorithm-level branching is needed:
+
+\snippet Graphs/SubGraphExample_Traverse.cpp traverse subgraph
+
+### Subgraphs with algorithms
+
+Graph algorithms such as BFS, SSSP, connected components, etc. accept a vertex index array to restrict computation to an induced subgraph. This is equivalent to creating a MaskedSubGraph (see below) but is handled internally by the algorithm:
+
+\snippet Graphs/SubGraphExample_BFS.cpp bfs on subgraph
+
+## Masked Subgraphs
+
+While \ref TNL::Graphs::SubGraph "SubGraph" stores filter callables by value, \ref TNL::Graphs::MaskedSubGraph "MaskedSubGraph" **owns** the boolean mask array that defines which vertices are active. It is created by the indexed overloads of \ref TNL::Graphs::makeSubGraph "makeSubGraph":
+
+\snippet Graphs/SubGraphExample_MaskedSubGraph.cpp masked subgraph
+
+An edge filter can be combined with the indexed mask:
+
+\snippet Graphs/SubGraphExample_MaskedSubGraph.cpp masked subgraph edge filter
+
+MaskedSubGraph's `getView()` / `getConstView()` return a lightweight SubGraph that references the internal mask, so traversal functions dispatch to the SubGraph specialization and apply the mask transparently.
+
 ## Performance Considerations
 
 ### Choosing the Right Matrix Format
@@ -580,6 +624,8 @@ using EllpackGraph = TNL::Graphs::Graph< float, Device, int,
 - \subpage ug_GraphAlgorithms "Graph algorithms" - BFS, SSSP, connected components, tree detection, MIS, graph coloring
 - \ref TNL::Graphs::Graph - Main graph class documentation
 - \ref TNL::Graphs::GraphView - Graph view documentation
+- \ref TNL::Graphs::SubGraph - Subgraph documentation
+- \ref TNL::Graphs::MaskedSubGraph - Masked subgraph documentation
 - \ref TNL::Graphs::GraphVertexView - Vertex view documentation
 - \ref TNL::Graphs::forAllVertices - Parallel vertex traversal
 - \ref TNL::Graphs::forAllVerticesIf - Conditional vertex traversal

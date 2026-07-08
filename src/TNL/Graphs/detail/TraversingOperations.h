@@ -12,3 +12,4 @@ struct TraversingOperations
 }  // namespace TNL::Graphs::detail
 
 #include "TraversingOperations_GraphView.h"
+#include "TraversingOperations_SubGraph.h"
