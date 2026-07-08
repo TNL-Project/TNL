@@ -5,6 +5,9 @@ set(TESTS
     GraphTest_Traverse_DenseMatrix
     GraphTest_Reduce_SparseMatrix
     GraphTest_Reduce_DenseMatrix
+    SubGraphTest
+    SubGraphTest_Traverse
+    SubGraphTest_Reduce
 )
 
 add_subdirectory(Algorithms)
