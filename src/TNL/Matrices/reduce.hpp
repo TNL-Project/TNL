@@ -1211,7 +1211,7 @@ reduceRowsWithArgumentIf(
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsWithArgumentIf(
-      matrix.getConstView(),
+      matrix,
       begin,
       end,
       std::forward< Condition >( condition ),
@@ -1361,7 +1361,7 @@ reduceRowsWithArgumentIf(
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsWithArgumentIf(
-      matrix.getConstView(),
+      matrix,
       rowIndexes,
       begin,
       end,

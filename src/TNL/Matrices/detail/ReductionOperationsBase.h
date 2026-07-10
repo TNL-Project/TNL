@@ -10,6 +10,26 @@
 
 namespace TNL::Matrices::detail {
 
+/**
+ * \brief Default implementation of conditional matrix reduction methods (\c *If variants).
+ *
+ * This base class provides the shared \c reduceRowsIf and \c reduceRowsWithArgumentIf
+ * methods for all matrix specializations. The strategy is:
+ *
+ * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressFast.
+ * 2. For the array overloads, gather the actual row indexes from the user-supplied
+ *    \e rowIndexes array using the compressed mask (compress + gather pattern).
+ * 3. Delegate to \ref ReductionOperations<Matrix>::reduceRows or
+ *    \ref ReductionOperations<Matrix>::reduceRowsWithArgument with the filtered
+ *    row indexes.
+ *
+ * Specializations of \ref ReductionOperations inherit this base and only override
+ * the unconditional \c reduceRows / \c reduceRowsWithArgument methods. No
+ * specialization needs to override the \c *If methods - the compress+gather
+ * approach is universally applicable.
+ *
+ * \tparam Matrix The matrix type (view or owning) the operations act on.
+ */
 template< typename Matrix >
 struct ReductionOperationsBase
 {
@@ -142,19 +162,19 @@ struct ReductionOperationsBase
          {
             value = condition( i + begin ) ? 1 : 0;
          } );
-      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndices.getSize() == 0 )
+      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
+      if( filteredIndexes.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      VectorType filteredRowIndexes( filteredIndexes.getSize() );
       auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndices_view = filteredIndices.getConstView();
+      auto filteredIndexes_view = filteredIndexes.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndices.getSize(),
+         filteredIndexes.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRows(
@@ -201,19 +221,19 @@ struct ReductionOperationsBase
          {
             value = condition( i + begin ) ? 1 : 0;
          } );
-      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndices.getSize() == 0 )
+      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
+      if( filteredIndexes.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      VectorType filteredRowIndexes( filteredIndexes.getSize() );
       auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndices_view = filteredIndices.getConstView();
+      auto filteredIndexes_view = filteredIndexes.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndices.getSize(),
+         filteredIndexes.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRows(
@@ -352,19 +372,19 @@ struct ReductionOperationsBase
          {
             value = condition( i + begin ) ? 1 : 0;
          } );
-      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndices.getSize() == 0 )
+      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
+      if( filteredIndexes.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      VectorType filteredRowIndexes( filteredIndexes.getSize() );
       auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndices_view = filteredIndices.getConstView();
+      auto filteredIndexes_view = filteredIndexes.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndices.getSize(),
+         filteredIndexes.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRowsWithArgument(
@@ -411,19 +431,19 @@ struct ReductionOperationsBase
          {
             value = condition( i + begin ) ? 1 : 0;
          } );
-      auto filteredIndices = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndices.getSize() == 0 )
+      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
+      if( filteredIndexes.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndices.getSize() );
+      VectorType filteredRowIndexes( filteredIndexes.getSize() );
       auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndices_view = filteredIndices.getConstView();
+      auto filteredIndexes_view = filteredIndexes.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndices.getSize(),
+         filteredIndexes.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndices_view[ i ] + begin ];
+            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRowsWithArgument(

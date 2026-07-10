@@ -5,9 +5,6 @@
 
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include <TNL/Algorithms/compress.h>
-#include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Containers/Vector.h>
 #include "../DenseMatrixView.h"
 #include "ReductionOperations.h"
 #include "ReductionOperationsBase.h"

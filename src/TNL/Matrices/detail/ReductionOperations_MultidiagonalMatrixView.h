@@ -4,9 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/compress.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include <TNL/Containers/Vector.h>
 #include "../MultidiagonalMatrixView.h"
 #include "ReductionOperations.h"
 #include "ReductionOperationsBase.h"
