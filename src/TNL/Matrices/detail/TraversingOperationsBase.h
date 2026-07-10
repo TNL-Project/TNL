@@ -4,12 +4,29 @@
 #pragma once
 
 #include <TNL/Algorithms/compress.h>
-#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Containers/Vector.h>
 
 namespace TNL::Matrices::detail {
 
+/**
+ * \brief Default implementation of conditional matrix traversal methods (\c *If variants).
+ *
+ * This base class provides the shared \c forElementsIf and \c forRowsIf methods
+ * for all matrix specializations. The strategy is:
+ *
+ * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressFast.
+ * 2. Delegate to \ref TraversingOperations<Matrix>::forElements or
+ *    \ref TraversingOperations<Matrix>::forRows with the filtered row indexes.
+ *
+ * Dense and Sparse specializations of \ref TraversingOperations override
+ * \c forElementsIf to use optimized conditional GPU kernels from the
+ * Segments layer (\ref TNL::Algorithms::Segments::forElementsIf). The other
+ * specializations (Tridiagonal, Multidiagonal, Lambda) inherit the default
+ * compress+delegate implementation from this base.
+ *
+ * \tparam Matrix The matrix type (view or owning) the operations act on.
+ */
 template< typename Matrix >
 struct TraversingOperationsBase
 {

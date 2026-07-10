@@ -193,6 +193,43 @@ test_reduceRowsIf()
       EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
       EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // empty row
       EXPECT_EQ( rowCounts.getElement( 4 ), 0 );  // skipped by range
+
+      // Test reduceRowsIf with array of row indexes
+      // rowIndexes = {1, 2, 4}, conditionArray filters idx >= 1 (so position 0=row 1 is
+      // skipped, position 1=row 2 and position 2=row 4 are processed)
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 1, 2, 4 };
+      auto conditionArray = [] __cuda_callable__( IndexType idx ) -> bool
+      {
+         return idx >= 1;
+      };
+
+      rowCounts = 0;
+      TNL::Matrices::reduceRowsIf(
+         matrix, rowIndexes, 0, rowIndexes.getSize(), conditionArray, fetch, TNL::Plus{}, store, 0, launch_config );
+      EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition (idx=0)
+      EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
+      EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 4 ), 4 );  // 13, 14, 15, 16
+
+      // Const version
+      rowCounts = 0;
+      TNL::Matrices::reduceRowsIf(
+         constMatrix.getConstView(),
+         rowIndexes,
+         0,
+         rowIndexes.getSize(),
+         conditionArray,
+         fetch,
+         TNL::Plus{},
+         store,
+         0,
+         launch_config );
+      EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition
+      EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
+      EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 4 ), 4 );  // 13, 14, 15, 16
    }
 }
 
