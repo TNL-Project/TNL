@@ -170,8 +170,9 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                launchConfig );
          }
       }
-      else
+      else {
          forElementsIfSparse( segments, begin, end, condition, function, launchConfig );
+      }
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >

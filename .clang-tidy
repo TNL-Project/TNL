@@ -31,11 +31,10 @@ Checks: >
 WarningsAsErrors: >
   clang-analyzer-core.*,
   modernize-*,
-  -modernize-avoid-c-style-cast,
   performance-*,
   mpi-*,
   clang-diagnostic-extra-semi*,
-  bubprone-suspicious-semicolon,
+  bugprone-suspicious-semicolon,
 
 CheckOptions:
   readability-function-size.LineThreshold: 64

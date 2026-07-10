@@ -87,8 +87,9 @@ CSRScalarKernel< Index, Device >::reduceSegments(
       for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
          l( segmentIdx );
    }
-   else
+   else {
       Algorithms::parallelFor< Device >( begin, end, l );
+   }
 }
 
 template< typename Index, typename Device >

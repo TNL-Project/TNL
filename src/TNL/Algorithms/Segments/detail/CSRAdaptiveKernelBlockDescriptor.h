@@ -141,7 +141,7 @@ struct CSRAdaptiveKernelBlockDescriptor
       std::uint8_t warpsCount = 0 ) noexcept
    {
       this->firstSegmentIdx = firstSegmentIdx;
-      this->type = (std::uint8_t) type;
+      this->type = static_cast< std::uint8_t >( type );
       this->warpIdx = warpIdx;
       this->warpsCount = warpsCount;
       /*this->index[0] = row;
@@ -155,7 +155,7 @@ struct CSRAdaptiveKernelBlockDescriptor
       this->warpIdx = 0;
       this->blockSize = end - begin;
       this->segmentsInBlock = lastSegmentIdx - firstSegmentIdx;
-      this->type = (std::uint8_t) type;
+      this->type = static_cast< std::uint8_t >( type );
 
       /*this->index[0] = row;
       this->index[1] = 0;
@@ -176,7 +176,7 @@ struct CSRAdaptiveKernelBlockDescriptor
    Type
    getType() const
    {
-      return (Type) this->type;
+      return static_cast< Type >( this->type );
       /*if( byte[ sizeof( Index ) == 4 ? 7 : 15 ] & 0b1000000 )
          return Type::STREAM;
       if( byte[ sizeof( Index ) == 4 ? 7 : 15 ] & 0b10000000 )

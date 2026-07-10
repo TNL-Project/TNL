@@ -31,7 +31,7 @@ directLinearSolverExample()
    rowCapacities.setElement( size - 1, 2 );
    matrix_ptr->setRowCapacities( rowCapacities );
 
-   auto f = [ = ] __cuda_callable__( typename MatrixType::RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( MatrixType::RowView & row ) mutable
    {
       const int rowIdx = row.getRowIndex();
       if( rowIdx == 0 ) {
@@ -90,8 +90,9 @@ directLinearSolverExample()
       std::cout << "Solver succeeded.\n";
       std::cout << "Vector x = " << x << '\n';
    }
-   else
+   else {
       std::cout << "Solver failed.\n";
+   }
 }
 
 int

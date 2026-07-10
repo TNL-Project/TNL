@@ -77,7 +77,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCo
    {
       return values_view[ i ] != 0.0;
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, this->values.getSize(), fetch, std::plus<>{}, 0 );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, std::plus<>{}, 0 );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -236,7 +236,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows(
    Keep&& keep,
    const FetchReal& identity ) const
 {
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
+   this->reduceRows( static_cast< IndexType >( 0 ), this->getRows(), fetch, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -262,8 +262,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -290,8 +291,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -301,7 +303,7 @@ template< typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function ) const
 {
-   this->forElements( (IndexType) 0, this->getRows(), function );
+   this->forElements( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -309,7 +311,7 @@ template< typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function )
 {
-   this->forElements( (IndexType) 0, this->getRows(), function );
+   this->forElements( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -340,8 +342,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -374,8 +377,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -385,7 +389,7 @@ template< typename Array, typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function ) const
 {
-   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function );
+   this->forElements( rowIndexes, static_cast< IndexType >( 0 ), rowIndexes.getSize(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -393,7 +397,7 @@ template< typename Array, typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function )
 {
-   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function );
+   this->forElements( rowIndexes, static_cast< IndexType >( 0 ), rowIndexes.getSize(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -424,8 +428,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -458,8 +463,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
          function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
       }
-      else
+      else {
          function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+      }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -469,7 +475,7 @@ template< typename Condition, typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function ) const
 {
-   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+   this->forElementsIf( static_cast< IndexType >( 0 ), this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -477,7 +483,7 @@ template< typename Condition, typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function )
 {
-   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+   this->forElementsIf( static_cast< IndexType >( 0 ), this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -513,7 +519,7 @@ template< typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllRows( Function&& function )
 {
-   this->forRows( (IndexType) 0, this->getRows(), function );
+   this->forRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -521,7 +527,7 @@ template< typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllRows( Function&& function ) const
 {
-   this->forRows( (IndexType) 0, this->getRows(), function );
+   this->forRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -553,7 +559,7 @@ template< typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForAllRows( Function& function ) const
 {
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
+   this->sequentialForRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -561,7 +567,7 @@ template< typename Function >
 void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForAllRows( Function& function )
 {
-   this->sequentialForRows( (IndexType) 0, this->getRows(), function );
+   this->sequentialForRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -601,9 +607,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
    if( end == 0 )
       end = this->getRows();
    if( matrixMultiplicator == 1 && outVectorMultiplicator == 0 )
-      this->reduceRows( begin, end, fetch, reduction, keeper1, (RealType) 0.0 );
+      this->reduceRows( begin, end, fetch, reduction, keeper1, static_cast< RealType >( 0.0 ) );
    else
-      this->reduceRows( begin, end, fetch, reduction, keeper2, (RealType) 0.0 );
+      this->reduceRows( begin, end, fetch, reduction, keeper2, static_cast< RealType >( 0.0 ) );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

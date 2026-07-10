@@ -73,7 +73,7 @@ copyDenseToDenseMatrix( Matrix1& A, const Matrix2& B )
             A_view( baseRow + bufferRowIdx, columnIdx ) = thisValuesBuffer_view[ bufferIdx ];
          };
          MultiIndex begin = { 0, 0 };
-         MultiIndex end = { maxRowLength, (Index) min( bufferRowsCount, A.getRows() - baseRow ) };
+         MultiIndex end = { maxRowLength, static_cast< Index >( min( bufferRowsCount, A.getRows() - baseRow ) ) };
          Algorithms::parallelFor< Device >( begin, end, f2 );
          baseRow += bufferRowsCount;
       }

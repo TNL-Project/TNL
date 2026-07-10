@@ -24,7 +24,7 @@ getTotalWeight( const Graph& graph )
       {
          if( column_indexes_view[ i ] != Matrices::paddingIndex< IndexType > )
             return values_view[ i ];
-         return (ValueType) 0;
+         return static_cast< ValueType >( 0 );
       },
       TNL::Plus{} );
    if constexpr( Graph::isUndirected() && ! Graph::AdjacencyMatrixType::isSymmetric() )

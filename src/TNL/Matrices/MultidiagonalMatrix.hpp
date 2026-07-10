@@ -353,8 +353,9 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    using RHSIndexAllocatorType = typename RHSMatrix::IndexAllocatorType;
 
    this->setLike( matrix );
-   if( Organization == Organization_ )
+   if( Organization == Organization_ ) {
       this->values = matrix.getValues();
+   }
    else {
       if( std::is_same_v< Device, Device_ > ) {
          const auto matrix_view = matrix.getConstView();

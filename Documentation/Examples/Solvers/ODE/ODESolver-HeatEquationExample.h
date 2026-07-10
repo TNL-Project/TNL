@@ -46,7 +46,7 @@ solveHeatEquation( const char* file_name )
       } );
    std::fstream file;
    file.open( file_name, std::ios::out );
-   write( file, u, n, h, (Real) 0.0 );
+   write( file, u, n, h, static_cast< Real >( 0.0 ) );
    //! [Initial condition]
 
    /***

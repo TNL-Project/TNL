@@ -51,11 +51,11 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
    }
 
    if constexpr( isSlicedEllpackSegments_v< Segments > ) {
-      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
+      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
-
+      }
       else {
          if constexpr( Segments::getOrganization() == ColumnMajorOrder )
             return std::list< std::pair< LaunchConfiguration, std::string > >{

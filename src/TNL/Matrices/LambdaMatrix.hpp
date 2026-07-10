@@ -219,6 +219,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
       for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
          IndexType elementColumn( 0 );
          RealType elementValue( 0.0 );
+         // NOLINTNEXTLINE(readability-suspicious-call-argument)
          matrixElements( rows, columns, rowIdx, localIdx, elementColumn, elementValue );
          FetchType fetchValue = identity;
          if( elementValue != 0.0 )
@@ -239,7 +240,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    Keep&& keep,
    const FetchReal& identity ) const
 {
-   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
+   this->reduceRows( static_cast< IndexType >( 0 ), this->getRows(), fetch, reduce, keep, identity );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -260,6 +261,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
       for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
          IndexType elementColumn( 0 );
          RealType elementValue( 0.0 );
+         // NOLINTNEXTLINE(readability-suspicious-call-argument)
          matrixElements( rows, columns, rowIdx, localIdx, elementColumn, elementValue );
          if( elementValue != 0.0 )
             function( rowIdx, localIdx, elementColumn, elementValue );
@@ -274,7 +276,7 @@ void
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::forAllElements(
    Function& function ) const
 {
-   forElements( (IndexType) 0, this->getRows(), function );
+   forElements( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -299,7 +301,7 @@ template< typename Function >
 void
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::forAllRows( Function&& function ) const
 {
-   this->forRows( (IndexType) 0, this->getRows(), function );
+   this->forRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -320,7 +322,7 @@ void
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::sequentialForAllRows(
    Function&& function ) const
 {
-   sequentialForRows( (IndexType) 0, this->getRows(), function );
+   sequentialForRows( static_cast< IndexType >( 0 ), this->getRows(), function );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >

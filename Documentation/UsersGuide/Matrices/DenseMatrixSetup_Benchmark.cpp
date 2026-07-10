@@ -96,7 +96,7 @@ setupDenseMatrix()
          setElement_on_host( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
       std::cout << "   setElement on device: ";
       timer.reset();
@@ -106,7 +106,7 @@ setupDenseMatrix()
          setElement_on_device( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
       if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
          std::cout << "   setElement on host and transfer on GPU: ";
@@ -117,7 +117,7 @@ setupDenseMatrix()
             setElement_on_host_and_transfer( matrixSize, matrix );
          }
          timer.stop();
-         std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+         std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
       }
 
       std::cout << "   getRow: ";
@@ -128,7 +128,7 @@ setupDenseMatrix()
          getRow( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
       std::cout << "   forElements: ";
       timer.reset();
@@ -138,7 +138,7 @@ setupDenseMatrix()
          forElements( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
+      std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
    }
 }
 

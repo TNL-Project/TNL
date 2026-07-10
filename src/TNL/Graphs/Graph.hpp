@@ -332,8 +332,9 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
       }
       this->adjacencyMatrix.setElements( symmetric_map );
    }
-   else
+   else {
       this->adjacencyMatrix.setElements( map, encoding );
+   }
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 

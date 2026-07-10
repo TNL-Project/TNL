@@ -22,10 +22,11 @@ laplaceOperatorMatrix()
    {
       const int elementIdx = i[ 1 ] * gridSize + i[ 0 ];
       auto row = matrixView.getRow( elementIdx );
-      if( i[ 0 ] == 0 || i[ 1 ] == 0 || i[ 0 ] == gridSize - 1 || i[ 1 ] == gridSize - 1 )
+      if( i[ 0 ] == 0 || i[ 1 ] == 0 || i[ 0 ] == gridSize - 1 || i[ 1 ] == gridSize - 1 ) {
          row.setElement( 2, 1.0 );  // set matrix elements corresponding to boundary grid nodes
                                     // and Dirichlet boundary conditions, i.e. 1 on the main diagonal
                                     // which is the third one
+      }
       else {
          row.setElement( 0, -1.0 );  // set matrix elements corresponding to inner grid nodes, i.e.
          row.setElement( 1, -1.0 );  // 4 on the main diagonal (the third one) and -1 to the other

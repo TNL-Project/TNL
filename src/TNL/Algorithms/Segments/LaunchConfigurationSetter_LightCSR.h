@@ -38,16 +38,21 @@ struct LaunchConfigurationSetter_LightCSR
 
       launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
       const Index elementsInSegment = roundUpDivision( segments.getStorageSize(), segmentsCount );
-      if( elementsInSegment <= 2 )
+      if( elementsInSegment <= 2 ) {
          launchConfig.setThreadsPerSegmentCount( 2 );
-      else if( elementsInSegment <= 4 )
+      }
+      else if( elementsInSegment <= 4 ) {
          launchConfig.setThreadsPerSegmentCount( 4 );
-      else if( elementsInSegment <= 8 )
+      }
+      else if( elementsInSegment <= 8 ) {
          launchConfig.setThreadsPerSegmentCount( 8 );
-      else if( elementsInSegment <= 16 )
+      }
+      else if( elementsInSegment <= 16 ) {
          launchConfig.setThreadsPerSegmentCount( 16 );
-      else if constexpr( Backend::getMaxWarpSize() == 32 )
+      }
+      else if constexpr( Backend::getMaxWarpSize() == 32 ) {
          launchConfig.setThreadsPerSegmentCount( 32 );
+      }
       else {
          if( Backend::getWarpSize( Backend::getDevice() ) == 32 )
             launchConfig.setThreadsPerSegmentCount( 32 );

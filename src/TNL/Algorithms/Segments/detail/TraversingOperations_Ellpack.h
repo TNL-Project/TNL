@@ -85,13 +85,15 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
+         {
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
+         }
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
-               threadsCount *= (std::size_t) segments.getSegmentSize();
+               threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
 
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -142,8 +144,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                            + " ) count for Ellpack segments." );
                   }
                }
-               else
+               else {
                   throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
+               }
             }
             Backend::streamSynchronize( launchConfig.stream );
          }
@@ -212,14 +215,16 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
+         {
             forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
+         }
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
-               threadsCount *= (std::size_t) segments.getSegmentSize();
+               threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
@@ -266,8 +271,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                            + " ) count for Ellpack segments." );
                   }
                }
-               else
+               else {
                   throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
+               }
             }
             Backend::streamSynchronize( launchConfig.stream );
          }
@@ -344,11 +350,13 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
+         {
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
+         }
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 

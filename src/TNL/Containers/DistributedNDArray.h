@@ -690,8 +690,9 @@ public:
 
             const auto begin = localBegins.template getSize< level >();
             const auto end = localEnds.template getSize< level >();
-            if( begin == end )
+            if( begin == end ) {
                localSizes.template setSize< level >( globalSizes.template getSize< level >() );
+            }
             else {
                if( end - begin < getOverlap< level >() )
                   throw std::logic_error( "allocate: local size is less than the size of overlaps" );

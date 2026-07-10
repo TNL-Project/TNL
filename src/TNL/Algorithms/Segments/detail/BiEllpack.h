@@ -189,8 +189,9 @@ public:
                if( Organization == RowMajorOrder ) {
                   return globalIdx + rowStripPerm * groupWidth + localIdx;
                }
-               else
+               else {
                   return globalIdx + rowStripPerm + localIdx * groupHeight;
+               }
             }
          }
          groupHeight /= 2;

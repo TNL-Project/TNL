@@ -46,8 +46,8 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( end <= begin )
                return;
-            const std::size_t threadsCount =
-               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            const std::size_t threadsCount = static_cast< std::size_t >( end - begin )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
@@ -153,10 +153,11 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         Backend::launchKernelSync(
                            kernel64, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      }
-                     else
+                     else {
                         throw std::invalid_argument(
                            "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                            + std::to_string( warpSize ) + "." );
+                     }
                      break;
                   default:
                      throw std::invalid_argument(
@@ -164,8 +165,9 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         + " ) count for Ellpack segments." );
                }
             }
-            else
+            else {
                throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
+            }
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -224,8 +226,8 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( segmentIndexes.getSize() == 0 )
                return;
-            const std::size_t threadsCount =
-               (std::size_t) segmentIndexes.getSize() * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            const std::size_t threadsCount = static_cast< std::size_t >( segmentIndexes.getSize() )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
@@ -322,10 +324,11 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      Backend::launchKernelSync(
                         kernel64, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   }
-                  else
+                  else {
                      throw std::invalid_argument(
                         "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                         + std::to_string( warpSize ) + "." );
+                  }
                   break;
                default:
                   throw std::invalid_argument(
@@ -395,8 +398,8 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( end <= begin )
                return;
-            const std::size_t threadsCount =
-               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            const std::size_t threadsCount = static_cast< std::size_t >( end - begin )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
@@ -496,10 +499,11 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      Backend::launchKernelSync(
                         kernel64, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                   }
-                  else
+                  else {
                      throw std::invalid_argument(
                         "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                         + std::to_string( warpSize ) + "." );
+                  }
                   break;
                default:
                   throw std::invalid_argument(
@@ -575,8 +579,8 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( segmentIndexes.getSize() == 0 )
                return;
-            const std::size_t threadsCount =
-               (std::size_t) segmentIndexes.getSize() * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            const std::size_t threadsCount = static_cast< std::size_t >( segmentIndexes.getSize() )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const std::size_t blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
@@ -673,10 +677,11 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      Backend::launchKernelSync(
                         kernel64, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   }
-                  else
+                  else {
                      throw std::invalid_argument(
                         "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                         + std::to_string( warpSize ) + "." );
+                  }
                   break;
                default:
                   throw std::invalid_argument(

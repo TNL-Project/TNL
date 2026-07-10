@@ -64,7 +64,7 @@ SortedSegmentsView< EmbeddedSegments >::bind(
    const ConstPermutationView& segmentsPermutation,
    const ConstPermutationView& inverseSegmentsPermutation )
 {
-   this->embeddedSegmentsView.bind( *(EmbeddedSegmentsView*) ( &embeddedSegmentsView ) );
+   this->embeddedSegmentsView.bind( embeddedSegmentsView );
    this->segmentsPermutationView.bind(
       const_cast< IndexType* >( segmentsPermutation.getData() ), segmentsPermutation.getSize() );
    this->inverseSegmentsPermutationView.bind(

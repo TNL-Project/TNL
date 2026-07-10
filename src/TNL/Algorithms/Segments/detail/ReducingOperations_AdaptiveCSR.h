@@ -91,8 +91,9 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             Backend::streamSynchronize( launch_config.stream );
          }
       }
-      else
+      else {
          ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
+      }
    }
 
    template<
@@ -165,9 +166,10 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             Backend::streamSynchronize( launch_config.stream );
          }
       }
-      else
+      else {
          ReducingOperationsCSR::reduceSegmentsWithArgument(
             segments, begin, end, fetch, reduction, storer, identity, launchConfig );
+      }
    }
 };
 

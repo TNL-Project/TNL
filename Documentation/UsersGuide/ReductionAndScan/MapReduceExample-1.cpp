@@ -30,7 +30,7 @@ main( int argc, char* argv[] )
    host_u.forAllElements(
       [] __cuda_callable__( int i, double& value )
       {
-         value = sin( (double) i );
+         value = sin( static_cast< double >( i ) );
       } );
    double result = mapReduce( host_u );
    std::cout << "host_u = " << host_u << '\n';

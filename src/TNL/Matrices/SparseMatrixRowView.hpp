@@ -229,10 +229,10 @@ template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView
 std::ostream&
 operator<<( std::ostream& str, const SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >& row )
 {
-   using NonConstIndex =
-      std::remove_const_t< typename SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::IndexType >;
+   using RowView = SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >;
+   using NonConstIndex = std::remove_const_t< typename RowView::IndexType >;
    for( NonConstIndex i = 0; i < row.getSize(); i++ )
-      if constexpr( row.isBinary() )
+      if constexpr( RowView::isBinary() )
          // TODO: print only the column indices of non-zeros but not the values
          str << " [ " << row.getColumnIndex( i )
              << " ] = " << (row.getColumnIndex( i ) != paddingIndex< NonConstIndex >) << ", ";

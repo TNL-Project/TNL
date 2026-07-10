@@ -87,8 +87,9 @@ directLinearSolverExample()
       std::cout << "Solver succeeded.\n";
       std::cout << "Vector x = " << x << '\n';
    }
-   else
+   else {
       std::cout << "Solver failed.\n";
+   }
 }
 
 int

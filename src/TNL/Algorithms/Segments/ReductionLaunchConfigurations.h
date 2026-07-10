@@ -58,10 +58,11 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
          };
    }
    else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
-      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
+      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
+      }
       else {
          if constexpr( Segments::getOrganization() == RowMajorOrder ) {
             std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs{
@@ -118,10 +119,11 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
       }
    }
    else if constexpr( isEllpackSegments_v< Segments > ) {
-      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
+      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
+      }
       else {
          std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
