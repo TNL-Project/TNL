@@ -90,6 +90,23 @@ namespace TNL::Algorithms::Segments {
  * - The `fetch` lambda can even modify data on-the-fly if needed and thus it allows merging multiple operations into one
  * kernel and improving performance.
  *
+ * \section SegmentReductionEmptySegments Behavior for Empty Segments
+ *
+ * An **empty segment** is a segment that contains no elements to reduce over. This can happen when a segment
+ * has zero length, or when all elements in the segment are filtered out by the \e fetch lambda (e.g., padding
+ * elements in sparse storage formats).
+ *
+ * The behavior depends on the reduction variant:
+ *
+ * - **Basic reduction** (reduceAllSegments, reduceSegments, etc.): The \e storer lambda is called with the
+ *   \e identity value. The user is responsible for choosing an \e identity that is a meaningful neutral element
+ *   for the reduction (e.g., 0 for sum, 1 for product, \f$-\infty\f$ for max).
+ *
+ * - **WithArgument reduction** (reduceAllSegmentsWithArgument, reduceSegmentsWithArgument, etc.): The \e storer
+ *   lambda is called with \e emptySegment set to \e true. In this case, the \e localIdx value passed to the
+ *   \e storer lambda is meaningless and should not be used. The \e value parameter is set to the \e identity
+ *   value.
+ *
  * \section SegmentReductionRelatedPages Related Pages
  *
  * - \ref SegmentReductionLambdas - Detailed lambda function signatures

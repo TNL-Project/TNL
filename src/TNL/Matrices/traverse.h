@@ -68,6 +68,7 @@ namespace TNL::Matrices {
  * | \ref forElements (array)| Rows in array         | Process elements in specified rows        | const & non-const |
  * | \ref forAllElementsIf   | All rows              | Row-level condition                       | const & non-const |
  * | \ref forElementsIf      | Rows [begin, end)     | Row-level condition                       | const & non-const |
+ * | \ref forElementsIf (array) | Rows in array       | Row-level condition                       | const & non-const |
  *
  * **When to use:**
  * - Matrix elements assembly and updates
@@ -86,6 +87,7 @@ namespace TNL::Matrices {
  * | \ref forRows (array) | Rows in array         | Process specified rows         | const & non-const |
  * | \ref forAllRowsIf    | All rows              | Row-level condition            | const & non-const |
  * | \ref forRowsIf       | Rows [begin, end)     | Row-level condition            | const & non-const |
+ * | \ref forRowsIf (array) | Rows in array       | Row-level condition            | const & non-const |
  *
  * **When to use:**
  * - Row-level operations (scaling, normalization)
@@ -637,6 +639,102 @@ forAllElementsIf(
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Iterates in parallel over all elements in matrix rows specified by a given set of row indexes
+ * based on a condition.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
+ * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * function is evaluated based on the position within the array. If the condition lambda function returns
+ * \e true, all elements of the corresponding row are traversed, and the specified lambda function is applied
+ * to each element. If the condition lambda function returns \e false, the row is skipped.
+ *
+ * \tparam Matrix The type of the matrix.
+ * \tparam Array The type of the array containing the indexes of the rows to iterate over.
+ * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam Condition The type of the condition lambda function.
+ * \tparam Function The type of the lambda function to be applied to each element.
+ *
+ * \param matrix The matrix whose elements will be processed using the lambda function.
+ * \param rowIndexes The array containing the indexes of the rows to iterate over.
+ * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
+ * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ */
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T = std::enable_if_t< IsArrayType< Array >::value > >
+void
+forElementsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Iterates in parallel over all elements in matrix rows specified by a given set of row indexes
+ * based on a condition. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
+ * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * function is evaluated based on the position within the array. If the condition lambda function returns
+ * \e true, all elements of the corresponding row are traversed, and the specified lambda function is applied
+ * to each element. If the condition lambda function returns \e false, the row is skipped.
+ *
+ * \tparam Matrix The type of the matrix.
+ * \tparam Array The type of the array containing the indexes of the rows to iterate over.
+ * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam Condition The type of the condition lambda function.
+ * \tparam Function The type of the lambda function to be applied to each element.
+ *
+ * \param matrix The matrix whose elements will be processed using the lambda function.
+ * \param rowIndexes The array containing the indexes of the rows to iterate over.
+ * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
+ * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ */
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T = std::enable_if_t< IsArrayType< Array >::value > >
+void
+forElementsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Iterates in parallel over matrix rows within the specified range of row indexes
  * and applies the given lambda function to each row.
  *
@@ -1091,6 +1189,101 @@ template< typename Matrix, typename RowCondition, typename Function >
 void
 forAllRowsIf(
    const Matrix& matrix,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Iterates in parallel over matrix rows specified by a given set of row indexes based on a condition.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
+ * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * function is evaluated based on the position within the array. If the condition lambda function returns
+ * \e true, the specified lambda function is executed for the corresponding row. If the condition lambda
+ * function returns \e false, the row is skipped.
+ *
+ * \tparam Matrix The type of the matrix.
+ * \tparam Array The type of the array containing the indexes of the rows to iterate over.
+ * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Function The type of the lambda function to be executed on each row.
+ *
+ * \param matrix The matrix on which the lambda function will be applied.
+ * \param rowIndexes The array containing the indexes of the rows to iterate over.
+ * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
+ * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ */
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename RowCondition,
+   typename Function,
+   typename T = std::enable_if_t< IsArrayType< Array >::value > >
+void
+forRowsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Iterates in parallel over matrix rows specified by a given set of row indexes based on a condition.
+ * This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
+ * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * function is evaluated based on the position within the array. If the condition lambda function returns
+ * \e true, the specified lambda function is executed for the corresponding row. If the condition lambda
+ * function returns \e false, the row is skipped.
+ *
+ * \tparam Matrix The type of the matrix.
+ * \tparam Array The type of the array containing the indexes of the rows to iterate over.
+ * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ *    of row indexes where the traversal will be performed.
+ * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Function The type of the lambda function to be executed on each row.
+ *
+ * \param matrix The matrix on which the lambda function will be applied.
+ * \param rowIndexes The array containing the indexes of the rows to iterate over.
+ * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ *    will be performed.
+ * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
+ * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ */
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename RowCondition,
+   typename Function,
+   typename T = std::enable_if_t< IsArrayType< Array >::value > >
+void
+forRowsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
    RowCondition&& rowCondition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
