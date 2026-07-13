@@ -102,6 +102,23 @@ namespace TNL::Matrices {
  * - **Scope variants**: `begin`, `end` (range) or `rowIndexes` (array)
  * - **If variants**: `condition` lambda for row filtering (see \ref MatrixConditionLambda)
  *
+ * \section MatrixReductionEmptyRows Behavior for Empty Rows
+ *
+ * An **empty row** is a row that contains no matrix elements to reduce over. This can happen, for example,
+ * with sparse matrices that have a row with zero non-zero elements, or with multidiagonal/tridiagonal matrices
+ * where all diagonals fall outside the valid column range for a given row.
+ *
+ * The behavior depends on the reduction variant:
+ *
+ * - **Basic reduction** (\ref reduceAllRows, \ref reduceRows, etc.): The \e store lambda is called with the
+ *   \e identity value. The user is responsible for choosing an \e identity that is a meaningful neutral element
+ *   for the reduction (e.g., 0 for sum, 1 for product, \f$-\infty\f$ for max).
+ *
+ * - **WithArgument reduction** (\ref reduceAllRowsWithArgument, \ref reduceRowsWithArgument, etc.): The \e store
+ *   lambda is called with \e emptyRow set to \e true. In this case, the \e localIdx and \e columnIdx values
+ *   passed to the \e store lambda are meaningless and should not be used. The \e value parameter is set to the
+ *   \e identity value.
+ *
  * \section MatrixReductionUsageGuidelines Usage Guidelines
  *
  * **Matrix type considerations:**
@@ -220,17 +237,17 @@ namespace TNL::Matrices {
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const Value& value, bool
- * emptySegment ) { ... }
+ * emptyRow ) { ... }
  * ```
  *
  * **Parameters:**
  * - \e rowIdx - The index of the row
- * - \e localIdx - The local index of the element within the row (when tracking positions). Has no meaning when emptySegment is
+ * - \e localIdx - The local index of the element within the row (when tracking positions). Has no meaning when emptyRow is
  * true.
- * - \e columnIdx - The column index of the element within the row (when tracking positions). Has no meaning when emptySegment
+ * - \e columnIdx - The column index of the element within the row (when tracking positions). Has no meaning when emptyRow
  * is true.
  * - \e value - The result of the reduction for this row
- * - \e emptySegment - True if the row is empty (contains no elements), false otherwise. When true, localIdx and columnIdx are
+ * - \e emptyRow - True if the row is empty (contains no elements), false otherwise. When true, localIdx and columnIdx are
  * meaningless.
  *
  * \subsection MatrixStoreLambda_WithIndexArray Store With Row Index Array Or Condition
@@ -249,7 +266,7 @@ namespace TNL::Matrices {
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, IndexType columnIdx,
- * const FetchValue& value, bool emptySegment ) { ...
+ * const FetchValue& value, bool emptyRow ) { ...
  * }
  * ```
  *
@@ -257,10 +274,10 @@ namespace TNL::Matrices {
  * - \e indexOfRowIdx - The position within the \e rowIndexes array or the rank in the set of rows for which the condition was
  * true.
  * - \e rowIdx - The actual index of the row
- * - \e localIdx - The position of the element within the row. Has no meaning when emptySegment is true.
- * - \e columnIdx - The column index of the element within the row. Has no meaning when emptySegment is true.
+ * - \e localIdx - The position of the element within the row. Has no meaning when emptyRow is true.
+ * - \e columnIdx - The column index of the element within the row. Has no meaning when emptyRow is true.
  * - \e value - The result of the reduction for this row
- * - \e emptySegment - True if the row is empty (contains no elements), false otherwise. When true, localIdx and columnIdx are
+ * - \e emptyRow - True if the row is empty (contains no elements), false otherwise. When true, localIdx and columnIdx are
  * meaningless.
  *
  * \section MatrixConditionLambdas Condition Lambda Functions

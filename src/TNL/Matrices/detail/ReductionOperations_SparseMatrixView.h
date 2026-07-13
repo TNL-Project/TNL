@@ -197,9 +197,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          return identity;
       };
       auto storeWrapper =
-         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             TNL_ASSERT_LT( rowIdx, matrix.getRows(), "Row index out of bounds in reduceRowsWithArgument." );
             TNL_ASSERT_LT(
                localIdx,
@@ -210,10 +210,10 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                columnIndexes_view.getSize(),
                "Global index out of bounds for columnIndexes_view in reduceRowsWithArgument." );
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( rowIdx, localIdx, columnIdx, value, emptySegment );
+            store( rowIdx, localIdx, columnIdx, value, emptyRow );
          }
          else {
-            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptySegment );
+            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptyRow );
          }
       };
 
@@ -251,14 +251,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          return identity;
       };
       auto storeWrapper =
-         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( rowIdx, localIdx, columnIdx, value, emptySegment );
+            store( rowIdx, localIdx, columnIdx, value, emptyRow );
          }
          else {
-            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptySegment );
+            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptyRow );
          }
       };
 
@@ -294,14 +294,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
       auto storeWrapper =
          [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptyRow );
          }
          else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptyRow );
          }
       };
 
@@ -339,14 +339,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
       auto storeWrapper =
          [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptyRow );
          }
          else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptyRow );
          }
       };
 
