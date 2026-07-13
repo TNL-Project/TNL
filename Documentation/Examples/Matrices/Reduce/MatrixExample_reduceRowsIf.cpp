@@ -86,15 +86,15 @@ reduceRowsIfExample()
 
    /***
     * Compute maxima for a subset of rows specified by an array of row indexes,
-    * filtering by position in the array (array + condition).
+    * filtering by row index (array + condition).
     */
    TNL::Containers::Vector< int, Device > rowIndexes{ 1, 3, 5, 7 };
    TNL::Containers::Vector< double, Device > arraySubsetMaxima( matrix.getRows() );
    auto arraySubsetMaxima_view = arraySubsetMaxima.getView();
 
-   auto positionCondition = [] __cuda_callable__( int idx ) -> bool
+   auto rowConditionArray = [] __cuda_callable__( int rowIdx ) -> bool
    {
-      return idx % 2 == 1;  // Process only odd positions in the rowIndexes array
+      return rowIdx > 3;  // Process only rows with index greater than 3
    };
 
    auto storeSubset = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& max ) mutable
@@ -105,9 +105,9 @@ reduceRowsIfExample()
    arraySubsetMaxima.setValue( -1.0 );
 
    TNL::Matrices::reduceRowsIf(
-      matrix, rowIndexes, 0, rowIndexes.getSize(), positionCondition, fetch, TNL::Max{}, storeSubset );
+      matrix, rowIndexes, 0, rowIndexes.getSize(), rowConditionArray, fetch, TNL::Max{}, storeSubset );
 
-   std::cout << "Maxima for rows at odd positions in {1,3,5,7} (i.e. rows 3,7): " << arraySubsetMaxima << '\n';
+   std::cout << "Maxima for rows in {1,3,5,7} with rowIdx > 3 (i.e. rows 5,7): " << arraySubsetMaxima << '\n';
 }
 
 int

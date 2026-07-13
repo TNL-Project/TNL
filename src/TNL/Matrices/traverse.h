@@ -645,7 +645,7 @@ forAllElementsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
- * function is evaluated based on the position within the array. If the condition lambda function returns
+ * function is evaluated with the actual row index. If the condition lambda function returns
  * \e true, all elements of the corresponding row are traversed, and the specified lambda function is applied
  * to each element. If the condition lambda function returns \e false, the row is skipped.
  *
@@ -693,7 +693,7 @@ forElementsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
- * function is evaluated based on the position within the array. If the condition lambda function returns
+ * function is evaluated with the actual row index. If the condition lambda function returns
  * \e true, all elements of the corresponding row are traversed, and the specified lambda function is applied
  * to each element. If the condition lambda function returns \e false, the row is skipped.
  *
@@ -1199,7 +1199,7 @@ forAllRowsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
- * function is evaluated based on the position within the array. If the condition lambda function returns
+ * function is evaluated with the actual row index. If the condition lambda function returns
  * \e true, the specified lambda function is executed for the corresponding row. If the condition lambda
  * function returns \e false, the row is skipped.
  *
@@ -1247,7 +1247,7 @@ forRowsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
- * function is evaluated based on the position within the array. If the condition lambda function returns
+ * function is evaluated with the actual row index. If the condition lambda function returns
  * \e true, the specified lambda function is executed for the corresponding row. If the condition lambda
  * function returns \e false, the row is skipped.
  *

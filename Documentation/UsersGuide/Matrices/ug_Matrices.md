@@ -1603,11 +1603,13 @@ The traversal functions are:
 * `TNL::Matrices::forAllElements(matrix, function)`
 * `TNL::Matrices::forElements(matrix, rowIndexes, function)`
 * `TNL::Matrices::forElementsIf(matrix, begin, end, condition, function)`
+* `TNL::Matrices::forElementsIf(matrix, rowIndexes, begin, end, condition, function)` (row-index array variant)
 * `TNL::Matrices::forAllElementsIf(matrix, condition, function)`
 * `TNL::Matrices::forRows(matrix, begin, end, function)`
 * `TNL::Matrices::forAllRows(matrix, function)`
 * `TNL::Matrices::forRows(matrix, rowIndexes, function)`
 * `TNL::Matrices::forRowsIf(matrix, begin, end, condition, function)`
+* `TNL::Matrices::forRowsIf(matrix, rowIndexes, begin, end, condition, function)` (row-index array variant)
 * `TNL::Matrices::forAllRowsIf(matrix, condition, function)`
 
 The reduction functions are:
@@ -1617,6 +1619,7 @@ The reduction functions are:
 * `TNL::Matrices::reduceRows(matrix, rowIndexes, fetch, reduce, keep, identity)` (row-index array variant)
 * `TNL::Matrices::reduceAllRowsIf(matrix, condition, fetch, reduce, keep, identity)`
 * `TNL::Matrices::reduceRowsIf(matrix, begin, end, condition, fetch, reduce, keep, identity)`
+* `TNL::Matrices::reduceRowsIf(matrix, rowIndexes, begin, end, condition, fetch, reduce, keep, identity)` (row-index array variant)
 * `TNL::Matrices::reduceAllRowsWithArgument(matrix, fetch, reduce, keep, identity)`
 * `TNL::Matrices::reduceRowsWithArgument(matrix, begin, end, fetch, reduce, keep, identity)`
 * `TNL::Matrices::reduceRowsWithArgument(matrix, rowIndexes, fetch, reduce, keep, identity)` (row-index array variant)
