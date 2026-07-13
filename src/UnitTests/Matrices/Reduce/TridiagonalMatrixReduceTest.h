@@ -456,16 +456,16 @@ TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
    // Array variant
    const auto constMatrix( matrix );
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 0, 2, 3, 4 };
-   auto conditionArray = [] __cuda_callable__( IndexType idx ) -> bool
+   auto conditionArray = [] __cuda_callable__( IndexType rowIdx ) -> bool
    {
-      return idx >= 1;
+      return rowIdx >= 2;
    };
    maxValues = 0;
    maxColumns = -1;
    TNL::Matrices::reduceRowsWithArgumentIf(
       constMatrix, rowIndexes, (IndexType) 0, rowIndexes.getSize(), conditionArray, fetch, reduce, store, (RealType) 0 );
 
-   EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition (idx=0)
+   EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition (rowIdx=0)
    EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // not in array
    EXPECT_EQ( maxValues.getElement( 2 ), 8 );  // processed
    EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
