@@ -194,6 +194,65 @@ forAllElementsIf(
       launchConfig );
 }
 
+// ===================== forElementsIf (array) =====================
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T >
+void
+forElementsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   auto matrix_view = matrix.getView();
+   detail::TraversingOperations< typename Matrix::ViewType >::forElementsIf(
+      matrix_view,
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T >
+void
+forElementsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   detail::TraversingOperations< typename Matrix::ConstViewType >::forElementsIf(
+      matrix.getConstView(),
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Function, typename T >
 void
 forRows(
@@ -373,6 +432,65 @@ forAllRowsIf(
       matrix,
       static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
+      std::forward< RowCondition >( rowCondition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+// ===================== forRowsIf (array) =====================
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename RowCondition,
+   typename Function,
+   typename T >
+void
+forRowsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   auto matrix_view = matrix.getView();
+   detail::TraversingOperations< typename Matrix::ViewType >::forRowsIf(
+      matrix_view,
+      rowIndexes,
+      begin,
+      end,
+      std::forward< RowCondition >( rowCondition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename RowCondition,
+   typename Function,
+   typename T >
+void
+forRowsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   RowCondition&& rowCondition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   detail::TraversingOperations< typename Matrix::ConstViewType >::forRowsIf(
+      matrix.getConstView(),
+      rowIndexes,
+      begin,
+      end,
       std::forward< RowCondition >( rowCondition ),
       std::forward< Function >( function ),
       launchConfig );

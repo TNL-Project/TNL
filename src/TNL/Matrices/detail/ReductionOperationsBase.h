@@ -11,22 +11,26 @@
 namespace TNL::Matrices::detail {
 
 /**
- * \brief Default implementation of conditional matrix reduction methods (\c *If variants).
+ * \brief Base class for matrix reduction operations shared across all specializations.
  *
- * This base class provides the shared \c reduceRowsIf and \c reduceRowsWithArgumentIf
- * methods for all matrix specializations. The strategy is:
+ * This base class provides implementations that \ref ReductionOperations
+ * specializations inherit to avoid code duplication. Currently it provides
+ * the conditional \c reduceRowsIf and \c reduceRowsWithArgumentIf methods
+ * (both range and array overloads). The unconditional \c reduceRows and
+ * \c reduceRowsWithArgument methods are implemented by each specialization
+ * individually, since they differ per matrix format.
+ *
+ * The \c *If methods follow a compress + gather + delegate strategy:
  *
  * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressFast.
  * 2. For the array overloads, gather the actual row indexes from the user-supplied
- *    \e rowIndexes array using the compressed mask (compress + gather pattern).
+ *    \e rowIndexes array using the compressed mask.
  * 3. Delegate to \ref ReductionOperations<Matrix>::reduceRows or
  *    \ref ReductionOperations<Matrix>::reduceRowsWithArgument with the filtered
  *    row indexes.
  *
- * Specializations of \ref ReductionOperations inherit this base and only override
- * the unconditional \c reduceRows / \c reduceRowsWithArgument methods. No
- * specialization needs to override the \c *If methods - the compress+gather
- * approach is universally applicable.
+ * The compress+gather approach is universally applicable, so no specialization
+ * needs to override the \c *If methods.
  *
  * \tparam Matrix The matrix type (view or owning) the operations act on.
  */
@@ -62,25 +66,27 @@ struct ReductionOperationsBase
       if( end <= begin )
          return 0;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask: 1 where condition(rowIdx) holds, 0 otherwise
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( rowIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into a dense array of matching row indexes
+      auto selectedRowIndexes = Algorithms::compressFast< VectorType >( conditionMask );
+      if( selectedRowIndexes.getSize() == 0 )
          return 0;
-      filteredIndexes += begin;
+      selectedRowIndexes += begin;
       ReductionOperations< Matrix >::reduceRows(
          matrix,
-         filteredIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 
    template<
@@ -106,25 +112,27 @@ struct ReductionOperationsBase
       if( end <= begin )
          return 0;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask: 1 where condition(rowIdx) holds, 0 otherwise
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( rowIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into a dense array of matching row indexes
+      auto selectedRowIndexes = Algorithms::compressFast< VectorType >( conditionMask );
+      if( selectedRowIndexes.getSize() == 0 )
          return 0;
-      filteredIndexes += begin;
+      selectedRowIndexes += begin;
       ReductionOperations< Matrix >::reduceRows(
          matrix,
-         filteredIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 
    // ===================== reduceRowsIf (array) =====================
@@ -156,36 +164,39 @@ struct ReductionOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( positionIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into matching positions within [0, end - begin)
+      auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
+      if( matchingPositions.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndexes.getSize() );
-      auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndexes_view = filteredIndexes.getConstView();
+      // Gather: map each matching position to the actual row index via rowIndexes
+      VectorType selectedRowIndexes( matchingPositions.getSize() );
+      auto selectedRowIndexes_view = selectedRowIndexes.getView();
+      auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndexes.getSize(),
+         matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
+            selectedRowIndexes_view[ i ] = rowIndexes_view[ matchingPositions_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRows(
          matrix,
-         filteredRowIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredRowIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 
    template<
@@ -215,36 +226,39 @@ struct ReductionOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( positionIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into matching positions within [0, end - begin)
+      auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
+      if( matchingPositions.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndexes.getSize() );
-      auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndexes_view = filteredIndexes.getConstView();
+      // Gather: map each matching position to the actual row index via rowIndexes
+      VectorType selectedRowIndexes( matchingPositions.getSize() );
+      auto selectedRowIndexes_view = selectedRowIndexes.getView();
+      auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndexes.getSize(),
+         matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
+            selectedRowIndexes_view[ i ] = rowIndexes_view[ matchingPositions_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRows(
          matrix,
-         filteredRowIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredRowIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 
    // ===================== reduceRowsWithArgumentIf (range) =====================
@@ -272,25 +286,27 @@ struct ReductionOperationsBase
       if( end <= begin )
          return 0;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask: 1 where condition(rowIdx) holds, 0 otherwise
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( rowIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into a dense array of matching row indexes
+      auto selectedRowIndexes = Algorithms::compressFast< VectorType >( conditionMask );
+      if( selectedRowIndexes.getSize() == 0 )
          return 0;
-      filteredIndexes += begin;
+      selectedRowIndexes += begin;
       ReductionOperations< Matrix >::reduceRowsWithArgument(
          matrix,
-         filteredIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 
    template<
@@ -316,25 +332,27 @@ struct ReductionOperationsBase
       if( end <= begin )
          return 0;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask: 1 where condition(rowIdx) holds, 0 otherwise
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( rowIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into a dense array of matching row indexes
+      auto selectedRowIndexes = Algorithms::compressFast< VectorType >( conditionMask );
+      if( selectedRowIndexes.getSize() == 0 )
          return 0;
-      filteredIndexes += begin;
+      selectedRowIndexes += begin;
       ReductionOperations< Matrix >::reduceRowsWithArgument(
          matrix,
-         filteredIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 
    // ===================== reduceRowsWithArgumentIf (array) =====================
@@ -366,36 +384,39 @@ struct ReductionOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( positionIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into matching positions within [0, end - begin)
+      auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
+      if( matchingPositions.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndexes.getSize() );
-      auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndexes_view = filteredIndexes.getConstView();
+      // Gather: map each matching position to the actual row index via rowIndexes
+      VectorType selectedRowIndexes( matchingPositions.getSize() );
+      auto selectedRowIndexes_view = selectedRowIndexes.getView();
+      auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndexes.getSize(),
+         matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
+            selectedRowIndexes_view[ i ] = rowIndexes_view[ matchingPositions_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRowsWithArgument(
          matrix,
-         filteredRowIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredRowIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 
    template<
@@ -425,36 +446,39 @@ struct ReductionOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      VectorType conditions( end - begin );
-      conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      VectorType conditionMask( end - begin );
+      conditionMask.forAllElements(
+         [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( i + begin ) ? 1 : 0;
+            value = condition( positionIdx + begin ) ? 1 : 0;
          } );
-      auto filteredIndexes = Algorithms::compressFast< VectorType >( conditions );
-      if( filteredIndexes.getSize() == 0 )
+      // Compress the mask into matching positions within [0, end - begin)
+      auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
+      if( matchingPositions.getSize() == 0 )
          return 0;
 
-      VectorType filteredRowIndexes( filteredIndexes.getSize() );
-      auto filteredRowIndexes_view = filteredRowIndexes.getView();
-      auto filteredIndexes_view = filteredIndexes.getConstView();
+      // Gather: map each matching position to the actual row index via rowIndexes
+      VectorType selectedRowIndexes( matchingPositions.getSize() );
+      auto selectedRowIndexes_view = selectedRowIndexes.getView();
+      auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
          (IndexType) 0,
-         filteredIndexes.getSize(),
+         matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
-            filteredRowIndexes_view[ i ] = rowIndexes_view[ filteredIndexes_view[ i ] + begin ];
+            selectedRowIndexes_view[ i ] = rowIndexes_view[ matchingPositions_view[ i ] + begin ];
          } );
 
       ReductionOperations< Matrix >::reduceRowsWithArgument(
          matrix,
-         filteredRowIndexes,
+         selectedRowIndexes,
          std::forward< Fetch >( fetch ),
          std::forward< Reduction >( reduction ),
          std::forward< Store >( store ),
          identity,
          launchConfig );
-      return filteredRowIndexes.getSize();
+      return selectedRowIndexes.getSize();
    }
 };
 
