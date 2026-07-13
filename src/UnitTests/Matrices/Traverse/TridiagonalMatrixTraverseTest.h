@@ -8,15 +8,18 @@
 #include <TNL/Containers/Vector.h>
 #include <gtest/gtest.h>
 
+using TridiagonalMatrixTraverseTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   #define TRIDIAGONAL_MATRIX_TEST_DEVICE TNL::Devices::Host
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, long >
 #elif defined( __CUDACC__ )
-   #define TRIDIAGONAL_MATRIX_TEST_DEVICE TNL::Devices::Cuda
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-   #define TRIDIAGONAL_MATRIX_TEST_DEVICE TNL::Devices::Hip
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, long >
 #endif
-
-namespace TridiagonalMatrixTraverseTestNamespace {
+   >;
 
 template< typename MatrixType >
 void
@@ -553,69 +556,73 @@ test_forAllRowsIf()
    EXPECT_EQ( counter.getElement( 0 ), 4 );
 }
 
-}  // namespace TridiagonalMatrixTraverseTestNamespace
-
-TEST( TridiagonalMatrixTraverseTest, forElements_Range )
+// Test fixture
+template< typename MatrixType >
+class TridiagonalMatrixTraverseTest : public ::testing::Test
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forElements_Range< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forElements_Range< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+protected:
+   using MatrixType_ = MatrixType;
+};
+
+TYPED_TEST_SUITE_P( TridiagonalMatrixTraverseTest );
+
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forElements_Range )
+{
+   test_forElements_Range< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forAllElements )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forAllElements )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forAllElements< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forAllElements< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forAllElements< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forElements_WithIndexArray )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forElements_WithIndexArray )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forElements_WithIndexArray< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forElements_WithIndexArray< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forElements_WithIndexArray< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forElementsIf )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forElementsIf )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forElementsIf< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forElementsIf< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forElementsIf< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forAllElementsIf )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forAllElementsIf )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forAllElementsIf< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forAllElementsIf< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forAllElementsIf< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forRows )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forRows )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forRows< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forRows< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forRows< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forRows_WithIndexArray )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forRows_WithIndexArray )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forRows_WithIndexArray< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forRows_WithIndexArray< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forRows_WithIndexArray< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forRowsIf )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forRowsIf )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forRowsIf< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forRowsIf< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forRowsIf< TypeParam >();
 }
 
-TEST( TridiagonalMatrixTraverseTest, forAllRowsIf )
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forAllRowsIf )
 {
-   using namespace TridiagonalMatrixTraverseTestNamespace;
-   test_forAllRowsIf< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_TEST_DEVICE, int > >();
-   test_forAllRowsIf< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_TEST_DEVICE, long > >();
+   test_forAllRowsIf< TypeParam >();
 }
 
-#undef TRIDIAGONAL_MATRIX_TEST_DEVICE
+REGISTER_TYPED_TEST_SUITE_P(
+   TridiagonalMatrixTraverseTest,
+   forElements_Range,
+   forAllElements,
+   forElements_WithIndexArray,
+   forElementsIf,
+   forAllElementsIf,
+   forRows,
+   forRows_WithIndexArray,
+   forRowsIf,
+   forAllRowsIf );
+
+INSTANTIATE_TYPED_TEST_SUITE_P( TridiagonalMatrix, TridiagonalMatrixTraverseTest, TridiagonalMatrixTraverseTypes );
+
+#include "../../main.h"
