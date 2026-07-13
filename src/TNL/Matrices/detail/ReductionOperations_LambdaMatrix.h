@@ -42,7 +42,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
          const IndexType rowLength = rowLengths( rows, columns, rowIdx );
-         FetchValue sum = identity;
+         FetchValue result = identity;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -50,9 +50,9 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             FetchValue fetchValue = identity;
             if( elementValue != 0.0 )
                fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            sum = reduction( sum, fetchValue );
+            result = reduction( result, fetchValue );
          }
-         store( rowIdx, sum );
+         store( rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -76,7 +76,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
          const IndexType rowLength = rowLengths( rows, columns, rowIdx );
-         FetchValue sum = identity;
+         FetchValue result = identity;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -84,9 +84,9 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             FetchValue fetchValue = identity;
             if( elementValue != 0.0 )
                fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            sum = reduction( sum, fetchValue );
+            result = reduction( result, fetchValue );
          }
-         store( rowIdx, sum );
+         store( rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -113,7 +113,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
       {
          const auto rowIdx = rowIndexes_view[ idx ];
          const IndexType rowLength = rowLengths( rows, columns, rowIdx );
-         FetchValue sum = identity;
+         FetchValue result = identity;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -121,9 +121,9 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             FetchValue fetchValue = identity;
             if( elementValue != 0.0 )
                fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            sum = reduction( sum, fetchValue );
+            result = reduction( result, fetchValue );
          }
-         store( idx, rowIdx, sum );
+         store( idx, rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
    }
@@ -148,7 +148,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
       {
          const auto rowIdx = rowIndexes_view[ idx ];
          const IndexType rowLength = rowLengths( rows, columns, rowIdx );
-         FetchValue sum = identity;
+         FetchValue result = identity;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -156,9 +156,9 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             FetchValue fetchValue = identity;
             if( elementValue != 0.0 )
                fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            sum = reduction( sum, fetchValue );
+            result = reduction( result, fetchValue );
          }
-         store( idx, rowIdx, sum );
+         store( idx, rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
    }
@@ -187,7 +187,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          FetchValue result = identity;
          IndexType resultLocalIdx = 0;
          IndexType resultColumnIdx = 0;
-         bool empty = true;
+         bool emptyRow = true;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -195,11 +195,11 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             if( elementValue == 0.0 )
                continue;
             auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            if( empty ) {
+            if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
                resultColumnIdx = columnIdx;
-               empty = false;
+               emptyRow = false;
             }
             else {
                auto prev = resultLocalIdx;
@@ -208,7 +208,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
                   resultColumnIdx = columnIdx;
             }
          }
-         store( rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+         store( rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -235,7 +235,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          FetchValue result = identity;
          IndexType resultLocalIdx = 0;
          IndexType resultColumnIdx = 0;
-         bool empty = true;
+         bool emptyRow = true;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -243,11 +243,11 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             if( elementValue == 0.0 )
                continue;
             auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            if( empty ) {
+            if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
                resultColumnIdx = columnIdx;
-               empty = false;
+               emptyRow = false;
             }
             else {
                auto prev = resultLocalIdx;
@@ -256,7 +256,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
                   resultColumnIdx = columnIdx;
             }
          }
-         store( rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+         store( rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -286,7 +286,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          FetchValue result = identity;
          IndexType resultLocalIdx = 0;
          IndexType resultColumnIdx = 0;
-         bool empty = true;
+         bool emptyRow = true;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -294,11 +294,11 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             if( elementValue == 0.0 )
                continue;
             auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            if( empty ) {
+            if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
                resultColumnIdx = columnIdx;
-               empty = false;
+               emptyRow = false;
             }
             else {
                auto prev = resultLocalIdx;
@@ -307,7 +307,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
                   resultColumnIdx = columnIdx;
             }
          }
-         store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+         store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
    }
@@ -335,7 +335,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          FetchValue result = identity;
          IndexType resultLocalIdx = 0;
          IndexType resultColumnIdx = 0;
-         bool empty = true;
+         bool emptyRow = true;
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
@@ -343,11 +343,11 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
             if( elementValue == 0.0 )
                continue;
             auto fetchValue = fetch( rowIdx, columnIdx, elementValue );
-            if( empty ) {
+            if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
                resultColumnIdx = columnIdx;
-               empty = false;
+               emptyRow = false;
             }
             else {
                auto prev = resultLocalIdx;
@@ -356,7 +356,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
                   resultColumnIdx = columnIdx;
             }
          }
-         store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, empty );
+         store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
    }

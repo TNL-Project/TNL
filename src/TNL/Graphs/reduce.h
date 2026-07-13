@@ -276,6 +276,22 @@ namespace TNL::Graphs {
  * - For WithArgument variants, they must be instances of \ref ReductionFunctionObjectsWithArgument
  * - Common examples: \e Min, \e Max, \e Sum, \e Product, \e MinWithArg, \e MaxWithArg
  *
+ *
+ * \section GraphReductionIsolatedVertices Behavior for Isolated Vertices
+ *
+ * An **isolated vertex** is a vertex that has no edges to reduce over. This happens when the adjacency
+ * matrix row corresponding to the vertex contains no non-zero elements.
+ *
+ * The behavior depends on the reduction variant:
+ *
+ * - **Basic reduction** (reduceAllVertices, reduceVertices, etc.): The \e store lambda is called with the
+ *   \e identity value. The user is responsible for choosing an \e identity that is a meaningful neutral element
+ *   for the reduction (e.g., 0 for sum, 1 for product, \f$-\infty\f$ for max).
+ *
+ * - **WithArgument reduction** (reduceAllVerticesWithArgument, reduceVerticesWithArgument, etc.): The \e store
+ *   lambda is called with \e isolatedVertex set to \e true. In this case, the \e localIdx and \e targetIdx
+ *   values passed to the \e store lambda are meaningless and should not be used. The \e weight parameter is
+ *   set to the \e identity value.
  * \section GraphReductionLambdasRelatedPages Related Pages
  *
  * - \ref GraphReductionOverview - Overview of graph reduction functions
