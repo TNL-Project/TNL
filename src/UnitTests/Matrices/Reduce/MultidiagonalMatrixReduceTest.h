@@ -434,15 +434,15 @@ test_reduceRowsWithArgumentIf()
    // reduceRowsWithArgumentIf (array)
    auto view2 = matrix.getView();
    IndexVectorType rowIndexes{ 0, 2, 3, 5 };
-   auto conditionArray = [] __cuda_callable__( IndexType idx ) -> bool
+   auto conditionArray = [] __cuda_callable__( IndexType rowIdx ) -> bool
    {
-      return idx >= 1;
+      return rowIdx >= 2;
    };
    maxValues = 0;
    maxColumns = -1;
    TNL::Matrices::reduceRowsWithArgumentIf(
       view2, rowIndexes, (IndexType) 0, rowIndexes.getSize(), conditionArray, fetch, reduce, store, (RealType) 0 );
-   EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition (idx=0)
+   EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition (rowIdx=0)
    EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // not in array
    EXPECT_EQ( maxValues.getElement( 2 ), 24 );  // processed
    EXPECT_EQ( maxColumns.getElement( 2 ), 4 );

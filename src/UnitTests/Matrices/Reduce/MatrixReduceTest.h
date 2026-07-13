@@ -195,19 +195,19 @@ test_reduceRowsIf()
       EXPECT_EQ( rowCounts.getElement( 4 ), 0 );  // skipped by range
 
       // Test reduceRowsIf with array of row indexes
-      // rowIndexes = {1, 2, 4}, conditionArray filters idx >= 1 (so position 0=row 1 is
-      // skipped, position 1=row 2 and position 2=row 4 are processed)
+      // rowIndexes = {1, 2, 4}, condition filters rowIdx >= 2 (so row 1 is
+      // skipped, rows 2 and 4 are processed)
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 1, 2, 4 };
-      auto conditionArray = [] __cuda_callable__( IndexType idx ) -> bool
+      auto conditionArray = [] __cuda_callable__( IndexType rowIdx ) -> bool
       {
-         return idx >= 1;
+         return rowIdx >= 2;
       };
 
       rowCounts = 0;
       TNL::Matrices::reduceRowsIf(
          matrix, rowIndexes, 0, rowIndexes.getSize(), conditionArray, fetch, TNL::Plus{}, store, 0, launch_config );
       EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // not in array
-      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition (idx=0)
+      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
       EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
       EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // not in array
       EXPECT_EQ( rowCounts.getElement( 4 ), 4 );  // 13, 14, 15, 16
@@ -226,7 +226,7 @@ test_reduceRowsIf()
          0,
          launch_config );
       EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // not in array
-      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition
+      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
       EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
       EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // not in array
       EXPECT_EQ( rowCounts.getElement( 4 ), 4 );  // 13, 14, 15, 16
@@ -503,12 +503,12 @@ test_reduceRowsWithArgumentIf()
       EXPECT_EQ( maxColumns.getElement( 4 ), -1 );
 
       // Test reduceRowsWithArgumentIf with array of row indexes
-      // rowIndexes = {1, 2, 4}, condition filters idx >= 1 (so idx 0=row 1 is skipped, idx 1=row 2 and idx 2=row 4 are
+      // rowIndexes = {1, 2, 4}, condition filters rowIdx >= 2 (so row 1 is skipped, rows 2 and 4 are
       // processed)
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 1, 2, 4 };
-      auto conditionArray = [] __cuda_callable__( IndexType idx ) -> bool
+      auto conditionArray = [] __cuda_callable__( IndexType rowIdx ) -> bool
       {
-         return idx >= 1;
+         return rowIdx >= 2;
       };
       maxValues = 0;
       maxColumns = -1;
@@ -517,7 +517,7 @@ test_reduceRowsWithArgumentIf()
 
       EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // not in array
       EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
-      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition (idx=0, condition fails)
+      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
       EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
       EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
       EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
@@ -543,7 +543,7 @@ test_reduceRowsWithArgumentIf()
 
       EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // not in array
       EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
-      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition
+      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
       EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
       EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
       EXPECT_EQ( maxColumns.getElement( 2 ), 3 );

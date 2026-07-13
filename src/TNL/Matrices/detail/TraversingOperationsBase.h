@@ -197,12 +197,12 @@ struct TraversingOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      // Build a 0/1 mask over positions [begin, end): condition receives the row index, not the position
       VectorType conditionMask( end - begin );
       conditionMask.forAllElements(
          [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( positionIdx + begin ) ? 1 : 0;
+            value = condition( rowIndexes_view[ positionIdx + begin ] ) ? 1 : 0;
          } );
       // Compress the mask into matching positions within [0, end - begin)
       auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
@@ -246,12 +246,12 @@ struct TraversingOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      // Build a 0/1 mask over positions [begin, end): condition receives the row index, not the position
       VectorType conditionMask( end - begin );
       conditionMask.forAllElements(
          [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( positionIdx + begin ) ? 1 : 0;
+            value = condition( rowIndexes_view[ positionIdx + begin ] ) ? 1 : 0;
          } );
       // Compress the mask into matching positions within [0, end - begin)
       auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
@@ -297,12 +297,12 @@ struct TraversingOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      // Build a 0/1 mask over positions [begin, end): condition receives the row index, not the position
       VectorType conditionMask( end - begin );
       conditionMask.forAllElements(
          [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( positionIdx + begin ) ? 1 : 0;
+            value = condition( rowIndexes_view[ positionIdx + begin ] ) ? 1 : 0;
          } );
       // Compress the mask into matching positions within [0, end - begin)
       auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
@@ -346,12 +346,12 @@ struct TraversingOperationsBase
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       auto rowIndexes_view = rowIndexes.getConstView();
 
-      // Build a 0/1 mask over positions [begin, end): condition receives the position, not the row index
+      // Build a 0/1 mask over positions [begin, end): condition receives the row index, not the position
       VectorType conditionMask( end - begin );
       conditionMask.forAllElements(
          [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
          {
-            value = condition( positionIdx + begin ) ? 1 : 0;
+            value = condition( rowIndexes_view[ positionIdx + begin ] ) ? 1 : 0;
          } );
       // Compress the mask into matching positions within [0, end - begin)
       auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
