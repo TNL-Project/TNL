@@ -451,3 +451,56 @@ test_reduceRowsWithArgumentIf()
    EXPECT_EQ( maxValues.getElement( 5 ), 52 );  // processed
    EXPECT_EQ( maxColumns.getElement( 5 ), 5 );
 }
+
+// Test fixture
+template< typename MatrixType >
+class MultidiagonalMatrixReduceTest : public ::testing::Test
+{
+protected:
+   using MatrixType_ = MatrixType;
+};
+
+TYPED_TEST_SUITE_P( MultidiagonalMatrixReduceTest );
+
+TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceRows )
+{
+   test_reduceRows< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceRows_AutoIdentity )
+{
+   test_reduceRows_AutoIdentity< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceAllRows )
+{
+   test_reduceAllRows< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceAllRows_AutoIdentity )
+{
+   test_reduceAllRows_AutoIdentity< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceRowsWithArgument )
+{
+   test_reduceRowsWithArgument< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
+{
+   test_reduceRowsWithArgumentIf< TypeParam >();
+}
+
+REGISTER_TYPED_TEST_SUITE_P(
+   MultidiagonalMatrixReduceTest,
+   reduceRows,
+   reduceRows_AutoIdentity,
+   reduceAllRows,
+   reduceAllRows_AutoIdentity,
+   reduceRowsWithArgument,
+   reduceRowsWithArgumentIf );
+
+INSTANTIATE_TYPED_TEST_SUITE_P( MultidiagonalMatrix, MultidiagonalMatrixReduceTest, MultidiagonalMatrixReduceTypes );
+
+#include "../../main.h"

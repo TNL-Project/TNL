@@ -497,3 +497,68 @@ test_forRowsIf()
    EXPECT_EQ( rowSums.getElement( 4 ), 0 );
    EXPECT_EQ( rowSums.getElement( 5 ), 153 );
 }
+
+// Test fixture
+template< typename MatrixType >
+class MultidiagonalMatrixTraverseTest : public ::testing::Test
+{
+protected:
+   using MatrixType_ = MatrixType;
+};
+
+TYPED_TEST_SUITE_P( MultidiagonalMatrixTraverseTest );
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forElements_Range )
+{
+   test_forElements_Range< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forAllElements )
+{
+   test_forAllElements< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forElements_WithIndexArray )
+{
+   test_forElements_WithIndexArray< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forElementsIf )
+{
+   test_forElementsIf< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forRows_Range )
+{
+   test_forRows_Range< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forAllRows )
+{
+   test_forAllRows< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forRows_WithIndexArray )
+{
+   test_forRows_WithIndexArray< TypeParam >();
+}
+
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forRowsIf )
+{
+   test_forRowsIf< TypeParam >();
+}
+
+REGISTER_TYPED_TEST_SUITE_P(
+   MultidiagonalMatrixTraverseTest,
+   forElements_Range,
+   forAllElements,
+   forElements_WithIndexArray,
+   forElementsIf,
+   forRows_Range,
+   forAllRows,
+   forRows_WithIndexArray,
+   forRowsIf );
+
+INSTANTIATE_TYPED_TEST_SUITE_P( MultidiagonalMatrix, MultidiagonalMatrixTraverseTest, MultidiagonalMatrixTraverseTypes );
+
+#include "../../main.h"
