@@ -6,17 +6,21 @@
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Matrices/reduce.h>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Functional.h>
 #include <gtest/gtest.h>
 
+using TridiagonalMatrixReduceTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   #define TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Host
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, long >
 #elif defined( __CUDACC__ )
-   #define TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Cuda
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-   #define TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Hip
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, long >
 #endif
-
-namespace TridiagonalMatrixReduceTestNamespace {
+   >;
 
 template< typename MatrixType >
 void
@@ -190,45 +194,19 @@ test_reduceAllRows_deduced_identity()
    EXPECT_EQ( rowMax.getElement( 4 ), 13 );
 }
 
-}  // namespace TridiagonalMatrixReduceTestNamespace
-
-TEST( TridiagonalMatrixReduceTest, reduceRows )
+template< typename MatrixType >
+void
+test_reduceRowsIf()
 {
-   using namespace TridiagonalMatrixReduceTestNamespace;
-   test_reduceRows< TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int > >();
-   test_reduceRows< TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, long > >();
-}
-
-TEST( TridiagonalMatrixReduceTest, reduceAllRows_explicit_identity )
-{
-   using namespace TridiagonalMatrixReduceTestNamespace;
-   test_reduceAllRows_explicit_identity<
-      TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int > >();
-   test_reduceAllRows_explicit_identity<
-      TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, long > >();
-}
-
-TEST( TridiagonalMatrixReduceTest, reduceAllRows_deduced_identity )
-{
-   using namespace TridiagonalMatrixReduceTestNamespace;
-   test_reduceAllRows_deduced_identity<
-      TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int > >();
-   test_reduceAllRows_deduced_identity<
-      TNL::Matrices::TridiagonalMatrix< float, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, long > >();
-}
-
-TEST( TridiagonalMatrixReduceTest, reduceRowsIf )
-{
-   using namespace TridiagonalMatrixReduceTestNamespace;
-   using MatrixType = TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int >;
    using RealType = typename MatrixType::RealType;
    using IndexType = typename MatrixType::IndexType;
    using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
    MatrixType matrix( 5, 5 );
    setupTestMatrix( matrix );
 
-   TNL::Containers::Vector< RealType, DeviceType, IndexType > rowSums( 5, 0 );
+   VectorType rowSums( 5, 0 );
    auto rowSumsView = rowSums.getView();
 
    auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
@@ -263,18 +241,19 @@ TEST( TridiagonalMatrixReduceTest, reduceRowsIf )
    EXPECT_EQ( rowSums.getElement( 4 ), 25 );  // 12+13
 }
 
-TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgument_range )
+template< typename MatrixType >
+void
+test_reduceRowsWithArgument_range()
 {
-   using namespace TridiagonalMatrixReduceTestNamespace;
-   using MatrixType = TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int >;
    using RealType = typename MatrixType::RealType;
    using IndexType = typename MatrixType::IndexType;
    using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
    MatrixType matrix( 5, 5 );
    setupTestMatrix( matrix );
 
-   TNL::Containers::Vector< RealType, DeviceType, IndexType > maxValues( 5, 0 );
+   VectorType maxValues( 5, 0 );
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > maxColumns( 5, -1 );
    auto maxValuesView = maxValues.getView();
    auto maxColumnsView = maxColumns.getView();
@@ -328,19 +307,21 @@ TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgument_range )
    EXPECT_EQ( maxColumns.getElement( 4 ), -1 );
 }
 
-TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgument_array )
+template< typename MatrixType >
+void
+test_reduceRowsWithArgument_array()
 {
-   using namespace TridiagonalMatrixReduceTestNamespace;
-   using MatrixType = TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int >;
    using RealType = typename MatrixType::RealType;
    using IndexType = typename MatrixType::IndexType;
    using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using IndexVectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
 
    MatrixType matrix( 5, 5 );
    setupTestMatrix( matrix );
 
-   TNL::Containers::Vector< RealType, DeviceType, IndexType > maxValues( 5, 0 );
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > maxColumns( 5, -1 );
+   VectorType maxValues( 5, 0 );
+   IndexVectorType maxColumns( 5, -1 );
    auto maxValuesView = maxValues.getView();
    auto maxColumnsView = maxColumns.getView();
 
@@ -368,7 +349,7 @@ TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgument_array )
          maxColumnsView[ rowIdx ] = columnIdx;
    };
 
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 1, 2, 4 };
+   IndexVectorType rowIndexes{ 1, 2, 4 };
    TNL::Matrices::reduceRowsWithArgument( matrix, rowIndexes, fetch, reduce, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
@@ -395,19 +376,21 @@ TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgument_array )
    EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
 }
 
-TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
+template< typename MatrixType >
+void
+test_reduceRowsWithArgumentIf()
 {
-   using namespace TridiagonalMatrixReduceTestNamespace;
-   using MatrixType = TNL::Matrices::TridiagonalMatrix< double, TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE, int >;
    using RealType = typename MatrixType::RealType;
    using IndexType = typename MatrixType::IndexType;
    using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using IndexVectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
 
    MatrixType matrix( 5, 5 );
    setupTestMatrix( matrix );
 
-   TNL::Containers::Vector< RealType, DeviceType, IndexType > maxValues( 5, 0 );
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > maxColumns( 5, -1 );
+   VectorType maxValues( 5, 0 );
+   IndexVectorType maxColumns( 5, -1 );
    auto maxValuesView = maxValues.getView();
    auto maxColumnsView = maxColumns.getView();
 
@@ -455,7 +438,7 @@ TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
 
    // Array variant
    const auto constMatrix( matrix );
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 0, 2, 3, 4 };
+   IndexVectorType rowIndexes{ 0, 2, 3, 4 };
    auto conditionArray = [] __cuda_callable__( IndexType rowIdx ) -> bool
    {
       return rowIdx >= 2;
@@ -475,4 +458,61 @@ TEST( TridiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
    EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
 }
 
-#undef TRIDIAGONAL_MATRIX_REDUCE_TEST_DEVICE
+// Test fixture
+template< typename MatrixType >
+class TridiagonalMatrixReduceTest : public ::testing::Test
+{
+protected:
+   using MatrixType_ = MatrixType;
+};
+
+TYPED_TEST_SUITE_P( TridiagonalMatrixReduceTest );
+
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRows )
+{
+   test_reduceRows< TypeParam >();
+}
+
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceAllRows_explicit_identity )
+{
+   test_reduceAllRows_explicit_identity< TypeParam >();
+}
+
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceAllRows_deduced_identity )
+{
+   test_reduceAllRows_deduced_identity< TypeParam >();
+}
+
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRowsIf )
+{
+   test_reduceRowsIf< TypeParam >();
+}
+
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRowsWithArgument_range )
+{
+   test_reduceRowsWithArgument_range< TypeParam >();
+}
+
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRowsWithArgument_array )
+{
+   test_reduceRowsWithArgument_array< TypeParam >();
+}
+
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
+{
+   test_reduceRowsWithArgumentIf< TypeParam >();
+}
+
+REGISTER_TYPED_TEST_SUITE_P(
+   TridiagonalMatrixReduceTest,
+   reduceRows,
+   reduceAllRows_explicit_identity,
+   reduceAllRows_deduced_identity,
+   reduceRowsIf,
+   reduceRowsWithArgument_range,
+   reduceRowsWithArgument_array,
+   reduceRowsWithArgumentIf );
+
+INSTANTIATE_TYPED_TEST_SUITE_P( TridiagonalMatrix, TridiagonalMatrixReduceTest, TridiagonalMatrixReduceTypes );
+
+#include "../../main.h"

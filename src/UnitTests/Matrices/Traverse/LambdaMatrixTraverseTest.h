@@ -8,21 +8,34 @@
 #include <TNL/Containers/Vector.h>
 #include <gtest/gtest.h>
 
-#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   #define LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE TNL::Devices::Host
-#elif defined( __CUDACC__ )
-   #define LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE TNL::Devices::Cuda
-#elif defined( __HIP__ )
-   #define LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE TNL::Devices::Hip
-#endif
-
-namespace LambdaMatrixTraverseTestNamespace {
-
-template< typename Real, typename Index >
-auto
-createAntiDiagonalMatrix( Index size )
+template< typename Real, typename Device, typename Index >
+struct LambdaMatrixTraverseTestType
 {
-   using Device = LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE;
+   using RealType = Real;
+   using DeviceType = Device;
+   using IndexType = Index;
+};
+
+using LambdaMatrixTraverseTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   LambdaMatrixTraverseTestType< double, TNL::Devices::Host, int >,
+   LambdaMatrixTraverseTestType< float, TNL::Devices::Host, long >
+#elif defined( __CUDACC__ )
+   LambdaMatrixTraverseTestType< double, TNL::Devices::Cuda, int >,
+   LambdaMatrixTraverseTestType< float, TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+   LambdaMatrixTraverseTestType< double, TNL::Devices::Hip, int >,
+   LambdaMatrixTraverseTestType< float, TNL::Devices::Hip, long >
+#endif
+   >;
+
+template< typename TestType >
+auto
+createAntiDiagonalMatrix( typename TestType::IndexType size )
+{
+   using Real = typename TestType::RealType;
+   using Device = typename TestType::DeviceType;
+   using Index = typename TestType::IndexType;
 
    auto rowLengths = [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx ) -> Index
    {
@@ -39,15 +52,17 @@ createAntiDiagonalMatrix( Index size )
    return TNL::Matrices::LambdaMatrixFactory< Real, Device, Index >::create( size, size, matrixElements, rowLengths );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_forElements_Range()
 {
-   using Device = LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -88,15 +103,17 @@ test_forElements_Range()
    EXPECT_EQ( rowSums.getElement( 4 ), 0 );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_forAllElements()
 {
-   using Device = LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -133,18 +150,20 @@ test_forAllElements()
    EXPECT_EQ( rowSums.getElement( 4 ), 1 );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_forRows()
 {
-   using Device = LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
-   using MatrixType = decltype( createAntiDiagonalMatrix< Real, Index >( (Index) 5 ) );
+   using MatrixType = decltype( createAntiDiagonalMatrix< TestType >( (Index) 5 ) );
    using RowView = typename MatrixType::RowView;
    using ConstRowView = typename MatrixType::ConstRowView;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -185,18 +204,20 @@ test_forRows()
    EXPECT_EQ( rowSums.getElement( 4 ), 0 );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_forAllRows()
 {
-   using Device = LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
-   using MatrixType = decltype( createAntiDiagonalMatrix< Real, Index >( (Index) 5 ) );
+   using MatrixType = decltype( createAntiDiagonalMatrix< TestType >( (Index) 5 ) );
    using RowView = typename MatrixType::RowView;
    using ConstRowView = typename MatrixType::ConstRowView;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -237,34 +258,38 @@ test_forAllRows()
    EXPECT_EQ( rowSums.getElement( 4 ), 1 );
 }
 
-}  // namespace LambdaMatrixTraverseTestNamespace
-
-TEST( LambdaMatrixTraverseTest, forElements_Range )
+// Test fixture
+template< typename TestType >
+class LambdaMatrixTraverseTest : public ::testing::Test
 {
-   using namespace LambdaMatrixTraverseTestNamespace;
-   test_forElements_Range< double, int >();
-   test_forElements_Range< float, long >();
+protected:
+   using TestType_ = TestType;
+};
+
+TYPED_TEST_SUITE_P( LambdaMatrixTraverseTest );
+
+TYPED_TEST_P( LambdaMatrixTraverseTest, forElements_Range )
+{
+   test_forElements_Range< TypeParam >();
 }
 
-TEST( LambdaMatrixTraverseTest, forAllElements )
+TYPED_TEST_P( LambdaMatrixTraverseTest, forAllElements )
 {
-   using namespace LambdaMatrixTraverseTestNamespace;
-   test_forAllElements< double, int >();
-   test_forAllElements< float, long >();
+   test_forAllElements< TypeParam >();
 }
 
-TEST( LambdaMatrixTraverseTest, forRows )
+TYPED_TEST_P( LambdaMatrixTraverseTest, forRows )
 {
-   using namespace LambdaMatrixTraverseTestNamespace;
-   test_forRows< double, int >();
-   test_forRows< float, long >();
+   test_forRows< TypeParam >();
 }
 
-TEST( LambdaMatrixTraverseTest, forAllRows )
+TYPED_TEST_P( LambdaMatrixTraverseTest, forAllRows )
 {
-   using namespace LambdaMatrixTraverseTestNamespace;
-   test_forAllRows< double, int >();
-   test_forAllRows< float, long >();
+   test_forAllRows< TypeParam >();
 }
 
-#undef LAMBDA_MATRIX_TRAVERSE_TEST_DEVICE
+REGISTER_TYPED_TEST_SUITE_P( LambdaMatrixTraverseTest, forElements_Range, forAllElements, forRows, forAllRows );
+
+INSTANTIATE_TYPED_TEST_SUITE_P( LambdaMatrix, LambdaMatrixTraverseTest, LambdaMatrixTraverseTypes );
+
+#include "../../main.h"
