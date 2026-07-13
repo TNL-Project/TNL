@@ -9,21 +9,34 @@
 #include <TNL/Functional.h>
 #include <gtest/gtest.h>
 
-#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   #define LAMBDA_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Host
-#elif defined( __CUDACC__ )
-   #define LAMBDA_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Cuda
-#elif defined( __HIP__ )
-   #define LAMBDA_MATRIX_REDUCE_TEST_DEVICE TNL::Devices::Hip
-#endif
-
-namespace LambdaMatrixReduceTestNamespace {
-
-template< typename Real, typename Index >
-auto
-createAntiDiagonalMatrix( Index size )
+template< typename Real, typename Device, typename Index >
+struct LambdaMatrixReduceTestType
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using RealType = Real;
+   using DeviceType = Device;
+   using IndexType = Index;
+};
+
+using LambdaMatrixReduceTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   LambdaMatrixReduceTestType< double, TNL::Devices::Host, int >,
+   LambdaMatrixReduceTestType< float, TNL::Devices::Host, long >
+#elif defined( __CUDACC__ )
+   LambdaMatrixReduceTestType< double, TNL::Devices::Cuda, int >,
+   LambdaMatrixReduceTestType< float, TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+   LambdaMatrixReduceTestType< double, TNL::Devices::Hip, int >,
+   LambdaMatrixReduceTestType< float, TNL::Devices::Hip, long >
+#endif
+   >;
+
+template< typename TestType >
+auto
+createAntiDiagonalMatrix( typename TestType::IndexType size )
+{
+   using Real = typename TestType::RealType;
+   using Device = typename TestType::DeviceType;
+   using Index = typename TestType::IndexType;
 
    auto rowLengths = [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx ) -> Index
    {
@@ -52,11 +65,13 @@ createAntiDiagonalMatrix( Index size )
  * Element values are computed as rowIdx * 10 + columnIdx.
  * Rows 2 and 4 are empty, which tests the empty-row behavior.
  */
-template< typename Real, typename Index >
+template< typename TestType >
 auto
-createUpperTriangularMatrixWithEmptyRows( Index size )
+createUpperTriangularMatrixWithEmptyRows( typename TestType::IndexType size )
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Device = typename TestType::DeviceType;
+   using Index = typename TestType::IndexType;
 
    auto rowLengths = [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx ) -> Index
    {
@@ -79,15 +94,17 @@ createUpperTriangularMatrixWithEmptyRows( Index size )
    return TNL::Matrices::LambdaMatrixFactory< Real, Device, Index >::create( size, size, matrixElements, rowLengths );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_reduceRows()
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -126,15 +143,17 @@ test_reduceRows()
    EXPECT_EQ( rowSums.getElement( 4 ), 0 );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_reduceAllRows_explicit_identity()
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -173,15 +192,17 @@ test_reduceAllRows_explicit_identity()
    EXPECT_EQ( rowSums.getElement( 4 ), 1 );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_reduceAllRows_deduced_identity()
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -216,16 +237,18 @@ test_reduceAllRows_deduced_identity()
    EXPECT_EQ( rowSums.getElement( 4 ), 1 );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_reduceRowsWithArgument()
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
    using IndexVectorType = TNL::Containers::Vector< Index, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType maxValues( size, 0 );
    IndexVectorType maxColumns( size, -1 );
@@ -281,16 +304,18 @@ test_reduceRowsWithArgument()
    EXPECT_EQ( maxValues.getElement( 4 ), 0 );  // skipped by range
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_reduceRowsIf()
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
    using IndexVectorType = TNL::Containers::Vector< Index, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
@@ -341,16 +366,18 @@ test_reduceRowsIf()
    EXPECT_EQ( rowSums.getElement( 4 ), 1 );  // processed (rowIdx=4, even)
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_reduceRowsWithArgumentIf()
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
    using IndexVectorType = TNL::Containers::Vector< Index, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createAntiDiagonalMatrix< Real, Index >( size );
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
 
    VectorType maxValues( size, 0 );
    IndexVectorType maxColumns( size, -1 );
@@ -411,15 +438,17 @@ test_reduceRowsWithArgumentIf()
    EXPECT_EQ( maxColumns.getElement( 4 ), 0 );
 }
 
-template< typename Real, typename Index >
+template< typename TestType >
 void
 test_emptyRows()
 {
-   using Device = LAMBDA_MATRIX_REDUCE_TEST_DEVICE;
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
    using VectorType = TNL::Containers::Vector< Real, Device, Index >;
 
    const Index size = 5;
-   auto matrix = createUpperTriangularMatrixWithEmptyRows< Real, Index >( size );
+   auto matrix = createUpperTriangularMatrixWithEmptyRows< TestType >( size );
 
    VectorType rowSums( size, -1 );
    auto rowSumsView = rowSums.getView();
@@ -474,55 +503,61 @@ test_emptyRows()
    EXPECT_EQ( maxValues.getElement( 4 ), -1 );  // empty row
 }
 
-}  // namespace LambdaMatrixReduceTestNamespace
-
-TEST( LambdaMatrixReduceTest, reduceRows )
+// Test fixture
+template< typename TestType >
+class LambdaMatrixReduceTest : public ::testing::Test
 {
-   using namespace LambdaMatrixReduceTestNamespace;
-   test_reduceRows< double, int >();
-   test_reduceRows< float, long >();
+protected:
+   using TestType_ = TestType;
+};
+
+TYPED_TEST_SUITE_P( LambdaMatrixReduceTest );
+
+TYPED_TEST_P( LambdaMatrixReduceTest, reduceRows )
+{
+   test_reduceRows< TypeParam >();
 }
 
-TEST( LambdaMatrixReduceTest, reduceAllRows_explicit_identity )
+TYPED_TEST_P( LambdaMatrixReduceTest, reduceAllRows_explicit_identity )
 {
-   using namespace LambdaMatrixReduceTestNamespace;
-   test_reduceAllRows_explicit_identity< double, int >();
-   test_reduceAllRows_explicit_identity< float, long >();
+   test_reduceAllRows_explicit_identity< TypeParam >();
 }
 
-TEST( LambdaMatrixReduceTest, reduceAllRows_deduced_identity )
+TYPED_TEST_P( LambdaMatrixReduceTest, reduceAllRows_deduced_identity )
 {
-   using namespace LambdaMatrixReduceTestNamespace;
-   test_reduceAllRows_deduced_identity< double, int >();
-   test_reduceAllRows_deduced_identity< float, long >();
+   test_reduceAllRows_deduced_identity< TypeParam >();
 }
 
-TEST( LambdaMatrixReduceTest, reduceRowsWithArgument )
+TYPED_TEST_P( LambdaMatrixReduceTest, reduceRowsWithArgument )
 {
-   using namespace LambdaMatrixReduceTestNamespace;
-   test_reduceRowsWithArgument< double, int >();
-   test_reduceRowsWithArgument< float, long >();
+   test_reduceRowsWithArgument< TypeParam >();
 }
 
-TEST( LambdaMatrixReduceTest, reduceRowsIf )
+TYPED_TEST_P( LambdaMatrixReduceTest, reduceRowsIf )
 {
-   using namespace LambdaMatrixReduceTestNamespace;
-   test_reduceRowsIf< double, int >();
-   test_reduceRowsIf< float, long >();
+   test_reduceRowsIf< TypeParam >();
 }
 
-TEST( LambdaMatrixReduceTest, reduceRowsWithArgumentIf )
+TYPED_TEST_P( LambdaMatrixReduceTest, reduceRowsWithArgumentIf )
 {
-   using namespace LambdaMatrixReduceTestNamespace;
-   test_reduceRowsWithArgumentIf< double, int >();
-   test_reduceRowsWithArgumentIf< float, long >();
+   test_reduceRowsWithArgumentIf< TypeParam >();
 }
 
-TEST( LambdaMatrixReduceTest, emptyRows )
+TYPED_TEST_P( LambdaMatrixReduceTest, emptyRows )
 {
-   using namespace LambdaMatrixReduceTestNamespace;
-   test_emptyRows< double, int >();
-   test_emptyRows< float, long >();
+   test_emptyRows< TypeParam >();
 }
 
-#undef LAMBDA_MATRIX_REDUCE_TEST_DEVICE
+REGISTER_TYPED_TEST_SUITE_P(
+   LambdaMatrixReduceTest,
+   reduceRows,
+   reduceAllRows_explicit_identity,
+   reduceAllRows_deduced_identity,
+   reduceRowsWithArgument,
+   reduceRowsIf,
+   reduceRowsWithArgumentIf,
+   emptyRows );
+
+INSTANTIATE_TYPED_TEST_SUITE_P( LambdaMatrix, LambdaMatrixReduceTest, LambdaMatrixReduceTypes );
+
+#include "../../main.h"
