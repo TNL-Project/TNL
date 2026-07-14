@@ -76,10 +76,6 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLe
    {
       return value != 0.0;
    };
-   auto reduce = [] __cuda_callable__( IndexType & aux, IndexType a )
-   {
-      aux += a;
-   };
    auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {
       rowLengths_view[ rowIdx ] = value;
@@ -622,18 +618,6 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
    auto fetch = [ = ] __cuda_callable__( const IndexType& row, const IndexType& column, const RealType& value ) -> RealType
    {
       return value * inVectorView[ column ];
-   };
-   auto reduction = [] __cuda_callable__( RealType & sum, const RealType& value )
-   {
-      sum += value;
-   };
-   auto keeper1 = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
-   {
-      outVectorView[ row ] = matrixMultiplicator * value;
-   };
-   auto keeper2 = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
-   {
-      outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
    };
 
    if( end == 0 )
