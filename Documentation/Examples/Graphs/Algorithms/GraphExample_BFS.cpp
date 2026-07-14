@@ -4,6 +4,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Hip.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Graphs/Algorithms/breadthFirstSearch.h>
 
 template< typename Device >
@@ -49,16 +50,13 @@ breadthFirstSearchExample()
     * The lambda (src, tgt, weight) -> bool returns false for edges
     * that should not be traversed.
     */
+   auto skipEdgeTo3 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   {
+      return tgt != 3;
+   };
    VectorType distancesEdge;
-   TNL::Graphs::Algorithms::breadthFirstSearch(
-      graph,
-      0,
-      // edge predicate
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return tgt != 3;
-      },
-      distancesEdge );
+   auto sgEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, skipEdgeTo3 );
+   TNL::Graphs::Algorithms::breadthFirstSearch( sgEdge, 0, distancesEdge );
    std::cout << "Distances from 0 (skipping edges to 3): " << distancesEdge << "\n";
    //! [bfs edge predicate]
 
@@ -68,7 +66,8 @@ breadthFirstSearchExample()
     * Vertices 4 and 5 are inactive and stay at distance -1.
     */
    VectorType distancesInduced;
-   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, VectorType{ 0, 1, 2, 3 }, distancesInduced );
+   auto sgInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 } );
+   TNL::Graphs::Algorithms::breadthFirstSearch( sgInduced, 0, distancesInduced );
    std::cout << "Distances from 0 (induced on {0,1,2,3}): " << distancesInduced << "\n";
    //! [bfs induced]
 
@@ -77,16 +76,8 @@ breadthFirstSearchExample()
     * Combined induced-subgraph + edge-predicate BFS.
     */
    VectorType distancesInducedEdge;
-   TNL::Graphs::Algorithms::breadthFirstSearch(
-      graph,
-      0,
-      VectorType{ 0, 1, 2, 3 },
-      // edge predicate
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return tgt != 3;
-      },
-      distancesInducedEdge );
+   auto sgInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 }, skipEdgeTo3 );
+   TNL::Graphs::Algorithms::breadthFirstSearch( sgInducedEdge, 0, distancesInducedEdge );
    std::cout << "Distances from 0 (induced on {0,1,2,3}, skipping edges to 3): " << distancesInducedEdge << "\n";
    //! [bfs induced edge predicate]
 
@@ -95,16 +86,13 @@ breadthFirstSearchExample()
     * Predicate-based BFS: activate only vertices with index < 4.
     * The vertex predicate (vertex) -> bool selects active vertices.
     */
+   auto activeLt4 = [] __cuda_callable__( IndexType vertex )
+   {
+      return vertex < 4;
+   };
    VectorType distancesIf;
-   TNL::Graphs::Algorithms::breadthFirstSearchIf(
-      graph,
-      0,
-      // vertex predicate
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 4;
-      },
-      distancesIf );
+   auto sgIf = TNL::Graphs::makeSubGraph( graph, activeLt4 );
+   TNL::Graphs::Algorithms::breadthFirstSearch( sgIf, 0, distancesIf );
    std::cout << "Distances from 0 (active if vertex < 4): " << distancesIf << "\n";
    //! [bfs if]
 
@@ -113,20 +101,8 @@ breadthFirstSearchExample()
     * Combined predicate + edge-predicate BFS.
     */
    VectorType distancesIfEdge;
-   TNL::Graphs::Algorithms::breadthFirstSearchIf(
-      graph,
-      0,
-      // vertex predicate
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 4;
-      },
-      // edge predicate
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return tgt != 3;
-      },
-      distancesIfEdge );
+   auto sgIfEdge = TNL::Graphs::makeSubGraph( graph, activeLt4, skipEdgeTo3 );
+   TNL::Graphs::Algorithms::breadthFirstSearch( sgIfEdge, 0, distancesIfEdge );
    std::cout << "Distances from 0 (active if vertex < 4, skipping edges to 3): " << distancesIfEdge << "\n";
    //! [bfs if edge predicate]
 
@@ -159,9 +135,8 @@ breadthFirstSearchExample()
    VectorType visitedDistancesInduced( graph.getVertexCount(), -1 );
    auto visitedDistancesInducedView = visitedDistancesInduced.getView();
    TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
-      graph,
+      sgInduced,
       0,
-      VectorType{ 0, 1, 2, 3 },
       // visitor
       [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
       {
@@ -178,14 +153,9 @@ breadthFirstSearchExample()
    VectorType distancesVisitorIf;
    VectorType visitedDistancesIf( graph.getVertexCount(), -1 );
    auto visitedDistancesIfView = visitedDistancesIf.getView();
-   TNL::Graphs::Algorithms::breadthFirstSearchIfWithVisitor(
-      graph,
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
+      sgIf,
       0,
-      // vertex predicate
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 4;
-      },
       // visitor
       [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
       {
@@ -204,13 +174,8 @@ breadthFirstSearchExample()
    VectorType visitedDistancesEdge( graph.getVertexCount(), -1 );
    auto visitedDistancesEdgeView = visitedDistancesEdge.getView();
    TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
-      graph,
+      sgEdge,
       0,
-      // edge predicate
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return tgt != 3;
-      },
       // visitor
       [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
       {
@@ -229,14 +194,8 @@ breadthFirstSearchExample()
    VectorType visitedDistancesInducedEdge( graph.getVertexCount(), -1 );
    auto visitedDistancesInducedEdgeView = visitedDistancesInducedEdge.getView();
    TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
-      graph,
+      sgInducedEdge,
       0,
-      VectorType{ 0, 1, 2, 3 },
-      // edge predicate
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return tgt != 3;
-      },
       // visitor
       [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
       {
@@ -254,19 +213,9 @@ breadthFirstSearchExample()
    VectorType distancesVisitorIfEdge;
    VectorType visitedDistancesIfEdge( graph.getVertexCount(), -1 );
    auto visitedDistancesIfEdgeView = visitedDistancesIfEdge.getView();
-   TNL::Graphs::Algorithms::breadthFirstSearchIfWithVisitor(
-      graph,
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
+      sgIfEdge,
       0,
-      // vertex predicate
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 4;
-      },
-      // edge predicate
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return tgt != 3;
-      },
       // visitor
       [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
       {

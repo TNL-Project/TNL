@@ -11,6 +11,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Functional.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/MatrixBase.h>
 
 #include "details/activeVertices.hpp"
@@ -42,9 +43,224 @@ maximalIndependentSetPriority( Index vertex, Index roundSeed, Index iteration )
    return x;
 }
 
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+template< typename Graph, typename Vector >
 void
 maximalIndependentSetOnActiveVertices(
+   const Graph& graph,
+   Vector& independentSet,
+   typename Graph::IndexType roundSeed,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
+   static_assert(
+      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
+      "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
+      "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
+
+   // Deterministic Luby-style MIS on the induced subgraph given by isActive predicate and edgePredicate:
+   // each round keeps local priority winners, adds them to the MIS, and removes
+   // both the winners and their active neighbors from further competition.
+
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using SetValueType = typename Vector::ValueType;
+   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   const IndexType verticesCount = graph.getVertexCount();
+   if( verticesCount == 0 ) {
+      independentSet.setSize( 0 );
+      return;
+   }
+
+   independentSet.setSize( verticesCount );
+   independentSet = static_cast< SetValueType >( 0 );
+
+   const auto graphView = graph.getConstView();
+
+   IndexVector available( verticesCount, 0 );
+   IndexVector candidates( verticesCount, 0 );
+   IndexVector blocked( verticesCount, 0 );
+
+   {
+      auto availableView = available.getView();
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         verticesCount,
+         [ = ] __cuda_callable__( IndexType vertex ) mutable
+         {
+            availableView[ vertex ] = graphView.isActive( vertex ) ? 1 : 0;
+         } );
+   }
+
+   IndexType iteration = 0;
+
+   while( true ) {
+      const auto availableView = available.getConstView();
+      const IndexType activeCount = sum( available );
+
+      if( activeCount == 0 )
+         return;
+
+      auto candidatesView = candidates.getView();
+      const IndexType iterationRound = iteration;
+
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         verticesCount,
+         [ = ] __cuda_callable__( IndexType vertex ) mutable
+         {
+            if( ! availableView[ vertex ] ) {
+               candidatesView[ vertex ] = 0;
+               return;
+            }
+
+            const auto priority = maximalIndependentSetPriority( vertex, roundSeed, iterationRound );
+            bool wins = true;
+            const auto vertexView = graphView.getVertex( vertex );
+
+            for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+               const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+               if( ! availableView[ neighbor ] )
+                  continue;
+
+               const auto weight = vertexView.getEdgeWeight( localIdx );
+               if( ! graphView.edgeExists( vertex, neighbor, weight ) )
+                  continue;
+
+               const auto neighborPriority = maximalIndependentSetPriority( neighbor, roundSeed, iterationRound );
+               if( neighborPriority > priority || ( neighborPriority == priority && neighbor < vertex ) ) {
+                  wins = false;
+                  break;
+               }
+            }
+
+            candidatesView[ vertex ] = wins ? 1 : 0;
+         } );
+
+      const auto candidatesConstView = candidates.getConstView();
+      const IndexType selectedThisIteration = sum( candidates );
+
+      if( selectedThisIteration == 0 )
+         throw std::logic_error( "Maximal independent set made no progress in a Luby round." );
+
+      auto blockedView = blocked.getView();
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         verticesCount,
+         [ = ] __cuda_callable__( IndexType vertex ) mutable
+         {
+            if( ! availableView[ vertex ] ) {
+               blockedView[ vertex ] = 1;
+               return;
+            }
+
+            if( candidatesConstView[ vertex ] ) {
+               blockedView[ vertex ] = 1;
+               return;
+            }
+
+            const auto vertexView = graphView.getVertex( vertex );
+            for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+               const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+               if( ! availableView[ neighbor ] )
+                  continue;
+
+               const auto weight = vertexView.getEdgeWeight( localIdx );
+               if( ! graphView.edgeExists( vertex, neighbor, weight ) )
+                  continue;
+
+               if( candidatesConstView[ neighbor ] ) {
+                  blockedView[ vertex ] = 1;
+                  return;
+               }
+            }
+
+            blockedView[ vertex ] = 0;
+         } );
+
+      const auto blockedConstView = blocked.getConstView();
+      auto independentSetView = independentSet.getView();
+      auto availableMutableView = available.getView();
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         verticesCount,
+         [ = ] __cuda_callable__( IndexType vertex ) mutable
+         {
+            if( candidatesConstView[ vertex ] )
+               independentSetView[ vertex ] = static_cast< SetValueType >( 1 );
+
+            availableMutableView[ vertex ] = ( availableMutableView[ vertex ] && ! blockedConstView[ vertex ] ) ? 1 : 0;
+         } );
+
+      iteration++;
+   }
+}
+
+template< typename Graph, typename Vector >
+bool
+isMaximalIndependentSetOnActiveVertices(
+   const Graph& graph,
+   const Vector& independentSet,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
+   static_assert(
+      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
+      "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
+      "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
+
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+
+   const IndexType verticesCount = graph.getVertexCount();
+   if( independentSet.getSize() != verticesCount )
+      return false;
+   if( verticesCount == 0 )
+      return true;
+
+   const auto graphView = graph.getConstView();
+   const auto independentSetView = independentSet.getConstView();
+
+   return TNL::Algorithms::reduce< DeviceType >(
+      0,
+      verticesCount,
+      [ = ] __cuda_callable__( IndexType vertex ) -> bool
+      {
+         const bool active = graphView.isActive( vertex );
+         const bool isSelected = static_cast< bool >( independentSetView[ vertex ] );
+         if( ! active )
+            return ! isSelected;
+
+         bool hasSelectedNeighbor = false;
+         const auto vertexView = graphView.getVertex( vertex );
+         for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+            const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+            if( ! graphView.isActive( neighbor ) )
+               continue;
+
+            const auto weight = vertexView.getEdgeWeight( localIdx );
+            if( ! graphView.edgeExists( vertex, neighbor, weight ) )
+               continue;
+
+            if( static_cast< bool >( independentSetView[ neighbor ] ) ) {
+               if( isSelected )
+                  return false;
+               hasSelectedNeighbor = true;
+            }
+         }
+
+         return isSelected || hasSelectedNeighbor;
+      },
+      LogicalAnd{} );
+}
+
+// Predicate-based variant kept for algorithms that mutate the active-vertex set
+// inside a loop (e.g. Luby graph coloring).  Building a SubGraph from an
+// extended lambda forwarded as a template parameter hits an NVCC extended-lambda
+// copy restriction, so the predicates are passed directly here.
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+void
+maximalIndependentSetOnActiveVerticesWithPredicates(
    const Graph& graph,
    VertexPredicate&& isActive,
    Vector& independentSet,
@@ -57,10 +273,6 @@ maximalIndependentSetOnActiveVertices(
       ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
       "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
       "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
-
-   // Deterministic Luby-style MIS on the induced subgraph given by isActive predicate and edgePredicate:
-   // each round keeps local priority winners, adds them to the MIS, and removes
-   // both the winners and their active neighbors from further competition.
 
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -197,221 +409,13 @@ maximalIndependentSetOnActiveVertices(
    }
 }
 
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
-bool
-isMaximalIndependentSetOnActiveVertices(
-   const Graph& graph,
-   VertexPredicate&& isActive,
-   const Vector& independentSet,
-   EdgePredicate&& edgePredicate,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
-   static_assert(
-      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
-      "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
-      "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
-
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-
-   const IndexType verticesCount = graph.getVertexCount();
-   if( independentSet.getSize() != verticesCount )
-      return false;
-   if( verticesCount == 0 )
-      return true;
-
-   const auto graphView = graph.getConstView();
-   const auto independentSetView = independentSet.getConstView();
-
-   return TNL::Algorithms::reduce< DeviceType >(
-      0,
-      verticesCount,
-      [ = ] __cuda_callable__( IndexType vertex ) -> bool
-      {
-         const bool active = isActive( vertex );
-         const bool isSelected = static_cast< bool >( independentSetView[ vertex ] );
-         if( ! active )
-            return ! isSelected;
-
-         bool hasSelectedNeighbor = false;
-         const auto vertexView = graphView.getVertex( vertex );
-         for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
-            const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-            if( ! isActive( neighbor ) )
-               continue;
-
-            const auto weight = vertexView.getEdgeWeight( localIdx );
-            if( ! edgePredicate( vertex, neighbor, weight ) )
-               continue;
-
-            if( static_cast< bool >( independentSetView[ neighbor ] ) ) {
-               if( isSelected )
-                  return false;
-               hasSelectedNeighbor = true;
-            }
-         }
-
-         return isSelected || hasSelectedNeighbor;
-      },
-      LogicalAnd{} );
-}
-
 }  // namespace detail
 
 template< typename Graph, typename Vector >
 void
 maximalIndependentSet( const Graph& graph, Vector& independentSet, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Graph::IndexType;
-
-   detail::maximalIndependentSetOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      independentSet,
-      0,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
-void
-maximalIndependentSet(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "MIS edge predicate must return bool and accept (source, target, weight)." );
-   detail::maximalIndependentSetOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      independentSet,
-      0,
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
-void
-maximalIndependentSet(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   detail::maximalIndependentSetOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      independentSet,
-      0,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
-void
-maximalIndependentSet(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   EdgePredicate&& edgePredicate,
-   Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "MIS edge predicate must return bool and accept (source, target, weight)." );
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   detail::maximalIndependentSetOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      independentSet,
-      0,
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector >
-void
-maximalIndependentSetIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >, "MIS vertex predicate must return bool and accept (vertex)." );
-   detail::maximalIndependentSetOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      independentSet,
-      0,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
-void
-maximalIndependentSetIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   EdgePredicate&& edgePredicate,
-   Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >, "MIS vertex predicate must return bool and accept (vertex)." );
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "MIS edge predicate must return bool and accept (source, target, weight)." );
-   detail::maximalIndependentSetOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      independentSet,
-      0,
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
+   detail::maximalIndependentSetOnActiveVertices( graph, independentSet, 0, launchConfig );
 }
 
 template< typename Graph, typename Vector >
@@ -421,151 +425,7 @@ isMaximalIndependentSet(
    const Vector& independentSet,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Graph::IndexType;
-
-   return detail::isMaximalIndependentSetOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      independentSet,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
-bool
-isMaximalIndependentSet(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   const Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "MIS verifier edge predicate must return bool and accept (source, target, weight)." );
-   return detail::isMaximalIndependentSetOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      independentSet,
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
-bool
-isMaximalIndependentSet(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   const Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   return detail::isMaximalIndependentSetOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      independentSet,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
-bool
-isMaximalIndependentSet(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   EdgePredicate&& edgePredicate,
-   const Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "MIS verifier edge predicate must return bool and accept (source, target, weight)." );
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   return detail::isMaximalIndependentSetOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      independentSet,
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector >
-bool
-isMaximalIndependentSetIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   const Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "MIS verifier vertex predicate must return bool and accept (vertex)." );
-   return detail::isMaximalIndependentSetOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      independentSet,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
-bool
-isMaximalIndependentSetIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   EdgePredicate&& edgePredicate,
-   const Vector& independentSet,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "MIS verifier vertex predicate must return bool and accept (vertex)." );
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "MIS verifier edge predicate must return bool and accept (source, target, weight)." );
-   return detail::isMaximalIndependentSetOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      independentSet,
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
+   return detail::isMaximalIndependentSetOnActiveVertices( graph, independentSet, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
