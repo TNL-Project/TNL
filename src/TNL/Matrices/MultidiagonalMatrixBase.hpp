@@ -94,7 +94,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLe
    const IndexType columns = this->getColumns();
    const auto indexer = this->indexer;
    Algorithms::parallelFor< DeviceType >(
-      (IndexType) 0,
+      0,
       this->getRows(),
       [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
@@ -156,7 +156,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::setValue( const Re
    const IndexType columns = this->getColumns();
    const auto indexer = this->indexer;
    Algorithms::parallelFor< DeviceType >(
-      (IndexType) 0,
+      0,
       this->getRows(),
       [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
@@ -657,7 +657,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
             if( columnIdx >= 0 && columnIdx < columns )
                sum += fetch( rowIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
          }
-         if( outVectorMultiplicator == (RealType) 0.0 )
+         if( outVectorMultiplicator == static_cast< RealType >( 0.0 ) )
             outVectorView[ rowIdx ] = matrixMultiplicator * sum;
          else
             outVectorView[ rowIdx ] = outVectorMultiplicator * outVectorView[ rowIdx ] + matrixMultiplicator * sum;
