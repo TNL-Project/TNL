@@ -47,6 +47,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
@@ -80,6 +82,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
@@ -111,6 +115,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
@@ -148,6 +154,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
@@ -186,6 +194,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
@@ -241,6 +251,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
@@ -328,6 +340,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          IndexType columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )

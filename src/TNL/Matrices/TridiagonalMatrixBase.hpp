@@ -629,14 +629,6 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
    {
       return sum + value;
    };
-   auto keeper1 = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
-   {
-      outVectorView[ row ] = value;
-   };
-   auto keeper2 = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
-   {
-      outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
-   };
    if( end == 0 )
       end = this->getRows();
    // We inline the reduction with Algorithms::parallelFor instead of calling the free function
@@ -695,21 +687,6 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
    else {
       const auto matrixMult = matrixMultiplicator;
       const auto thisMult = thisMatrixMultiplicator;
-      auto add0 = [ = ] __cuda_callable__(
-                     const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-      {
-         value = matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-      };
-      auto add1 = [ = ] __cuda_callable__(
-                     const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-      {
-         value += matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-      };
-      auto addGen = [ = ] __cuda_callable__(
-                       const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-      {
-         value = thisMult * value + matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-      };
       // We inline the traversal with Algorithms::parallelFor instead of calling the free function
       // TNL::Matrices::forAllElements or the deprecated this->forAllElements. See
       // getCompressedRowLengths above for the circular-dependency rationale.
