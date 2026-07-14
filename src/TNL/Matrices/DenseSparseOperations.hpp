@@ -9,6 +9,7 @@
 #include <TNL/Devices/GPU.h>
 
 #include "DenseSparseOperations.h"
+#include "traverse.h"
 
 namespace TNL::Matrices {
 
@@ -39,7 +40,7 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
          if( value != 0.0 && columnIdx != paddingIndex< Index > )
             A_view( rowIdx, columnIdx ) = value;
       };
-      B.forAllElements( f );
+      TNL::Matrices::forAllElements( B, f );
    }
    else {
       const Index maxRowLength = max( rowLengths );

@@ -56,7 +56,40 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLeng
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   this->reduceAllRows( fetch, reduce, keep, 0 );
+   // We inline the reduction with Algorithms::parallelFor instead of calling the free function
+   // TNL::Matrices::reduceAllRows or the deprecated this->reduceAllRows. The free function requires
+   // constructing a TridiagonalMatrixView, but this header is included before TridiagonalMatrixView
+   // is defined (circular dependency).
+   const auto values_view = this->values.getConstView();
+   const auto indexer = this->indexer;
+   Algorithms::parallelFor< DeviceType >(
+      (IndexType) 0,
+      this->getRows(),
+      [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         IndexType sum = 0;
+         if( rowIdx == 0 ) {
+            sum = reduce( sum, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
+            sum = reduce( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
+            keep( 0, sum );
+            return;
+         }
+         if( rowIdx + 1 < indexer.getColumns() ) {
+            sum = reduce( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            sum = reduce( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
+            sum = reduce( sum, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
+            keep( rowIdx, sum );
+            return;
+         }
+         if( rowIdx < indexer.getColumns() ) {
+            sum = reduce( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            sum = reduce( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
+            keep( rowIdx, sum );
+         }
+         else {
+            keep( rowIdx, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+         }
+      } );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -77,7 +110,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCo
    {
       return values_view[ i ] != 0.0;
    };
-   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, std::plus<>{}, 0 );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, TNL::Plus{}, 0 );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -606,10 +639,38 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
    };
    if( end == 0 )
       end = this->getRows();
-   if( matrixMultiplicator == 1 && outVectorMultiplicator == 0 )
-      this->reduceRows( begin, end, fetch, reduction, keeper1, static_cast< RealType >( 0.0 ) );
-   else
-      this->reduceRows( begin, end, fetch, reduction, keeper2, static_cast< RealType >( 0.0 ) );
+   // We inline the reduction with Algorithms::parallelFor instead of calling the free function
+   // TNL::Matrices::reduceRows or the deprecated this->reduceRows. See getCompressedRowLengths
+   // above for the circular-dependency rationale.
+   const auto values_view = this->values.getConstView();
+   const auto indexer = this->indexer;
+   Algorithms::parallelFor< DeviceType >(
+      begin,
+      end,
+      [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         RealType sum = 0.0;
+         if( rowIdx == 0 ) {
+            sum = reduction( sum, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
+            sum = reduction( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
+         }
+         else if( rowIdx + 1 < indexer.getColumns() ) {
+            sum = reduction( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            sum = reduction( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
+            sum = reduction( sum, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
+         }
+         else if( rowIdx < indexer.getColumns() ) {
+            sum = reduction( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            sum = reduction( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
+         }
+         else {
+            sum = fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+         }
+         if( matrixMultiplicator == 1 && outVectorMultiplicator == 0 )
+            outVectorView[ rowIdx ] = sum;
+         else
+            outVectorView[ rowIdx ] = outVectorMultiplicator * outVectorView[ rowIdx ] + matrixMultiplicator * sum;
+      } );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -649,12 +710,82 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
       {
          value = thisMult * value + matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
       };
-      if( thisMult == 0 )
-         this->forAllElements( add0 );
-      else if( thisMult == 1 )
-         this->forAllElements( add1 );
-      else
-         this->forAllElements( addGen );
+      // We inline the traversal with Algorithms::parallelFor instead of calling the free function
+      // TNL::Matrices::forAllElements or the deprecated this->forAllElements. See
+      // getCompressedRowLengths above for the circular-dependency rationale.
+      auto values_view = this->values.getView();
+      const auto indexer = this->indexer;
+      const auto matrixValues = matrix.getValues();
+      const auto matrixIndexer = matrix.getIndexer();
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         this->getRows(),
+         [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+         {
+            if( rowIdx == 0 ) {
+               Real& v1 = values_view[ indexer.getGlobalIndex( 0, 1 ) ];
+               Real& v2 = values_view[ indexer.getGlobalIndex( 0, 2 ) ];
+               if( thisMult == 0 ) {
+                  v1 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( 0, 1 ) ];
+                  v2 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( 0, 2 ) ];
+               }
+               else if( thisMult == 1 ) {
+                  v1 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( 0, 1 ) ];
+                  v2 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( 0, 2 ) ];
+               }
+               else {
+                  v1 = thisMult * v1 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( 0, 1 ) ];
+                  v2 = thisMult * v2 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( 0, 2 ) ];
+               }
+               return;
+            }
+            if( rowIdx + 1 < indexer.getColumns() ) {
+               Real& v0 = values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ];
+               Real& v1 = values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ];
+               Real& v2 = values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ];
+               if( thisMult == 0 ) {
+                  v0 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+                  v1 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 1 ) ];
+                  v2 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 2 ) ];
+               }
+               else if( thisMult == 1 ) {
+                  v0 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+                  v1 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 1 ) ];
+                  v2 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 2 ) ];
+               }
+               else {
+                  v0 = thisMult * v0 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+                  v1 = thisMult * v1 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 1 ) ];
+                  v2 = thisMult * v2 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 2 ) ];
+               }
+               return;
+            }
+            if( rowIdx < indexer.getColumns() ) {
+               Real& v0 = values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ];
+               Real& v1 = values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ];
+               if( thisMult == 0 ) {
+                  v0 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+                  v1 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 1 ) ];
+               }
+               else if( thisMult == 1 ) {
+                  v0 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+                  v1 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 1 ) ];
+               }
+               else {
+                  v0 = thisMult * v0 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+                  v1 = thisMult * v1 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 1 ) ];
+               }
+            }
+            else {
+               Real& v0 = values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ];
+               if( thisMult == 0 )
+                  v0 = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+               else if( thisMult == 1 )
+                  v0 += matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+               else
+                  v0 = thisMult * v0 + matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, 0 ) ];
+            }
+         } );
    }
 }
 

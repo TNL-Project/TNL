@@ -6,6 +6,7 @@
 
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/TridiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Containers/Array.h>
 
 #include <TNL/Containers/Vector.h>
@@ -368,8 +369,9 @@ test_ForElements()
 
    Matrix m( rows, cols );
 
-   m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
+   TNL::Matrices::forAllElements(
+      m,
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
       {
          value = rowIdx + 1;
       } );
@@ -427,15 +429,17 @@ test_ForElementsWithArray()
 
    Matrix m( rows, cols );
 
-   m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
+   TNL::Matrices::forAllElements(
+      m,
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
       {
          value = rowIdx + 1;
       } );
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 0, 2, 4 };
-   m.forElements(
+   TNL::Matrices::forElements(
+      m,
       rowIndexes,
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
       {
          value = 1;
       } );
@@ -492,17 +496,19 @@ test_ForElementsIf()
 
    Matrix m( rows, cols );
 
-   m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
+   TNL::Matrices::forAllElements(
+      m,
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
       {
          value = rowIdx + 1;
       } );
-   m.forAllElementsIf(
+   TNL::Matrices::forAllElementsIf(
+      m,
       [] __cuda_callable__( IndexType rowIdx ) mutable
       {
          return rowIdx % 2 == 0;
       },
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
       {
          value = 1;
       } );
@@ -933,7 +939,7 @@ test_forRows()
    /////
    // Test without iterator
    //
-   auto f = [ = ] __cuda_callable__( typename Matrix::RowView& row ) mutable
+   auto f = [ = ] __cuda_callable__( typename Matrix::RowView & row ) mutable
    {
       const IndexType rowIdx = row.getRowIndex();
       if( rowIdx > 0 )
@@ -942,7 +948,7 @@ test_forRows()
       if( rowIdx < size - 1 )
          row.setElement( 2, -2.0 );
    };
-   m.forAllRows( f );
+   TNL::Matrices::forAllRows( m, f );
 
    for( IndexType row = 0; row < size; row++ )
       for( IndexType column = 0; column < size; column++ ) {
@@ -961,7 +967,7 @@ test_forRows()
    // Test with iterator
    //
    m.getValues() = 0.0;
-   auto f_iter = [ = ] __cuda_callable__( typename Matrix::RowView& row ) mutable
+   auto f_iter = [ = ] __cuda_callable__( typename Matrix::RowView & row ) mutable
    {
       for( auto element : row ) {
          if( element.rowIndex() > 0 && element.localIndex() == 0 )
@@ -972,7 +978,7 @@ test_forRows()
             element.value() = -2.0;
       }
    };
-   m.forAllRows( f_iter );
+   TNL::Matrices::forAllRows( m, f_iter );
 
    for( IndexType row = 0; row < size; row++ )
       for( IndexType column = 0; column < size; column++ ) {

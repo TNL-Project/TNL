@@ -2,6 +2,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Timer.h>
@@ -165,7 +166,7 @@ forElements( const int gridSize, Matrix& matrix )
             value = 1.0;
       }
    };
-   matrix.forElements( 0, matrixSize, f );
+   TNL::Matrices::forElements( matrix, 0, matrixSize, f );
 }
 
 template< typename Device >
