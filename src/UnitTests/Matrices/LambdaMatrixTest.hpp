@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Matrices/reduce.h>
+#include <TNL/Matrices/traverse.h>
 
 template< typename Matrix >
 void
@@ -255,7 +257,7 @@ test_ForRows()
       for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ )
          dense_row.setValue( row.getColumnIndex( localIdx ), row.getValue( localIdx ) );
    };
-   m.forAllRows( f );
+   TNL::Matrices::forAllRows( m, f );
 
    for( IndexType row = 0; row < size; row++ )
       for( IndexType column = 0; column < size; column++ )
@@ -270,7 +272,7 @@ test_ForRows()
       for( const auto element : row )
          dense_row.setValue( element.columnIndex(), element.value() );
    };
-   m.forAllRows( f_iter );
+   TNL::Matrices::forAllRows( m, f_iter );
 
    for( IndexType row = 0; row < size; row++ )
       for( IndexType column = 0; column < size; column++ )
@@ -379,7 +381,7 @@ test_reduceRows()
    {
       vView[ row ] = value;
    };
-   A.reduceAllRows( fetch, reduce, keep, 0.0 );
+   TNL::Matrices::reduceAllRows( A, fetch, reduce, keep, RealType( 0.0 ) );
 
    EXPECT_EQ( v.getElement( 0 ), 1.0 );
    EXPECT_EQ( v.getElement( 1 ), 0.0 );

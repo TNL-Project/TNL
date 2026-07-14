@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TNL/Matrices/TridiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -40,7 +41,7 @@ forAllElementsExample()
        */
       value = 3 - localIdx;
    };
-   view.forAllElements( f );  // or matrix.forAllElements
+   TNL::Matrices::forAllElements( view, f );
    std::cout << matrix << '\n';
 }
 

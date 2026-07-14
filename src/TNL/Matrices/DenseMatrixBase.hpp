@@ -192,7 +192,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCount() 
    {
       return values_view[ i ] != RealType{ 0 };
    };
-   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, std::plus<>{}, 0 );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, TNL::Plus{}, 0 );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -211,7 +211,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::getCompressedRowLengths( V
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   this->reduceAllRows( fetch, std::plus<>{}, keep, 0 );
+   this->reduceAllRows( fetch, TNL::Plus{}, keep, 0 );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

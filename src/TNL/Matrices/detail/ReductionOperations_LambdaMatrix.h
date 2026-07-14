@@ -125,7 +125,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          }
          store( idx, rowIdx, result );
       };
-      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
+      Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -160,7 +160,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          }
          store( idx, rowIdx, result );
       };
-      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
+      Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
    }
 
    // ===================== reduceRowsWithArgument (range) =====================
@@ -309,7 +309,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          }
          store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
-      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
+      Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -358,7 +358,7 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
          }
          store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
-      Algorithms::parallelFor< DeviceType >( (IndexType) 0, rowIndexes.getSize(), f );
+      Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
    }
 };
 

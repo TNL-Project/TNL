@@ -84,7 +84,28 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLe
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   this->reduceAllRows( fetch, reduce, keep, 0 );
+   // We inline the reduction with Algorithms::parallelFor instead of calling the free function
+   // TNL::Matrices::reduceAllRows or the deprecated this->reduceAllRows. The free function requires
+   // constructing a MultidiagonalMatrixView, but this header is included before
+   // MultidiagonalMatrixView is defined (circular dependency).
+   const auto values_view = this->values.getConstView();
+   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
+   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
+   const IndexType columns = this->getColumns();
+   const auto indexer = this->indexer;
+   Algorithms::parallelFor< DeviceType >(
+      (IndexType) 0,
+      this->getRows(),
+      [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         IndexType sum = 0;
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               sum += fetch( rowIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+         keep( rowIdx, sum );
+      } );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -96,7 +117,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getNonzeroElements
    {
       return values_view[ i ] != 0.0;
    };
-   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, std::plus<>{}, 0 );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, TNL::Plus{}, 0 );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -126,12 +147,25 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::setValue( const Re
    // we dont do this->values = v here because it would set even elements 'outside' the matrix
    // method getNumberOfNonzeroElements would not work well then
    const RealType newValue = v;
-   auto f = [ = ] __cuda_callable__(
-               const IndexType& rowIdx, const IndexType& localIdx, const IndexType columnIdx, RealType& value ) mutable
-   {
-      value = newValue;
-   };
-   this->forAllElements( f );
+   // We inline the traversal with Algorithms::parallelFor instead of calling the free function
+   // TNL::Matrices::forAllElements or the deprecated this->forAllElements. See
+   // getCompressedRowLengths above for the circular-dependency rationale.
+   auto values_view = this->values.getView();
+   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
+   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
+   const IndexType columns = this->getColumns();
+   const auto indexer = this->indexer;
+   Algorithms::parallelFor< DeviceType >(
+      (IndexType) 0,
+      this->getRows(),
+      [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] = newValue;
+         }
+      } );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -604,10 +638,30 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
 
    if( end == 0 )
       end = this->getRows();
-   if( outVectorMultiplicator == static_cast< RealType >( 0.0 ) )
-      this->reduceRows( begin, end, fetch, reduction, keeper1, static_cast< RealType >( 0.0 ) );
-   else
-      this->reduceRows( begin, end, fetch, reduction, keeper2, static_cast< RealType >( 0.0 ) );
+   // We inline the reduction with Algorithms::parallelFor instead of calling the free function
+   // TNL::Matrices::reduceRows or the deprecated this->reduceRows. See getCompressedRowLengths
+   // above for the circular-dependency rationale.
+   const auto values_view = this->values.getConstView();
+   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
+   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
+   const IndexType columns = this->getColumns();
+   const auto indexer = this->indexer;
+   Algorithms::parallelFor< DeviceType >(
+      begin,
+      end,
+      [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         RealType sum = 0.0;
+         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+            if( columnIdx >= 0 && columnIdx < columns )
+               sum += fetch( rowIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
+         if( outVectorMultiplicator == (RealType) 0.0 )
+            outVectorView[ rowIdx ] = matrixMultiplicator * sum;
+         else
+            outVectorView[ rowIdx ] = outVectorMultiplicator * outVectorView[ rowIdx ] + matrixMultiplicator * sum;
+      } );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

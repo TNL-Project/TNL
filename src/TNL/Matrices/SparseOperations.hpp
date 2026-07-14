@@ -15,6 +15,7 @@
 #include <TNL/Pointers/DevicePointer.h>
 
 #include "MatrixBase.h"
+#include "reduce.h"
 
 // This is workaround for nvcc which is not able to compile copySparseToSparseMatrix function
 // due to the lambda functions in the code. This issue appears at least with
@@ -126,7 +127,8 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
    if( generalToSymmetric ) {
       rowCapacities.setSize( B.getRows() );
       auto rowCapacities_view = rowCapacities.getView();
-      B.reduceAllRows(
+      TNL::Matrices::reduceAllRows(
+         B,
          [ = ] __cuda_callable__(
             SourceIndexType rowIdx, SourceIndexType columnIdx, const SourceRealType& value ) mutable -> SourceIndexType
          {
@@ -627,7 +629,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 #ifdef HAVE_OPENMP
-      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto row = B.getRow( i );
@@ -642,7 +644,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       A.setRowCapacities( rowLengths );
 
 #ifdef HAVE_OPENMP
-      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto length = rowLengths[ i ];
@@ -878,7 +880,7 @@ compressSparseMatrix( Matrix& A )
       {
          return columnIdx != paddingIndex< Index > && ( value != Real{ 0 } );
       },
-      std::plus<>{},
+      TNL::Plus{},
       [ = ] __cuda_callable__( Index rowIdx, Index value ) mutable
       {
          row_capacities_view[ rowIdx ] = value;

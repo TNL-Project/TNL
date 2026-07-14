@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -20,7 +21,7 @@ forElementsExample()
    };
 
    TNL::Containers::Array< double, Device > rowIndexes{ 0, 2, 4 };
-   matrixView.forElements( rowIndexes, f );  // or matrix.forElements
+   TNL::Matrices::forElements( matrixView, rowIndexes, f );
    std::cout << matrix << '\n';
 }
 

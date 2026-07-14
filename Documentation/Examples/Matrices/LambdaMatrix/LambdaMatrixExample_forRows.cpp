@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Matrices/LambdaMatrix.h>
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -76,7 +77,7 @@ forRowsExample()
       for( int localIdx = 0; localIdx < row.getSize(); localIdx++ )
          dense_row.setValue( row.getColumnIndex( localIdx ), row.getValue( localIdx ) );
    };
-   matrix.forAllRows( f );
+   TNL::Matrices::forAllRows( matrix, f );
 
    std::cout << "Laplace operator lambda matrix:\n" << matrix << '\n';
    std::cout << "Laplace operator dense matrix:\n" << denseMatrix << '\n';
@@ -86,7 +87,8 @@ forRowsExample()
     */
    TNL::Containers::Vector< double, Device > sum_vector( matrixSize );
    auto sum_view = sum_vector.getView();
-   matrix.forAllRows(
+   TNL::Matrices::forAllRows(
+      matrix,
       [ = ] __cuda_callable__( const RowView& row ) mutable
       {
          double sum( 0.0 );
