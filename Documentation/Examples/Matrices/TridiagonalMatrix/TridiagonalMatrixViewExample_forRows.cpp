@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TNL/Matrices/TridiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -33,7 +34,7 @@ forRowsExample()
       if( rowIdx < size - 1 )        // elements above the diagonal
          row.setElement( 2, -1.0 );
    };
-   view.forAllRows( f );  // or matrix.forAllRows
+   TNL::Matrices::forAllRows( view, f );
    std::cout << matrix << '\n';
 }
 

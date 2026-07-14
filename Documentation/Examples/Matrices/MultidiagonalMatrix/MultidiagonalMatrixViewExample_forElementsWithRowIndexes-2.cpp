@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -22,7 +23,7 @@ forElementsExample()
    TNL::Containers::Array< double, Device > rowIndexes{ 0, 2, 4, 0, 1, 3, 5, 9 };
    // The following iterates only over the rows with indexes 0, 2, and 4, i.e. indexes
    // at positions 0, 1, and 2 in the rowIndexes array. The rest is ignored.
-   matrixView.forElements( rowIndexes, 0, 2, f );  // or matrix.forElements
+   TNL::Matrices::forElements( matrixView, rowIndexes, 0, 2, f );
    std::cout << matrix << '\n';
 }
 

@@ -62,7 +62,7 @@ reduceAllRows()
    /***
     * Compute the largest values in each row.
     */
-   matrix.reduceAllRows( fetch, reduce, keep, std::numeric_limits< double >::lowest() );
+   TNL::Matrices::reduceAllRows( matrix, fetch, reduce, keep, std::numeric_limits< double >::lowest() );
 
    std::cout << "The matrix reads as:\n" << matrix << '\n';
    std::cout << "Max. elements in rows are: " << rowMax << '\n';

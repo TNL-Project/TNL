@@ -67,12 +67,7 @@ struct TraversingOperationsBase
          return;
       selectedRowIndexes += begin;
       TraversingOperations< Matrix >::forElements(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -101,12 +96,7 @@ struct TraversingOperationsBase
          return;
       selectedRowIndexes += begin;
       TraversingOperations< Matrix >::forElements(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
    // ===================== forRowsIf (range) =====================
@@ -137,12 +127,7 @@ struct TraversingOperationsBase
          return;
       selectedRowIndexes += begin;
       TraversingOperations< Matrix >::forRows(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -171,12 +156,7 @@ struct TraversingOperationsBase
          return;
       selectedRowIndexes += begin;
       TraversingOperations< Matrix >::forRows(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
    // ===================== forElementsIf (array) =====================
@@ -214,7 +194,7 @@ struct TraversingOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
@@ -222,12 +202,7 @@ struct TraversingOperationsBase
          } );
 
       TraversingOperations< Matrix >::forElements(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -263,7 +238,7 @@ struct TraversingOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
@@ -271,12 +246,7 @@ struct TraversingOperationsBase
          } );
 
       TraversingOperations< Matrix >::forElements(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
    // ===================== forRowsIf (array) =====================
@@ -314,7 +284,7 @@ struct TraversingOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
@@ -322,12 +292,7 @@ struct TraversingOperationsBase
          } );
 
       TraversingOperations< Matrix >::forRows(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -363,7 +328,7 @@ struct TraversingOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
@@ -371,12 +336,7 @@ struct TraversingOperationsBase
          } );
 
       TraversingOperations< Matrix >::forRows(
-         matrix,
-         selectedRowIndexes,
-         (IndexType) 0,
-         selectedRowIndexes.getSize(),
-         std::forward< Function >( function ),
-         launchConfig );
+         matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 };
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -23,7 +24,7 @@ forElementsExample()
       value = rowIdx + 1;
    };
 
-   matrixView.forElementsIf( 0, matrix.getRows(), condition, f );  // or matrix.forElements
+   TNL::Matrices::forElementsIf( matrixView, 0, matrix.getRows(), condition, f );
    std::cout << matrix << '\n';
 }
 
