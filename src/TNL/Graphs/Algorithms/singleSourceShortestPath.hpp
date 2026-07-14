@@ -10,6 +10,7 @@
 
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Graphs/traverse.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Backend/Macros.h>
 #include <TNL/Functional.h>
@@ -40,17 +41,11 @@ isBlockedSsspEdgeWeight( const Real& weight )
 
 }  // namespace detail
 
-template<
-   typename Graph,
-   typename Vector,
-   typename ActivePredicate,
-   typename EdgeWeightCallable,
-   typename IndexType = typename Graph::IndexType >
+template< typename Graph, typename Vector, typename EdgeWeightCallable, typename IndexType = typename Graph::IndexType >
 void
 parallelSingleSourceShortestPath(
    const Graph& graph,
    IndexType start,
-   ActivePredicate&& isActive,
    EdgeWeightCallable&& edgeWeightCallable,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
@@ -59,6 +54,8 @@ parallelSingleSourceShortestPath(
    using DeviceType = typename Graph::DeviceType;
    const IndexType n = graph.getVertexCount();
    distances.setSize( n );
+
+   const auto graphView = graph.getConstView();
 
    // Bellman-Ford-style parallel relaxation: each iteration processes the
    // current frontier and relaxes all outgoing edges.  A vertex enters the
@@ -111,7 +108,9 @@ parallelSingleSourceShortestPath(
             [ = ] __cuda_callable__(
                IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
-               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) ) {
+               if( targetIdx != Matrices::paddingIndex< IndexType > && graphView.isActive( targetIdx )
+                   && graphView.edgeExists( sourceIdx, targetIdx, weight ) )
+               {
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
@@ -161,7 +160,9 @@ parallelSingleSourceShortestPath(
                TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
                TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
-               if( targetIdx != Matrices::paddingIndex< IndexType > && isActive( targetIdx ) ) {
+               if( targetIdx != Matrices::paddingIndex< IndexType > && graphView.isActive( targetIdx )
+                   && graphView.edgeExists( sourceIdx, targetIdx, weight ) )
+               {
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
@@ -187,12 +188,11 @@ parallelSingleSourceShortestPath(
    }
 }
 
-template< typename Graph, typename Vector, typename ActivePredicate, typename EdgeWeightCallable, typename Index >
+template< typename Graph, typename Vector, typename EdgeWeightCallable, typename Index >
 void
 singleSourceShortestPath_impl(
    const Graph& graph,
    Index start,
-   ActivePredicate&& isActive,
    EdgeWeightCallable&& edgeWeightCallable,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
@@ -202,6 +202,7 @@ singleSourceShortestPath_impl(
 
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
+   const auto graphView = graph.getConstView();
 
    distances.setSize( graph.getVertexCount() );
    if( graph.getVertexCount() == 0 )
@@ -217,7 +218,7 @@ singleSourceShortestPath_impl(
       1,
       [ = ] __cuda_callable__( Index ) -> bool
       {
-         return isActive( start );
+         return graphView.isActive( start );
       },
       TNL::LogicalAnd{},
       true );
@@ -248,7 +249,9 @@ singleSourceShortestPath_impl(
             const auto& neighbor = row.getColumnIndex( i );
             if( neighbor == Matrices::paddingIndex< Index > )
                continue;
-            if( ! isActive( neighbor ) )
+            if( ! graphView.isActive( neighbor ) )
+               continue;
+            if( ! graphView.edgeExists( current, neighbor, edgeWeight ) )
                continue;
 
             const ValueType transformedWeight = edgeWeightCallable( current, neighbor, edgeWeight );
@@ -269,7 +272,7 @@ singleSourceShortestPath_impl(
       }
    }
    else {
-      parallelSingleSourceShortestPath( graph, start, isActive, edgeWeightCallable, distances, launchConfig );
+      parallelSingleSourceShortestPath( graph, start, edgeWeightCallable, distances, launchConfig );
    }
    // Replace infinity sentinel with -1 for unreachable vertices
    distances.forAllElements(
@@ -287,14 +290,11 @@ singleSourceShortestPath(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   using ValueType = typename Graph::ValueType;
    singleSourceShortestPath_impl(
       graph,
       start,
-      [] __cuda_callable__( Index )
-      {
-         return true;
-      },
-      [] __cuda_callable__( Index, Index, typename Graph::ValueType weight )
+      [] __cuda_callable__( Index, Index, ValueType weight )
       {
          return weight;
       },
@@ -314,121 +314,8 @@ singleSourceShortestPath(
    static_assert(
       detail::isEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
       "SSSP edge-weight callable must return ValueType and accept (source, target, weight)." );
-
    singleSourceShortestPath_impl(
-      graph,
-      start,
-      [] __cuda_callable__( Index )
-      {
-         return true;
-      },
-      std::forward< EdgeWeightCallable >( edgeWeightCallable ),
-      distances,
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename Index, typename Enable >
-void
-singleSourceShortestPath(
-   const Graph& graph,
-   Index start,
-   const VertexIndexes& vertexIndexes,
-   Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexVector = Containers::Vector< Index, DeviceType, Index >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( Index vertex )
-   {
-      return static_cast< bool >( activeVerticesView[ vertex ] );
-   };
-   singleSourceShortestPath_impl(
-      graph,
-      start,
-      isActive,
-      [] __cuda_callable__( Index, Index, typename Graph::ValueType weight )
-      {
-         return weight;
-      },
-      distances,
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgeWeightCallable, typename Index, typename Enable >
-void
-singleSourceShortestPath(
-   const Graph& graph,
-   Index start,
-   const VertexIndexes& vertexIndexes,
-   EdgeWeightCallable&& edgeWeightCallable,
-   Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexVector = Containers::Vector< Index, DeviceType, Index >;
-
-   static_assert(
-      detail::isEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
-      "SSSP edge-weight callable must return ValueType and accept (source, target, weight)." );
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( Index vertex )
-   {
-      return static_cast< bool >( activeVerticesView[ vertex ] );
-   };
-   singleSourceShortestPath_impl(
-      graph, start, isActive, std::forward< EdgeWeightCallable >( edgeWeightCallable ), distances, launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename Index >
-void
-singleSourceShortestPathIf(
-   const Graph& graph,
-   Index start,
-   VertexPredicate&& vertexPredicate,
-   Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >, "SSSP vertex predicate must return bool and accept (vertex)." );
-   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
-   singleSourceShortestPath_impl(
-      graph,
-      start,
-      predicate,
-      [] __cuda_callable__( Index, Index, typename Graph::ValueType weight )
-      {
-         return weight;
-      },
-      distances,
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgeWeightCallable, typename Index >
-void
-singleSourceShortestPathIf(
-   const Graph& graph,
-   Index start,
-   VertexPredicate&& vertexPredicate,
-   EdgeWeightCallable&& edgeWeightCallable,
-   Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >, "SSSP vertex predicate must return bool and accept (vertex)." );
-   static_assert(
-      detail::isEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
-      "SSSP edge-weight callable must return ValueType and accept (source, target, weight)." );
-
-   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
-   singleSourceShortestPath_impl(
-      graph, start, predicate, std::forward< EdgeWeightCallable >( edgeWeightCallable ), distances, launchConfig );
+      graph, start, std::forward< EdgeWeightCallable >( edgeWeightCallable ), distances, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms

@@ -3,6 +3,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Graphs/Algorithms/stronglyConnectedComponents.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include <gtest/gtest.h>
@@ -410,7 +411,7 @@ TYPED_TEST( GraphTest, test_SCC_indexed_small )
    ComponentsType vertexIndexes( { 1, 3, 5, 6, 7 } );
    ComponentsType components;
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, vertexIndexes, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), components );
 
    // Vertex 0,2,4,8,9 are inactive -> -1
    // Active: 1,3,5,6,7 -- 1,5,6,7 form SCC (label 1), 3 forms singleton (label 2)
@@ -444,7 +445,7 @@ TYPED_TEST( GraphTest, test_SCC_indexed_all_vertices )
    ComponentsType vertexIndexes( { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
    ComponentsType components;
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, vertexIndexes, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), components );
 
    ComponentsType expected( { 5, 3, 3, 3, 4, 3, 3, 3, 2, 1 } );
    ASSERT_EQ( components, expected );
@@ -475,7 +476,7 @@ test_SCC_predicate_none_active_impl()
       return false;
    };
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, predicate, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( TNL::Graphs::makeSubGraph( graph, predicate ), components );
 
    ComponentsType expected( { -1, -1, -1, -1, -1 } );
    ASSERT_EQ( components, expected );
@@ -515,7 +516,7 @@ test_SCC_predicate_select_subset_impl()
       return v < 3;
    };
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, predicate, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( TNL::Graphs::makeSubGraph( graph, predicate ), components );
 
    ComponentsType expected( { 1, 1, 1, -1, -1, -1 } );
    ASSERT_EQ( components, expected );
@@ -555,7 +556,8 @@ test_SCC_edge_predicate_break_cycle_impl()
       return weight < 2.0;
    };
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, edgePredicate, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), components );
 
    ComponentsType expected( { 3, 2, 1 } );
    ASSERT_EQ( components, expected );
@@ -597,7 +599,8 @@ test_SCC_edge_predicate_identity_impl()
       return true;
    };
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, edgePredicate, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), components );
 
    ComponentsType expected( { 5, 3, 3, 3, 4, 3, 3, 3, 2, 1 } );
    ASSERT_EQ( components, expected );
@@ -646,7 +649,8 @@ test_SCC_vertex_and_edge_predicate_impl()
       return weight < 2.0;
    };
 
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents(
+      TNL::Graphs::makeSubGraph( graph, vertexPredicate, edgePredicate ), components );
 
    ComponentsType expected( { 3, 2, 1, -1, -1, -1 } );
    ASSERT_EQ( components, expected );
@@ -781,7 +785,7 @@ test_SCC_subgraph_vertex_removal_predicate_impl()
    };
 
    ComponentsType compA, compB;
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graphA, exclude04, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( TNL::Graphs::makeSubGraph( graphA, exclude04 ), compA );
    TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphB, compB );
 
    const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, 6, 7 };
@@ -805,7 +809,7 @@ TYPED_TEST( GraphTest, test_SCC_subgraph_vertex_removal_indexed )
    const ComponentsType vertexIndexes( { 1, 2, 3, 5, 6, 7, 8, 9 } );
 
    ComponentsType compA, compB;
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graphA, vertexIndexes, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), compA );
    TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphB, compB );
 
    const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, 6, 7 };
@@ -828,7 +832,7 @@ test_SCC_subgraph_vertex_removal_disconnected_impl()
    };
 
    ComponentsType compA, compD;
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf( graphA, excludeFour, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( TNL::Graphs::makeSubGraph( graphA, excludeFour ), compA );
    TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphD, compD );
 
    const std::vector< int > oldToNew = { 0, 1, 2, 3, -1, 4, 5, 6, 7, 8 };
@@ -857,7 +861,8 @@ test_SCC_subgraph_edge_removal_wholeGraph_impl()
    };
 
    ComponentsType compA, compC;
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graphA, blockEdge52, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents(
+      TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockEdge52 ), compA );
    TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphC, compC );
 
    const std::vector< int > identity = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -887,7 +892,8 @@ test_SCC_subgraph_edge_removal_withIndexes_impl()
    };
 
    ComponentsType compA, compE2;
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graphA, vertexIndexes, blockEdge52, compA );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents(
+      TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockEdge52 ), compA );
    TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphE2, compE2 );
 
    const std::vector< int > oldToNew = { -1, 0, 1, 2, -1, 3, 4, 5, -1, -1 };

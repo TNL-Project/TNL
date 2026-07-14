@@ -11,6 +11,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Graphs/traverse.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/MatrixBase.h>
 
 #include "details/activeVertices.hpp"
@@ -19,7 +20,7 @@
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Index, typename VisitedView, typename ComponentsView, typename IsActive >
+template< typename Index, typename VisitedView, typename ComponentsView, typename GraphView >
 void
 enqueueComponentVertex(
    const Index componentLabel,
@@ -27,9 +28,9 @@ enqueueComponentVertex(
    VisitedView visited,
    ComponentsView components,
    std::queue< Index >& queue,
-   IsActive&& isActive )
+   const GraphView& graphView )
 {
-   if( ! isActive( vertex ) )
+   if( ! graphView.isActive( vertex ) )
       return;
    if( visited[ vertex ] )
       return;
@@ -39,9 +40,9 @@ enqueueComponentVertex(
    queue.push( vertex );
 }
 
-template< typename Graph, typename Vector, typename IsActive, typename EdgePredicate >
+template< typename Graph, typename Vector >
 void
-connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&& isActive, EdgePredicate&& edgePredicate )
+connectedComponentsSequential( const Graph& graph, Vector& components )
 {
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -54,6 +55,7 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
    if( verticesCount == 0 )
       return;
 
+   const auto graphView = graph.getConstView();
    const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
    IndexVector visited( verticesCount, 0 );
    auto visitedView = visited.getView();
@@ -63,13 +65,13 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
    // BFS from each unvisited active vertex.  CC treats the graph as
    // undirected, so we must traverse both outgoing and incoming edges.
    for( IndexType componentLabel = 0; componentLabel < verticesCount; componentLabel++ ) {
-      if( ! isActive( componentLabel ) )
+      if( ! graphView.isActive( componentLabel ) )
          continue;
       if( visitedView[ componentLabel ] )
          continue;
 
       std::queue< IndexType > queue;
-      enqueueComponentVertex( componentLabel, componentLabel, visitedView, componentsView, queue, isActive );
+      enqueueComponentVertex( componentLabel, componentLabel, visitedView, componentsView, queue, graphView );
 
       while( ! queue.empty() ) {
          const IndexType currentVertex = queue.front();
@@ -82,9 +84,9 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
             if( neighbor == Matrices::paddingIndex< IndexType > )
                continue;
             const ValueType weight = currentRow.getValue( localIdx );
-            if( ! edgePredicate( currentVertex, neighbor, weight ) )
+            if( ! graphView.edgeExists( currentVertex, neighbor, weight ) )
                continue;
-            enqueueComponentVertex( componentLabel, neighbor, visitedView, componentsView, queue, isActive );
+            enqueueComponentVertex( componentLabel, neighbor, visitedView, componentsView, queue, graphView );
          }
 
          // Reverse edges: rowIdx -> currentVertex.
@@ -104,9 +106,9 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
                      continue;
                   if( target == currentVertex ) {
                      const ValueType weight = row.getValue( localIdx );
-                     if( ! edgePredicate( rowIdx, currentVertex, weight ) )
+                     if( ! graphView.edgeExists( rowIdx, currentVertex, weight ) )
                         break;
-                     enqueueComponentVertex( componentLabel, rowIdx, visitedView, componentsView, queue, isActive );
+                     enqueueComponentVertex( componentLabel, rowIdx, visitedView, componentsView, queue, graphView );
                      break;
                   }
                }
@@ -116,13 +118,11 @@ connectedComponentsSequential( const Graph& graph, Vector& components, IsActive&
    }
 }
 
-template< typename Graph, typename Vector, typename IsActive, typename EdgePredicate >
+template< typename Graph, typename Vector >
 void
 connectedComponentsParallel(
    const Graph& graph,
    Vector& components,
-   IsActive&& isActive,
-   EdgePredicate&& edgePredicate,
    const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    using ValueType = typename Graph::ValueType;
@@ -134,6 +134,7 @@ connectedComponentsParallel(
    if( verticesCount == 0 )
       return;
 
+   const auto graphView = graph.getConstView();
    Vector previous( verticesCount );
    Vector relaxed( verticesCount );
    using HostAtomicIndexVector = Containers::Vector< Atomic< IndexType, Devices::Host >, Devices::Host, IndexType >;
@@ -145,7 +146,7 @@ connectedComponentsParallel(
    components.forAllElements(
       [ = ] __cuda_callable__( IndexType vertex, IndexType & value )
       {
-         value = isActive( vertex ) ? vertex : static_cast< IndexType >( -1 );
+         value = graphView.isActive( vertex ) ? vertex : static_cast< IndexType >( -1 );
       } );
    previous = static_cast< IndexType >( -1 );
 
@@ -174,9 +175,9 @@ connectedComponentsParallel(
             {
                if( targetIdx == paddingIndex )
                   return;
-               if( ! isActive( sourceIdx ) || ! isActive( targetIdx ) )
+               if( ! graphView.isActive( sourceIdx ) || ! graphView.isActive( targetIdx ) )
                   return;
-               if( ! edgePredicate( sourceIdx, targetIdx, weight ) )
+               if( ! graphView.edgeExists( sourceIdx, targetIdx, weight ) )
                   return;
 
                const IndexType sourceLabel = previousView[ sourceIdx ];
@@ -206,9 +207,9 @@ connectedComponentsParallel(
             {
                if( targetIdx == paddingIndex )
                   return;
-               if( ! isActive( sourceIdx ) || ! isActive( targetIdx ) )
+               if( ! graphView.isActive( sourceIdx ) || ! graphView.isActive( targetIdx ) )
                   return;
-               if( ! edgePredicate( sourceIdx, targetIdx, weight ) )
+               if( ! graphView.edgeExists( sourceIdx, targetIdx, weight ) )
                   return;
 
                const IndexType sourceLabel = previousView[ sourceIdx ];
@@ -238,161 +239,26 @@ connectedComponentsParallel(
    }
 }
 
-template< typename Graph, typename Vector, typename IsActive, typename EdgePredicate >
+template< typename Graph, typename Vector >
 void
 connectedComponents_impl(
    const Graph& graph,
    Vector& components,
-   IsActive&& isActive,
-   EdgePredicate&& edgePredicate,
    const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    using DeviceType = typename Graph::DeviceType;
 
    if constexpr( std::is_same_v< DeviceType, Devices::Sequential > || std::is_same_v< DeviceType, Devices::Host > )
-      connectedComponentsSequential( graph, components, isActive, edgePredicate );
+      connectedComponentsSequential( graph, components );
    else
-      connectedComponentsParallel( graph, components, isActive, edgePredicate, launchConfig );
+      connectedComponentsParallel( graph, components, launchConfig );
 }
 
 template< typename Graph, typename Vector >
 void
 connectedComponents( const Graph& graph, Vector& components, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Graph::IndexType;
-   connectedComponents_impl(
-      graph,
-      components,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
-void
-connectedComponents(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   Vector& components,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "CC edge predicate must return bool and accept (source, target, weight)." );
-   connectedComponents_impl(
-      graph,
-      components,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
-void
-connectedComponents(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   Vector& components,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
-   {
-      return static_cast< bool >( activeVerticesView[ vertex ] );
-   };
-   connectedComponents_impl(
-      graph,
-      components,
-      isActive,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
-void
-connectedComponents(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   EdgePredicate&& edgePredicate,
-   Vector& components,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "CC edge predicate must return bool and accept (source, target, weight)." );
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   const auto isActive = [ = ] __cuda_callable__( IndexType vertex )
-   {
-      return static_cast< bool >( activeVerticesView[ vertex ] );
-   };
-   connectedComponents_impl( graph, components, isActive, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector >
-void
-connectedComponentsIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   Vector& components,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >, "CC vertex predicate must return bool and accept (vertex)." );
-   auto predicate = std::forward< VertexPredicate >( vertexPredicate );
-   connectedComponents_impl(
-      graph,
-      components,
-      predicate,
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
-void
-connectedComponentsIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   EdgePredicate&& edgePredicate,
-   Vector& components,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >, "CC vertex predicate must return bool and accept (vertex)." );
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "CC edge predicate must return bool and accept (source, target, weight)." );
-   auto vPredicate = std::forward< VertexPredicate >( vertexPredicate );
-   connectedComponents_impl( graph, components, vPredicate, std::forward< EdgePredicate >( edgePredicate ), launchConfig );
+   connectedComponents_impl( graph, components, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms

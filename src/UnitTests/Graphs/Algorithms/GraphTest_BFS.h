@@ -2,6 +2,7 @@
 
 #include <TNL/Graphs/Algorithms/breadthFirstSearch.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include <iostream>
@@ -175,7 +176,7 @@ TYPED_TEST( GraphTest, test_BFS_withIndexes_inducedSubgraph )
    const VectorType expectedDistances( { 0, 1, -1, -1, -1 } );
    VectorType distances;
 
-   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, vertexIndexes, distances );
+   TNL::Graphs::Algorithms::breadthFirstSearch( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), 0, distances );
 
    ASSERT_EQ( distances, expectedDistances );
 }
@@ -205,7 +206,7 @@ test_BFSIf_inducedSubgraph_impl()
       return vertex <= 2;
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearchIf( graph, 0, firstThreeVertices, distances );
+   TNL::Graphs::Algorithms::breadthFirstSearch( TNL::Graphs::makeSubGraph( graph, firstThreeVertices ), 0, distances );
 
    ASSERT_EQ( distances, expectedDistances );
 }
@@ -243,7 +244,8 @@ test_BFS_withIndexes_visitor_impl()
       visitedDistancesView[ vertex ] = distance;
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, vertexIndexes, visitor, distances );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
+      TNL::Graphs::makeSubGraph( graph, vertexIndexes ), 0, visitor, distances );
 
    ASSERT_EQ( distances, expectedDistances );
    EXPECT_EQ( visitedDistances.getElement( 0 ), -1 );
@@ -285,7 +287,8 @@ test_BFS_byEdges_wholeGraph_impl()
       return ! ( source == 1 && target == 2 );
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, forbidOneToTwo, distances );
+   TNL::Graphs::Algorithms::breadthFirstSearch(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, forbidOneToTwo ), 0, distances );
 
    ASSERT_EQ( distances, expectedDistances );
 }
@@ -324,7 +327,8 @@ test_BFS_byEdges_withIndexes_inducedSubgraph_impl()
       return weight == static_cast< typename GraphType::ValueType >( 1 ) && ! ( source == 1 && target == 2 );
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, vertexIndexes, allowUnitWeightOnly, distances );
+   TNL::Graphs::Algorithms::breadthFirstSearch(
+      TNL::Graphs::makeSubGraph( graph, vertexIndexes, allowUnitWeightOnly ), 0, distances );
 
    ASSERT_EQ( distances, expectedDistances );
 }
@@ -345,7 +349,9 @@ TYPED_TEST( GraphTest, test_BFS_withInactiveStart_throws )
    const VectorType vertexIndexes( { 0, 1, 2 } );
    VectorType distances;
 
-   EXPECT_THROW( TNL::Graphs::Algorithms::breadthFirstSearch( graph, 3, vertexIndexes, distances ), std::invalid_argument );
+   EXPECT_THROW(
+      TNL::Graphs::Algorithms::breadthFirstSearch( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), 3, distances ),
+      std::invalid_argument );
 }
 
 // clang-format off
@@ -503,7 +509,7 @@ test_BFS_subgraph_vertex_removal_predicate_impl()
    };
 
    VectorType distA, distB;
-   TNL::Graphs::Algorithms::breadthFirstSearchIf( graphA, 0, excludeVertices, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearch( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), 0, distA );
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphB, 0, distB );
 
    // oldToNew: 0->0, 1->1, 3->2, 4->3, 6->4, 7->5, 9->6
@@ -533,7 +539,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_indexed )
    const VectorType vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
 
    VectorType distA, distB;
-   TNL::Graphs::Algorithms::breadthFirstSearch( graphA, 0, vertexIndexes, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearch( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), 0, distA );
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphB, 0, distB );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -560,7 +566,7 @@ test_BFS_subgraph_vertex_removal_disconnected_impl()
    };
 
    VectorType distA, distD;
-   TNL::Graphs::Algorithms::breadthFirstSearchIf( graphA, 0, excludeFour, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearch( TNL::Graphs::makeSubGraph( graphA, excludeFour ), 0, distA );
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphD, 0, distD );
 
    // oldToNew: 0->0, 1->1, 2->2, 3->3, 5->4, 6->5, 7->6, 8->7, 9->8
@@ -592,7 +598,8 @@ test_BFS_subgraph_edge_removal_wholeGraph_impl()
    };
 
    VectorType distA, distC;
-   TNL::Graphs::Algorithms::breadthFirstSearch( graphA, 0, blockEdge03, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearch(
+      TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockEdge03 ), 0, distA );
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphC, 0, distC );
 
    ASSERT_EQ( distA, distC );
@@ -620,7 +627,7 @@ test_BFS_subgraph_edge_removal_withIndexes_impl()
    };
 
    VectorType distA, distE2;
-   TNL::Graphs::Algorithms::breadthFirstSearch( graphA, 0, vertexIndexes, blockEdge03, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearch( TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockEdge03 ), 0, distA );
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphE2, 0, distE2 );
 
    // newToOld: 0, 1, 3, 4, 6, 7
@@ -678,7 +685,8 @@ test_BFS_withVisitor_edgePredicate_wholeGraph_impl()
       return ! ( source == 1 && target == 2 );
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, forbidOneToTwo, visitor, distances );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, forbidOneToTwo ), 0, visitor, distances );
 
    ASSERT_EQ( distances, expectedDistances );
    EXPECT_EQ( visitedDistances, expectedVisited );
@@ -717,7 +725,8 @@ test_BFS_withVisitor_edgePredicate_subgraph_impl()
       visitedDistancesView[ vertex ] = distance;
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graphA, 0, vertexIndexes, blockEdge03, visitor, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
+      TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockEdge03 ), 0, visitor, distA );
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphE2, 0, distE2 );
 
    // newToOld: 0, 1, 3, 4, 6, 7
@@ -772,7 +781,8 @@ test_BFS_ifWithVisitor_edgePredicate_impl()
       visitedDistancesView[ vertex ] = distance;
    };
 
-   TNL::Graphs::Algorithms::breadthFirstSearchIfWithVisitor( graphA, 0, excludeVertices, blockEdge03, visitor, distA );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
+      TNL::Graphs::makeSubGraph( graphA, excludeVertices, blockEdge03 ), 0, visitor, distA );
    TNL::Graphs::Algorithms::breadthFirstSearch( subgraphE2, 0, distE2 );
 
    // newToOld: 0, 1, 3, 4, 6, 7

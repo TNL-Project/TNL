@@ -4,6 +4,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Hip.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Graphs/Algorithms/singleSourceShortestPath.h>
 
 template< typename Device >
@@ -51,19 +52,14 @@ singleSourceShortestPathExample()
     * The callable (src, tgt, weight) -> ValueType returns the modified
     * edge weight. Returning infinity marks an edge as non-traversable.
     */
+   auto doubleEdge01 = [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
+   {
+      if( src == 0 && tgt == 1 )
+         return w * 2;
+      return w;
+   };
    VectorType distancesEdge;
-   TNL::Graphs::Algorithms::singleSourceShortestPath(
-      graph,
-      0,
-      // edge weight callable
-      // edge weight callable: double the weight of edge (0,1)
-      [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
-      {
-         if( src == 0 && tgt == 1 )
-            return w * 2;
-         return w;
-      },
-      distancesEdge );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, doubleEdge01, distancesEdge );
    std::cout << "Distances from 0 (edge 0->1 doubled): " << distancesEdge << "\n";
    //! [sssp edge weight callable]
 
@@ -73,7 +69,8 @@ singleSourceShortestPathExample()
     * Vertices 4 and 5 are inactive and stay at distance -1.
     */
    VectorType distancesInduced;
-   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, IndexVectorType{ 0, 1, 2, 3 }, distancesInduced );
+   auto sgInduced = TNL::Graphs::makeSubGraph( graph, IndexVectorType{ 0, 1, 2, 3 } );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( sgInduced, 0, distancesInduced );
    std::cout << "Distances from 0 (induced on {0,1,2,3}): " << distancesInduced << "\n";
    //! [sssp induced]
 
@@ -82,18 +79,7 @@ singleSourceShortestPathExample()
     * Combined induced-subgraph + edge-weight callable SSSP.
     */
    VectorType distancesInducedEdge;
-   TNL::Graphs::Algorithms::singleSourceShortestPath(
-      graph,
-      0,
-      // edge weight callable
-      IndexVectorType{ 0, 1, 2, 3 },
-      [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
-      {
-         if( src == 0 && tgt == 1 )
-            return w * 2;
-         return w;
-      },
-      distancesInducedEdge );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( sgInduced, 0, doubleEdge01, distancesInducedEdge );
    std::cout << "Distances from 0 (induced on {0,1,2,3}, edge 0->1 doubled): " << distancesInducedEdge << "\n";
    //! [sssp induced edge weight callable]
 
@@ -102,16 +88,13 @@ singleSourceShortestPathExample()
     * Predicate-based SSSP: activate only vertices with index < 4.
     * The vertex predicate (vertex) -> bool selects active vertices.
     */
+   auto activeLt4 = [] __cuda_callable__( IndexType vertex )
+   {
+      return vertex < 4;
+   };
    VectorType distancesIf;
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf(
-      graph,
-      // vertex predicate
-      0,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 4;
-      },
-      distancesIf );
+   auto sgIf = TNL::Graphs::makeSubGraph( graph, activeLt4 );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( sgIf, 0, distancesIf );
    std::cout << "Distances from 0 (active if vertex < 4): " << distancesIf << "\n";
    //! [sssp if]
 
@@ -120,22 +103,7 @@ singleSourceShortestPathExample()
     * Combined predicate + edge-weight callable SSSP.
     */
    VectorType distancesIfEdge;
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf(
-      graph,
-      // vertex predicate
-      0,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 4;
-         // edge weight callable
-      },
-      [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
-      {
-         if( src == 0 && tgt == 1 )
-            return w * 2;
-         return w;
-      },
-      distancesIfEdge );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( sgIf, 0, doubleEdge01, distancesIfEdge );
    std::cout << "Distances from 0 (active if vertex < 4, edge 0->1 doubled): " << distancesIfEdge << "\n";
    //! [sssp if edge weight callable]
 }

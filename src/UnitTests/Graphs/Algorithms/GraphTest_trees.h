@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <TNL/Graphs/Algorithms/trees.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include <gtest/gtest.h>
@@ -183,7 +184,8 @@ test_isTree_subgraph_vertex_removal_predicate_impl()
       return v != 6 && v != 9;
    };
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isTreeIf( graph, 0, isActive ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, isActive );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( subGraph, 0 ) );
 }
 
 TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_predicate )
@@ -205,7 +207,8 @@ TYPED_TEST( GraphTest, test_isTree_subgraph_vertex_removal_indexed )
 
    IndexVector vertexIndexes( { 0, 1, 2, 3, 4, 5, 7, 8 } );
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph, 0, vertexIndexes ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, vertexIndexes );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( subGraph, 0 ) );
 }
 
 template< typename GraphType >
@@ -227,7 +230,8 @@ test_isTree_subgraph_edge_removal_wholeGraph_impl()
       return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
    };
 
-   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph, 0, blockEdge02 ) );
+   auto subGraph1 = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge02 );
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( subGraph1, 0 ) );
 
    // Allow all edges -> is a tree
    auto allowAll = [] __cuda_callable__( IndexType, IndexType, ValueType )
@@ -235,7 +239,8 @@ test_isTree_subgraph_edge_removal_wholeGraph_impl()
       return true;
    };
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph, 0, allowAll ) );
+   auto subGraph2 = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, allowAll );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( subGraph2, 0 ) );
 }
 
 TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_wholeGraph )
@@ -266,7 +271,8 @@ test_isTree_subgraph_edge_removal_withIndexes_impl()
       return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
    };
 
-   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph, 0, vertexIndexes, blockEdge02 ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, vertexIndexes, blockEdge02 );
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( subGraph, 0 ) );
 }
 
 TYPED_TEST( GraphTest, test_isTree_subgraph_edge_removal_withIndexes )
@@ -294,8 +300,9 @@ test_isForest_subgraph_vertex_removal_predicate_impl()
       return v != 0;
    };
 
-   ASSERT_FALSE( TNL::Graphs::Algorithms::isTreeIf( graph, 1, excludeZero ) );
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestIf( graph, excludeZero ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, excludeZero );
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( subGraph, 1 ) );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( subGraph ) );
 }
 
 TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_predicate )
@@ -318,7 +325,8 @@ TYPED_TEST( GraphTest, test_isForest_subgraph_vertex_removal_indexed )
    // Remove vertex 0 -> forest
    IndexVector vertexIndexes( { 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, vertexIndexes ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, vertexIndexes );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( subGraph ) );
 }
 
 template< typename GraphType >
@@ -339,7 +347,8 @@ test_isForest_subgraph_edge_removal_wholeGraph_impl()
       return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
    };
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, blockEdge02 ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge02 );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( subGraph ) );
 }
 
 TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_wholeGraph )
@@ -369,7 +378,8 @@ test_isForest_subgraph_edge_removal_withIndexes_impl()
       return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
    };
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph, vertexIndexes, blockEdge02 ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, vertexIndexes, blockEdge02 );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( subGraph ) );
 }
 
 TYPED_TEST( GraphTest, test_isForest_subgraph_edge_removal_withIndexes )
@@ -408,7 +418,8 @@ TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_indexed )
    IndexVector vertexIndexes( { 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
    IndexVector roots( { 1, 2 } );
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, vertexIndexes, roots ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, vertexIndexes );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( subGraph, roots ) );
 }
 
 template< typename GraphType >
@@ -433,7 +444,8 @@ test_isForestWithRoots_subgraph_edge_removal_withIndexes_impl()
    };
    IndexVector roots( { 0, 5 } );
 
-   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, vertexIndexes, blockEdge02, roots ) );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, vertexIndexes, blockEdge02 );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( subGraph, roots ) );
 }
 
 TYPED_TEST( GraphTest, test_isForestWithRoots_subgraph_edge_removal_withIndexes )

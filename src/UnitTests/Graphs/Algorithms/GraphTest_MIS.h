@@ -6,6 +6,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Graphs/Algorithms/maximalIndependentSet.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include <gtest/gtest.h>
@@ -71,12 +72,13 @@ void
 expectComputedMISIsValid( const GraphType& graph, const VertexIndexes& vertexIndexes )
 {
    MISVector< GraphType > independentSet;
-   TNL::Graphs::Algorithms::maximalIndependentSet( graph, vertexIndexes, independentSet );
+   TNL::Graphs::Algorithms::maximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), independentSet );
 
    EXPECT_EQ( independentSet.getSize(), graph.getVertexCount() );
    if( vertexIndexes.getSize() > 0 )
       EXPECT_GT( TNL::sum( independentSet ), 0 );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, vertexIndexes, independentSet ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), independentSet ) );
 }
 
 template< typename GraphType, typename VertexPredicate >
@@ -87,12 +89,14 @@ expectComputedMISIsValidIf(
    typename GraphType::IndexType activeVerticesCount )
 {
    MISVector< GraphType > independentSet;
-   TNL::Graphs::Algorithms::maximalIndependentSetIf( graph, vertexPredicate, independentSet );
+   TNL::Graphs::Algorithms::maximalIndependentSet(
+      TNL::Graphs::makeSubGraph( graph, std::forward< VertexPredicate >( vertexPredicate ) ), independentSet );
 
    EXPECT_EQ( independentSet.getSize(), graph.getVertexCount() );
    if( activeVerticesCount > 0 )
       EXPECT_GT( TNL::sum( independentSet ), 0 );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graph, vertexPredicate, independentSet ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexPredicate ), independentSet ) );
 }
 
 TYPED_TEST( GraphTest, test_isMaximalIndependentSet_empty )
@@ -216,7 +220,8 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withIndexes_true )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    const MISVectorType independentSet( { 0, 1, 0, 1, 0 } );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, vertexIndexes, independentSet ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), independentSet ) );
 }
 
 TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withIndexes_false )
@@ -238,7 +243,8 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withIndexes_false )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    const MISVectorType independentSet( { 0, 0, 0, 0, 0 } );
 
-   EXPECT_FALSE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, vertexIndexes, independentSet ) );
+   EXPECT_FALSE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), independentSet ) );
 }
 
 template< typename GraphType >
@@ -264,7 +270,8 @@ test_isMaximalIndependentSet_withPredicate_true_impl()
       return vertex >= 1 && vertex <= 3;
    };
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graph, middleVertices, independentSet ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, middleVertices ), independentSet ) );
 }
 
 TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_true )
@@ -295,7 +302,8 @@ test_isMaximalIndependentSet_withPredicate_false_impl()
       return vertex >= 1 && vertex <= 3;
    };
 
-   EXPECT_FALSE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graph, middleVertices, independentSet ) );
+   EXPECT_FALSE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, middleVertices ), independentSet ) );
 }
 
 TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withPredicate_false )
@@ -498,9 +506,12 @@ test_maximalIndependentSet_edge_predicate_block_one_edge_impl()
       return weight < 2.0;
    };
 
-   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+   TNL::Graphs::Algorithms::maximalIndependentSet(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), independentSet );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, edgePredicate, independentSet ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), independentSet ) );
 }
 
 TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_one_edge )
@@ -534,10 +545,13 @@ test_maximalIndependentSet_edge_predicate_block_all_impl()
       return false;
    };
 
-   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+   TNL::Graphs::Algorithms::maximalIndependentSet(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), independentSet );
 
    EXPECT_EQ( TNL::sum( independentSet ), graph.getVertexCount() );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, edgePredicate, independentSet ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), independentSet ) );
 }
 
 TYPED_TEST( GraphTest, test_maximalIndependentSet_edge_predicate_block_all )
@@ -571,7 +585,8 @@ test_maximalIndependentSet_edge_predicate_identity_impl()
       return true;
    };
 
-   TNL::Graphs::Algorithms::maximalIndependentSet( graph, edgePredicate, independentSet );
+   TNL::Graphs::Algorithms::maximalIndependentSet(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), independentSet );
 
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
 }
@@ -721,10 +736,11 @@ test_MIS_subgraph_vertex_removal_predicate_impl()
    };
 
    MISVectorType misA, misB;
-   TNL::Graphs::Algorithms::maximalIndependentSetIf( graphA, excludeVertices, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), misA );
    TNL::Graphs::Algorithms::maximalIndependentSet( subgraphB, misB );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graphA, excludeVertices, misA ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), misA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphB, misB ) );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -753,10 +769,10 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_indexed )
    const MISVectorType vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
 
    MISVectorType misA, misB;
-   TNL::Graphs::Algorithms::maximalIndependentSet( graphA, vertexIndexes, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), misA );
    TNL::Graphs::Algorithms::maximalIndependentSet( subgraphB, misB );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graphA, vertexIndexes, misA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), misA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphB, misB ) );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -784,10 +800,10 @@ test_MIS_subgraph_vertex_removal_disconnected_impl()
    };
 
    MISVectorType misA, misD;
-   TNL::Graphs::Algorithms::maximalIndependentSetIf( graphA, excludeFour, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( TNL::Graphs::makeSubGraph( graphA, excludeFour ), misA );
    TNL::Graphs::Algorithms::maximalIndependentSet( subgraphD, misD );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graphA, excludeFour, misA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graphA, excludeFour ), misA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphD, misD ) );
 
    const std::vector< int > newToOld = { 0, 1, 2, 3, 5, 6, 7, 8, 9 };
@@ -821,10 +837,13 @@ test_MIS_subgraph_edge_removal_wholeGraph_impl()
    };
 
    MISVectorType misA, misC;
-   TNL::Graphs::Algorithms::maximalIndependentSet( graphA, blockWeight2, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet(
+      TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockWeight2 ), misA );
    TNL::Graphs::Algorithms::maximalIndependentSet( subgraphC, misC );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graphA, blockWeight2, misA ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet(
+         TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockWeight2 ), misA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphC, misC ) );
 
    EXPECT_EQ( TNL::sum( misA ), TNL::sum( misC ) );
@@ -853,10 +872,12 @@ test_MIS_subgraph_edge_removal_withIndexes_impl()
    };
 
    MISVectorType misA, misE2;
-   TNL::Graphs::Algorithms::maximalIndependentSet( graphA, vertexIndexes, blockWeight2, misA );
+   TNL::Graphs::Algorithms::maximalIndependentSet( TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockWeight2 ), misA );
    TNL::Graphs::Algorithms::maximalIndependentSet( subgraphE2, misE2 );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graphA, vertexIndexes, blockWeight2, misA ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet(
+         TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockWeight2 ), misA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphE2, misE2 ) );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };

@@ -3,7 +3,11 @@ add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
 # Graph construction and manipulation examples
-set(COMMON_EXAMPLES GraphExample_Constructors GraphExample_setEdges GraphExample_VertexView)
+set(COMMON_EXAMPLES
+    GraphExample_Constructors
+    GraphExample_setEdges
+    GraphExample_VertexView
+)
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${COMMON_EXAMPLES})
