@@ -181,7 +181,7 @@ struct ReductionOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
@@ -243,7 +243,7 @@ struct ReductionOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
@@ -401,7 +401,7 @@ struct ReductionOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {
@@ -463,7 +463,7 @@ struct ReductionOperationsBase
       auto selectedRowIndexes_view = selectedRowIndexes.getView();
       auto matchingPositions_view = matchingPositions.getConstView();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          matchingPositions.getSize(),
          [ = ] __cuda_callable__( IndexType i ) mutable
          {

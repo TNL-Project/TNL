@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/LambdaMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -34,7 +35,7 @@ forAllElementsExample()
       denseView.setElement( rowIdx, columnIdx, value );
    };
 
-   matrix.forAllElements( f );
+   TNL::Matrices::forAllElements( matrix, f );
    std::cout << "Original lambda matrix:\n" << matrix << '\n';
    std::cout << "Dense matrix:\n" << denseMatrix << '\n';
 }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <TNL/Matrices/TridiagonalMatrix.h>
+#include <TNL/Matrices/reduce.h>
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
@@ -63,7 +64,7 @@ reduceRows()
    /***
     * Compute the largest values in each row.
     */
-   view.reduceAllRows( fetch, reduce, keep, std::numeric_limits< double >::lowest() );  // or matrix.reduceAllRows
+   TNL::Matrices::reduceAllRows( view, fetch, reduce, keep, std::numeric_limits< double >::lowest() );
 
    std::cout << "The matrix reads as:\n" << matrix << '\n';
    std::cout << "Max. elements in rows are: " << rowMax << '\n';
