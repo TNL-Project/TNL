@@ -13,9 +13,11 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Functional.h>
 #include <TNL/Graphs/Algorithms/maximalIndependentSet.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Matrices/MatrixBase.h>
 
+#include "details/activeVertices.hpp"
 #include "details/lambdaTraits.hpp"
 #include "graphColoring.h"
 
@@ -34,9 +36,100 @@ maskedInactiveColor()
    return static_cast< ColorType >( -1 );
 }
 
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+template< typename Graph, typename Vector >
 bool
 isProperlyColoredOnActiveVertices(
+   const Graph& graph,
+   const Vector& colors,
+   const typename Vector::ValueType minimumColor,
+   const typename Vector::ValueType inactiveColor,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
+
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using ColorType = typename Vector::ValueType;
+
+   const IndexType verticesCount = graph.getVertexCount();
+   if( colors.getSize() != verticesCount )
+      return false;
+   if( verticesCount == 0 )
+      return true;
+
+   const auto graphView = graph.getConstView();
+   const auto colorsView = colors.getConstView();
+
+   return TNL::Algorithms::reduce< DeviceType >(
+      0,
+      verticesCount,
+      [ = ] __cuda_callable__( IndexType vertex ) -> bool
+      {
+         const bool active = graphView.isActive( vertex );
+         const ColorType color = colorsView[ vertex ];
+         if( ! active )
+            return color == inactiveColor;
+
+         if( color < minimumColor )
+            return false;
+
+         const auto vertexView = graphView.getVertex( vertex );
+         for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+            const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+            if( ! graphView.isActive( neighbor ) )
+               continue;
+
+            const auto weight = vertexView.getEdgeWeight( localIdx );
+            if( ! graphView.edgeExists( vertex, neighbor, weight ) )
+               continue;
+
+            if( colorsView[ neighbor ] == color )
+               return false;
+         }
+
+         return true;
+      },
+      LogicalAnd{} );
+}
+
+// Convert 1-based colors to 0-based by subtracting 1 from each active vertex.
+// Internally, colors start at 1 (0 means "uncolored"); this function shifts
+// them down so the final result uses 0, 1, 2, ...
+template< typename Graph, typename Vector >
+void
+finalizeZeroBasedColoringOnActiveVertices(
+   const Graph& graph,
+   Vector& colors,
+   const typename Vector::ValueType inactiveColor,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   TNL_ASSERT_TRUE(
+      isProperlyColoredOnActiveVertices(
+         graph, colors, static_cast< typename Vector::ValueType >( 1 ), inactiveColor, launchConfig ),
+      "Internal graph coloring must be proper before conversion to zero-based labels." );
+
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+
+   const IndexType verticesCount = graph.getVertexCount();
+   if( verticesCount == 0 )
+      return;
+
+   const auto graphView = graph.getConstView();
+   auto colorsView = colors.getView();
+   TNL::Algorithms::parallelFor< DeviceType >(
+      0,
+      verticesCount,
+      [ = ] __cuda_callable__( IndexType vertex ) mutable
+      {
+         if( graphView.isActive( vertex ) )
+            colorsView[ vertex ] -= static_cast< typename Vector::ValueType >( 1 );
+      } );
+}
+
+template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+bool
+isProperlyColoredOnActiveVerticesWithPredicates(
    const Graph& graph,
    VertexPredicate&& isActive,
    const Vector& colors,
@@ -92,12 +185,9 @@ isProperlyColoredOnActiveVertices(
       LogicalAnd{} );
 }
 
-// Convert 1-based colors to 0-based by subtracting 1 from each active vertex.
-// Internally, colors start at 1 (0 means "uncolored"); this function shifts
-// them down so the final result uses 0, 1, 2, ...
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
-finalizeZeroBasedColoringOnActiveVertices(
+finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
    const Graph& graph,
    VertexPredicate&& isActive,
    Vector& colors,
@@ -106,7 +196,7 @@ finalizeZeroBasedColoringOnActiveVertices(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    TNL_ASSERT_TRUE(
-      isProperlyColoredOnActiveVertices(
+      isProperlyColoredOnActiveVerticesWithPredicates(
          graph, isActive, colors, static_cast< typename Vector::ValueType >( 1 ), inactiveColor, edgePredicate, launchConfig ),
       "Internal graph coloring must be proper before conversion to zero-based labels." );
 
@@ -130,14 +220,12 @@ finalizeZeroBasedColoringOnActiveVertices(
 
 // Sequential greedy coloring: process vertices in index order, assign each
 // vertex the smallest color not used by any already-colored neighbor.
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+template< typename Graph, typename Vector >
 void
 graphColoringOnActiveVerticesSequential(
    const Graph& graph,
-   VertexPredicate&& isActive,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
-   EdgePredicate&& edgePredicate,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
@@ -151,7 +239,7 @@ graphColoringOnActiveVerticesSequential(
    auto colorsView = colors.getView();
 
    for( IndexType vertex = 0; vertex < verticesCount; vertex++ ) {
-      if( ! isActive( vertex ) )
+      if( ! graphView.isActive( vertex ) )
          continue;
 
       ColorType candidate = static_cast< ColorType >( 1 );
@@ -162,11 +250,11 @@ graphColoringOnActiveVerticesSequential(
 
          for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-            if( ! isActive( neighbor ) )
+            if( ! graphView.isActive( neighbor ) )
                continue;
 
             const auto weight = vertexView.getEdgeWeight( localIdx );
-            if( ! edgePredicate( vertex, neighbor, weight ) )
+            if( ! graphView.edgeExists( vertex, neighbor, weight ) )
                continue;
 
             if( colorsView[ neighbor ] == candidate ) {
@@ -183,17 +271,15 @@ graphColoringOnActiveVerticesSequential(
       }
    }
 
-   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
+   finalizeZeroBasedColoringOnActiveVertices( graph, colors, inactiveColor, launchConfig );
 }
 
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
+template< typename Graph, typename Vector >
 void
 graphColoringOnActiveVertices(
    const Graph& graph,
-   VertexPredicate&& isActive,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
-   EdgePredicate&& edgePredicate,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
@@ -218,6 +304,8 @@ graphColoringOnActiveVertices(
    if( verticesCount == 0 )
       return;
 
+   const auto graphView = graph.getConstView();
+
    {
       auto colorsInitView = colors.getView();
       TNL::Algorithms::parallelFor< DeviceType >(
@@ -225,16 +313,14 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            colorsInitView[ vertex ] = isActive( vertex ) ? static_cast< ColorType >( 0 ) : inactiveColor;
+            colorsInitView[ vertex ] = graphView.isActive( vertex ) ? static_cast< ColorType >( 0 ) : inactiveColor;
          } );
    }
 
    if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
-      graphColoringOnActiveVerticesSequential( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
+      graphColoringOnActiveVerticesSequential( graph, colors, inactiveColor, launchConfig );
       return;
    }
-
-   const auto graphView = graph.getConstView();
 
    IndexVector degrees( verticesCount, 0 );
    auto degreesView = degrees.getView();
@@ -257,7 +343,7 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) -> IndexType
          {
-            return ( isActive( vertex ) && colorsView[ vertex ] == static_cast< ColorType >( 0 ) ) ? 1 : 0;
+            return ( graphView.isActive( vertex ) && colorsView[ vertex ] == static_cast< ColorType >( 0 ) ) ? 1 : 0;
          },
          Plus{} );
 
@@ -270,7 +356,7 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            if( ! isActive( vertex ) )
+            if( ! graphView.isActive( vertex ) )
                return;
 
             if( colorsView[ vertex ] != static_cast< ColorType >( 0 ) )
@@ -283,11 +369,11 @@ graphColoringOnActiveVertices(
 
                for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
                   const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-                  if( ! isActive( neighbor ) )
+                  if( ! graphView.isActive( neighbor ) )
                      continue;
 
                   const auto weight = vertexView.getEdgeWeight( localIdx );
-                  if( ! edgePredicate( vertex, neighbor, weight ) )
+                  if( ! graphView.edgeExists( vertex, neighbor, weight ) )
                      continue;
 
                   if( colorsView[ neighbor ] == candidate ) {
@@ -313,7 +399,7 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            if( ! isActive( vertex ) ) {
+            if( ! graphView.isActive( vertex ) ) {
                keepColorView[ vertex ] = 0;
                return;
             }
@@ -329,11 +415,11 @@ graphColoringOnActiveVertices(
 
             for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-               if( ! isActive( neighbor ) )
+               if( ! graphView.isActive( neighbor ) )
                   continue;
 
                const auto weight = vertexView.getEdgeWeight( localIdx );
-               if( ! edgePredicate( vertex, neighbor, weight ) )
+               if( ! graphView.edgeExists( vertex, neighbor, weight ) )
                   continue;
 
                if( colorsView[ neighbor ] != static_cast< ColorType >( 0 ) )
@@ -362,12 +448,17 @@ graphColoringOnActiveVertices(
       colors += keepColor * proposedColors;
    }
 
-   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
+   finalizeZeroBasedColoringOnActiveVertices( graph, colors, inactiveColor, launchConfig );
 }
 
 // Luby-based coloring: repeatedly find a maximal independent set among
 // uncolored vertices and assign all MIS members the same color.  Each
 // iteration produces one color class.
+//
+// Keeps predicate params (like stronglyConnectedComponents_impl): it calls
+// maximalIndependentSetOnActiveVerticesWithPredicates with a CHANGING vertex
+// set inside a loop.  Building a SubGraph from an extended lambda forwarded as
+// a template parameter hits an NVCC extended-lambda copy restriction.
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
 graphColoringLubyOnActiveVertices(
@@ -423,7 +514,7 @@ graphColoringLubyOnActiveVertices(
          break;
 
       const auto remainingConstView = remaining.getConstView();
-      detail::maximalIndependentSetOnActiveVertices(
+      detail::maximalIndependentSetOnActiveVerticesWithPredicates(
          graph,
          [ = ] __cuda_callable__( IndexType vertex )
          {
@@ -440,7 +531,8 @@ graphColoringLubyOnActiveVertices(
       currentColor++;
    }
 
-   finalizeZeroBasedColoringOnActiveVertices( graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
+   finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
+      graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
 }
 
 }  // namespace detail
@@ -449,313 +541,26 @@ template< typename Graph, typename Vector >
 void
 graphColoring( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Graph::IndexType;
-
-   detail::graphColoringOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
-void
-graphColoring(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "Coloring edge predicate must return bool and accept (source, target, weight)." );
-   detail::graphColoringOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
-void
-graphColoring(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   detail::graphColoringOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      colors,
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
-void
-graphColoring(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   EdgePredicate&& edgePredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "Coloring edge predicate must return bool and accept (source, target, weight)." );
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   detail::graphColoringOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      colors,
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector >
-void
-graphColoringIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "Coloring vertex predicate must return bool and accept (vertex)." );
-   detail::graphColoringOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      colors,
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
-void
-graphColoringIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   EdgePredicate&& edgePredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "Coloring vertex predicate must return bool and accept (vertex)." );
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "Coloring edge predicate must return bool and accept (source, target, weight)." );
-   detail::graphColoringOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      colors,
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
+   detail::graphColoringOnActiveVertices( graph, colors, detail::maskedInactiveColor< typename Vector::ValueType >(), launchConfig );
 }
 
 template< typename Graph, typename Vector >
 void
 graphColoringLuby( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Graph::IndexType;
-
+   const auto graphView = graph.getConstView();
    detail::graphColoringLubyOnActiveVertices(
       graph,
-      [] __cuda_callable__( IndexType )
+      [ = ] __cuda_callable__( typename Graph::IndexType vertex )
       {
-         return true;
-      },
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
-void
-graphColoringLuby(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "Luby coloring edge predicate must return bool and accept (source, target, weight)." );
-   detail::graphColoringLubyOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
-void
-graphColoringLuby(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   detail::graphColoringLubyOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
+         return graphView.isActive( vertex );
       },
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
+      [ = ] __cuda_callable__( typename Graph::IndexType src, typename Graph::IndexType tgt, typename Graph::ValueType w )
       {
-         return true;
+         return graphView.edgeExists( src, tgt, w );
       },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
-void
-graphColoringLuby(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   EdgePredicate&& edgePredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "Luby coloring edge predicate must return bool and accept (source, target, weight)." );
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   detail::graphColoringLubyOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      colors,
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector >
-void
-graphColoringLubyIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "Luby coloring vertex predicate must return bool and accept (vertex)." );
-   detail::graphColoringLubyOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      colors,
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
-void
-graphColoringLubyIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   EdgePredicate&& edgePredicate,
-   Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "Luby coloring vertex predicate must return bool and accept (vertex)." );
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "Luby coloring edge predicate must return bool and accept (source, target, weight)." );
-   detail::graphColoringLubyOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      colors,
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ),
       launchConfig );
 }
 
@@ -763,162 +568,11 @@ template< typename Graph, typename Vector >
 bool
 isProperlyColored( const Graph& graph, const Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Graph::IndexType;
-
    return detail::isProperlyColoredOnActiveVertices(
       graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      static_cast< typename Vector::ValueType >( 0 ),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename Vector, typename EdgePredicate, typename Enable >
-bool
-isProperlyColored(
-   const Graph& graph,
-   EdgePredicate&& edgePredicate,
-   const Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "isProperlyColored edge predicate must return bool and accept (source, target, weight)." );
-   return detail::isProperlyColoredOnActiveVertices(
-      graph,
-      [] __cuda_callable__( IndexType )
-      {
-         return true;
-      },
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      static_cast< typename Vector::ValueType >( 0 ),
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename Enable >
-bool
-isProperlyColored(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   const Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   return detail::isProperlyColoredOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
       colors,
       static_cast< typename Vector::ValueType >( 0 ),
       detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexIndexes, typename Vector, typename EdgePredicate, typename Enable >
-bool
-isProperlyColored(
-   const Graph& graph,
-   const VertexIndexes& vertexIndexes,
-   EdgePredicate&& edgePredicate,
-   const Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "isProperlyColored edge predicate must return bool and accept (source, target, weight)." );
-
-   IndexVector activeVertices;
-   detail::activateIndexedVertices( graph, vertexIndexes, activeVertices );
-   const auto activeVerticesView = activeVertices.getConstView();
-   return detail::isProperlyColoredOnActiveVertices(
-      graph,
-      [ = ] __cuda_callable__( IndexType vertex )
-      {
-         return static_cast< bool >( activeVerticesView[ vertex ] );
-      },
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ),
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector >
-bool
-isProperlyColoredIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   const Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Graph::IndexType;
-
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "isProperlyColored vertex predicate must return bool and accept (vertex)." );
-   return detail::isProperlyColoredOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      [] __cuda_callable__( IndexType, IndexType, typename Graph::ValueType )
-      {
-         return true;
-      },
-      launchConfig );
-}
-
-template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
-bool
-isProperlyColoredIf(
-   const Graph& graph,
-   VertexPredicate&& vertexPredicate,
-   EdgePredicate&& edgePredicate,
-   const Vector& colors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert(
-      detail::isVertexPredicate_v< VertexPredicate, Graph >,
-      "isProperlyColored vertex predicate must return bool and accept (vertex)." );
-   static_assert(
-      detail::isEdgePredicate_v< EdgePredicate, Graph >,
-      "isProperlyColored edge predicate must return bool and accept (source, target, weight)." );
-   return detail::isProperlyColoredOnActiveVertices(
-      graph,
-      std::forward< VertexPredicate >( vertexPredicate ),
-      colors,
-      static_cast< typename Vector::ValueType >( 0 ),
-      detail::maskedInactiveColor< typename Vector::ValueType >(),
-      std::forward< EdgePredicate >( edgePredicate ),
       launchConfig );
 }
 

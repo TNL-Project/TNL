@@ -5,17 +5,12 @@
 ## Introduction
 
 TNL provides a collection of parallel graph algorithms operating on the \ref TNL::Graphs::Graph class.
-Each algorithm is offered in several overload variants that differ in how the set of active vertices
-and the set of traversable edges are defined:
+Each algorithm exposes a minimal public API — one function per algorithmic task — and operates on
+any graph-like type, including \ref TNL::Graphs::SubGraph and \ref TNL::Graphs::MaskedSubGraph.
 
-* **Basic** – the whole graph is processed using all edges.
-* **Edge predicate** – an edge predicate lambda filters which edges may be traversed.
-* **Induced subgraph** – an explicit list of active vertex indices restricts the algorithm to an induced subgraph.
-* **Induced subgraph + edge predicate** – combines the two restrictions above.
-* **Vertex predicate (`...If`)** – a vertex predicate lambda decides which vertices are active.
-* **Vertex predicate (`...If`) + edge predicate** – combines the vertex predicate with an edge predicate.
-
-The examples below demonstrate every overload variant for each algorithm. They are all structured as
+To restrict an algorithm to a subset of vertices, a subset of edges, or both, construct a
+\ref TNL::Graphs::SubGraph via the \ref TNL::Graphs::makeSubGraph factory and pass it as the graph
+argument. The examples below demonstrate this pattern for each algorithm. They are all structured as
 function templates parameterised by the device type and instantiated for the host, CUDA, and HIP.
 
 ## Common concepts
@@ -66,20 +61,20 @@ Two kinds of edge-related callables are used across the algorithms:
 Both kinds of callables must be decorated with `__cuda_callable__` so that they can be executed on
 the host as well as on GPU devices.
 
-### Induced subgraphs and vertex predicates
+### Subgraphs and vertex predicates
 
-The set of active vertices can be restricted in two ways:
+The set of active vertices and traversable edges can be restricted by constructing a
+\ref TNL::Graphs::SubGraph via \ref TNL::Graphs::makeSubGraph and passing it to the algorithm in
+place of the original graph. The factory accepts:
 
-* **Induced subgraph** – an array (typically a \ref TNL::Containers::Vector) of vertex indices is
-  passed to the algorithm. Only the vertices listed in the array are considered active; all other
-  vertices are inactive and receive the inactive sentinel value in the output.
-* **Vertex predicate** – a callable with signature `bool(IndexType vertex)` that returns `true` for
-  active vertices. Overloads that take a vertex predicate are suffixed with `If`
-  (e.g. `breadthFirstSearchIf`, `connectedComponentsIf`).
+* a **vertex predicate** — a callable `bool(IndexType vertex)` returning `true` for active vertices;
+* an **edge predicate** — a callable `bool(IndexType src, IndexType tgt, ValueType w)` returning
+  `true` for edges that may be traversed;
+* a **vertex-index array** — an explicit list of active vertex indices;
+* or any combination of the above.
 
-Both mechanisms are equivalent in effect; the induced-subgraph form is convenient when the active set
-is known in advance, while the predicate form is convenient when the active set is defined by a
-condition on the vertex index or vertex properties.
+Use the \ref TNL::Graphs::edgeOnly tag to pass an edge predicate alone (without a vertex filter).
+Inactive vertices receive the algorithm's inactive sentinel value in the output.
 
 ### Graph requirements (table)
 
@@ -125,23 +120,23 @@ The basic overload computes BFS distances from a single source vertex:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs edge predicate
 
-The induced-subgraph overload restricts the traversal to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs induced edge predicate
 
-The `breadthFirstSearchIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs if
 
-The `breadthFirstSearchIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs if edge predicate
 
@@ -155,7 +150,7 @@ The visitor overload restricted to an induced subgraph:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor induced
 
-The predicate-based visitor overload:
+The predicate-based visitor variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor if
 
@@ -163,11 +158,11 @@ The visitor overload combined with an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor edge predicate
 
-The induced-subgraph visitor overload combined with an edge predicate:
+The induced-subgraph + edge-predicate visitor variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor induced edge predicate
 
-The predicate-based visitor overload combined with an edge predicate:
+The predicate + edge-predicate visitor variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor if edge predicate
 
@@ -198,24 +193,23 @@ weights:
 
 \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp basic
 
-The edge-weight callable overload transforms edge weights before relaxation; returning infinity marks
-an edge as non-traversable:
+The edge-weight callable variant passes a weight-transforming callable to SSSP:
 
 \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp edge weight callable
 
-The induced-subgraph overload restricts the computation to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp induced
 
-The induced-subgraph overload combined with an edge-weight callable:
+The induced-subgraph + edge-weight callable variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp induced edge weight callable
 
-The `singleSourceShortestPathIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp if
 
-The `singleSourceShortestPathIf` overload combined with an edge-weight callable:
+The predicate + edge-weight callable variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_SSSP.cpp sssp if edge weight callable
 
@@ -244,23 +238,23 @@ The basic overload labels every vertex with the smallest vertex index in its com
 
 \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc edge predicate
 
-The induced-subgraph overload restricts the computation to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc induced edge predicate
 
-The `connectedComponentsIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc if
 
-The `connectedComponentsIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_ConnectedComponents.cpp cc if edge predicate
 
@@ -290,23 +284,23 @@ The basic overload labels every vertex with its strongly connected component (la
 
 \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc edge predicate
 
-The induced-subgraph overload restricts the computation to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc induced edge predicate
 
-The `stronglyConnectedComponentsIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc if
 
-The `stronglyConnectedComponentsIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_StronglyConnectedComponents.cpp scc if edge predicate
 
@@ -341,23 +335,23 @@ The basic overload checks whether the graph is a tree starting from a given root
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree edge predicate
 
-The induced-subgraph overload restricts the check to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree induced edge predicate
 
-The `isTreeIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree if
 
-The `isTreeIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is tree if edge predicate
 
@@ -367,23 +361,23 @@ The basic overload checks whether the graph is a forest; roots are auto-detected
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest edge predicate
 
-The induced-subgraph overload restricts the check to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest induced edge predicate
 
-The `isForestIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest if
 
-The `isForestIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest if edge predicate
 
@@ -394,24 +388,23 @@ starts a BFS for one tree component:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots edge predicate
 
-The induced-subgraph overload restricts the check to an explicit list of active vertices together
-with explicit roots:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array, combined with explicit roots:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots induced edge predicate
 
-The `isForestWithRootsIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots if
 
-The `isForestWithRootsIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_Trees.cpp is forest with roots if edge predicate
 
@@ -444,23 +437,23 @@ The basic overload computes a maximal independent set; the output is a 0/1 mask:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis edge predicate
 
-The induced-subgraph overload restricts the computation to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis induced edge predicate
 
-The `maximalIndependentSetIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis if
 
-The `maximalIndependentSetIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp mis if edge predicate
 
@@ -470,7 +463,7 @@ The basic verifier overload checks that a given mask is a valid maximal independ
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis basic
 
-The edge-predicate verifier overload uses the same edge predicate as during computation:
+The edge-predicate verifier variant runs on the same SubGraph used during computation:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis edge predicate
 
@@ -482,11 +475,11 @@ The induced-subgraph verifier overload combined with an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis induced edge predicate
 
-The `isMaximalIndependentSetIf` verifier overload checks a predicate-induced subgraph MIS:
+The predicate-based verifier variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis if
 
-The `isMaximalIndependentSetIf` verifier overload combined with an edge predicate:
+The predicate + edge-predicate verifier variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_MaximalIndependentSet.cpp is mis if edge predicate
 
@@ -521,23 +514,23 @@ The basic overload assigns zero-based color labels using a speculative greedy st
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring basic
 
-The edge-predicate overload ignores edges for which the predicate returns `false`:
+The edge-predicate variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring edge predicate
 
-The induced-subgraph overload restricts the coloring to an explicit list of active vertices:
+The induced-subgraph variant constructs a SubGraph from a vertex-index array:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring induced
 
-The induced-subgraph overload combined with an edge predicate:
+The induced-subgraph + edge-predicate variant constructs a SubGraph with both a vertex-index array and an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring induced edge predicate
 
-The `graphColoringIf` overload activates vertices via a vertex predicate:
+The predicate-based variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring if
 
-The `graphColoringIf` overload combined with an edge predicate:
+The predicate + edge-predicate variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring if edge predicate
 
@@ -547,7 +540,7 @@ The basic Luby overload computes each color class as a maximal independent set:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby basic
 
-The edge-predicate Luby overload ignores edges for which the predicate returns `false`:
+The edge-predicate Luby variant constructs a SubGraph via `makeSubGraph(graph, edgeOnly, edgePredicate)`:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby edge predicate
 
@@ -559,11 +552,11 @@ The induced-subgraph Luby overload combined with an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby induced edge predicate
 
-The `graphColoringLubyIf` overload activates vertices via a vertex predicate:
+The predicate-based Luby variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby if
 
-The `graphColoringLubyIf` overload combined with an edge predicate:
+The predicate + edge-predicate Luby variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp coloring luby if edge predicate
 
@@ -573,7 +566,7 @@ The basic verifier overload checks that the coloring is proper (no adjacent vert
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored basic
 
-The edge-predicate verifier overload uses the same edge predicate as during computation:
+The edge-predicate verifier variant runs on the same SubGraph used during computation:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored edge predicate
 
@@ -585,11 +578,11 @@ The induced-subgraph verifier overload combined with an edge predicate:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored induced edge predicate
 
-The `isProperlyColoredIf` verifier overload checks a predicate-induced subgraph coloring:
+The predicate-based verifier variant constructs a SubGraph with a vertex predicate:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored if
 
-The `isProperlyColoredIf` verifier overload combined with an edge predicate:
+The predicate + edge-predicate verifier variant constructs a SubGraph with both filters:
 
 \snippet Graphs/Algorithms/GraphExample_GraphColoring.cpp is properly colored if edge predicate
 

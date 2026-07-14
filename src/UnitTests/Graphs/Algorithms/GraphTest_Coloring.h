@@ -7,6 +7,7 @@
 #include <TNL/Graphs/Algorithms/graphColoring.h>
 #include <TNL/Graphs/Algorithms/maximalIndependentSet.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include <gtest/gtest.h>
@@ -88,7 +89,8 @@ expectZeroColorClassIsMaximalIndependentSet(
    ColoringVector< GraphType > zeroColorClass( colors.getSize() );
    zeroColorClass = TNL::equalTo( colors, static_cast< IndexType >( 0 ) );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, vertexIndexes, zeroColorClass ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), zeroColorClass ) );
 }
 
 template< typename GraphType, typename VertexPredicate >
@@ -103,7 +105,8 @@ expectZeroColorClassIsMaximalIndependentSetIf(
    ColoringVector< GraphType > zeroColorClass( colors.getSize() );
    zeroColorClass = TNL::equalTo( colors, static_cast< IndexType >( 0 ) );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSetIf( graph, vertexPredicate, zeroColorClass ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexPredicate ), zeroColorClass ) );
 }
 
 template< typename GraphType >
@@ -134,10 +137,10 @@ void
 expectComputedColoringIsProper( const GraphType& graph, const VertexIndexes& vertexIndexes )
 {
    ColoringVector< GraphType > colors;
-   TNL::Graphs::Algorithms::graphColoring( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors ) );
    expectZeroColorClassIsMaximalIndependentSet( graph, vertexIndexes, colors );
 }
 
@@ -146,10 +149,10 @@ void
 expectComputedColoringIsProperIf( const GraphType& graph, VertexPredicate&& vertexPredicate )
 {
    ColoringVector< GraphType > colors;
-   TNL::Graphs::Algorithms::graphColoringIf( graph, vertexPredicate, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, vertexPredicate ), colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, vertexPredicate, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexPredicate ), colors ) );
    expectZeroColorClassIsMaximalIndependentSetIf( graph, vertexPredicate, colors );
 }
 
@@ -171,10 +174,10 @@ void
 expectComputedLubyColoringIsProper( const GraphType& graph, const VertexIndexes& vertexIndexes )
 {
    ColoringVector< GraphType > colors;
-   TNL::Graphs::Algorithms::graphColoringLuby( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors ) );
    expectZeroColorClassIsMaximalIndependentSet( graph, vertexIndexes, colors );
 }
 
@@ -183,10 +186,10 @@ void
 expectComputedLubyColoringIsProperIf( const GraphType& graph, VertexPredicate&& vertexPredicate )
 {
    ColoringVector< GraphType > colors;
-   TNL::Graphs::Algorithms::graphColoringLubyIf( graph, vertexPredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( TNL::Graphs::makeSubGraph( graph, vertexPredicate ), colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, vertexPredicate, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexPredicate ), colors ) );
    expectZeroColorClassIsMaximalIndependentSetIf( graph, vertexPredicate, colors );
 }
 
@@ -300,7 +303,7 @@ TYPED_TEST( GraphTest, test_isProperlyColored_withIndexes_true )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    const ColorsType colors( { -1, 0, 1, 0, -1 } );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors ) );
 }
 
 TYPED_TEST( GraphTest, test_isProperlyColored_withIndexes_false )
@@ -322,7 +325,7 @@ TYPED_TEST( GraphTest, test_isProperlyColored_withIndexes_false )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    const ColorsType colors( { 0, 0, 1, 0, -1 } );
 
-   EXPECT_FALSE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
+   EXPECT_FALSE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors ) );
 }
 
 template< typename GraphType >
@@ -348,7 +351,7 @@ test_isProperlyColoredIf_true_impl()
       return vertex >= 1 && vertex <= 3;
    };
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, middleVertices ), colors ) );
 }
 
 TYPED_TEST( GraphTest, test_isProperlyColoredIf_true )
@@ -379,7 +382,7 @@ test_isProperlyColoredIf_false_impl()
       return vertex >= 1 && vertex <= 3;
    };
 
-   EXPECT_FALSE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
+   EXPECT_FALSE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, middleVertices ), colors ) );
 }
 
 TYPED_TEST( GraphTest, test_isProperlyColoredIf_false )
@@ -481,9 +484,9 @@ TYPED_TEST( GraphTest, test_graphColoring_withIndexes )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoring( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
    EXPECT_EQ( colors.getElement( 4 ), -1 );
 }
@@ -529,7 +532,7 @@ TYPED_TEST( GraphTest, test_graphColoring_withIndexes_usesAtMostTwoColors )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoring( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors );
 
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
@@ -557,9 +560,9 @@ test_graphColoringIf_impl()
    };
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringIf( graph, middleVertices, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, middleVertices ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, middleVertices ), colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
    EXPECT_EQ( colors.getElement( 4 ), -1 );
 }
@@ -611,9 +614,9 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_withIndexes )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLuby( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, vertexIndexes, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
    EXPECT_EQ( colors.getElement( 4 ), -1 );
 }
@@ -659,7 +662,7 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_withIndexes_usesAtMostTwoColors )
    const VertexIndexVectorType vertexIndexes( { 1, 2, 3 } );
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLuby( graph, vertexIndexes, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), colors );
 
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
@@ -687,9 +690,9 @@ test_graphColoringLubyIf_impl()
    };
    ColorsType colors;
 
-   TNL::Graphs::Algorithms::graphColoringLubyIf( graph, middleVertices, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby( TNL::Graphs::makeSubGraph( graph, middleVertices ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, middleVertices, colors ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graph, middleVertices ), colors ) );
    EXPECT_EQ( colors.getElement( 0 ), -1 );
    EXPECT_EQ( colors.getElement( 4 ), -1 );
 }
@@ -858,10 +861,12 @@ expectComputedColoringWithEdgePredicateIsProper( const GraphType& graph, EdgePre
    using ColorsType = ColoringVector< GraphType >;
 
    ColorsType colors;
-   TNL::Graphs::Algorithms::graphColoring( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors ) );
 }
 
 template< typename GraphType, typename EdgePredicate >
@@ -871,10 +876,13 @@ expectComputedLubyColoringWithEdgePredicateIsProper( const GraphType& graph, Edg
    using ColorsType = ColoringVector< GraphType >;
 
    ColorsType colors;
-   TNL::Graphs::Algorithms::graphColoringLuby( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors );
 
    EXPECT_EQ( colors.getSize(), graph.getVertexCount() );
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors ) );
 }
 
 template< typename GraphType >
@@ -906,9 +914,11 @@ test_graphColoring_edge_predicate_weight_threshold_impl()
       return weight <= 1.0;
    };
 
-   TNL::Graphs::Algorithms::graphColoring( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors ) );
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
@@ -943,9 +953,11 @@ test_graphColoring_edge_predicate_block_all_impl()
       return false;
    };
 
-   TNL::Graphs::Algorithms::graphColoring( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors ) );
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 1 ) );
 }
 
@@ -1017,9 +1029,11 @@ test_graphColoring_vertex_and_edge_predicate_impl()
       return weight <= 1.0;
    };
 
-   TNL::Graphs::Algorithms::graphColoringIf( graph, vertexPredicate, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graph, vertexPredicate, edgePredicate ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graph, vertexPredicate, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, vertexPredicate, edgePredicate ), colors ) );
    EXPECT_EQ( colors.getElement( 5 ), -1 );
 }
 
@@ -1054,9 +1068,12 @@ test_graphColoringLuby_edge_predicate_block_all_impl()
       return false;
    };
 
-   TNL::Graphs::Algorithms::graphColoringLuby( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors ) );
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 1 ) );
 }
 
@@ -1091,9 +1108,12 @@ test_graphColoringLuby_edge_predicate_weight_threshold_impl()
       return weight <= 1.0;
    };
 
-   TNL::Graphs::Algorithms::graphColoringLuby( graph, edgePredicate, colors );
+   TNL::Graphs::Algorithms::graphColoringLuby(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors ) );
    expectColorCountAtMost( colors, static_cast< typename ColorsType::ValueType >( 2 ) );
 }
 
@@ -1127,7 +1147,9 @@ test_isProperlyColored_edge_predicate_blocked_edge_no_conflict_impl()
       return weight < 2.0;
    };
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, edgePredicate, colors ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), colors ) );
 }
 
 TYPED_TEST( GraphTest, test_isProperlyColored_edge_predicate_blocked_edge_no_conflict )
@@ -1274,10 +1296,10 @@ test_graphColoring_subgraph_vertex_removal_predicate_impl()
    };
 
    ColorsType colorsA, colorsB;
-   TNL::Graphs::Algorithms::graphColoringIf( graphA, excludeVertices, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), colorsA );
    TNL::Graphs::Algorithms::graphColoring( subgraphB, colorsB );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graphA, excludeVertices, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphB, colorsB ) );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -1307,10 +1329,10 @@ test_graphColoringLuby_subgraph_vertex_removal_predicate_impl()
    };
 
    ColorsType colorsA, colorsB;
-   TNL::Graphs::Algorithms::graphColoringLubyIf( graphA, excludeVertices, colorsA );
+   TNL::Graphs::Algorithms::graphColoringLuby( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), colorsA );
    TNL::Graphs::Algorithms::graphColoringLuby( subgraphB, colorsB );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graphA, excludeVertices, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphB, colorsB ) );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -1336,10 +1358,10 @@ TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_indexed )
    const ColorsType vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
 
    ColorsType colorsA, colorsB;
-   TNL::Graphs::Algorithms::graphColoring( graphA, vertexIndexes, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), colorsA );
    TNL::Graphs::Algorithms::graphColoring( subgraphB, colorsB );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, vertexIndexes, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphB, colorsB ) );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -1364,10 +1386,10 @@ test_graphColoring_subgraph_vertex_removal_disconnected_impl()
    };
 
    ColorsType colorsA, colorsD;
-   TNL::Graphs::Algorithms::graphColoringIf( graphA, excludeFour, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graphA, excludeFour ), colorsA );
    TNL::Graphs::Algorithms::graphColoring( subgraphD, colorsD );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColoredIf( graphA, excludeFour, colorsA ) );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graphA, excludeFour ), colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphD, colorsD ) );
 
    const std::vector< int > newToOld = { 0, 1, 2, 3, 5, 6, 7, 8, 9 };
@@ -1398,10 +1420,12 @@ test_graphColoring_subgraph_edge_removal_wholeGraph_impl()
    };
 
    ColorsType colorsA, colorsC;
-   TNL::Graphs::Algorithms::graphColoring( graphA, blockWeight2, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockWeight2 ), colorsA );
    TNL::Graphs::Algorithms::graphColoring( subgraphC, colorsC );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockWeight2 ), colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
 }
 
@@ -1427,10 +1451,13 @@ test_graphColoringLuby_subgraph_edge_removal_wholeGraph_impl()
    };
 
    ColorsType colorsA, colorsC;
-   TNL::Graphs::Algorithms::graphColoringLuby( graphA, blockWeight2, colorsA );
+   TNL::Graphs::Algorithms::graphColoringLuby(
+      TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockWeight2 ), colorsA );
    TNL::Graphs::Algorithms::graphColoringLuby( subgraphC, colorsC );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, blockWeight2, colorsA ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored(
+         TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockWeight2 ), colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphC, colorsC ) );
 
    EXPECT_EQ( getColorCount( colorsA ), getColorCount( colorsC ) );
@@ -1459,10 +1486,11 @@ test_graphColoring_subgraph_edge_removal_withIndexes_impl()
    };
 
    ColorsType colorsA, colorsE2;
-   TNL::Graphs::Algorithms::graphColoring( graphA, vertexIndexes, blockWeight2, colorsA );
+   TNL::Graphs::Algorithms::graphColoring( TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockWeight2 ), colorsA );
    TNL::Graphs::Algorithms::graphColoring( subgraphE2, colorsE2 );
 
-   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graphA, vertexIndexes, blockWeight2, colorsA ) );
+   EXPECT_TRUE(
+      TNL::Graphs::Algorithms::isProperlyColored( TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockWeight2 ), colorsA ) );
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( subgraphE2, colorsE2 ) );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };

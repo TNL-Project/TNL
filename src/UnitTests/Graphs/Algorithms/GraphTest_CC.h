@@ -2,6 +2,7 @@
 
 #include <TNL/Graphs/Algorithms/connectedComponents.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include <gtest/gtest.h>
@@ -261,7 +262,7 @@ TYPED_TEST( GraphTest, test_CC_indexed_small )
    ComponentsType vertexIndexes( { 2, 4, 6, 7 } );
    ComponentsType components;
 
-   TNL::Graphs::Algorithms::connectedComponents( graph, vertexIndexes, components );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), components );
 
    ComponentsType expected( { -1, -1, 2, -1, 2, -1, 2, 2, -1, -1 } );
    ASSERT_EQ( components, expected );
@@ -289,7 +290,7 @@ TYPED_TEST( GraphTest, test_CC_indexed_alternating )
    ComponentsType vertexIndexes( { 0, 2, 4 } );
    ComponentsType components;
 
-   TNL::Graphs::Algorithms::connectedComponents( graph, vertexIndexes, components );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), components );
 
    ComponentsType expected( { 0, -1, 0, -1, 0, -1 } );
    ASSERT_EQ( components, expected );
@@ -317,7 +318,7 @@ TYPED_TEST( GraphTest, test_CC_indexed_all_vertices )
    ComponentsType vertexIndexes( { 0, 1, 2, 3, 4 } );
    ComponentsType components;
 
-   TNL::Graphs::Algorithms::connectedComponents( graph, vertexIndexes, components );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), components );
 
    ComponentsType expected( { 0, 0, 0, 0, 0 } );
    ASSERT_EQ( components, expected );
@@ -349,7 +350,7 @@ test_CC_predicate_small_impl()
       return v >= 2 && v <= 7;
    };
 
-   TNL::Graphs::Algorithms::connectedComponentsIf( graph, predicate, components );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graph, predicate ), components );
 
    ComponentsType expected( { -1, -1, 2, 3, 2, 5, 2, 2, -1, -1 } );
    ASSERT_EQ( components, expected );
@@ -386,7 +387,7 @@ test_CC_predicate_even_vertices_impl()
       return v % 2 == 0;
    };
 
-   TNL::Graphs::Algorithms::connectedComponentsIf( graph, predicate, components );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graph, predicate ), components );
 
    ComponentsType expected( { 0, -1, 0, -1, 0, -1 } );
    ASSERT_EQ( components, expected );
@@ -421,7 +422,7 @@ test_CC_predicate_none_active_impl()
       return false;
    };
 
-   TNL::Graphs::Algorithms::connectedComponentsIf( graph, predicate, components );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graph, predicate ), components );
 
    ComponentsType expected( { -1, -1, -1, -1, -1 } );
    ASSERT_EQ( components, expected );
@@ -461,7 +462,8 @@ test_CC_edge_predicate_weight_threshold_impl()
       return weight <= 2.0;
    };
 
-   TNL::Graphs::Algorithms::connectedComponents( graph, edgePredicate, components );
+   TNL::Graphs::Algorithms::connectedComponents(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), components );
 
    ComponentsType expected( { 0, 0, 0, 3, 4 } );
    ASSERT_EQ( components, expected );
@@ -499,7 +501,8 @@ test_CC_edge_predicate_block_all_impl()
       return false;
    };
 
-   TNL::Graphs::Algorithms::connectedComponents( graph, edgePredicate, components );
+   TNL::Graphs::Algorithms::connectedComponents(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), components );
 
    ComponentsType expected( { 0, 1, 2, 3, 4 } );
    ASSERT_EQ( components, expected );
@@ -537,7 +540,8 @@ test_CC_edge_predicate_identity_impl()
       return true;
    };
 
-   TNL::Graphs::Algorithms::connectedComponents( graph, edgePredicate, components );
+   TNL::Graphs::Algorithms::connectedComponents(
+      TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, edgePredicate ), components );
 
    ComponentsType expected( { 0, 0, 0, 0, 0 } );
    ASSERT_EQ( components, expected );
@@ -583,7 +587,8 @@ test_CC_vertex_and_edge_predicate_impl()
       return weight <= 1.0;
    };
 
-   TNL::Graphs::Algorithms::connectedComponentsIf( graph, vertexPredicate, edgePredicate, components );
+   TNL::Graphs::Algorithms::connectedComponents(
+      TNL::Graphs::makeSubGraph( graph, vertexPredicate, edgePredicate ), components );
 
    ComponentsType expected( { 0, 0, 2, 2, 4, -1 } );
    ASSERT_EQ( components, expected );
@@ -773,7 +778,7 @@ test_CC_subgraph_vertex_removal_predicate_impl()
    };
 
    ComponentsType compA, compB;
-   TNL::Graphs::Algorithms::connectedComponentsIf( graphA, excludeVertices, compA );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), compA );
    TNL::Graphs::Algorithms::connectedComponents( subgraphB, compB );
 
    // oldToNew: -1 for removed vertices
@@ -798,7 +803,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_indexed )
    const ComponentsType vertexIndexes( { 0, 1, 3, 4, 6, 7, 9 } );
 
    ComponentsType compA, compB;
-   TNL::Graphs::Algorithms::connectedComponents( graphA, vertexIndexes, compA );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), compA );
    TNL::Graphs::Algorithms::connectedComponents( subgraphB, compB );
 
    const std::vector< int > oldToNew = { 0, 1, -1, 2, 3, -1, 4, 5, -1, 6 };
@@ -821,7 +826,7 @@ test_CC_subgraph_vertex_removal_disconnected_impl()
    };
 
    ComponentsType compA, compD;
-   TNL::Graphs::Algorithms::connectedComponentsIf( graphA, excludeFour, compA );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graphA, excludeFour ), compA );
    TNL::Graphs::Algorithms::connectedComponents( subgraphD, compD );
 
    const std::vector< int > oldToNew = { 0, 1, 2, 3, -1, 4, 5, 6, 7, 8 };
@@ -850,7 +855,8 @@ test_CC_subgraph_edge_removal_wholeGraph_impl()
    };
 
    ComponentsType compA, compC;
-   TNL::Graphs::Algorithms::connectedComponents( graphA, blockWeight2, compA );
+   TNL::Graphs::Algorithms::connectedComponents(
+      TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockWeight2 ), compA );
    TNL::Graphs::Algorithms::connectedComponents( subgraphC, compC );
 
    const std::vector< int > identity = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -880,7 +886,7 @@ test_CC_subgraph_edge_removal_withIndexes_impl()
    };
 
    ComponentsType compA, compE2;
-   TNL::Graphs::Algorithms::connectedComponents( graphA, vertexIndexes, blockWeight2, compA );
+   TNL::Graphs::Algorithms::connectedComponents( TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockWeight2 ), compA );
    TNL::Graphs::Algorithms::connectedComponents( subgraphE2, compE2 );
 
    const std::vector< int > oldToNew = { 0, 1, -1, 2, 3, -1, 4, 5, -1, -1 };
@@ -909,7 +915,8 @@ test_CC_subgraph_edge_removal_bridge_impl()
    };
 
    ComponentsType compA, compBridge;
-   TNL::Graphs::Algorithms::connectedComponents( graphA, blockEdge89, compA );
+   TNL::Graphs::Algorithms::connectedComponents(
+      TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockEdge89 ), compA );
    TNL::Graphs::Algorithms::connectedComponents( subgraphBridge, compBridge );
 
    const std::vector< int > identity = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
