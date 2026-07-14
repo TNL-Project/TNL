@@ -4,6 +4,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Hip.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Graphs/Algorithms/graphColoring.h>
 
 template< typename Device >
@@ -54,14 +55,12 @@ graphColoringExample()
     * The remaining path 0-1-2-3-4 needs only 2 colors.
     */
    VectorType colorsEdge;
-   TNL::Graphs::Algorithms::graphColoring(
-      // edge predicate
-      graph,
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsEdge );
+   auto blockEdge40 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   {
+      return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
+   };
+   auto sgEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge40 );
+   TNL::Graphs::Algorithms::graphColoring( sgEdge, colorsEdge );
    std::cout << "Greedy colors (edge 4-0 blocked): " << colorsEdge << "\n";
    //! [coloring edge predicate]
 
@@ -71,7 +70,8 @@ graphColoringExample()
     * Vertex 4 is inactive and gets color -1.
     */
    VectorType colorsInduced;
-   TNL::Graphs::Algorithms::graphColoring( graph, VectorType{ 0, 1, 2, 3 }, colorsInduced );
+   auto sgInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 } );
+   TNL::Graphs::Algorithms::graphColoring( sgInduced, colorsInduced );
    std::cout << "Greedy colors (induced on {0,1,2,3}): " << colorsInduced << "\n";
    //! [coloring induced]
 
@@ -80,15 +80,8 @@ graphColoringExample()
     * Combined induced-subgraph + edge-predicate coloring.
     */
    VectorType colorsInducedEdge;
-   TNL::Graphs::Algorithms::graphColoring(
-      graph,
-      // edge predicate
-      VectorType{ 0, 1, 2, 3 },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsInducedEdge );
+   auto sgInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 }, blockEdge40 );
+   TNL::Graphs::Algorithms::graphColoring( sgInducedEdge, colorsInducedEdge );
    std::cout << "Greedy colors (induced on {0,1,2,3}, edge 4-0 blocked): " << colorsInducedEdge << "\n";
    //! [coloring induced edge predicate]
 
@@ -98,14 +91,12 @@ graphColoringExample()
     * The vertex predicate (vertex) -> bool selects active vertices.
     */
    VectorType colorsIf;
-   TNL::Graphs::Algorithms::graphColoringIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-      },
-      colorsIf );
+   auto activeIf = [] __cuda_callable__( IndexType vertex )
+   {
+      return vertex <= 3;
+   };
+   auto sgIf = TNL::Graphs::makeSubGraph( graph, activeIf );
+   TNL::Graphs::Algorithms::graphColoring( sgIf, colorsIf );
    std::cout << "Greedy colors (active if vertex <= 3): " << colorsIf << "\n";
    //! [coloring if]
 
@@ -114,19 +105,8 @@ graphColoringExample()
     * Combined predicate + edge-predicate coloring.
     */
    VectorType colorsIfEdge;
-   TNL::Graphs::Algorithms::graphColoringIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-         // edge predicate
-      },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsIfEdge );
+   auto sgIfEdge = TNL::Graphs::makeSubGraph( graph, activeIf, blockEdge40 );
+   TNL::Graphs::Algorithms::graphColoring( sgIfEdge, colorsIfEdge );
    std::cout << "Greedy colors (active if vertex <= 3, edge 4-0 blocked): " << colorsIfEdge << "\n";
    //! [coloring if edge predicate]
 
@@ -146,14 +126,7 @@ graphColoringExample()
     * Edge-predicate Luby coloring.
     */
    VectorType colorsLubyEdge;
-   TNL::Graphs::Algorithms::graphColoringLuby(
-      // edge predicate
-      graph,
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsLubyEdge );
+   TNL::Graphs::Algorithms::graphColoringLuby( sgEdge, colorsLubyEdge );
    std::cout << "Luby colors (edge 4-0 blocked): " << colorsLubyEdge << "\n";
    //! [coloring luby edge predicate]
 
@@ -162,7 +135,7 @@ graphColoringExample()
     * Induced-subgraph Luby coloring.
     */
    VectorType colorsLubyInduced;
-   TNL::Graphs::Algorithms::graphColoringLuby( graph, VectorType{ 0, 1, 2, 3 }, colorsLubyInduced );
+   TNL::Graphs::Algorithms::graphColoringLuby( sgInduced, colorsLubyInduced );
    std::cout << "Luby colors (induced on {0,1,2,3}): " << colorsLubyInduced << "\n";
    //! [coloring luby induced]
 
@@ -171,15 +144,7 @@ graphColoringExample()
     * Combined induced-subgraph + edge-predicate Luby coloring.
     */
    VectorType colorsLubyInducedEdge;
-   TNL::Graphs::Algorithms::graphColoringLuby(
-      graph,
-      // edge predicate
-      VectorType{ 0, 1, 2, 3 },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsLubyInducedEdge );
+   TNL::Graphs::Algorithms::graphColoringLuby( sgInducedEdge, colorsLubyInducedEdge );
    std::cout << "Luby colors (induced on {0,1,2,3}, edge 4-0 blocked): " << colorsLubyInducedEdge << "\n";
    //! [coloring luby induced edge predicate]
 
@@ -188,14 +153,7 @@ graphColoringExample()
     * Predicate-based Luby coloring.
     */
    VectorType colorsLubyIf;
-   TNL::Graphs::Algorithms::graphColoringLubyIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-      },
-      colorsLubyIf );
+   TNL::Graphs::Algorithms::graphColoringLuby( sgIf, colorsLubyIf );
    std::cout << "Luby colors (active if vertex <= 3): " << colorsLubyIf << "\n";
    //! [coloring luby if]
 
@@ -204,19 +162,7 @@ graphColoringExample()
     * Combined predicate + edge-predicate Luby coloring.
     */
    VectorType colorsLubyIfEdge;
-   TNL::Graphs::Algorithms::graphColoringLubyIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-         // edge predicate
-      },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsLubyIfEdge );
+   TNL::Graphs::Algorithms::graphColoringLuby( sgIfEdge, colorsLubyIfEdge );
    std::cout << "Luby colors (active if vertex <= 3, edge 4-0 blocked): " << colorsLubyIfEdge << "\n";
    //! [coloring luby if edge predicate]
 
@@ -237,22 +183,8 @@ graphColoringExample()
     * Verify coloring with the same edge predicate.
     */
    VectorType colorsForCheckEdge;
-   TNL::Graphs::Algorithms::graphColoring(
-      // edge predicate
-      graph,
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsForCheckEdge );
-   bool isProperEdge = TNL::Graphs::Algorithms::isProperlyColored(
-      // edge predicate
-      graph,
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsForCheckEdge );
+   TNL::Graphs::Algorithms::graphColoring( sgEdge, colorsForCheckEdge );
+   bool isProperEdge = TNL::Graphs::Algorithms::isProperlyColored( sgEdge, colorsForCheckEdge );
    std::cout << "isProperlyColored(graph, block 4-0, colors): " << ( isProperEdge ? "true" : "false" ) << "\n";
    //! [is properly colored edge predicate]
 
@@ -261,8 +193,8 @@ graphColoringExample()
     * Verify induced-subgraph coloring.
     */
    VectorType colorsForCheckInduced;
-   TNL::Graphs::Algorithms::graphColoring( graph, VectorType{ 0, 1, 2, 3 }, colorsForCheckInduced );
-   bool isProperInduced = TNL::Graphs::Algorithms::isProperlyColored( graph, VectorType{ 0, 1, 2, 3 }, colorsForCheckInduced );
+   TNL::Graphs::Algorithms::graphColoring( sgInduced, colorsForCheckInduced );
+   bool isProperInduced = TNL::Graphs::Algorithms::isProperlyColored( sgInduced, colorsForCheckInduced );
    std::cout << "isProperlyColored(graph, {0,1,2,3}, colors): " << ( isProperInduced ? "true" : "false" ) << "\n";
    //! [is properly colored induced]
 
@@ -271,24 +203,8 @@ graphColoringExample()
     * Verify induced-subgraph coloring with edge predicate.
     */
    VectorType colorsForCheckInducedEdge;
-   TNL::Graphs::Algorithms::graphColoring(
-      graph,
-      // edge predicate
-      VectorType{ 0, 1, 2, 3 },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsForCheckInducedEdge );
-   bool isProperInducedEdge = TNL::Graphs::Algorithms::isProperlyColored(
-      graph,
-      // edge predicate
-      VectorType{ 0, 1, 2, 3 },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsForCheckInducedEdge );
+   TNL::Graphs::Algorithms::graphColoring( sgInducedEdge, colorsForCheckInducedEdge );
+   bool isProperInducedEdge = TNL::Graphs::Algorithms::isProperlyColored( sgInducedEdge, colorsForCheckInducedEdge );
    std::cout << "isProperlyColored(graph, {0,1,2,3}, block 4-0, colors): " << ( isProperInducedEdge ? "true" : "false" )
              << "\n";
    //! [is properly colored induced edge predicate]
@@ -298,22 +214,8 @@ graphColoringExample()
     * Verify predicate-induced subgraph coloring.
     */
    VectorType colorsForCheckIf;
-   TNL::Graphs::Algorithms::graphColoringIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-      },
-      colorsForCheckIf );
-   bool isProperIf = TNL::Graphs::Algorithms::isProperlyColoredIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-      },
-      colorsForCheckIf );
+   TNL::Graphs::Algorithms::graphColoring( sgIf, colorsForCheckIf );
+   bool isProperIf = TNL::Graphs::Algorithms::isProperlyColored( sgIf, colorsForCheckIf );
    std::cout << "isProperlyColoredIf(graph, vertex <= 3, colors): " << ( isProperIf ? "true" : "false" ) << "\n";
    //! [is properly colored if]
 
@@ -322,32 +224,8 @@ graphColoringExample()
     * Verify predicate + edge-predicate coloring.
     */
    VectorType colorsForCheckIfEdge;
-   TNL::Graphs::Algorithms::graphColoringIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-         // edge predicate
-      },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsForCheckIfEdge );
-   bool isProperIfEdge = TNL::Graphs::Algorithms::isProperlyColoredIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex <= 3;
-         // edge predicate
-      },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
-      },
-      colorsForCheckIfEdge );
+   TNL::Graphs::Algorithms::graphColoring( sgIfEdge, colorsForCheckIfEdge );
+   bool isProperIfEdge = TNL::Graphs::Algorithms::isProperlyColored( sgIfEdge, colorsForCheckIfEdge );
    std::cout << "isProperlyColoredIf(graph, vertex <= 3, block 4-0, colors): " << ( isProperIfEdge ? "true" : "false" ) << "\n";
    //! [is properly colored if edge predicate]
 }

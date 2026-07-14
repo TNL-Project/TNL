@@ -1,6 +1,7 @@
 #pragma once
 
 #include <TNL/Graphs/Algorithms/singleSourceShortestPath.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include <limits>
@@ -193,7 +194,7 @@ TYPED_TEST( GraphTest, test_SSSP_withIndexes_inducedSubgraph )
    const VectorType expectedDistances( { 0.0, 1.0, -1.0, -1.0, -1.0 } );
    VectorType distances;
 
-   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, vertexIndexes, distances );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), 0, distances );
 
    for( IndexType i = 0; i < graph.getVertexCount(); i++ )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
@@ -225,7 +226,7 @@ test_SSSPIf_inducedSubgraph_impl()
       return vertex <= 2;
    };
 
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graph, 0, firstThreeVertices, distances );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( TNL::Graphs::makeSubGraph( graph, firstThreeVertices ), 0, distances );
 
    for( IndexType i = 0; i < graph.getVertexCount(); i++ )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
@@ -312,8 +313,8 @@ test_SSSP_byEdgesIf_inducedSubgraph_impl()
       return weight;
    };
 
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf(
-      graph, static_cast< IndexType >( 0 ), firstFourVertices, blockEdgesToTwo, distances );
+   TNL::Graphs::Algorithms::singleSourceShortestPath(
+      TNL::Graphs::makeSubGraph( graph, firstFourVertices ), static_cast< IndexType >( 0 ), blockEdgesToTwo, distances );
 
    for( IndexType i = 0; i < graph.getVertexCount(); i++ )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) );
@@ -337,7 +338,8 @@ TYPED_TEST( GraphTest, test_SSSP_withInactiveStart_throws )
    VectorType distances;
 
    EXPECT_THROW(
-      TNL::Graphs::Algorithms::singleSourceShortestPath( graph, static_cast< IndexType >( 3 ), vertexIndexes, distances ),
+      TNL::Graphs::Algorithms::singleSourceShortestPath(
+         TNL::Graphs::makeSubGraph( graph, vertexIndexes ), static_cast< IndexType >( 3 ), distances ),
       std::invalid_argument );
 }
 
@@ -499,7 +501,7 @@ test_SSSP_subgraph_vertex_removal_predicate_impl()
    };
 
    VectorType distA, distB;
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graphA, 0, excludeVertices, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( TNL::Graphs::makeSubGraph( graphA, excludeVertices ), 0, distA );
    TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphB, 0, distB );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -529,7 +531,7 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_indexed )
       { 0, 1, 3, 4, 6, 7, 9 } );
 
    VectorType distA, distB;
-   TNL::Graphs::Algorithms::singleSourceShortestPath( graphA, 0, vertexIndexes, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), 0, distA );
    TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphB, 0, distB );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7, 9 };
@@ -557,7 +559,7 @@ test_SSSP_subgraph_vertex_removal_disconnected_impl()
    };
 
    VectorType distA, distD;
-   TNL::Graphs::Algorithms::singleSourceShortestPathIf( graphA, 0, excludeFour, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath( TNL::Graphs::makeSubGraph( graphA, excludeFour ), 0, distA );
    TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphD, 0, distD );
 
    const std::vector< int > newToOld = { 0, 1, 2, 3, 5, 6, 7, 8, 9 };
@@ -628,7 +630,8 @@ test_SSSP_subgraph_edge_removal_withIndexes_impl()
    };
 
    VectorType distA, distE2;
-   TNL::Graphs::Algorithms::singleSourceShortestPath( graphA, 0, vertexIndexes, blockEdge03, distA );
+   TNL::Graphs::Algorithms::singleSourceShortestPath(
+      TNL::Graphs::makeSubGraph( graphA, vertexIndexes ), 0, blockEdge03, distA );
    TNL::Graphs::Algorithms::singleSourceShortestPath( subgraphE2, 0, distE2 );
 
    const std::vector< int > newToOld = { 0, 1, 3, 4, 6, 7 };
