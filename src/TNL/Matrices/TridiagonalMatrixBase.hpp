@@ -63,7 +63,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLeng
    const auto values_view = this->values.getConstView();
    const auto indexer = this->indexer;
    Algorithms::parallelFor< DeviceType >(
-      (IndexType) 0,
+      0,
       this->getRows(),
       [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
@@ -718,7 +718,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
       const auto matrixValues = matrix.getValues();
       const auto matrixIndexer = matrix.getIndexer();
       Algorithms::parallelFor< DeviceType >(
-         (IndexType) 0,
+         0,
          this->getRows(),
          [ = ] __cuda_callable__( IndexType rowIdx ) mutable
          {
