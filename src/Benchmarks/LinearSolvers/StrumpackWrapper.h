@@ -41,7 +41,7 @@ public:
    setMatrix( const MatrixPointer& matrix ) override
    {
 #ifdef HAVE_STRUMPACK
-      LinearSolver< Matrix >::setMatrix( matrix );
+      Base::setMatrix( matrix );
 
       this->solver.set_csr_matrix(
          matrix->getRows(),
