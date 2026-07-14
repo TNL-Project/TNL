@@ -4,6 +4,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Hip.h>
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/SubGraph.h>
 #include <TNL/Graphs/Algorithms/stronglyConnectedComponents.h>
 
 template< typename Device >
@@ -52,15 +53,13 @@ stronglyConnectedComponentsExample()
     * that should not be traversed. This breaks the cycle {0, 1}, so
     * vertices 0 and 1 become separate SCCs.
     */
+   auto blockEdge10 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   {
+      return ! ( src == 1 && tgt == 0 );
+   };
    VectorType componentsEdge;
-   TNL::Graphs::Algorithms::stronglyConnectedComponents(
-      // edge predicate
-      graph,
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( src == 1 && tgt == 0 );
-      },
-      componentsEdge );
+   auto sgEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge10 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgEdge, componentsEdge );
    std::cout << "SCC labels (edge 1->0 blocked): " << componentsEdge << "\n";
    //! [scc edge predicate]
 
@@ -70,7 +69,8 @@ stronglyConnectedComponentsExample()
     * Vertex 5 is inactive and gets label -1.
     */
    VectorType componentsInduced;
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, VectorType{ 0, 1, 2, 3, 4 }, componentsInduced );
+   auto sgInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3, 4 } );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgInduced, componentsInduced );
    std::cout << "SCC labels (induced on {0,1,2,3,4}): " << componentsInduced << "\n";
    //! [scc induced]
 
@@ -79,15 +79,8 @@ stronglyConnectedComponentsExample()
     * Combined induced-subgraph + edge-predicate SCC.
     */
    VectorType componentsInducedEdge;
-   TNL::Graphs::Algorithms::stronglyConnectedComponents(
-      graph,
-      // edge predicate
-      VectorType{ 0, 1, 2, 3, 4 },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( src == 1 && tgt == 0 );
-      },
-      componentsInducedEdge );
+   auto sgInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3, 4 }, blockEdge10 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgInducedEdge, componentsInducedEdge );
    std::cout << "SCC labels (induced on {0,1,2,3,4}, edge 1->0 blocked): " << componentsInducedEdge << "\n";
    //! [scc induced edge predicate]
 
@@ -96,15 +89,13 @@ stronglyConnectedComponentsExample()
     * Predicate-based SCC: activate only vertices with index < 5.
     * The vertex predicate (vertex) -> bool selects active vertices.
     */
+   auto activeLt5 = [] __cuda_callable__( IndexType vertex )
+   {
+      return vertex < 5;
+   };
    VectorType componentsIf;
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 5;
-      },
-      componentsIf );
+   auto sgIf = TNL::Graphs::makeSubGraph( graph, activeLt5 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgIf, componentsIf );
    std::cout << "SCC labels (active if vertex < 5): " << componentsIf << "\n";
    //! [scc if]
 
@@ -113,19 +104,8 @@ stronglyConnectedComponentsExample()
     * Combined predicate + edge-predicate SCC.
     */
    VectorType componentsIfEdge;
-   TNL::Graphs::Algorithms::stronglyConnectedComponentsIf(
-      // vertex predicate
-      graph,
-      [] __cuda_callable__( IndexType vertex )
-      {
-         return vertex < 5;
-         // edge predicate
-      },
-      [] __cuda_callable__( IndexType src, IndexType tgt, float )
-      {
-         return ! ( src == 1 && tgt == 0 );
-      },
-      componentsIfEdge );
+   auto sgIfEdge = TNL::Graphs::makeSubGraph( graph, activeLt5, blockEdge10 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgIfEdge, componentsIfEdge );
    std::cout << "SCC labels (active if vertex < 5, edge 1->0 blocked): " << componentsIfEdge << "\n";
    //! [scc if edge predicate]
 }
