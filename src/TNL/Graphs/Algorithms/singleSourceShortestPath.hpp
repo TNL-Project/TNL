@@ -106,7 +106,7 @@ parallelSingleSourceShortestPath(
             [ = ] __cuda_callable__(
                IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
-               // edgeExists and isActive(target) are applied by the SubGraph forEdges wrapper.
+               // edgeExists and vertexExists(target) are applied by the SubGraph forEdges wrapper.
                if( targetIdx != Matrices::paddingIndex< IndexType > ) {
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
@@ -157,7 +157,7 @@ parallelSingleSourceShortestPath(
                TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
                TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
-               // edgeExists and isActive(target) are applied by the SubGraph forEdges wrapper.
+               // edgeExists and vertexExists(target) are applied by the SubGraph forEdges wrapper.
                if( targetIdx != Matrices::paddingIndex< IndexType > ) {
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
@@ -214,7 +214,7 @@ singleSourceShortestPath_impl(
       1,
       [ = ] __cuda_callable__( Index ) -> bool
       {
-         return graphView.isActive( start );
+         return graphView.vertexExists( start );
       },
       TNL::LogicalAnd{},
       true );
@@ -245,7 +245,7 @@ singleSourceShortestPath_impl(
             const auto& neighbor = row.getColumnIndex( i );
             if( neighbor == Matrices::paddingIndex< Index > )
                continue;
-            if( ! graphView.isActive( neighbor ) )
+            if( ! graphView.vertexExists( neighbor ) )
                continue;
             if( ! graphView.edgeExists( current, neighbor, edgeWeight ) )
                continue;

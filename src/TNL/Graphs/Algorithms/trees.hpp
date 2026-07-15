@@ -47,14 +47,14 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
    if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
       IndexType edgeCount = 0;
       for( IndexType rowIdx = 0; rowIdx < n; rowIdx++ ) {
-         if( ! graphView.isActive( rowIdx ) )
+         if( ! graphView.vertexExists( rowIdx ) )
             continue;
          const auto row = matrix.getRow( rowIdx );
          for( IndexType i = 0; i < row.getSize(); i++ ) {
             const auto col = row.getColumnIndex( i );
             if( col == Matrices::paddingIndex< IndexType > )
                continue;
-            if( ! graphView.isActive( col ) )
+            if( ! graphView.vertexExists( col ) )
                continue;
             const ValueType weight = row.getValue( i );
             if( ! graphView.edgeExists( rowIdx, col, weight ) )
@@ -68,7 +68,7 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
       }
       if constexpr( isUndirected ) {
          for( IndexType rowIdx = 0; rowIdx < n; rowIdx++ ) {
-            if( ! graphView.isActive( rowIdx ) )
+            if( ! graphView.vertexExists( rowIdx ) )
                continue;
             const auto row = matrix.getRow( rowIdx );
             for( IndexType i = 0; i < row.getSize(); i++ ) {
@@ -92,7 +92,7 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
       {
          if( columnIdx == Matrices::paddingIndex< IndexType > )
             return 0;
-         if( ! graphView.isActive( rowIdx ) || ! graphView.isActive( columnIdx ) )
+         if( ! graphView.vertexExists( rowIdx ) || ! graphView.vertexExists( columnIdx ) )
             return 0;
          if( ! graphView.edgeExists( rowIdx, columnIdx, value ) )
             return 0;
@@ -126,7 +126,7 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
          {
             if( columnIdx != rowIdx || columnIdx == Matrices::paddingIndex< IndexType > )
                return 0;
-            if( ! graphView.isActive( rowIdx ) )
+            if( ! graphView.vertexExists( rowIdx ) )
                return 0;
             if( ! graphView.edgeExists( rowIdx, columnIdx, value ) )
                return 0;
@@ -165,7 +165,7 @@ countActiveVertices( const Graph& graph, TNL::Algorithms::Segments::LaunchConfig
       n,
       [ = ] __cuda_callable__( IndexType idx ) -> IndexType
       {
-         return graphView.isActive( idx ) ? 1 : 0;
+         return graphView.vertexExists( idx ) ? 1 : 0;
       },
       Plus{},
       (IndexType) 0 );
@@ -234,7 +234,7 @@ isTree_impl(
          n,
          [ = ] __cuda_callable__( IndexType i ) -> IndexType
          {
-            return graphView.isActive( i ) ? i : std::numeric_limits< IndexType >::max();
+            return graphView.vertexExists( i ) ? i : std::numeric_limits< IndexType >::max();
          },
          TNL::Min{},
          std::numeric_limits< IndexType >::max() );
@@ -251,7 +251,7 @@ isTree_impl(
          1,
          [ = ] __cuda_callable__( IndexType ) -> bool
          {
-            return graphView.isActive( start );
+            return graphView.vertexExists( start );
          },
          TNL::LogicalAnd{},
          true );
@@ -270,7 +270,7 @@ isTree_impl(
                const auto neighbor = row.getColumnIndex( i );
                if( neighbor == Matrices::paddingIndex< IndexType > )
                   continue;
-               if( ! graphView.isActive( neighbor ) )
+               if( ! graphView.vertexExists( neighbor ) )
                   continue;
                const ValueType weight = row.getValue( i );
                if( ! graphView.edgeExists( current, neighbor, weight ) )
@@ -286,7 +286,7 @@ isTree_impl(
                for( IndexType rowIdx = 0; rowIdx < graph.getVertexCount(); rowIdx++ ) {
                   if( rowIdx == current )
                      continue;
-                  if( ! graphView.isActive( rowIdx ) )
+                  if( ! graphView.vertexExists( rowIdx ) )
                      continue;
                   auto row2 = graph.getAdjacencyMatrix().getRow( rowIdx );
                   for( IndexType i = 0; i < row2.getSize(); i++ ) {
@@ -321,7 +321,7 @@ isTree_impl(
             {
                if( columnIdx == Matrices::paddingIndex< IndexType > )
                   return 0;
-               if( ! graphView.isActive( columnIdx ) || ! graphView.isActive( rowIdx ) )
+               if( ! graphView.vertexExists( columnIdx ) || ! graphView.vertexExists( rowIdx ) )
                   return 0;
                if( ! graphView.edgeExists( rowIdx, columnIdx, value ) )
                   return 0;
@@ -338,7 +338,7 @@ isTree_impl(
             {
                if( columnIdx == Matrices::paddingIndex< IndexType > )
                   return 0;
-               if( ! graphView.isActive( columnIdx ) || ! graphView.isActive( rowIdx ) )
+               if( ! graphView.vertexExists( columnIdx ) || ! graphView.vertexExists( rowIdx ) )
                   return 0;
                if( ! graphView.edgeExists( rowIdx, columnIdx, value ) )
                   return 0;
@@ -361,7 +361,7 @@ isTree_impl(
                n,
                [ = ] __cuda_callable__( IndexType i ) -> bool
                {
-                  return ! ( graphView.isActive( i ) && visitedView[ i ] > 1 );
+                  return ! ( graphView.vertexExists( i ) && visitedView[ i ] > 1 );
                },
                TNL::LogicalAnd{},
                true );
@@ -372,7 +372,7 @@ isTree_impl(
                n,
                [ = ] __cuda_callable__( IndexType i ) -> bool
                {
-                  return ! graphView.isActive( i ) || visitedView[ i ] == 1;
+                  return ! graphView.vertexExists( i ) || visitedView[ i ] == 1;
                },
                TNL::LogicalAnd{},
                true );
@@ -386,7 +386,7 @@ isTree_impl(
          n,
          [ = ] __cuda_callable__( IndexType i ) -> bool
          {
-            return ! graphView.isActive( i ) || visitedViewOuter[ i ] == 1;
+            return ! graphView.vertexExists( i ) || visitedViewOuter[ i ] == 1;
          },
          TNL::LogicalAnd{},
          true );
@@ -406,7 +406,8 @@ isTree_impl(
             n,
             [ = ] __cuda_callable__( IndexType i ) -> IndexType
             {
-               return ( graphView.isActive( i ) && visitedViewOuter[ i ] == 0 ) ? i : std::numeric_limits< IndexType >::max();
+               return ( graphView.vertexExists( i ) && visitedViewOuter[ i ] == 0 ) ? i
+                                                                                    : std::numeric_limits< IndexType >::max();
             },
             TNL::Min{},
             std::numeric_limits< IndexType >::max() );

@@ -35,14 +35,14 @@ namespace TNL::Graphs::Algorithms {
  *
  * \tparam Graph     Graph, SubGraph, MaskedSubGraph, or GraphView.
  * \tparam Vector    Output vector type for component labels.
- * \tparam IsActive  Unary callable `(Index) -> bool` (vertex filter).
+ * \tparam VertexPredicate  Unary callable `(Index) -> bool` (vertex filter).
  */
-template< typename Graph, typename Vector, typename IsActive >
+template< typename Graph, typename Vector, typename VertexPredicate >
 void
 stronglyConnectedComponents_impl(
    const Graph& graph,
    Vector& components,
-   IsActive&& isActive,
+   VertexPredicate&& vertexPredicate,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( Graph::isDirected(), "SCC requires a directed graph." );
@@ -58,13 +58,13 @@ stronglyConnectedComponents_impl(
    components.setSize( verticesCount );
 
    auto componentsView = components.getView();
-   auto isActiveCopy = isActive;
+   auto vertexPredicateCopy = vertexPredicate;
    TNL::Algorithms::parallelFor< DeviceType >(
       0,
       verticesCount,
       [ = ] __cuda_callable__( IndexType vertex ) mutable
       {
-         componentsView[ vertex ] = isActiveCopy( vertex ) ? 0 : static_cast< IndexType >( -1 );
+         componentsView[ vertex ] = vertexPredicateCopy( vertex ) ? 0 : static_cast< IndexType >( -1 );
       } );
 
    // Build the reverse graph by iterating the forward graph's edges.
@@ -102,7 +102,7 @@ stronglyConnectedComponents_impl(
    // The reverse graph already contains only filtered edges (forAllEdges
    // applied the filters).  The reverse SubGraph only needs the vertex filter
    // to prevent BFS from visiting inactive vertices.
-   auto reverseSubGraph = makeSubGraph( reverseGraph, isActive );
+   auto reverseSubGraph = makeSubGraph( reverseGraph, vertexPredicate );
 
    Vector forwardReachability( verticesCount );
    Vector reverseReachability( verticesCount );
@@ -156,7 +156,7 @@ stronglyConnectedComponents(
       components,
       [ = ] __cuda_callable__( typename Graph::IndexType vertex )
       {
-         return graphView.isActive( vertex );
+         return graphView.vertexExists( vertex );
       },
       launchConfig );
 }

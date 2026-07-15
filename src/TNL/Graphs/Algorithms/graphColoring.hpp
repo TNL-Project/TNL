@@ -65,7 +65,7 @@ isProperlyColoredOnActiveVertices(
       verticesCount,
       [ = ] __cuda_callable__( IndexType vertex ) -> bool
       {
-         const bool active = graphView.isActive( vertex );
+         const bool active = graphView.vertexExists( vertex );
          const ColorType color = colorsView[ vertex ];
          if( ! active )
             return color == inactiveColor;
@@ -76,7 +76,7 @@ isProperlyColoredOnActiveVertices(
          const auto vertexView = graphView.getVertex( vertex );
          for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-            if( ! graphView.isActive( neighbor ) )
+            if( ! graphView.vertexExists( neighbor ) )
                continue;
 
             const auto weight = vertexView.getEdgeWeight( localIdx );
@@ -122,7 +122,7 @@ finalizeZeroBasedColoringOnActiveVertices(
       verticesCount,
       [ = ] __cuda_callable__( IndexType vertex ) mutable
       {
-         if( graphView.isActive( vertex ) )
+         if( graphView.vertexExists( vertex ) )
             colorsView[ vertex ] -= static_cast< typename Vector::ValueType >( 1 );
       } );
 }
@@ -131,7 +131,7 @@ template< typename Graph, typename VertexPredicate, typename Vector, typename Ed
 bool
 isProperlyColoredOnActiveVerticesWithPredicates(
    const Graph& graph,
-   VertexPredicate&& isActive,
+   VertexPredicate&& vertexPredicate,
    const Vector& colors,
    const typename Vector::ValueType minimumColor,
    const typename Vector::ValueType inactiveColor,
@@ -158,7 +158,7 @@ isProperlyColoredOnActiveVerticesWithPredicates(
       verticesCount,
       [ = ] __cuda_callable__( IndexType vertex ) -> bool
       {
-         const bool active = isActive( vertex );
+         const bool active = vertexPredicate( vertex );
          const ColorType color = colorsView[ vertex ];
          if( ! active )
             return color == inactiveColor;
@@ -169,7 +169,7 @@ isProperlyColoredOnActiveVerticesWithPredicates(
          const auto vertexView = graphView.getVertex( vertex );
          for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-            if( ! isActive( neighbor ) )
+            if( ! vertexPredicate( neighbor ) )
                continue;
 
             const auto weight = vertexView.getEdgeWeight( localIdx );
@@ -189,7 +189,7 @@ template< typename Graph, typename VertexPredicate, typename Vector, typename Ed
 void
 finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
    const Graph& graph,
-   VertexPredicate&& isActive,
+   VertexPredicate&& vertexPredicate,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
    EdgePredicate&& edgePredicate,
@@ -197,7 +197,13 @@ finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
 {
    TNL_ASSERT_TRUE(
       isProperlyColoredOnActiveVerticesWithPredicates(
-         graph, isActive, colors, static_cast< typename Vector::ValueType >( 1 ), inactiveColor, edgePredicate, launchConfig ),
+         graph,
+         vertexPredicate,
+         colors,
+         static_cast< typename Vector::ValueType >( 1 ),
+         inactiveColor,
+         edgePredicate,
+         launchConfig ),
       "Internal graph coloring must be proper before conversion to zero-based labels." );
 
    using DeviceType = typename Graph::DeviceType;
@@ -213,7 +219,7 @@ finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
       verticesCount,
       [ = ] __cuda_callable__( IndexType vertex ) mutable
       {
-         if( isActive( vertex ) )
+         if( vertexPredicate( vertex ) )
             colorsView[ vertex ] -= static_cast< typename Vector::ValueType >( 1 );
       } );
 }
@@ -239,7 +245,7 @@ graphColoringOnActiveVerticesSequential(
    auto colorsView = colors.getView();
 
    for( IndexType vertex = 0; vertex < verticesCount; vertex++ ) {
-      if( ! graphView.isActive( vertex ) )
+      if( ! graphView.vertexExists( vertex ) )
          continue;
 
       ColorType candidate = static_cast< ColorType >( 1 );
@@ -250,7 +256,7 @@ graphColoringOnActiveVerticesSequential(
 
          for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-            if( ! graphView.isActive( neighbor ) )
+            if( ! graphView.vertexExists( neighbor ) )
                continue;
 
             const auto weight = vertexView.getEdgeWeight( localIdx );
@@ -285,7 +291,7 @@ graphColoringOnActiveVertices(
    static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
 
    // Parallel speculative greedy coloring on the induced subgraph given by
-   // isActive predicate: each active uncolored vertex proposes the smallest
+   // vertexPredicate: each active uncolored vertex proposes the smallest
    // currently safe color, conflicting proposals are filtered by priority, and
    // only the winners commit their color in the current round.
 
@@ -313,7 +319,7 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            colorsInitView[ vertex ] = graphView.isActive( vertex ) ? static_cast< ColorType >( 0 ) : inactiveColor;
+            colorsInitView[ vertex ] = graphView.vertexExists( vertex ) ? static_cast< ColorType >( 0 ) : inactiveColor;
          } );
    }
 
@@ -343,7 +349,7 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) -> IndexType
          {
-            return ( graphView.isActive( vertex ) && colorsView[ vertex ] == static_cast< ColorType >( 0 ) ) ? 1 : 0;
+            return ( graphView.vertexExists( vertex ) && colorsView[ vertex ] == static_cast< ColorType >( 0 ) ) ? 1 : 0;
          },
          Plus{} );
 
@@ -356,7 +362,7 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            if( ! graphView.isActive( vertex ) )
+            if( ! graphView.vertexExists( vertex ) )
                return;
 
             if( colorsView[ vertex ] != static_cast< ColorType >( 0 ) )
@@ -369,7 +375,7 @@ graphColoringOnActiveVertices(
 
                for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
                   const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-                  if( ! graphView.isActive( neighbor ) )
+                  if( ! graphView.vertexExists( neighbor ) )
                      continue;
 
                   const auto weight = vertexView.getEdgeWeight( localIdx );
@@ -399,7 +405,7 @@ graphColoringOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            if( ! graphView.isActive( vertex ) ) {
+            if( ! graphView.vertexExists( vertex ) ) {
                keepColorView[ vertex ] = 0;
                return;
             }
@@ -415,7 +421,7 @@ graphColoringOnActiveVertices(
 
             for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-               if( ! graphView.isActive( neighbor ) )
+               if( ! graphView.vertexExists( neighbor ) )
                   continue;
 
                const auto weight = vertexView.getEdgeWeight( localIdx );
@@ -463,7 +469,7 @@ template< typename Graph, typename VertexPredicate, typename Vector, typename Ed
 void
 graphColoringLubyOnActiveVertices(
    const Graph& graph,
-   VertexPredicate&& isActive,
+   VertexPredicate&& vertexPredicate,
    Vector& colors,
    const typename Vector::ValueType inactiveColor,
    EdgePredicate&& edgePredicate,
@@ -488,7 +494,7 @@ graphColoringLubyOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            colorsInitView[ vertex ] = isActive( vertex ) ? static_cast< ColorType >( 0 ) : inactiveColor;
+            colorsInitView[ vertex ] = vertexPredicate( vertex ) ? static_cast< ColorType >( 0 ) : inactiveColor;
          } );
    }
 
@@ -501,7 +507,7 @@ graphColoringLubyOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            remainingView[ vertex ] = isActive( vertex ) ? 1 : 0;
+            remainingView[ vertex ] = vertexPredicate( vertex ) ? 1 : 0;
          } );
    }
 
@@ -532,7 +538,7 @@ graphColoringLubyOnActiveVertices(
    }
 
    finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
-      graph, isActive, colors, inactiveColor, edgePredicate, launchConfig );
+      graph, vertexPredicate, colors, inactiveColor, edgePredicate, launchConfig );
 }
 
 }  // namespace detail
@@ -541,7 +547,8 @@ template< typename Graph, typename Vector >
 void
 graphColoring( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   detail::graphColoringOnActiveVertices( graph, colors, detail::maskedInactiveColor< typename Vector::ValueType >(), launchConfig );
+   detail::graphColoringOnActiveVertices(
+      graph, colors, detail::maskedInactiveColor< typename Vector::ValueType >(), launchConfig );
 }
 
 template< typename Graph, typename Vector >
@@ -553,7 +560,7 @@ graphColoringLuby( const Graph& graph, Vector& colors, TNL::Algorithms::Segments
       graph,
       [ = ] __cuda_callable__( typename Graph::IndexType vertex )
       {
-         return graphView.isActive( vertex );
+         return graphView.vertexExists( vertex );
       },
       colors,
       detail::maskedInactiveColor< typename Vector::ValueType >(),

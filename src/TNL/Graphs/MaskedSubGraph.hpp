@@ -111,7 +111,7 @@ MaskedSubGraph< Graph_, EdgeFilter >::getVertexDegree( IndexType vertexIdx ) con
 
 template< typename Graph_, typename EdgeFilter >
 [[nodiscard]] bool
-MaskedSubGraph< Graph_, EdgeFilter >::isActive( IndexType vertex ) const
+MaskedSubGraph< Graph_, EdgeFilter >::vertexExists( IndexType vertex ) const
 {
    return static_cast< bool >( mask_.getElement( vertex ) );
 }
@@ -121,7 +121,7 @@ template< typename Graph_, typename EdgeFilter >
 bool
 MaskedSubGraph< Graph_, EdgeFilter >::edgeExists( IndexType source, IndexType target, const ValueType& weight ) const
 {
-   return isActive( source ) && isActive( target ) && edgeFilter_( source, target, weight );
+   return vertexExists( source ) && vertexExists( target ) && edgeFilter_( source, target, weight );
 }
 
 template< typename Graph_, typename EdgeFilter >
