@@ -172,7 +172,8 @@ test_makeSubGraph_both_filters()
    EXPECT_FALSE( sg.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
    EXPECT_TRUE( sg.isActive( IndexType( 0 ) ) );
    EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
+   // edge (0,2) passes the edge filter (w=2<=3) but target 2 is inactive -> edge does not exist
+   EXPECT_FALSE( sg.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
    EXPECT_TRUE( sg.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
    EXPECT_FALSE( sg.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
 }
@@ -194,7 +195,8 @@ test_makeSubGraph_indexed()
    IndexVectorType indexes{ 0, 1, 3, 4 };
    auto sg = TNL::Graphs::makeSubGraph( graph, indexes );
    EXPECT_EQ( sg.getVertexCount(), 5 );
-   // Verify the filter by counting edges: vertex 2 is excluded -> 4 edges
+   // Edges between active vertices {0,1,3,4}: (0,1), (1,3), (3,4) -> 3.
+   // Edge (0,2) is filtered because target 2 is inactive.
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
@@ -204,7 +206,7 @@ test_makeSubGraph_indexed()
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
       },
       TNL::Algorithms::Segments::LaunchConfiguration{} );
-   EXPECT_EQ( counter.getElement( 0 ), 4 );
+   EXPECT_EQ( counter.getElement( 0 ), 3 );
 }
 
 TYPED_TEST( SubGraphTest, makeSubGraph_indexed )
@@ -231,7 +233,8 @@ test_makeSubGraph_indexed_with_edge_filter()
          return w <= 2;
       } );
    EXPECT_EQ( sg.getVertexCount(), 5 );
-   // vertices {0,1,3} active, edges with w<=2: only (0,1,w=1) and (0,2,w=2) -> 2
+   // vertices {0,1,3} active, edges with w<=2 between active: only (0,1,w=1).
+   // Edge (0,2,w=2) is filtered because target 2 is inactive.
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
@@ -241,7 +244,7 @@ test_makeSubGraph_indexed_with_edge_filter()
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
       },
       TNL::Algorithms::Segments::LaunchConfiguration{} );
-   EXPECT_EQ( counter.getElement( 0 ), 2 );
+   EXPECT_EQ( counter.getElement( 0 ), 1 );
 }
 
 TYPED_TEST( SubGraphTest, makeSubGraph_indexed_with_edge_filter )
@@ -450,11 +453,11 @@ test_materialize_vertex_filter()
 
    // Vertex count preserved (Variant A).
    EXPECT_EQ( result.getVertexCount(), 5 );
-   // vertex 2 inactive -> no outgoing edge (2,3); others keep their edges.
-   // Edges: (0,1), (0,2), (1,3), (3,4) -> 4.
-   EXPECT_EQ( result.getEdgeCount(), 4 );
+   // vertex 2 inactive -> edges touching it are filtered: (0,2) and (2,3).
+   // Surviving edges: (0,1), (1,3), (3,4) -> 3.
+   EXPECT_EQ( result.getEdgeCount(), 3 );
    EXPECT_TRUE( hasEdge( result, IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
-   EXPECT_TRUE( hasEdge( result, IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
+   EXPECT_FALSE( hasEdge( result, IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
    EXPECT_TRUE( hasEdge( result, IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
    EXPECT_FALSE( hasEdge( result, IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
    EXPECT_TRUE( hasEdge( result, IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
@@ -518,11 +521,11 @@ test_materialize_both_filters()
    auto result = sg.materialize();
 
    EXPECT_EQ( result.getVertexCount(), 5 );
-   // vertex 2 inactive (no outgoing edge) + w<=3 filter.
-   // Surviving edges: (0,1), (0,2), (1,3) -> 3.
-   EXPECT_EQ( result.getEdgeCount(), 3 );
+   // vertex 2 inactive -> edges touching it are filtered: (0,2) and (2,3).
+   // Combined with w<=3 filter: surviving edges are (0,1), (1,3) -> 2.
+   EXPECT_EQ( result.getEdgeCount(), 2 );
    EXPECT_TRUE( hasEdge( result, IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
-   EXPECT_TRUE( hasEdge( result, IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
+   EXPECT_FALSE( hasEdge( result, IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
    EXPECT_TRUE( hasEdge( result, IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
    EXPECT_FALSE( hasEdge( result, IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
    EXPECT_FALSE( hasEdge( result, IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
@@ -548,11 +551,11 @@ test_materialize_masked()
    auto result = sg.materialize();
 
    EXPECT_EQ( result.getVertexCount(), 5 );
-   // vertex 2 inactive -> no outgoing edge (2,3); others keep their edges.
-   // Edges: (0,1), (0,2), (1,3), (3,4) -> 4.
-   EXPECT_EQ( result.getEdgeCount(), 4 );
+   // vertex 2 inactive -> edges touching it are filtered: (0,2) and (2,3).
+   // Surviving edges: (0,1), (1,3), (3,4) -> 3.
+   EXPECT_EQ( result.getEdgeCount(), 3 );
    EXPECT_TRUE( hasEdge( result, IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
-   EXPECT_TRUE( hasEdge( result, IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
+   EXPECT_FALSE( hasEdge( result, IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
    EXPECT_TRUE( hasEdge( result, IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
    EXPECT_FALSE( hasEdge( result, IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
    EXPECT_TRUE( hasEdge( result, IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );

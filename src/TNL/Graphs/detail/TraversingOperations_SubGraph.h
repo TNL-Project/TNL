@@ -12,10 +12,11 @@ namespace TNL::Graphs::detail {
 /**
  * \brief Specialization of TraversingOperations for SubGraph.
  *
- * Applies the vertex filter (skip inactive source vertices) and the edge
- * filter (skip filtered edges) transparently during traversal, so that
- * \ref forAllEdges, \ref forEdges, \ref forEdgesIf, etc. work with SubGraph
- * the same way they work with Graph — no algorithm-level branching needed.
+ * Applies the vertex filter (skip edges touching inactive source or target
+ * vertices) and the edge filter (skip filtered edges) transparently during
+ * traversal, so that \ref forAllEdges, \ref forEdges, \ref forEdgesIf, etc.
+ * work with SubGraph the same way they work with Graph — no algorithm-level
+ * branching needed.
  *
  * SubGraph IS its own ViewType / ConstViewType (see SubGraph.h), so
  * traverse.hpp dispatches here when the graph parameter is a SubGraph.
@@ -52,7 +53,7 @@ struct TraversingOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrapped =
          [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType column, const ValueType& value ) mutable
       {
-         if( vertexFilter( row ) && edgeFilter( row, column, value ) )
+         if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             function( row, localIdx, column, value );
       };
       Matrices::forElements( graph.getAdjacencyMatrixView(), begin, end, wrapped, launchConfig );
@@ -77,7 +78,7 @@ struct TraversingOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrapped =
          [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType column, const ValueType& value ) mutable
       {
-         if( vertexFilter( row ) && edgeFilter( row, column, value ) )
+         if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             function( row, localIdx, column, value );
       };
       Matrices::forElements( graph.getAdjacencyMatrixView(), rowIndexes.getConstView( begin, end ), wrapped, launchConfig );
@@ -106,7 +107,7 @@ struct TraversingOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrapped =
          [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType column, const ValueType& value ) mutable
       {
-         if( edgeFilter( row, column, value ) )
+         if( vertexFilter( column ) && edgeFilter( row, column, value ) )
             function( row, localIdx, column, value );
       };
       Matrices::forElementsIf( graph.getAdjacencyMatrixView(), begin, end, combinedCondition, wrapped, launchConfig );
