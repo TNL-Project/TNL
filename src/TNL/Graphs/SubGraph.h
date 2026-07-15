@@ -36,7 +36,7 @@ namespace TNL::Graphs {
  * transparently — no algorithm-level branching is needed.
  *
  * In addition, SubGraph provides:
- * - \c isActive(vertex) — tests the vertex filter, and
+ * - \c vertexExists(vertex) — tests the vertex filter, and
  * - \c edgeExists(source, target, weight) — tests the edge filter.
  *
  * Use \ref makeSubGraph factory functions to create SubGraph instances:
@@ -200,13 +200,13 @@ public:
    getVertexDegree( IndexType vertexIdx ) const;
 
    /**
-    * \brief Tests whether a vertex is active (belongs to the induced subgraph).
+    * \brief Tests whether a vertex exists in the induced subgraph.
     * \param vertex The vertex index to test.
     * \return \c true if the vertex passes the vertex filter.
     */
    [[nodiscard]] __cuda_callable__
    bool
-   isActive( IndexType vertex ) const;
+   vertexExists( IndexType vertex ) const;
 
    /**
     * \brief Tests whether an edge exists in the induced subgraph.
@@ -318,7 +318,7 @@ auto
 makeSubGraph( const Graph& graph, VertexFilter&& vertexFilter, EdgeFilter&& edgeFilter );
 
 // ---------------------------------------------------------------------------
-// Free-function adapter declarations: isActive / edgeExists
+// Free-function adapter declarations: vertexExists / edgeExists
 // ---------------------------------------------------------------------------
 
 /**
@@ -331,15 +331,15 @@ makeSubGraph( const Graph& graph, VertexFilter&& vertexFilter, EdgeFilter&& edge
 template< typename Graph >
 __cuda_callable__
 bool
-isActive( const Graph&, typename Graph::IndexType );
+vertexExists( const Graph&, typename Graph::IndexType );
 
 /**
- * \brief Returns \c true if the vertex is active in the SubGraph.
+ * \brief Returns \c true if the vertex exists in the SubGraph (passes the vertex filter).
  */
 template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
 __cuda_callable__
 bool
-isActive(
+vertexExists(
    const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg,
    typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType vertex );
 

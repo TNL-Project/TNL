@@ -33,7 +33,7 @@ test_makeSubGraph_no_filter()
    EXPECT_EQ( sg.getVertexCount(), 5 );
    // All vertices are active.
    for( IndexType v = 0; v < 5; ++v )
-      EXPECT_TRUE( sg.isActive( v ) );
+      EXPECT_TRUE( sg.vertexExists( v ) );
    // All edges are present (filter accepts all).
    EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
    EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
@@ -81,11 +81,11 @@ test_makeSubGraph_vertex_filter()
          return v != 2;
       } );
    EXPECT_EQ( sg.getVertexCount(), 5 );
-   EXPECT_TRUE( sg.isActive( 0 ) );
-   EXPECT_TRUE( sg.isActive( 1 ) );
-   EXPECT_FALSE( sg.isActive( 2 ) );
-   EXPECT_TRUE( sg.isActive( 3 ) );
-   EXPECT_TRUE( sg.isActive( 4 ) );
+   EXPECT_TRUE( sg.vertexExists( 0 ) );
+   EXPECT_TRUE( sg.vertexExists( 1 ) );
+   EXPECT_FALSE( sg.vertexExists( 2 ) );
+   EXPECT_TRUE( sg.vertexExists( 3 ) );
+   EXPECT_TRUE( sg.vertexExists( 4 ) );
 }
 
 TYPED_TEST( SubGraphTest, makeSubGraph_vertex_filter )
@@ -168,9 +168,9 @@ test_makeSubGraph_both_filters()
       {
          return w <= 3;
       } );
-   EXPECT_FALSE( sg.isActive( IndexType( 2 ) ) );
+   EXPECT_FALSE( sg.vertexExists( IndexType( 2 ) ) );
    EXPECT_FALSE( sg.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
-   EXPECT_TRUE( sg.isActive( IndexType( 0 ) ) );
+   EXPECT_TRUE( sg.vertexExists( IndexType( 0 ) ) );
    EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
    // edge (0,2) passes the edge filter (w=2<=3) but target 2 is inactive -> edge does not exist
    EXPECT_FALSE( sg.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
@@ -315,10 +315,10 @@ test_getView_getConstView()
    auto constView = sg.getConstView();
    EXPECT_EQ( view.getVertexCount(), 5 );
    EXPECT_EQ( constView.getVertexCount(), 5 );
-   EXPECT_FALSE( view.isActive( 2 ) );
-   EXPECT_FALSE( constView.isActive( 2 ) );
-   EXPECT_TRUE( view.isActive( 0 ) );
-   EXPECT_TRUE( constView.isActive( 0 ) );
+   EXPECT_FALSE( view.vertexExists( 2 ) );
+   EXPECT_FALSE( constView.vertexExists( 2 ) );
+   EXPECT_TRUE( view.vertexExists( 0 ) );
+   EXPECT_TRUE( constView.vertexExists( 0 ) );
 }
 
 TYPED_TEST( SubGraphTest, getView_getConstView )
@@ -332,7 +332,7 @@ TYPED_TEST( SubGraphTest, getView_getConstView )
 
 template< typename GraphType >
 void
-test_adapters_isActive()
+test_adapters_vertexExists()
 {
    using IndexType = typename GraphType::IndexType;
    const auto graph = makeTestGraph< GraphType >();
@@ -343,16 +343,16 @@ test_adapters_isActive()
          return v != 2;
       } );
    // Graph: always true
-   EXPECT_TRUE( TNL::Graphs::isActive( graph, IndexType( 0 ) ) );
-   EXPECT_TRUE( TNL::Graphs::isActive( graph, IndexType( 2 ) ) );
+   EXPECT_TRUE( TNL::Graphs::vertexExists( graph, IndexType( 0 ) ) );
+   EXPECT_TRUE( TNL::Graphs::vertexExists( graph, IndexType( 2 ) ) );
    // SubGraph: delegates to filter
-   EXPECT_TRUE( TNL::Graphs::isActive( sg, IndexType( 0 ) ) );
-   EXPECT_FALSE( TNL::Graphs::isActive( sg, IndexType( 2 ) ) );
+   EXPECT_TRUE( TNL::Graphs::vertexExists( sg, IndexType( 0 ) ) );
+   EXPECT_FALSE( TNL::Graphs::vertexExists( sg, IndexType( 2 ) ) );
 }
 
-TYPED_TEST( SubGraphTest, adapters_isActive )
+TYPED_TEST( SubGraphTest, adapters_vertexExists )
 {
-   test_adapters_isActive< typename TestFixture::GraphType >();
+   test_adapters_vertexExists< typename TestFixture::GraphType >();
 }
 
 template< typename GraphType >

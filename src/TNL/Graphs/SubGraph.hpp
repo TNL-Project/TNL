@@ -191,7 +191,7 @@ SubGraph< Graph_, VertexFilter, EdgeFilter >::getVertexDegree( IndexType vertexI
 template< typename Graph_, typename VertexFilter, typename EdgeFilter >
 [[nodiscard]] __cuda_callable__
 bool
-SubGraph< Graph_, VertexFilter, EdgeFilter >::isActive( IndexType vertex ) const
+SubGraph< Graph_, VertexFilter, EdgeFilter >::vertexExists( IndexType vertex ) const
 {
    return vertexFilter_( vertex );
 }
@@ -277,13 +277,13 @@ makeSubGraph( const Graph& graph, VertexFilter&& vertexFilter, EdgeFilter&& edge
 }
 
 // ---------------------------------------------------------------------------
-// Free-function adapters: isActive / edgeExists
+// Free-function adapters: vertexExists / edgeExists
 // ---------------------------------------------------------------------------
 
 template< typename Graph >
 __cuda_callable__
 bool
-isActive( const Graph&, typename Graph::IndexType )
+vertexExists( const Graph&, typename Graph::IndexType )
 {
    return true;
 }
@@ -291,11 +291,11 @@ isActive( const Graph&, typename Graph::IndexType )
 template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
 __cuda_callable__
 bool
-isActive(
+vertexExists(
    const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg,
    typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType vertex )
 {
-   return sg.isActive( vertex );
+   return sg.vertexExists( vertex );
 }
 
 template< typename Graph >
