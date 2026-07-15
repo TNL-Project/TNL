@@ -106,8 +106,8 @@ test_reduceAllVertices_vertex_filter()
       },
       0,
       TNL::Algorithms::Segments::LaunchConfiguration{} );
-   // v0: 3, v1: 3, v2: 0 (inactive, identity), v3: 5, v4: 0
-   EXPECT_EQ( result.getElement( 0 ), 3 );
+   // v0: 1 (edge (0,2) filtered: target 2 inactive), v1: 3, v2: 0 (inactive, identity), v3: 5, v4: 0
+   EXPECT_EQ( result.getElement( 0 ), 1 );
    EXPECT_EQ( result.getElement( 1 ), 3 );
    EXPECT_EQ( result.getElement( 2 ), 0 );
    EXPECT_EQ( result.getElement( 3 ), 5 );

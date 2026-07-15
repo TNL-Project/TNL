@@ -14,8 +14,8 @@ namespace TNL::Graphs::detail {
 /**
  * \brief Specialization of ReductionOperations for SubGraph.
  *
- * Applies the vertex filter (skip inactive source vertices) and the edge
- * filter (skip filtered edges) transparently during reduction, so that
+ * Applies the vertex filter (skip edges touching inactive vertices) and the
+ * edge filter (skip filtered edges) transparently during reduction, so that
  * \ref reduceAllVertices, \ref reduceVertices, \ref reduceVerticesIf, etc.
  * work with SubGraph the same way they work with Graph.
  *
@@ -55,7 +55,7 @@ struct ReductionOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrappedFetch =
          [ = ] __cuda_callable__( IndexType row, IndexType column, const ValueType& value ) mutable -> FetchValue
       {
-         if( vertexFilter( row ) && edgeFilter( row, column, value ) )
+         if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             return fetch( row, column, value );
          return identity;
       };
@@ -83,7 +83,7 @@ struct ReductionOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrappedFetch =
          [ = ] __cuda_callable__( IndexType row, IndexType column, const ValueType& value ) mutable -> FetchValue
       {
-         if( vertexFilter( row ) && edgeFilter( row, column, value ) )
+         if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             return fetch( row, column, value );
          return identity;
       };
@@ -124,7 +124,7 @@ struct ReductionOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrappedFetch =
          [ = ] __cuda_callable__( IndexType row, IndexType column, const ValueType& value ) mutable -> FetchValue
       {
-         if( edgeFilter( row, column, value ) )
+         if( vertexFilter( column ) && edgeFilter( row, column, value ) )
             return fetch( row, column, value );
          return identity;
       };
@@ -161,7 +161,7 @@ struct ReductionOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrappedFetch =
          [ = ] __cuda_callable__( IndexType row, IndexType column, const ValueType& value ) mutable -> FetchValue
       {
-         if( vertexFilter( row ) && edgeFilter( row, column, value ) )
+         if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             return fetch( row, column, value );
          return identity;
       };
@@ -189,7 +189,7 @@ struct ReductionOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrappedFetch =
          [ = ] __cuda_callable__( IndexType row, IndexType column, const ValueType& value ) mutable -> FetchValue
       {
-         if( vertexFilter( row ) && edgeFilter( row, column, value ) )
+         if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             return fetch( row, column, value );
          return identity;
       };
@@ -230,7 +230,7 @@ struct ReductionOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrappedFetch =
          [ = ] __cuda_callable__( IndexType row, IndexType column, const ValueType& value ) mutable -> FetchValue
       {
-         if( edgeFilter( row, column, value ) )
+         if( vertexFilter( column ) && edgeFilter( row, column, value ) )
             return fetch( row, column, value );
          return identity;
       };
