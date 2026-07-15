@@ -55,8 +55,6 @@ parallelSingleSourceShortestPath(
    const IndexType n = graph.getVertexCount();
    distances.setSize( n );
 
-   const auto graphView = graph.getConstView();
-
    // Bellman-Ford-style parallel relaxation: each iteration processes the
    // current frontier and relaxes all outgoing edges.  A vertex enters the
    // next frontier when its distance was improved in this round.
@@ -108,9 +106,8 @@ parallelSingleSourceShortestPath(
             [ = ] __cuda_callable__(
                IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
-               if( targetIdx != Matrices::paddingIndex< IndexType > && graphView.isActive( targetIdx )
-                   && graphView.edgeExists( sourceIdx, targetIdx, weight ) )
-               {
+               // edgeExists and isActive(target) are applied by the SubGraph forEdges wrapper.
+               if( targetIdx != Matrices::paddingIndex< IndexType > ) {
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
@@ -160,9 +157,8 @@ parallelSingleSourceShortestPath(
                TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
                TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
-               if( targetIdx != Matrices::paddingIndex< IndexType > && graphView.isActive( targetIdx )
-                   && graphView.edgeExists( sourceIdx, targetIdx, weight ) )
-               {
+               // edgeExists and isActive(target) are applied by the SubGraph forEdges wrapper.
+               if( targetIdx != Matrices::paddingIndex< IndexType > ) {
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
