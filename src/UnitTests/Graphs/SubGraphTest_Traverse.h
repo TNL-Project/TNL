@@ -51,8 +51,8 @@ TYPED_TEST( SubGraphTest, forAllEdges_no_filter )
 //    v          v
 //    2 --(4)--> 3 --(5)--> 4
 //
-// Vertex filter `v != 2`: vertex 2 is inactive → edge (2,3) is skipped.
-// Traversed edges: (0,1), (0,2), (1,3), (3,4) -> 4.
+// Vertex filter `v != 2`: vertex 2 is inactive → edges touching it are filtered.
+// Traversed edges: (0,1), (1,3), (3,4) -> 3  (edge (0,2) filtered: target 2 inactive).
 //
 //    0 --(1)--> 1
 //    |          |
@@ -83,8 +83,8 @@ test_forAllEdges_vertex_filter()
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
       },
       TNL::Algorithms::Segments::LaunchConfiguration{} );
-   // vertex 2 is inactive -> edge (2,3) is skipped -> 4 edges remain
-   EXPECT_EQ( counter.getElement( 0 ), 4 );
+   // vertex 2 inactive -> edges touching it are filtered: (0,2) and (2,3) -> 3 edges remain
+   EXPECT_EQ( counter.getElement( 0 ), 3 );
 }
 
 TYPED_TEST( SubGraphTest, forAllEdges_vertex_filter )
@@ -152,8 +152,8 @@ TYPED_TEST( SubGraphTest, forAllEdges_edge_filter )
 //    2 --(4)--> 3 --(5)--> 4
 //
 // Both filters: vertex filter `v != 2` AND edge filter `w <= 3`.
-// Vertex 2 inactive (no outgoing edge) + edges with w>3 filtered.
-// Traversed edges: (0,1), (0,2), (1,3) -> 3.
+// Vertex 2 inactive + edges with w>3 filtered.
+// Traversed edges: (0,1), (1,3) -> 2  (edge (0,2) filtered: target 2 inactive).
 //
 //    0 --(1)--> 1
 //    |          |
@@ -189,8 +189,9 @@ test_forAllEdges_both_filters()
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
       },
       TNL::Algorithms::Segments::LaunchConfiguration{} );
-   // vertex 2 inactive + w>3 filtered -> edges: (0,1),(0,2),(1,3) -> 3
-   EXPECT_EQ( counter.getElement( 0 ), 3 );
+   // vertex 2 inactive + w>3 filtered -> edges: (0,1),(1,3) -> 2
+   // Edge (0,2,w=2) is filtered because target 2 is inactive.
+   EXPECT_EQ( counter.getElement( 0 ), 2 );
 }
 
 TYPED_TEST( SubGraphTest, forAllEdges_both_filters )
@@ -215,7 +216,7 @@ TYPED_TEST( SubGraphTest, forAllEdges_both_filters )
 //    X
 //
 // Combined: vertex filter v!=2 AND edge filter w<=3 AND user condition v<=1
-// -> edges: (0,1,w=1), (0,2,w=2), (1,3,w=3) -> 3
+// -> edges: (0,1,w=1), (1,3,w=3) -> 2  (edge (0,2) filtered: target 2 inactive)
 template< typename GraphType >
 void
 test_forAllEdgesIf()
@@ -250,8 +251,9 @@ test_forAllEdgesIf()
       },
       TNL::Algorithms::Segments::LaunchConfiguration{} );
    // user condition v<=1 AND vertex filter v!=2 AND edge filter w<=3
-   // -> edges: (0,1,w=1),(0,2,w=2),(1,3,w=3) -> 3
-   EXPECT_EQ( counter.getElement( 0 ), 3 );
+   // -> edges: (0,1,w=1),(1,3,w=3) -> 2
+   // Edge (0,2,w=2) is filtered because target 2 is inactive.
+   EXPECT_EQ( counter.getElement( 0 ), 2 );
 }
 
 TYPED_TEST( SubGraphTest, forAllEdgesIf )

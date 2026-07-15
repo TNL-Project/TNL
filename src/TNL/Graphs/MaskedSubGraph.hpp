@@ -121,7 +121,7 @@ template< typename Graph_, typename EdgeFilter >
 bool
 MaskedSubGraph< Graph_, EdgeFilter >::edgeExists( IndexType source, IndexType target, const ValueType& weight ) const
 {
-   return edgeFilter_( source, target, weight );
+   return isActive( source ) && isActive( target ) && edgeFilter_( source, target, weight );
 }
 
 template< typename Graph_, typename EdgeFilter >

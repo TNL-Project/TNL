@@ -209,11 +209,11 @@ public:
    isActive( IndexType vertex ) const;
 
    /**
-    * \brief Tests whether an edge may be traversed.
+    * \brief Tests whether an edge exists in the induced subgraph.
     * \param source The source vertex index.
     * \param target The target vertex index.
     * \param weight The edge weight.
-    * \return \c true if the edge passes the edge filter.
+    * \return \c true if both endpoints are active and the edge passes the edge filter.
     */
    [[nodiscard]] __cuda_callable__
    bool
@@ -241,11 +241,10 @@ public:
     * - **Inactive vertices** (filtered out by the vertex filter) are kept
     *   as empty rows in the result — their identity is preserved.
     * - **Filtered edges** are omitted entirely.
-    * - **Outgoing edges from inactive sources** are omitted (the vertex
-    *   filter is applied to the source of every edge during traversal).
-    * - **Edges into inactive targets** are kept — SubGraph's edge filter
-    *   sees only \c (source, target, weight), the vertex filter is applied
-    *   only to the source.
+    * - **Edges touching inactive vertices** (either as source or as target)
+    *   are omitted — the vertex filter is applied to both endpoints of every
+    *   edge during traversal, so the materialized graph is an induced
+    *   subgraph on the active vertex set.
     *
     * \return A new \ref Graph owning the materialized adjacency matrix.
     */
@@ -353,7 +352,7 @@ bool
 edgeExists( const Graph&, typename Graph::IndexType, typename Graph::IndexType, const typename Graph::ValueType& );
 
 /**
- * \brief Returns \c true if the edge may be traversed in the SubGraph.
+ * \brief Returns \c true if the edge exists in the SubGraph (both endpoints active + edge filter passes).
  */
 template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
 __cuda_callable__
