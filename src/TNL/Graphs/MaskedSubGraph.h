@@ -174,11 +174,11 @@ public:
    isActive( IndexType vertex ) const;
 
    /**
-    * \brief Tests whether an edge may be traversed.
+    * \brief Tests whether an edge exists in the induced subgraph.
     * \param source The source vertex index.
     * \param target The target vertex index.
     * \param weight The edge weight.
-    * \return \c true if the edge passes the edge filter.
+    * \return \c true if both endpoints are in the mask and the edge passes the edge filter.
     */
    [[nodiscard]] __cuda_callable__
    bool

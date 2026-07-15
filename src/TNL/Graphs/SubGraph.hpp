@@ -201,7 +201,7 @@ template< typename Graph_, typename VertexFilter, typename EdgeFilter >
 bool
 SubGraph< Graph_, VertexFilter, EdgeFilter >::edgeExists( IndexType source, IndexType target, const ValueType& weight ) const
 {
-   return edgeFilter_( source, target, weight );
+   return vertexFilter_( source ) && vertexFilter_( target ) && edgeFilter_( source, target, weight );
 }
 
 template< typename Graph_, typename VertexFilter, typename EdgeFilter >
@@ -357,8 +357,9 @@ SubGraph< Graph_, VertexFilter, EdgeFilter >::materialize() const
    result.setEdgeCounts( capacities );
 
    // 3. Fill the edges using an atomic slot counter per source vertex.
-   //    `forAllEdges(*this)` applies the vertex filter (on source) and the
-   //    edge filter transparently, so only the surviving edges are written.
+   //    `forAllEdges(*this)` applies the vertex filter (on both endpoints)
+   //    and the edge filter transparently, so only the surviving edges
+   //    of the induced subgraph are written.
    IndexVector slots( vertexCount, 0 );
    auto slotView = slots.getView();
    auto matrixView = result.getAdjacencyMatrix().getView();
