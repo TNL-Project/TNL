@@ -52,7 +52,7 @@ edgeFilterExample()
          return w <= 3;
       } );
 
-   std::cout << "Both filters - isActive(2): " << sg2.isActive( 2 ) << "\n";
+   std::cout << "Both filters - vertexExists(2): " << sg2.vertexExists( 2 ) << "\n";
    std::cout << "Both filters - edgeExists(2,3,4): " << sg2.edgeExists( 2, 3, 4 ) << "\n";
    std::cout << "Both filters - edgeExists(0,1,1): " << sg2.edgeExists( 0, 1, 1 ) << "\n";
    //! [both filters]

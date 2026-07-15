@@ -57,7 +57,7 @@ maximalIndependentSetOnActiveVertices(
       "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
       "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
 
-   // Deterministic Luby-style MIS on the induced subgraph given by isActive predicate and edgePredicate:
+   // Deterministic Luby-style MIS on the induced subgraph given by vertexPredicate and edgePredicate:
    // each round keeps local priority winners, adds them to the MIS, and removes
    // both the winners and their active neighbors from further competition.
 
@@ -88,7 +88,7 @@ maximalIndependentSetOnActiveVertices(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            availableView[ vertex ] = graphView.isActive( vertex ) ? 1 : 0;
+            availableView[ vertex ] = graphView.vertexExists( vertex ) ? 1 : 0;
          } );
    }
 
@@ -226,7 +226,7 @@ isMaximalIndependentSetOnActiveVertices(
       verticesCount,
       [ = ] __cuda_callable__( IndexType vertex ) -> bool
       {
-         const bool active = graphView.isActive( vertex );
+         const bool active = graphView.vertexExists( vertex );
          const bool isSelected = static_cast< bool >( independentSetView[ vertex ] );
          if( ! active )
             return ! isSelected;
@@ -235,7 +235,7 @@ isMaximalIndependentSetOnActiveVertices(
          const auto vertexView = graphView.getVertex( vertex );
          for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-            if( ! graphView.isActive( neighbor ) )
+            if( ! graphView.vertexExists( neighbor ) )
                continue;
 
             const auto weight = vertexView.getEdgeWeight( localIdx );
@@ -262,7 +262,7 @@ template< typename Graph, typename VertexPredicate, typename Vector, typename Ed
 void
 maximalIndependentSetOnActiveVerticesWithPredicates(
    const Graph& graph,
-   VertexPredicate&& isActive,
+   VertexPredicate&& vertexPredicate,
    Vector& independentSet,
    typename Graph::IndexType roundSeed,
    EdgePredicate&& edgePredicate,
@@ -301,7 +301,7 @@ maximalIndependentSetOnActiveVerticesWithPredicates(
          verticesCount,
          [ = ] __cuda_callable__( IndexType vertex ) mutable
          {
-            availableView[ vertex ] = isActive( vertex ) ? 1 : 0;
+            availableView[ vertex ] = vertexPredicate( vertex ) ? 1 : 0;
          } );
    }
 
