@@ -68,8 +68,8 @@ test_reduceRows()
    auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
    {
       // For TridiagonalMatrix, the second fetch argument is the actual column index.
-      EXPECT_GE( columnIdx, row - 1 );
-      EXPECT_LE( columnIdx, row + 1 );
+      TNL_ASSERT_GE( columnIdx, row - 1, "Wrong column index." );
+      TNL_ASSERT_LE( columnIdx, row + 1, "Wrong column index." );
       return value;
    };
    auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
