@@ -33,9 +33,9 @@ maskedSubGraphExample()
    auto sg = TNL::Graphs::makeSubGraph( graph, indexes );
 
    std::cout << "Vertex count: " << sg.getVertexCount() << "\n";
-   std::cout << "isActive(0): " << sg.isActive( 0 ) << "\n";
-   std::cout << "isActive(2): " << sg.isActive( 2 ) << "\n";
-   std::cout << "isActive(5): " << sg.isActive( 5 ) << "\n";
+   std::cout << "vertexExists(0): " << sg.vertexExists( 0 ) << "\n";
+   std::cout << "vertexExists(2): " << sg.vertexExists( 2 ) << "\n";
+   std::cout << "vertexExists(5): " << sg.vertexExists( 5 ) << "\n";
 
    // Traverse: only edges from active vertices are visited
    CounterVector counter( 1, 0 );

@@ -32,9 +32,9 @@ vertexFilterExample()
       } );
 
    std::cout << "Vertex count: " << sg.getVertexCount() << "\n";
-   std::cout << "isActive(0): " << sg.isActive( 0 ) << "\n";
-   std::cout << "isActive(2): " << sg.isActive( 2 ) << "\n";
-   std::cout << "isActive(3): " << sg.isActive( 3 ) << "\n";
+   std::cout << "vertexExists(0): " << sg.vertexExists( 0 ) << "\n";
+   std::cout << "vertexExists(2): " << sg.vertexExists( 2 ) << "\n";
+   std::cout << "vertexExists(3): " << sg.vertexExists( 3 ) << "\n";
    //! [vertex filter]
 }
 

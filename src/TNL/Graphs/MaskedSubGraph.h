@@ -22,7 +22,7 @@ namespace TNL::Graphs {
  * ```
  *
  * MaskedSubGraph provides the same read-only interface as SubGraph
- * (\c getVertexCount, \c getAdjacencyMatrixView, \c isActive, etc.).
+ * (\c getVertexCount, \c getAdjacencyMatrixView, \c vertexExists, etc.).
  * Crucially, \c getView / \c getConstView return a lightweight \ref SubGraph
  * that references the internal mask. This means the existing traversal
  * functions (\ref forAllEdges, \ref forEdges, ...) and algorithms (BFS,
@@ -166,12 +166,12 @@ public:
    getVertexDegree( IndexType vertexIdx ) const;
 
    /**
-    * \brief Tests whether a vertex is active (present in the mask).
+    * \brief Tests whether a vertex exists in the induced subgraph (present in the mask).
     * \param vertex The vertex index to test.
     * \return \c true if the vertex is in the mask.
     */
    [[nodiscard]] bool
-   isActive( IndexType vertex ) const;
+   vertexExists( IndexType vertex ) const;
 
    /**
     * \brief Tests whether an edge exists in the induced subgraph.
