@@ -175,10 +175,6 @@ connectedComponentsParallel(
             {
                if( targetIdx == paddingIndex )
                   return;
-               if( ! graphView.isActive( sourceIdx ) || ! graphView.isActive( targetIdx ) )
-                  return;
-               if( ! graphView.edgeExists( sourceIdx, targetIdx, weight ) )
-                  return;
 
                const IndexType sourceLabel = previousView[ sourceIdx ];
                const IndexType targetLabel = previousView[ targetIdx ];
@@ -206,10 +202,6 @@ connectedComponentsParallel(
                IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
                if( targetIdx == paddingIndex )
-                  return;
-               if( ! graphView.isActive( sourceIdx ) || ! graphView.isActive( targetIdx ) )
-                  return;
-               if( ! graphView.edgeExists( sourceIdx, targetIdx, weight ) )
                   return;
 
                const IndexType sourceLabel = previousView[ sourceIdx ];

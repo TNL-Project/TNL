@@ -40,8 +40,6 @@ breadthFirstSearchParallel(
    const IndexType n = graph.getVertexCount();
    distances.setSize( n );
 
-   const auto graphView = graph.getConstView();
-
    Vector y( distances.getSize() );
    Containers::Vector< IndexType, DeviceType, IndexType > predecessors( n, -1 );
    Containers::Vector< IndexType, DeviceType, IndexType > marks( n );
@@ -70,9 +68,7 @@ breadthFirstSearchParallel(
                // thread may write to it is technically a data race. In practice all
                // concurrent writers in the same layer write the same value (i+1), so
                // the result is correct, but this is undefined behavior per the C++ standard.
-               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1
-                   && graphView.isActive( targetIdx ) && graphView.edgeExists( sourceIdx, targetIdx, weight ) )
-               {
+               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1 ) {
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
@@ -103,9 +99,8 @@ breadthFirstSearchParallel(
                TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
                TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
-               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1
-                   && graphView.isActive( targetIdx ) && graphView.edgeExists( sourceIdx, targetIdx, weight ) )
-               {
+               // edgeExists and isActive(target) are applied by the SubGraph forEdges wrapper.
+               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1 ) {
                   atomicMax( &yView[ targetIdx ], i + 1 );
                   atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
                   atomicMax( &marksView[ targetIdx ], 1 );
