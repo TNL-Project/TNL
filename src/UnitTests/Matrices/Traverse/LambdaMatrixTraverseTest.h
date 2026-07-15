@@ -28,30 +28,56 @@ using LambdaMatrixTraverseTypes = ::testing::Types<
    LambdaMatrixTraverseTestType< float, TNL::Devices::Hip, long >
 #endif
    >;
+namespace detail {
+
+// Stateless functors replacing __cuda_callable__ lambdas.
+// nvcc (CUDA 13.3) rejects extended __host__ __device__ lambdas inside
+// functions with deduced return type, so the lambdas are lifted to
+// namespace-scope functors and the helpers get explicit trailing return types.
+
+template< typename Index >
+struct AntiDiagonalRowLengths
+{
+   __cuda_callable__
+   Index
+   operator()( Index rows, Index columns, Index rowIdx ) const
+   {
+      return 1;
+   }
+};
+
+template< typename Real, typename Index >
+struct AntiDiagonalMatrixElements
+{
+   __cuda_callable__
+   void
+   operator()( Index rows, Index columns, Index rowIdx, Index localIdx, Index& columnIdx, Real& value ) const
+   {
+      columnIdx = columns - 1 - rowIdx;
+      value = static_cast< Real >( columnIdx + 1 );
+   }
+};
+
+}  // namespace detail
 
 template< typename TestType >
 auto
-createAntiDiagonalMatrix( typename TestType::IndexType size )
+createAntiDiagonalMatrix( typename TestType::IndexType size ) -> TNL::Matrices::LambdaMatrix<
+   detail::AntiDiagonalMatrixElements< typename TestType::RealType, typename TestType::IndexType >,
+   detail::AntiDiagonalRowLengths< typename TestType::IndexType >,
+   typename TestType::RealType,
+   typename TestType::DeviceType,
+   typename TestType::IndexType >
 {
    using Real = typename TestType::RealType;
    using Device = typename TestType::DeviceType;
    using Index = typename TestType::IndexType;
 
-   auto rowLengths = [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx ) -> Index
-   {
-      return 1;
-   };
-
-   auto matrixElements =
-      [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx, Index localIdx, Index & columnIdx, Real & value )
-   {
-      columnIdx = columns - 1 - rowIdx;
-      value = (Real) ( columnIdx + 1 );
-   };
+   detail::AntiDiagonalRowLengths< Index > rowLengths;
+   detail::AntiDiagonalMatrixElements< Real, Index > matrixElements;
 
    return TNL::Matrices::LambdaMatrixFactory< Real, Device, Index >::create( size, size, matrixElements, rowLengths );
 }
-
 template< typename TestType >
 void
 test_forElements_Range()
@@ -73,7 +99,7 @@ test_forElements_Range()
       (Index) 4,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         EXPECT_EQ( columnIdx, size - 1 - rowIdx );
+         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
          rowSumsView[ rowIdx ] = value;
       } );
 
@@ -92,7 +118,7 @@ test_forElements_Range()
       (Index) 4,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         EXPECT_EQ( columnIdx, size - 1 - rowIdx );
+         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
          rowSumsView[ rowIdx ] = value;
       } );
 
@@ -122,7 +148,7 @@ test_forAllElements()
       matrix,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         EXPECT_EQ( columnIdx, size - 1 - rowIdx );
+         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
          rowSumsView[ rowIdx ] = value;
       } );
 
@@ -139,7 +165,7 @@ test_forAllElements()
       constMatrix,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         EXPECT_EQ( columnIdx, size - 1 - rowIdx );
+         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
          rowSumsView[ rowIdx ] = value;
       } );
 

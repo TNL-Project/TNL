@@ -29,30 +29,85 @@ using LambdaMatrixReduceTypes = ::testing::Types<
    LambdaMatrixReduceTestType< float, TNL::Devices::Hip, long >
 #endif
    >;
+namespace detail {
+
+// Stateless functors replacing __cuda_callable__ lambdas.
+// nvcc (CUDA 13.3) rejects extended __host__ __device__ lambdas inside
+// functions with deduced return type, so the lambdas are lifted to
+// namespace-scope functors and the helpers get explicit trailing return types.
+
+template< typename Index >
+struct AntiDiagonalRowLengths
+{
+   __cuda_callable__
+   Index
+   operator()( Index rows, Index columns, Index rowIdx ) const
+   {
+      return 1;
+   }
+};
+
+template< typename Real, typename Index >
+struct AntiDiagonalMatrixElements
+{
+   __cuda_callable__
+   void
+   operator()( Index rows, Index columns, Index rowIdx, Index localIdx, Index& columnIdx, Real& value ) const
+   {
+      columnIdx = columns - 1 - rowIdx;
+      value = static_cast< Real >( columnIdx + 1 );
+   }
+};
+
+template< typename Index >
+struct UpperTriangularWithEmptyRowsRowLengths
+{
+   __cuda_callable__
+   Index
+   operator()( Index rows, Index columns, Index rowIdx ) const
+   {
+      // Row has elements only for columns strictly above the diagonal
+      if( rowIdx >= columns - 1 )
+         return 0;
+      // Rows 2 and 4 are artificially made empty
+      if( rowIdx == 2 )
+         return 0;
+      return columns - 1 - rowIdx;
+   }
+};
+
+template< typename Real, typename Index >
+struct UpperTriangularWithEmptyRowsMatrixElements
+{
+   __cuda_callable__
+   void
+   operator()( Index rows, Index columns, Index rowIdx, Index localIdx, Index& columnIdx, Real& value ) const
+   {
+      columnIdx = rowIdx + 1 + localIdx;
+      value = static_cast< Real >( rowIdx * 10 + columnIdx );
+   }
+};
+
+}  // namespace detail
 
 template< typename TestType >
 auto
-createAntiDiagonalMatrix( typename TestType::IndexType size )
+createAntiDiagonalMatrix( typename TestType::IndexType size ) -> TNL::Matrices::LambdaMatrix<
+   detail::AntiDiagonalMatrixElements< typename TestType::RealType, typename TestType::IndexType >,
+   detail::AntiDiagonalRowLengths< typename TestType::IndexType >,
+   typename TestType::RealType,
+   typename TestType::DeviceType,
+   typename TestType::IndexType >
 {
    using Real = typename TestType::RealType;
    using Device = typename TestType::DeviceType;
    using Index = typename TestType::IndexType;
 
-   auto rowLengths = [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx ) -> Index
-   {
-      return 1;
-   };
-
-   auto matrixElements =
-      [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx, Index localIdx, Index & columnIdx, Real & value )
-   {
-      columnIdx = columns - 1 - rowIdx;
-      value = (Real) ( columnIdx + 1 );
-   };
+   detail::AntiDiagonalRowLengths< Index > rowLengths;
+   detail::AntiDiagonalMatrixElements< Real, Index > matrixElements;
 
    return TNL::Matrices::LambdaMatrixFactory< Real, Device, Index >::create( size, size, matrixElements, rowLengths );
 }
-
 /**
  * Creates a 5x5 upper-triangular matrix with zero diagonal:
  *
@@ -67,33 +122,22 @@ createAntiDiagonalMatrix( typename TestType::IndexType size )
  */
 template< typename TestType >
 auto
-createUpperTriangularMatrixWithEmptyRows( typename TestType::IndexType size )
+createUpperTriangularMatrixWithEmptyRows( typename TestType::IndexType size ) -> TNL::Matrices::LambdaMatrix<
+   detail::UpperTriangularWithEmptyRowsMatrixElements< typename TestType::RealType, typename TestType::IndexType >,
+   detail::UpperTriangularWithEmptyRowsRowLengths< typename TestType::IndexType >,
+   typename TestType::RealType,
+   typename TestType::DeviceType,
+   typename TestType::IndexType >
 {
    using Real = typename TestType::RealType;
    using Device = typename TestType::DeviceType;
    using Index = typename TestType::IndexType;
 
-   auto rowLengths = [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx ) -> Index
-   {
-      // Row has elements only for columns strictly above the diagonal
-      if( rowIdx >= columns - 1 )
-         return 0;
-      // Rows 2 and 4 are artificially made empty
-      if( rowIdx == 2 )
-         return 0;
-      return columns - 1 - rowIdx;
-   };
-
-   auto matrixElements =
-      [ = ] __cuda_callable__( Index rows, Index columns, Index rowIdx, Index localIdx, Index & columnIdx, Real & value )
-   {
-      columnIdx = rowIdx + 1 + localIdx;
-      value = (Real) ( rowIdx * 10 + columnIdx );
-   };
+   detail::UpperTriangularWithEmptyRowsRowLengths< Index > rowLengths;
+   detail::UpperTriangularWithEmptyRowsMatrixElements< Real, Index > matrixElements;
 
    return TNL::Matrices::LambdaMatrixFactory< Real, Device, Index >::create( size, size, matrixElements, rowLengths );
 }
-
 template< typename TestType >
 void
 test_reduceRows()
@@ -111,7 +155,7 @@ test_reduceRows()
 
    auto fetch = [ = ] __cuda_callable__( Index row, Index columnIdx, const Real& value ) -> Real
    {
-      EXPECT_EQ( columnIdx, size - 1 - row );
+      TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
       return value;
    };
    auto reduce = [] __cuda_callable__( Real & sum, const Real& value ) -> Real
@@ -160,7 +204,7 @@ test_reduceAllRows_explicit_identity()
 
    auto fetch = [ = ] __cuda_callable__( Index row, Index columnIdx, const Real& value ) -> Real
    {
-      EXPECT_EQ( columnIdx, size - 1 - row );
+      TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
       return value;
    };
    auto reduce = [] __cuda_callable__( Real & sum, const Real& value ) -> Real
@@ -209,7 +253,7 @@ test_reduceAllRows_deduced_identity()
 
    auto fetch = [ = ] __cuda_callable__( Index row, Index columnIdx, const Real& value ) -> Real
    {
-      EXPECT_EQ( columnIdx, size - 1 - row );
+      TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
       return value;
    };
    auto keep = [ = ] __cuda_callable__( Index row, const Real& value ) mutable
