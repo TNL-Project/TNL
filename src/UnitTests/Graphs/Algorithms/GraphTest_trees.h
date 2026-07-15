@@ -179,12 +179,12 @@ test_isTree_subgraph_vertex_removal_predicate_impl()
       { { 0, 1, 1 }, { 0, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 }, { 2, 5, 1 }, { 2, 6, 1 }, { 3, 7, 1 }, { 4, 8, 1 }, { 5, 9, 1 } },
       TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
-   auto isActive = [ = ] __cuda_callable__( IndexType v )
+   auto vertexPredicate = [ = ] __cuda_callable__( IndexType v )
    {
       return v != 6 && v != 9;
    };
 
-   auto subGraph = TNL::Graphs::makeSubGraph( graph, isActive );
+   auto subGraph = TNL::Graphs::makeSubGraph( graph, vertexPredicate );
    ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( subGraph, 0 ) );
 }
 

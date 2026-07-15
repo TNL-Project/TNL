@@ -30,7 +30,7 @@ enqueueComponentVertex(
    std::queue< Index >& queue,
    const GraphView& graphView )
 {
-   if( ! graphView.isActive( vertex ) )
+   if( ! graphView.vertexExists( vertex ) )
       return;
    if( visited[ vertex ] )
       return;
@@ -65,7 +65,7 @@ connectedComponentsSequential( const Graph& graph, Vector& components )
    // BFS from each unvisited active vertex.  CC treats the graph as
    // undirected, so we must traverse both outgoing and incoming edges.
    for( IndexType componentLabel = 0; componentLabel < verticesCount; componentLabel++ ) {
-      if( ! graphView.isActive( componentLabel ) )
+      if( ! graphView.vertexExists( componentLabel ) )
          continue;
       if( visitedView[ componentLabel ] )
          continue;
@@ -146,7 +146,7 @@ connectedComponentsParallel(
    components.forAllElements(
       [ = ] __cuda_callable__( IndexType vertex, IndexType & value )
       {
-         value = graphView.isActive( vertex ) ? vertex : static_cast< IndexType >( -1 );
+         value = graphView.vertexExists( vertex ) ? vertex : static_cast< IndexType >( -1 );
       } );
    previous = static_cast< IndexType >( -1 );
 

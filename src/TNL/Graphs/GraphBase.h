@@ -156,7 +156,7 @@ struct GraphBase
 
    [[nodiscard]] __cuda_callable__
    bool
-   isActive( IndexType ) const
+   vertexExists( IndexType ) const
    {
       return true;
    }
