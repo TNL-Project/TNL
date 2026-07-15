@@ -76,8 +76,8 @@ test_forElements_Range()
       [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
       {
          // For TridiagonalMatrix, columnIdx is the actual column index, not just localIdx.
-         EXPECT_GE( columnIdx, rowIdx - 1 );
-         EXPECT_LE( columnIdx, rowIdx + 1 );
+         TNL_ASSERT_GE( columnIdx, rowIdx - 1, "columnIdx must be >= rowIdx - 1" );
+         TNL_ASSERT_LE( columnIdx, rowIdx + 1, "columnIdx must be <= rowIdx + 1" );
          TNL::Algorithms::AtomicOperations< DeviceType >::add( rowSumsView[ rowIdx ], value );
       } );
 
