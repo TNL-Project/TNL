@@ -16,6 +16,7 @@
 #include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Algorithms/contains.h>
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
@@ -35,7 +36,8 @@ breadthFirstSearchParallel(
    Vector& distances,
    PredecessorVector& predecessors,
    bool deterministic,
-   const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   const TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
+   double bypassThreshold )
 {
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
@@ -57,13 +59,19 @@ breadthFirstSearchParallel(
       predecessors.setElement( start, -1 );
    }
 
+   // marks: current frontier bitmap (input for bypass, output for compact)
+   // nextMarks: next frontier bitmap (output for bypass)
    Containers::Vector< IndexType, DeviceType, IndexType > marks( n );
    Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
+   Containers::Vector< IndexType, DeviceType, IndexType > nextMarks( n, 0 );
    frontier.setElement( 0, start );
    IndexType frontierSize( 1 );
 
-   auto marksView = marks.getView();
+   // Initialize marks as frontier bitmap for potential bypass on i=0
+   marks = 0;
+   marks.setElement( start, 1 );
+
    auto predecessorsView = predecessors.getView();
 
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
@@ -94,50 +102,117 @@ breadthFirstSearchParallel(
          }
       }
 
+      bool previousWasBypass = false;
       for( IndexType i = 0; i < n; i++ ) {
-         marks = 0;
-         forEdges(
-            graph,
-            frontier,
-            0,
-            frontierSize,
-            [ = ] __cuda_callable__(
-               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
-            {
-               // NVCC forbids first-capture of variables inside if constexpr
-               // in extended lambdas.  These (void) casts force early capture.
-               (void) deterministic;
-               (void) predecessorsView;
-               (void) atomicPredView;
+         // When the frontier is small, skip the O(n) compactFrontier (prefix
+         // scan + scatter) and instead scan all edges with a cheap marks check.
+         const bool useBypass =
+            bypassThreshold > 0.0 && static_cast< double >( frontierSize ) / static_cast< double >( n ) < bypassThreshold;
 
-               if( targetIdx == Matrices::paddingIndex< IndexType > )
-                  return;
+         if( useBypass ) {
+            auto marksView_bypass = marks.getView();
+            auto nextMarksView = nextMarks.getView();
 
-               IndexType prev = -1;
-               const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+            forAllEdges(
+               graph,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
+                  (void) atomicPredView;
 
-               if( i_am_winner ) {
-                  marksView[ targetIdx ] = 1;
-                  visitor( targetIdx, i + 1 );
-               }
+                  if( marksView_bypass[ sourceIdx ] != 1 )
+                     return;
 
-               // Deterministic mode: all threads that observe the vertex at
-               // distance i+1 compete via fetch_min, so the smallest source
-               // index wins.  This must run even for non-winners (prev == i+1),
-               // hence it cannot be nested inside the i_am_winner block above.
-               if constexpr( WithPredecessors ) {
-                  if( deterministic ) {
-                     if( i_am_winner || prev == i + 1 )
-                        atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                  if( targetIdx == Matrices::paddingIndex< IndexType > )
+                     return;
+
+                  IndexType prev = -1;
+                  const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+
+                  if( i_am_winner ) {
+                     nextMarksView[ targetIdx ] = 1;
+                     visitor( targetIdx, i + 1 );
                   }
-                  else if( i_am_winner ) {
-                     predecessorsView[ targetIdx ] = sourceIdx;
-                  }
-               }
-            },
-            launchConfig );
 
-         frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+                  // Deterministic mode: all threads that observe the vertex at
+                  // distance i+1 compete via fetch_min, so the smallest source
+                  // index wins.  This must run even for non-winners (prev == i+1),
+                  // hence it cannot be nested inside the i_am_winner block above.
+                  if constexpr( WithPredecessors ) {
+                     if( deterministic ) {
+                        if( i_am_winner || prev == i + 1 )
+                           atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                     }
+                     else if( i_am_winner ) {
+                        predecessorsView[ targetIdx ] = sourceIdx;
+                     }
+                  }
+               },
+               launchConfig );
+
+            frontierSize = sum( nextMarks );
+
+            marks.swap( nextMarks );
+            nextMarks = 0;
+            previousWasBypass = true;
+         }
+         else {
+            if( previousWasBypass ) {
+               frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+               previousWasBypass = false;
+            }
+
+            marks = 0;
+            auto marksView = marks.getView();
+
+            forEdges(
+               graph,
+               frontier,
+               0,
+               frontierSize,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
+                  (void) atomicPredView;
+
+                  if( targetIdx == Matrices::paddingIndex< IndexType > )
+                     return;
+
+                  IndexType prev = -1;
+                  const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+
+                  if( i_am_winner ) {
+                     marksView[ targetIdx ] = 1;
+                     visitor( targetIdx, i + 1 );
+                  }
+
+                  // Deterministic mode: all threads that observe the vertex at
+                  // distance i+1 compete via fetch_min, so the smallest source
+                  // index wins.  This must run even for non-winners (prev == i+1),
+                  // hence it cannot be nested inside the i_am_winner block above.
+                  if constexpr( WithPredecessors ) {
+                     if( deterministic ) {
+                        if( i_am_winner || prev == i + 1 )
+                           atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                     }
+                     else if( i_am_winner ) {
+                        predecessorsView[ targetIdx ] = sourceIdx;
+                     }
+                  }
+               },
+               launchConfig );
+
+            frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+         }
+
          if( frontierSize == 0 )
             break;
       }
@@ -166,54 +241,125 @@ breadthFirstSearchParallel(
    else {
       auto distancesView = distances.getView();
 
+      bool previousWasBypass = false;
       for( IndexType i = 0; i < n; i++ ) {
-         marks = 0;
-         forEdges(
-            graph,
-            frontier,
-            0,
-            frontierSize,
-            [ = ] __cuda_callable__(
-               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
-            {
-               // NVCC forbids first-capture of variables inside if constexpr
-               // in extended lambdas.  These (void) casts force early capture.
-               (void) deterministic;
-               (void) predecessorsView;
+         // When the frontier is small, skip the O(n) compactFrontier (prefix
+         // scan + scatter) and instead scan all edges with a cheap marks check.
+         const bool useBypass =
+            bypassThreshold > 0.0 && static_cast< double >( frontierSize ) / static_cast< double >( n ) < bypassThreshold;
 
-               TNL_ASSERT_GE( sourceIdx, 0, "" );
-               TNL_ASSERT_LT( sourceIdx, distancesView.getSize(), "" );
-               TNL_ASSERT_GE( targetIdx, 0, "" );
-               TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
+         if( useBypass ) {
+            auto marksView_bypass = marks.getView();
+            auto nextMarksView = nextMarks.getView();
 
-               if( targetIdx == Matrices::paddingIndex< IndexType > )
-                  return;
+            forAllEdges(
+               graph,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
 
-               const IndexType old = atomicCAS( &distancesView[ targetIdx ], -1, i + 1 );
-               const bool i_am_winner = ( old == -1 );
+                  TNL_ASSERT_GE( sourceIdx, 0, "" );
+                  TNL_ASSERT_LT( sourceIdx, distancesView.getSize(), "" );
+                  TNL_ASSERT_GE( targetIdx, 0, "" );
+                  TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
 
-               if( i_am_winner ) {
-                  marksView[ targetIdx ] = 1;
-                  visitor( targetIdx, i + 1 );
-               }
+                  if( marksView_bypass[ sourceIdx ] != 1 )
+                     return;
 
-               // Deterministic mode: all threads that observe the vertex at
-               // distance i+1 compete via atomicMin, so the smallest source
-               // index wins.  This must run even for non-winners (old == i+1),
-               // hence it cannot be nested inside the i_am_winner block above.
-               if constexpr( WithPredecessors ) {
-                  if( deterministic ) {
-                     if( i_am_winner || old == i + 1 )
-                        atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
+                  if( targetIdx == Matrices::paddingIndex< IndexType > )
+                     return;
+
+                  const IndexType old = atomicCAS( &distancesView[ targetIdx ], -1, i + 1 );
+                  const bool i_am_winner = ( old == -1 );
+
+                  if( i_am_winner ) {
+                     nextMarksView[ targetIdx ] = 1;
+                     visitor( targetIdx, i + 1 );
                   }
-                  else if( i_am_winner ) {
-                     predecessorsView[ targetIdx ] = sourceIdx;
-                  }
-               }
-            },
-            launchConfig );
 
-         frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+                  // Deterministic mode: all threads that observe the vertex at
+                  // distance i+1 compete via atomicMin, so the smallest source
+                  // index wins.  This must run even for non-winners (old == i+1),
+                  // hence it cannot be nested inside the i_am_winner block above.
+                  if constexpr( WithPredecessors ) {
+                     if( deterministic ) {
+                        if( i_am_winner || old == i + 1 )
+                           atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
+                     }
+                     else if( i_am_winner ) {
+                        predecessorsView[ targetIdx ] = sourceIdx;
+                     }
+                  }
+               },
+               launchConfig );
+
+            frontierSize = sum( nextMarks );
+
+            marks.swap( nextMarks );
+            nextMarks = 0;
+            previousWasBypass = true;
+         }
+         else {
+            if( previousWasBypass ) {
+               frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+               previousWasBypass = false;
+            }
+
+            marks = 0;
+            auto marksView = marks.getView();
+
+            forEdges(
+               graph,
+               frontier,
+               0,
+               frontierSize,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
+
+                  TNL_ASSERT_GE( sourceIdx, 0, "" );
+                  TNL_ASSERT_LT( sourceIdx, distancesView.getSize(), "" );
+                  TNL_ASSERT_GE( targetIdx, 0, "" );
+                  TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
+
+                  if( targetIdx == Matrices::paddingIndex< IndexType > )
+                     return;
+
+                  const IndexType old = atomicCAS( &distancesView[ targetIdx ], -1, i + 1 );
+                  const bool i_am_winner = ( old == -1 );
+
+                  if( i_am_winner ) {
+                     marksView[ targetIdx ] = 1;
+                     visitor( targetIdx, i + 1 );
+                  }
+
+                  // Deterministic mode: all threads that observe the vertex at
+                  // distance i+1 compete via atomicMin, so the smallest source
+                  // index wins.  This must run even for non-winners (old == i+1),
+                  // hence it cannot be nested inside the i_am_winner block above.
+                  if constexpr( WithPredecessors ) {
+                     if( deterministic ) {
+                        if( i_am_winner || old == i + 1 )
+                           atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
+                     }
+                     else if( i_am_winner ) {
+                        predecessorsView[ targetIdx ] = sourceIdx;
+                     }
+                  }
+               },
+               launchConfig );
+
+            frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+         }
+
          if( frontierSize == 0 )
             break;
       }
@@ -242,7 +388,8 @@ breadthFirstSearch_impl(
    Vector& distances,
    PredecessorVector& predecessors,
    bool deterministic,
-   const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
+   const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig,
+   double bypassThreshold )
 {
    static_assert(
       ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(), "BFS requires general adjacency matrix, not symmetric." );
@@ -310,7 +457,14 @@ breadthFirstSearch_impl(
    }
    else {
       breadthFirstSearchParallel< WithPredecessors >(
-         graph, start, std::forward< Visitor >( visitor ), distances, predecessors, deterministic, launchConfig );
+         graph,
+         start,
+         std::forward< Visitor >( visitor ),
+         distances,
+         predecessors,
+         deterministic,
+         launchConfig,
+         bypassThreshold );
    }
 }
 
@@ -320,7 +474,8 @@ breadthFirstSearch(
    const Graph& graph,
    typename Graph::IndexType start,
    Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
+   double bypassThreshold )
 {
    Vector dummy;
    breadthFirstSearch_impl< false >(
@@ -330,7 +485,8 @@ breadthFirstSearch(
       distances,
       dummy,
       false,
-      launchConfig );
+      launchConfig,
+      bypassThreshold );
 }
 
 template< typename Graph, typename Vector, typename Visitor, typename Enable >
@@ -340,11 +496,13 @@ breadthFirstSearchWithVisitor(
    typename Graph::IndexType start,
    Visitor&& visitor,
    Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
+   double bypassThreshold )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    Vector dummy;
-   breadthFirstSearch_impl< false >( graph, start, std::forward< Visitor >( visitor ), distances, dummy, false, launchConfig );
+   breadthFirstSearch_impl< false >(
+      graph, start, std::forward< Visitor >( visitor ), distances, dummy, false, launchConfig, bypassThreshold );
 }
 
 template< typename Graph, typename Vector, typename PredecessorVector >
@@ -355,7 +513,8 @@ breadthFirstSearchWithPredecessors(
    Vector& distances,
    PredecessorVector& predecessors,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   bool deterministic )
+   bool deterministic,
+   double bypassThreshold )
 {
    breadthFirstSearch_impl< true >(
       graph,
@@ -364,7 +523,8 @@ breadthFirstSearchWithPredecessors(
       distances,
       predecessors,
       deterministic,
-      launchConfig );
+      launchConfig,
+      bypassThreshold );
 }
 
 template< typename Graph, typename Vector, typename PredecessorVector, typename Visitor, typename Enable >
@@ -376,11 +536,12 @@ breadthFirstSearchWithVisitorAndPredecessors(
    Vector& distances,
    PredecessorVector& predecessors,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   bool deterministic )
+   bool deterministic,
+   double bypassThreshold )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    breadthFirstSearch_impl< true >(
-      graph, start, std::forward< Visitor >( visitor ), distances, predecessors, deterministic, launchConfig );
+      graph, start, std::forward< Visitor >( visitor ), distances, predecessors, deterministic, launchConfig, bypassThreshold );
 }
 
 }  // namespace TNL::Graphs::Algorithms
