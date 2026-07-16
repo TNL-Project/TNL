@@ -37,7 +37,8 @@ breadthFirstSearchParallel(
    PredecessorVector& predecessors,
    bool deterministic,
    const TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   double bypassThreshold )
+   double bypassThreshold,
+   double bottomUpThreshold )
 {
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
@@ -73,6 +74,8 @@ breadthFirstSearchParallel(
    marks.setElement( start, 1 );
 
    auto predecessorsView = predecessors.getView();
+   const auto graphView = graph.getConstView();
+   const auto adjacencyMatrixView = graph.getAdjacencyMatrix().getConstView();
 
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       using HostAtomicIntVec = Containers::Vector< Atomic< IndexType, Devices::Host >, Devices::Host, IndexType >;
@@ -102,15 +105,94 @@ breadthFirstSearchParallel(
          }
       }
 
-      bool previousWasBypass = false;
+      bool previousWasBitmap = false;
       for( IndexType i = 0; i < n; i++ ) {
+         const double frontierFraction = static_cast< double >( frontierSize ) / static_cast< double >( n );
+
+         // When the frontier is large (undirected graphs only), use bottom-up
+         // traversal: each unvisited vertex checks its in-edges for a frontier
+         // neighbor.  No atomics — one thread per vertex with early exit.
+         const bool useBottomUp = bottomUpThreshold > 0.0 && frontierFraction > bottomUpThreshold && ! Graph::isDirected();
+
          // When the frontier is small, skip the O(n) compactFrontier (prefix
          // scan + scatter) and instead scan all edges with a cheap marks check.
-         const bool useBypass =
-            bypassThreshold > 0.0 && static_cast< double >( frontierSize ) / static_cast< double >( n ) < bypassThreshold;
+         const bool useTopDownBitmap = ! useBottomUp && bypassThreshold > 0.0 && frontierFraction < bypassThreshold;
 
-         if( useBypass ) {
-            auto marksView_bypass = marks.getView();
+         if( useBottomUp ) {
+            auto marksView_bitmap = marks.getView();
+            auto nextMarksView = nextMarks.getView();
+            auto distancesView_bu = distances.getView();
+
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType v ) mutable
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
+
+                  if( ! graphView.vertexExists( v ) )
+                     return;
+                  if( distancesView_bu[ v ] != -1 )
+                     return;
+
+                  auto row = adjacencyMatrixView.getRow( v );
+
+                  if( ! deterministic ) {
+                     for( IndexType j = 0; j < row.getSize(); j++ ) {
+                        IndexType u = row.getColumnIndex( j );
+                        if( u == Matrices::paddingIndex< IndexType > )
+                           continue;
+                        const ValueType& w = row.getValue( j );
+                        if( ! graphView.edgeExists( u, v, w ) )
+                           continue;
+                        if( marksView_bitmap[ u ] == 1 ) {
+                           distancesView_bu[ v ] = i + 1;
+                           nextMarksView[ v ] = 1;
+                           visitor( v, i + 1 );
+                           if constexpr( WithPredecessors )
+                              predecessorsView[ v ] = u;
+                           break;
+                        }
+                     }
+                  }
+                  else {
+                     // Deterministic: scan all neighbors, pick smallest frontier neighbor
+                     IndexType best = static_cast< IndexType >( -1 );
+                     bool found = false;
+                     for( IndexType j = 0; j < row.getSize(); j++ ) {
+                        IndexType u = row.getColumnIndex( j );
+                        if( u == Matrices::paddingIndex< IndexType > )
+                           continue;
+                        const ValueType& w = row.getValue( j );
+                        if( ! graphView.edgeExists( u, v, w ) )
+                           continue;
+                        if( marksView_bitmap[ u ] == 1 ) {
+                           if( ! found || u < best )
+                              best = u;
+                           found = true;
+                        }
+                     }
+                     if( found ) {
+                        distancesView_bu[ v ] = i + 1;
+                        nextMarksView[ v ] = 1;
+                        visitor( v, i + 1 );
+                        if constexpr( WithPredecessors )
+                           predecessorsView[ v ] = best;
+                     }
+                  }
+               } );
+
+            frontierSize = sum( nextMarks );
+
+            marks.swap( nextMarks );
+            nextMarks = 0;
+            previousWasBitmap = true;
+         }
+         else if( useTopDownBitmap ) {
+            auto marksView_bitmap = marks.getView();
             auto nextMarksView = nextMarks.getView();
 
             forAllEdges(
@@ -124,7 +206,7 @@ breadthFirstSearchParallel(
                   (void) predecessorsView;
                   (void) atomicPredView;
 
-                  if( marksView_bypass[ sourceIdx ] != 1 )
+                  if( marksView_bitmap[ sourceIdx ] != 1 )
                      return;
 
                   if( targetIdx == Matrices::paddingIndex< IndexType > )
@@ -158,12 +240,12 @@ breadthFirstSearchParallel(
 
             marks.swap( nextMarks );
             nextMarks = 0;
-            previousWasBypass = true;
+            previousWasBitmap = true;
          }
          else {
-            if( previousWasBypass ) {
+            if( previousWasBitmap ) {
                frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
-               previousWasBypass = false;
+               previousWasBitmap = false;
             }
 
             marks = 0;
@@ -241,15 +323,94 @@ breadthFirstSearchParallel(
    else {
       auto distancesView = distances.getView();
 
-      bool previousWasBypass = false;
+      bool previousWasBitmap = false;
       for( IndexType i = 0; i < n; i++ ) {
+         const double frontierFraction = static_cast< double >( frontierSize ) / static_cast< double >( n );
+
+         // When the frontier is large (undirected graphs only), use bottom-up
+         // traversal: each unvisited vertex checks its in-edges for a frontier
+         // neighbor.  No atomics — one thread per vertex with early exit.
+         const bool useBottomUp = bottomUpThreshold > 0.0 && frontierFraction > bottomUpThreshold && ! Graph::isDirected();
+
          // When the frontier is small, skip the O(n) compactFrontier (prefix
          // scan + scatter) and instead scan all edges with a cheap marks check.
-         const bool useBypass =
-            bypassThreshold > 0.0 && static_cast< double >( frontierSize ) / static_cast< double >( n ) < bypassThreshold;
+         const bool useTopDownBitmap = ! useBottomUp && bypassThreshold > 0.0 && frontierFraction < bypassThreshold;
 
-         if( useBypass ) {
-            auto marksView_bypass = marks.getView();
+         if( useBottomUp ) {
+            auto marksView_bitmap = marks.getView();
+            auto nextMarksView = nextMarks.getView();
+            auto distancesView_bu = distances.getView();
+
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType v ) mutable
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
+
+                  if( ! graphView.vertexExists( v ) )
+                     return;
+                  if( distancesView_bu[ v ] != -1 )
+                     return;
+
+                  auto row = adjacencyMatrixView.getRow( v );
+
+                  if( ! deterministic ) {
+                     for( IndexType j = 0; j < row.getSize(); j++ ) {
+                        IndexType u = row.getColumnIndex( j );
+                        if( u == Matrices::paddingIndex< IndexType > )
+                           continue;
+                        const ValueType& w = row.getValue( j );
+                        if( ! graphView.edgeExists( u, v, w ) )
+                           continue;
+                        if( marksView_bitmap[ u ] == 1 ) {
+                           distancesView_bu[ v ] = i + 1;
+                           nextMarksView[ v ] = 1;
+                           visitor( v, i + 1 );
+                           if constexpr( WithPredecessors )
+                              predecessorsView[ v ] = u;
+                           break;
+                        }
+                     }
+                  }
+                  else {
+                     // Deterministic: scan all neighbors, pick smallest frontier neighbor
+                     IndexType best = static_cast< IndexType >( -1 );
+                     bool found = false;
+                     for( IndexType j = 0; j < row.getSize(); j++ ) {
+                        IndexType u = row.getColumnIndex( j );
+                        if( u == Matrices::paddingIndex< IndexType > )
+                           continue;
+                        const ValueType& w = row.getValue( j );
+                        if( ! graphView.edgeExists( u, v, w ) )
+                           continue;
+                        if( marksView_bitmap[ u ] == 1 ) {
+                           if( ! found || u < best )
+                              best = u;
+                           found = true;
+                        }
+                     }
+                     if( found ) {
+                        distancesView_bu[ v ] = i + 1;
+                        nextMarksView[ v ] = 1;
+                        visitor( v, i + 1 );
+                        if constexpr( WithPredecessors )
+                           predecessorsView[ v ] = best;
+                     }
+                  }
+               } );
+
+            frontierSize = sum( nextMarks );
+
+            marks.swap( nextMarks );
+            nextMarks = 0;
+            previousWasBitmap = true;
+         }
+         else if( useTopDownBitmap ) {
+            auto marksView_bitmap = marks.getView();
             auto nextMarksView = nextMarks.getView();
 
             forAllEdges(
@@ -267,7 +428,7 @@ breadthFirstSearchParallel(
                   TNL_ASSERT_GE( targetIdx, 0, "" );
                   TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
 
-                  if( marksView_bypass[ sourceIdx ] != 1 )
+                  if( marksView_bitmap[ sourceIdx ] != 1 )
                      return;
 
                   if( targetIdx == Matrices::paddingIndex< IndexType > )
@@ -301,12 +462,12 @@ breadthFirstSearchParallel(
 
             marks.swap( nextMarks );
             nextMarks = 0;
-            previousWasBypass = true;
+            previousWasBitmap = true;
          }
          else {
-            if( previousWasBypass ) {
+            if( previousWasBitmap ) {
                frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
-               previousWasBypass = false;
+               previousWasBitmap = false;
             }
 
             marks = 0;
@@ -389,7 +550,8 @@ breadthFirstSearch_impl(
    PredecessorVector& predecessors,
    bool deterministic,
    const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig,
-   double bypassThreshold )
+   double bypassThreshold,
+   double bottomUpThreshold )
 {
    static_assert(
       ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(), "BFS requires general adjacency matrix, not symmetric." );
@@ -464,7 +626,8 @@ breadthFirstSearch_impl(
          predecessors,
          deterministic,
          launchConfig,
-         bypassThreshold );
+         bypassThreshold,
+         bottomUpThreshold );
    }
 }
 
@@ -475,7 +638,8 @@ breadthFirstSearch(
    typename Graph::IndexType start,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   double bypassThreshold )
+   double bypassThreshold,
+   double bottomUpThreshold )
 {
    Vector dummy;
    breadthFirstSearch_impl< false >(
@@ -486,7 +650,8 @@ breadthFirstSearch(
       dummy,
       false,
       launchConfig,
-      bypassThreshold );
+      bypassThreshold,
+      bottomUpThreshold );
 }
 
 template< typename Graph, typename Vector, typename Visitor, typename Enable >
@@ -497,12 +662,21 @@ breadthFirstSearchWithVisitor(
    Visitor&& visitor,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   double bypassThreshold )
+   double bypassThreshold,
+   double bottomUpThreshold )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    Vector dummy;
    breadthFirstSearch_impl< false >(
-      graph, start, std::forward< Visitor >( visitor ), distances, dummy, false, launchConfig, bypassThreshold );
+      graph,
+      start,
+      std::forward< Visitor >( visitor ),
+      distances,
+      dummy,
+      false,
+      launchConfig,
+      bypassThreshold,
+      bottomUpThreshold );
 }
 
 template< typename Graph, typename Vector, typename PredecessorVector >
@@ -514,7 +688,8 @@ breadthFirstSearchWithPredecessors(
    PredecessorVector& predecessors,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
    bool deterministic,
-   double bypassThreshold )
+   double bypassThreshold,
+   double bottomUpThreshold )
 {
    breadthFirstSearch_impl< true >(
       graph,
@@ -524,7 +699,8 @@ breadthFirstSearchWithPredecessors(
       predecessors,
       deterministic,
       launchConfig,
-      bypassThreshold );
+      bypassThreshold,
+      bottomUpThreshold );
 }
 
 template< typename Graph, typename Vector, typename PredecessorVector, typename Visitor, typename Enable >
@@ -537,11 +713,20 @@ breadthFirstSearchWithVisitorAndPredecessors(
    PredecessorVector& predecessors,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
    bool deterministic,
-   double bypassThreshold )
+   double bypassThreshold,
+   double bottomUpThreshold )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    breadthFirstSearch_impl< true >(
-      graph, start, std::forward< Visitor >( visitor ), distances, predecessors, deterministic, launchConfig, bypassThreshold );
+      graph,
+      start,
+      std::forward< Visitor >( visitor ),
+      distances,
+      predecessors,
+      deterministic,
+      launchConfig,
+      bypassThreshold,
+      bottomUpThreshold );
 }
 
 }  // namespace TNL::Graphs::Algorithms
