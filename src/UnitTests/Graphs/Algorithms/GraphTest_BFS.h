@@ -1039,4 +1039,116 @@ TYPED_TEST( GraphTest, test_BFS_visitor_with_predecessors )
    test_BFS_visitor_with_predecessors_impl< typename TestFixture::GraphType >();
 }
 
+// Force bypass mode (threshold = 1.0 → every iteration uses forAllEdges) and
+// verify that distances match the compact-mode reference for all start vertices.
+template< typename GraphType >
+void
+test_BFS_bypass_distances_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   const auto graph = makeDirectedGraphA< GraphType >();
+
+   for( IndexType start = 0; start < graph.getVertexCount(); ++start ) {
+      VectorType distCompact, distBypass;
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distCompact );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBypass, {}, 1.0 );
+      ASSERT_EQ( distBypass, distCompact ) << "start=" << start;
+   }
+}
+
+TYPED_TEST( GraphTest, test_BFS_bypass_distances )
+{
+   test_BFS_bypass_distances_impl< typename TestFixture::GraphType >();
+}
+
+// Force bypass mode + deterministic predecessors + visitor, verify correctness.
+template< typename GraphType >
+void
+test_BFS_bypass_predecessors_deterministic_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 → 1
+   //   0 → 2     (both 1 and 2 at distance 1; vertex 3 reachable from both)
+   //   1 → 3
+   //   2 → 3
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedPredecessors( { -1, 0, 0, 1 } );
+   const VectorType expectedDistances( { 0, 1, 1, 2 } );
+
+   VectorType visitedDistances( graph.getVertexCount(), -1 );
+   auto visitedDistancesView = visitedDistances.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesView[ vertex ] = distance;
+   };
+
+   VectorType distances, predecessors;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
+      graph, 0, visitor, distances, predecessors, {}, true, 1.0 );
+
+   ASSERT_EQ( distances, expectedDistances );
+   ASSERT_EQ( predecessors, expectedPredecessors );
+
+   const VectorType expectedVisited( { -1, 1, 1, 2 } );
+   EXPECT_EQ( visitedDistances, expectedVisited );
+}
+
+TYPED_TEST( GraphTest, test_BFS_bypass_predecessors_deterministic )
+{
+   test_BFS_bypass_predecessors_deterministic_impl< typename TestFixture::GraphType >();
+}
+
+// Force bypass mode and verify the visitor is called exactly once per vertex.
+template< typename GraphType >
+void
+test_BFS_bypass_visitor_called_once_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   // clang-format off
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   VectorType visitCount( graph.getVertexCount(), 0 );
+   auto visitCountView = visitCount.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      (void) distance;
+      visitCountView[ vertex ] += 1;
+   };
+
+   VectorType distances;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, {}, 1.0 );
+
+   EXPECT_EQ( visitCount.getElement( 0 ), 0 );
+   EXPECT_EQ( visitCount.getElement( 1 ), 1 );
+   EXPECT_EQ( visitCount.getElement( 2 ), 1 );
+   EXPECT_EQ( visitCount.getElement( 3 ), 1 );
+}
+
+TYPED_TEST( GraphTest, test_BFS_bypass_visitor_called_once )
+{
+   test_BFS_bypass_visitor_called_once_impl< typename TestFixture::GraphType >();
+}
+
 #include "../../main.h"
