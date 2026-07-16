@@ -54,6 +54,11 @@ namespace TNL::Graphs::Algorithms {
  *   total vertex count, BFS switches to a bypass mode that iterates all edges
  *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
  *   \c 0.0 (default) disables bypass mode entirely.
+ * \param bottomUpThreshold When the frontier size exceeds this fraction of the
+ *   total vertex count, BFS switches to bottom-up traversal (checking
+ *   in-edges of unvisited vertices with early exit).  Only effective for
+ *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
+ *   (default) disables bottom-up mode entirely.
  *
  * \par Example
  * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs basic
@@ -65,7 +70,8 @@ breadthFirstSearch(
    typename Graph::IndexType start,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
-   double bypassThreshold = 0.0 );
+   double bypassThreshold = 0.0,
+   double bottomUpThreshold = 0.0 );
 
 /**
  * \brief Performs breadth-first search (BFS) with a visitor callback.
@@ -88,6 +94,11 @@ breadthFirstSearch(
  *   total vertex count, BFS switches to a bypass mode that iterates all edges
  *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
  *   \c 0.0 (default) disables bypass mode entirely.
+ * \param bottomUpThreshold When the frontier size exceeds this fraction of the
+ *   total vertex count, BFS switches to bottom-up traversal (checking
+ *   in-edges of unvisited vertices with early exit).  Only effective for
+ *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
+ *   (default) disables bottom-up mode entirely.
  *
  * \par Example
  * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor
@@ -104,7 +115,8 @@ breadthFirstSearchWithVisitor(
    Visitor&& visitor,
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
-   double bypassThreshold = 0.0 );
+   double bypassThreshold = 0.0,
+   double bottomUpThreshold = 0.0 );
 
 /**
  * \brief Performs breadth-first search (BFS) with predecessor tracking.
@@ -129,6 +141,11 @@ breadthFirstSearchWithVisitor(
  *   total vertex count, BFS switches to a bypass mode that iterates all edges
  *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
  *   \c 0.0 (default) disables bypass mode entirely.
+ * \param bottomUpThreshold When the frontier size exceeds this fraction of the
+ *   total vertex count, BFS switches to bottom-up traversal (checking
+ *   in-edges of unvisited vertices with early exit).  Only effective for
+ *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
+ *   (default) disables bottom-up mode entirely.
  */
 template< typename Graph, typename Vector, typename PredecessorVector >
 void
@@ -139,7 +156,8 @@ breadthFirstSearchWithPredecessors(
    PredecessorVector& predecessors,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
    bool deterministic = false,
-   double bypassThreshold = 0.0 );
+   double bypassThreshold = 0.0,
+   double bottomUpThreshold = 0.0 );
 
 /**
  * \brief Performs breadth-first search (BFS) with a visitor callback and
@@ -166,6 +184,11 @@ breadthFirstSearchWithPredecessors(
  *   total vertex count, BFS switches to a bypass mode that iterates all edges
  *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
  *   \c 0.0 (default) disables bypass mode entirely.
+ * \param bottomUpThreshold When the frontier size exceeds this fraction of the
+ *   total vertex count, BFS switches to bottom-up traversal (checking
+ *   in-edges of unvisited vertices with early exit).  Only effective for
+ *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
+ *   (default) disables bottom-up mode entirely.
  */
 template<
    typename Graph,
@@ -182,7 +205,8 @@ breadthFirstSearchWithVisitorAndPredecessors(
    PredecessorVector& predecessors,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
    bool deterministic = false,
-   double bypassThreshold = 0.0 );
+   double bypassThreshold = 0.0,
+   double bottomUpThreshold = 0.0 );
 }  // namespace TNL::Graphs::Algorithms
 
 #include "breadthFirstSearch.hpp"

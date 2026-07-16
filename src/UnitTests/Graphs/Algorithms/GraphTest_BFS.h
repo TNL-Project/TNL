@@ -1151,4 +1151,195 @@ TYPED_TEST( GraphTest, test_BFS_bypass_visitor_called_once )
    test_BFS_bypass_visitor_called_once_impl< typename TestFixture::GraphType >();
 }
 
+// ---------------------------------------------------------------------------
+// Undirected graph tests — bottom-up BFS direction optimization
+// ---------------------------------------------------------------------------
+
+template< typename Matrix >
+class GraphTestUndirected : public ::testing::Test
+{
+protected:
+   using MatrixType = Matrix;
+   using GraphType = TNL::Graphs::
+      Graph< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType, TNL::Graphs::UndirectedGraph >;
+};
+
+using GraphTestUndirectedTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Sequential, int >,
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int >
+#elif defined( __CUDACC__ )
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int >
+#elif defined( __HIP__ )
+   TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int >
+#endif
+   >;
+
+TYPED_TEST_SUITE( GraphTestUndirected, GraphTestUndirectedTypes );
+
+// Undirected version of the 5-node graph from test_BFS_small.
+// Edges are given once; the adjacency matrix mirrors them automatically.
+//   0 --- 1 --- 2
+//   |     |     |
+//   3 --- 4 --- 5
+// Distances from vertex 0: {0, 1, 2, 1, 2, 3}
+template< typename GraphType >
+void
+test_BFS_undirected_small_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   // clang-format off
+   GraphType graph(
+      6,
+      {
+         { 0, 1, 1.0 }, { 0, 3, 1.0 },
+         { 1, 2, 1.0 }, { 1, 4, 1.0 },
+         { 2, 5, 1.0 },
+         { 3, 4, 1.0 },
+         { 4, 5, 1.0 },
+      } );
+   // clang-format on
+
+   VectorType distances;
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, distances );
+
+   const VectorType expectedDistances( { 0, 1, 2, 1, 2, 3 } );
+   ASSERT_EQ( distances, expectedDistances );
+}
+
+TYPED_TEST( GraphTestUndirected, test_BFS_undirected_small )
+{
+   test_BFS_undirected_small_impl< typename TestFixture::GraphType >();
+}
+
+// Force bottom-up mode (threshold = 1.0 → every iteration uses bottom-up) and
+// verify that distances match the compact-mode reference for all start vertices.
+template< typename GraphType >
+void
+test_BFS_bottomup_distances_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 --- 1 --- 2
+   //   |     |     |
+   //   3 --- 4 --- 5
+   GraphType graph(
+      6,
+      {
+         { 0, 1, 1.0 }, { 0, 3, 1.0 },
+         { 1, 2, 1.0 }, { 1, 4, 1.0 },
+         { 2, 5, 1.0 },
+         { 3, 4, 1.0 },
+         { 4, 5, 1.0 },
+      } );
+   // clang-format on
+
+   for( IndexType start = 0; start < graph.getVertexCount(); ++start ) {
+      VectorType distCompact, distBottomUp;
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distCompact );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBottomUp, {}, 0.0, 1.0 );
+      ASSERT_EQ( distBottomUp, distCompact ) << "start=" << start;
+   }
+}
+
+TYPED_TEST( GraphTestUndirected, test_BFS_bottomup_distances )
+{
+   test_BFS_bottomup_distances_impl< typename TestFixture::GraphType >();
+}
+
+// Force bottom-up mode + deterministic predecessors + visitor.
+template< typename GraphType >
+void
+test_BFS_bottomup_predecessors_deterministic_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 --- 1
+   //   |     |
+   //   2 --- 3
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0, 1, 1, 2 } );
+   // Deterministic: smallest source wins. From vertex 0:
+   //   pred[1] = 0 (only edge to 1 is from 0)
+   //   pred[2] = 0 (only edge to 2 is from 0)
+   //   pred[3] = 1 (smallest among {1, 2})
+   const VectorType expectedPredecessors( { -1, 0, 0, 1 } );
+
+   VectorType visitedDistances( graph.getVertexCount(), -1 );
+   auto visitedDistancesView = visitedDistances.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesView[ vertex ] = distance;
+   };
+
+   VectorType distances, predecessors;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
+      graph, 0, visitor, distances, predecessors, {}, true, 0.0, 1.0 );
+
+   ASSERT_EQ( distances, expectedDistances );
+   ASSERT_EQ( predecessors, expectedPredecessors );
+
+   const VectorType expectedVisited( { -1, 1, 1, 2 } );
+   EXPECT_EQ( visitedDistances, expectedVisited );
+}
+
+TYPED_TEST( GraphTestUndirected, test_BFS_bottomup_predecessors_deterministic )
+{
+   test_BFS_bottomup_predecessors_deterministic_impl< typename TestFixture::GraphType >();
+}
+
+// Force bottom-up mode and verify the visitor is called exactly once per vertex.
+template< typename GraphType >
+void
+test_BFS_bottomup_visitor_called_once_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   // clang-format off
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   VectorType visitCount( graph.getVertexCount(), 0 );
+   auto visitCountView = visitCount.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      (void) distance;
+      visitCountView[ vertex ] += 1;
+   };
+
+   VectorType distances;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, {}, 0.0, 1.0 );
+
+   EXPECT_EQ( visitCount.getElement( 0 ), 0 );
+   EXPECT_EQ( visitCount.getElement( 1 ), 1 );
+   EXPECT_EQ( visitCount.getElement( 2 ), 1 );
+   EXPECT_EQ( visitCount.getElement( 3 ), 1 );
+}
+
+TYPED_TEST( GraphTestUndirected, test_BFS_bottomup_visitor_called_once )
+{
+   test_BFS_bottomup_visitor_called_once_impl< typename TestFixture::GraphType >();
+}
+
 #include "../../main.h"
