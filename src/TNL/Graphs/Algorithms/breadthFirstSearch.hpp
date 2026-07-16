@@ -11,6 +11,7 @@
 #include <TNL/Backend/Macros.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
+#include <TNL/Atomic.h>
 #include <TNL/Graphs/traverse.h>
 #include <TNL/Graphs/SubGraph.h>
 #include <TNL/Matrices/MatrixBase.h>
@@ -25,13 +26,15 @@
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Graph, typename Visitor, typename Vector >
+template< bool WithPredecessors, typename Graph, typename Visitor, typename Vector, typename PredecessorVector >
 void
 breadthFirstSearchParallel(
    const Graph& graph,
    typename Graph::IndexType start,
    Visitor&& visitor,
    Vector& distances,
+   PredecessorVector& predecessors,
+   bool deterministic,
    const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using ValueType = typename Graph::ValueType;
@@ -39,23 +42,60 @@ breadthFirstSearchParallel(
    using IndexType = typename Graph::IndexType;
    const IndexType n = graph.getVertexCount();
    distances.setSize( n );
+   if( n == 0 )
+      return;
 
-   Vector y( distances.getSize() );
-   Containers::Vector< IndexType, DeviceType, IndexType > predecessors( n, -1 );
+   distances = -1;
+   distances.setElement( start, 0 );
+
+   if constexpr( WithPredecessors ) {
+      predecessors.setSize( n );
+      if( deterministic )
+         predecessors = n;
+      else
+         predecessors = -1;
+      predecessors.setElement( start, -1 );
+   }
+
    Containers::Vector< IndexType, DeviceType, IndexType > marks( n );
    Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
-   distances = -1;
-   distances.setElement( start, 0 );
    frontier.setElement( 0, start );
    IndexType frontierSize( 1 );
-   y = distances;
-   auto yView = y.getView();
-   auto predecessorsView = predecessors.getView();
+
    auto marksView = marks.getView();
-   for( IndexType i = 0; i < n; i++ ) {
-      marks = 0;
-      if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
+   auto predecessorsView = predecessors.getView();
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
+      using HostAtomicIntVec = Containers::Vector< Atomic< IndexType, Devices::Host >, Devices::Host, IndexType >;
+      HostAtomicIntVec atomicDistances( n );
+      auto atomicDistancesView = atomicDistances.getView();
+      auto distancesView = distances.getView();
+
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         n,
+         [ = ] __cuda_callable__( IndexType idx ) mutable
+         {
+            atomicDistancesView[ idx ] = distancesView[ idx ];
+         } );
+
+      HostAtomicIntVec atomicPredecessors( n );
+      auto atomicPredView = atomicPredecessors.getView();
+      if constexpr( WithPredecessors ) {
+         if( deterministic ) {
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType idx ) mutable
+               {
+                  atomicPredView[ idx ] = predecessorsView[ idx ];
+               } );
+         }
+      }
+
+      for( IndexType i = 0; i < n; i++ ) {
+         marks = 0;
          forEdges(
             graph,
             frontier,
@@ -64,29 +104,70 @@ breadthFirstSearchParallel(
             [ = ] __cuda_callable__(
                IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
-               // NOTE: Reading yView[targetIdx] without synchronization while another
-               // thread may write to it is technically a data race. In practice all
-               // concurrent writers in the same layer write the same value (i+1), so
-               // the result is correct, but this is undefined behavior per the C++ standard.
-               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1 ) {
-#if defined( HAVE_OPENMP )
-   #pragma omp atomic write
-#endif
-                  yView[ targetIdx ] = i + 1;
-#if defined( HAVE_OPENMP )
-   #pragma omp atomic write
-#endif
-                  predecessorsView[ targetIdx ] = sourceIdx;
-#if defined( HAVE_OPENMP )
-   #pragma omp atomic write
-#endif
+               // NVCC forbids first-capture of variables inside if constexpr
+               // in extended lambdas.  These (void) casts force early capture.
+               (void) deterministic;
+               (void) predecessorsView;
+               (void) atomicPredView;
+
+               if( targetIdx == Matrices::paddingIndex< IndexType > )
+                  return;
+
+               IndexType prev = -1;
+               const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+
+               if( i_am_winner ) {
                   marksView[ targetIdx ] = 1;
                   visitor( targetIdx, i + 1 );
                }
+
+               // Deterministic mode: all threads that observe the vertex at
+               // distance i+1 compete via fetch_min, so the smallest source
+               // index wins.  This must run even for non-winners (prev == i+1),
+               // hence it cannot be nested inside the i_am_winner block above.
+               if constexpr( WithPredecessors ) {
+                  if( deterministic ) {
+                     if( i_am_winner || prev == i + 1 )
+                        atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                  }
+                  else if( i_am_winner ) {
+                     predecessorsView[ targetIdx ] = sourceIdx;
+                  }
+               }
             },
             launchConfig );
+
+         frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+         if( frontierSize == 0 )
+            break;
       }
-      else {
+
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         n,
+         [ = ] __cuda_callable__( IndexType idx ) mutable
+         {
+            distancesView[ idx ] = atomicDistancesView[ idx ].load();
+         } );
+
+      if constexpr( WithPredecessors ) {
+         if( deterministic ) {
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType idx ) mutable
+               {
+                  IndexType p = atomicPredView[ idx ].load();
+                  predecessorsView[ idx ] = ( p == n ) ? -1 : p;
+               } );
+         }
+      }
+   }
+   else {
+      auto distancesView = distances.getView();
+
+      for( IndexType i = 0; i < n; i++ ) {
+         marks = 0;
          forEdges(
             graph,
             frontier,
@@ -95,36 +176,72 @@ breadthFirstSearchParallel(
             [ = ] __cuda_callable__(
                IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
             {
+               // NVCC forbids first-capture of variables inside if constexpr
+               // in extended lambdas.  These (void) casts force early capture.
+               (void) deterministic;
+               (void) predecessorsView;
+
                TNL_ASSERT_GE( sourceIdx, 0, "" );
-               TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
+               TNL_ASSERT_LT( sourceIdx, distancesView.getSize(), "" );
                TNL_ASSERT_GE( targetIdx, 0, "" );
-               TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
-               // edgeExists and vertexExists(target) are applied by the SubGraph forEdges wrapper.
-               if( targetIdx != Matrices::paddingIndex< IndexType > && yView[ targetIdx ] == -1 ) {
-                  atomicMax( &yView[ targetIdx ], i + 1 );
-                  atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
-                  atomicMax( &marksView[ targetIdx ], 1 );
+               TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
+
+               if( targetIdx == Matrices::paddingIndex< IndexType > )
+                  return;
+
+               const IndexType old = atomicCAS( &distancesView[ targetIdx ], -1, i + 1 );
+               const bool i_am_winner = ( old == -1 );
+
+               if( i_am_winner ) {
+                  marksView[ targetIdx ] = 1;
                   visitor( targetIdx, i + 1 );
+               }
+
+               // Deterministic mode: all threads that observe the vertex at
+               // distance i+1 compete via atomicMin, so the smallest source
+               // index wins.  This must run even for non-winners (old == i+1),
+               // hence it cannot be nested inside the i_am_winner block above.
+               if constexpr( WithPredecessors ) {
+                  if( deterministic ) {
+                     if( i_am_winner || old == i + 1 )
+                        atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
+                  }
+                  else if( i_am_winner ) {
+                     predecessorsView[ targetIdx ] = sourceIdx;
+                  }
                }
             },
             launchConfig );
-      }
-      // Compact newly discovered vertices into the next frontier
-      frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
-      if( frontierSize == 0 )
-         break;
 
-      distances = y;
+         frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+         if( frontierSize == 0 )
+            break;
+      }
+
+      if constexpr( WithPredecessors ) {
+         if( deterministic ) {
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType idx ) mutable
+               {
+                  if( predecessorsView[ idx ] == n )
+                     predecessorsView[ idx ] = -1;
+               } );
+         }
+      }
    }
 }
 
-template< typename Graph, typename Visitor, typename Vector >
+template< bool WithPredecessors, typename Graph, typename Visitor, typename Vector, typename PredecessorVector >
 void
 breadthFirstSearch_impl(
    const Graph& graph,
    typename Graph::IndexType start,
    Visitor&& visitor,
    Vector& distances,
+   PredecessorVector& predecessors,
+   bool deterministic,
    const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    static_assert(
@@ -141,9 +258,6 @@ breadthFirstSearch_impl(
    TNL_ASSERT_GE( start, static_cast< IndexType >( 0 ), "Start vertex index must be non-negative." );
    TNL_ASSERT_LT( start, n, "Start vertex index must be less than the number of vertices." );
 
-   // Use 5-arg reduce (explicit Result+identity) to avoid decltype(fetch(0)):
-   // NVCC may evaluate it on host when fetch captures a GPU view via nested
-   // extended-lambda forwarding (SCC → breadthFirstSearchIf → _impl).
    const bool startActive = TNL::Algorithms::reduce< DeviceType, IndexType, bool >(
       0,
       1,
@@ -158,7 +272,12 @@ breadthFirstSearch_impl(
 
    if constexpr( std::is_same_v< DeviceType, TNL::Devices::Sequential > ) {
       distances = -1;
-      distances.setElement( start, 0.0 );
+      distances.setElement( start, 0 );
+
+      if constexpr( WithPredecessors ) {
+         predecessors.setSize( n );
+         predecessors = -1;
+      }
 
       std::queue< IndexType > q;
       q.push( start );
@@ -181,6 +300,8 @@ breadthFirstSearch_impl(
             if( distances[ neighbor ] == -1 ) {
                IndexType distance = distances[ current ] + 1;
                distances[ neighbor ] = distance;
+               if constexpr( WithPredecessors )
+                  predecessors[ neighbor ] = current;
                visitor( neighbor, distance );
                q.push( neighbor );
             }
@@ -188,7 +309,8 @@ breadthFirstSearch_impl(
       }
    }
    else {
-      breadthFirstSearchParallel( graph, start, visitor, distances, launchConfig );
+      breadthFirstSearchParallel< WithPredecessors >(
+         graph, start, std::forward< Visitor >( visitor ), distances, predecessors, deterministic, launchConfig );
    }
 }
 
@@ -200,8 +322,15 @@ breadthFirstSearch(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   breadthFirstSearch_impl(
-      graph, start, [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType ) {}, distances, launchConfig );
+   Vector dummy;
+   breadthFirstSearch_impl< false >(
+      graph,
+      start,
+      [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType ) {},
+      distances,
+      dummy,
+      false,
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename Visitor, typename Enable >
@@ -214,7 +343,44 @@ breadthFirstSearchWithVisitor(
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
-   breadthFirstSearch_impl( graph, start, std::forward< Visitor >( visitor ), distances, launchConfig );
+   Vector dummy;
+   breadthFirstSearch_impl< false >( graph, start, std::forward< Visitor >( visitor ), distances, dummy, false, launchConfig );
+}
+
+template< typename Graph, typename Vector, typename PredecessorVector >
+void
+breadthFirstSearchWithPredecessors(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   Vector& distances,
+   PredecessorVector& predecessors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
+   bool deterministic )
+{
+   breadthFirstSearch_impl< true >(
+      graph,
+      start,
+      [] __cuda_callable__( typename Graph::IndexType, typename Graph::IndexType ) {},
+      distances,
+      predecessors,
+      deterministic,
+      launchConfig );
+}
+
+template< typename Graph, typename Vector, typename PredecessorVector, typename Visitor, typename Enable >
+void
+breadthFirstSearchWithVisitorAndPredecessors(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   Visitor&& visitor,
+   Vector& distances,
+   PredecessorVector& predecessors,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
+   bool deterministic )
+{
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
+   breadthFirstSearch_impl< true >(
+      graph, start, std::forward< Visitor >( visitor ), distances, predecessors, deterministic, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms

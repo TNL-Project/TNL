@@ -803,4 +803,240 @@ TYPED_TEST( GraphTest, test_BFS_ifWithVisitor_edgePredicate )
    test_BFS_ifWithVisitor_edgePredicate_impl< typename TestFixture::GraphType >();
 }
 
+template< typename GraphType >
+void
+test_BFS_predecessors_basic_impl()
+{
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 → 1 → 2
+   //   ↓   ↓
+   //   3   4
+   //   ↓
+   //   5
+   GraphType graph(
+      6,
+      {
+         { 0, 1, 1.0 }, { 0, 3, 1.0 },
+         { 1, 2, 1.0 }, { 1, 4, 1.0 },
+         { 3, 5, 1.0 },
+      } );
+   // clang-format on
+
+   for( IndexType start = 0; start < graph.getVertexCount(); ++start ) {
+      VectorType distances;
+      VectorType predecessors;
+      TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, start, distances, predecessors );
+
+      // Check predecessor invariants: distances[pred[v]] == distances[v] - 1,
+      // and pred[v] == -1 for start and unreachable vertices.
+      for( IndexType v = 0; v < graph.getVertexCount(); ++v ) {
+         if( v == start || distances.getElement( v ) == -1 ) {
+            EXPECT_EQ( predecessors.getElement( v ), -1 ) << "start=" << start << " v=" << v;
+         }
+         else {
+            IndexType pred = predecessors.getElement( v );
+            EXPECT_GE( pred, 0 ) << "start=" << start << " v=" << v;
+            EXPECT_EQ( distances.getElement( pred ), distances.getElement( v ) - 1 ) << "start=" << start << " v=" << v
+               << " pred=" << pred;
+         }
+      }
+   }
+}
+
+TYPED_TEST( GraphTest, test_BFS_predecessors_basic )
+{
+   test_BFS_predecessors_basic_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_predecessors_deterministic_impl()
+{
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 → 1
+   //   0 → 2     (both 1 and 2 are at distance 1, so deterministic mode
+   //   1 → 3      should pick the smallest source for each target)
+   //   2 → 3
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   // Expected deterministic predecessors from source 0:
+   //   pred[0] = -1 (start)
+   //   pred[1] = 0  (only edge to 1 is from 0)
+   //   pred[2] = 0  (only edge to 2 is from 0)
+   //   pred[3] = 1  (smallest source among {1, 2} that reaches 3)
+   const VectorType expectedPredecessors( { -1, 0, 0, 1 } );
+   const VectorType expectedDistances( { 0, 1, 1, 2 } );
+
+   // Run multiple times — deterministic mode must produce identical results
+   for( int run = 0; run < 5; ++run ) {
+      VectorType distances;
+      VectorType predecessors;
+      TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, 0, distances, predecessors, {}, true );
+
+      ASSERT_EQ( distances, expectedDistances ) << "run=" << run;
+      ASSERT_EQ( predecessors, expectedPredecessors ) << "run=" << run;
+   }
+}
+
+TYPED_TEST( GraphTest, test_BFS_predecessors_deterministic )
+{
+   test_BFS_predecessors_deterministic_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_predecessors_unreachable_impl()
+{
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 → 1     2 → 3    (two disconnected components)
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   VectorType distances;
+   VectorType predecessors;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, 0, distances, predecessors );
+
+   const VectorType expectedDistances( { 0, 1, -1, -1 } );
+   ASSERT_EQ( distances, expectedDistances );
+
+   // Unreachable vertices must have predecessor -1
+   EXPECT_EQ( predecessors.getElement( 0 ), -1 );  // start
+   EXPECT_EQ( predecessors.getElement( 1 ), 0 );  // parent of 1 is 0
+   EXPECT_EQ( predecessors.getElement( 2 ), -1 );  // unreachable
+   EXPECT_EQ( predecessors.getElement( 3 ), -1 );  // unreachable
+}
+
+TYPED_TEST( GraphTest, test_BFS_predecessors_unreachable )
+{
+   test_BFS_predecessors_unreachable_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_visitor_called_once_impl()
+{
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 → 1
+   //   0 → 2     (vertex 3 is reachable from both 1 and 2 — visitor must
+   //   1 → 3      be called exactly once for it)
+   //   2 → 3
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   // Count visitor calls per vertex using a distances vector
+   VectorType visitCount( graph.getVertexCount(), 0 );
+   auto visitCountView = visitCount.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      (void) distance;
+      visitCountView[ vertex ] += 1;
+   };
+
+   VectorType distances;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances );
+
+   // Visitor is not called for the start vertex (distance 0)
+   EXPECT_EQ( visitCount.getElement( 0 ), 0 );
+   // Each other reachable vertex must be visited exactly once
+   EXPECT_EQ( visitCount.getElement( 1 ), 1 );
+   EXPECT_EQ( visitCount.getElement( 2 ), 1 );
+   EXPECT_EQ( visitCount.getElement( 3 ), 1 );
+}
+
+TYPED_TEST( GraphTest, test_BFS_visitor_called_once )
+{
+   test_BFS_visitor_called_once_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
+test_BFS_visitor_with_predecessors_impl()
+{
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 → 1 → 3
+   //   0 → 2 → 3
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   VectorType visitedDistances( graph.getVertexCount(), -1 );
+   auto visitedDistancesView = visitedDistances.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      visitedDistancesView[ vertex ] = distance;
+   };
+
+   VectorType distances;
+   VectorType predecessors;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
+      graph, 0, visitor, distances, predecessors, {}, true );
+
+   const VectorType expectedDistances( { 0, 1, 1, 2 } );
+   ASSERT_EQ( distances, expectedDistances );
+
+   // Visitor should record distances for all reachable vertices except start
+   const VectorType expectedVisited( { -1, 1, 1, 2 } );
+   EXPECT_EQ( visitedDistances, expectedVisited );
+
+   // Predecessor invariants
+   for( IndexType v = 0; v < graph.getVertexCount(); ++v ) {
+      if( v == 0 || distances.getElement( v ) == -1 ) {
+         EXPECT_EQ( predecessors.getElement( v ), -1 );
+      }
+      else {
+         IndexType pred = predecessors.getElement( v );
+         EXPECT_GE( pred, 0 );
+         EXPECT_EQ( distances.getElement( pred ), distances.getElement( v ) - 1 );
+      }
+   }
+}
+
+TYPED_TEST( GraphTest, test_BFS_visitor_with_predecessors )
+{
+   test_BFS_visitor_with_predecessors_impl< typename TestFixture::GraphType >();
+}
+
 #include "../../main.h"
