@@ -143,22 +143,20 @@ public:
    T
    fetch_max( T value ) noexcept
    {
-      const T old = *this;
-      T prev_value = old;
+      T prev_value = this->load();
       while( prev_value < value && ! this->compare_exchange_weak( prev_value, value ) )
          ;
-      return old;
+      return prev_value;
    }
 
    //! \brief Atomically updates the stored value to the minimum of the current value and `value`.
    T
    fetch_min( T value ) noexcept
    {
-      const T old = *this;
-      T prev_value = old;
+      T prev_value = this->load();
       while( prev_value > value && ! this->compare_exchange_weak( prev_value, value ) )
          ;
-      return old;
+      return prev_value;
    }
 };
 
