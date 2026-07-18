@@ -31,7 +31,7 @@ struct GraphBase
    //! \brief Type of constant view of the adjacency matrix.
    using ConstAdjacencyMatrixView = typename AdjacencyMatrixView::ConstViewType;
 
-   //! \brief Type for indexing of the graph nodes.
+   //! \brief Type for indexing of the graph vertices.
    using IndexType = Index;
 
    //! \brief Type of device where the graph will be operating.
@@ -98,7 +98,7 @@ struct GraphBase
    AdjacencyMatrixView&
    getAdjacencyMatrixView();
 
-   //! \brief Returns the number of nodes in the graph.
+   //! \brief Returns the number of vertices in the graph.
    [[nodiscard]] __cuda_callable__
    IndexType
    getVertexCount() const;
@@ -109,28 +109,28 @@ struct GraphBase
    getEdgeCount() const;
 
    /***
-    * \brief Returns the constant view of the graph node with given index.
+    * \brief Returns the constant view of the graph vertex with given index.
     *
-    * \param nodeIdx is index of the node to be returned.
+    * \param vertexIdx is index of the vertex to be returned.
     */
    [[nodiscard]] __cuda_callable__
    ConstVertexView
    getVertex( IndexType vertexIdx ) const;
 
    /***
-    * \brief Returns the modifiable view of the graph node with given index.
+    * \brief Returns the modifiable view of the graph vertex with given index.
     *
-    * \param nodeIdx is index of the node to be returned.
+    * \param vertexIdx is index of the vertex to be returned.
     */
    [[nodiscard]] __cuda_callable__
    VertexView
    getVertex( IndexType vertexIdx );
 
    /***
-    * \brief Sets the weight of the edge between given node and its edge index.
+    * \brief Sets the weight of the edge between given vertex and its edge index.
     *
-    * \param nodeIdx is index of the node.
-    * \param edgeIdx is index of the edge of the node.
+    * \param vertexIdx is index of the vertex.
+    * \param edgeIdx is index of the edge of the vertex.
     * \param value is new weight of the edge.
     */
    __cuda_callable__
@@ -139,10 +139,10 @@ struct GraphBase
 
    // TODO: Add eraseEdge - works only for sparse adjacency matrices
    /***
-    * \brief Returns the weight of the edge between given node and its edge index.
+    * \brief Returns the weight of the edge between given vertex and its edge index.
     *
-    * \param nodeIdx is index of the node.
-    * \param edgeIdx is index of the edge of the node.
+    * \param vertexIdx is index of the vertex.
+    * \param edgeIdx is index of the edge of the vertex.
     */
    [[nodiscard]] __cuda_callable__
    ValueType
@@ -150,9 +150,9 @@ struct GraphBase
 
    [[nodiscard]] __cuda_callable__
    IndexType
-   getVertexDegree( IndexType nodeIdx ) const
+   getVertexDegree( IndexType vertexIdx ) const
    {
-      return this->getVertex( nodeIdx ).getDegree();
+      return this->getVertex( vertexIdx ).getDegree();
    }
 
    [[nodiscard]] __cuda_callable__

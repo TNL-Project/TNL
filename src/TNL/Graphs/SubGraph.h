@@ -93,10 +93,10 @@ public:
    //! \brief Type of the graph orientation.
    using GraphOrientation = typename GraphType::GraphOrientation;
 
-   //! \brief Type of the graph nodes view.
+   //! \brief Type of the graph vertex view.
    using VertexView = typename GraphType::VertexView;
 
-   //! \brief Type of constant graph nodes view.
+   //! \brief Type of constant graph vertex view.
    using ConstVertexView = typename GraphType::ConstVertexView;
 
    /**
@@ -189,7 +189,7 @@ public:
    ConstViewType
    getConstView() const;
 
-   //! \brief Returns the constant view of the graph node with given index.
+   //! \brief Returns the constant view of the graph vertex with given index.
    [[nodiscard]] __cuda_callable__
    ConstVertexView
    getVertex( IndexType vertexIdx ) const;

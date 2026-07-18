@@ -32,11 +32,11 @@ namespace TNL::Graphs {
  * stores the positions of the edges without any associated weights.
  *
  * If a dense matrix is used as the adjacency matrix, it represents a complete graph, meaning that all possible edges between
- * nodes are present.
+ * vertices are present.
  *
  * \tparam Value is type for weights of the graph edges.
  * \tparam Device is type of device where the graph will be operating.
- * \tparam Index is type for indexing of the graph nodes.
+ * \tparam Index is type for indexing of the graph vertices.
  * \tparam Orientation is type of the graph - directed or undirected.
  * \tparam Segments is template for segments type used to store adjacency matrix.
  * \tparam AdjacencyMatrix is type of matrix used to store the adjacency matrix of the graph.
@@ -71,7 +71,7 @@ public:
    //! \brief Type for weights of the graph edges.
    using ValueType = std::remove_cv_t< Value >;
 
-   //! \brief Type for indexing of the graph nodes.
+   //! \brief Type for indexing of the graph vertices.
    using IndexType = Index;
 
    //! \brief Type of device where the graph will be operating.
@@ -86,10 +86,10 @@ public:
    //! \brief Type of constant view of the adjacency matrix.
    using ConstViewType = GraphView< std::add_const_t< Value >, Device, Index, Orientation, ConstAdjacencyMatrixView >;
 
-   //! \brief Type of the graph nodes view.
+   //! \brief Type of the graph vertex view.
    using VertexView = GraphVertexView< AdjacencyMatrixView, Orientation >;
 
-   //! \brief Type of constant graph nodes view.
+   //! \brief Type of constant graph vertex view.
    using ConstVertexView = typename VertexView::ConstVertexView;
 
    //! \brief Helper type for getting self type or its modifications.
@@ -108,7 +108,7 @@ public:
    //! \brief Default constructor.
    Graph() = default;
 
-   //! \brief Constructor with number of nodes.
+   //! \brief Constructor with number of vertices.
    Graph( IndexType nodesCount );
 
    //! \brief Constructor with adjacency matrix.
@@ -132,10 +132,10 @@ public:
    Graph( const OtherGraph&& other );
 
    /**
-    * \brief Constructor with number of nodes and edges given as initializer list.
+    * \brief Constructor with number of vertices and edges given as initializer list.
     *
-    * \param vertexCount is the number of nodes in the graph.
-    * \param data is the initializer list of tuples (source node, target node, edge weight).
+    * \param vertexCount is the number of vertices in the graph.
+    * \param data is the initializer list of tuples (source vertex, target vertex, edge weight).
     * \param encoding is the encoding for symmetric matrices (used only for undirected graphs).
     *
     * If the graph is undirected, the adjacency matrix can be symmetric. In this case, the
@@ -156,7 +156,7 @@ public:
                                                                : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
-    * \brief Constructor with number of nodes and edges given as nested initializer list (for dense adjacency matrix).
+    * \brief Constructor with number of vertices and edges given as nested initializer list (for dense adjacency matrix).
     *
     * This constructor is only available when the adjacency matrix is a dense matrix type.
     * The edges are specified as a nested initializer list where each inner list represents
@@ -181,10 +181,10 @@ public:
                                                                : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
-    * \brief Constructor with number of nodes and edges given as a map.
+    * \brief Constructor with number of vertices and edges given as a map.
     *
-    * \param vertexCount is the number of nodes in the graph.
-    * \param map is the map with keys as (source node, target node) pairs and values as edge weights.
+    * \param vertexCount is the number of vertices in the graph.
+    * \param map is the map with keys as (source vertex, target vertex) pairs and values as edge weights.
     * \param encoding is the encoding for symmetric matrices (used only for undirected graphs).
     *
     * If the graph is undirected, the adjacency matrix can be symmetric. In this case, the
@@ -225,7 +225,7 @@ public:
    [[nodiscard]] ConstViewType
    getConstView() const;
 
-   //! \brief Sets the number of nodes in the graph.
+   //! \brief Sets the number of vertices in the graph.
    void
    setVertexCount( IndexType nodesCount );
 
@@ -301,11 +301,11 @@ public:
    /**
     * \brief Sets the edges of the graph from a map.
     *
-    * \tparam MapIndex is type for indexing of the nodes in the map.
+    * \tparam MapIndex is type for indexing of the vertices in the map.
     * \tparam MapValue is type for weights of the edges in the map.
     *
 
-    * \param map is the map with keys as (source node, target node) pairs and values as edge weights.
+    * \param map is the map with keys as (source vertex, target vertex) pairs and values as edge weights.
     * \param encoding defines encoding for symmetric matrices (used only for undirected graphs).
     *
     * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
@@ -323,18 +323,18 @@ public:
                                                                : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
-    * \brief Sets the capacities of the graph nodes.
+    * \brief Sets the capacities of the graph vertices.
     *
-    * \param nodeCapacities is the vector holding the node capacities.
+    * \param vertexCapacities is the vector holding the vertex capacities.
     *
-    * The method sets the row capacities of the adjacency matrix to the provided node capacities.
+    * The method sets the row capacities of the adjacency matrix to the provided vertex capacities.
     * It is not necessary to call this method if the adjacency matrix is dense. If the adjacency
     * matrix is sparse and symmetric, capacity only for edges in one direction (e.g., lower part)
     * should be provided.
     */
    template< typename Vector >
    void
-   setVertexCapacities( const Vector& nodeCapacities );
+   setVertexCapacities( const Vector& vertexCapacities );
 
    //! \brief Returns the modifiable adjacency matrix of the graph.
    [[nodiscard]] const AdjacencyMatrixType&

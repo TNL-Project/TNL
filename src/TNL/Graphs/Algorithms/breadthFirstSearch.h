@@ -18,18 +18,18 @@ namespace TNL::Graphs::Algorithms {
  * See [Wikipedia](https://en.wikipedia.org/wiki/Breadth-first_search) for more
  * details about the BFS algorithm.
  *
- * | Function                                          | Visitor | Predecessors | Description                          |
- * |---------------------------------------------------|---------|--------------|--------------------------------------|
- * | \ref breadthFirstSearch                           | No      | No           | Plain BFS, returns distances         |
- * | \ref breadthFirstSearchWithVisitor                | Yes     | No           | BFS with a visitor callback per node |
- * | \ref breadthFirstSearchWithPredecessors           | No      | Yes          | BFS with predecessor tracking       |
- * | \ref breadthFirstSearchWithVisitorAndPredecessors | Yes     | Yes          | BFS with visitor + predecessors |
+ * | Function                                          | Visitor | Predecessors | Description                            |
+ * |---------------------------------------------------|---------|--------------|----------------------------------------|
+ * | \ref breadthFirstSearch                           | No      | No           | Plain BFS, returns distances           |
+ * | \ref breadthFirstSearchWithVisitor                | Yes     | No           | BFS with a visitor callback per vertex |
+ * | \ref breadthFirstSearchWithPredecessors           | No      | Yes          | BFS with predecessor tracking          |
+ * | \ref breadthFirstSearchWithVisitorAndPredecessors | Yes     | Yes          | BFS with visitor + predecessors        |
  *
  * \section BFSVisitor Visitor callable
  *
  * The visitor is a callable with signature
  * \code
- * [=] __cuda_callable__( Index node, Index distance )
+ * [=] __cuda_callable__( Index vertex, Index distance )
  * \endcode
  * It is invoked exactly once per discovered vertex (excluding the start
  * vertex), in the iteration in which the vertex is first reached.
@@ -83,7 +83,7 @@ namespace TNL::Graphs::Algorithms {
 // clang-format on
 
 /**
- * \brief Performs breadth-first search (BFS) on the given graph starting from the specified node.
+ * \brief Performs breadth-first search (BFS) on the given graph starting from the specified vertex.
  *
  * See \ref BFSOverview for an overview of all BFS variants, traversal modes,
  * and visitor semantics.
@@ -95,8 +95,8 @@ namespace TNL::Graphs::Algorithms {
  * \tparam Graph The type of the graph (Graph, SubGraph, or GraphView).
  * \tparam Vector The type of the vector used to store distances.
  * \param graph The graph on which BFS is performed.
- * \param start The starting node for BFS.
- * \param distances The vector where distances from the start node will be stored.
+ * \param start The starting vertex for BFS.
+ * \param distances The vector where distances from the start vertex will be stored.
  * \param bitmapThreshold When the frontier size drops below this fraction of the
  *   total vertex count, BFS switches to top-down bitmap mode.  See
  *   \ref BFSOverview "Traversal modes".  \c 0.0 (default) disables it.
@@ -130,9 +130,9 @@ breadthFirstSearch(
  * \tparam Vector The type of the vector used to store distances.
  * \tparam Visitor The type of the visitor callable.
  * \param graph The graph on which BFS is performed.
- * \param start The starting node for BFS.
- * \param visitor The callable invoked upon visiting each node.
- * \param distances The vector where distances from the start node will be stored.
+ * \param start The starting vertex for BFS.
+ * \param visitor The callable invoked upon visiting each vertex.
+ * \param distances The vector where distances from the start vertex will be stored.
  * \param bitmapThreshold See \ref breadthFirstSearch.
  * \param bottomUpThreshold See \ref breadthFirstSearch.
  * \param launchConfig The configuration for launching the segments traversal.
@@ -168,8 +168,8 @@ breadthFirstSearchWithVisitor(
  * \tparam Vector The type of the vector used to store distances.
  * \tparam PredecessorVector The type of the vector used to store predecessors.
  * \param graph The graph on which BFS is performed.
- * \param start The starting node for BFS.
- * \param distances The vector where distances from the start node will be stored.
+ * \param start The starting vertex for BFS.
+ * \param distances The vector where distances from the start vertex will be stored.
  * \param predecessors The vector where predecessor indices will be stored.
  * \param deterministic If \c true, the predecessor of each vertex is chosen as
  *   the smallest source index among all valid parents in the same BFS layer.
@@ -206,9 +206,9 @@ breadthFirstSearchWithPredecessors(
  * \tparam PredecessorVector The type of the vector used to store predecessors.
  * \tparam Visitor The type of the visitor callable.
  * \param graph The graph on which BFS is performed.
- * \param start The starting node for BFS.
- * \param visitor The callable invoked upon visiting each node.
- * \param distances The vector where distances from the start node will be stored.
+ * \param start The starting vertex for BFS.
+ * \param visitor The callable invoked upon visiting each vertex.
+ * \param distances The vector where distances from the start vertex will be stored.
  * \param predecessors The vector where predecessor indices will be stored.
  * \param deterministic If \c true, predecessors are chosen deterministically
  *   (smallest source index per layer).  See

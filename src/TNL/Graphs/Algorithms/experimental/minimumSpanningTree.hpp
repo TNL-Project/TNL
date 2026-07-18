@@ -129,11 +129,11 @@ kruskal( const InGraph& graph, OutGraph& tree, RootsVector& roots )
    std::sort( edges.begin(), edges.end(), compareEdges< Real, Index > );
 
    Forest< Real, Index > forest( n );
-   IndexVector nodeCapacities( n );
+   IndexVector vertexCapacities( n );
    IndexVector tree_filling( n, 0 );
-   graph.getAdjacencyMatrix().getRowCapacities( nodeCapacities );
+   graph.getAdjacencyMatrix().getRowCapacities( vertexCapacities );
    tree.setVertexCount( n );
-   tree.setVertexCapacities( nodeCapacities );
+   tree.setVertexCapacities( vertexCapacities );
 
    for( const auto& edge : edges ) {
       auto source = edge.getSource();
