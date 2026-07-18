@@ -27,7 +27,7 @@ public:
    //! \brief Type of constant view of the adjacency matrix.
    using ConstAdjacencyMatrixView = typename AdjacencyMatrixView_::ConstViewType;
 
-   //! \brief Type for indexing of the graph nodes.
+   //! \brief Type for indexing of the graph vertices.
    using IndexType = Index;
 
    //! \brief Type of device where the graph will be operating.
@@ -45,10 +45,10 @@ public:
    //! \brief Type of constant view of the graph.
    using ConstViewType = GraphView< std::add_const_t< Value >, Device, Index, Orientation, ConstAdjacencyMatrixView >;
 
-   //! \brief Type of the graph nodes view.
+   //! \brief Type of the graph vertex view.
    using VertexView = GraphVertexView< AdjacencyMatrixView, Orientation >;
 
-   //! \brief Type of constant graph nodes view.
+   //! \brief Type of constant graph vertex view.
    using ConstVertexView = typename VertexView::ConstVertexView;
 
    template<

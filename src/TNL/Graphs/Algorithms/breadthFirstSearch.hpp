@@ -665,7 +665,7 @@ breadthFirstSearchWithVisitor(
    double bottomUpThreshold,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (vertex, distance)." );
    Vector dummy;
    breadthFirstSearch_impl< false >(
       graph,
@@ -716,7 +716,7 @@ breadthFirstSearchWithVisitorAndPredecessors(
    double bottomUpThreshold,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
+   static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (vertex, distance)." );
    breadthFirstSearch_impl< true >(
       graph,
       start,
