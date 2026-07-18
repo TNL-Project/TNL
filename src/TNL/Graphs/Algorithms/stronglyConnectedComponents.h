@@ -8,8 +8,38 @@
 
 namespace TNL::Graphs::Algorithms {
 
+// clang-format off
+/**
+ * \page StronglyConnectedComponentsOverview Overview of Strongly Connected Components Functions
+ *
+ * Strongly connected components (SCCs) partition a directed graph into maximal
+ * subgraphs in which every vertex is reachable from every other vertex.  TNL
+ * uses a pivot-based algorithm that performs forward and backward BFS from a
+ * pivot vertex.  Component labels start at \c 1; inactive vertices receive
+ * \c -1.  A directed (non-symmetric) graph is required (\c static_assert
+ * enforced).
+ *
+ * See [Wikipedia](https://en.wikipedia.org/wiki/Strongly_connected_component)
+ * for more details about strongly connected components.
+ *
+ * | Function                              | Description                                          |
+ * |---------------------------------------|------------------------------------------------------|
+ * | \ref stronglyConnectedComponents      | Labels each vertex with its SCC (labels start at 1)  |
+ *
+ * To run SCC on a filtered subgraph, construct a \ref SubGraph via
+ * \ref makeSubGraph and pass it:
+ * ```cpp
+ * auto sg = makeSubGraph( graph, vertexPredicate, edgePredicate );
+ * stronglyConnectedComponents( sg, components );
+ * ```
+ */
+// clang-format on
+
 /**
  * \brief Finds strongly connected components in a directed graph.
+ *
+ * See \ref StronglyConnectedComponentsOverview for an overview and algorithm
+ * details.
  *
  * To operate on a subgraph (vertex predicate, edge predicate, or both),
  * construct a \ref SubGraph via \ref makeSubGraph and pass it as the \e graph

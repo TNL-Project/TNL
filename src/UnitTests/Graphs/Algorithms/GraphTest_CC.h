@@ -241,7 +241,7 @@ TYPED_TEST( GraphTest, test_CC_large )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_indexed_small )
+TYPED_TEST( GraphTest, test_CC_withVertexIndexes_small )
 {
    using GraphType = typename TestFixture::GraphType;
    using DeviceType = typename GraphType::DeviceType;
@@ -268,7 +268,7 @@ TYPED_TEST( GraphTest, test_CC_indexed_small )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_indexed_alternating )
+TYPED_TEST( GraphTest, test_CC_withVertexIndexes_alternating )
 {
    using GraphType = typename TestFixture::GraphType;
    using DeviceType = typename GraphType::DeviceType;
@@ -296,7 +296,7 @@ TYPED_TEST( GraphTest, test_CC_indexed_alternating )
    ASSERT_EQ( components, expected );
 }
 
-TYPED_TEST( GraphTest, test_CC_indexed_all_vertices )
+TYPED_TEST( GraphTest, test_CC_withVertexIndexes_all_vertices )
 {
    using GraphType = typename TestFixture::GraphType;
    using DeviceType = typename GraphType::DeviceType;
@@ -791,7 +791,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_predicate )
    test_CC_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
-TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_indexed )
+TYPED_TEST( GraphTest, test_CC_subgraph_vertex_removal_withVertexIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
@@ -870,7 +870,7 @@ TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_wholeGraph )
 
 template< typename GraphType >
 void
-test_CC_subgraph_edge_removal_withIndexes_impl()
+test_CC_subgraph_edge_removal_withVertexIndexes_impl()
 {
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
@@ -893,9 +893,9 @@ test_CC_subgraph_edge_removal_withIndexes_impl()
    expectPartitionEquiv( compA, compE2, oldToNew, 10 );
 }
 
-TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_CC_subgraph_edge_removal_withVertexIndexes )
 {
-   test_CC_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
+   test_CC_subgraph_edge_removal_withVertexIndexes_impl< typename TestFixture::GraphType >();
 }
 
 template< typename GraphType >
