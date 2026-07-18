@@ -347,9 +347,9 @@ template<
    typename AdjacencyMatrix >
 template< typename Vector >
 void
-Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setVertexCapacities( const Vector& nodeCapacities )
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setVertexCapacities( const Vector& vertexCapacities )
 {
-   adjacencyMatrix.setRowCapacities( nodeCapacities );
+   adjacencyMatrix.setRowCapacities( vertexCapacities );
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
