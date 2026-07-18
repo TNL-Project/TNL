@@ -71,7 +71,7 @@ TYPED_TEST( GraphTest, test_BFS_small )
       { 0, 1, 1, 2, 2 }, { 1, 0, 2, 1, 1 }, { 1, 2, 0, 1, 2 }, { 2, 1, 1, 0, 1 }, { 2, 1, 2, 1, 0 },
    };
 
-   for( int start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
+   for( IndexType start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
       TNL::Graphs::Algorithms::breadthFirstSearch( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
@@ -110,7 +110,7 @@ TYPED_TEST( GraphTest, test_BFS_larger )
       { 4, 3, 3, 2, 3, 2, 1, 2, 1, 0 },
    };
 
-   for( int start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
+   for( IndexType start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
       TNL::Graphs::Algorithms::breadthFirstSearch( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
@@ -149,13 +149,13 @@ TYPED_TEST( GraphTest, test_BFS_largest )
       { 6, 5, 4, 5, 4, 3, 4, 3, 2, 3, 2, 1, 2, 1, 0 }
    };
 
-   for( int start_node = 0; start_node < graph.getVertexCount(); start_node++ ) {
+   for( IndexType start_node = 0; start_node < graph.getVertexCount(); start_node++ ) {
       TNL::Graphs::Algorithms::breadthFirstSearch( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
 
-TYPED_TEST( GraphTest, test_BFS_withIndexes_inducedSubgraph )
+TYPED_TEST( GraphTest, test_BFS_withVertexIndexes_inducedSubgraph )
 {
    using GraphType = typename TestFixture::GraphType;
    using DeviceType = typename GraphType::DeviceType;
@@ -218,7 +218,7 @@ TYPED_TEST( GraphTest, test_BFSIf_inducedSubgraph )
 
 template< typename GraphType >
 void
-test_BFS_withIndexes_visitor_impl()
+test_BFS_withVertexIndexes_visitor_impl()
 {
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
@@ -255,9 +255,9 @@ test_BFS_withIndexes_visitor_impl()
    EXPECT_EQ( visitedDistances.getElement( 4 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_BFS_withIndexes_visitor )
+TYPED_TEST( GraphTest, test_BFS_withVertexIndexes_visitor )
 {
-   test_BFS_withIndexes_visitor_impl< typename TestFixture::GraphType >();
+   test_BFS_withVertexIndexes_visitor_impl< typename TestFixture::GraphType >();
 }
 
 template< typename GraphType >
@@ -300,7 +300,7 @@ TYPED_TEST( GraphTest, test_BFS_byEdges_wholeGraph )
 
 template< typename GraphType >
 void
-test_BFS_byEdges_withIndexes_inducedSubgraph_impl()
+test_BFS_byEdges_withVertexIndexes_inducedSubgraph_impl()
 {
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
@@ -333,9 +333,9 @@ test_BFS_byEdges_withIndexes_inducedSubgraph_impl()
    ASSERT_EQ( distances, expectedDistances );
 }
 
-TYPED_TEST( GraphTest, test_BFS_byEdges_withIndexes_inducedSubgraph )
+TYPED_TEST( GraphTest, test_BFS_byEdges_withVertexIndexes_inducedSubgraph )
 {
-   test_BFS_byEdges_withIndexes_inducedSubgraph_impl< typename TestFixture::GraphType >();
+   test_BFS_byEdges_withVertexIndexes_inducedSubgraph_impl< typename TestFixture::GraphType >();
 }
 
 TYPED_TEST( GraphTest, test_BFS_withInactiveStart_throws )
@@ -527,7 +527,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_predicate )
    test_BFS_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
-TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_indexed )
+TYPED_TEST( GraphTest, test_BFS_subgraph_vertex_removal_withVertexIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
@@ -612,7 +612,7 @@ TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_wholeGraph )
 
 template< typename GraphType >
 void
-test_BFS_subgraph_edge_removal_withIndexes_impl()
+test_BFS_subgraph_edge_removal_withVertexIndexes_impl()
 {
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
@@ -640,9 +640,9 @@ test_BFS_subgraph_edge_removal_withIndexes_impl()
    ASSERT_EQ( distA.getElement( 9 ), -1 );
 }
 
-TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_BFS_subgraph_edge_removal_withVertexIndexes )
 {
-   test_BFS_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
+   test_BFS_subgraph_edge_removal_withVertexIndexes_impl< typename TestFixture::GraphType >();
 }
 
 // NEW#1: whole-graph BFS with an edge predicate and a visitor callback.
@@ -697,8 +697,8 @@ TYPED_TEST( GraphTest, test_BFS_withVisitor_edgePredicate_wholeGraph )
    test_BFS_withVisitor_edgePredicate_wholeGraph_impl< typename TestFixture::GraphType >();
 }
 
-// NEW#2: indexed-subgraph BFS with an edge predicate and a visitor callback.
-// Mirrors test_BFS_subgraph_edge_removal_withIndexes (same graph A, subgraph E2,
+// NEW#2: vertex-indexed subgraph BFS with an edge predicate and a visitor callback.
+// Mirrors test_BFS_subgraph_edge_removal_withVertexIndexes (same graph A, subgraph E2,
 // vertex indexes, and blockEdge03) plus a visitor, cross-validating distances
 // against the materialized subgraph.
 template< typename GraphType >
@@ -886,7 +886,7 @@ test_BFS_predecessors_deterministic_impl()
    for( int run = 0; run < 5; ++run ) {
       VectorType distances;
       VectorType predecessors;
-      TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, 0, distances, predecessors, {}, true );
+      TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, 0, distances, predecessors, true );
 
       ASSERT_EQ( distances, expectedDistances ) << "run=" << run;
       ASSERT_EQ( predecessors, expectedPredecessors ) << "run=" << run;
@@ -1011,8 +1011,7 @@ test_BFS_visitor_with_predecessors_impl()
 
    VectorType distances;
    VectorType predecessors;
-   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
-      graph, 0, visitor, distances, predecessors, {}, true );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors( graph, 0, visitor, distances, predecessors, true );
 
    const VectorType expectedDistances( { 0, 1, 1, 2 } );
    ASSERT_EQ( distances, expectedDistances );
@@ -1039,11 +1038,11 @@ TYPED_TEST( GraphTest, test_BFS_visitor_with_predecessors )
    test_BFS_visitor_with_predecessors_impl< typename TestFixture::GraphType >();
 }
 
-// Force bypass mode (threshold = 1.0 → every iteration uses forAllEdges) and
+// Force top-down bitmap mode (threshold = 1.0 → every iteration uses forAllEdges) and
 // verify that distances match the compact-mode reference for all start vertices.
 template< typename GraphType >
 void
-test_BFS_bypass_distances_impl()
+test_BFS_bitmap_distances_impl()
 {
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
@@ -1051,22 +1050,22 @@ test_BFS_bypass_distances_impl()
    const auto graph = makeDirectedGraphA< GraphType >();
 
    for( IndexType start = 0; start < graph.getVertexCount(); ++start ) {
-      VectorType distCompact, distBypass;
+      VectorType distCompact, distBitmap;
       TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distCompact );
-      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBypass, {}, 1.0 );
-      ASSERT_EQ( distBypass, distCompact ) << "start=" << start;
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBitmap, 1.0 );
+      ASSERT_EQ( distBitmap, distCompact ) << "start=" << start;
    }
 }
 
-TYPED_TEST( GraphTest, test_BFS_bypass_distances )
+TYPED_TEST( GraphTest, test_BFS_bitmap_distances )
 {
-   test_BFS_bypass_distances_impl< typename TestFixture::GraphType >();
+   test_BFS_bitmap_distances_impl< typename TestFixture::GraphType >();
 }
 
-// Force bypass mode + deterministic predecessors + visitor, verify correctness.
+// Force top-down bitmap mode + deterministic predecessors + visitor, verify correctness.
 template< typename GraphType >
 void
-test_BFS_bypass_predecessors_deterministic_impl()
+test_BFS_bitmap_predecessors_deterministic_impl()
 {
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
@@ -1097,7 +1096,7 @@ test_BFS_bypass_predecessors_deterministic_impl()
 
    VectorType distances, predecessors;
    TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
-      graph, 0, visitor, distances, predecessors, {}, true, 1.0 );
+      graph, 0, visitor, distances, predecessors, true, 1.0 );
 
    ASSERT_EQ( distances, expectedDistances );
    ASSERT_EQ( predecessors, expectedPredecessors );
@@ -1106,15 +1105,15 @@ test_BFS_bypass_predecessors_deterministic_impl()
    EXPECT_EQ( visitedDistances, expectedVisited );
 }
 
-TYPED_TEST( GraphTest, test_BFS_bypass_predecessors_deterministic )
+TYPED_TEST( GraphTest, test_BFS_bitmap_predecessors_deterministic )
 {
-   test_BFS_bypass_predecessors_deterministic_impl< typename TestFixture::GraphType >();
+   test_BFS_bitmap_predecessors_deterministic_impl< typename TestFixture::GraphType >();
 }
 
-// Force bypass mode and verify the visitor is called exactly once per vertex.
+// Force top-down bitmap mode and verify the visitor is called exactly once per vertex.
 template< typename GraphType >
 void
-test_BFS_bypass_visitor_called_once_impl()
+test_BFS_bitmap_visitor_called_once_impl()
 {
    using IndexType = typename GraphType::IndexType;
    using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
@@ -1138,7 +1137,7 @@ test_BFS_bypass_visitor_called_once_impl()
    };
 
    VectorType distances;
-   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, {}, 1.0 );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, 1.0 );
 
    EXPECT_EQ( visitCount.getElement( 0 ), 0 );
    EXPECT_EQ( visitCount.getElement( 1 ), 1 );
@@ -1146,9 +1145,9 @@ test_BFS_bypass_visitor_called_once_impl()
    EXPECT_EQ( visitCount.getElement( 3 ), 1 );
 }
 
-TYPED_TEST( GraphTest, test_BFS_bypass_visitor_called_once )
+TYPED_TEST( GraphTest, test_BFS_bitmap_visitor_called_once )
 {
-   test_BFS_bypass_visitor_called_once_impl< typename TestFixture::GraphType >();
+   test_BFS_bitmap_visitor_called_once_impl< typename TestFixture::GraphType >();
 }
 
 // ---------------------------------------------------------------------------
@@ -1241,7 +1240,7 @@ test_BFS_bottomup_distances_impl()
    for( IndexType start = 0; start < graph.getVertexCount(); ++start ) {
       VectorType distCompact, distBottomUp;
       TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distCompact );
-      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBottomUp, {}, 0.0, 1.0 );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBottomUp, 0.0, 1.0 );
       ASSERT_EQ( distBottomUp, distCompact ) << "start=" << start;
    }
 }
@@ -1288,7 +1287,7 @@ test_BFS_bottomup_predecessors_deterministic_impl()
 
    VectorType distances, predecessors;
    TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
-      graph, 0, visitor, distances, predecessors, {}, true, 0.0, 1.0 );
+      graph, 0, visitor, distances, predecessors, true, 0.0, 1.0 );
 
    ASSERT_EQ( distances, expectedDistances );
    ASSERT_EQ( predecessors, expectedPredecessors );
@@ -1329,7 +1328,7 @@ test_BFS_bottomup_visitor_called_once_impl()
    };
 
    VectorType distances;
-   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, {}, 0.0, 1.0 );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, 0.0, 1.0 );
 
    EXPECT_EQ( visitCount.getElement( 0 ), 0 );
    EXPECT_EQ( visitCount.getElement( 1 ), 1 );
