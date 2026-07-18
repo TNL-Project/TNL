@@ -65,7 +65,7 @@ public:
    //! \brief Type of the graph orientation.
    using GraphOrientation = typename GraphType::GraphOrientation;
 
-   //! \brief Type of constant graph nodes view.
+   //! \brief Type of constant graph vertex view.
    using ConstVertexView = typename GraphType::ConstVertexView;
 
    //! \brief Type of the owned mask array.
@@ -155,7 +155,7 @@ public:
    [[nodiscard]] ConstViewType
    getConstView() const;
 
-   //! \brief Returns the constant view of the graph node with given index.
+   //! \brief Returns the constant view of the graph vertex with given index.
    [[nodiscard]] __cuda_callable__
    ConstVertexView
    getVertex( IndexType vertexIdx ) const;

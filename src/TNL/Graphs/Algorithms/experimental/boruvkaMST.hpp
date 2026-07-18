@@ -51,9 +51,9 @@ boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum, TNL::Algorithms::Se
    // to it."
    OutGraph tempGraph;
    tempGraph.setVertexCount( size );
-   IndexVector nodeCapacities( size );
-   graph.getAdjacencyMatrix().getRowCapacities( nodeCapacities );
-   tempGraph.setVertexCapacities( nodeCapacities );
+   IndexVector vertexCapacities( size );
+   graph.getAdjacencyMatrix().getRowCapacities( vertexCapacities );
+   tempGraph.setVertexCapacities( vertexCapacities );
 
    auto& tempGraphMatrix = tempGraph.getAdjacencyMatrix();
    auto tempGraphMatrixView = tempGraphMatrix.getView();
@@ -322,9 +322,9 @@ boruvkaMST_edgeList(
    // Allocate the output graph
    OutGraph tempGraph;
    tempGraph.setVertexCount( size );
-   IndexVector nodeCapacities( size );
-   graph.getAdjacencyMatrix().getRowCapacities( nodeCapacities );
-   tempGraph.setVertexCapacities( nodeCapacities );
+   IndexVector vertexCapacities( size );
+   graph.getAdjacencyMatrix().getRowCapacities( vertexCapacities );
+   tempGraph.setVertexCapacities( vertexCapacities );
 
    auto& tempGraphMatrix = tempGraph.getAdjacencyMatrix();
    auto tempGraphMatrixView = tempGraphMatrix.getView();
@@ -335,7 +335,7 @@ boruvkaMST_edgeList(
    // Pre-extract all edges into flat arrays
    auto totalEdges = adjMatrix.getSegments().getStorageSize();
    IndexVector indices( size, -1 );
-   indices = nodeCapacities;
+   indices = vertexCapacities;
    TNL::Algorithms::inplaceExclusiveScan( indices );
    auto const indicesView = indices.getConstView();
 
