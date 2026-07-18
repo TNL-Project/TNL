@@ -3,6 +3,7 @@ add_subdirectory(Segments)
 set(COMMON_EXAMPLES
     compressExample-vector
     compressExample-lambda
+    uncompressExample
     SortingExample
     SortingExample2
     SortingExample3
