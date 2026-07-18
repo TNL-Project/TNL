@@ -38,6 +38,7 @@ Depending on the operation, the following implementations are measured:
 - reference BLAS routines via the CBLAS interface on the host, when a BLAS library with the CBLAS
   interface is found at build time,
 - cuBLAS on CUDA GPUs or hipBLAS on AMD GPUs,
+- CUB (`cub::DeviceScan`) for scans on CUDA GPUs,
 - Thrust host and device algorithms, when Thrust is available at build time.
 
 The optional comparisons (reference BLAS, TBB, Thrust) are enabled automatically when the
