@@ -22,8 +22,8 @@ namespace TNL::Graphs::Algorithms {
  *
  * | Function                    | Description                                      |
  * |-----------------------------|--------------------------------------------------|
- * | \ref maximalIndependentSet | Finds a MIS on a graph or subgraph (0/1 output)  |
- * | \ref isMaximalIndependentSet | Verifies a 0/1 mask is a valid MIS              |
+ * | \ref maximalIndependentSet  | Finds a MIS on a graph or subgraph (0/1 output)  |
+ * | \ref isMaximalIndependentSet| Verifies a 0/1 mask is a valid MIS               |
  *
  * To run MIS on a filtered subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it:
@@ -36,6 +36,8 @@ namespace TNL::Graphs::Algorithms {
 
 /**
  * \brief Finds a maximal independent set in an undirected graph.
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all MIS functions.
  *
  * The implementation uses deterministic Luby-style priority rounds. The
  * output is a 0/1 mask where value 1 marks vertices that belong to the
@@ -63,6 +65,8 @@ maximalIndependentSet(
 
 /**
  * \brief Checks that the given 0/1 mask defines a maximal independent set.
+ *
+ * See \ref MaximalIndependentSetOverview for an overview of all MIS functions.
  *
  * To verify a mask on a subgraph (vertex predicate, edge predicate, or both),
  * construct a \ref SubGraph via \ref makeSubGraph and pass it as the \e graph
