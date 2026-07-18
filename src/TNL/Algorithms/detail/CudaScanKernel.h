@@ -36,6 +36,39 @@ struct CudaTileScanStorage
    BlockStorage blockScanStorage;
 };
 
+/* Status flags used in the decoupled lookback synchronisation between CUDA
+ * blocks. Each block publishes its per-block aggregate first, optionally
+ * followed by its prefix once all predecessor aggregates are known. Other
+ * blocks spin on these flags to consume the partial results.
+ *
+ * It is used in CudaScanKernelLookback function.
+ */
+enum class LookbackStatus : int
+{
+   Invalid = 0,    // block has not published anything yet
+   Aggregate = 1,  // block has published its per-block aggregate only
+   Prefix = 2,     // block has published its complete prefix
+};
+
+/* Per-block state published in global memory for the decoupled lookback
+ * synchronisation. One entry is allocated per CUDA block.
+ *
+ * The 128-byte alignment matches the GPU cache-line size on recent NVIDIA
+ * architectures. It guarantees that no two blocks ever share a cache line,
+ * preventing false sharing between concurrent atomicExch/atomicAdd operations
+ * issued by independent blocks. Without it, an atomic write from one block
+ * would invalidate the cache line also holding another block's state, forcing
+ * redundant memory traffic and serialising otherwise independent blocks.
+ *
+ * It is used in CudaScanKernelLookback function.
+ */
+template< typename ValueType >
+struct alignas( 128 ) LookbackState
+{
+   int status = static_cast< int >( LookbackStatus::Invalid );
+   ValueType value{};
+};
+
 /* Template for cooperative scan across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
@@ -82,7 +115,7 @@ struct CudaBlockScan
       const int lane_id = tid % Backend::getWarpSize();
       const int warp_id = tid / Backend::getWarpSize();
       auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
-      #pragma unroll
+   #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          ValueType result;
          if( lane_id >= stride )
@@ -103,7 +136,7 @@ struct CudaBlockScan
 
       // perform the scan of warpResults using one warp
       if( warp_id == 0 ) {
-         #pragma unroll
+   #pragma unroll
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             ValueType result;
             if( lane_id >= stride )
@@ -201,8 +234,8 @@ struct CudaBlockScanShfl
    static ValueType
    warpScan( const Reduction& reduction, ValueType identity, ValueType threadValue, int lane_id, ValueType& total )
    {
-      // perform an inclusive scan
-      #pragma unroll
+   // perform an inclusive scan
+   #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          const ValueType otherValue = Backend::warp_shuffle_up( threadValue, stride );
          if( lane_id >= stride )
@@ -343,7 +376,7 @@ struct CudaTileScan
       // Perform sequential reduction of the thread's chunk in shared memory.
       const int chunkOffset = threadIdx.x * valuesPerThread;
       ValueType value = storage.data[ chunkOffset ];
-      #pragma unroll
+   #pragma unroll
       for( int i = 1; i < valuesPerThread; i++ )
          value = reduction( value, storage.data[ chunkOffset + i ] );
 
@@ -353,8 +386,8 @@ struct CudaTileScan
       // Apply the global shift.
       value = reduction( value, shift );
 
-      // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
-      #pragma unroll
+   // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
+   #pragma unroll
       for( int i = 0; i < valuesPerThread; i++ ) {
          const ValueType inputValue = storage.data[ chunkOffset + i ];
          if( scanType == ScanType::Exclusive )
@@ -569,6 +602,164 @@ CudaScanKernelUniformShift(
 #endif
 }
 
+/* CudaScanKernelLookback - single-pass parallel prefix scan using decoupled
+ * lookback synchronisation between CUDA blocks. Each block computes its local
+ * scan and per-block aggregate, publishes the aggregate via the LookbackState
+ * array, then walks predecessor aggregates to assemble its own prefix. Blocks
+ * that finish their prefix early advertise it so later blocks can stop the
+ * lookback walk sooner. No second kernel launch is needed.
+ *
+ * Reference: D. Merrill and M. Garland, "Single-pass Parallel Prefix Sum with
+ * Decoupled Lookback", NVIDIA Research 2016.
+ * https://research.nvidia.com/publication/2016-03_Single-pass-Parallel-Prefix-Sum-Decoupled-Lookback
+ */
+template<
+   ScanType scanType,
+   int blockSize,
+   int valuesPerThread,
+   typename InputView,
+   typename OutputView,
+   typename Reduction,
+   typename ValueType >
+__global__
+void
+CudaScanKernelLookback(
+   const InputView input,
+   OutputView output,
+   typename InputView::IndexType begin,
+   typename InputView::IndexType end,
+   typename OutputView::IndexType outputBegin,
+   Reduction reduction,
+   ValueType identity,
+   LookbackState< ValueType >* states )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
+   using BlockScan = CudaBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
+
+   __shared__ Backend::Uninitialized< typename TileScan::Storage > tileStorage;
+   __shared__ ValueType sharedAggregate;
+   __shared__ ValueType sharedPrefix;
+
+   constexpr int maxElementsInBlock = blockSize * valuesPerThread;
+   const int remainingElements = end - begin - blockIdx.x * maxElementsInBlock;
+   const int elementsInBlock = TNL::min( remainingElements, maxElementsInBlock );
+
+   const int threadOffset = blockIdx.x * maxElementsInBlock + threadIdx.x;
+   begin += threadOffset;
+   outputBegin += threadOffset;
+
+   auto& storage = tileStorage.get();
+
+   // Phase 1: strided load of the block tile into shared memory; pad the
+   // remainder with identity so the last block runs the same code path.
+   {
+      int idx = threadIdx.x;
+      while( idx < elementsInBlock ) {
+         storage.data[ idx ] = input[ begin ];
+         begin += blockDim.x;
+         idx += blockDim.x;
+      }
+      while( idx < maxElementsInBlock ) {
+         storage.data[ idx ] = identity;
+         idx += blockDim.x;
+      }
+   }
+   __syncthreads();
+
+   // Phase 2: per-thread local reduction over its valuesPerThread chunk.
+   const int chunkOffset = threadIdx.x * valuesPerThread;
+   ValueType chunkSum = storage.data[ chunkOffset ];
+   #pragma unroll
+   for( int i = 1; i < valuesPerThread; i++ )
+      chunkSum = reduction( chunkSum, storage.data[ chunkOffset + i ] );
+
+   // Phase 3: cooperative block-wide exclusive scan of the per-thread chunk
+   // sums; exclusivePrefix is the sum of all chunks before this thread.
+   ValueType exclusivePrefix = BlockScan::scan( reduction, identity, chunkSum, threadIdx.x, storage.blockScanStorage );
+
+   // Phase 4: the last thread publishes the block aggregate (sum of all
+   // elements in the block) via shared memory.
+   if( threadIdx.x == blockSize - 1 )
+      sharedAggregate = reduction( exclusivePrefix, chunkSum );
+   __syncthreads();
+
+   // Phase 5: decoupled lookback - performed by thread 0 only.
+   if( threadIdx.x == 0 ) {
+      ValueType blockAggregate = sharedAggregate;
+
+      // 5a: publish the block aggregate, then flip the status from Invalid to
+      // Aggregate so successors can start consuming it.
+      states[ blockIdx.x ].value = blockAggregate;
+      __threadfence();
+   #if defined( __CUDACC__ )
+      atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Aggregate ) );
+   #else
+      __atomic_exchange_n( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Aggregate ), __ATOMIC_SEQ_CST );
+   #endif
+
+      // 5b: walk predecessors right-to-left, accumulating their values. Stop
+      // as soon as a predecessor advertises Prefix (its value already
+      // contains the sum of all blocks before it); otherwise accumulate
+      // Aggregate values and keep walking.
+      ValueType prefix = identity;
+      for( int pred = blockIdx.x - 1; pred >= 0; pred-- ) {
+         int status;
+         do {
+   #if defined( __CUDACC__ )
+            status = atomicAdd( &states[ pred ].status, 0 );
+   #else
+            status = __atomic_load_n( &states[ pred ].status, __ATOMIC_ACQUIRE );
+   #endif
+         } while( status == static_cast< int >( LookbackStatus::Invalid ) );
+
+         ValueType predValue = states[ pred ].value;
+         prefix = reduction( predValue, prefix );
+
+         if( status == static_cast< int >( LookbackStatus::Prefix ) )
+            break;
+      }
+
+      // 5c: publish the block prefix so successors can stop their walk early.
+      states[ blockIdx.x ].value = prefix;
+      __threadfence();
+   #if defined( __CUDACC__ )
+      atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Prefix ) );
+   #else
+      __atomic_exchange_n( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Prefix ), __ATOMIC_SEQ_CST );
+   #endif
+
+      sharedPrefix = prefix;
+   }
+   __syncthreads();
+
+   // Phase 6: combine the block-wide prefix with the per-thread exclusive
+   // prefix and write the final scan values back into shared memory.
+   ValueType value = reduction( exclusivePrefix, sharedPrefix );
+
+   #pragma unroll
+   for( int i = 0; i < valuesPerThread; i++ ) {
+      const ValueType inputValue = storage.data[ chunkOffset + i ];
+      if( scanType == ScanType::Exclusive )
+         storage.data[ chunkOffset + i ] = value;
+      value = reduction( value, inputValue );
+      if( scanType == ScanType::Inclusive )
+         storage.data[ chunkOffset + i ] = value;
+   }
+   __syncthreads();
+
+   // Phase 7: strided store of the scanned tile back to global memory.
+   {
+      int idx = threadIdx.x;
+      while( idx < elementsInBlock ) {
+         output[ outputBegin ] = storage.data[ idx ];
+         outputBegin += blockDim.x;
+         idx += blockDim.x;
+      }
+   }
+#endif
+}
+
 /**
  * \brief Launcher for CUDA scan kernels.
  *
@@ -612,13 +803,74 @@ struct CudaScanKernelLauncher
       Reduction&& reduction,
       typename OutputArray::ValueType identity )
    {
-      const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
-
-      // if the first-phase kernel was launched with just one block, skip the second phase
-      if( blockShifts.getSize() <= 2 )
+      if( end - begin <= blockSize * valuesPerThread ) {
+         const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
          return;
+      }
 
-      performSecondPhase( input, output, blockShifts, begin, end, outputBegin, reduction, identity, identity );
+      using Index = typename InputArray::IndexType;
+      constexpr int maxElementsInBlock = blockSize * valuesPerThread;
+      const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
+      const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
+
+      if( numberOfGrids == 1 ) {
+         performLookback( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+         return;
+      }
+
+      const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
+      if( blockShifts.getSize() > 2 )
+         performSecondPhase( input, output, blockShifts, begin, end, outputBegin, reduction, identity, identity );
+   }
+
+   template< typename InputArray, typename OutputArray, typename Reduction >
+   static void
+   performLookback(
+      const InputArray& input,
+      OutputArray& output,
+      typename InputArray::IndexType begin,
+      typename InputArray::IndexType end,
+      typename OutputArray::IndexType outputBegin,
+      Reduction&& reduction,
+      typename OutputArray::ValueType identity )
+   {
+      using Index = typename InputArray::IndexType;
+      constexpr int maxElementsInBlock = blockSize * valuesPerThread;
+      const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
+
+      Containers::Array< LookbackState< ValueType >, Devices::Cuda > states( numberOfBlocks );
+#if defined( __CUDACC__ )
+      cudaMemsetAsync( states.getData(), 0, numberOfBlocks * sizeof( LookbackState< ValueType > ), 0 );
+#elif defined( __HIP__ )
+      hipMemsetAsync( states.getData(), 0, numberOfBlocks * sizeof( LookbackState< ValueType > ), 0 );
+#endif
+
+      constexpr auto kernel = CudaScanKernelLookback<
+         scanType,
+         blockSize,
+         valuesPerThread,
+         typename InputArray::ConstViewType,
+         typename OutputArray::ViewType,
+         std::decay_t< Reduction >,
+         ValueType >;
+
+      Backend::LaunchConfiguration launch_config;
+      launch_config.blockSize.x = blockSize;
+      launch_config.gridSize.x = numberOfBlocks;
+
+      Backend::launchKernelSync(
+         kernel,
+         launch_config,
+         input.getConstView(),
+         output.getView(),
+         begin,
+         end,
+         outputBegin,
+         reduction,
+         identity,
+         states.getData() );
+
+      gridsCount() = 1;
    }
 
    /**
@@ -817,11 +1069,7 @@ struct CudaScanKernelLauncher
             }
          }
 
-         // synchronize the null-stream after all grids
-         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
-
-         // blockResults now contains scan results for each block. The first phase
-         // ends by computing an exclusive scan of this array.
+         // No sync needed: null-stream kernel launches are implicitly ordered.
          CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::perform(
             blockResults, blockResults, 0, blockResults.getSize(), 0, reduction, identity );
 
