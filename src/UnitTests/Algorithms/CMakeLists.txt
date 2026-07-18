@@ -8,6 +8,7 @@ set(COMMON_TESTS
     findTest
     Reduction2DTest
     Reduction3DTest
+    uncompressTest
 )
 
 # tests built for all backends
