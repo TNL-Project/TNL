@@ -15,34 +15,17 @@ else()
 endif()
 
 if(TNL_BUILD_CUDA)
-    # Find Gunrock
-    #find_path(GUNROCK_INCLUDE_DIR gunrock/algorithms/bfs.hxx)
+    # Find Gunrock (header-only CUDA library, requires nvcc to compile)
+    find_path(
+        GUNROCK_INCLUDE_DIR
+        NAMES gunrock/algorithms/bfs.hxx
+        PATHS ${GUNROCK_ROOT} $ENV{GUNROCK_ROOT} $ENV{HOME}/.local/include /usr/local/include
+    )
     if(GUNROCK_INCLUDE_DIR)
-        message(STATUS "Gunrock found ${GUNROCK_INCLUDE_DIR}")
-
-        file(
-            WRITE ${CMAKE_CURRENT_BINARY_DIR}/gunrock-test.cpp
-            "#include <gunrock/algorithms/bfs.hxx>
-            #include <gunrock/algorithms/sssp.hxx>
-            int main() { return 0; }
-            "
-        )
-
-        try_compile(
-            GUNROCK_TEST
-            ${CMAKE_CURRENT_BINARY_DIR}
-            ${CMAKE_CURRENT_BINARY_DIR}/gunrock-test.cpp
-            CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${GUNROCK_INCLUDE_DIR}"
-            OUTPUT_VARIABLE GUNROCK_TEST_OUTPUT
-        )
-        if(GUNROCK_COMPILED)
-            message(STATUS "Gunrock compiled successfully.")
-            set(GUNROCK_FLAGS -DHAVE_GUNROCK ${Gunrock_INCLUDE_DIR})
-        else()
-            message(STATUS "Gunrock failed to compile, will be omitted in the benchmark.")
-        endif()
+        message(STATUS "Gunrock found: ${GUNROCK_INCLUDE_DIR}")
+        set(GUNROCK_FOUND TRUE)
     else()
-        message(STATUS "Gunrock not found.")
+        message(STATUS "Gunrock not found. Benchmarks with Gunrock will be omitted.")
     endif()
 endif()
 
@@ -69,11 +52,11 @@ foreach(bench IN LISTS GRAPH_BENCHMARKS)
         if(NOT backend STREQUAL "CUDA")
             continue()
         endif()
-        if(NOT bench STREQUAL "mst" AND GUNROCK_FLAGS)
-            target_compile_options(${target} PUBLIC ${GUNROCK_FLAGS})
-        endif()
-        if(GUNROCK_INCLUDE_DIR)
-            target_compile_definitions(${target} PUBLIC HAVE_GUNROCK SM_TARGET=${CMAKE_CUDA_ARCHITECTURES})
+        if(GUNROCK_FOUND AND NOT bench STREQUAL "mst")
+            target_compile_definitions(
+                ${target}
+                PUBLIC HAVE_GUNROCK SM_TARGET=86 HIP_BACKEND=1 __HIP_PLATFORM_NVIDIA__=1
+            )
             target_include_directories(${target} PUBLIC ${GUNROCK_INCLUDE_DIR})
         endif()
     endforeach()
