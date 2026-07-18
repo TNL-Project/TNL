@@ -39,6 +39,7 @@
 
 #if defined( __CUDACC__ )
    #include "cublasWrappers.h"
+   #include <cub/cub.cuh>
 #elif defined( __HIP__ )
    #include "hipblasWrappers.h"
 #endif
@@ -133,6 +134,21 @@ class VectorOperationsBenchmark
 #if defined( __CUDACC__ )
    cublasHandle_t cublasHandle;
    const char* gpuBlasName = "cuBLAS";
+
+   // CUB DeviceScan temporary storage (allocated once, reused across benchmark calls)
+   void* cubTempStorage = nullptr;
+   size_t cubTempStorageBytes = 0;
+
+   void
+   ensureCubTempStorage( size_t required )
+   {
+      if( required > cubTempStorageBytes ) {
+         if( cubTempStorage )
+            cudaFree( cubTempStorage );
+         cubTempStorageBytes = required;
+         cudaMalloc( &cubTempStorage, cubTempStorageBytes );
+      }
+   }
 #elif defined( __HIP__ )
    hipblasHandle_t hipblasHandle;
    const char* gpuBlasName = "hipBLAS";
@@ -224,6 +240,8 @@ public:
    {
 #if defined( __CUDACC__ )
       cublasDestroy( cublasHandle );
+      if( cubTempStorage )
+         cudaFree( cubTempStorage );
 #elif defined( __HIP__ )
       hipblasDestroy( hipblasHandle );
 #endif
@@ -1503,6 +1521,22 @@ public:
       verify( "thrust::inclusive_scan", deviceVector.getElement( size - 1 ), size );
    #endif
 #endif
+
+#if defined( __CUDACC__ )
+      {
+         size_t cubTempBytes = 0;
+         cub::DeviceScan::InclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector.getData(), size );
+         ensureCubTempStorage( cubTempBytes );
+         auto computeCudaCUB = [ & ]()
+         {
+            cub::DeviceScan::InclusiveSum(
+               cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector.getData(), size );
+         };
+         benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
+         verify( "cub::DeviceScan", deviceVector.getElement( 0 ), 1 );
+         verify( "cub::DeviceScan", deviceVector.getElement( size - 1 ), size );
+      }
+#endif
    }
 
    void
@@ -1569,6 +1603,22 @@ public:
       verify( "thrust::inclusive_scan", deviceVector2.getElement( 0 ), 1 );
       verify( "thrust::inclusive_scan", deviceVector2.getElement( size - 1 ), size );
    #endif
+#endif
+
+#if defined( __CUDACC__ )
+      {
+         size_t cubTempBytes = 0;
+         cub::DeviceScan::InclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector2.getData(), size );
+         ensureCubTempStorage( cubTempBytes );
+         auto computeCudaCUB = [ & ]()
+         {
+            cub::DeviceScan::InclusiveSum(
+               cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector2.getData(), size );
+         };
+         benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
+         verify( "cub::DeviceScan", deviceVector2.getElement( 0 ), 1 );
+         verify( "cub::DeviceScan", deviceVector2.getElement( size - 1 ), size );
+      }
 #endif
    }
 
@@ -1689,6 +1739,22 @@ public:
       verify( "thrust::exclusive_scan", deviceVector.getElement( size - 1 ), size - 1 );
    #endif
 #endif
+
+#if defined( __CUDACC__ )
+      {
+         size_t cubTempBytes = 0;
+         cub::DeviceScan::ExclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector.getData(), size );
+         ensureCubTempStorage( cubTempBytes );
+         auto computeCudaCUB = [ & ]()
+         {
+            cub::DeviceScan::ExclusiveSum(
+               cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector.getData(), size );
+         };
+         benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
+         verify( "cub::DeviceScan", deviceVector.getElement( 0 ), 0 );
+         verify( "cub::DeviceScan", deviceVector.getElement( size - 1 ), size - 1 );
+      }
+#endif
    }
 
    void
@@ -1747,6 +1813,22 @@ public:
       verify( "thrust::exclusive_scan", deviceVector2.getElement( 0 ), 0 );
       verify( "thrust::exclusive_scan", deviceVector2.getElement( size - 1 ), size - 1 );
    #endif
+#endif
+
+#if defined( __CUDACC__ )
+      {
+         size_t cubTempBytes = 0;
+         cub::DeviceScan::ExclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector2.getData(), size );
+         ensureCubTempStorage( cubTempBytes );
+         auto computeCudaCUB = [ & ]()
+         {
+            cub::DeviceScan::ExclusiveSum(
+               cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector2.getData(), size );
+         };
+         benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
+         verify( "cub::DeviceScan", deviceVector2.getElement( 0 ), 0 );
+         verify( "cub::DeviceScan", deviceVector2.getElement( size - 1 ), size - 1 );
+      }
 #endif
    }
 
