@@ -161,8 +161,7 @@ public:
    getVertex( IndexType vertexIdx ) const;
 
    //! \brief Returns the degree of the given vertex.
-   [[nodiscard]] __cuda_callable__
-   IndexType
+   [[nodiscard]] IndexType
    getVertexDegree( IndexType vertexIdx ) const;
 
    /**
@@ -244,18 +243,6 @@ template<
    typename Enable = std::enable_if_t< IsArrayType< std::decay_t< VertexIndexes > >::value > >
 auto
 makeSubGraph( const Graph& graph, const VertexIndexes& vertexIndexes, EdgeFilter&& edgeFilter );
-
-/**
- * \brief Free-function adapter: materializes a MaskedSubGraph into a standalone Graph.
- *
- * Equivalent to \c msg.materialize(). Provided for convenience and symmetry
- * with \ref makeSubGraph.
- *
- * \see MaskedSubGraph::materialize
- */
-template< typename Graph_, typename EdgeFilter_ >
-auto
-materialize( const MaskedSubGraph< Graph_, EdgeFilter_ >& msg );
 
 }  // namespace TNL::Graphs
 
