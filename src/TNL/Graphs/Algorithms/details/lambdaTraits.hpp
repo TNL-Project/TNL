@@ -60,8 +60,8 @@ constexpr bool isEdgeWeightCallable_v = IsEdgeWeightCallable< EdgeWeightCallable
 /**
  * \brief Trait: callable is a BFS visitor.
  *
- * A BFS visitor is invoked upon visiting each node. It must be invocable with
- * `(IndexType node, IndexType distance)` and return `void`.
+ * A BFS visitor is invoked upon visiting each vertex. It must be invocable with
+ * `(IndexType vertex, IndexType distance)` and return `void`.
  */
 template< typename Visitor, typename Graph >
 struct IsBfsVisitor
