@@ -7,6 +7,7 @@ set(COMMON_TESTS
     findTest
     Reduction2DTest
     Reduction3DTest
+    uncompressTest
 )
 
 set(CPP_TESTS
