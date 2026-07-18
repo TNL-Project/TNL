@@ -42,10 +42,11 @@ namespace TNL::Graphs::Algorithms {
  * The graph is a tree if it is connected and has exactly n-1 edges,
  * starting the traversal from the given \e start vertex.
  *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest
+ * detection functions.
+ *
  * To operate on a subgraph, construct a \ref SubGraph via \ref makeSubGraph
  * and pass it as the \e graph argument.
- *
- * See [Wikipedia](https://en.wikipedia.org/wiki/Tree_(graph_theory)) for more details about trees.
  *
  * \tparam Graph The type of the graph (Graph, SubGraph, or MaskedSubGraph).
  * \param graph The graph to check.
@@ -70,10 +71,11 @@ isTree(
  * Roots of each tree component are detected automatically by finding unvisited
  * vertices during BFS traversal.
  *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest
+ * detection functions.
+ *
  * To operate on a subgraph, construct a \ref SubGraph via \ref makeSubGraph
  * and pass it as the \e graph argument.
- *
- * See [Wikipedia](https://en.wikipedia.org/wiki/Tree_(graph_theory)) for more details about forests.
  *
  * \tparam Graph The type of the graph (Graph, SubGraph, or MaskedSubGraph).
  * \param graph The graph to check.
@@ -93,10 +95,11 @@ isForest( const Graph& graph, TNL::Algorithms::Segments::LaunchConfiguration lau
  *
  * Each root candidate starts a BFS traversal for one tree component.
  *
+ * See \ref TreeDetectionOverview for an overview of all tree and forest
+ * detection functions.
+ *
  * To operate on a subgraph, construct a \ref SubGraph via \ref makeSubGraph
  * and pass it as the \e graph argument.
- *
- * See [Wikipedia](https://en.wikipedia.org/wiki/Tree_(graph_theory)) for more details about forests.
  *
  * \tparam Graph The type of the graph (Graph, SubGraph, or MaskedSubGraph).
  * \tparam Vector The type of the vector containing the root candidates.

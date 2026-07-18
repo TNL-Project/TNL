@@ -72,8 +72,8 @@ namespace TNL::Graphs::Algorithms {
  * \tparam Vector The type of the vector used to store distances.
  * \tparam Index The type used for indexing elements in the graph.
  * \param graph The graph on which the algorithm is performed.
- * \param start The starting node for the algorithm.
- * \param distances The vector where distances from the start node will be stored.
+ * \param start The starting vertex for the algorithm.
+ * \param distances The vector where distances from the start vertex will be stored.
  * \param bitmapThreshold When the frontier size drops below this fraction of the
  *   total vertex count, parallel SSSP switches to top-down bitmap mode.  See
  *   \ref SSSPOverview "Traversal modes".  \c 0.0 (default) disables it.
@@ -111,9 +111,9 @@ singleSourceShortestPath(
  * \tparam EdgeWeightCallable The type of the edge-weight transformation callable.
  * \tparam Index The type used for indexing elements in the graph.
  * \param graph The graph on which the algorithm is performed.
- * \param start The starting node for the algorithm.
+ * \param start The starting vertex for the algorithm.
  * \param edgeWeightCallable The callable transforming edge weights during traversal.
- * \param distances The vector where distances from the start node will be stored.
+ * \param distances The vector where distances from the start vertex will be stored.
  * \param bitmapThreshold See \ref singleSourceShortestPath.
  * \param launchConfig The configuration for launching the segments traversal.
  *

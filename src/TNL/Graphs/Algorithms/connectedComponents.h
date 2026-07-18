@@ -8,8 +8,36 @@
 
 namespace TNL::Graphs::Algorithms {
 
+// clang-format off
+/**
+ * \page ConnectedComponentsOverview Overview of Connected Components Functions
+ *
+ * Connected components identify maximal sets of vertices that are mutually
+ * reachable in the underlying undirected graph.  For directed graphs, the
+ * algorithm computes \em weakly connected components (treating each directed
+ * edge as undirected).  Each component is labeled with the smallest vertex
+ * index it contains; inactive vertices receive \c -1.
+ *
+ * See [Wikipedia](https://en.wikipedia.org/wiki/Component_(graph_theory)) for
+ * more details about connected components.
+ *
+ * | Function                         | Description                                                  |
+ * |----------------------------------|--------------------------------------------------------------|
+ * | \ref connectedComponents         | Labels each vertex with the smallest vertex in its component |
+ *
+ * To run CC on a filtered subgraph, construct a \ref SubGraph via
+ * \ref makeSubGraph and pass it:
+ * ```cpp
+ * auto sg = makeSubGraph( graph, vertexPredicate, edgePredicate );
+ * connectedComponents( sg, components );
+ * ```
+ */
+// clang-format on
+
 /**
  * \brief Finds connected components in a graph.
+ *
+ * See \ref ConnectedComponentsOverview for an overview and algorithm details.
  *
  * The algorithm treats the input graph as the underlying undirected graph. In
  * particular, for directed graphs it computes weakly connected components.
