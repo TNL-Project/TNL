@@ -17,6 +17,7 @@
 #include <TNL/Assert.h>
 #include <TNL/Atomic.h>
 #include <TNL/Matrices/MatrixBase.h>
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
@@ -48,6 +49,7 @@ parallelSingleSourceShortestPath(
    IndexType start,
    EdgeWeightCallable&& edgeWeightCallable,
    Vector& distances,
+   double bitmapThreshold,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using ValueType = typename Graph::ValueType;
@@ -55,20 +57,12 @@ parallelSingleSourceShortestPath(
    const IndexType n = graph.getVertexCount();
    distances.setSize( n );
 
-   // Bellman-Ford-style parallel relaxation: each iteration processes the
-   // current frontier and relaxes all outgoing edges.  A vertex enters the
-   // next frontier when its distance was improved in this round.
-   //
-   // y            – working copy of distances (updated concurrently)
-   // predecessors – parent vertex for each visited node
-   // marks        – 1 if the vertex was improved in this iteration, 0 otherwise
-   // marksScan    – inclusive prefix sum of marks (compacts the next frontier)
-   // frontier     – dense array of vertex indices forming the current frontier
    Vector y( distances.getSize() );
    Containers::Vector< IndexType, DeviceType, IndexType > predecessors( n, -1 );
    Containers::Vector< IndexType, DeviceType, IndexType > marks( n );
    Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
+   Containers::Vector< IndexType, DeviceType, IndexType > nextMarks( n, 0 );
    distances = std::numeric_limits< ValueType >::max();
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
@@ -78,6 +72,9 @@ parallelSingleSourceShortestPath(
    auto predecessorsView = predecessors.getView();
    auto marksView = marks.getView();
 
+   marks = 0;
+   marks.setElement( start, 1 );
+
    // On Host we need an atomic copy of y to avoid the check-then-write race
    // when multiple OpenMP threads relax the same target vertex concurrently.
    using HostAtomicRealVec = Containers::Vector< Atomic< ValueType, Devices::Host >, Devices::Host, IndexType >;
@@ -86,98 +83,184 @@ parallelSingleSourceShortestPath(
       hostAtomicY.setSize( n );
 
    for( IndexType i = 0; i < n; i++ ) {
-      marks = 0;
-      if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
-         // Copy current distances into the atomic buffer
-         auto hostAtomicYView = hostAtomicY.getView();
-         TNL::Algorithms::parallelFor< DeviceType >(
-            0,
-            n,
-            [ = ] __cuda_callable__( IndexType idx ) mutable
-            {
-               hostAtomicYView[ idx ] = yView[ idx ];
-            } );
+      const double frontierFraction = static_cast< double >( frontierSize ) / static_cast< double >( n );
+      const bool useTopDownBitmap = bitmapThreshold > 0.0 && frontierFraction < bitmapThreshold;
 
-         forEdges(
-            graph,
-            frontier,
-            0,
-            frontierSize,
-            [ = ] __cuda_callable__(
-               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
-            {
-               // edgeExists and vertexExists(target) are applied by the SubGraph forEdges wrapper.
-               if( targetIdx != Matrices::paddingIndex< IndexType > ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
+         auto hostAtomicYView = hostAtomicY.getView();
+
+         if( useTopDownBitmap ) {
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType idx ) mutable
+               {
+                  hostAtomicYView[ idx ] = yView[ idx ];
+               } );
+
+            auto marksView_bitmap = marks.getView();
+            auto nextMarksView = nextMarks.getView();
+
+            forAllEdges(
+               graph,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  if( marksView_bitmap[ sourceIdx ] != 1 )
+                     return;
+                  if( targetIdx == Matrices::paddingIndex< IndexType > )
+                     return;
+
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
 
-                  ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
-                  // Atomically reduce: only update if newDistance is smaller.
-                  // fetch_min returns the old value; if it was larger, our
-                  // update took effect and we record the predecessor.
+                  const ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
                   const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
                   if( newDistance < oldDistance ) {
-                  // The predecessor may be overwritten by a concurrent
-                  // thread that achieves an even shorter distance — this
-                  // is benign: the distance is always correct, and the
-                  // predecessor will be fixed in a subsequent iteration.
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
                      predecessorsView[ targetIdx ] = sourceIdx;
+                     nextMarksView[ targetIdx ] = 1;
+                  }
+               },
+               launchConfig );
+
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType idx ) mutable
+               {
+                  yView[ idx ] = hostAtomicYView[ idx ].load();
+               } );
+
+            frontierSize = sum( nextMarks );
+            marks.swap( nextMarks );
+            nextMarks = 0;
+         }
+         else {
+            marks = 0;
+
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType idx ) mutable
+               {
+                  hostAtomicYView[ idx ] = yView[ idx ];
+               } );
+
+            forEdges(
+               graph,
+               frontier,
+               0,
+               frontierSize,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  if( targetIdx != Matrices::paddingIndex< IndexType > ) {
+                     const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
+                     if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
+                        return;
+
+                     ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
+                     const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
+                     if( newDistance < oldDistance ) {
 #if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
-                     marksView[ targetIdx ] = 1;
+                        predecessorsView[ targetIdx ] = sourceIdx;
+#if defined( HAVE_OPENMP )
+   #pragma omp atomic write
+#endif
+                        marksView[ targetIdx ] = 1;
+                     }
                   }
-               }
-            },
-            launchConfig );
+               },
+               launchConfig );
 
-         // Copy atomic results back to y
-         TNL::Algorithms::parallelFor< DeviceType >(
-            0,
-            n,
-            [ = ] __cuda_callable__( IndexType idx ) mutable
-            {
-               yView[ idx ] = hostAtomicYView[ idx ].load();
-            } );
+            TNL::Algorithms::parallelFor< DeviceType >(
+               0,
+               n,
+               [ = ] __cuda_callable__( IndexType idx ) mutable
+               {
+                  yView[ idx ] = hostAtomicYView[ idx ].load();
+               } );
+
+            frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+         }
       }
-      else  // if constexpr( std::is_same_v< DeviceType, Devices::Host > )
-         forEdges(
-            graph,
-            frontier,
-            0,
-            frontierSize,
-            [ = ] __cuda_callable__(
-               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
-            {
-               TNL_ASSERT_GE( sourceIdx, 0, "" );
-               TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
-               TNL_ASSERT_GE( targetIdx, 0, "" );
-               TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
-               // edgeExists and vertexExists(target) are applied by the SubGraph forEdges wrapper.
-               if( targetIdx != Matrices::paddingIndex< IndexType > ) {
+      else {  // DeviceType != Host
+         if( useTopDownBitmap ) {
+            auto marksView_bitmap = marks.getView();
+            auto nextMarksView = nextMarks.getView();
+
+            forAllEdges(
+               graph,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  TNL_ASSERT_GE( sourceIdx, 0, "" );
+                  TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
+                  TNL_ASSERT_GE( targetIdx, 0, "" );
+                  TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
+
+                  if( marksView_bitmap[ sourceIdx ] != 1 )
+                     return;
+                  if( targetIdx == Matrices::paddingIndex< IndexType > )
+                     return;
+
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                      return;
 
-                  ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
+                  const ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
                   if( newDistance < yView[ targetIdx ] ) {
                      atomicMin( &yView[ targetIdx ], newDistance );
-                     // The predecessor is set to the *smallest* source index
-                     // among concurrent relaxers, not necessarily the one that
-                     // provided the shortest path.  The distance itself is
-                     // always correct (atomicMin guarantees the minimum).
                      atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
-                     atomicMax( &marksView[ targetIdx ], 1 );
+                     nextMarksView[ targetIdx ] = 1;
                   }
-               }
-            },
-            launchConfig );
-      // Compact improved vertices into the next frontier
-      frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+               },
+               launchConfig );
+
+            frontierSize = sum( nextMarks );
+            marks.swap( nextMarks );
+            nextMarks = 0;
+         }
+         else {
+            marks = 0;
+
+            forEdges(
+               graph,
+               frontier,
+               0,
+               frontierSize,
+               [ = ] __cuda_callable__(
+                  IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+               {
+                  TNL_ASSERT_GE( sourceIdx, 0, "" );
+                  TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
+                  TNL_ASSERT_GE( targetIdx, 0, "" );
+                  TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
+                  if( targetIdx != Matrices::paddingIndex< IndexType > ) {
+                     const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
+                     if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
+                        return;
+
+                     ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
+                     if( newDistance < yView[ targetIdx ] ) {
+                        atomicMin( &yView[ targetIdx ], newDistance );
+                        atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
+                        atomicMax( &marksView[ targetIdx ], 1 );
+                     }
+                  }
+               },
+               launchConfig );
+
+            frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+         }
+      }
+
       if( frontierSize == 0 )
          break;
       distances = y;
@@ -191,6 +274,7 @@ singleSourceShortestPath_impl(
    Index start,
    EdgeWeightCallable&& edgeWeightCallable,
    Vector& distances,
+   double bitmapThreshold,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
@@ -268,7 +352,7 @@ singleSourceShortestPath_impl(
       }
    }
    else {
-      parallelSingleSourceShortestPath( graph, start, edgeWeightCallable, distances, launchConfig );
+      parallelSingleSourceShortestPath( graph, start, edgeWeightCallable, distances, bitmapThreshold, launchConfig );
    }
    // Replace infinity sentinel with -1 for unreachable vertices
    distances.forAllElements(
@@ -284,6 +368,7 @@ singleSourceShortestPath(
    const Graph& graph,
    Index start,
    Vector& distances,
+   double bitmapThreshold,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using ValueType = typename Graph::ValueType;
@@ -295,6 +380,7 @@ singleSourceShortestPath(
          return weight;
       },
       distances,
+      bitmapThreshold,
       launchConfig );
 }
 
@@ -305,13 +391,14 @@ singleSourceShortestPath(
    Index start,
    EdgeWeightCallable&& edgeWeightCallable,
    Vector& distances,
+   double bitmapThreshold,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert(
       detail::isEdgeWeightCallable_v< EdgeWeightCallable, Graph >,
       "SSSP edge-weight callable must return ValueType and accept (source, target, weight)." );
    singleSourceShortestPath_impl(
-      graph, start, std::forward< EdgeWeightCallable >( edgeWeightCallable ), distances, launchConfig );
+      graph, start, std::forward< EdgeWeightCallable >( edgeWeightCallable ), distances, bitmapThreshold, launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms

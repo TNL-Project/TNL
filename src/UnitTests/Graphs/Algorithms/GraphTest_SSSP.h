@@ -172,7 +172,7 @@ TYPED_TEST( GraphTest, test_SSSP_largest )
    }
 }
 
-TYPED_TEST( GraphTest, test_SSSP_withIndexes_inducedSubgraph )
+TYPED_TEST( GraphTest, test_SSSP_withVertexIndexes_inducedSubgraph )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
@@ -517,7 +517,7 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_predicate )
    test_SSSP_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
-TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_indexed )
+TYPED_TEST( GraphTest, test_SSSP_subgraph_vertex_removal_withVertexIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
    using RealType = typename GraphType::ValueType;
@@ -611,7 +611,7 @@ TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_wholeGraph )
 
 template< typename GraphType >
 void
-test_SSSP_subgraph_edge_removal_withIndexes_impl()
+test_SSSP_subgraph_edge_removal_withVertexIndexes_impl()
 {
    using RealType = typename GraphType::ValueType;
    using IndexType = typename GraphType::IndexType;
@@ -643,9 +643,9 @@ test_SSSP_subgraph_edge_removal_withIndexes_impl()
    EXPECT_FLOAT_EQ( distA.getElement( 9 ), RealType( -1 ) );
 }
 
-TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_SSSP_subgraph_edge_removal_withVertexIndexes )
 {
-   test_SSSP_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
+   test_SSSP_subgraph_edge_removal_withVertexIndexes_impl< typename TestFixture::GraphType >();
 }
 
 // Regression test for the sequential Dijkstra lazy-deletion invariant.
