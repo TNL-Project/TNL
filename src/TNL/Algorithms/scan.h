@@ -7,6 +7,7 @@
 
 #include <TNL/Algorithms/detail/Scan.h>
 #include <TNL/Functional.h>
+#include <TNL/TypeTraits.h>
 
 namespace TNL::Algorithms {
 
@@ -67,10 +68,13 @@ inclusiveScan(
       std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
       "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
-   // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for
-   // array-to-array)
-   using Scan =
-      detail::Scan< typename OutputArray::DeviceType, detail::ScanType::Inclusive, detail::ScanPhaseType::WriteInFirstPhase >;
+   // Plain arrays (Array, ArrayView, Vector, VectorView) are cheap to read twice,
+   // so WriteInSecondPhase is optimal (3 memops/element: 2R in + 1W out).
+   // Expressions (e.g. v1 + v2) are expensive to evaluate, so WriteInFirstPhase
+   // evaluates them only once (4 memops/element: 1R in + 1R out + 2W out).
+   constexpr auto phaseType = IsArrayType< std::decay_t< InputArray > >::value ? detail::ScanPhaseType::WriteInSecondPhase
+                                                                               : detail::ScanPhaseType::WriteInFirstPhase;
+   using Scan = detail::Scan< typename OutputArray::DeviceType, detail::ScanType::Inclusive, phaseType >;
    Scan::perform( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 }
 
@@ -156,10 +160,9 @@ exclusiveScan(
       std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
       "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
-   // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for
-   // array-to-array)
-   using Scan =
-      detail::Scan< typename OutputArray::DeviceType, detail::ScanType::Exclusive, detail::ScanPhaseType::WriteInFirstPhase >;
+   constexpr auto phaseType = IsArrayType< std::decay_t< InputArray > >::value ? detail::ScanPhaseType::WriteInSecondPhase
+                                                                               : detail::ScanPhaseType::WriteInFirstPhase;
+   using Scan = detail::Scan< typename OutputArray::DeviceType, detail::ScanType::Exclusive, phaseType >;
    Scan::perform( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 }
 
