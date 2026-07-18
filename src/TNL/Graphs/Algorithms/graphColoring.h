@@ -43,10 +43,10 @@ namespace TNL::Graphs::Algorithms {
  * among equal-color neighbors are resolved deterministically by vertex
  * priority.
  *
+ * See \ref GraphColoringOverview for an overview of all coloring functions.
+ *
  * To operate on a subgraph, construct a \ref SubGraph via \ref makeSubGraph
  * and pass it as the \e graph argument.
- *
- * See [Wikipedia](https://en.wikipedia.org/wiki/Graph_coloring) for more details.
  *
  * \tparam Graph The type of the graph (Graph, SubGraph, or MaskedSubGraph).
  * \tparam Vector The type of the vector used to store color labels.
@@ -67,10 +67,10 @@ graphColoring( const Graph& graph, Vector& colors, TNL::Algorithms::Segments::La
  * Each color class is built by finding one maximal independent set on the
  * still-uncolored subgraph and assigning one color to all of its vertices.
  *
+ * See \ref GraphColoringOverview for an overview of all coloring functions.
+ *
  * To operate on a subgraph, construct a \ref SubGraph via \ref makeSubGraph
  * and pass it as the \e graph argument.
- *
- * See [Wikipedia](https://en.wikipedia.org/wiki/Graph_coloring) for more details.
  *
  * \tparam Graph The type of the graph (Graph, SubGraph, or MaskedSubGraph).
  * \tparam Vector The type of the vector used to store color labels.
@@ -87,6 +87,8 @@ graphColoringLuby( const Graph& graph, Vector& colors, TNL::Algorithms::Segments
 
 /**
  * \brief Checks that all color labels are non-negative and adjacent vertices differ.
+ *
+ * See \ref GraphColoringOverview for an overview of all coloring functions.
  *
  * To verify a coloring on a subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it as the \e graph argument.

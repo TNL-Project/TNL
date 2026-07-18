@@ -201,7 +201,7 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_isolated_vertex_false )
    EXPECT_FALSE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
 }
 
-TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withIndexes_true )
+TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withVertexIndexes_true )
 {
    using GraphType = typename TestFixture::GraphType;
    using MISVectorType = MISVector< GraphType >;
@@ -224,7 +224,7 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withIndexes_true )
       TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), independentSet ) );
 }
 
-TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withIndexes_false )
+TYPED_TEST( GraphTest, test_isMaximalIndependentSet_withVertexIndexes_false )
 {
    using GraphType = typename TestFixture::GraphType;
    using MISVectorType = MISVector< GraphType >;
@@ -370,7 +370,7 @@ TYPED_TEST( GraphTest, test_maximalIndependentSet_chain )
    expectComputedMISIsValid( graph );
 }
 
-TYPED_TEST( GraphTest, test_maximalIndependentSet_withIndexes )
+TYPED_TEST( GraphTest, test_maximalIndependentSet_withVertexIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
    using VertexIndexVectorType = VertexIndexVector< GraphType >;
@@ -757,7 +757,7 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_predicate )
    test_MIS_subgraph_vertex_removal_predicate_impl< typename TestFixture::GraphType >();
 }
 
-TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_indexed )
+TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_withVertexIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
    using IndexType = typename GraphType::IndexType;
@@ -856,7 +856,7 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_wholeGraph )
 
 template< typename GraphType >
 void
-test_MIS_subgraph_edge_removal_withIndexes_impl()
+test_MIS_subgraph_edge_removal_withVertexIndexes_impl()
 {
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
@@ -889,9 +889,9 @@ test_MIS_subgraph_edge_removal_withIndexes_impl()
    EXPECT_EQ( sumA, sumE2 );
 }
 
-TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_withIndexes )
+TYPED_TEST( GraphTest, test_MIS_subgraph_edge_removal_withVertexIndexes )
 {
-   test_MIS_subgraph_edge_removal_withIndexes_impl< typename TestFixture::GraphType >();
+   test_MIS_subgraph_edge_removal_withVertexIndexes_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"
