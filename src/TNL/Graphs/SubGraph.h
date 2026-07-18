@@ -317,64 +317,6 @@ template<
 auto
 makeSubGraph( const Graph& graph, VertexFilter&& vertexFilter, EdgeFilter&& edgeFilter );
 
-// ---------------------------------------------------------------------------
-// Free-function adapter declarations: vertexExists / edgeExists
-// ---------------------------------------------------------------------------
-
-/**
- * \brief Returns \c true for any vertex of a plain Graph or GraphView.
- *
- * This overload is selected for any graph type that is NOT a SubGraph.
- * The SubGraph-specific overload below is preferred by overload resolution
- * when the argument is a SubGraph.
- */
-template< typename Graph >
-__cuda_callable__
-bool
-vertexExists( const Graph&, typename Graph::IndexType );
-
-/**
- * \brief Returns \c true if the vertex exists in the SubGraph (passes the vertex filter).
- */
-template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
-__cuda_callable__
-bool
-vertexExists(
-   const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg,
-   typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType vertex );
-
-/**
- * \brief Returns \c true for any edge of a plain Graph or GraphView.
- */
-template< typename Graph >
-__cuda_callable__
-bool
-edgeExists( const Graph&, typename Graph::IndexType, typename Graph::IndexType, const typename Graph::ValueType& );
-
-/**
- * \brief Returns \c true if the edge exists in the SubGraph (both endpoints active + edge filter passes).
- */
-template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
-__cuda_callable__
-bool
-edgeExists(
-   const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg,
-   typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType source,
-   typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType target,
-   const typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::ValueType& weight );
-
-/**
- * \brief Free-function adapter: materializes a SubGraph into a standalone Graph.
- *
- * Equivalent to \c sg.materialize(). Provided for convenience and symmetry
- * with \ref makeSubGraph.
- *
- * \see SubGraph::materialize
- */
-template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
-auto
-materialize( const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg );
-
 }  // namespace TNL::Graphs
 
 #include "SubGraph.hpp"

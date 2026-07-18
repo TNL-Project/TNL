@@ -102,11 +102,10 @@ MaskedSubGraph< Graph_, EdgeFilter >::getVertex( IndexType vertexIdx ) const -> 
 }
 
 template< typename Graph_, typename EdgeFilter >
-[[nodiscard]] __cuda_callable__
-auto
+[[nodiscard]] auto
 MaskedSubGraph< Graph_, EdgeFilter >::getVertexDegree( IndexType vertexIdx ) const -> IndexType
 {
-   return graphView_.getVertexDegree( vertexIdx );
+   return getConstView().getVertexDegree( vertexIdx );
 }
 
 template< typename Graph_, typename EdgeFilter >
@@ -178,17 +177,6 @@ template< typename Graph_, typename EdgeFilter >
 MaskedSubGraph< Graph_, EdgeFilter >::materialize() const
 {
    return this->getConstView().materialize();
-}
-
-// ---------------------------------------------------------------------------
-// Free-function adapter: materialize(MaskedSubGraph)
-// ---------------------------------------------------------------------------
-
-template< typename Graph_, typename EdgeFilter_ >
-auto
-materialize( const MaskedSubGraph< Graph_, EdgeFilter_ >& msg )
-{
-   return msg.materialize();
 }
 
 }  // namespace TNL::Graphs
