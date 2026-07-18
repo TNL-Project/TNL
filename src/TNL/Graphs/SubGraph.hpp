@@ -6,6 +6,7 @@
 #include "SubGraph.h"
 
 #include <TNL/Algorithms/AtomicOperations.h>
+#include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Functional.h>
@@ -185,7 +186,21 @@ template< typename Graph_, typename VertexFilter, typename EdgeFilter >
 auto
 SubGraph< Graph_, VertexFilter, EdgeFilter >::getVertexDegree( IndexType vertexIdx ) const -> IndexType
 {
-   return graphView_.getVertexDegree( vertexIdx );
+   if( ! vertexFilter_( vertexIdx ) )
+      return 0;
+   const auto row = graphView_.getAdjacencyMatrixView().getRow( vertexIdx );
+   IndexType count = 0;
+   for( IndexType i = 0; i < row.getSize(); ++i ) {
+      const IndexType tgt = row.getColumnIndex( i );
+      if( tgt == Matrices::paddingIndex< IndexType > )
+         continue;
+      if( ! vertexFilter_( tgt ) )
+         continue;
+      if( ! edgeFilter_( vertexIdx, tgt, row.getValue( i ) ) )
+         continue;
+      ++count;
+   }
+   return count;
 }
 
 template< typename Graph_, typename VertexFilter, typename EdgeFilter >
@@ -277,48 +292,6 @@ makeSubGraph( const Graph& graph, VertexFilter&& vertexFilter, EdgeFilter&& edge
 }
 
 // ---------------------------------------------------------------------------
-// Free-function adapters: vertexExists / edgeExists
-// ---------------------------------------------------------------------------
-
-template< typename Graph >
-__cuda_callable__
-bool
-vertexExists( const Graph&, typename Graph::IndexType )
-{
-   return true;
-}
-
-template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
-__cuda_callable__
-bool
-vertexExists(
-   const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg,
-   typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType vertex )
-{
-   return sg.vertexExists( vertex );
-}
-
-template< typename Graph >
-__cuda_callable__
-bool
-edgeExists( const Graph&, typename Graph::IndexType, typename Graph::IndexType, const typename Graph::ValueType& )
-{
-   return true;
-}
-
-template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
-__cuda_callable__
-bool
-edgeExists(
-   const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg,
-   typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType source,
-   typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::IndexType target,
-   const typename SubGraph< Graph_, VertexFilter_, EdgeFilter_ >::ValueType& weight )
-{
-   return sg.edgeExists( source, target, weight );
-}
-
-// ---------------------------------------------------------------------------
 // SubGraph::materialize
 // ---------------------------------------------------------------------------
 
@@ -374,17 +347,6 @@ SubGraph< Graph_, VertexFilter, EdgeFilter >::materialize() const
       TNL::Algorithms::Segments::LaunchConfiguration{} );
 
    return result;
-}
-
-// ---------------------------------------------------------------------------
-// Free-function adapter: materialize(SubGraph)
-// ---------------------------------------------------------------------------
-
-template< typename Graph_, typename VertexFilter_, typename EdgeFilter_ >
-auto
-materialize( const SubGraph< Graph_, VertexFilter_, EdgeFilter_ >& sg )
-{
-   return sg.materialize();
 }
 
 }  // namespace TNL::Graphs
