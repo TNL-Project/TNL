@@ -27,9 +27,12 @@ public:
    configSetup( TNL::Config::ConfigDescription& config )
    {
       Base::configSetup( config );
+      config.addDelimiter( "SSSP benchmark settings:" );
       config.addEntry< bool >( "with-semirings", "Run semiring-based BFS and SSSP benchmarks.", true );
       config.addEntry< bool >( "with-gunrock", "Run Gunrock benchmarks.", true );
       config.addEntry< bool >( "with-boost", "Run Boost benchmarks.", true );
+      config.addEntry< double >(
+         "bitmap-threshold", "Frontier fraction below which top-down bitmap mode is used (0 = disabled).", 0.0 );
    }
 
    GraphBenchmarkSSSP( const TNL::Config::ParameterContainer& parameters )
@@ -38,6 +41,7 @@ public:
       withBoost = this->parameters.template getParameter< bool >( "with-boost" );
       withGunrock = this->parameters.template getParameter< bool >( "with-gunrock" );
       withSemirings = this->parameters.template getParameter< bool >( "with-semirings" );
+      bitmapThreshold = this->parameters.template getParameter< double >( "bitmap-threshold" );
    }
 
    void
@@ -115,8 +119,8 @@ public:
       TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_GUNROCK
-      auto gunrockDigraph = GunrockBenchmark< Real, Index >::convertToGunrockGraph( digraph );
-      auto gunrockGraph = GunrockBenchmark< Real, Index >::convertToGunrockGraph( graph );
+      auto gunrockDigraphHolder = GunrockBenchmark< Real, Index >::convertToGunrockGraph( digraph );
+      auto gunrockGraphHolder = GunrockBenchmark< Real, Index >::convertToGunrockGraph( graph );
 
       GunrockBenchmark< Real, Index > gunrockBenchmark;
       benchmark.setMetadataElement( { "solver", "Gunrock" } );
@@ -129,7 +133,7 @@ public:
 
       std::vector< Real > ssspDistances( digraph.getVertexCount() );
       gunrockBenchmark.singleSourceShortestPath(
-         benchmark, gunrockDigraph, largestNode, digraph.getVertexCount(), ssspDistances );
+         benchmark, gunrockDigraphHolder.graph, largestNode, digraph.getVertexCount(), ssspDistances );
       HostRealVector gunrock_sssp_dist( ssspDistances );
       gunrock_sssp_dist.forAllElements(
          [] __cuda_callable__( Index i, Real & x )
@@ -151,7 +155,8 @@ public:
       benchmark.setMetadataElement( { "kernel", "N/A" } );
       benchmark.setMetadataElement( { "launch cfg.", "" } );
 
-      gunrockBenchmark.singleSourceShortestPath( benchmark, gunrockGraph, largestNode, graph.getVertexCount(), ssspDistances );
+      gunrockBenchmark.singleSourceShortestPath(
+         benchmark, gunrockGraphHolder.graph, largestNode, graph.getVertexCount(), ssspDistances );
       gunrock_sssp_dist = ssspDistances;
       gunrock_sssp_dist.forAllElements(
          [] __cuda_callable__( Index i, Real & x )
@@ -183,78 +188,91 @@ public:
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
       using RealVector = TNL::Containers::Vector< Real, Device, Index >;
 
-      // Benchmarking single-source shortest paths with directed graph
-      benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataElement( { "problem", "SSSP dir" } );
-      benchmark.setMetadataElement( { "kernel", segments } );
+      const bool hasNegativeWeights = min( digraph.getAdjacencyMatrix().getValues() ) < 0;
 
-      for( const auto& launchEntry :
-           Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
+      const auto runSSSP = [ & ]( auto& g, auto& dist, const auto& launchCfg, const char* modeTag, double bitmapThr )
       {
-         const auto& launchConfig = launchEntry.first;
-         const auto& tag = launchEntry.second;
-
-         benchmark.setMetadataElement( { "launch cfg.", tag } );
-
-         RealVector ssspDistances( digraph.getVertexCount(), 0 );
-         auto sssp_tnl_dir = [ &, launchConfig ]() mutable
+         benchmark.setMetadataElement( { "mode", modeTag } );
+         auto sssp_lambda = [ &, launchCfg, bitmapThr ]() mutable
          {
-            TNL::Graphs::Algorithms::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
+            TNL::Graphs::Algorithms::singleSourceShortestPath( g, largestNode, dist, bitmapThr, launchCfg );
          };
-         if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
+         if( hasNegativeWeights ) {
             std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark.\n";
             this->errors++;
          }
-         else {
-            benchmark.time< Device >( device, sssp_tnl_dir );
-         }
+         else
+            benchmark.time< Device >( device, sssp_lambda );
+      };
+
+      // Benchmarking SSSP with directed graph
+      {
+         RealVector ssspDistances( digraph.getVertexCount(), 0 );
+         benchmark.setDatasetSize(
+            digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataElement( { "problem", "SSSP dir" } );
+         benchmark.setMetadataElement( { "kernel", segments } );
+
+         for( const auto& launchEntry :
+              Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
+         {
+            const auto& launchConfig = launchEntry.first;
+            const auto& tag = launchEntry.second;
+            benchmark.setMetadataElement( { "launch cfg.", tag } );
+
+            runSSSP( digraph, ssspDistances, launchConfig, "top-down compact", 0.0 );
 
 #ifdef HAVE_BOOST
-         if( withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
-            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!\n";
-            this->errors++;
-         }
+            if( withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
+               std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!\n";
+               this->errors++;
+            }
 #endif
 #ifdef HAVE_GUNROCK
-         if( withGunrock && ssspDistances != this->gunrockSSSPDistancesDirected ) {
-            std::cout << "SSSP distances of directed graph from TNL and Gunrock are not equal!\n";
-            this->errors++;
-         }
+            if( withGunrock && ssspDistances != this->gunrockSSSPDistancesDirected ) {
+               std::cout << "SSSP distances of directed graph from TNL and Gunrock are not equal!\n";
+               this->errors++;
+            }
 #endif
+
+            if( bitmapThreshold > 0.0 )
+               runSSSP( digraph, ssspDistances, launchConfig, "top-down bitmap", bitmapThreshold );
+         }
       }
 
-      // Benchmarking single-source shortest paths with undirected graph
-      benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataElement( { "problem", "SSSP undir" } );
-      benchmark.setMetadataElement( { "kernel", segments } );
-
-      for( const auto& launchEntry :
-           Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
+      // Benchmarking SSSP with undirected graph
       {
-         const auto& launchConfig = launchEntry.first;
-         const auto& tag = launchEntry.second;
+         RealVector ssspDistances( graph.getVertexCount(), 0 );
+         benchmark.setDatasetSize(
+            graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataElement( { "problem", "SSSP undir" } );
+         benchmark.setMetadataElement( { "kernel", segments } );
 
-         benchmark.setMetadataElement( { "launch cfg.", tag } );
-
-         RealVector ssspDistances( digraph.getVertexCount(), 0 );
-         auto sssp_tnl_undir = [ &, launchConfig ]() mutable
+         for( const auto& launchEntry :
+              Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
          {
-            TNL::Graphs::Algorithms::singleSourceShortestPath( graph, largestNode, ssspDistances, launchConfig );
-         };
-         benchmark.time< Device >( device, sssp_tnl_undir );
+            const auto& launchConfig = launchEntry.first;
+            const auto& tag = launchEntry.second;
+            benchmark.setMetadataElement( { "launch cfg.", tag } );
+
+            runSSSP( graph, ssspDistances, launchConfig, "top-down compact", 0.0 );
 
 #ifdef HAVE_BOOST
-         if( withBoost && ssspDistances != this->boostSSSPDistancesUndirected ) {
-            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!\n";
-            this->errors++;
-         }
+            if( withBoost && ssspDistances != this->boostSSSPDistancesUndirected ) {
+               std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!\n";
+               this->errors++;
+            }
 #endif
 #ifdef HAVE_GUNROCK
-         if( withGunrock && ssspDistances != this->gunrockSSSPDistancesUndirected ) {
-            std::cout << "SSSP distances of undirected graph from TNL and Gunrock are not equal!\n";
-            this->errors++;
-         }
+            if( withGunrock && ssspDistances != this->gunrockSSSPDistancesUndirected ) {
+               std::cout << "SSSP distances of undirected graph from TNL and Gunrock are not equal!\n";
+               this->errors++;
+            }
 #endif
+
+            if( bitmapThreshold > 0.0 )
+               runSSSP( graph, ssspDistances, launchConfig, "top-down bitmap", bitmapThreshold );
+         }
       }
 
       if( this->withSemirings && ! std::is_same_v< Device, TNL::Devices::Sequential > ) {
@@ -267,12 +285,13 @@ public:
          benchmark.setMetadataElement( { "problem", "Semiring SSSP dir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
          benchmark.setMetadataElement( { "launch cfg.", "1 TPS" } );
+         benchmark.setMetadataElement( { "mode", "N/A" } );
 
          auto semiring_sssp_dir = [ & ]() mutable
          {
             semiringSSSP( digraph, largestNode, semiringSsspDistances );
          };
-         if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
+         if( hasNegativeWeights ) {
             std::cout << "ERROR: Negative weights in the graph! Skipping semiring SSSP benchmark.\n";
             this->errors++;
          }
@@ -298,12 +317,12 @@ public:
    }
 
 protected:
-   // Reference solutions for comparison
    HostRealVector boostSSSPDistancesDirected, boostSSSPDistancesUndirected;
    HostRealVector gunrockSSSPDistancesDirected, gunrockSSSPDistancesUndirected;
    bool withBoost;
    bool withGunrock;
    bool withSemirings;
+   double bitmapThreshold;
 };
 
 }  // namespace TNL::Benchmarks::Graphs
