@@ -25,7 +25,54 @@ namespace TNL::Graphs::Algorithms {
  * | \ref breadthFirstSearchWithPredecessors           | No      | Yes          | BFS with predecessor tracking       |
  * | \ref breadthFirstSearchWithVisitorAndPredecessors | Yes     | Yes          | BFS with visitor + predecessors |
  *
- // AGENT-TODO: Add description of the visitor callable.
+ * \section BFSVisitor Visitor callable
+ *
+ * The visitor is a callable with signature
+ * \code
+ * [=] __cuda_callable__( Index node, Index distance )
+ * \endcode
+ * It is invoked exactly once per discovered vertex (excluding the start
+ * vertex), in the iteration in which the vertex is first reached.
+ *
+ * \section BFSTraversalModes Traversal modes
+ *
+ * The parallel BFS implementation supports three traversal modes that are
+ * selected automatically on a per-iteration basis according to the current
+ * frontier size relative to the total vertex count \c n:
+ *
+ * | Mode              | Condition                          | Best suited for                                     |
+ * |-------------------|------------------------------------|-----------------------------------------------------|
+ * | Top-down compact  | default                            | Medium frontier sizes; general-purpose fallback.    |
+ * | Top-down bitmap   | frontier/n < \c bitmapThreshold    | Graphs with large diameter (paths, chains), where the frontier stays small for many iterations. Skips the O(n) frontier compaction. |
+ * | Bottom-up         | frontier/n > \c bottomUpThreshold  | Graphs with small diameter (small-world, scale-free), where the frontier grows large near the end of traversal. Each unvisited vertex scans its own neighbors with early exit. Undirected graphs only. |
+ *
+ * When both thresholds are non-zero, the algorithm may use top-down bitmap in
+ * early iterations (small frontier), top-down compact in the middle, and
+ * bottom-up at the peak (large frontier).  Setting a threshold to \c 0.0
+ * disables the corresponding mode, yielding fully backward-compatible behavior.
+ *
+ * The three modes differ in how they produce the next frontier from the
+ * current one.  Top-down compact iterates the outgoing edges of the compacted
+ * frontier and rebuilds the frontier with a prefix scan — the O(n) compaction
+ * pays off when the frontier carries enough edges.  Top-down bitmap skips the
+ * compaction and instead scans all edges, testing a cheap \c marks bitmap to
+ * keep only sources that belong to the current frontier; this is profitable
+ * when the frontier is small relative to \c n.  Bottom-up inverts the loop:
+ * each unvisited vertex scans its adjacency row for any frontier neighbor and
+ * exits early on the first hit, so the cost is proportional to the number of
+ * unvisited vertices rather than to the frontier size.
+ *
+ * The bottom-up mode is the direction-optimizing BFS of
+ * Beamer et al. \cite beamer2013direction.  The top-down bitmap mode is
+ * inspired by the data-centric frontier abstraction of Gunrock
+ * \cite wang2016gunrock, where frontier operations are expressed as advance
+ * and filter steps; skipping the filter (compaction) step when the frontier
+ * is small is the key idea.  See also Merrill et al. \cite merrill2012scalable
+ * for the foundational work on work-efficient, prefix-scan-based GPU BFS that
+ * the top-down compact mode builds on.
+ *
+ * \section BFSSubgraph Filtered subgraphs
+ *
  * To run BFS on a filtered subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it:
  * ```cpp
@@ -38,7 +85,8 @@ namespace TNL::Graphs::Algorithms {
 /**
  * \brief Performs breadth-first search (BFS) on the given graph starting from the specified node.
  *
- * See [Wikipedia](https://en.wikipedia.org/wiki/Breadth-first_search) for more details about the BFS algorithm.
+ * See \ref BFSOverview for an overview of all BFS variants, traversal modes,
+ * and visitor semantics.
  *
  * To operate on a subgraph, construct a \ref SubGraph via \ref makeSubGraph
  * and pass it as the \e graph argument. Vertices outside the active subgraph
@@ -49,16 +97,13 @@ namespace TNL::Graphs::Algorithms {
  * \param graph The graph on which BFS is performed.
  * \param start The starting node for BFS.
  * \param distances The vector where distances from the start node will be stored.
- * \param launchConfig The configuration for launching the segments traversal.
- * \param bypassThreshold When the frontier size drops below this fraction of the
- *   total vertex count, BFS switches to a bypass mode that iterates all edges
- *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
- *   \c 0.0 (default) disables bypass mode entirely.
+ * \param bitmapThreshold When the frontier size drops below this fraction of the
+ *   total vertex count, BFS switches to top-down bitmap mode.  See
+ *   \ref BFSOverview "Traversal modes".  \c 0.0 (default) disables it.
  * \param bottomUpThreshold When the frontier size exceeds this fraction of the
- *   total vertex count, BFS switches to bottom-up traversal (checking
- *   in-edges of unvisited vertices with early exit).  Only effective for
- *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
- *   (default) disables bottom-up mode entirely.
+ *   total vertex count, BFS switches to bottom-up mode (undirected graphs only).
+ *   See \ref BFSOverview "Traversal modes".  \c 0.0 (default) disables it.
+ * \param launchConfig The configuration for launching the segments traversal.
  *
  * \par Example
  * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs basic
@@ -69,15 +114,14 @@ breadthFirstSearch(
    const Graph& graph,
    typename Graph::IndexType start,
    Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
-   double bypassThreshold = 0.0,
-   double bottomUpThreshold = 0.0 );
+   double bitmapThreshold = 0.0,
+   double bottomUpThreshold = 0.0,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs breadth-first search (BFS) with a visitor callback.
  *
- * The visitor is invoked upon visiting each node. It must accept two parameters:
- * the node index and its distance from the start node.
+ * See \ref BFSOverview for the visitor signature and traversal mode details.
  *
  * To operate on a subgraph, construct a \ref SubGraph via \ref makeSubGraph
  * and pass it as the \e graph argument.
@@ -89,16 +133,9 @@ breadthFirstSearch(
  * \param start The starting node for BFS.
  * \param visitor The callable invoked upon visiting each node.
  * \param distances The vector where distances from the start node will be stored.
+ * \param bitmapThreshold See \ref breadthFirstSearch.
+ * \param bottomUpThreshold See \ref breadthFirstSearch.
  * \param launchConfig The configuration for launching the segments traversal.
- * \param bypassThreshold When the frontier size drops below this fraction of the
- *   total vertex count, BFS switches to a bypass mode that iterates all edges
- *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
- *   \c 0.0 (default) disables bypass mode entirely.
- * \param bottomUpThreshold When the frontier size exceeds this fraction of the
- *   total vertex count, BFS switches to bottom-up traversal (checking
- *   in-edges of unvisited vertices with early exit).  Only effective for
- *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
- *   (default) disables bottom-up mode entirely.
  *
  * \par Example
  * \snippet Graphs/Algorithms/GraphExample_BFS.cpp bfs visitor
@@ -114,9 +151,9 @@ breadthFirstSearchWithVisitor(
    typename Graph::IndexType start,
    Visitor&& visitor,
    Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
-   double bypassThreshold = 0.0,
-   double bottomUpThreshold = 0.0 );
+   double bitmapThreshold = 0.0,
+   double bottomUpThreshold = 0.0,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs breadth-first search (BFS) with predecessor tracking.
@@ -125,6 +162,8 @@ breadthFirstSearchWithVisitor(
  * \c predecessors[v] is the parent of vertex \c v in the BFS tree.  The start
  * vertex and any unreachable vertices have predecessor \c -1.
  *
+ * See \ref BFSOverview for traversal mode details.
+ *
  * \tparam Graph The type of the graph (Graph, SubGraph, or GraphView).
  * \tparam Vector The type of the vector used to store distances.
  * \tparam PredecessorVector The type of the vector used to store predecessors.
@@ -132,20 +171,13 @@ breadthFirstSearchWithVisitor(
  * \param start The starting node for BFS.
  * \param distances The vector where distances from the start node will be stored.
  * \param predecessors The vector where predecessor indices will be stored.
- * \param launchConfig The configuration for launching the segments traversal.
  * \param deterministic If \c true, the predecessor of each vertex is chosen as
  *   the smallest source index among all valid parents in the same BFS layer.
  *   If \c false (default), the predecessor is whichever thread wins the
  *   atomic update — faster but non-reproducible between runs.
- * \param bypassThreshold When the frontier size drops below this fraction of the
- *   total vertex count, BFS switches to a bypass mode that iterates all edges
- *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
- *   \c 0.0 (default) disables bypass mode entirely.
- * \param bottomUpThreshold When the frontier size exceeds this fraction of the
- *   total vertex count, BFS switches to bottom-up traversal (checking
- *   in-edges of unvisited vertices with early exit).  Only effective for
- *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
- *   (default) disables bottom-up mode entirely.
+ * \param bitmapThreshold See \ref breadthFirstSearch.
+ * \param bottomUpThreshold See \ref breadthFirstSearch.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template< typename Graph, typename Vector, typename PredecessorVector >
 void
@@ -154,10 +186,10 @@ breadthFirstSearchWithPredecessors(
    typename Graph::IndexType start,
    Vector& distances,
    PredecessorVector& predecessors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
    bool deterministic = false,
-   double bypassThreshold = 0.0,
-   double bottomUpThreshold = 0.0 );
+   double bitmapThreshold = 0.0,
+   double bottomUpThreshold = 0.0,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs breadth-first search (BFS) with a visitor callback and
@@ -166,6 +198,8 @@ breadthFirstSearchWithPredecessors(
  * Combines the functionality of \ref breadthFirstSearchWithVisitor and
  * \ref breadthFirstSearchWithPredecessors.  The visitor is invoked exactly
  * once per discovered vertex (excluding the start vertex).
+ *
+ * See \ref BFSOverview for traversal mode details.
  *
  * \tparam Graph The type of the graph (Graph, SubGraph, or GraphView).
  * \tparam Vector The type of the vector used to store distances.
@@ -176,19 +210,12 @@ breadthFirstSearchWithPredecessors(
  * \param visitor The callable invoked upon visiting each node.
  * \param distances The vector where distances from the start node will be stored.
  * \param predecessors The vector where predecessor indices will be stored.
- * \param launchConfig The configuration for launching the segments traversal.
  * \param deterministic If \c true, predecessors are chosen deterministically
  *   (smallest source index per layer).  See
  *   \ref breadthFirstSearchWithPredecessors.
- * \param bypassThreshold When the frontier size drops below this fraction of the
- *   total vertex count, BFS switches to a bypass mode that iterates all edges
- *   (checking a \c marks bitmap) instead of compacting the frontier.  A value of
- *   \c 0.0 (default) disables bypass mode entirely.
- * \param bottomUpThreshold When the frontier size exceeds this fraction of the
- *   total vertex count, BFS switches to bottom-up traversal (checking
- *   in-edges of unvisited vertices with early exit).  Only effective for
- *   undirected graphs; ignored for directed graphs.  A value of \c 0.0
- *   (default) disables bottom-up mode entirely.
+ * \param bitmapThreshold See \ref breadthFirstSearch.
+ * \param bottomUpThreshold See \ref breadthFirstSearch.
+ * \param launchConfig The configuration for launching the segments traversal.
  */
 template<
    typename Graph,
@@ -203,10 +230,10 @@ breadthFirstSearchWithVisitorAndPredecessors(
    Visitor&& visitor,
    Vector& distances,
    PredecessorVector& predecessors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration(),
    bool deterministic = false,
-   double bypassThreshold = 0.0,
-   double bottomUpThreshold = 0.0 );
+   double bitmapThreshold = 0.0,
+   double bottomUpThreshold = 0.0,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 }  // namespace TNL::Graphs::Algorithms
 
 #include "breadthFirstSearch.hpp"

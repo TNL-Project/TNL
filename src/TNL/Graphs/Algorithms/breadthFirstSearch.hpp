@@ -36,9 +36,9 @@ breadthFirstSearchParallel(
    Vector& distances,
    PredecessorVector& predecessors,
    bool deterministic,
-   const TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   double bypassThreshold,
-   double bottomUpThreshold )
+   double bitmapThreshold,
+   double bottomUpThreshold,
+   const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
@@ -60,8 +60,8 @@ breadthFirstSearchParallel(
       predecessors.setElement( start, -1 );
    }
 
-   // marks: current frontier bitmap (input for bypass, output for compact)
-   // nextMarks: next frontier bitmap (output for bypass)
+   // marks: current frontier bitmap (input for top-down bitmap / bottom-up, output for compact)
+   // nextMarks: next frontier bitmap (output for top-down bitmap / bottom-up)
    Containers::Vector< IndexType, DeviceType, IndexType > marks( n );
    Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
@@ -69,7 +69,7 @@ breadthFirstSearchParallel(
    frontier.setElement( 0, start );
    IndexType frontierSize( 1 );
 
-   // Initialize marks as frontier bitmap for potential bypass on i=0
+   // Initialize marks as frontier bitmap for potential top-down bitmap on i=0
    marks = 0;
    marks.setElement( start, 1 );
 
@@ -116,7 +116,7 @@ breadthFirstSearchParallel(
 
          // When the frontier is small, skip the O(n) compactFrontier (prefix
          // scan + scatter) and instead scan all edges with a cheap marks check.
-         const bool useTopDownBitmap = ! useBottomUp && bypassThreshold > 0.0 && frontierFraction < bypassThreshold;
+         const bool useTopDownBitmap = ! useBottomUp && bitmapThreshold > 0.0 && frontierFraction < bitmapThreshold;
 
          if( useBottomUp ) {
             auto marksView_bitmap = marks.getView();
@@ -334,7 +334,7 @@ breadthFirstSearchParallel(
 
          // When the frontier is small, skip the O(n) compactFrontier (prefix
          // scan + scatter) and instead scan all edges with a cheap marks check.
-         const bool useTopDownBitmap = ! useBottomUp && bypassThreshold > 0.0 && frontierFraction < bypassThreshold;
+         const bool useTopDownBitmap = ! useBottomUp && bitmapThreshold > 0.0 && frontierFraction < bitmapThreshold;
 
          if( useBottomUp ) {
             auto marksView_bitmap = marks.getView();
@@ -549,9 +549,9 @@ breadthFirstSearch_impl(
    Vector& distances,
    PredecessorVector& predecessors,
    bool deterministic,
-   const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig,
-   double bypassThreshold,
-   double bottomUpThreshold )
+   double bitmapThreshold,
+   double bottomUpThreshold,
+   const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    static_assert(
       ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(), "BFS requires general adjacency matrix, not symmetric." );
@@ -625,9 +625,9 @@ breadthFirstSearch_impl(
          distances,
          predecessors,
          deterministic,
-         launchConfig,
-         bypassThreshold,
-         bottomUpThreshold );
+         bitmapThreshold,
+         bottomUpThreshold,
+         launchConfig );
    }
 }
 
@@ -637,9 +637,9 @@ breadthFirstSearch(
    const Graph& graph,
    typename Graph::IndexType start,
    Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   double bypassThreshold,
-   double bottomUpThreshold )
+   double bitmapThreshold,
+   double bottomUpThreshold,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    Vector dummy;
    breadthFirstSearch_impl< false >(
@@ -649,9 +649,9 @@ breadthFirstSearch(
       distances,
       dummy,
       false,
-      launchConfig,
-      bypassThreshold,
-      bottomUpThreshold );
+      bitmapThreshold,
+      bottomUpThreshold,
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename Visitor, typename Enable >
@@ -661,9 +661,9 @@ breadthFirstSearchWithVisitor(
    typename Graph::IndexType start,
    Visitor&& visitor,
    Vector& distances,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
-   double bypassThreshold,
-   double bottomUpThreshold )
+   double bitmapThreshold,
+   double bottomUpThreshold,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    Vector dummy;
@@ -674,9 +674,9 @@ breadthFirstSearchWithVisitor(
       distances,
       dummy,
       false,
-      launchConfig,
-      bypassThreshold,
-      bottomUpThreshold );
+      bitmapThreshold,
+      bottomUpThreshold,
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename PredecessorVector >
@@ -686,10 +686,10 @@ breadthFirstSearchWithPredecessors(
    typename Graph::IndexType start,
    Vector& distances,
    PredecessorVector& predecessors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
    bool deterministic,
-   double bypassThreshold,
-   double bottomUpThreshold )
+   double bitmapThreshold,
+   double bottomUpThreshold,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    breadthFirstSearch_impl< true >(
       graph,
@@ -698,9 +698,9 @@ breadthFirstSearchWithPredecessors(
       distances,
       predecessors,
       deterministic,
-      launchConfig,
-      bypassThreshold,
-      bottomUpThreshold );
+      bitmapThreshold,
+      bottomUpThreshold,
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename PredecessorVector, typename Visitor, typename Enable >
@@ -711,10 +711,10 @@ breadthFirstSearchWithVisitorAndPredecessors(
    Visitor&& visitor,
    Vector& distances,
    PredecessorVector& predecessors,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig,
    bool deterministic,
-   double bypassThreshold,
-   double bottomUpThreshold )
+   double bitmapThreshold,
+   double bottomUpThreshold,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (node, distance)." );
    breadthFirstSearch_impl< true >(
@@ -724,9 +724,9 @@ breadthFirstSearchWithVisitorAndPredecessors(
       distances,
       predecessors,
       deterministic,
-      launchConfig,
-      bypassThreshold,
-      bottomUpThreshold );
+      bitmapThreshold,
+      bottomUpThreshold,
+      launchConfig );
 }
 
 }  // namespace TNL::Graphs::Algorithms
