@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/LambdaMatrix.h>
+#include <TNL/Matrices/traverse.h>
 
 /**
  * \brief Generates a linear system based on the seven-point stencil FDM
@@ -96,8 +97,9 @@ generateStencilMatrix( Matrix& A_local, Vector& b_local, typename Matrix::IndexT
    A_local.setRowCapacities( capacities );
 
    // Now assemble the local matrix. Each row has at most 7 entries.
-   A_local.forAllRows(
-      [ = ] __cuda_callable__( typename Matrix::RowView& row ) mutable
+   TNL::Matrices::forAllRows(
+      A_local,
+      [ = ] __cuda_callable__( typename Matrix::RowView & row ) mutable
       {
          // The row index must be converted from local to global
          const Index i = ilower + row.getRowIndex();
