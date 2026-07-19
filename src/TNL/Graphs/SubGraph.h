@@ -31,9 +31,8 @@ namespace TNL::Graphs {
  * (\c getVertexCount, \c getAdjacencyMatrixView, \c getVertex, etc.) and,
  * crucially, \c getView / \c getConstView return a SubGraph copy. This means
  * the existing traversal functions (\ref forAllEdges, \ref forEdges, ...)
- * dispatch to the \ref TNL::Graphs::detail::TraversingOperations
- * "TraversingOperations<SubGraph>" specialization which applies the filters
- * transparently — no algorithm-level branching is needed.
+ * dispatch to the \c TraversingOperations<SubGraph> specialization which
+ * applies the filters transparently — no algorithm-level branching is needed.
  *
  * In addition, SubGraph provides:
  * - \c vertexExists(vertex) — tests the vertex filter, and
@@ -104,7 +103,7 @@ public:
     *
     * SubGraph is lightweight (matrix view + two filter callables) and
     * copyable, so \c getView / \c getConstView simply return a copy of
-    * \c *this.  This lets \ref traverse.hpp dispatch to the
+    * \c *this.  This lets \c traverse.hpp dispatch to the
     * \c TraversingOperations<SubGraph> specialization.
     */
    using ViewType = SubGraph< Graph_, VertexFilter, EdgeFilter >;

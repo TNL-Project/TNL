@@ -24,5 +24,6 @@ extend-ignore-re = [
 CMO = "CMO"   # ignore "CMO" -> "COM" hint
 EIS = "EIS"   # acronym
 HSA = "HSA"   # acronym
+MIS = "MIS"   # acronym — Maximal Independent Set (graph algorithm)
 ND = "ND"     # ignore "ND" -> "AND" hint
 setp = "setp" # common function name (both C++ and Python (Matplotlib))

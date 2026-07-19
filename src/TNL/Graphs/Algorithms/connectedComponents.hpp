@@ -144,7 +144,7 @@ connectedComponentsParallel(
       hostAtomicComponents.setSize( verticesCount );
 
    components.forAllElements(
-      [ = ] __cuda_callable__( IndexType vertex, IndexType & value )
+      [ = ] __cuda_callable__( IndexType vertex, IndexType& value )
       {
          value = graphView.vertexExists( vertex ) ? vertex : static_cast< IndexType >( -1 );
       } );

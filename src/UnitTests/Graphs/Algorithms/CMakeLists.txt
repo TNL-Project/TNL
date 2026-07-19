@@ -1,6 +1,34 @@
-set(CPP_TESTS GraphTest_BFS GraphTest_CC GraphTest_Coloring GraphTest_MIS GraphTest_SCC GraphTest_SSSP GraphTest_trees GraphTest_MST GraphTest_LambdaTraits)
-set(CUDA_TESTS GraphTest_BFS_cuda GraphTest_CC_cuda GraphTest_Coloring_cuda GraphTest_MIS_cuda GraphTest_SCC_cuda GraphTest_SSSP_cuda GraphTest_trees_cuda GraphTest_LambdaTraits_cuda) # TODO: fix and add GraphTest_MST_cuda
-set(HIP_TESTS GraphTest_BFS_hip GraphTest_CC_hip GraphTest_Coloring_hip GraphTest_MIS_hip GraphTest_SCC_hip GraphTest_SSSP_hip GraphTest_trees_hip GraphTest_LambdaTraits_hip) # TODO: fix and add GraphTest_MST_hip
+set(CPP_TESTS
+    GraphTest_BFS
+    GraphTest_CC
+    GraphTest_Coloring
+    GraphTest_MIS
+    GraphTest_SCC
+    GraphTest_SSSP
+    GraphTest_trees
+    GraphTest_MST
+    GraphTest_LambdaTraits
+)
+set(CUDA_TESTS
+    GraphTest_BFS_cuda
+    GraphTest_CC_cuda
+    GraphTest_Coloring_cuda
+    GraphTest_MIS_cuda
+    GraphTest_SCC_cuda
+    GraphTest_SSSP_cuda
+    GraphTest_trees_cuda
+    GraphTest_LambdaTraits_cuda
+) # TODO: fix and add GraphTest_MST_cuda
+set(HIP_TESTS
+    GraphTest_BFS_hip
+    GraphTest_CC_hip
+    GraphTest_Coloring_hip
+    GraphTest_MIS_hip
+    GraphTest_SCC_hip
+    GraphTest_SSSP_hip
+    GraphTest_trees_hip
+    GraphTest_LambdaTraits_hip
+) # TODO: fix and add GraphTest_MST_hip
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)
