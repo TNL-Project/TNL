@@ -4,6 +4,7 @@
 #pragma once
 
 #include "MultidiagonalMatrix.h"
+#include "traverse.h"
 
 namespace TNL::Matrices {
 
@@ -364,7 +365,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
          {
             value = matrix_view.getValues()[ matrix_view.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
          };
-         this->forAllElements( f );
+         TNL::Matrices::forAllElements( *this, f );
       }
       else {
          const Index maxRowLength = this->diagonalOffsets.getSize();
@@ -391,7 +392,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
                const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
                matrixValuesBuffer_view[ bufferIdx ] = value;
             };
-            matrix.forElements( baseRow, lastRow, f1 );
+            TNL::Matrices::forElements( matrix, baseRow, lastRow, f1 );
 
             // Copy the source matrix buffer to this matrix buffer
             thisValuesBuffer_view = matrixValuesBuffer_view;
@@ -403,7 +404,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
                const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
                value = thisValuesBuffer_view[ bufferIdx ];
             };
-            this->forElements( baseRow, lastRow, f2 );
+            TNL::Matrices::forElements( *this, baseRow, lastRow, f2 );
             baseRow += bufferRowsCount;
          }
       }
