@@ -119,7 +119,7 @@ parallelSingleSourceShortestPath(
                   const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
                   if( newDistance < oldDistance ) {
 #if defined( HAVE_OPENMP )
-   #pragma omp atomic write
+                  #pragma omp atomic write
 #endif
                      predecessorsView[ targetIdx ] = sourceIdx;
                      nextMarksView[ targetIdx ] = 1;
@@ -167,11 +167,11 @@ parallelSingleSourceShortestPath(
                      const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
                      if( newDistance < oldDistance ) {
 #if defined( HAVE_OPENMP )
-   #pragma omp atomic write
+                     #pragma omp atomic write
 #endif
                         predecessorsView[ targetIdx ] = sourceIdx;
 #if defined( HAVE_OPENMP )
-   #pragma omp atomic write
+                     #pragma omp atomic write
 #endif
                         marksView[ targetIdx ] = 1;
                      }
