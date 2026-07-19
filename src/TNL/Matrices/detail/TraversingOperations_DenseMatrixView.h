@@ -22,6 +22,22 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
    using RowView = typename MatrixView::RowView;
    using ConstRowView = typename ConstMatrixView::ConstRowView;
 
+   // Bring in the array-overloads of forElementsIf from the base class: the range-overloads
+   // declared below in this struct would otherwise hide ALL base-class forElementsIf overloads
+   // (C++ name hiding), including the array-based ones.
+   //
+   // The range-overloads declared below use Algorithms::Segments::forElementsIf: a single fused
+   // kernel where `condition` is evaluated per row inline during the same traversal that calls
+   // `function`. The inherited base-class range-overloads (TraversingOperationsBase) instead
+   // build a 0/1 row mask via forAllElements, compact it into a row-index array via
+   // Algorithms::compressFast (which involves a blocking device->host sync), and then delegate
+   // to the array-overload -- effectively three kernel launches plus a sync instead of one fused
+   // kernel. It has not been benchmarked which approach actually performs better in practice
+   // (e.g. the mask+compress path launches a second kernel sized to the number of matching rows,
+   // which could win when `condition` is rarely true); until that is measured, do not assume the
+   // Segments fast path below is strictly superior.
+   using TraversingOperationsBase< MatrixView >::forElementsIf;
+
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forElements(

@@ -796,7 +796,7 @@ reduceRows(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -834,7 +834,7 @@ reduceAllRowsIf(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -872,7 +872,7 @@ reduceAllRowsIf(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -908,7 +908,7 @@ reduceAllRowsIf(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -950,7 +950,7 @@ reduceAllRowsIf(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1005,7 +1005,7 @@ reduceRowsIf(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1059,7 +1059,7 @@ reduceRowsIf(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1110,7 +1110,7 @@ reduceRowsIf(
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1163,7 +1163,7 @@ reduceRowsIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1223,7 +1223,7 @@ reduceRowsIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1282,7 +1282,7 @@ reduceRowsIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1338,7 +1338,7 @@ reduceRowsIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
