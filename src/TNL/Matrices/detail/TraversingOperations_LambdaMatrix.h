@@ -23,6 +23,9 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
    using RowView = typename Matrix::RowView;
    using ConstRowView = typename ConstMatrixView::ConstRowView;
 
+   // TODO: `launchConfig` is accepted below but never forwarded to Algorithms::parallelFor (see
+   // TraversingOperationsBase.h for why). Should eventually be fixed, pending a benchmark.
+
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forElements(
