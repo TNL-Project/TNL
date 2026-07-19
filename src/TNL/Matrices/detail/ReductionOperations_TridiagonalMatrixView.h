@@ -54,7 +54,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
          }
          else {
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
          }
          store( rowIdx, result );
       };
@@ -92,7 +92,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
          }
          else {
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
          }
          store( rowIdx, result );
       };
@@ -133,7 +133,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
          }
          else {
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
          }
          store( idx, rowIdx, result );
       };
@@ -172,7 +172,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
          }
          else {
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
+            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
          }
          store( idx, rowIdx, result );
       };
@@ -233,7 +233,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
          }
          else {
-            process( 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          }
          store( rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
@@ -292,7 +292,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
          }
          else {
-            process( 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          }
          store( rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
@@ -354,7 +354,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
          }
          else {
-            process( 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          }
          store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
@@ -414,7 +414,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
          }
          else {
-            process( 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
+            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
          }
          store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
