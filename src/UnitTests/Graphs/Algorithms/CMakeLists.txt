@@ -1,4 +1,15 @@
-foreach(test IN ITEMS GraphTest_BFS GraphTest_CC GraphTest_Coloring GraphTest_MIS GraphTest_SCC GraphTest_SSSP GraphTest_trees GraphTest_LambdaTraits)
+set(TESTS
+    GraphTest_BFS
+    GraphTest_CC
+    GraphTest_Coloring
+    GraphTest_MIS
+    GraphTest_SCC
+    GraphTest_SSSP
+    GraphTest_trees
+    GraphTest_LambdaTraits
+)
+
+foreach(test IN ITEMS ${TESTS})
     tnl_add_test_executables(${test} SOURCES ${test}.h)
 endforeach()
 

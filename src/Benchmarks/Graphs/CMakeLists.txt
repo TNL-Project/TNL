@@ -1,4 +1,11 @@
-set(GRAPH_BENCHMARKS bfs cc coloring scc sssp mst)
+set(GRAPH_BENCHMARKS
+    bfs
+    cc
+    coloring
+    scc
+    sssp
+    mst
+)
 
 find_package(Boost OPTIONAL_COMPONENTS graph)
 if(Boost_GRAPH_FOUND)
@@ -53,10 +60,7 @@ foreach(bench IN LISTS GRAPH_BENCHMARKS)
             continue()
         endif()
         if(GUNROCK_FOUND AND NOT bench STREQUAL "mst")
-            target_compile_definitions(
-                ${target}
-                PUBLIC HAVE_GUNROCK SM_TARGET=86 HIP_BACKEND=1 __HIP_PLATFORM_NVIDIA__=1
-            )
+            target_compile_definitions(${target} PUBLIC HAVE_GUNROCK SM_TARGET=86 HIP_BACKEND=1 __HIP_PLATFORM_NVIDIA__=1)
             target_include_directories(${target} PUBLIC ${GUNROCK_INCLUDE_DIR})
         endif()
     endforeach()
