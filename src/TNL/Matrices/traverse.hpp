@@ -364,13 +364,13 @@ forRows(
       launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forRowsIf(
    Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -379,18 +379,18 @@ forRowsIf(
       matrix_view,
       begin,
       end,
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forRowsIf(
    const Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -398,16 +398,16 @@ forRowsIf(
       matrix.getConstView(),
       begin,
       end,
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
 
-template< typename Matrix, typename RowCondition, typename Function >
+template< typename Matrix, typename Condition, typename Function >
 void
 forAllRowsIf(
    Matrix& matrix,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -415,16 +415,16 @@ forAllRowsIf(
       matrix,
       static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
 
-template< typename Matrix, typename RowCondition, typename Function >
+template< typename Matrix, typename Condition, typename Function >
 void
 forAllRowsIf(
    const Matrix& matrix,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -432,7 +432,7 @@ forAllRowsIf(
       matrix,
       static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
@@ -444,7 +444,7 @@ template<
    typename Array,
    typename IndexBegin,
    typename IndexEnd,
-   typename RowCondition,
+   typename Condition,
    typename Function,
    typename T >
 void
@@ -453,7 +453,7 @@ forRowsIf(
    const Array& rowIndexes,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -463,7 +463,7 @@ forRowsIf(
       rowIndexes,
       begin,
       end,
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
@@ -473,7 +473,7 @@ template<
    typename Array,
    typename IndexBegin,
    typename IndexEnd,
-   typename RowCondition,
+   typename Condition,
    typename Function,
    typename T >
 void
@@ -482,7 +482,7 @@ forRowsIf(
    const Array& rowIndexes,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -491,7 +491,7 @@ forRowsIf(
       rowIndexes,
       begin,
       end,
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
