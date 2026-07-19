@@ -1048,7 +1048,7 @@ forRows(
  *    of rows on which the lambda function will be applied.
  * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
  *    of rows on which the lambda function will be applied.
- * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
@@ -1056,7 +1056,7 @@ forRows(
  *    whose corresponding rows will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of row indexes
  *    whose corresponding rows will be processed using the lambda function.
- * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1069,7 +1069,7 @@ template<
    typename Matrix,
    typename IndexBegin,
    typename IndexEnd,
-   typename RowCondition,
+   typename Condition,
    typename Function,
    typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
@@ -1077,7 +1077,7 @@ forRowsIf(
    Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1096,7 +1096,7 @@ forRowsIf(
  *    of rows on which the lambda function will be applied.
  * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
  *    of rows on which the lambda function will be applied.
- * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrix on which the lambda function will be applied.
@@ -1104,7 +1104,7 @@ forRowsIf(
  *    whose corresponding rows will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of row indexes
  *    whose corresponding rows will be processed using the lambda function.
- * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1117,7 +1117,7 @@ template<
    typename Matrix,
    typename IndexBegin,
    typename IndexEnd,
-   typename RowCondition,
+   typename Condition,
    typename Function,
    typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
@@ -1125,7 +1125,7 @@ forRowsIf(
    const Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1140,11 +1140,11 @@ forRowsIf(
  * If the condition lambda function returns \e false, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
- * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
- * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1153,11 +1153,11 @@ forRowsIf(
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
-template< typename Matrix, typename RowCondition, typename Function >
+template< typename Matrix, typename Condition, typename Function >
 void
 forAllRowsIf(
    Matrix& matrix,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1172,11 +1172,11 @@ forAllRowsIf(
  * If the condition lambda function returns \e false, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
- * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
- * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1185,11 +1185,11 @@ forAllRowsIf(
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
-template< typename Matrix, typename RowCondition, typename Function >
+template< typename Matrix, typename Condition, typename Function >
 void
 forAllRowsIf(
    const Matrix& matrix,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1209,7 +1209,7 @@ forAllRowsIf(
  *    of row indexes where the traversal will be performed.
  * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
  *    of row indexes where the traversal will be performed.
- * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrix on which the lambda function will be applied.
@@ -1218,7 +1218,7 @@ forAllRowsIf(
  *    will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
  *    will be performed.
- * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -1227,7 +1227,7 @@ template<
    typename Array,
    typename IndexBegin,
    typename IndexEnd,
-   typename RowCondition,
+   typename Condition,
    typename Function,
    typename T = std::enable_if_t< IsArrayType< Array >::value > >
 void
@@ -1236,7 +1236,7 @@ forRowsIf(
    const Array& rowIndexes,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1257,7 +1257,7 @@ forRowsIf(
  *    of row indexes where the traversal will be performed.
  * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
  *    of row indexes where the traversal will be performed.
- * \tparam RowCondition The type of the condition lambda function.
+ * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrix on which the lambda function will be applied.
@@ -1266,7 +1266,7 @@ forRowsIf(
  *    will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
  *    will be performed.
- * \param rowCondition Lambda function to check row condition. See \ref TraversalConditionLambda.
+ * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -1275,7 +1275,7 @@ template<
    typename Array,
    typename IndexBegin,
    typename IndexEnd,
-   typename RowCondition,
+   typename Condition,
    typename Function,
    typename T = std::enable_if_t< IsArrayType< Array >::value > >
 void
@@ -1284,7 +1284,7 @@ forRowsIf(
    const Array& rowIndexes,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
