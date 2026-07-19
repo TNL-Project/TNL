@@ -1349,7 +1349,6 @@ TYPED_TEST( GraphTest, test_graphColoringLuby_subgraph_vertex_removal_predicate 
 TYPED_TEST( GraphTest, test_graphColoring_subgraph_vertex_removal_withVertexIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
-   using IndexType = typename GraphType::IndexType;
    using ColorsType = ColoringVector< GraphType >;
 
    const auto graphA = makeColoringGraphA< GraphType >();
