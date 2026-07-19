@@ -106,7 +106,7 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
       {
          edgeCountsView[ rowIdx ] = value;
       };
-      matrix.reduceAllRows( fetch_edge, Plus{}, keep, (IndexType) 0, launchConfig );
+      matrix.reduceAllRows( fetch_edge, Plus{}, keep, static_cast< IndexType >( 0 ), launchConfig );
 
       IndexType total = TNL::Algorithms::reduce< DeviceType, IndexType, IndexType >(
          0,
@@ -116,7 +116,7 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
             return edgeCountsView[ idx ];
          },
          Plus{},
-         (IndexType) 0 );
+         static_cast< IndexType >( 0 ) );
 
       if constexpr( isUndirected ) {
          Containers::Vector< IndexType, DeviceType, IndexType > diagonalCounts( n, 0 );
@@ -136,7 +136,7 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
          {
             diagView[ rowIdx ] = value;
          };
-         matrix.reduceAllRows( diag_fetch, Plus{}, diag_keep, (IndexType) 0, launchConfig );
+         matrix.reduceAllRows( diag_fetch, Plus{}, diag_keep, static_cast< IndexType >( 0 ), launchConfig );
          total += TNL::Algorithms::reduce< DeviceType, IndexType, IndexType >(
             0,
             n,
@@ -145,7 +145,7 @@ countActiveEdges( const Graph& graph, TNL::Algorithms::Segments::LaunchConfigura
                return diagView[ idx ];
             },
             Plus{},
-            (IndexType) 0 );
+            static_cast< IndexType >( 0 ) );
       }
       return total;
    }
@@ -168,7 +168,7 @@ countActiveVertices( const Graph& graph, TNL::Algorithms::Segments::LaunchConfig
          return graphView.vertexExists( idx ) ? 1 : 0;
       },
       Plus{},
-      (IndexType) 0 );
+      static_cast< IndexType >( 0 ) );
 }
 
 }  // namespace detail

@@ -15,7 +15,7 @@ namespace TNL::Graphs {
  * While \ref SubGraph is a non-owning view that stores filter callables by
  * value, MaskedSubGraph owns the boolean mask array that defines which
  * vertices are active. It is created by the indexed overloads of
- * \ref makeSubGraph:
+ * \ref makeSubGraph "makeSubGraph":
  * ```cpp
  * auto sg = makeSubGraph( graph, vertexIndexes );              // mask from indexes
  * auto sg = makeSubGraph( graph, vertexIndexes, edgePredicate ); // mask + edge filter
@@ -26,10 +26,8 @@ namespace TNL::Graphs {
  * Crucially, \c getView / \c getConstView return a lightweight \ref SubGraph
  * that references the internal mask. This means the existing traversal
  * functions (\ref forAllEdges, \ref forEdges, ...) and algorithms (BFS,
- * connected components, etc.) dispatch to the
- * \ref TNL::Graphs::detail::TraversingOperations
- * "TraversingOperations<SubGraph>" specialization and apply the mask
- * transparently.
+ * connected components, etc.) dispatch to the \c TraversingOperations<SubGraph>
+ * specialization and apply the mask transparently.
  *
  * \tparam Graph_ The underlying graph type (Graph or GraphView).
  * \tparam EdgeFilter Callable `(IndexType, IndexType, ValueType) -> bool`.
