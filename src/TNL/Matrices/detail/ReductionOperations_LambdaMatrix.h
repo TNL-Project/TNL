@@ -21,6 +21,9 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
+   // TODO: `launchConfig` is accepted below but never forwarded to Algorithms::parallelFor (see
+   // ReductionOperationsBase.h for why). Should eventually be fixed, pending a benchmark.
+
    // ===================== reduceRows (range) =====================
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >

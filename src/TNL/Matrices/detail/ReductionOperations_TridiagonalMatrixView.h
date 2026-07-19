@@ -21,6 +21,9 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
    using DeviceType = typename MatrixView::DeviceType;
    using IndexType = typename MatrixView::IndexType;
 
+   // TODO: `launchConfig` is accepted below but never forwarded to Algorithms::parallelFor (see
+   // ReductionOperationsBase.h for why). Should eventually be fixed, pending a benchmark.
+
    // ===================== reduceRows (range) =====================
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
