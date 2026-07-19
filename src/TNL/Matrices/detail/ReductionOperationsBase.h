@@ -37,6 +37,12 @@ namespace TNL::Matrices::detail {
 template< typename Matrix >
 struct ReductionOperationsBase
 {
+   // TODO: `launchConfig` (Algorithms::Segments::LaunchConfiguration) is accepted by the methods
+   // below but never forwarded to Algorithms::parallelFor -- the types don't match
+   // (Segments::LaunchConfiguration vs. Device::LaunchConfiguration). Fix once it's benchmarked
+   // whether this actually matters; likely via launchConfig.getBackendLaunchConfiguration() on
+   // GPU devices.
+
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;
    using ConstMatrixView = typename Matrix::ConstViewType;
