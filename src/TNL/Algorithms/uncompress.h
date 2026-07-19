@@ -25,7 +25,7 @@ namespace TNL::Algorithms {
  * All indices must satisfy `0 <= idx < maskSize`; a \c std::invalid_argument
  * exception is thrown otherwise.
  *
- * \note \c uncompress is the exact inverse of \ref compress:
+ * \note \c uncompress is the exact inverse of \ref compress "compress":
  * \code
  *   auto indices = compress< Vector >( mask );  // mask → indices
  *   auto mask2   = uncompress( indices, mask.getSize() );  // indices → mask
@@ -43,9 +43,10 @@ namespace TNL::Algorithms {
  * \par Output
  * \include uncompressExample.out
  */
-template< typename IndexVector,
-          typename MaskVector = IndexVector,
-          typename std::enable_if_t< IsArrayType< std::decay_t< IndexVector > >::value, bool > = true >
+template<
+   typename IndexVector,
+   typename MaskVector = IndexVector,
+   typename std::enable_if_t< IsArrayType< std::decay_t< IndexVector > >::value, bool > = true >
 MaskVector
 uncompress( const IndexVector& indexVector, typename IndexVector::IndexType maskSize = 0 )
 {
@@ -73,11 +74,12 @@ uncompress( const IndexVector& indexVector, typename IndexVector::IndexType mask
  * \par Output
  * \include uncompressExample.out
  */
-template< typename IndexVector,
-          typename MaskVector,
-          typename std::enable_if_t< IsArrayType< std::decay_t< IndexVector > >::value
-                                        && IsArrayType< std::decay_t< MaskVector > >::value,
-                                     bool > = true >
+template<
+   typename IndexVector,
+   typename MaskVector,
+   typename std::enable_if_t<
+      IsArrayType< std::decay_t< IndexVector > >::value && IsArrayType< std::decay_t< MaskVector > >::value,
+      bool > = true >
 void
 uncompress( const IndexVector& indexVector, MaskVector& maskVector, typename IndexVector::IndexType maskSize = 0 )
 {

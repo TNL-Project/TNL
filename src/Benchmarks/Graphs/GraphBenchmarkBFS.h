@@ -215,25 +215,31 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
 
-      const auto runBFS =
-         [ & ](
-            auto& g, auto& dist, auto& pred, const auto& launchCfg, const char* modeTag, double bitmapThr, double bottomUpThr )
+      const auto runBFS = [ & ](
+                             auto& g,
+                             auto& dist,
+                             auto& pred,
+                             const auto& launchCfg,
+                             const char* modeTag,
+                             double bitmapThreshold,
+                             double bottomUpThreshold )
       {
          benchmark.setMetadataElement( { "mode", modeTag } );
-         auto bfs_lambda = [ &, launchCfg, bitmapThr, bottomUpThr ]() mutable
+         auto bfs_lambda = [ &, launchCfg, bitmapThreshold, bottomUpThreshold ]() mutable
          {
             NoOpVisitor visitor;
             if( withVisitor && withPredecessors )
                TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
-                  g, largestNode, visitor, dist, pred, deterministic, bitmapThr, bottomUpThr, launchCfg );
+                  g, largestNode, visitor, dist, pred, deterministic, bitmapThreshold, bottomUpThreshold, launchCfg );
             else if( withVisitor )
                TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
-                  g, largestNode, visitor, dist, bitmapThr, bottomUpThr, launchCfg );
+                  g, largestNode, visitor, dist, bitmapThreshold, bottomUpThreshold, launchCfg );
             else if( withPredecessors )
                TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors(
-                  g, largestNode, dist, pred, deterministic, bitmapThr, bottomUpThr, launchCfg );
+                  g, largestNode, dist, pred, deterministic, bitmapThreshold, bottomUpThreshold, launchCfg );
             else
-               TNL::Graphs::Algorithms::breadthFirstSearch( g, largestNode, dist, bitmapThr, bottomUpThr, launchCfg );
+               TNL::Graphs::Algorithms::breadthFirstSearch(
+                  g, largestNode, dist, bitmapThreshold, bottomUpThreshold, launchCfg );
          };
          benchmark.time< Device >( device, bfs_lambda );
       };

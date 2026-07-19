@@ -44,11 +44,7 @@ namespace TNL::Graphs::Algorithms::experimental {
  */
 template< typename InGraph, typename OutGraph = InGraph, typename Real = typename InGraph::ValueType >
 void
-boruvkaMST(
-   const InGraph& graph,
-   OutGraph& tree,
-   Real& sum,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
+boruvkaMST( const InGraph& graph, OutGraph& tree, Real& sum, TNL::Algorithms::Segments::LaunchConfiguration launchConfig = {} );
 
 /**
  * \brief Computes minimum spanning forest using Boruvka's algorithm (edge-list variant).

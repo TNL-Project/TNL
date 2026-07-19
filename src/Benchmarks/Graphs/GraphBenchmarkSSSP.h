@@ -190,12 +190,12 @@ public:
 
       const bool hasNegativeWeights = min( digraph.getAdjacencyMatrix().getValues() ) < 0;
 
-      const auto runSSSP = [ & ]( auto& g, auto& dist, const auto& launchCfg, const char* modeTag, double bitmapThr )
+      const auto runSSSP = [ & ]( auto& g, auto& dist, const auto& launchCfg, const char* modeTag, double bitmapThreshold )
       {
          benchmark.setMetadataElement( { "mode", modeTag } );
-         auto sssp_lambda = [ &, launchCfg, bitmapThr ]() mutable
+         auto sssp_lambda = [ &, launchCfg, bitmapThreshold ]() mutable
          {
-            TNL::Graphs::Algorithms::singleSourceShortestPath( g, largestNode, dist, bitmapThr, launchCfg );
+            TNL::Graphs::Algorithms::singleSourceShortestPath( g, largestNode, dist, bitmapThreshold, launchCfg );
          };
          if( hasNegativeWeights ) {
             std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark.\n";

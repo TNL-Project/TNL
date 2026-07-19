@@ -39,16 +39,7 @@ uncompress_impl( const IndexVector& indexVector, MaskVector& maskVector, typenam
          maskVector.setSize( 0 );
          return;
       }
-      const auto indexView = indexVector.getConstView();
-      maskSize = Algorithms::reduce< Device >(
-                    Index( 0 ),
-                    n,
-                    [ = ] __cuda_callable__( Index k )
-                    {
-                       return indexView[ k ];
-                    },
-                    TNL::Max{} ) +
-                 Index( 1 );
+      maskSize = max( indexVector ) + Index( 1 );
    }
 
    maskVector.setSize( maskSize );
