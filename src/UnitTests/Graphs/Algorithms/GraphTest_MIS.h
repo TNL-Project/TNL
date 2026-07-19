@@ -62,8 +62,9 @@ expectComputedMISIsValid( const GraphType& graph )
    TNL::Graphs::Algorithms::maximalIndependentSet( graph, independentSet );
 
    EXPECT_EQ( independentSet.getSize(), graph.getVertexCount() );
-   if( graph.getVertexCount() > 0 )
+   if( graph.getVertexCount() > 0 ) {
       EXPECT_GT( TNL::sum( independentSet ), 0 );
+   }
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
 }
 
@@ -75,8 +76,9 @@ expectComputedMISIsValid( const GraphType& graph, const VertexIndexes& vertexInd
    TNL::Graphs::Algorithms::maximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), independentSet );
 
    EXPECT_EQ( independentSet.getSize(), graph.getVertexCount() );
-   if( vertexIndexes.getSize() > 0 )
+   if( vertexIndexes.getSize() > 0 ) {
       EXPECT_GT( TNL::sum( independentSet ), 0 );
+   }
    EXPECT_TRUE(
       TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexIndexes ), independentSet ) );
 }
@@ -93,8 +95,9 @@ expectComputedMISIsValidIf(
       TNL::Graphs::makeSubGraph( graph, std::forward< VertexPredicate >( vertexPredicate ) ), independentSet );
 
    EXPECT_EQ( independentSet.getSize(), graph.getVertexCount() );
-   if( activeVerticesCount > 0 )
+   if( activeVerticesCount > 0 ) {
       EXPECT_GT( TNL::sum( independentSet ), 0 );
+   }
    EXPECT_TRUE(
       TNL::Graphs::Algorithms::isMaximalIndependentSet( TNL::Graphs::makeSubGraph( graph, vertexPredicate ), independentSet ) );
 }
@@ -760,7 +763,6 @@ TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_predicate )
 TYPED_TEST( GraphTest, test_MIS_subgraph_vertex_removal_withVertexIndexes )
 {
    using GraphType = typename TestFixture::GraphType;
-   using IndexType = typename GraphType::IndexType;
    using MISVectorType = MISVector< GraphType >;
 
    const auto graphA = makeMISGraphA< GraphType >();

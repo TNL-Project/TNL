@@ -60,9 +60,9 @@ makeUndirectedGraph(
 // 9 edges, no cycles — a valid tree rooted at 0.
 //
 //            0
-//           / \
+//           / \.
 //          1   2
-//         / \ / \
+//         / \ / \.
 //        3  4 5  6
 //        |  | |
 //        7  8 9
@@ -94,9 +94,9 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
    // Same tree + extra edge (5,0) creates cycle 0-2-5-0.  Not a tree.
    //
    //            0
-   //           / \
+   //           / \.
    //          1   2
-   //         / \ / \
+   //         / \ / \.
    //        3  4 5  6
    //        |  | |
    //        7  8 9
@@ -153,7 +153,7 @@ TYPED_TEST( GraphTest, test_small_forest )
    // Forest (5 vertices): tree {0,3,4}, isolated {1}, {2}.
    //
    //   0     1     2
-   //  / \
+   //  / \.
    // 3   4
    // clang-format on
    GraphType graph( 5, { { 0, 3, 1.0 }, { 0, 4, 1.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
