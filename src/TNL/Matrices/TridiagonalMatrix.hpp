@@ -4,6 +4,7 @@
 #pragma once
 
 #include "TridiagonalMatrix.h"
+#include "traverse.h"
 
 namespace TNL::Matrices {
 
@@ -204,7 +205,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator=
       {
          value = matrix_view.getValues()[ matrix_view.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
       };
-      this->forAllElements( f );
+      TNL::Matrices::forAllElements( *this, f );
    }
    else {
       TridiagonalMatrix< Real, Device, Index, Organization_ > auxMatrix;
@@ -214,7 +215,7 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator=
       {
          value = matrix_view.getValues()[ matrix_view.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
       };
-      this->forAllElements( f );
+      TNL::Matrices::forAllElements( *this, f );
    }
    return *this;
 }
