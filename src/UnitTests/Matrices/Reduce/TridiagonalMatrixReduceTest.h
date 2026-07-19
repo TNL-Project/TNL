@@ -458,6 +458,104 @@ test_reduceRowsWithArgumentIf()
    EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
 }
 
+// Rectangular (rows > columns) matrix: the last row has only the sub-diagonal element
+// (no diagonal, no super-diagonal), which exercises a branch that a square test matrix
+// never reaches.
+template< typename MatrixType >
+void
+setupRectangularTestMatrix( MatrixType& matrix )
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+
+   auto view = matrix.getView();
+
+   view.setElement( (IndexType) 0, (IndexType) 0, (RealType) 1.0 );
+   view.setElement( (IndexType) 0, (IndexType) 1, (RealType) 2.0 );
+
+   view.setElement( (IndexType) 1, (IndexType) 0, (RealType) 3.0 );
+   view.setElement( (IndexType) 1, (IndexType) 1, (RealType) 4.0 );
+   view.setElement( (IndexType) 1, (IndexType) 2, (RealType) 5.0 );
+
+   view.setElement( (IndexType) 2, (IndexType) 1, (RealType) 6.0 );
+   view.setElement( (IndexType) 2, (IndexType) 2, (RealType) 7.0 );
+   view.setElement( (IndexType) 2, (IndexType) 3, (RealType) 8.0 );
+
+   view.setElement( (IndexType) 3, (IndexType) 2, (RealType) 9.0 );
+   view.setElement( (IndexType) 3, (IndexType) 3, (RealType) 10.0 );
+
+   // Row 4: rowIdx (4) >= columns (4), so only the sub-diagonal element (column 3) exists.
+   view.setElement( (IndexType) 4, (IndexType) 3, (RealType) 11.0 );
+}
+
+template< typename MatrixType >
+void
+test_reduceRows_rectangularTailRow()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   MatrixType matrix( 5, 4 );
+   setupRectangularTestMatrix( matrix );
+   auto view = matrix.getView();
+
+   // fetch returns the column index (not the value): if a wrong columnIdx is ever passed
+   // to fetch for the sub-diagonal element, the row sum below will not match.
+   auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& ) -> RealType
+   {
+      return (RealType) columnIdx;
+   };
+
+   VectorType columnIndexSums( 5, 0 );
+   auto sumsView = columnIndexSums.getView();
+   auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
+   {
+      sumsView[ row ] = value;
+   };
+
+   TNL::Matrices::reduceAllRows( view, fetch, TNL::Plus{}, keep, (RealType) 0 );
+
+   EXPECT_EQ( columnIndexSums.getElement( 0 ), 1 );  // columns 0 + 1
+   EXPECT_EQ( columnIndexSums.getElement( 1 ), 3 );  // columns 0 + 1 + 2
+   EXPECT_EQ( columnIndexSums.getElement( 2 ), 6 );  // columns 1 + 2 + 3
+   EXPECT_EQ( columnIndexSums.getElement( 3 ), 5 );  // columns 2 + 3
+   EXPECT_EQ( columnIndexSums.getElement( 4 ), 3 );  // column 3 only (sub-diagonal tail row)
+
+   // reduceRowsWithArgument: the tail row has a single element, so the stored column index
+   // comes straight from that element's fetch() call -- a wrong columnIdx here is not masked
+   // by any reduction logic.
+   VectorType maxValues( 5, 0 );
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > maxColumns( 5, -1 );
+   auto maxValuesView = maxValues.getView();
+   auto maxColumnsView = maxColumns.getView();
+
+   auto valueFetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
+   {
+      return value;
+   };
+   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
+   {
+      if( b > a ) {
+         a = b;
+         aIdx = bIdx;
+      }
+   };
+   auto store = [ = ] __cuda_callable__(
+                   IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value, bool emptyRow ) mutable
+   {
+      maxValuesView[ rowIdx ] = value;
+      if( ! emptyRow )
+         maxColumnsView[ rowIdx ] = columnIdx;
+   };
+
+   TNL::Matrices::reduceAllRowsWithArgument( view, valueFetch, reduce, store, (RealType) 0 );
+
+   EXPECT_EQ( maxValues.getElement( 4 ), 11 );
+   EXPECT_EQ( maxColumns.getElement( 4 ), 3 );  // must be the sub-diagonal column, not rowIdx (4)
+}
+
 // Test fixture
 template< typename MatrixType >
 class TridiagonalMatrixReduceTest : public ::testing::Test
@@ -503,6 +601,11 @@ TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
    test_reduceRowsWithArgumentIf< TypeParam >();
 }
 
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRows_rectangularTailRow )
+{
+   test_reduceRows_rectangularTailRow< TypeParam >();
+}
+
 REGISTER_TYPED_TEST_SUITE_P(
    TridiagonalMatrixReduceTest,
    reduceRows,
@@ -511,7 +614,8 @@ REGISTER_TYPED_TEST_SUITE_P(
    reduceRowsIf,
    reduceRowsWithArgument_range,
    reduceRowsWithArgument_array,
-   reduceRowsWithArgumentIf );
+   reduceRowsWithArgumentIf,
+   reduceRows_rectangularTailRow );
 
 INSTANTIATE_TYPED_TEST_SUITE_P( TridiagonalMatrix, TridiagonalMatrixReduceTest, TridiagonalMatrixReduceTypes );
 

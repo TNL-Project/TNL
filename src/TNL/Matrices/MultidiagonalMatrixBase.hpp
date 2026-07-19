@@ -279,7 +279,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows(
       for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
          const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
          if( columnIdx >= 0 && columnIdx < columns )
-            reduce( sum, fetch( rowIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] ) );
+            sum = reduce( sum, fetch( rowIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] ) );
       }
       keep( rowIdx, sum );
    };
