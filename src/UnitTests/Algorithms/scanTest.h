@@ -827,4 +827,141 @@ TYPED_TEST( ScanTest, vector_expression )
    this->template checkResult< ScanType::Inclusive >( this->c );
 }
 
+// Test that exercises the single-pass lookback scan kernel with non-trivial
+// (non-constant) input data and the vectorized load/store path. The fixture
+// sets maxGridSize=3 which forces the multi-grid (three-phase) path; this test
+// restores maxGridSize so numberOfGrids==1 and the lookback kernel is selected.
+// A linear sequence is used because the expected prefix sums are easy to
+// verify and any wrong block-offset (the historical begin-threadOffset bug)
+// produces a visible mismatch.
+TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using IndexType = typename TestFixture::IndexType;
+   using DeviceType = typename TestFixture::DeviceType;
+
+   // The fixture constrains maxGridSize to 3, which would route to the
+   // three-phase path. Reset it so the lookback kernel is selected.
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+   }
+
+   // Choose size large enough to span multiple blocks with the default
+   // maxElementsInBlock (= blockSize * 9 for the lookback dispatch). A prime
+   // size ensures the last block is partial, exercising the identity-padding
+   // path in Phase 1.
+   const IndexType lookbackSize = 9377;
+
+   this->input_host.setSize( lookbackSize );
+   this->expected_host.setSize( lookbackSize );
+   for( IndexType i = 0; i < lookbackSize; i++ ) {
+      this->input_host[ i ] = i;
+      this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
+   }
+
+   this->a.setSize( lookbackSize );
+   this->b.setSize( lookbackSize );
+   this->a = this->input_host;
+
+   // Inclusive scan, array -> array (exercises vectorized load + store)
+   inclusiveScan( this->a, this->b, 0, lookbackSize, 0, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->b;
+      for( IndexType i = 0; i < lookbackSize; i++ )
+         EXPECT_EQ( this->array_host[ i ], this->expected_host[ i ] ) << "inclusive array->array mismatch at i=" << i;
+   }
+
+   // In-place inclusive scan (exercises vectorized load + store on same array)
+   this->a = this->input_host;
+   inplaceInclusiveScan( this->a, 0, lookbackSize, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->a;
+      for( IndexType i = 0; i < lookbackSize; i++ )
+         EXPECT_EQ( this->array_host[ i ], this->expected_host[ i ] ) << "inclusive in-place mismatch at i=" << i;
+   }
+
+   // Exclusive scan, array -> array
+   this->a = this->input_host;
+   exclusiveScan( this->a, this->b, 0, lookbackSize, 0, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->b;
+      for( IndexType i = 0; i < lookbackSize; i++ )
+         EXPECT_EQ( this->array_host[ i ], ( i * ( i - 1 ) ) / 2 ) << "exclusive array->array mismatch at i=" << i;
+   }
+
+   // In-place exclusive scan
+   this->a = this->input_host;
+   inplaceExclusiveScan( this->a, 0, lookbackSize, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->a;
+      for( IndexType i = 0; i < lookbackSize; i++ )
+         EXPECT_EQ( this->array_host[ i ], ( i * ( i - 1 ) ) / 2 ) << "exclusive in-place mismatch at i=" << i;
+   }
+
+   // Verify that the lookback kernel was actually used (gridsCount == 1)
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      const auto gridsCount = TNL::max(
+         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
+         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+      EXPECT_EQ( gridsCount, 1 );
+   }
+}
+
+// Test that the lookback kernel handles an unaligned begin offset. The
+// vectorized Vec4 load/store path requires the tile origin to be 16-byte
+// aligned. With begin=3 and double (8 B), the byte offset is 24 (not a
+// multiple of 16), which would crash ld.global.v4 if the kernel did not
+// fall back to scalar loads. This test exercises the fallback.
+TYPED_TEST( ScanTest, lookback_kernel_unaligned_begin )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using IndexType = typename TestFixture::IndexType;
+   using DeviceType = typename TestFixture::DeviceType;
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+   }
+
+   // begin=3 breaks 16-byte alignment for double (3*8=24) and int (3*4=12).
+   const IndexType size = 9377;
+   const IndexType begin = 3;
+   const IndexType scanSize = size - begin;
+
+   this->input_host.setSize( size );
+   this->expected_host.setSize( size );
+   this->input_host.setValue( 0 );
+   this->expected_host.setValue( 0 );
+   for( IndexType i = 0; i < scanSize; i++ ) {
+      this->input_host[ begin + i ] = i;
+      this->expected_host[ begin + i ] = ( i * ( i + 1 ) ) / 2;
+   }
+
+   this->a.setSize( size );
+   this->b.setSize( size );
+   this->a = this->input_host;
+
+   inclusiveScan( this->a, this->b, begin, size, begin, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->b;
+      for( IndexType i = 0; i < scanSize; i++ )
+         EXPECT_EQ( this->array_host[ begin + i ], this->expected_host[ begin + i ] )
+            << "inclusive unaligned begin mismatch at i=" << i;
+   }
+
+   this->a = this->input_host;
+   inplaceInclusiveScan( this->a, begin, size, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->a;
+      for( IndexType i = 0; i < scanSize; i++ )
+         EXPECT_EQ( this->array_host[ begin + i ], this->expected_host[ begin + i ] )
+            << "inclusive in-place unaligned begin mismatch at i=" << i;
+   }
+}
+
 #include "../main.h"
