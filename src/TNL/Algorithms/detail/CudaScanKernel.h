@@ -864,7 +864,16 @@ struct CudaScanKernelLauncher
       constexpr int maxElementsInBlock = blockSize * elementsPerThread;
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
 
-      Containers::Array< LookbackState< ValueType >, Devices::Cuda > states( numberOfBlocks );
+      // Reuse a thread-local cache of the lookback states array across calls
+      // to avoid cudaMalloc/cudaFree churn. The cache grows as needed; when
+      // the requested size shrinks we keep the existing (larger) allocation
+      // and only memset the actually used prefix. Memset is still required
+      // because the kernel reads predecessor statuses during the lookback
+      // walk and they must start as Invalid.
+      auto& states = lookbackStatesCache();
+      if( states.getSize() < numberOfBlocks ) {
+         states.setSize( numberOfBlocks );
+      }
 #if defined( __CUDACC__ )
       cudaMemsetAsync( states.getData(), 0, numberOfBlocks * sizeof( LookbackState< ValueType > ), 0 );
 #elif defined( __HIP__ )
@@ -1238,6 +1247,15 @@ struct CudaScanKernelLauncher
    {
       maxGridSize() = Backend::getMaxGridXSize();
       gridsCount() = -1;
+   }
+
+   // Per-instantiation cache of the lookback states array, reused across
+   // calls to performLookbackImpl to avoid cudaMalloc/cudaFree churn.
+   static Containers::Array< LookbackState< ValueType >, Devices::Cuda >&
+   lookbackStatesCache()
+   {
+      static Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
+      return states;
    }
 
    static int&
