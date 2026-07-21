@@ -4,12 +4,7 @@
 #pragma once
 
 #include <TNL/Graphs/Graph.h>
-#include <TNL/Graphs/SubGraph.h>
-#include <TNL/Containers/Vector.h>
-#include <TNL/Functional.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include <TNL/Algorithms/AtomicOperations.h>
 
 #include <gtest/gtest.h>
 

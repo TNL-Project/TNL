@@ -4,6 +4,10 @@
 #pragma once
 
 #include "SubGraphTestBase.h"
+#include <TNL/Graphs/SubGraph.h>
+#include <TNL/Containers/Vector.h>
+#include <TNL/Functional.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Graphs/reduce.h>
 
 // Original graph (see SubGraphTestBase.h):

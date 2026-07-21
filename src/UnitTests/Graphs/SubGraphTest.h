@@ -4,6 +4,11 @@
 #pragma once
 
 #include "SubGraphTestBase.h"
+#include <TNL/Graphs/SubGraph.h>
+#include <TNL/Containers/Vector.h>
+#include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Algorithms/AtomicOperations.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Graphs/traverse.h>
 
 TYPED_TEST_SUITE( SubGraphTest, SubGraphTestTypes );
@@ -380,6 +385,32 @@ hasEdge( const Graph& g, Index src, Index tgt, Value w )
    return counter.getElement( 0 ) > 0;
 }
 
+// SubGraph::getVertexDegree iterates the adjacency matrix row, which lives in
+// device memory for CUDA/HIP graphs. Calling it from host code would
+// dereference device pointers (SEGFAULT on CUDA, assertion failure on HIP).
+// This helper launches a 1-element device kernel that calls getVertexDegree
+// on-device and copies the result back to the host. Works for both SubGraph
+// and MaskedSubGraph (both expose getConstView() returning a device-safe
+// SubGraph view whose getVertexDegree is __cuda_callable__).
+template< typename SubGraphType, typename Index >
+typename SubGraphType::IndexType
+getVertexDegreeOnDevice( const SubGraphType& sg, Index vertexIdx )
+{
+   using DeviceType = typename SubGraphType::DeviceType;
+   using IndexType = typename SubGraphType::IndexType;
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( 1, -1 );
+   auto resultView = result.getView();
+   auto sgView = sg.getConstView();
+   TNL::Algorithms::parallelFor< DeviceType >(
+      vertexIdx,
+      vertexIdx + 1,
+      [ = ] __cuda_callable__( IndexType idx ) mutable
+      {
+         resultView[ 0 ] = sgView.getVertexDegree( idx );
+      } );
+   return result.getElement( 0 );
+}
+
 }  // namespace
 
 template< typename GraphType >
@@ -584,11 +615,11 @@ test_getVertexDegree_no_filter()
 {
    const auto graph = makeTestGraph< GraphType >();
    auto sg = TNL::Graphs::makeSubGraph( graph );
-   EXPECT_EQ( sg.getVertexDegree( 0 ), 2 );
-   EXPECT_EQ( sg.getVertexDegree( 1 ), 1 );
-   EXPECT_EQ( sg.getVertexDegree( 2 ), 1 );
-   EXPECT_EQ( sg.getVertexDegree( 3 ), 1 );
-   EXPECT_EQ( sg.getVertexDegree( 4 ), 0 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 2 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_no_filter )
@@ -611,11 +642,11 @@ test_getVertexDegree_vertex_filter()
       {
          return v != 2;
       } );
-   EXPECT_EQ( sg.getVertexDegree( 0 ), 1 );  // edge to 2 filtered (target inactive)
-   EXPECT_EQ( sg.getVertexDegree( 1 ), 1 );
-   EXPECT_EQ( sg.getVertexDegree( 2 ), 0 );  // vertex itself inactive
-   EXPECT_EQ( sg.getVertexDegree( 3 ), 1 );
-   EXPECT_EQ( sg.getVertexDegree( 4 ), 0 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 1 );  // edge to 2 filtered (target inactive)
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 0 );  // vertex itself inactive
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_vertex_filter )
@@ -638,11 +669,11 @@ test_getVertexDegree_edge_filter()
       {
          return w <= 3;
       } );
-   EXPECT_EQ( sg.getVertexDegree( 0 ), 2 );  // edges (0,1,1) and (0,2,2) pass
-   EXPECT_EQ( sg.getVertexDegree( 1 ), 1 );  // edge (1,3,3) passes
-   EXPECT_EQ( sg.getVertexDegree( 2 ), 0 );  // edge (2,3,4) filtered out
-   EXPECT_EQ( sg.getVertexDegree( 3 ), 0 );  // edge (3,4,5) filtered out
-   EXPECT_EQ( sg.getVertexDegree( 4 ), 0 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 2 );  // edges (0,1,1) and (0,2,2) pass
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );  // edge (1,3,3) passes
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 0 );  // edge (2,3,4) filtered out
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 0 );  // edge (3,4,5) filtered out
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_edge_filter )
@@ -662,11 +693,11 @@ test_getVertexDegree_masked()
    const auto graph = makeTestGraph< GraphType >();
    IndexVectorType indexes{ 0, 1, 3, 4 };  // vertex 2 inactive
    auto sg = TNL::Graphs::makeSubGraph( graph, indexes );
-   EXPECT_EQ( sg.getVertexDegree( 0 ), 1 );  // edge to 2 filtered (target inactive)
-   EXPECT_EQ( sg.getVertexDegree( 1 ), 1 );
-   EXPECT_EQ( sg.getVertexDegree( 2 ), 0 );  // vertex itself inactive
-   EXPECT_EQ( sg.getVertexDegree( 3 ), 1 );
-   EXPECT_EQ( sg.getVertexDegree( 4 ), 0 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 1 );  // edge to 2 filtered (target inactive)
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 0 );  // vertex itself inactive
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_masked )
