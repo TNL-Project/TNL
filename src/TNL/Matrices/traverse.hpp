@@ -376,12 +376,7 @@ forRowsIf(
 {
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRowsIf(
-      matrix_view,
-      begin,
-      end,
-      std::forward< Condition >( condition ),
-      std::forward< Function >( function ),
-      launchConfig );
+      matrix_view, begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
