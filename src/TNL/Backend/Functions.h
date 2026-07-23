@@ -137,7 +137,7 @@ funcSetCacheConfig( T* func, enum FuncCache cacheConfig )
 }
 
 /**
- * \brief Loads data from a global memory using the `__ldg()` intrinsic.
+ * \brief Loads data from global memory using the `__ldg()` intrinsic.
  */
 template< class T >
 __device__
@@ -157,9 +157,9 @@ ldg( const T& value )
  * HIP shfl intrinsics require a 64-bit mask regardless of the wavefront size
  * (unused upper bits are zero for wave32). CUDA uses a 32-bit mask.
  *
- * Warning: this function relies on `__GFX8__`/`__GFX9__` arch macros which are
- * defined only during device compilation. On the host side, it falls through
- * to the wavefront=32 mask. Do not call from host code — use only in
+ * \warning This function relies on `__GFX8__`/`__GFX9__` arch macros which
+ * are defined only during device compilation. On the host side, it falls
+ * through to the wavefront=32 mask. Do not call from host code; use only in
  * `__device__` functions.
  */
 [[nodiscard]] constexpr auto
@@ -216,8 +216,9 @@ inline constexpr bool is_warp_shuffle_native_v =
  *   accessed through `DeviceWord` (e.g. in warp shuffle wrappers that shuffle
  *   individual words). The `reinterpret_cast`-based \ref get() would be a
  *   strict aliasing violation in that case, which Clang (HIP) exploits to
- *   optimize away the connection between the two access paths — the shuffle
- *   then silently returns the thread's own value instead of the other lane's.
+ *   optimize away the connection between the two access paths, so the
+ *   shuffle then silently returns the thread's own value instead of the
+ *   other lane's.
  *   HIP's own `__shfl_xor` for `double` uses the same `memcpy`-based
  *   pattern to avoid this.
  */
@@ -311,9 +312,10 @@ public:
  *
  * CUDA's `__shfl_xor_sync` only has overloads for a fixed set of primitive
  * types (see \ref is_warp_shuffle_native_v). This wrapper splits any other type
- * into an array of words and shuffles each word separately — the same pattern
- * used by NVIDIA's CUB and libcu++ libraries. Works for \ref TNL::Arithmetics::Complex
- * and any other trivially copyable struct with `sizeof <= 32`.
+ * into an array of words and shuffles each word separately, the same pattern
+ * used by NVIDIA's CUB and libcu++ libraries. Works for
+ * \ref TNL::Arithmetics::Complex and any other trivially copyable struct with
+ * `sizeof <= 32`.
  */
 template< typename T >
 __device__

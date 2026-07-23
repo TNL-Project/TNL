@@ -15,8 +15,8 @@ namespace TNL::Allocators {
  * The allocation is done using the `hipHostMalloc` function and the
  * deallocation is done using the `hipHostFree` function.
  *
- * Note: `hipMallocHost` is deprecated and `hipHostMalloc` corresponds
- * to the `cudaMallocHost` function.
+ * \note `hipMallocHost` is deprecated and `hipHostMalloc` corresponds
+ *       to the `cudaMallocHost` function.
  */
 template< class T >
 struct HipHost

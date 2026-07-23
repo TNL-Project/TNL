@@ -12,7 +12,7 @@
 namespace TNL::Backend {
 
 /**
- * \brief Holds the parameters necessary to \e launch a CUDA or HIP kernel
+ * \brief Holds the parameters necessary to *launch* a CUDA or HIP kernel
  * (i.e. schedule it for execution on some stream of some device).
  */
 struct LaunchConfiguration

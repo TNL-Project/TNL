@@ -40,11 +40,12 @@ checkErrorCode( const char* file_name, int line, error_t error )
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    /**
-    * This macro serves for annotating functions which are supposed to be
-    * called even from the GPU device. If `__CUDACC__` or `__HIP__` is defined,
-    * functions annotated with `__cuda_callable__` are compiled for both CPU
-    * and GPU. If neither `__CUDACC__` or `__HIP__` is not defined, this macro
-    * has no effect.
+    * \brief This macro serves for annotating functions which are supposed to be
+    * called even from the GPU device.
+    *
+    * If `__CUDACC__` or `__HIP__` is defined, functions annotated with
+    * `__cuda_callable__` are compiled for both CPU and GPU. If neither
+    * `__CUDACC__` nor `__HIP__` is defined, this macro has no effect.
     */
    #define __cuda_callable__ \
       __device__             \

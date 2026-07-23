@@ -8,7 +8,8 @@ namespace TNL::Devices {
 
 struct Sequential
 {
-   //! Not used by any sequential algorithm, only for compatibility with parallel execution models.
+   //! \brief Not used by any sequential algorithm,
+   //! only for compatibility with parallel execution models.
    struct LaunchConfiguration
    {};
 };
