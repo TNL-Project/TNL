@@ -9,7 +9,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e BiEllpackView is provides a non-owning encapsulation of meta-data stored in
+ * \brief `BiEllpackView` provides a non-owning encapsulation of meta-data stored in
  * the \ref TNL::Algorithms::Segments::BiEllpack segments.
  *
  * \tparam Device is type of device where the segments will be operating.

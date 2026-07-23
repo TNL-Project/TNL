@@ -24,17 +24,17 @@ static_for_impl( Func&& f, std::integer_sequence< Index, idx... >, ArgTypes&&...
  * \brief Generic loop with constant bounds and indices usable in constant
  * expressions.
  *
- * \e staticFor is a generic C++17 implementation of a static for-loop using
- * \e constexpr functions and template metaprogramming. It is equivalent to
+ * `staticFor` is a generic C++17 implementation of a static for-loop using
+ * `constexpr` functions and template metaprogramming. It is equivalent to
  * executing a function `f(i, args...)` for arguments `i` from the integral
  * range `[begin, end)`, but with the type \ref std::integral_constant rather
  * than `int` or `std::size_t` representing the indices. Hence, each index has
- * its own distinct C++ type and the \e value of the index can be deduced from
+ * its own distinct C++ type and the `value` of the index can be deduced from
  * the type. The `args...` are additional user-supplied arguments that are
- * forwarded to the \e staticFor function.
+ * forwarded to the `staticFor` function.
  *
  * Also note that thanks to `constexpr` cast operator, the argument `i` can be
- * used in constant expressions and the \e staticFor function can be used from
+ * used in constant expressions and the `staticFor` function can be used from
  * the host code as well as CUDA kernels (TNL requires the
  * `--expt-relaxed-constexpr` parameter when compiled by `nvcc`).
  *
@@ -48,7 +48,7 @@ static_for_impl( Func&& f, std::integer_sequence< Index, idx... >, ArgTypes&&...
  *
  * \param f is the functor to be called in each iteration.
  * \param args are additional user-supplied arguments that are forwarded
- *    to each call of \e f.
+ *    to each call of `f`.
  *
  * \par Example
  * \include Algorithms/staticForExample.cpp

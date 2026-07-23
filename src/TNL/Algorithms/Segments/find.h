@@ -26,7 +26,7 @@
  * | Function | Segments Searched | Description |
  * |----------|------------------|-------------|
  * | \ref Segments_findInAllSegments | All segments | Searches all segments in the container |
- * | \ref Segments_findInSegments_range | Segments [begin, end) | Searches segments in a specified range |
+ * | \ref Segments_findInSegments_range | Segments `[begin, end)` | Searches segments in a specified range |
  * | \ref Segments_findInSegments_with_segment_indices | Segments in array | Searches only segments whose indices are in the
  * provided array |
  *
@@ -44,7 +44,7 @@
  * |----------|------------------|-------------|
  * | \ref Segments_findInAllSegmentsIf | All segments matching condition | Searches all segments that satisfy the segment
  * condition |
- * | \ref Segments_findInSegmentsIf | Segments [begin, end) matching condition | Searches segments in range that
+ * | \ref Segments_findInSegmentsIf | Segments `[begin, end)` matching condition | Searches segments in range that
  * satisfy the segment condition |
  *
  * Note: The segment condition allows to skip entire segments based on segment-level properties, and so to improve
@@ -94,9 +94,9 @@
  * };
  * ```
  *
- * - \e segmentIdx is the index of the segment.
- * - \e localIdx is the rank of the element within the segment.
- * - \e globalIdx is the index of the element in the corresponding container.
+ * - `segmentIdx` is the index of the segment.
+ * - `localIdx` is the rank of the element within the segment.
+ * - `globalIdx` is the index of the element in the corresponding container.
  *
  * The lambda should return `true` if the element satisfies the search condition.
  *
@@ -115,9 +115,9 @@
  * };
  * ```
  *
- * - \e segmentIdx is the index of the segment.
- * - \e localIdx is the index of the element within the segment (valid only if found is true).
- * - \e found is a boolean indicating whether the element was found.
+ * - `segmentIdx` is the index of the segment.
+ * - `localIdx` is the index of the element within the segment (valid only if found is true).
+ * - `found` is a boolean indicating whether the element was found.
  *
  * This lambda is called for each processed segment. If `found` is true, `localIdx` points at the position
  * in the segment where the element was found.
@@ -135,7 +135,7 @@
  * };
  * ```
  *
- * - \e segmentIdx is the index of the segment.
+ * - `segmentIdx` is the index of the segment.
  *
  * The lambda should return `true` if the segment should be searched.
  */
@@ -183,8 +183,8 @@ findInAllSegments(
  * \tparam ResultStorer is the type of the lambda function that will manage the results of searching.
  *
  * \param segments is the segments to search in.
- * \param begin defines the range [begin,end) of segments to search in.
- * \param end defines the range [begin,end) of segments to search in.
+ * \param begin defines the range `[begin,end)` of segments to search in.
+ * \param end defines the range `[begin,end)` of segments to search in.
  * \param condition is the lambda function returning true for the found element. See \ref SegmentFindConditionLambda.
  * \param storer is the lambda function managing the results of the searching. See \ref SegmentFindResultStorerLambda.
  * \param launchConfig is the configuration for launching the kernel.
@@ -300,8 +300,8 @@ findInAllSegmentsIf(
  * \tparam ResultStorer is the type of the lambda function that will manage the results of searching.
  *
  * \param segments is the segments to search in.
- * \param begin defines the range [begin,end) of segments to search in.
- * \param end defines the range [begin,end) of segments to search in.
+ * \param begin defines the range `[begin,end)` of segments to search in.
+ * \param end defines the range `[begin,end)` of segments to search in.
  * \param segmentCondition is the lambda function returning true for the segments to search in. See \ref
  * SegmentFindSegmentConditionLambda.
  * \param condition is the lambda function returning true for the found element. See \ref SegmentFindConditionLambda.

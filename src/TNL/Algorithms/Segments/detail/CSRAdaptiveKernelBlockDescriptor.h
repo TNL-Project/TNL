@@ -70,7 +70,7 @@ union CSRAdaptiveKernelBlockDescriptor
       return index[ 0 ];
    }
 
-   /***
+   /**
     * \brief Returns number of elements covered by the block.
     */
    __cuda_callable__
@@ -80,7 +80,7 @@ union CSRAdaptiveKernelBlockDescriptor
       return twobytes[ sizeof( Index ) == 4 ? 2 : 4 ];
    }
 
-   /***
+   /**
     * \brief Returns number of segments covered by the block.
     */
    __cuda_callable__
@@ -192,7 +192,7 @@ struct CSRAdaptiveKernelBlockDescriptor
       // return index[ 0 ];
    }
 
-   /***
+   /**
     * \brief Returns number of elements covered by the block.
     */
    [[nodiscard]] __cuda_callable__
@@ -203,7 +203,7 @@ struct CSRAdaptiveKernelBlockDescriptor
       // return twobytes[ sizeof(Index) == 4 ? 2 : 4 ];
    }
 
-   /***
+   /**
     * \brief Returns number of segments covered by the block.
     */
    [[nodiscard]] __cuda_callable__

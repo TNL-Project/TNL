@@ -31,12 +31,12 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentReductionScopeAndConditionalVariants Scope and Conditional Variants (Which Segments to Process)
  *
- * | Scope     | Segments Processed    | Parameters                                         |
- * |-----------|-----------------------|----------------------------------------------------|
- * | **All**   | All segments          | No range/array parameters                          |
- * | **Range** | Segments [begin, end) | `begin` and `end` indices                          |
- * | **Array** | Specific segments     | Array of segment indices                           |
- * | **If**    | Segment condition     | Process segments based on segment-level properties |
+ * | Scope     | Segments Processed      | Parameters                                         |
+ * |-----------|-------------------------|----------------------------------------------------|
+ * | **All**   | All segments            | No range/array parameters                          |
+ * | **Range** | Segments `[begin, end)` | `begin` and `end` indices                          |
+ * | **Array** | Specific segments       | Array of segment indices                           |
+ * | **If**    | Segment condition       | Process segments based on segment-level properties |
  *
  * \section SegmentReductionCompleteMatrix Complete Function Matrix
  *
@@ -45,23 +45,23 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentReductionBasicFunctions Basic Reduction Functions
  *
- * | Function                                                  | Scope               | Conditional | Tracks Position |
- * |-----------------------------------------------------------|---------------------|-------------|-----------------|
- * | \ref Segments_reduceAllSegments                           | All                 | No          | No              |
- * | \ref Segments_reduceSegments_range (range)                | Range [begin,end)   | No          | No              |
- * | \ref Segments_reduceSegments_with_segment_indices (array) | Segment array       | No          | No              |
- * | \ref Segments_reduceAllSegmentsIf                         | All                 | Yes         | No              |
- * | \ref Segments_reduceSegmentsIf                            | Range [begin,end)   | Yes         | No              |
+ * | Function                                                  | Scope                 | Conditional | Tracks Position |
+ * |-----------------------------------------------------------|-----------------------|-------------|-----------------|
+ * | \ref Segments_reduceAllSegments                           | All                   | No          | No              |
+ * | \ref Segments_reduceSegments_range (range)                | Range `[begin,end)`   | No          | No              |
+ * | \ref Segments_reduceSegments_with_segment_indices (array) | Segment array         | No          | No              |
+ * | \ref Segments_reduceAllSegmentsIf                         | All                   | Yes         | No              |
+ * | \ref Segments_reduceSegmentsIf                            | Range `[begin,end)`   | Yes         | No              |
  *
  * \subsection SegmentReductionWithArgumentFunctions WithArgument Reduction Functions
  *
- * | Function                                                              | Scope             | Conditional | Tracks Position |
- * |-----------------------------------------------------------------------|-------------------|-------------|-----------------|
- * | \ref Segments_reduceAllSegmentsWithArgument                           | All               | No          | Yes             |
- * | \ref Segments_reduceSegmentsWithArgument_range (range)                | Range [begin,end) | No          | Yes             |
- * | \ref Segments_reduceSegmentsWithArgument_with_segment_indices (array) | Segment array     | No          | Yes             |
- * | \ref Segments_reduceAllSegmentsWithArgumentIf                         | All               | Yes         | Yes             |
- * | \ref Segments_reduceSegmentsWithArgumentIf                            | Range [begin,end) | Yes         | Yes             |
+ * | Function                                                              | Scope               | Conditional | Tracks Position |
+ * |-----------------------------------------------------------------------|---------------------|-------------|-----------------|
+ * | \ref Segments_reduceAllSegmentsWithArgument                           | All                 | No          | Yes             |
+ * | \ref Segments_reduceSegmentsWithArgument_range (range)                | Range `[begin,end)` | No          | Yes             |
+ * | \ref Segments_reduceSegmentsWithArgument_with_segment_indices (array) | Segment array       | No          | Yes             |
+ * | \ref Segments_reduceAllSegmentsWithArgumentIf                         | All                 | Yes         | Yes             |
+ * | \ref Segments_reduceSegmentsWithArgumentIf                            | Range `[begin,end)` | Yes         | Yes             |
  *
  * \section SegmentReductionParameters Common Parameters
  *
@@ -107,7 +107,7 @@ namespace TNL::Algorithms::Segments {
  *
  * \section SegmentFetchLambdas Fetch Lambda Functions
  *
- * The \e fetch lambda is used to extract and transform values from segment elements during reduction.
+ * The `fetch` lambda is used to extract and transform values from segment elements during reduction.
  *
  * \subsection SegmentFetchLambda_Full Full Form (With All Parameters)
  *
@@ -116,10 +116,10 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e segmentIdx - The index of the segment
- * - \e localIdx - The rank (position) of the element within the segment
- * - \e globalIdx - The global index of the element in the corresponding container
- * - Returns: A value of type \e FetchValue to be used in the reduction
+ * - `segmentIdx` - The index of the segment
+ * - `localIdx` - The rank (position) of the element within the segment
+ * - `globalIdx` - The global index of the element in the corresponding container
+ * - Returns: A value of type `FetchValue` to be used in the reduction
  *
  * \subsection SegmentFetchLambda_Brief Brief Form (Global Index Only)
  *
@@ -131,15 +131,15 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e globalIdx - The global index of the element in the corresponding container
- * - Returns: A value of type \e FetchValue to be used in the reduction
+ * - `globalIdx` - The global index of the element in the corresponding container
+ * - Returns: A value of type `FetchValue` to be used in the reduction
  *
  * **Note:** The actual behavior depends on the kernel type used for the reduction. Some optimized kernels
- * may perform significantly better with the brief variant of the \e fetch lambda function.
+ * may perform significantly better with the brief variant of the `fetch` lambda function.
  *
  * \section SegmentReductionLambdaFunctions Reduction Lambda Functions
  *
- * The \e reduction lambda defines how values are combined during the reduction operation.
+ * The `reduction` lambda defines how values are combined during the reduction operation.
  *
  * \subsection SegmentReductionLambda_Basic Basic Reduction (Without Arguments)
  *
@@ -148,9 +148,9 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e a - First value to be reduced
- * - \e b - Second value to be reduced
- * - Returns: The result of reducing \e a and \e b
+ * - `a` - First value to be reduced
+ * - `b` - Second value to be reduced
+ * - Returns: The result of reducing `a` and `b`
  *
  * \subsection SegmentReductionLambda_WithArgument Reduction With Argument (Position Tracking)
  *
@@ -159,17 +159,17 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e a - First value to be reduced (mutable reference)
- * - \e b - Second value to be reduced (const reference)
- * - \e aIdx - Index/position associated with value \e a (mutable reference for tracking)
- * - \e bIdx - Index/position associated with value \e b (const reference)
+ * - `a` - First value to be reduced (mutable reference)
+ * - `b` - Second value to be reduced (const reference)
+ * - `aIdx` - Index/position associated with value `a` (mutable reference for tracking)
+ * - `bIdx` - Index/position associated with value `b` (const reference)
  *
  * Note: This variant is used when you need to track which element produced the final result
  * (e.g., finding the maximum value and its position within the segment).
  *
  * \section SegmentStorerLambdas Storer Lambda Functions
  *
- * The \e storer lambda is used to store the final reduction result for each segment.
+ * The `storer` lambda is used to store the final reduction result for each segment.
  *
  * \subsection SegmentStorerLambda_Basic Basic Storer (Segment Index Only)
  *
@@ -178,8 +178,8 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e segmentIdx - The index of the segment
- * - \e value - The result of the reduction for this segment
+ * - `segmentIdx` - The index of the segment
+ * - `value` - The result of the reduction for this segment
  *
  * \subsection SegmentStorerLambda_WithLocalIdx Storer With Local Index (Position Tracking)
  *
@@ -188,9 +188,9 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e segmentIdx - The index of the segment
- * - \e localIdx - The local index (position) of the element within the segment that produced the final result
- * - \e value - The result of the reduction for this segment
+ * - `segmentIdx` - The index of the segment
+ * - `localIdx` - The local index (position) of the element within the segment that produced the final result
+ * - `value` - The result of the reduction for this segment
  *
  * Note: This variant is typically used with \ref SegmentReductionLambda_WithArgument to track both
  * the value and its position within the segment.
@@ -202,9 +202,9 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e indexOfSegmentIdx - The position within the \e segmentIndexes array (when reducing over a subset of segments)
- * - \e segmentIdx - The actual index of the segment
- * - \e value - The result of the reduction for this segment
+ * - `indexOfSegmentIdx` - The position within the `segmentIndexes` array (when reducing over a subset of segments)
+ * - `segmentIdx` - The actual index of the segment
+ * - `value` - The result of the reduction for this segment
  *
  * \subsection SegmentStorerLambda_WithIndexArrayAndLocalIdx Storer With Index Array and Local Index
  *
@@ -214,14 +214,14 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e indexOfSegmentIdx - The position within the \e segmentIndexes array
- * - \e segmentIdx - The actual index of the segment
- * - \e localIdx - The local index (position) of the element within the segment
- * - \e value - The result of the reduction for this segment
+ * - `indexOfSegmentIdx` - The position within the `segmentIndexes` array
+ * - `segmentIdx` - The actual index of the segment
+ * - `localIdx` - The local index (position) of the element within the segment
+ * - `value` - The result of the reduction for this segment
  *
  * \section SegmentConditionLambdas Condition Lambda Functions
  *
- * The \e condition lambda determines which segments should be processed (used in "If" variants).
+ * The `condition` lambda determines which segments should be processed (used in "If" variants).
  *
  * \subsection SegmentConditionLambda Condition Check
  *
@@ -230,8 +230,8 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e segmentIdx - The index of the segment
- * - Returns: \e true if the segment should be processed, \e false otherwise
+ * - `segmentIdx` - The index of the segment
+ * - Returns: `true` if the segment should be processed, `false` otherwise
  *
  * \section SegmentReductionFunctionObjects Reduction Function Objects
  *
@@ -240,9 +240,9 @@ namespace TNL::Algorithms::Segments {
  * \ref ReductionFunctionObjectsWithArgument.
  *
  * When using function objects:
- * - They must provide a static template method \e getIdentity to automatically deduce the identity value
+ * - They must provide a static template method `getIdentity` to automatically deduce the identity value
  * - For WithArgument variants, they must be instances of \ref ReductionFunctionObjectsWithArgument
- * - Common examples: \e Min, \e Max, \e Sum, \e Product, \e MinWithArg, \e MaxWithArg
+ * - Common examples: `Min`, `Max`, `Sum`, `Product`, `MinWithArg`, `MaxWithArg`
  *
  * \section SegmentReductionLambdasRelatedPages Related Pages
  *
@@ -265,8 +265,8 @@ namespace TNL::Algorithms::Segments {
  * \param reduction Lambda function for reduction operation. See \ref SegmentReductionLambda_Basic.
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \par Example
  * \includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
@@ -325,26 +325,26 @@ reduceAllSegments(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation. See \ref SegmentReductionLambda_Basic.
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \par Example
  * \includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
@@ -378,18 +378,18 @@ reduceSegments(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
@@ -437,8 +437,8 @@ reduceSegments(
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_WithIndexArray.
  *
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \par Example
  * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexes.cpp
@@ -521,8 +521,8 @@ reduceSegments(
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -590,9 +590,9 @@ reduceAllSegmentsIf(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -600,9 +600,9 @@ reduceAllSegmentsIf(
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
@@ -610,8 +610,8 @@ reduceAllSegmentsIf(
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -649,9 +649,9 @@ reduceSegmentsIf(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -659,9 +659,9 @@ reduceSegmentsIf(
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
@@ -713,8 +713,8 @@ reduceSegmentsIf(
  * SegmentReductionLambda_WithArgument.
  * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \par Example
  * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
@@ -775,18 +775,18 @@ reduceAllSegmentsWithArgument(
  *  returning also the position of the element of interest.
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation with argument tracking. See \ref
@@ -794,8 +794,8 @@ reduceAllSegmentsWithArgument(
  * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \par Example
  * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
@@ -829,18 +829,18 @@ reduceSegmentsWithArgument(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
@@ -882,8 +882,8 @@ reduceSegmentsWithArgument(
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_WithIndexArrayAndLocalIdx.
  *
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \par Example
  * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.cpp
@@ -970,8 +970,8 @@ reduceSegmentsWithArgument(
  * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -1005,9 +1005,9 @@ reduceAllSegmentsWithArgumentIf(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1015,9 +1015,9 @@ reduceAllSegmentsWithArgumentIf(
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
@@ -1049,9 +1049,9 @@ reduceAllSegmentsWithArgumentIf(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1059,9 +1059,9 @@ reduceAllSegmentsWithArgumentIf(
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
@@ -1069,8 +1069,8 @@ reduceAllSegmentsWithArgumentIf(
  * SegmentReductionLambda_WithArgument.
  * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
- *                 If the \e Reduction type does not provide a static member function
- *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *                 If the `Reduction` type does not provide a static member function
+ *                 template `getIdentity`, this value must be supplied explicitly by the user.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -1109,9 +1109,9 @@ reduceSegmentsWithArgumentIf(
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1119,9 +1119,9 @@ reduceSegmentsWithArgumentIf(
  * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of segments where the reduction
+ * \param end The end of the interval `[begin, end)` of segments where the reduction
  *    will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
@@ -1241,13 +1241,13 @@ reduceAll(
 /**
  * \brief Performs a complete reduction over given segment reduction results with separate operations.
  *
- * This function first performs reductions within segments in the interval [begin,end) using segmentFetch and segmentReduction,
- * and then reduces all segment results into a single value using resultFetch and resultReduction.
+ * This function first performs reductions within segments in the interval `[begin,end)` using segmentFetch and
+ * segmentReduction, and then reduces all segment results into a single value using resultFetch and resultReduction.
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segment indexes where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segment indexes where the reduction will be performed.
  * \tparam SegmentFetch The type of the lambda function used for fetching data within segments.
  * \tparam SegmentReduction The type of the reduction operation within segments.
@@ -1257,9 +1257,9 @@ reduceAll(
  * \tparam FinalReductionValue The type of the final reduction result.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segment indexes
+ * \param begin The beginning of the interval `[begin, end)` of segment indexes
  *    whose corresponding segments will be processed for reduction.
- * \param end The end of the interval [ \e begin, \e end ) of segment indexes
+ * \param end The end of the interval `[begin, end)` of segment indexes
  *    whose corresponding segments will be processed for reduction.
  * \param segmentFetch Lambda function for fetching data within segments. See \ref SegmentFetchLambda_Full or \ref
  * SegmentFetchLambda_Brief.
@@ -1306,14 +1306,14 @@ reduce(
 /**
  * \brief Performs a complete reduction over given segments reduction results with separate operations.
  *
- * This function first performs reductions within each segment in the interval [begin,end) using segmentFetch and
+ * This function first performs reductions within each segment in the interval `[begin,end)` using segmentFetch and
  * segmentReduction, and then reduces all segment results into a single value using resultFetch and resultReduction. This
  * overload uses the identity value from the SegmentReduction type.
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segment indexes where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *   of segment indexes where the reduction will be performed.
  * \tparam SegmentFetch The type of the lambda function used for fetching data within segments.
  * \tparam SegmentReduction The type of the reduction operation within segments.
@@ -1321,9 +1321,9 @@ reduce(
  * \tparam FinalReduction The type of the reduction operation for segment results.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segment indexes
+ * \param begin The beginning of the interval `[begin, end)` of segment indexes
  *    whose corresponding segments will be processed for reduction.
- * \param end The end of the interval [ \e begin, \e end ) of segment indexes
+ * \param end The end of the interval `[begin, end)` of segment indexes
  *    whose corresponding segments will be processed for reduction.
  * \param segmentFetch Lambda function for fetching data within segments. See \ref SegmentFetchLambda_Full or \ref
  * SegmentFetchLambda_Brief.

@@ -11,19 +11,19 @@
 namespace TNL::Algorithms {
 
 /**
- * \brief Copies memory from \e source to \e destination.
+ * \brief Copies memory from `source` to `destination`.
  *
- * The \e source data is allocated on the device specified by \e SourceDevice
- * and the \e destination data is allocated on the device specified by
- * \e DestinationDevice.
+ * The `source` data is allocated on the device specified by `SourceDevice`
+ * and the `destination` data is allocated on the device specified by
+ * `DestinationDevice`.
  *
- * \tparam DestinationDevice is the device where the \e destination data is allocated.
- * \tparam SourceDevice is the device where the \e source data is allocated.
- * \tparam DestinationElement is the type of the \e destination data.
- * \tparam SourceElement is the type of the \e source data.
+ * \tparam DestinationDevice is the device where the `destination` data is allocated.
+ * \tparam SourceDevice is the device where the `source` data is allocated.
+ * \tparam DestinationElement is the type of the `destination` data.
+ * \tparam SourceElement is the type of the `source` data.
  * \tparam Index is the type of the size of the data.
- * \param destination is the pointer to the \e destination data.
- * \param source is the pointer to the \e source data.
+ * \param destination is the pointer to the `destination` data.
+ * \param source is the pointer to the `source` data.
  * \param size is the size of the data.
  */
 template<
@@ -39,19 +39,19 @@ copy( DestinationElement* destination, const SourceElement* source, Index size )
 }
 
 /**
- * \brief Copies memory from \e source iterator range to \e destination.
+ * \brief Copies memory from `source` iterator range to `destination`.
  *
- * The \e source data must be allocated on the host device. The \e destination
- * data is allocated on the device specified by \e DestinationDevice.
+ * The `source` data must be allocated on the host device. The `destination`
+ * data is allocated on the device specified by `DestinationDevice`.
  *
- * \tparam DestinationDevice is the device where the \e destination data is allocated.
- * \tparam DestinationElement is the type of the \e destination data.
+ * \tparam DestinationDevice is the device where the `destination` data is allocated.
+ * \tparam DestinationElement is the type of the `destination` data.
  * \tparam Index is the type of the size of the data.
- * \tparam SourceIterator is the iterator type for the \e source data.
- * \param destination is the pointer to the \e destination data.
- * \param destinationSize is the size of the \e destination data.
- * \param begin is the iterator to the first element of the \e source data range.
- * \param end is the one-past-the-end iterator of the \e source data range.
+ * \tparam SourceIterator is the iterator type for the `source` data.
+ * \param destination is the pointer to the `destination` data.
+ * \param destinationSize is the size of the `destination` data.
+ * \param begin is the iterator to the first element of the `source` data range.
+ * \param end is the one-past-the-end iterator of the `source` data range.
  */
 template< typename DestinationDevice, typename DestinationElement, typename Index, typename SourceIterator >
 void
@@ -61,14 +61,14 @@ copy( DestinationElement* destination, Index destinationSize, SourceIterator beg
 }
 
 /**
- * \brief Copies memory from the \e source TNL array-like container to the
- * \e destination STL vector.
+ * \brief Copies memory from the `source` TNL array-like container to the
+ * `destination` STL vector.
  *
- * \tparam Array is the type of array  where the \e source data is stored.
+ * \tparam Array is the type of array  where the `source` data is stored.
  *         It can be for example \ref TNL::Containers::Array,
  *         \ref TNL::Containers::ArrayView, \ref TNL::Containers::Vector
  *         or \ref TNL::Containers::VectorView.
- * \tparam DestinationElement is the type of the \e destination data stored
+ * \tparam DestinationElement is the type of the `destination` data stored
  *         in the STL vector.
  * \param destination is the destination STL vector.
  * \param source is the source TNL array.

@@ -8,7 +8,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e SortedSegmentsView is provides a non-owning encapsulation of meta-data stored in
+ * \brief `SortedSegmentsView` provides a non-owning encapsulation of meta-data stored in
  * the \ref TNL::Algorithms::Segments::SortedSegments segments.
  *
  * \tparam EmbeddedSegments is a type of segments used to manage the data.

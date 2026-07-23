@@ -12,7 +12,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e AdaptiveCSRView is provides a non-owning encapsulation of meta-data stored in
+ * \brief `AdaptiveCSRView` provides a non-owning encapsulation of meta-data stored in
  * the AdaptiveCSR segments.
  *
  * See \ref TNL::Algorithms::Segments::AdaptiveCSR for more details about AdaptiveCSR segments.

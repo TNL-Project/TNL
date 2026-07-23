@@ -82,7 +82,7 @@ public:
    }
 
    /**
-    * \brief Get global index of an element with rank \e localIndex in the segment.
+    * \brief Get global index of an element with rank `localIndex` in the segment.
     *
     * \param localIndex is the rank of the element in the segment.
     * \return global index of the element.
@@ -241,7 +241,7 @@ public:
    }
 
    /**
-    * \brief Get global index of an element with rank \e localIndex in the segment.
+    * \brief Get global index of an element with rank `localIndex` in the segment.
     *
     * \param localIndex is the rank of the element in the segment.
     * \return global index of the element.

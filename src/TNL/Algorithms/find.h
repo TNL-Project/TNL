@@ -18,8 +18,8 @@ namespace TNL::Algorithms {
  * \tparam IndexType is the type used for indexing.
  * \param container is the array where the value is searched.
  * \param value is the value to be found.
- * \return pair `(found, position)` where \e found is a boolean indicating
- *         if the \e value was found and \e position is the position of the
+ * \return pair `(found, position)` where `found` is a boolean indicating
+ *         if the `value` was found and `position` is the position of the
  *         first occurrence in the container.
  */
 template< typename Container, typename ValueType >
@@ -57,8 +57,8 @@ find( const Container& container, const ValueType& value )
  * \param array is the array where the value is searched.
  * \param size is the size of the array.
  * \param value is the upper bound value.
- * \return pair `(found, position)` where \e found is a boolean indicating
- *         if the  upper bound \e value was found and \e position is the
+ * \return pair `(found, position)` where `found` is a boolean indicating
+ *         if the upper bound `value` was found and `position` is the
  *         position in the array.
  */
 template< typename Value, typename Index >

@@ -40,35 +40,36 @@ public:
    performSort( const Compare& compare );
 
    /**
-    * returns the optimal amount of elements per thread needed for phase
-    * */
+    * \brief Returns the optimal amount of elements per thread needed for phase 1.
+    */
    [[nodiscard]] int
    getElementsPerBlock() const;
 
    /**
-    * returns the amount of blocks needed to start phase 1 while also initializing all tasks
-    * */
+    * \brief Returns the amount of blocks needed to start phase 1 while also initializing all tasks.
+    */
    template< typename Compare >
    int
    initTasks( int elementsPerBlock, const Compare& compare );
 
    /**
-    * does the first phase of Quicksort until out of task memory or each task is small enough
-    * for correctness, secondPhase method needs to be called to sort each subsequences
-    * */
+    * \brief Does the first phase of Quicksort until out of task memory or each task is small enough.
+    *
+    * For correctness, the secondPhase method needs to be called to sort each subsequence.
+    */
    template< typename Compare >
    void
    firstPhase( const Compare& compare );
 
    /**
-    * update necessary variables after 1 phase1 sort
-    * */
+    * \brief Updates necessary variables after one phase 1 sort.
+    */
    void
    processNewTasks();
 
    /**
-    * sorts all leftover tasks
-    * */
+    * \brief Sorts all leftover tasks.
+    */
    template< typename Compare >
    void
    secondPhase( const Compare& compare );

@@ -21,9 +21,11 @@ struct TraversingOperationsBase
    using IndexType = typename Segments::IndexType;
 
    /**
+    * \brief Traverses elements for which the condition is true with materialized condition results.
+    *
     * This method does the same as forElementsIf, but with a materialization of the condition results.
     * It seems to be slower than forElementsIf, so it may serve mainly as a fallback for
-    * for segments where forElementsIf is not implemented.
+    * segments where forElementsIf is not implemented.
     */
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void

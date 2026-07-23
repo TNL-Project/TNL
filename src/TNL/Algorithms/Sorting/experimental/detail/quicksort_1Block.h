@@ -144,9 +144,7 @@ singleBlockQuickSort(
       }
       __syncthreads();
 
-      /**
-       * move elements, either use shared memory for coalesced access or without shared memory if data is too big
-       * */
+      // move elements, either use shared memory for coalesced access or without shared memory if data is too big
 
       auto& dst = ( iteration & 1 ) == 0 ? aux : arr;
 

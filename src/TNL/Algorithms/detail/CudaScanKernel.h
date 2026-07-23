@@ -570,6 +570,8 @@ CudaScanKernelUniformShift(
 }
 
 /**
+ * \brief Launcher for CUDA scan kernels.
+ *
  * \tparam blockSize  The CUDA block size to be used for kernel launch.
  * \tparam valuesPerThread  Number of elements processed by each thread sequentially.
  */
@@ -584,7 +586,7 @@ template<
    int valuesPerThread = 7 >
 struct CudaScanKernelLauncher
 {
-   /****
+   /**
     * \brief Performs both phases of prefix sum.
     *
     * \param input the input array to be scanned
@@ -619,7 +621,7 @@ struct CudaScanKernelLauncher
       performSecondPhase( input, output, blockShifts, begin, end, outputBegin, reduction, identity, identity );
    }
 
-   /****
+   /**
     * \brief Performs the first phase of prefix sum.
     *
     * \param input the input array to be scanned
@@ -832,7 +834,7 @@ struct CudaScanKernelLauncher
       }
    }
 
-   /****
+   /**
     * \brief Performs the second phase of prefix sum.
     *
     * \param input the input array to be scanned

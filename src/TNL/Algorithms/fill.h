@@ -10,8 +10,8 @@ namespace TNL::Algorithms {
 /**
  * \brief Fills memory between `data` and `data + size` with a `value`.
  *
- * \tparam Device is the device where the \e data is allocated.
- * \tparam Element is the type of the \e data.
+ * \tparam Device is the device where the `data` is allocated.
+ * \tparam Element is the type of the `data`.
  * \tparam Index is the type of the size of the data.
  * \param data is the pointer to the memory where the value will be set.
  * \param value is the value to be filled.

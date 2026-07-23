@@ -11,12 +11,15 @@ namespace TNL::Algorithms::Sorting::detail {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
 /**
- * IMPORTANT: all threads in block have to call this function to work properly
- * the size of src isn't limited, but for optimal efficiency, no more than 8*blockDim.x should be used
- * Description: sorts src and writes into dst within a block
- * works independently from other concurrent blocks
- * @param sharedMem sharedMem pointer has to be able to store all of src elements
- * */
+ * \brief Sorts src and writes into dst within a block.
+ *
+ * IMPORTANT: all threads in block have to call this function to work properly.
+ * The size of src is not limited, but for optimal efficiency,
+ * no more than 8*blockDim.x should be used.
+ * It works independently from other concurrent blocks.
+ *
+ * \param sharedMem sharedMem pointer has to be able to store all of src elements.
+ */
 template< typename Value, typename Index, typename CMP >
 __device__
 void
@@ -73,13 +76,15 @@ bitonicSort_Block(
 }
 
 /**
- * IMPORTANT: all threads in block have to call this function to work properly
- * IMPORTANT: unlike the counterpart with shared memory, this function only works in-place
- * the size of src isn't limited, but for optimal efficiency, no more than 8*blockDim.x should be used
- * Description: sorts src in place using bitonic sort
- * works independently from other concurrent blocks
- * this version doesnt use shared memory and is preferred for Value with big size
- * */
+ * \brief Sorts src in place using bitonic sort.
+ *
+ * IMPORTANT: all threads in block have to call this function to work properly.
+ * IMPORTANT: unlike the counterpart with shared memory, this function only works in-place.
+ * The size of src is not limited, but for optimal efficiency,
+ * no more than 8*blockDim.x should be used.
+ * It works independently from other concurrent blocks.
+ * This version does not use shared memory and is preferred for Value with big size.
+ */
 template< typename Value, typename Index, typename CMP >
 __device__
 void

@@ -12,7 +12,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e CSRBase serves as a base class for \ref TNL::Algorithms::Segments::CSR and \ref TNL::Algorithms::Segments::CSRView.
+ * \brief `CSRBase` serves as a base class for \ref TNL::Algorithms::Segments::CSR and \ref TNL::Algorithms::Segments::CSRView.
  *
  * \tparam Device is type of device where the segments will be operating.
  * \tparam Index is type for indexing of the elements managed by the segments.
@@ -112,7 +112,7 @@ public:
    IndexType
    getSegmentsCount() const;
 
-   //! \brief Returns the size of a particular segment denoted by \e segmentIdx.
+   //! \brief Returns the size of a particular segment denoted by `segmentIdx`.
    [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentSize( IndexType segmentIdx ) const;
@@ -176,19 +176,19 @@ public:
     * given lambda function.
     *
     * \tparam Function is a type of the lambda function to be performed on each element.
-    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments on
+    * \param begin defines beginning of an interval `[begin, end)` of segments on
     *    elements of which we want to apply the lambda function.
-    * \param end defines end of an interval [ \e begin, \e end ) of segments on
+    * \param end defines end of an interval `[begin, end)` of segments on
     *    elements of which we want to apply the lambda function.
     * \param function is the lambda function to be applied on the elements of the segments.
     *
-    * Declaration of the lambda function \e function is supposed to be
+    * Declaration of the lambda function `function` is supposed to be
     *
     * ```
     * auto f = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) {...}
     * ```
-    * where \e segmentIdx is index of segment where given element belong to,
-    * \e localIdx is rank of the element within the segment and \e globalIdx is
+    * where `segmentIdx` is index of segment where given element belong to,
+    * `localIdx` is rank of the element within the segment and `globalIdx` is
     * index of the element within the related container.
     *
     */
@@ -226,18 +226,18 @@ public:
     * \brief Iterate over all segments in parallel and call given lambda function.
     *
     * \tparam Function is a type of the lambda function to be performed on each segment.
-    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments on
+    * \param begin defines beginning of an interval `[begin, end)` of segments on
     *    elements of which we want to apply the lambda function.
-    * \param end defines end of an interval [ \e begin, \e end ) of segments on
+    * \param end defines end of an interval `[begin, end)` of segments on
     *    elements of which we want to apply the lambda function.
     * \param function is the lambda function to be applied on the elements of the segments.
     *
-    *  Declaration of the lambda function \e function is supposed to be
+    *  Declaration of the lambda function `function` is supposed to be
     *
     * ```
     * auto f = [=] __cuda_callable__ ( const SegmentView& segment ) {...}
     * ```
-    * where \e segment represents given segment (see \ref TNL::Algorithms::Segments::SegmentView).
+    * where `segment` represents given segment (see \ref TNL::Algorithms::Segments::SegmentView).
     * Its type is given by \ref SegmentViewType.
     *
     */
@@ -262,9 +262,9 @@ public:
     * one-by-one. This is useful for example for printing of segments based
     * data structures or for debugging reasons.
     *
-    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments on
+    * \param begin defines beginning of an interval `[begin, end)` of segments on
     *    elements of which we want to apply the lambda function.
-    * \param end defines end of an interval [ \e begin, \e end ) of segments on
+    * \param end defines end of an interval `[begin, end)` of segments on
     *    elements of which we want to apply the lambda function.
     * \param function is the lambda function to be applied on the elements of the segments.
     *
@@ -290,7 +290,7 @@ protected:
    /**
     * \brief Re-initializes the internal attributes of the base class.
     *
-    * Note that this function is \e protected to ensure that the user cannot
+    * Note that this function is `protected` to ensure that the user cannot
     * modify the base class of segments. For the same reason, in future code
     * development we also need to make sure that all non-const functions in
     * the base class return by value and not by reference.

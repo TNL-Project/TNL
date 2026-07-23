@@ -26,7 +26,7 @@
  * | Function                                                         | Segments Sorted       | Description                                                 |
  * |------------------------------------------------------------------|-----------------------|-------------------------------------------------------------|
  * | \ref Segments_sortAllSegments                                    | All segments          | Sorts all segments in the container                         |
- * | \ref Segments_sortSegments_range (range)                         | Segments [begin, end) | Sorts segments in a specified range                         |
+ * | \ref Segments_sortSegments_range (range)                         | Segments `[begin, end)` | Sorts segments in a specified range                         |
  * | \ref Segments_sortSegments_with_segment_indices (array)          | Segments in array     | Sorts only segments whose indices are in the provided array |
  *
  * **When to use:**
@@ -41,7 +41,7 @@
  * | Function                           | Segments Sorted                          | Description                                                |
  * |------------------------------------|------------------------------------------|------------------------------------------------------------|
  * | \ref Segments_sortAllSegmentsIf    | All segments matching condition          | Sorts all segments that satisfy the segment condition      |
- * | \ref Segments_sortSegmentsIf_range | Segments [begin, end) matching condition | Sorts segments in range that satisfy the segment condition |
+ * | \ref Segments_sortSegmentsIf_range | Segments `[begin, end)` matching condition | Sorts segments in range that satisfy the segment condition |
  *
  * **When to use:**
  * - Use these variants when you want to skip sorting certain segments based on segment-level properties
@@ -106,9 +106,9 @@
  * ```
  *
  * In both variants:
- * - \e segmentIdx is the index of the segment.
- * - \e localIdx is the rank of the element within the segment.
- * - \e globalIdx is the index of the element in the corresponding container.
+ * - `segmentIdx` is the index of the segment.
+ * - `localIdx` is the rank of the element within the segment.
+ * - `globalIdx` is the index of the element in the corresponding container.
  *
  * \section SegmentSortCompareLambda Compare Lambda
  *
@@ -138,8 +138,8 @@
  * };
  * ```
  *
- * - \e globalIdx1 is the index of the first element to swap.
- * - \e globalIdx2 is the index of the second element to swap.
+ * - `globalIdx1` is the index of the first element to swap.
+ * - `globalIdx2` is the index of the second element to swap.
  *
  * \section SegmentSortConditionLambda Condition Lambda
  *
@@ -154,7 +154,7 @@
  * };
  * ```
  *
- * - \e segmentIdx is the index of the segment.
+ * - `segmentIdx` is the index of the segment.
  *
  * The lambda should return `true` if the segment should be sorted.
  */
@@ -165,7 +165,7 @@ namespace TNL::Algorithms::Segments {
  * \anchor Segments_sortAllSegments
  *
  * This is a convenience function that sorts elements in all segments. It internally
- * calls \e sortSegments with the full range of segments.
+ * calls \ref sortSegments with the full range of segments.
  * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
@@ -194,9 +194,9 @@ sortAllSegments(
  * \brief Sort elements within specified segments in a range.
  * \anchor Segments_sortSegments_range
  *
- * This function sorts elements within segments in the range [\e begin, \e end). Each segment
+ * This function sorts elements within segments in the range `[begin, end)`. Each segment
  * is sorted independently using insertion sort. The sorting is performed based on the
- * provided \e fetch, \e compare, and \e swap functions.
+ * provided `fetch`, `compare`, and `swap` functions.
  * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
@@ -243,8 +243,8 @@ sortSegments(
  * \anchor Segments_sortSegments_with_segment_indices
  *
  * This is a convenience function that sorts elements in all segments specified by
- * the \e segmentIndexes array. It internally calls \e sortSegments with the full range
- * of the \e segmentIndexes array.
+ * the `segmentIndexes` array. It internally calls \ref sortSegments with the full range
+ * of the `segmentIndexes` array.
  * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
@@ -283,7 +283,7 @@ sortSegments(
  * \anchor Segments_sortAllSegmentsIf
  *
  * This is a convenience function that sorts elements in all segments that satisfy
- * the given condition. It internally calls \e sortSegmentsIf with the full range of segments.
+ * the given condition. It internally calls \ref sortSegmentsIf with the full range of segments.
  * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
@@ -315,7 +315,7 @@ sortAllSegmentsIf(
  * \brief Sort elements within segments that satisfy a condition.
  * \anchor Segments_sortSegmentsIf_range
  *
- * This function sorts elements within segments in the range [\e begin, \e end) that satisfy
+ * This function sorts elements within segments in the range `[begin, end)` that satisfy
  * the given condition. Each qualifying segment is sorted independently using insertion sort.
  * The sorting is done in ascending order based on the comparison function provided.
  *

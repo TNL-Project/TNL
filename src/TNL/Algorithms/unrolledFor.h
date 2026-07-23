@@ -47,9 +47,9 @@ unrolled_for_dispatch( Func&& f )
 /**
  * \brief Generic for-loop with explicit unrolling.
  *
- * \e unrolledFor performs explicit loop unrolling of short loops which can
+ * `unrolledFor` performs explicit loop unrolling of short loops which can
  * improve performance in some cases. The bounds of the for-loop must be constant
- * (i.e. known at the compile time). Loops longer than \e unrollFactor are not
+ * (i.e. known at the compile time). Loops longer than `unrollFactor` are not
  * unrolled and executed as a normal for-loop.
  *
  * The unroll factor is configurable, but note that full unrolling does not

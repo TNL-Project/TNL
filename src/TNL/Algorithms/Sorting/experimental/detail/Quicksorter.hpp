@@ -24,21 +24,20 @@ Quicksorter< Value, Devices::Cuda, Index >::sort( Array& arr, const Compare& cmp
       return;  // nothing to sort
    }
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   /**
-    * for every block there is a bit of shared memory reserved, the actual value can slightly differ
-    * */
+   // for every block there is a bit of shared memory reserved, the actual value can slightly differ
+
    int sharedReserve = sizeof( int ) * ( 16 + 3 * 32 );
    int maxSharable = Backend::getSharedMemoryPerBlock( Backend::getDevice() ) - sharedReserve;
 
    int blockDim = 512;  // best case
 
-   /**
+   /*
     * the goal is to use shared memory as often as possible
     * each thread in a block will process n elements, n==multiplier
     * + 1 reserved for pivot (statically allocating Value type throws weird error, hence it needs to be dynamic)
     *
     * blockDim*multiplier*sizeof(Value) + 1*sizeof(Value) <= maxSharable
-    * */
+    */
    int elementsPerBlock =
       ( maxSharable - sizeof( Value ) ) / sizeof( Value );  // try to use up all of shared memory to store elements
    constexpr int maxBlocks = ( 1 << 20 );
@@ -163,10 +162,10 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
 
       int elementsPerBlock = getElementsPerBlock();
 
-      /**
+      /*
        * initializes tasks so that each block knows which task to work on and which part of array to split
        * also sets pivot needed for partitioning, this is why compare is needed
-       * */
+       */
       int blocksCnt = initTasks( elementsPerBlock, compare );
 
       // not enough or too many blocks needed, switch to second phase
@@ -182,12 +181,12 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
       launch_config.gridSize.x = blocksCnt;
       launch_config.dynamicSharedMemorySize = elementsPerBlock * sizeof( Value ) + sizeof( Value );  // elements + 1 for pivot
 
-      /**
+      /*
        * check if partition procedure can use shared memory for coalesced write after reordering
        *
        * move elements smaller than pivot to the left and bigger to the right
        * note: pivot isnt inserted in the middle yet
-       * */
+       */
       if( launch_config.dynamicSharedMemorySize <= maxSharable ) {
          constexpr auto kernel = cudaQuickSortFirstPhase< Value, Index, Compare, true >;
          Backend::launchKernelSync( kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
@@ -198,14 +197,14 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
          Backend::launchKernelSync( kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
       }
 
-      /**
+      /*
        * fill in the gap between smaller and bigger with elements == pivot
        * after writing also create new tasks, each task generates at max 2 tasks
        *
        * tasks smaller than desiredSecondPhaseElementsPerBlock go into second phase
        * bigger need more blocks to partition and are written into newTask
        * with iteration %2, rotate between the 2 tasks array to save from copying
-       * */
+       */
       auto& newTask = iteration % 2 == 0 ? cuda_newTasks : cuda_tasks;
       launch_config.gridSize.x = host_firstPhaseTasksAmount;
       launch_config.dynamicSharedMemorySize = sizeof( Value );

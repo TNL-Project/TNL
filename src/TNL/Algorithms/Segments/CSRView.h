@@ -9,7 +9,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e CSRView is provides a non-owning encapsulation of meta-data stored in
+ * \brief `CSRView` provides a non-owning encapsulation of meta-data stored in
  * the \ref TNL::Algorithms::Segments::CSR segments.
  *
  * \tparam Device is type of device where the segments will be operating.

@@ -9,17 +9,18 @@
 namespace TNL::Algorithms::Sorting {
 
 /**
+ * \brief Namespace for experimental sorting algorithms.
+ *
  * \ingroup experimental
  * \experimental
- * \brief  Namespace for experimental sorting algorithms.
  */
 namespace experimental {
 
 /**
- * \ingroup experimental
- * \experimental
  * \brief Parallel quicksort for CUDA.
  *
+ * \ingroup experimental
+ * \experimental
  */
 struct Quicksort
 {

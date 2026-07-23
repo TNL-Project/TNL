@@ -105,7 +105,7 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsSizes( const SizesHolder& segmentsSizes )
 {
-   /***
+   /*
     * BiEllpack implements abstraction of a sparse matrix format from the paper https://doi.org/10.1016/j.jpdc.2014.03.002
     *
     * Here we briefly summarize the main idea of the format. Note, that each segment represents slots for the non-zero matrix
@@ -121,7 +121,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsS
     *
     * ```cpp
     * new_segment_idx = segmentsPermutation[ original_segment_idx ]
-    *```
+    * ```
     *
     * This array is initiated in the initSegmentsPermutation() method.
     * 3. Next we split each strip of segments into several groups. The number of groups is equal to the log2 of the warp size.

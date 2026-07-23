@@ -10,6 +10,8 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
+ * \brief Auxiliary structure with metadata for one slice in ChunkedEllpack segments.
+ *
  * In the ChunkedEllpack, the segments are split into slices. This is done
  * in ChunkedEllpack::resolveSliceSizes. All segments elements in each slice
  * are split into chunks. All chunks in one slice have the same size, but the size
