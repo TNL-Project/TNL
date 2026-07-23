@@ -18,29 +18,29 @@ namespace TNL {
  *
  * Throws \ref Exceptions::FileDeserializationError if the object type cannot be detected.
  *
- * @param file is file where the object is stored
- * @return string with the object type
+ * \param file File where the object is stored.
+ * \return String with the object type.
  */
 [[nodiscard]] String
 getObjectType( File& file );
 
 /**
- * \brief Does the same as \ref getObjectType but with a \e fileName parameter instead of file.
+ * \brief Does the same as \ref getObjectType but with a `fileName` parameter instead of file.
  *
  * Throws \ref Exceptions::FileDeserializationError if the object type cannot be detected.
  *
- * @param fileName name of a file where the object is stored
- * @return string with the object type
+ * \param fileName Name of a file where the object is stored.
+ * \return String with the object type.
  */
 [[nodiscard]] String
 getObjectType( const String& fileName );
 
 /**
- * \brief Parses the object type
+ * \brief Parses the object type.
  *
- * @param objectType is a string with the object type to be parsed.
- * @return vector of strings where the first one is the object type and the next
- * strings are the template parameters.
+ * \param objectType String with the object type to be parsed.
+ * \return Vector of strings where the first one is the object type and the next
+ *         strings are the template parameters.
  *
  * \par Example
  * \include ParseObjectTypeExample.cpp
@@ -55,8 +55,8 @@ parseObjectType( const String& objectType );
  *
  * Throws \ref Exceptions::FileDeserializationError if the object type cannot be detected.
  *
- * @param file is the file where the object will be saved
- * @param type is the object type to be saved
+ * \param file File where the object will be saved.
+ * \param type Object type to be saved.
  */
 void
 saveObjectType( File& file, const String& type );

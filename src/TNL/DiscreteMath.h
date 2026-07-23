@@ -15,7 +15,7 @@
 namespace TNL {
 
 /**
- * \brief Divides \e num by \e div and rounds up the result.
+ * \brief Divides `num` by `div` and rounds up the result.
  *
  * \param num An integer considered as dividend.
  * \param div An integer considered as divisor.
@@ -28,7 +28,7 @@ roundUpDivision( const T num, const T div )
 }
 
 /**
- * \brief Rounds up \e number to the nearest multiple of number \e multiple.
+ * \brief Rounds up `number` to the nearest multiple of `multiple`.
  *
  * \param number Integer we want to round.
  * \param multiple Integer.
@@ -40,9 +40,10 @@ roundToMultiple( int number, int multiple )
 }
 
 /**
- * \brief Checks if \e x is an integral power of two.
+ * \brief Checks if `x` is an integral power of two.
  *
- * Returns \e true if \e x is a power of two. Otherwise returns \e false.
+ * Returns `true` if `x` is a power of two. Otherwise returns `false`.
+ *
  * \param x Integer.
  */
 template< typename T >
@@ -90,7 +91,7 @@ discreteLog2( Index value )
  * \brief Computes a product of integers `first * (first+1) * ... * last`.
  *
  * \tparam Index is an integral type used for evaluation of the product.
- * \param first is the first number of the product
+ * \param first is the first number of the product.
  * \param last is the last number of the product.
  */
 template< typename Index >
@@ -150,13 +151,14 @@ firstKCombinationsSum( Index k, Index n )
 }
 
 /**
- * \brief Checks if two values of the same integral type can be multiplied without causing integer overflow or underflow.
+ * \brief Checks if two values of the same integral type can be multiplied
+ * without causing integer overflow or underflow.
  *
  * \tparam Index is the integral type of input values.
- * \param a is the first operand in the expression `a * b`
- * \param b is the second operand in the expression `a * b`
+ * \param a is the first operand in the expression `a * b`.
+ * \param b is the second operand in the expression `a * b`.
  * \return `true` if the operation `a * b` results in an integer overflow or underflow,
- *         and `false` if the result fits into the \e Index type.
+ *         and `false` if the result fits into the `Index` type.
  */
 template< typename Index, std::enable_if_t< std::is_integral_v< Index >, bool > = true >
 bool
@@ -218,10 +220,10 @@ primeFactorization( Index number )
  * For example, `cartesianPower(std::vector<int>{0,1}, 2)` returns the following set (written in pseudo-code):
  * `{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } }`.
  *
- * \tparam T is the type of elements in the \e array.
+ * \tparam T is the type of elements in the `array`.
  * \param array is the input array/vector of elements.
  * \param N is the power of the cartesian product.
- * \return A set of vectors of elements, where each vector contains \e N elements from \e array.
+ * \return A set of vectors of elements, where each vector contains `N` elements from `array`.
  */
 template< typename T >
 std::set< std::vector< T > >
@@ -272,11 +274,11 @@ cartesianPower( std::vector< T > array, int N )
  * \brief Finds all possible integer factorizations of a positive integer into
  * a product of `N` factors.
  *
- * \tparam N is the rank of the tuples (2 for pairs, 3 for triplets, etc.)
+ * \tparam N is the rank of the tuples (2 for pairs, 3 for triplets, etc.).
  * \tparam Index is the integral type of the input number.
  * \param number is the integer to be factorized.
- * \return A set of \e N-tuples, where the product of all components in each
- *         tuple is equal to \e number.
+ * \return A set of `N`-tuples, where the product of all components in each
+ *         tuple is equal to `number`.
  */
 template< std::size_t N, typename Index >
 std::set< std::array< Index, N > >
@@ -328,7 +330,7 @@ integerFactorizationTuples( Index number )
 }
 
 /**
- * \brief This function swaps bits at positions \e p1 and \e p2 in an integer \e n.
+ * \brief This function swaps bits at positions `p1` and `p2` in an integer `n`.
  */
 template< typename Index >
 Index

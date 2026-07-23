@@ -92,7 +92,7 @@ getType( T&& obj )
  * \brief Returns a string identifying a type for the purpose of serialization.
  *
  * By default, this function returns the same string as \ref getType. However,
- * if a user-defined class has a static \e getSerializationType method, it is
+ * if a user-defined class has a static `getSerializationType` method, it is
  * called instead. This is useful for overriding the default `typeid` name,
  * which may be necessary e.g. for class templates which should have the same
  * serialization type for multiple devices.
@@ -105,8 +105,8 @@ getSerializationType()
 }
 
 /**
- * \brief Specialization of \e getSerializationType for types which provide a
- *        static \e getSerializationType method to override the default behaviour.
+ * \brief Specialization of `getSerializationType` for types which provide a
+ *        static `getSerializationType` method to override the default behaviour.
  */
 template< typename T, std::enable_if_t< detail::HasStaticGetSerializationType< T >::value, bool > = true >
 std::string

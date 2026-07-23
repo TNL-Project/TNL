@@ -45,7 +45,7 @@ static constexpr unsigned char encoding_table[ 65 ] = "ABCDEFGHIJKLMNOPQRSTUVWXY
  *
  * Can be built with the following code:
  *
- * \code
+ * \code{.cpp}
  * std::uint8_t decoding_table[256];
  * for( int i = 0; i < 256; i++ )
  *    decoding_table[i] = 128;
