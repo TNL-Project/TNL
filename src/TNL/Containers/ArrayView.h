@@ -14,8 +14,8 @@
 namespace TNL::Containers {
 
 /**
- * \brief \e ArrayView is a simple data structure which provides a non-owning
- * encapsulation of array data. That is, \e ArrayView is like \ref Array without
+ * \brief `ArrayView` is a simple data structure which provides a non-owning
+ * encapsulation of array data. That is, `ArrayView` is like \ref Array without
  * memory management.
  *
  * The meaning of the template parameters is the same as in \ref Array.
@@ -26,21 +26,21 @@ namespace TNL::Containers {
  *                be any class defined in the \ref TNL::Devices namespace.
  * \tparam Index  The indexing type.
  *
- * \e ArrayView provides access to array elements and general array operations
+ * `ArrayView` provides access to array elements and general array operations
  * same as \ref Array, but it does not manage memory. The construction of an
- * \e ArrayView does not make a memory allocation, but it can be _bound_ to an
- * existing portion of memory specified by a raw pointer, another \e ArrayView,
- * or an \e Array. Similarly, \e ArrayView is not resizable, so there is no
- * \e setSize method. Note that \e ArrayView does not _own_ its data, so it does
+ * `ArrayView` does not make a memory allocation, but it can be *bound* to an
+ * existing portion of memory specified by a raw pointer, another `ArrayView`,
+ * or an `Array`. Similarly, `ArrayView` is not resizable, so there is no
+ * `setSize` method. Note that `ArrayView` does not own its data, so it does
  * not deallocate it in the destructor.
  *
- * Another important difference between \e ArrayView and \ref Array is in the
- * copy semantics. While the copy-constructor of \e Array makes a deep copy of
- * the data, \e ArrayView makes only a shallow copy in the copy-constructor,
+ * Another important difference between `ArrayView` and \ref Array is in the
+ * copy semantics. While the copy-constructor of `Array` makes a deep copy of
+ * the data, `ArrayView` makes only a shallow copy in the copy-constructor,
  * i.e. it changes only its pointer and size. As a result, array views can be
- * efficiently _passed by value_ (even to device kernels) or _captured by value_
+ * efficiently passed by value (even to device kernels) or captured by value
  * in lambda functions (even in device lambda functions). Note that
- * \ref operator= in both \e ArrayView and \e Array still makes a deep copy of
+ * \ref operator= in both `ArrayView` and `Array` still makes a deep copy of
  * the data.
  *
  * See also \ref Array, \ref Vector, \ref VectorView.
@@ -103,7 +103,7 @@ public:
     *
     * This method can be called from device kernels.
     *
-    * \param data The data pointer to be bound.
+    * \param data The data pointer to be *bound*.
     * \param size The number of elements in the array view.
     */
    __cuda_callable__
@@ -125,7 +125,7 @@ public:
     * This method can be called from device kernels.
     *
     * \tparam Value_ The template parameter can be any cv-qualified variant of
-    *                \e ValueType.
+    *                `ValueType`.
     * \param view The array view to be copied.
     */
    template< typename Value_ >
@@ -136,7 +136,7 @@ public:
    {}
 
    /**
-    * \brief Move constructor for initialization from \e rvalues.
+    * \brief Move constructor for initialization from `rvalues`.
     *
     * This method can be called from device kernels.
     *
@@ -151,7 +151,7 @@ public:
     *
     * This method can be called from device kernels.
     *
-    * \param data The data pointer to be bound to the array view.
+    * \param data The data pointer to be *bound* to the array view.
     * \param size The number of elements in the array view.
     */
    __cuda_callable__
@@ -161,12 +161,12 @@ public:
    /**
     * \brief Method for rebinding (reinitialization) using another array view.
     *
-    * Note that you can also bind directly to an \e Array instance and other
-    * objects whose type is implicitly convertible to \e ArrayView.
+    * Note that you can also bind directly to an `Array` instance and other
+    * objects whose type is implicitly convertible to `ArrayView`.
     *
     * This method can be called from device kernels.
     *
-    * \param view The array view to be bound.
+    * \param view The array view to be *bound*.
     */
    __cuda_callable__
    void
@@ -175,8 +175,8 @@ public:
    /**
     * \brief Returns a modifiable view of the array view.
     *
-    * By default, a view for the whole array is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole array is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the array view sub-interval. It is 0 by
@@ -191,8 +191,8 @@ public:
    /**
     * \brief Returns a non-modifiable view of the array view.
     *
-    * By default, a view for the whole array is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole array is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the array view sub-interval. It is 0 by
@@ -217,11 +217,11 @@ public:
    /**
     * \brief Assigns either array-like container or a single value.
     *
-    * If \e T is an array type, e.g. \ref Array, \ref ArrayView,
+    * If `T` is an array type, e.g. \ref Array, \ref ArrayView,
     * \ref StaticArray, \ref Vector, \ref VectorView, or \ref StaticVector,
-    * the elements from \e data are copied into this array view. Otherwise, if
+    * the elements from `data` are copied into this array view. Otherwise, if
     * it is a type convertible to \ref ValueType, all array elements are set to
-    * the value \e data.
+    * the value `data`.
     *
     * \tparam T The type of the source array or value.
     * \param data Reference to the source array or value.
@@ -256,7 +256,7 @@ public:
    reset();
 
    /**
-    * \brief Returns \e true if the current array view size is zero.
+    * \brief Returns `true` if the current array view size is zero.
     *
     * This method can be called from device kernels.
     */
@@ -265,7 +265,7 @@ public:
    empty() const;
 
    /**
-    * \brief Returns a \e const-qualified raw pointer to the data.
+    * \brief Returns a `const`-qualified raw pointer to the data.
     *
     * This method can be called from device kernels.
     */
@@ -283,7 +283,7 @@ public:
    getData();
 
    /**
-    * \brief Returns a \e const-qualified raw pointer to the data.
+    * \brief Returns a `const`-qualified raw pointer to the data.
     *
     * Use this method in algorithms where you want to emphasize that
     * C-style array pointer is required.
@@ -316,7 +316,7 @@ public:
    getSize() const;
 
    /**
-    * \brief Sets the value of the \e i-th element to \e v.
+    * \brief Sets the value of the `i`-th element to `v`.
     *
     * This method can be called from both the host system and the device
     * where the array is allocated.
@@ -329,7 +329,7 @@ public:
    setElement( IndexType i, ValueType value );
 
    /**
-    * \brief Returns the value of the \e i-th element.
+    * \brief Returns the value of the `i`-th element.
     *
     * This method can be called from both the host system and the device
     * where the array is allocated.
@@ -341,7 +341,7 @@ public:
    getElement( IndexType i ) const;
 
    /**
-    * \brief Accesses the \e i-th element of the array view.
+    * \brief Accesses the `i`-th element of the array view.
     *
     * This method can be called only from the device which has direct access
     * to the memory space where the data was allocated. For example, if the
@@ -350,17 +350,17 @@ public:
     * called only from device kernels. If NDEBUG is not defined, assertions
     * inside this methods performs runtime checks for cross-device memory
     * accesses which lead to segmentation fault. If you need to do just a
-    * pointer arithmetics use \e getData instead.
+    * pointer arithmetics use `getData` instead.
     *
     * \param i The index of the element to be accessed.
-    * \return Reference to the \e i-th element.
+    * \return Reference to the `i`-th element.
     */
    [[nodiscard]] __cuda_callable__
    Value&
    operator[]( IndexType i );
 
    /**
-    * \brief Accesses the \e i-th element of the array view.
+    * \brief Accesses the `i`-th element of the array view.
     *
     * This method can be called only from the device which has direct access
     * to the memory space where the data was allocated. For example, if the
@@ -369,17 +369,17 @@ public:
     * called only from device kernels. If NDEBUG is not defined, assertions
     * inside this methods performs runtime checks for cross-device memory
     * accesses which lead to segmentation fault. If you need to do just a
-    * pointer arithmetics use \e getData instead.
+    * pointer arithmetics use `getData` instead.
     *
     * \param i The index of the element to be accessed.
-    * \return Constant reference to the \e i-th element.
+    * \return Constant reference to the `i`-th element.
     */
    [[nodiscard]] __cuda_callable__
    const Value&
    operator[]( IndexType i ) const;
 
    /**
-    * \brief Accesses the \e i-th element of the array.
+    * \brief Accesses the `i`-th element of the array.
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
@@ -388,7 +388,7 @@ public:
    operator()( IndexType i );
 
    /**
-    * \brief Accesses the \e i-th element of the array.
+    * \brief Accesses the `i`-th element of the array.
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
@@ -427,7 +427,7 @@ public:
     * \brief Sets elements of the array view to given value.
     *
     * By default, all array view elements are set to the given value. If
-    * \e begin or \e end is set to a non-zero value, only elements in the
+    * `begin` or `end` is set to a non-zero value, only elements in the
     * sub-interval `[begin, end)` are set.
     *
     * \param value The new value for the array view elements.
@@ -440,7 +440,7 @@ public:
    setValue( ValueType value, IndexType begin = 0, IndexType end = 0 );
 
    /**
-    * \brief Process the lambda function \e f for each array element in interval [ \e begin, \e end).
+    * \brief Process the lambda function `f` for each array element in interval `[begin, end)`.
     *
     * The lambda function is supposed to be declared as
     *
@@ -450,8 +450,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -471,7 +471,7 @@ public:
    forElements( IndexType begin, IndexType end, Function&& f );
 
    /**
-    * \brief Process the lambda function \e f for each array element in interval [ \e begin, \e end) for constant instances of
+    * \brief Process the lambda function `f` for each array element in interval `[begin, end)` for constant instances of
     * the array.
     *
     * The lambda function is supposed to be declared as
@@ -482,8 +482,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place
     * where the array is allocated, i.e. it is efficient even on GPU.
@@ -502,7 +502,7 @@ public:
    forElements( IndexType begin, IndexType end, Function&& f ) const;
 
    /**
-    * \brief Process the lambda function \e f for each array element.
+    * \brief Process the lambda function `f` for each array element.
     *
     * The lambda function is supposed to be declared as
     *
@@ -512,8 +512,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -531,7 +531,7 @@ public:
    forAllElements( Function&& f );
 
    /**
-    * \brief Process the lambda function \e f for each array element for constant instances.
+    * \brief Process the lambda function `f` for each array element for constant instances.
     *
     * The lambda function is supposed to be declared as
     *
@@ -541,8 +541,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -560,7 +560,7 @@ public:
    forAllElements( Function&& f ) const;
 
    /**
-    * \brief Method for saving the data to a binary file \e fileName.
+    * \brief Method for saving the data to a binary file `fileName`.
     *
     * \param fileName The output file name.
     */
@@ -568,7 +568,7 @@ public:
    save( const std::string& fileName ) const;
 
    /**
-    * \brief Method for loading the data from a binary file \e fileName.
+    * \brief Method for loading the data from a binary file `fileName`.
     *
     * \param fileName The input file name.
     */

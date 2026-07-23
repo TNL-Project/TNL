@@ -39,7 +39,7 @@ public:
 
    using SynchronizerType = ViewType::SynchronizerType;
 
-   // default constructor, no underlying \e hypre_ParVector is created.
+   // default constructor, no underlying `hypre_ParVector` is created.
    HypreParVector() = default;
 
    // TODO: behavior should depend on "owns_data" (shallow vs deep copy)
@@ -89,7 +89,7 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call \e hypre_VectorDestroy when it does
+    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
     * not need it anymore.
     */
    explicit HypreParVector( hypre_ParVector* handle, bool take_ownership = true )
@@ -97,7 +97,7 @@ public:
       bind( handle, take_ownership );
    }
 
-   //! Typecasting to Hypre's \e hypre_ParVector* (which is equivalent to \e HYPRE_ParVector*)
+   //! Typecasting to Hypre's `hypre_ParVector`* (which is equivalent to `HYPRE_ParVector`*)
    operator hypre_ParVector*() const
    {
       return v;
@@ -241,7 +241,7 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call \e hypre_VectorDestroy when it does
+    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
     * not need it anymore.
     */
    void
@@ -312,7 +312,7 @@ public:
       this->ghosts = ghosts;
    }
 
-   //! \brief Set all elements of the vector to \e value.
+   //! \brief Set all elements of the vector to `value`.
    void
    setValue( RealType value )
    {

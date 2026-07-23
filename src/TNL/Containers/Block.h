@@ -35,7 +35,7 @@ struct Block
    //! \brief Default constructor.
    Block() = default;
 
-   //! \brief Constructs a block from the given \e begin and \e end.
+   //! \brief Constructs a block from the given `begin` and `end`.
    Block( const CoordinatesType& begin, const CoordinatesType& end )
    : begin( begin ),
      end( end )
@@ -74,8 +74,8 @@ operator!=( const Block< D, idx >& left, const Block< D, idx >& right )
 }
 
 /**
- * \brief Lexicographically compares two blocks by joining their \e begin and
- * \e end points.
+ * \brief Lexicographically compares two blocks by joining their `begin` and
+ * `end` points.
  */
 template< int D, typename idx >
 bool

@@ -73,7 +73,7 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call \e hypre_VectorDestroy when it does
+    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
     * not need it anymore.
     */
    explicit HypreVector( hypre_Vector* handle, bool take_ownership = true )
@@ -187,7 +187,7 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call \e hypre_VectorDestroy when it does
+    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
     * not need it anymore.
     */
    void
@@ -220,7 +220,7 @@ public:
     *
     * - if the vector previously owned data, they are deallocated
     * - new size is set
-    * - the vector is initialized with \e hypre_SeqVectorInitialize
+    * - the vector is initialized with `hypre_SeqVectorInitialize`
     *   (i.e., data are allocated)
     */
    void
@@ -247,7 +247,7 @@ public:
       setValue( value );
    }
 
-   //! \brief Set all elements of the vector to \e value.
+   //! \brief Set all elements of the vector to `value`.
    void
    setValue( RealType value )
    {

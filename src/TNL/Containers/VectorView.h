@@ -9,10 +9,10 @@
 namespace TNL::Containers {
 
 /**
- * \brief \e VectorView extends \ref ArrayView with algebraic operations.
+ * \brief `VectorView` extends \ref ArrayView with algebraic operations.
  *
  * The template parameters have the same meaning as in \ref ArrayView, with
- * \e Real corresponding to \e ArrayView's \e Value parameter.
+ * `Real` corresponding to `ArrayView`'s `Value` parameter.
  *
  * \tparam Real   An arithmetic type for the vector values, e.g. `float` or
  *                `double`.
@@ -98,7 +98,7 @@ public:
    VectorView( const VectorView& view ) = default;
 
    /**
-    * \brief Move constructor for initialization from \e rvalues.
+    * \brief Move constructor for initialization from `rvalues`.
     *
     * This method can be called from device kernels.
     *
@@ -120,8 +120,8 @@ public:
    /**
     * \brief Returns a modifiable view of the vector view.
     *
-    * By default, a view for the whole vector is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole vector is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the vector view sub-interval. It is 0 by
@@ -136,8 +136,8 @@ public:
    /**
     * \brief Returns a non-modifiable view of the vector view.
     *
-    * By default, a view for the whole vector is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole vector is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the vector view sub-interval. It is 0 by

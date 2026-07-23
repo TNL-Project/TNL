@@ -43,7 +43,7 @@ public:
    constexpr StaticArray() = default;
 
    /**
-    * \brief Constructor that sets all array components to value \e v.
+    * \brief Constructor that sets all array components to value `v`.
     *
     * \param v Reference to a value.
     */
@@ -68,7 +68,7 @@ public:
    constexpr StaticArray( const Value v[ Size ] );
 
    /**
-    * \brief Constructor that sets all array components to value \e v.
+    * \brief Constructor that sets all array components to value `v`.
     *
     * \param v Reference to a value.
     */
@@ -79,7 +79,7 @@ public:
    /**
     * \brief Copy constructor.
     *
-    * Constructs a copy of another static array \e v.
+    * Constructs a copy of another static array `v`.
     */
    // NOTE: as of nvcc 11.8, the default/implicit copy-constructor for std::array (which is based on aggregate initialization)
    // does not work correctly in device code, so we must defaine our own copy-constructor
@@ -90,8 +90,8 @@ public:
    /**
     * \brief Templated copy constructor.
     *
-    * Constructs a copy of another static array \e v where the value type is
-    * \e ValueType. This constructor allows casting between `StaticArray`
+    * Constructs a copy of another static array `v` where the value type is
+    * `ValueType`. This constructor allows casting between `StaticArray`
     * types with the same size, but different value types.
     */
    template< typename OtherValue >
@@ -110,7 +110,7 @@ public:
     *
     * It behaves like the aggregate-initialization in \ref std::array, e.g.
     * `StaticArray< 3, int > a = {1, 2, 3};`. The number of supplied arguments
-    * must be equal to \e Size.
+    * must be equal to `Size`.
     *
     * \param values The elements forwarded to the constructor of the underlying
     *               \ref std::array.
@@ -124,7 +124,7 @@ public:
     * \brief Constructor which initializes the array by copying elements from
     * \ref std::initializer_list, e.g. `{...}`.
     *
-    * The initializer list size must larger or equal to \e Size.
+    * The initializer list size must larger or equal to `Size`.
     *
     * \param elems input initializer list
     */
@@ -167,7 +167,7 @@ public:
    getData() const noexcept;
 
    /**
-    * \brief Accesses specified element at the position \e i and returns a constant reference to its value.
+    * \brief Accesses specified element at the position `i` and returns a constant reference to its value.
     *
     * \param i Index position of an element.
     */
@@ -175,7 +175,7 @@ public:
    operator[]( int i ) const noexcept;
 
    /**
-    * \brief Accesses specified element at the position \e i and returns a reference to its value.
+    * \brief Accesses specified element at the position `i` and returns a reference to its value.
     *
     * \param i Index position of an element.
     */
@@ -183,7 +183,7 @@ public:
    operator[]( int i ) noexcept;
 
    /**
-    * \brief Accesses specified element at the position \e i and returns a constant reference to its value.
+    * \brief Accesses specified element at the position `i` and returns a constant reference to its value.
     *
     * Equivalent to \ref operator[].
     */
@@ -191,7 +191,7 @@ public:
    operator()( int i ) const noexcept;
 
    /**
-    * \brief Accesses specified element at the position \e i and returns a reference to its value.
+    * \brief Accesses specified element at the position `i` and returns a reference to its value.
     *
     * Equivalent to \ref operator[].
     */
@@ -235,7 +235,7 @@ public:
    z() const noexcept;
 
    /**
-    * \brief Sets the value of the \e i-th element to \e value.
+    * \brief Sets the value of the `i`-th element to `value`.
     *
     * \param i The index of the element to be set.
     * \param value The new value of the element.
@@ -244,7 +244,7 @@ public:
    setElement( IndexType i, ValueType value ) noexcept;
 
    /**
-    * \brief Returns the value of the \e i-th element.
+    * \brief Returns the value of the `i`-th element.
     *
     * \param i The index of the element to be returned.
     */
@@ -266,14 +266,14 @@ public:
    operator=( StaticArray&& ) noexcept = default;
 
    /**
-    * \brief Assigns an object \e v of type \e T.
+    * \brief Assigns an object `v` of type `T`.
     *
     * T can be:
     *
     * 1. Static linear container implementing operator[] and having the same size.
-    * In this case, \e v is copied to this array elementwise.
-    * 2. An object that can be converted to \e Value type. In this case all elements
-    * are set to \e v.
+    * In this case, `v` is copied to this array elementwise.
+    * 2. An object that can be converted to `Value` type. In this case all elements
+    * are set to `v`.
     */
    template<
       typename T,
@@ -283,38 +283,38 @@ public:
    operator=( const T& v );
 
    /**
-    * \brief This function checks whether this static array is equal to another \e array.
+    * \brief This function checks whether this static array is equal to another `array`.
     *
-    * Return \e true if the arrays are equal in size. Otherwise returns \e false.
+    * Return `true` if the arrays are equal in size. Otherwise returns `false`.
     */
    template< typename Array >
    [[nodiscard]] constexpr bool
    operator==( const Array& array ) const;
 
    /**
-    * \brief This function checks whether this static array is not equal to another \e array.
+    * \brief This function checks whether this static array is not equal to another `array`.
     *
-    * Return \e true if the arrays are not equal in size. Otherwise returns \e false.
+    * Return `true` if the arrays are not equal in size. Otherwise returns `false`.
     */
    template< typename Array >
    [[nodiscard]] constexpr bool
    operator!=( const Array& array ) const;
 
    /**
-    * \brief Sets all values of this static array to \e val.
+    * \brief Sets all values of this static array to `val`.
     */
    constexpr void
    setValue( const ValueType& val );
 
    /**
-    * \brief Saves this static array into the \e file.
+    * \brief Saves this static array into the `file`.
     * \param file Reference to a file.
     */
    void
    save( File& file ) const;
 
    /**
-    * \brief Loads data from the \e file to this static array.
+    * \brief Loads data from the `file` to this static array.
     * \param file Reference to a file.
     */
    void
@@ -327,10 +327,10 @@ public:
    sort();
 
    /**
-    * \brief Writes the array values into stream \e str with specified \e separator.
+    * \brief Writes the array values into stream `str` with specified `separator`.
     *
-    * @param str Reference to a stream.
-    * @param separator Character separating the array values in the stream \e str.
+    * \param str Reference to a stream.
+    * \param separator Character separating the array values in the stream `str`.
     * Is set to " " by default.
     */
    std::ostream&

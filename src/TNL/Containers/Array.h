@@ -17,7 +17,7 @@
 namespace TNL::Containers {
 
 /**
- * \brief \e Array is responsible for memory management, access to array
+ * \brief `Array` is responsible for memory management, access to array
  * elements, and general array operations.
  *
  * \tparam Value  The type of array elements.
@@ -27,7 +27,7 @@ namespace TNL::Containers {
  * \tparam Index  The indexing type.
  * \tparam Allocator The type of the allocator used for the allocation and
  *                   deallocation of memory used by the array. By default,
- *                   an appropriate allocator for the specified \e Device
+ *                   an appropriate allocator for the specified `Device`
  *                   is selected with \ref TNL::Allocators::Default.
  *
  * Memory management handled by constructors and destructors according to the
@@ -37,7 +37,7 @@ namespace TNL::Containers {
  * and \ref getData to access the raw pointer.
  *
  * Methods annotated as \ref __cuda_callable__ can be called either from
- * host or from kernels executing on a device according to the \e Device
+ * host or from kernels executing on a device according to the `Device`
  * parameter. One of these methods is the \ref operator[] which provides direct
  * access to the array elements. However, it cannot be called from the host if
  * the array was allocated in a memory space which is not directly accessible
@@ -179,7 +179,7 @@ public:
    Array( const Array& array, IndexType begin, IndexType size = 0, const AllocatorType& allocator = AllocatorType() );
 
    /**
-    * \brief Move constructor for initialization from \e rvalues.
+    * \brief Move constructor for initialization from `rvalues`.
     *
     * \param array The array to be moved.
     */
@@ -235,7 +235,7 @@ public:
 
    /**
     * \brief Returns a string representation of the array type in C++ style,
-    * with a placeholder in place of \e Device and \e Allocator.
+    * with a placeholder in place of `Device` and `Allocator`.
     */
    [[nodiscard]] static std::string
    getSerializationType();
@@ -246,10 +246,10 @@ public:
     * The method resizes the array to the given size:
     *
     * - If the current size is greater than count, the array is reduced to
-    *   its first \e size elements.
-    * - If the current size is less than \e size, additional elements are
+    *   its first `size` elements.
+    * - If the current size is less than `size`, additional elements are
     *   appended (see the note below on initialization).
-    * - If the current size is equal to \e size, nothing happens.
+    * - If the current size is equal to `size`, nothing happens.
     *
     * If the array size changes, the current data will be deallocated, thus
     * all pointers and views to the array elements will become invalid.
@@ -257,7 +257,7 @@ public:
     * Note that this method differs from \ref std::vector::resize with respect
     * to the initialization of array elements:
     *
-    * - if \e ValueType is a [fundamental type](https://en.cppreference.com/w/cpp/types/is_fundamental),
+    * - if `ValueType` is a [fundamental type](https://en.cppreference.com/w/cpp/types/is_fundamental),
     *   the elements are [default-initialized](https://en.cppreference.com/w/cpp/language/default_initialization)
     *   (i.e., the elements are initialized to indeterminate values).
     * - otherwise, the elements are [value-initialized](https://en.cppreference.com/w/cpp/language/value_initialization)
@@ -274,10 +274,10 @@ public:
     * The method resizes the array to the given size:
     *
     * - If the current size is greater than count, the array is reduced to
-    *   its first \e size elements.
-    * - If the current size is less than \e size, additional copies of
-    *   \e value are appended.
-    * - If the current size is equal to \e size, nothing happens.
+    *   its first `size` elements.
+    * - If the current size is less than `size`, additional copies of
+    *   `value` are appended.
+    * - If the current size is equal to `size`, nothing happens.
     *
     * If the array size changes, the current data will be deallocated, thus
     * all pointers and views to the array elements will become invalid.
@@ -293,8 +293,8 @@ public:
     *
     * This method behaves almost like \ref resize, but when the array size
     * is changed, old elements are not copied to the new memory location.
-    * Hence, this is a shortcut for deallocating the array with \e resize(0)
-    * followed by setting the new size with \e resize(size)
+    * Hence, this is a shortcut for deallocating the array with `resize`(0)
+    * followed by setting the new size with `resize`(size)
     *
     * \param size The new size of the array.
     */
@@ -319,7 +319,7 @@ public:
     * Note that this method uses \ref setSize rather than \ref resize.
     *
     * \tparam ArrayT The type of the parameter can be any type which provides
-    *         the method \ref getSize() with the same signature as \e Array.
+    *         the method \ref getSize() with the same signature as `Array`.
     * \param array The array whose size is to be taken.
     */
    template< typename ArrayT >
@@ -329,8 +329,8 @@ public:
    /**
     * \brief Returns a modifiable view of the array.
     *
-    * By default, a view for the whole array is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole array is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the array sub-interval. It is 0 by
@@ -344,8 +344,8 @@ public:
    /**
     * \brief Returns a non-modifiable view of the array.
     *
-    * By default, a view for the whole array is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole array is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the array sub-interval. It is 0 by
@@ -387,7 +387,7 @@ public:
    reset();
 
    /**
-    * \brief Returns \e true if the current array size is zero.
+    * \brief Returns `true` if the current array size is zero.
     *
     * This method can be called from device kernels.
     */
@@ -396,7 +396,7 @@ public:
    empty() const;
 
    /**
-    * \brief Returns a \e const-qualified raw pointer to the data.
+    * \brief Returns a `const`-qualified raw pointer to the data.
     *
     * This method can be called from device kernels.
     */
@@ -414,7 +414,7 @@ public:
    getData();
 
    /**
-    * \brief Returns a \e const-qualified raw pointer to the data.
+    * \brief Returns a `const`-qualified raw pointer to the data.
     *
     * Use this method in algorithms where you want to emphasize that
     * C-style array pointer is required.
@@ -438,7 +438,7 @@ public:
    getArrayData();
 
    /**
-    * \brief Sets the value of the \e i-th element to \e v.
+    * \brief Sets the value of the `i`-th element to `v`.
     *
     * This method can be called from both the host system and the device
     * where the array is allocated.
@@ -451,7 +451,7 @@ public:
    setElement( IndexType i, ValueType value );
 
    /**
-    * \brief Returns the value of the \e i-th element.
+    * \brief Returns the value of the `i`-th element.
     *
     * This method can be called from both the host system and the device
     * where the array is allocated.
@@ -463,7 +463,7 @@ public:
    getElement( IndexType i ) const;
 
    /**
-    * \brief Accesses the \e i-th element of the array.
+    * \brief Accesses the `i`-th element of the array.
     *
     * This method can be called only from the device which has direct access
     * to the memory space where the array was allocated. For example, if the
@@ -472,17 +472,17 @@ public:
     * called only from device kernels. If NDEBUG is not defined, assertions
     * inside this methods performs runtime checks for cross-device memory
     * accesses which lead to segmentation fault. If you need to do just a
-    * pointer arithmetics use \e getData instead.
+    * pointer arithmetics use `getData` instead.
     *
     * \param i The index of the element to be accessed.
-    * \return Reference to the \e i-th element.
+    * \return Reference to the `i`-th element.
     */
    [[nodiscard]] __cuda_callable__
    Value&
    operator[]( IndexType i );
 
    /**
-    * \brief Accesses the \e i-th element of the array.
+    * \brief Accesses the `i`-th element of the array.
     *
     * This method can be called only from the device which has direct access
     * to the memory space where the array was allocated. For example, if the
@@ -491,17 +491,17 @@ public:
     * called only from device kernels. If NDEBUG is not defined, assertions
     * inside this methods performs runtime checks for cross-device memory
     * accesses which lead to segmentation fault. If you need to do just a
-    * pointer arithmetics use \e getData instead.
+    * pointer arithmetics use `getData` instead.
     *
     * \param i The index of the element to be accessed.
-    * \return Constant reference to the \e i-th element.
+    * \return Constant reference to the `i`-th element.
     */
    [[nodiscard]] __cuda_callable__
    const Value&
    operator[]( IndexType i ) const;
 
    /**
-    * \brief Accesses the \e i-th element of the array.
+    * \brief Accesses the `i`-th element of the array.
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
@@ -510,7 +510,7 @@ public:
    operator()( IndexType i );
 
    /**
-    * \brief Accesses the \e i-th element of the array.
+    * \brief Accesses the `i`-th element of the array.
     *
     * Equivalent to \ref operator[], with the same notes and caveats.
     */
@@ -528,7 +528,7 @@ public:
    operator=( const Array& array );
 
    /**
-    * \brief Move-assignment operator for acquiring data from \e rvalues.
+    * \brief Move-assignment operator for acquiring data from `rvalues`.
     *
     * \param array Reference to the source array.
     * \return Reference to this array.
@@ -539,11 +539,11 @@ public:
    /**
     * \brief Assigns either array-like container or a single value.
     *
-    * If \e T is an array type, e.g. \ref Array, \ref ArrayView,
+    * If `T` is an array type, e.g. \ref Array, \ref ArrayView,
     * \ref StaticArray, \ref Vector, \ref VectorView, or \ref StaticVector,
-    * the elements from \e data are copied into this array. Otherwise, if it
+    * the elements from `data` are copied into this array. Otherwise, if it
     * is a type convertible to \ref ValueType, all array elements are set to
-    * the value \e data.
+    * the value `data`.
     *
     * \tparam T The type of the source array or value.
     * \param data Reference to the source array or value.
@@ -606,8 +606,8 @@ public:
    /**
     * \brief Sets elements of the array to given value.
     *
-    * By default, all array elements are set to the given value. If \e begin
-    * or \e end is set to a non-zero value, only elements in the sub-interval
+    * By default, all array elements are set to the given value. If `begin`
+    * or `end` is set to a non-zero value, only elements in the sub-interval
     * `[begin, end)` are set.
     *
     * \param value The new value for the array elements.
@@ -620,7 +620,7 @@ public:
    setValue( ValueType value, IndexType begin = 0, IndexType end = 0 );
 
    /**
-    * \brief Process the lambda function \e f for each array element in interval [ \e begin, \e end).
+    * \brief Process the lambda function `f` for each array element in interval `[begin, end)`.
     *
     * The lambda function is supposed to be declared as
     *
@@ -630,8 +630,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -651,7 +651,7 @@ public:
    forElements( IndexType begin, IndexType end, Function&& f );
 
    /**
-    * \brief Process the lambda function \e f for each array element in interval [ \e begin, \e end) for constant instances of
+    * \brief Process the lambda function `f` for each array element in interval `[begin, end)` for constant instances of
     * the array.
     *
     * The lambda function is supposed to be declared as
@@ -662,8 +662,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -683,7 +683,7 @@ public:
    forElements( IndexType begin, IndexType end, Function&& f ) const;
 
    /**
-    * \brief Process the lambda function \e f for each array element.
+    * \brief Process the lambda function `f` for each array element.
     *
     * The lambda function is supposed to be declared as
     *
@@ -693,8 +693,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -712,7 +712,7 @@ public:
    forAllElements( Function&& f );
 
    /**
-    * \brief Process the lambda function \e f for each array element for constant instances.
+    * \brief Process the lambda function `f` for each array element for constant instances.
     *
     * The lambda function is supposed to be declared as
     *
@@ -722,8 +722,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -741,7 +741,7 @@ public:
    forAllElements( Function&& f ) const;
 
    /**
-    * \brief Method for saving the array to a binary file \e fileName.
+    * \brief Method for saving the array to a binary file `fileName`.
     *
     * \param fileName The output file name.
     */
@@ -749,7 +749,7 @@ public:
    save( const String& fileName ) const;
 
    /**
-    * \brief Method for loading the array from a binary file \e fileName.
+    * \brief Method for loading the array from a binary file `fileName`.
     *
     * \param fileName The input file name.
     */

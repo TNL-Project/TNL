@@ -85,7 +85,7 @@ public:
     * \brief Set the communication pattern between neighbors during data
     * synchronization.
     *
-    * \tparam Q is the number of elements in \e pattern.
+    * \tparam Q is the number of elements in `pattern`.
     * \param pattern is the synchronization pattern (array of directions
     *                in which the data will be sent). It must be consistent
     *                with the partitioning of the distributed array.
@@ -193,7 +193,7 @@ public:
    }
 
    /**
-    * \brief Synchronizes data in \e array distributed among MPI ranks.
+    * \brief Synchronizes data in `array` distributed among MPI ranks.
     *
     * \param array is the distributed array to be synchronized.
     * \param mask can be used to suppress specific directions from the
@@ -207,7 +207,7 @@ public:
    }
 
    /**
-    * \brief Synchronizes data in \e array distributed among MPI ranks.
+    * \brief Synchronizes data in `array` distributed among MPI ranks.
     *
     * This method is not thread-safe - only the thread which created and
     * "owns" the instance of this object can call this method.
@@ -630,13 +630,13 @@ public:
  *
  * \ingroup ndarray
  *
- * \tparam Q is the number of elements in \e pattern.
+ * \tparam Q is the number of elements in `pattern`.
  * \param synchronizer is an instance of \ref DistributedNDArraySynchronizer.
  * \param pattern is the synchronization pattern (array of directions
  *                in which the data will be sent). It must be consistent
  *                with the partitioning of the distributed array.
  * \param rank is the ID of the current MPI rank and also an index of the
- *             corresponding block in \e decomposition.
+ *             corresponding block in `decomposition`.
  * \param decomposition is a vector of blocks forming a decomposition of the
  *                      global block. Its size must be equal to the size of
  *                      the MPI communicator and indices of the blocks in the

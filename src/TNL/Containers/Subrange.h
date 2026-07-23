@@ -11,7 +11,7 @@
 
 namespace TNL::Containers {
 
-// Specifies a subrange [begin, end) of a range [0, globalSize).
+//! \brief Specifies a subrange `[begin, end)` of a range `[0, globalSize)`.
 template< typename Index >
 class Subrange
 {
@@ -27,7 +27,7 @@ public:
       setSubrange( begin, end );
    }
 
-   // Sets the local subrange and global range size.
+   //! \brief Sets the local subrange and global range size.
    __cuda_callable__
    void
    setSubrange( Index begin, Index end )
@@ -46,7 +46,7 @@ public:
       end = 0;
    }
 
-   // Checks if a global index is in the set of local indices.
+   //! \brief Checks if a global index is in the set of local indices.
    [[nodiscard]] __cuda_callable__
    bool
    isLocal( Index i ) const
@@ -54,7 +54,7 @@ public:
       return begin <= i && i < end;
    }
 
-   // Gets the begin of the subrange.
+   //! \brief Gets the begin of the subrange.
    [[nodiscard]] __cuda_callable__
    Index
    getBegin() const
@@ -62,7 +62,7 @@ public:
       return begin;
    }
 
-   // Gets the begin of the subrange.
+   //! \brief Gets the end of the subrange.
    [[nodiscard]] __cuda_callable__
    Index
    getEnd() const
@@ -70,7 +70,7 @@ public:
       return end;
    }
 
-   // Gets number of local indices.
+   //! \brief Gets number of local indices.
    [[nodiscard]] __cuda_callable__
    Index
    getSize() const
@@ -78,7 +78,7 @@ public:
       return end - begin;
    }
 
-   // Gets local index for given global index.
+   //! \brief Gets local index for given global index.
    [[nodiscard]] __cuda_callable__
    Index
    getLocalIndex( Index i ) const
@@ -88,7 +88,7 @@ public:
       return i - begin;
    }
 
-   // Gets global index for given local index.
+   //! \brief Gets global index for given local index.
    [[nodiscard]] __cuda_callable__
    Index
    getGlobalIndex( Index i ) const

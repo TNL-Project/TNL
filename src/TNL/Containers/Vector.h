@@ -9,10 +9,10 @@
 namespace TNL::Containers {
 
 /**
- * \brief \e Vector extends \ref Array with algebraic operations.
+ * \brief `Vector` extends \ref Array with algebraic operations.
  *
- * The template parameters have the same meaning as in \ref Array, with \e Real
- * corresponding to \e Array's \e Value parameter.
+ * The template parameters have the same meaning as in \ref Array, with `Real`
+ * corresponding to `Array`'s `Value` parameter.
  *
  * \tparam Real   An arithmetic type for the vector values, e.g. `float` or
  *                `double`.
@@ -20,7 +20,7 @@ namespace TNL::Containers {
  * \tparam Index  The indexing type.
  * \tparam Allocator The type of the allocator used for the allocation and
  *                   deallocation of memory used by the array. By default,
- *                   an appropriate allocator for the specified \e Device
+ *                   an appropriate allocator for the specified `Device`
  *                   is selected with \ref Allocators::Default.
  *
  * \par Example
@@ -108,7 +108,7 @@ public:
    /**
     * \brief Constructor from expression template
     *
-    * @param expression input expression template
+    * \param expression Input expression template.
     */
    template<
       typename VectorExpression,
@@ -124,7 +124,7 @@ public:
    operator=( const Vector& ) = default;
 
    /**
-    * \brief Move-assignment operator for acquiring data from \e rvalues.
+    * \brief Move-assignment operator for acquiring data from `rvalues`.
     */
    Vector&
    operator=( Vector&& ) noexcept( false ) = default;
@@ -132,8 +132,8 @@ public:
    /**
     * \brief Returns a modifiable view of the vector.
     *
-    * By default, a view for the whole vector is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole vector is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the vector sub-interval. It is 0 by
@@ -147,8 +147,8 @@ public:
    /**
     * \brief Returns a non-modifiable view of the vector.
     *
-    * By default, a view for the whole vector is returned. If \e begin or
-    * \e end is set to a non-zero value, a view only for the sub-interval
+    * By default, a view for the whole vector is returned. If `begin` or
+    * `end` is set to a non-zero value, a view only for the sub-interval
     * `[begin, end)` is returned.
     *
     * \param begin The beginning of the vector sub-interval. It is 0 by

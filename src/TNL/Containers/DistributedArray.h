@@ -251,7 +251,7 @@ public:
    operator!=( const Array& array ) const;
 
    /**
-    * \brief Process the lambda function \e f for each array element in interval [ \e begin, \e end).
+    * \brief Process the lambda function `f` for each array element in interval `[begin, end)`.
     *
     * The lambda function is supposed to be declared as
     *
@@ -261,8 +261,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.
@@ -276,7 +276,7 @@ public:
    forElements( IndexType begin, IndexType end, Function&& f );
 
    /**
-    * \brief Process the lambda function \e f for each array element in interval [ \e begin, \e end) for constant instances of
+    * \brief Process the lambda function `f` for each array element in interval `[begin, end)` for constant instances of
     * the array.
     *
     * The lambda function is supposed to be declared as
@@ -287,8 +287,8 @@ public:
     *
     * where
     *
-    * - \e elementIdx is an index of the array element being currently processed
-    * - \e elementValue is a value of the array element being currently processed
+    * - `elementIdx` is an index of the array element being currently processed
+    * - `elementValue` is a value of the array element being currently processed
     *
     * This is performed at the same place where the array is allocated,
     * i.e. it is efficient even on GPU.

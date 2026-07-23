@@ -57,10 +57,10 @@ public:
    //! \brief Type of the N-dimensional indexer, \ref NDArrayIndexer.
    using IndexerType = Indexer;
 
-   //! Compatible \ref NDArrayView type.
+   //! \brief Compatible \ref NDArrayView type.
    using ViewType = NDArrayView< ValueType, DeviceType, IndexerType, PermutationType >;
 
-   //! Compatible constant \ref NDArrayView type.
+   //! \brief Compatible constant \ref NDArrayView type.
    using ConstViewType = NDArrayView< std::add_const_t< ValueType >, DeviceType, IndexerType, PermutationType >;
 
    //! \brief View type of the underlying one-dimensional array storing the elements.
@@ -102,7 +102,7 @@ public:
    __cuda_callable__
    NDArrayView( const NDArrayView& ) = default;
 
-   //! \brief Move constructor for initialization from \e rvalues.
+   //! \brief Move constructor for initialization from `rvalues`.
    __cuda_callable__
    NDArrayView( NDArrayView&& ) noexcept = default;
 
@@ -221,7 +221,7 @@ public:
       return array;
    }
 
-   //! \brief Returns a \e const-qualified raw pointer to the data.
+   //! \brief Returns a `const`-qualified raw pointer to the data.
    [[nodiscard]] __cuda_callable__
    std::add_const_t< ValueType >*
    getData() const
@@ -241,7 +241,7 @@ public:
    using IndexerType::getStrides;
    using IndexerType::isContiguousBlock;
 
-   //! Returns a const-qualified reference to the underlying indexer.
+   //! \brief Returns a const-qualified reference to the underlying indexer.
    [[nodiscard]] __cuda_callable__
    const IndexerType&
    getIndexer() const
@@ -292,9 +292,9 @@ public:
     *                    array which selects the subset of dimensions to appear
     *                    in the subarray.
     * \param indices Indices of the _origin_ of the subarray in the whole array.
-    *                The number of indices supplied must be equal to \e N, i.e.
+    *                The number of indices supplied must be equal to `N`, i.e.
     *                \ref NDArrayIndexer::getDimension "getDimension()".
-    * \returns \ref NDArrayView instantiated for \ref ValueType, \ref DeviceType
+    * \return \ref NDArrayView instantiated for \ref ValueType, \ref DeviceType
     *          and an \ref NDArrayIndexer matching the specified dimensions and
     *          subarray sizes.
     */
@@ -347,9 +347,9 @@ public:
     * \brief Accesses an element of the array.
     *
     * \param indices Indices of the element in the N-dimensional array. The
-    *                number of indices supplied must be equal to \e N, i.e.
+    *                number of indices supplied must be equal to `N`, i.e.
     *                \ref NDArrayIndexer::getDimension "getDimension()".
-    * \returns Reference to the array element.
+    * \return Reference to the array element.
     */
    template< typename... IndexTypes >
    [[nodiscard]] __cuda_callable__
@@ -364,9 +364,9 @@ public:
     * \brief Accesses an element of the array.
     *
     * \param indices Indices of the element in the N-dimensional array. The
-    *                number of indices supplied must be equal to \e N, i.e.
+    *                number of indices supplied must be equal to `N`, i.e.
     *                \ref NDArrayIndexer::getDimension "getDimension()".
-    * \returns Constant reference to the array element.
+    * \return Constant reference to the array element.
     */
    template< typename... IndexTypes >
    [[nodiscard]] __cuda_callable__
@@ -384,7 +384,7 @@ public:
     *          equal to 1.
     *
     * \param index Index of the element in the one-dimensional array.
-    * \returns Reference to the array element.
+    * \return Reference to the array element.
     */
    [[nodiscard]] __cuda_callable__
    ValueType&
@@ -402,7 +402,7 @@ public:
     *          equal to 1.
     *
     * \param index Index of the element in the one-dimensional array.
-    * \returns Constant reference to the array element.
+    * \return Constant reference to the array element.
     */
    [[nodiscard]] __cuda_callable__
    const ValueType&

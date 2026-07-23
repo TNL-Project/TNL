@@ -10,7 +10,7 @@
 namespace TNL::Containers {
 
 /**
- * \brief \e DistributedVectorView extends \ref DistributedArrayView with algebraic operations.
+ * \brief `DistributedVectorView` extends \ref DistributedArrayView with algebraic operations.
  */
 template< typename Real, typename Device = Devices::Host, typename Index = int >
 class DistributedVectorView : public DistributedArrayView< Real, Device, Index >

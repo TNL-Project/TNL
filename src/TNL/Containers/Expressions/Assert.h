@@ -10,35 +10,35 @@
    // empty macros for optimized build
 
    /**
-    * \brief Asserts that the vector expression \e val1 is elementwise less than or equal to \e val2.
+    * \brief Asserts that the vector expression `val1` is elementwise less than or equal to `val2`.
     *
-    * The assertion succeeds if, and only if, \e val1 is elementwise less than or equal to \e val2.
+    * The assertion succeeds if, and only if, `val1` is elementwise less than or equal to `val2`.
     * On success the test continues without any side effects.
-    * On failure the test is terminated with the error message \e msg.
+    * On failure the test is terminated with the error message `msg`.
     */
    #define TNL_ASSERT_ALL_LE( val1, val2, msg )
    /**
-    * \brief Asserts that the vector expression \e val1 is elementwise less than \e val2.
+    * \brief Asserts that the vector expression `val1` is elementwise less than `val2`.
     *
-    * The assertion succeeds if, and only if, \e val1 is elementwise less than \e val2.
+    * The assertion succeeds if, and only if, `val1` is elementwise less than `val2`.
     * On success the test continues without any side effects.
-    * On failure the test is terminated with the error message \e msg.
+    * On failure the test is terminated with the error message `msg`.
     */
    #define TNL_ASSERT_ALL_LT( val1, val2, msg )
    /**
-    * \brief Asserts that the vector expression \e val1 is elementwise greater than or equal to \e val2.
+    * \brief Asserts that the vector expression `val1` is elementwise greater than or equal to `val2`.
     *
-    * The assertion succeeds if, and only if, \e val1 is elementwise greater than or equal to \e val2.
+    * The assertion succeeds if, and only if, `val1` is elementwise greater than or equal to `val2`.
     * On success the test continues without any side effects.
-    * On failure the test is terminated with the error message \e msg.
+    * On failure the test is terminated with the error message `msg`.
     */
    #define TNL_ASSERT_ALL_GE( val1, val2, msg )
    /**
-    * \brief Asserts that the vector expression \e val1 is elementwise greater than \e val2.
+    * \brief Asserts that the vector expression `val1` is elementwise greater than `val2`.
     *
-    * The assertion succeeds if, and only if, \e val1 is elementwise greater than \e val2.
+    * The assertion succeeds if, and only if, `val1` is elementwise greater than `val2`.
     * On success the test continues without any side effects.
-    * On failure the test is terminated with the error message \e msg.
+    * On failure the test is terminated with the error message `msg`.
     */
    #define TNL_ASSERT_ALL_GT( val1, val2, msg )
 

@@ -196,8 +196,8 @@ nd_map_view( Output output, Func f, const Input1 input1, const Input2 input2, co
 
 }  // namespace detail
 
-// f must be an N-ary function, where N is the dimension of the output and input arrays:
-//      output( i1, ..., iN ) = f( input1( i1, ..., iN ), ... inputM( i1, ..., iN ) )
+//! \brief Applies the function `f` element-wise across N-dimensional arrays
+//! with the formula `output(i1,...,iN) = f(input1(i1,...,iN), ..., inputM(i1,...,iN))`.
 template< typename Output, typename Func, typename... Input >
 void
 nd_map( Output& output, Func f, const Input&... input )
@@ -205,6 +205,7 @@ nd_map( Output& output, Func f, const Input&... input )
    detail::nd_map_view( output.getView(), f, input.getConstView()... );
 }
 
+//! \brief Assigns `input` to `output` element-wise.
 template< typename Output, typename Input >
 void
 nd_assign( Output& output, const Input& input )

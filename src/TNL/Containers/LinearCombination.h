@@ -28,7 +28,7 @@ namespace TNL::Containers {
  *    can be combined with expression templates, i.e. \ref TNL::Containers::StaticVector,
  *    \ref TNL::Containers::Vector or \ref TNL::Containers::DistributedVector.
  * \param vectors Input vectors that will be combined with `Coefficients`.
- * \returns An expression object representing the linear combination.
+ * \return An expression object representing the linear combination.
  */
 template< class Coefficients, typename Vector >
 constexpr auto
@@ -65,7 +65,7 @@ linearCombination( const std::array< Vector, Coefficients::getSize() >& vectors 
  *    \ref TNL::Containers::StaticVector, \ref TNL::Containers::Vector or
  *    \ref TNL::Containers::DistributedVector.
  * \param vectors Input vectors that will be combined with `Coefficients`.
- * \returns An expression object representing the linear combination.
+ * \return An expression object representing the linear combination.
  */
 template<
    class Coefficients,
