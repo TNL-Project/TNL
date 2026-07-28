@@ -45,11 +45,11 @@ struct CSRScalarKernel
     * \tparam ResultKeeper is lambda function for storing results from particular segments.
     *
     * \param segments is the segments data structure to be reduced.
-    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments in
+    * \param begin defines beginning of an interval `[begin, end)` of segments in
     *    which we want to perform the reduction.
-    * \param end defines and of an interval [ \e begin, \e end ) of segments in
+    * \param end defines end of an interval `[begin, end)` of segments in
     *    which we want to perform the reduction.
-    * \param fetch is a lambda function for fetching of data. It is suppos have one of the
+    * \param fetch is a lambda function for fetching of data. It is supposed to have one of the
     *  following forms:
     * 1. Full form
     *  ```
@@ -60,13 +60,13 @@ struct CSRScalarKernel
     * ```
     * auto fetch = [=] __cuda_callable__ ( IndexType globalIdx, bool& compute ) { ... }
     * ```
-    * where for both variants \e segmentIdx is segment index, \e localIdx is a
-    * rank of element in the segment, \e globalIdx is index of the element in
-    * related container and \e compute is a boolean variable which serves for
-    * stopping the reduction if it is set to \e false. It is however, only a
+    * where for both variants `segmentIdx` is segment index, `localIdx` is a
+    * rank of element in the segment, `globalIdx` is index of the element in
+    * related container and `compute` is a boolean variable which serves for
+    * stopping the reduction if it is set to `false`. It is however, only a
     * hint and the real behaviour depends on type of kernel used for the
     * reduction.  Some kernels are optimized so that they can be significantly
-    * faster with the brief variant of the \e fetch lambda function.
+    * faster with the brief variant of the `fetch` lambda function.
     *
     * \param reduction is a lambda function representing the reduction operation. It is
     * supposed to be defined as:
@@ -75,18 +75,18 @@ struct CSRScalarKernel
     * auto reduction = [=] __cuda_callable__ ( const Value& a, const Value& b ) -> Value { ... }
     * ```
     *
-    * where \e a and \e b are values to be reduced and the lambda function returns result of the reduction.
+    * where `a` and `b` are values to be reduced and the lambda function returns result of the reduction.
     * \param keeper is a lambda function for saving results from particular segments. It is supposed to be defined as:
     *
     * ```
     * auto keeper = [=] __cuda_callable__ ( IndexType segmentIdx, const Value& value ) { ... }
     * ```
     *
-    * where \e segmentIdx is an index of the segment and \e value is the result of the reduction in given segment to be stored.
+    * where `segmentIdx` is an index of the segment and `value` is the result of the reduction in given segment to be stored.
     *
     * \param identity is the initial value for the reduction operation.
-    *                 If \e Reduction does not have a static member function
-    *                 template \e getIdentity, it must be supplied explicitly
+    *                 If `Reduction` does not have a static member function
+    *                 template `getIdentity`, it must be supplied explicitly
     *                 by the user.
     *
     * \par Example

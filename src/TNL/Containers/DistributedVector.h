@@ -9,7 +9,7 @@
 namespace TNL::Containers {
 
 /**
- * \brief \e DistributedVector extends \ref DistributedArray with algebraic operations.
+ * \brief `DistributedVector` extends \ref DistributedArray with algebraic operations.
  *
  * \par Example
  * \include Containers/DistributedVectorExample.cpp
@@ -72,7 +72,7 @@ public:
    operator=( const DistributedVector& ) = default;
 
    /**
-    * \brief Move-assignment operator for acquiring data from \e rvalues.
+    * \brief Move-assignment operator for acquiring data from `rvalues`.
     */
    DistributedVector&
    operator=( DistributedVector&& ) noexcept( false ) = default;

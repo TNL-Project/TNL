@@ -45,15 +45,15 @@ namespace TNL {
 /**
  * \brief A simple RAII wrapper for Hypre's initialization and finalization.
  *
- * When the object is constructed, it calls \e HYPRE_Init() and sets some
- * GPU-relevant options. The \e HYPRE_Finalize() function is called
+ * When the object is constructed, it calls `HYPRE_Init()` and sets some
+ * GPU-relevant options. The `HYPRE_Finalize()` function is called
  * automatically from the object's destructor.
  *
  * \ingroup Hypre
  */
 struct Hypre
 {
-   //! \brief Constructor initializes Hypre by calling \e HYPRE_Init() and set default options.
+   //! \brief Constructor initializes Hypre by calling `HYPRE_Init()` and sets default options.
    Hypre()
    {
       HYPRE_Init();
@@ -83,7 +83,7 @@ struct Hypre
       // HYPRE_SetUseGpuRand(1);
    }
 
-   //! \brief Destructor that finalizes Hypre when the object goes out of scope.
+   //! \brief Destructor that finalizes Hypre by calling `HYPRE_Finalize()` when the object goes out of scope.
    ~Hypre()
    {
       HYPRE_Finalize();

@@ -87,19 +87,22 @@ getMaxBlockZSize()
 }
 
 /**
- * The warpSize variable is of type int and contains the warp size (in threads)
- * for the target device. This should be used only from device code in order to
- * develop portable wave-aware code.
+ * \brief Returns the warp size for the target device.
  *
- * Note that NVIDIA devices return 32; AMD devices return 64 for gfx8/gfx9 and
+ * The `warpSize` variable is of type `int` and contains the warp size
+ * (in threads) for the target device. This should be used only from device
+ * code to develop portable wave-aware code.
+ *
+ * \note NVIDIA devices return 32; AMD devices return 64 for gfx8/gfx9 and
  * 32 for gfx10 and above.
  *
- * Warning: the returned value may be inconsistent when used from a host-code
- * context on HIP, because `__GFX8__`/`__GFX9__` are defined only during device
- * compilation. On the host side, the function falls through to return 32.
- * Use `getMaxWarpSize()` for compile-time host-side guards, or the runtime
- * overload `getWarpSize(int deviceId)` for host-side dispatch decisions.
- * See https://clang.llvm.org/docs/HIPSupport.html#predefined-macros for details.
+ * \warning The returned value may be inconsistent when used from a host-code
+ * context on HIP, because `__GFX8__`/`__GFX9__` are defined only during
+ * device compilation. On the host side, the function falls through to
+ * return 32. Use `getMaxWarpSize()` for compile-time host-side guards,
+ * or the runtime overload `getWarpSize(int deviceId)` for host-side
+ * dispatch decisions. See
+ * https://clang.llvm.org/docs/HIPSupport.html#predefined-macros for details.
  *
  * https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#warpsize
  */
@@ -208,9 +211,9 @@ bufferedTransfer( std::size_t size, FillBuffer& fill, PushBuffer& push )
 }
 
 /**
- * This function creates a buffer on the host, fills it with data transferred
- * from \e source, which is a pointer to device memory, and the \e push handler
- * processes the data in the buffer.
+ * \brief This function creates a buffer on the host, fills it with data
+ * transferred from `source`, which is a pointer to device memory, and the
+ * `push` handler processes the data in the buffer.
  */
 template< typename Element, typename PushBuffer >
 void
@@ -229,9 +232,9 @@ bufferedTransferToHost( const Element* source, std::size_t size, PushBuffer& pus
 }
 
 /**
- * This function creates a buffer on the host, the \e fill handler fills it
- * with data and this function transfers data from the buffer to the
- * \e destination, which is a pointer to device memory.
+ * \brief This function creates a buffer on the host, the `fill` handler fills
+ * it with data and this function transfers data from the buffer to the
+ * `destination`, which is a pointer to device memory.
  */
 template< typename Element, typename FillBuffer >
 void

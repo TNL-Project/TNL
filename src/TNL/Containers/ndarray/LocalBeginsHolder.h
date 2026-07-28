@@ -7,7 +7,12 @@
 
 namespace TNL::Containers {
 
-// wrapper for localBegins in DistributedNDArray (static sizes cannot be distributed, begins are always 0)
+/**
+ * \brief Wrapper for local begins in \ref DistributedNDArray.
+ *
+ * Static sizes cannot be distributed, so begins are always the constant
+ * value specified by `ConstValue` (0 by default).
+ */
 template<
    typename SizesHolder,
    // overridable value is useful in the forInterior method

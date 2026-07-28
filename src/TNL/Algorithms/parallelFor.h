@@ -20,8 +20,8 @@ namespace TNL::Algorithms {
  * \brief Parallel for-loop function for 1D range specified with integral values.
  *
  * \tparam Device is a type of the device where the reduction will be performed.
- * \tparam Begin must be an \e integral type.
- * \tparam End must be an \e integral type.
+ * \tparam Begin must be an *integral* type.
+ * \tparam End must be an *integral* type.
  *
  * \param begin is the left bound of the iteration range `[begin, end)`.
  * \param end is the right bound of the iteration range `[begin, end)`.

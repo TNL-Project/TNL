@@ -16,7 +16,7 @@ namespace TNL {
  * definition of an allocator that does not meet the above condition must be
  * accompanied by a template specialization for this trait.
  *
- * \tparam Allocator a type to checky
+ * \tparam Allocator a type to check.
  */
 template< typename Allocator >
 struct allocates_host_accessible_data : public std::true_type

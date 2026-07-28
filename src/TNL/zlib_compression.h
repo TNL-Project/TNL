@@ -68,7 +68,7 @@ write_compressed_block(
 
 /**
  * \brief Decompress data in given byte array and return an array of elements of
- * type \e T and length \e data_size.
+ * type `T` and length `data_size`.
  */
 template< typename T >
 std::unique_ptr< T[] >

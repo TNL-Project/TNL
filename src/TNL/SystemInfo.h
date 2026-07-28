@@ -84,7 +84,7 @@ getCPUInfo();
 inline std::string
 getOnlineCPUs();
 
-//! \brief Returns the CPU cache sizes.
+//! \brief Returns the maximum frequency of the given CPU.
 inline int
 getCPUMaxFrequency( int cpu_id = 0 );
 

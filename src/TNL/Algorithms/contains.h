@@ -10,7 +10,7 @@ namespace TNL::Algorithms {
 /**
  * \brief Checks if an array/vector/view contains an element with given value.
  *
- * By default, all elements of the array are checked. If \e begin or \e end is
+ * By default, all elements of the array are checked. If `begin` or `end` is
  * set to a non-zero value, only elements in the sub-interval `[begin, end)` are
  * checked.
  *
@@ -20,7 +20,7 @@ namespace TNL::Algorithms {
  * \param end The end of the array sub-interval. The default value is 0 which
  *            is, however, replaced with the array size.
  * \return `true` if there is _at least one_ element in the sub-interval
- *         `[begin, end)` which has the value \e value. Returns `false` if the
+ *         `[begin, end)` which has the value `value`. Returns `false` if the
  *         range is empty.
  */
 template< typename Array >
@@ -45,7 +45,7 @@ contains(
 /**
  * \brief Checks if all elements of an array/vector/view have the given value.
  *
- * By default, all elements of the array are checked. If \e begin or \e end is
+ * By default, all elements of the array are checked. If `begin` or `end` is
  * set to a non-zero value, only elements in the sub-interval `[begin, end)` are
  * checked.
  *
@@ -55,7 +55,7 @@ contains(
  * \param end The end of the array sub-interval. The default value is 0 which
  *            is, however, replaced with the array size.
  * \return `true` if _all_ elements in the sub-interval `[begin, end)` have the
- *         same value \e value. Returns `true` if the range is empty.
+ *         same value `value`. Returns `true` if the range is empty.
  */
 template< typename Array >
 bool

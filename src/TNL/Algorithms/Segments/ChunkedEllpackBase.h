@@ -14,7 +14,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e ChunkedEllpackBase serves as a base class for \ref TNL::Algorithms::Segments::ChunkedEllpack and \ref
+ * \brief `ChunkedEllpackBase` serves as a base class for \ref TNL::Algorithms::Segments::ChunkedEllpack and \ref
  * TNL::Algorithms::Segments::ChunkedEllpackView.
  *
  * \tparam Device is type of device where the segments will be operating.
@@ -134,7 +134,7 @@ public:
    IndexType
    getSegmentsCount() const;
 
-   //! \brief Returns the size of a particular segment denoted by \e segmentIdx.
+   //! \brief Returns the size of a particular segment denoted by `segmentIdx`.
    [[nodiscard]] __cuda_callable__
    IndexType
    getSegmentSize( IndexType segmentIdx ) const;
@@ -307,7 +307,7 @@ protected:
    /**
     * \brief Re-initializes the internal attributes of the base class.
     *
-    * Note that this function is \e protected to ensure that the user cannot
+    * Note that this function is `protected` to ensure that the user cannot
     * modify the base class of segments. For the same reason, in future code
     * development we also need to make sure that all non-const functions in
     * the base class return by value and not by reference.

@@ -12,7 +12,7 @@
 namespace TNL::Algorithms {
 
 /**
- * \brief \e reduce implements [(parallel) reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern))
+ * \brief `reduce` implements [(parallel) reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern))
  * for vectors and arrays.
  *
  * Reduction can be used for operations having one or more vectors (or arrays)
@@ -30,8 +30,8 @@ namespace TNL::Algorithms {
  * \tparam Fetch is a lambda function for fetching the input data.
  * \tparam Reduction is a function object performing the reduction.
  *
- * \param begin defines range [begin, end) of indexes which will be used for the reduction.
- * \param end defines range [begin, end) of indexes which will be used for the reduction.
+ * \param begin defines range `[begin, end)` of indexes which will be used for the reduction.
+ * \param end defines range `[begin, end)` of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
  * \param reduction is a function object defining the reduction operation.
  *                  This can be a user-defined lambda function or an instance of
@@ -79,8 +79,8 @@ reduce( Index begin, Index end, Fetch&& fetch, Reduction&& reduction, const Resu
  * \tparam Fetch is a lambda function for fetching the input data.
  * \tparam Reduction is a function object performing the reduction.
  *
- * \param begin defines range [begin, end) of indexes which will be used for the reduction.
- * \param end defines range [begin, end) of indexes which will be used for the reduction.
+ * \param begin defines range `[begin, end)` of indexes which will be used for the reduction.
+ * \param end defines range `[begin, end)` of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
  * \param reduction is a function object defining the reduction operation,
  *                  it must be an instance of some \ref ReductionFunctionObjects.
@@ -188,8 +188,8 @@ reduce( const Array& array, Reduction&& reduction = TNL::Plus{} )
  * \tparam Reduction is a function object performing the reduction.
  * \tparam Fetch is a lambda function for fetching the input data.
  *
- * \param begin defines range [begin, end) of indexes which will be used for the reduction.
- * \param end defines range [begin, end) of indexes which will be used for the reduction.
+ * \param begin defines range `[begin, end)` of indexes which will be used for the reduction.
+ * \param end defines range `[begin, end)` of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
  * \param reduction is an instance of lambda function or function object defining the reduction operation.
  *                  This can be a user-defined lambda function or an instance of some \ref ReductionFunctionObjectsWithArgument.
@@ -237,8 +237,8 @@ reduceWithArgument( Index begin, Index end, Fetch&& fetch, Reduction&& reduction
  * \tparam Reduction is a function object performing the reduction.
  * \tparam Fetch is a lambda function for fetching the input data.
  *
- * \param begin defines range [begin, end) of indexes which will be used for the reduction.
- * \param end defines range [begin, end) of indexes which will be used for the reduction.
+ * \param begin defines range `[begin, end)` of indexes which will be used for the reduction.
+ * \param end defines range `[begin, end)` of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
  * \param reduction is an instance of lambda function or a function object defining the reduction operation.
  *                  This must be an instance of some \ref ReductionFunctionObjectsWithArgument.
@@ -307,7 +307,7 @@ reduceWithArgument( const Array& array, Reduction&& reduction, Result identity )
 /**
  * \brief Variant of \ref reduceWithArgument for arrays, views and compatible objects.
  *
- * \e Reduction can be one of \ref TNL::MinWithArg, \ref TNL::MaxWithArg.
+ * `Reduction` can be one of \ref TNL::MinWithArg, \ref TNL::MaxWithArg.
  *
  * The referenced \ref reduceWithArgument function is called with:
  *

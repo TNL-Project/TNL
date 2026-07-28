@@ -11,8 +11,9 @@
 namespace TNL::Algorithms::Sorting::detail {
 
 /**
- * this kernel simulates 1 exchange
- * splits input arr that is bitonic into 2 bitonic sequences
+ * \brief This kernel simulates 1 exchange.
+ *
+ * It splits input arr that is bitonic into 2 bitonic sequences.
  */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
 __global__
@@ -54,11 +55,11 @@ bitonicMergeGlobal(
 //---------------------------------------------
 
 /**
- * simulates many layers of merge
- * turns input that is a bitonic sequence into 1 monotonic sequence
+ * \brief Simulates many layers of merge.
  *
- * this version uses shared memory to do the operations
- * */
+ * Turns input that is a bitonic sequence into 1 monotonic sequence.
+ * This version uses shared memory to do the operations.
+ */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
 __global__
 void
@@ -125,10 +126,13 @@ bitonicMergeSharedMemory(
 }
 
 /**
- * entrypoint for bitonicSort_Block
- * sorts @param arr in alternating order to create bitonic sequences
- * sharedMem has to be able to store at least blockDim.x*2 elements
- * */
+ * \brief Entrypoint for bitonicSort_Block.
+ *
+ * Sorts `arr` in alternating order to create bitonic sequences.
+ * `sharedMem` has to be able to store at least `blockDim.x * 2` elements.
+ *
+ * \param arr The array to sort in alternating order.
+ */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
 __global__
 void
@@ -238,7 +242,8 @@ bitonicSortWithShared(
 //---------------------------------------------
 
 /**
- * Bitonic sort using only global memory (no shared memory optimization).
+ * \brief Bitonic sort using only global memory (no shared memory optimization).
+ *
  * Used when shared memory is too small for the element type.
  */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
@@ -265,7 +270,8 @@ bitonicSort( Containers::ArrayView< Value, Devices::GPU, ArrayIndex > view, cons
 //---------------------------------------------
 
 /**
- * Main entry point for bitonic sort on CUDA arrays.
+ * \brief Main entry point for bitonic sort on CUDA arrays.
+ *
  * Automatically selects between shared memory and global memory implementations
  * based on available shared memory and element size.
  */
@@ -317,7 +323,8 @@ bitonicSort( Containers::ArrayView< Value, Devices::GPU, ArrayIndex > view, cons
 //---------------------------------------------
 
 /**
- * Bitonic merge kernel for fetch-and-swap interface.
+ * \brief Bitonic merge kernel for fetch-and-swap interface.
+ *
  * Used when elements are accessed via custom fetch/swap functions rather than
  * direct array access.
  */
@@ -354,7 +361,8 @@ bitonicMergeGlobalWithSwap( Index size, CMP compare, SWAP Swap, Index monotonicS
 }
 
 /**
- * Bitonic sort with custom fetch and swap operations.
+ * \brief Bitonic sort with custom fetch and swap operations.
+ *
  * Useful for sorting indirect arrays or when additional logic is needed
  * during comparison or swapping.
  */

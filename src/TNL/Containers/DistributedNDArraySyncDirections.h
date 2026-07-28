@@ -81,7 +81,7 @@ operator|( SyncDirection a, SyncDirection b )
  * This operator makes `a -= b` equivalent to `a &= ~b`, i.e. it clears all
  * bits from `b` in `a`.
  *
- * \returns reference to `a`
+ * \return reference to `a`
  *
  * \ingroup ndarray
  */
@@ -165,7 +165,7 @@ static constexpr std::array< SyncDirection, 26 > D3Q27 = {
  * \param block is the block.
  * \param direction is the direction from the center of the block to one of
  *                  its vertices.
- * \returns coordinates of the block vertex.
+ * \return coordinates of the block vertex.
  * \throws std::invalid_argument when the direction does not point to a
  *         vertex. E.g., \ref SyncDirection::BackBottomLeft is valid, but
  *         \ref SyncDirection::TopRight or \ref SyncDirection::Left are not.

@@ -101,24 +101,35 @@ namespace TNL {
 template< typename T, typename Device >
 class Atomic;
 
+/**
+ * \brief Atomic wrapper for the host device.
+ *
+ * Extends `std::atomic<T>` with copyability and atomic `fetch_max` / `fetch_min`
+ * operations. The copy operations are not atomic; they synchronize only with
+ * respect to one or the other object.
+ */
 template< typename T >
 class Atomic< T, Devices::Host > : public std::atomic< T >
 {
 public:
+   //! \brief Default constructor.
    Atomic() noexcept = default;
 
-   // inherit constructors
+   //! \brief Inherited constructors from `std::atomic<T>`.
    using std::atomic< T >::atomic;
 
    // NOTE: std::atomic is not copyable (see https://stackoverflow.com/a/15250851 for
    // an explanation), but we need copyability for TNL::Containers::Array. Note that
    // this copy-constructor and copy-assignment operator are not atomic as they
    // synchronize only with respect to one or the other object.
+   //! \brief Copy constructor.
    Atomic( const Atomic& desired ) noexcept
    : std::atomic< T >()
    {
       this->store( desired.load() );
    }
+
+   //! \brief Copy assignment operator.
    Atomic&
    operator=( const Atomic& desired ) noexcept
    {
@@ -128,6 +139,7 @@ public:
 
    // CAS loops for updating maximum and minimum
    // reference: https://stackoverflow.com/a/16190791
+   //! \brief Atomically updates the stored value to the maximum of the current value and `value`.
    T
    fetch_max( T value ) noexcept
    {
@@ -138,6 +150,7 @@ public:
       return old;
    }
 
+   //! \brief Atomically updates the stored value to the minimum of the current value and `value`.
    T
    fetch_min( T value ) noexcept
    {
@@ -149,34 +162,56 @@ public:
    }
 };
 
+/**
+ * \brief Atomic wrapper for the sequential device.
+ *
+ * Inherits all behaviour from \ref Atomic<T, Devices::Host>.
+ */
 template< typename T >
 class Atomic< T, Devices::Sequential > : public Atomic< T, Devices::Host >
 {
    using Base = Atomic< T, Devices::Host >;
 
 public:
+   //! \brief Inherited constructors.
    using Base::Atomic;
+
+   //! \brief Inherited assignment operators.
    using Base::operator=;
+
+   //! \brief Inherited `fetch_max` method.
    using Base::fetch_max;
+
+   //! \brief Inherited `fetch_min` method.
    using Base::fetch_min;
 };
 
+/**
+ * \brief Atomic wrapper for the CUDA/HIP device.
+ *
+ * Implements the same interface as `std::atomic<T>` using CUDA/HIP built-in
+ * atomic operations. The copy operations are not atomic.
+ */
 template< typename T >
 class Atomic< T, Devices::Cuda >
 {
 public:
+   //! \brief Type of the atomic value.
    using value_type = T;
    // FIXME
    //   using difference_type = typename std::atomic< T >::difference_type;
 
+   //! \brief Default constructor.
    __cuda_callable__
    Atomic() noexcept = default;
 
+   //! \brief Constructor initializing the atomic value to `desired`.
    __cuda_callable__
    constexpr Atomic( T desired ) noexcept
    : value( desired )
    {}
 
+   //! \brief Assigns `desired` to the atomic value.
    __cuda_callable__
    T
    operator=( T desired ) noexcept
@@ -189,6 +224,7 @@ public:
    // an explanation), but we need copyability for TNL::Containers::Array. Note that
    // this copy-constructor and copy-assignment operator are not atomic as they
    // synchronize only with respect to one or the other object.
+   //! \brief Copy constructor.
    __cuda_callable__
    Atomic( const Atomic& desired ) noexcept
    {
@@ -196,6 +232,8 @@ public:
       //      *this = desired.load();
       *this = desired.value;
    }
+
+   //! \brief Copy assignment operator.
    __cuda_callable__
    Atomic&
    operator=( const Atomic& desired ) noexcept
@@ -206,18 +244,21 @@ public:
       return *this;
    }
 
+   //! \brief Returns `true` if the atomic operations are lock-free.
    [[nodiscard]] bool
    is_lock_free() const noexcept
    {
       return true;
    }
 
+   //! \brief Returns `true` if the atomic operations are always lock-free.
    [[nodiscard]] constexpr bool
    is_always_lock_free() const noexcept
    {
       return true;
    }
 
+   //! \brief Atomically replaces the stored value with `desired`.
    __cuda_callable__
    void
    store( T desired ) noexcept
@@ -226,6 +267,7 @@ public:
       exchange( desired );
    }
 
+   //! \brief Atomically loads the stored value.
    __cuda_callable__
    T
    load() const noexcept
@@ -238,12 +280,14 @@ public:
       return const_cast< Atomic& >( *this ).fetch_add( 0 );
    }
 
+   //! \brief Conversion operator returning the stored value.
    __cuda_callable__
    operator T() const noexcept
    {
       return load();
    }
 
+   //! \brief Atomically exchanges the stored value with `desired`.
    __cuda_callable__
    T
    exchange( T desired ) noexcept
@@ -257,6 +301,7 @@ public:
 #endif
    }
 
+   //! \brief Weak compare-and-exchange operation.
    __cuda_callable__
    bool
    compare_exchange_weak( T& expected, T desired ) noexcept
@@ -264,6 +309,7 @@ public:
       return compare_exchange_strong( expected, desired );
    }
 
+   //! \brief Strong compare-and-exchange operation.
    __cuda_callable__
    bool
    compare_exchange_strong( T& expected, T desired ) noexcept
@@ -285,6 +331,7 @@ public:
 #endif
    }
 
+   //! \brief Atomically adds `arg` to the stored value and returns the old value.
    __cuda_callable__
    T
    fetch_add( T arg )
@@ -298,6 +345,7 @@ public:
 #endif
    }
 
+   //! \brief Atomically subtracts `arg` from the stored value and returns the old value.
    __cuda_callable__
    T
    fetch_sub( T arg )
@@ -311,6 +359,7 @@ public:
 #endif
    }
 
+   //! \brief Atomically performs bitwise AND with `arg` and returns the old value.
    __cuda_callable__
    T
    fetch_and( T arg )
@@ -324,6 +373,7 @@ public:
 #endif
    }
 
+   //! \brief Atomically performs bitwise OR with `arg` and returns the old value.
    __cuda_callable__
    T
    fetch_or( T arg )
@@ -337,6 +387,7 @@ public:
 #endif
    }
 
+   //! \brief Atomically performs bitwise XOR with `arg` and returns the old value.
    __cuda_callable__
    T
    fetch_xor( T arg )
@@ -350,6 +401,7 @@ public:
 #endif
    }
 
+   //! \brief Atomically adds `arg` to the stored value and returns the new value.
    __cuda_callable__
    T
    operator+=( T arg ) noexcept
@@ -357,6 +409,7 @@ public:
       return fetch_add( arg ) + arg;
    }
 
+   //! \brief Atomically subtracts `arg` from the stored value and returns the new value.
    __cuda_callable__
    T
    operator-=( T arg ) noexcept
@@ -364,6 +417,7 @@ public:
       return fetch_sub( arg ) - arg;
    }
 
+   //! \brief Atomically performs bitwise AND with `arg` and returns the new value.
    __cuda_callable__
    T
    operator&=( T arg ) noexcept
@@ -371,6 +425,7 @@ public:
       return fetch_and( arg ) & arg;
    }
 
+   //! \brief Atomically performs bitwise OR with `arg` and returns the new value.
    __cuda_callable__
    T
    operator|=( T arg ) noexcept
@@ -378,6 +433,7 @@ public:
       return fetch_or( arg ) | arg;
    }
 
+   //! \brief Atomically performs bitwise XOR with `arg` and returns the new value.
    __cuda_callable__
    T
    operator^=( T arg ) noexcept
@@ -385,7 +441,7 @@ public:
       return fetch_xor( arg ) ^ arg;
    }
 
-   // pre-increment
+   //! \brief Pre-increment operator.
    __cuda_callable__
    T
    operator++() noexcept
@@ -393,7 +449,7 @@ public:
       return fetch_add( 1 ) + 1;
    }
 
-   // post-increment
+   //! \brief Post-increment operator.
    __cuda_callable__
    T
    operator++( int ) noexcept
@@ -401,7 +457,7 @@ public:
       return fetch_add( 1 );
    }
 
-   // pre-decrement
+   //! \brief Pre-decrement operator.
    __cuda_callable__
    T
    operator--() noexcept
@@ -409,7 +465,7 @@ public:
       return fetch_sub( 1 ) - 1;
    }
 
-   // post-decrement
+   //! \brief Post-decrement operator.
    __cuda_callable__
    T
    operator--( int ) noexcept
@@ -419,6 +475,7 @@ public:
 
    // extensions (methods not present in C++ standards)
 
+   //! \brief Atomically updates the stored value to the maximum of the current value and `arg`.
    __cuda_callable__
    T
    fetch_max( T arg ) noexcept
@@ -432,6 +489,7 @@ public:
 #endif
    }
 
+   //! \brief Atomically updates the stored value to the minimum of the current value and `arg`.
    __cuda_callable__
    T
    fetch_min( T arg ) noexcept
@@ -446,6 +504,7 @@ public:
    }
 
 protected:
+   //! \brief The stored atomic value.
    T value;
 };
 

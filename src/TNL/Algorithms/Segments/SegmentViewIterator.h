@@ -43,7 +43,7 @@ public:
     * \brief Comparison of two matrix Segment iterators.
     *
     * \param other is another matrix Segment iterator.
-    * \return \e true if both iterators points at the same point of the same matrix, \e false otherwise.
+    * \return `true` if both iterators point at the same point of the same matrix, `false` otherwise.
     */
    [[nodiscard]] __cuda_callable__
    bool
@@ -53,7 +53,7 @@ public:
     * \brief Comparison of two matrix Segment iterators.
     *
     * \param other is another matrix Segment iterator.
-    * \return \e false if both iterators points at the same point of the same matrix, \e true otherwise.
+    * \return `false` if both iterators point at the same point of the same matrix, `true` otherwise.
     */
    [[nodiscard]] __cuda_callable__
    bool

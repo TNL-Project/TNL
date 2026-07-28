@@ -36,12 +36,12 @@ namespace TNL::Algorithms::Segments {
  *
  * Similar to other segment operations, traversal functions come in different scopes and conditional variants.
  *
- * | Scope     | Segments Processed    | Parameters                                         |
- * |-----------|-----------------------|----------------------------------------------------|
- * | **All**   | All segments          | No range/array parameters                          |
- * | **Range** | Segments [begin, end) | `begin` and `end` indices                          |
- * | **Array** | Specific segments     | Array of segment indices                           |
- * | **If**    | Segment condition     | Process segments based on segment-level properties |
+ * | Scope     | Segments Processed      | Parameters                                         |
+ * |-----------|-------------------------|----------------------------------------------------|
+ * | **All**   | All segments            | No range/array parameters                          |
+ * | **Range** | Segments `[begin, end)` | `begin` and `end` indices                          |
+ * | **Array** | Specific segments       | Array of segment indices                           |
+ * | **If**    | Segment condition       | Process segments based on segment-level properties |
  *
  * \section SegmentTraversalElementFunctions Element-wise Traversal Functions
  *
@@ -49,13 +49,13 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentTraversalBasicElementFunctions Basic Element Traversal
  *
- * | Function                    | Segments Processed    | Description                                |
- * |-----------------------------|-----------------------|--------------------------------------------|
- * | \ref forAllElements         | All segments          | Process all elements in all segments       |
- * | \ref forElements (range)    | Segments [begin, end) | Process elements in segment range          |
- * | \ref forElements (array)    | Segments in array     | Process elements in specified segments     |
- * | \ref forAllElementsIf       | All segments          | Segment-level condition                    |
- * | \ref forElementsIf          | Segments [begin, end) | Segment-level condition                    |
+ * | Function                    | Segments Processed      | Description                                |
+ * |-----------------------------|-------------------------|--------------------------------------------|
+ * | \ref forAllElements         | All segments            | Process all elements in all segments       |
+ * | \ref forElements (range)    | Segments `[begin, end)` | Process elements in segment range          |
+ * | \ref forElements (array)    | Segments in array       | Process elements in specified segments     |
+ * | \ref forAllElementsIf       | All segments            | Segment-level condition                    |
+ * | \ref forElementsIf          | Segments `[begin, end)` | Segment-level condition                    |
  *
  * \section SegmentTraversalSegmentFunctions Segment-wise Traversal Functions
  *
@@ -63,13 +63,13 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentTraversalBasicSegmentFunctions Basic Segment Traversal
  *
- * | Function                 | Segments Processed    | Description                    |
- * |--------------------------|-----------------------|--------------------------------|
- * | \ref forAllSegments      | All segments          | Process all segments           |
- * | \ref forSegments (range) | Segments [begin, end) | Process segments in range      |
- * | \ref forSegments (array) | Segments in array     | Process specified segments     |
- * | \ref forAllSegmentsIf    | All segments          | Segment-level condition        |
- * | \ref forSegmentsIf       | Segments [begin, end) | Segment-level condition        |
+ * | Function                 | Segments Processed      | Description                    |
+ * |--------------------------|-------------------------|--------------------------------|
+ * | \ref forAllSegments      | All segments            | Process all segments           |
+ * | \ref forSegments (range) | Segments `[begin, end)` | Process segments in range      |
+ * | \ref forSegments (array) | Segments in array       | Process specified segments     |
+ * | \ref forAllSegmentsIf    | All segments            | Segment-level condition        |
+ * | \ref forSegmentsIf       | Segments `[begin, end)` | Segment-level condition        |
  *
  * \section SegmentTraversalParameters Common Parameters
  *
@@ -110,9 +110,9 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e segmentIdx - The index of the segment to which the given element belongs
- * - \e localIdx - The rank (position) of the element within the segment
- * - \e globalIdx - The global index of the element within the range of all elements managed by the segments
+ * - `segmentIdx` - The index of the segment to which the given element belongs
+ * - `localIdx` - The rank (position) of the element within the segment
+ * - `globalIdx` - The global index of the element within the range of all elements managed by the segments
  *
  * \subsection SegmentTraversalElementLambda_Brief Brief Form (Without Local Index)
  *
@@ -124,8 +124,8 @@ namespace TNL::Algorithms::Segments {
  * lead to better performance.
  *
  * **Parameters:**
- * - \e segmentIdx - The index of the segment to which the given element belongs
- * - \e globalIdx - The global index of the element within the range of all elements managed by the segments
+ * - `segmentIdx` - The index of the segment to which the given element belongs
+ * - `globalIdx` - The global index of the element within the range of all elements managed by the segments
  *
  * \section SegmentTraversalViewLambdas Segment View Lambda Functions
  *
@@ -138,7 +138,7 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e segment - A view representing the given segment (see \ref TNL::Algorithms::Segments::SegmentView).
+ * - `segment` - A view representing the given segment (see \ref TNL::Algorithms::Segments::SegmentView).
  *   The segment view provides access to segment properties and its elements.
  *
  * \section SegmentTraversalConditionLambdas Segment Condition Lambda Functions
@@ -152,8 +152,8 @@ namespace TNL::Algorithms::Segments {
  * ```
  *
  * **Parameters:**
- * - \e segmentIdx - The index of the segment
- * - Returns: \e true if the segment (or its elements) should be processed, \e false otherwise
+ * - `segmentIdx` - The index of the segment
+ * - Returns: `true` if the segment (or its elements) should be processed, `false` otherwise
  *
  * \section SegmentTraversalLambdasRelatedPages Related Pages
  *
@@ -193,16 +193,16 @@ forAllElements(
  * See also: \ref SegmentTraversalOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments whose elements we want to process using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments whose elements we want to process using the lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param segments The segments whose elements will be processed using the lambda function.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments whose elements
+ * \param begin The beginning of the interval `[begin, end)` of segments whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of segments whose elements
+ * \param end The end of the interval `[begin, end)` of segments whose elements
  *    will be processed using the lambda function.
  * \param function The lambda function to be applied to each element. See \ref SegmentTraversalElementLambda_Full or \ref
  * SegmentTraversalElementLambda_Brief.
@@ -258,9 +258,9 @@ forElements(
  * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
- * If the condition lambda function returns \e true, all elements of the segment are traversed,
+ * If the condition lambda function returns `true`, all elements of the segment are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
- * \e false, the segment is skipped.
+ * `false`, the segment is skipped.
  *
  * \tparam Segments The type of the segments.
  * \tparam Condition The type of the condition lambda function.
@@ -291,22 +291,22 @@ forAllElementsIf(
  * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
- * If the condition lambda function returns \e true, all elements of the segment are traversed,
+ * If the condition lambda function returns `true`, all elements of the segment are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
- * \e false, the segment is skipped.
+ * `false`, the segment is skipped.
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
- *    of segments whose elements will be processed using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
- *    of segments whose elements will be processed using the lambda function.
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
+ *    of segments whose elements we want to process using the lambda function.
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
+ *    of segments whose elements we want to process using the lambda function.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param segments The segments whose elements will be processed using the lambda function.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments whose elements
+ * \param begin The beginning of the interval `[begin, end)` of segments whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of segments whose elements
+ * \param end The end of the interval `[begin, end)` of segments whose elements
  *    will be processed using the lambda function.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param function The lambda function to be applied to each element. See \ref SegmentTraversalElementLambda_Full or \ref
@@ -363,16 +363,16 @@ forAllSegments(
  * See also: \ref SegmentTraversalOverview
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each segment.
  *
  * \param segments The segments on which the lambda function will be applied.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segments
+ * \param begin The beginning of the interval `[begin, end)` of segments
  *    that will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of segments
+ * \param end The end of the interval `[begin, end)` of segments
  *    that will be processed using the lambda function.
  * \param function The lambda function to be applied to each segment. See \ref SegmentTraversalViewLambda.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -436,8 +436,8 @@ forSegments(
  * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
- * If the condition lambda function returns \e true, the specified lambda function is executed for the segment.
- * If the condition lambda function returns \e false, the segment is skipped.
+ * If the condition lambda function returns `true`, the specified lambda function is executed for the segment.
+ * If the condition lambda function returns `false`, the segment is skipped.
  *
  * \tparam Segments The type of the segments.
  * \tparam SegmentCondition The type of the condition lambda function.
@@ -468,21 +468,21 @@ forAllSegmentsIf(
  * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
- * If the condition lambda function returns \e true, the specified lambda function is executed for the segment.
- * If the condition lambda function returns \e false, the segment is skipped.
+ * If the condition lambda function returns `true`, the specified lambda function is executed for the segment.
+ * If the condition lambda function returns `false`, the segment is skipped.
  *
  * \tparam Segments The type of the segments.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of segments on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of segments on which the lambda function will be applied.
  * \tparam SegmentCondition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each segment.
  *
  * \param segments The segments on which the lambda function will be applied.
- * \param begin The beginning of the interval [ \e begin, \e end ) of segment indexes
+ * \param begin The beginning of the interval `[begin, end)` of segment indexes
  *    whose corresponding segments will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of segment indexes
+ * \param end The end of the interval `[begin, end)` of segment indexes
  *    whose corresponding segments will be processed using the lambda function.
  * \param segmentCondition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param function The lambda function to be applied to each segment. See \ref SegmentTraversalViewLambda.

@@ -10,7 +10,7 @@
 
 namespace TNL {
 
-/// Creates calculations log in the form of a table.
+//! \brief Creates calculations log in the form of a table.
 class Logger
 {
 public:
@@ -42,7 +42,7 @@ public:
    /**
     * \brief Inserts information about various system parameters into the log.
     *
-    * \param printGPUInfo When \e true, prints information about available GPUs.
+    * \param printGPUInfo When `true`, prints information about available GPUs.
     */
    bool
    writeSystemInformation( bool printGPUInfo = false );

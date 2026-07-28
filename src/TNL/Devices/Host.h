@@ -18,8 +18,8 @@ namespace TNL::Devices {
 class Host
 {
 public:
-   //! For compatibility with \ref TNL::Devices::Cuda only. In the future, it may be used to specify parameters for OpenMP
-   //! execution.
+   //! \brief For compatibility with \ref TNL::Devices::Cuda only.
+   //! In the future, it may be used to specify parameters for OpenMP execution.
    struct LaunchConfiguration
    {};
 

@@ -25,11 +25,10 @@ public:
    /**
     * \brief Get a stream from the pool.
     *
+    * If the stream with the given ID was not created yet, it is created by
+    * calling \ref Stream::create with the following parameters:
+    *
     * \param id Numeric ID of the requested stream.
-    *
-    * If the stream with given ID was not created yet, it is created by calling
-    * \ref Stream::create with the following parameters:
-    *
     * \param flags Custom flags for stream creation.
     *              See \ref Stream::create for details.
     * \param priority Priority of the stream.

@@ -232,7 +232,7 @@ all_elements_equal_to_value( std::size_t value, std::initializer_list< std::size
 #endif
 }
 
-// Check that all elements of the initializer list are in the specified range [begin, end).
+// Check that all elements of the initializer list are in the specified range `[begin, end)`.
 // [used in ndarray.h -- static assertions on permutations]
 constexpr bool
 all_elements_in_range( std::size_t begin, std::size_t end, std::initializer_list< std::size_t > list )

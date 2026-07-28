@@ -13,8 +13,9 @@
 namespace TNL {
 
 /**
- * \brief This class serves for binary IO. It allows to do IO even for data allocated on GPU together with on-the-fly data type
- * conversion.
+ * \brief This class serves for binary IO.
+ * It allows to do IO even for data allocated on GPU together with on-the-fly
+ * data type conversion.
  *
  * \par Example
  * \include FileExample.cpp
@@ -42,16 +43,16 @@ public:
    /**
     * \brief Constructor which opens given file.
     *
-    * All parameters are passed to the \ref open method.
+    * All parameters are passed to the \ref File::open method.
     */
    File( const std::string& fileName, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out );
 
    /**
     * \brief Open given file.
     *
-    * Opens file with given \e fileName in some \e mode from \ref std::ios_base::openmode.
-    * Note that the file is always opened in binary mode, i.e. \ref std::ios_base::openmode
-    * "std::ios_base::binary" is always added to \e mode.
+    * Opens file with given `fileName` in some `mode` from \ref std::ios_base::openmode.
+    * Note that the file is always opened in binary mode,
+    * i.e. \ref std::ios_base::openmode "std::ios_base::binary" is always added to `mode`.
     *
     * Throws \ref std::ios_base::failure on failure.
     *
@@ -81,18 +82,18 @@ public:
    /**
     * \brief Method for loading data from the file.
     *
-    * The data will be stored in \e buffer which was allocated using the
-    * allocator of type \e Allocator. The data type of the buffer is given
-    * by the template parameter \e Type. The second template parameter
-    * \e SourceType defines the type of data in the source file. If both
-    * types are different, on-the-fly conversion takes place during the
-    * data loading.
+    * The data will be stored in `destination`,
+    * which was allocated using the allocator of type `Allocator`.
+    * The data type of the buffer is given by the template parameter `Type`.
+    * The second template parameter `SourceType` defines the type of data in the source file.
+    * If both types are different,
+    * on-the-fly conversion takes place during the data loading.
     *
     * Throws \ref std::ios_base::failure on failure.
     *
-    * \tparam Type type of data to be loaded to the \e destination.
-    * \tparam SourceType type of data stored on the file,
-    * \tparam Allocator type of the allocator which was used to allocate \e destination.
+    * \tparam Type type of data to be loaded to the `destination`.
+    * \tparam SourceType type of data stored on the file.
+    * \tparam Allocator type of the allocator which was used to allocate `destination`.
     * \param destination Pointer in memory where the elements are loaded and stored after reading.
     * \param elements number of elements to be loaded from the file.
     *
@@ -117,17 +118,18 @@ public:
    /**
     * \brief Method for saving data to the file.
     *
-    * The data from the \e buffer (with type \e Type) which was allocated
-    * using an allocator of type \e Allocator. \e TargetType defines as what
-    * data type the buffer shall be saved. If the type is different from the
-    * data type, on-the-fly data type conversion takes place during the data
-    * saving.
+    * The data from the `source` (with type `Type`),
+    * which was allocated using an allocator of type `Allocator`,
+    * will be saved.
+    * `TargetType` defines the data type used to save the buffer.
+    * If the type is different from the data type,
+    * on-the-fly data type conversion takes place during the data saving.
     *
     * Throws \ref std::ios_base::failure on failure.
     *
-    * \tparam Type type of data in the \e source.
-    * \tparam TargetType tells as what type data the buffer shall be saved.
-    * \tparam Allocator type of the allocator which was used to allocate \e source.
+    * \tparam Type type of data in the `source`.
+    * \tparam TargetType defines the data type used to save the buffer.
+    * \tparam Allocator type of the allocator which was used to allocate `source`.
     * \tparam Index type of index by which the elements are indexed.
     * \param source buffer that is going to be saved to the file.
     * \param elements number of elements saved to the file.
@@ -143,7 +145,7 @@ public:
     *
     * Throws \ref std::ios_base::failure on failure.
     *
-    * \tparam SourceType type of data stored on the file,
+    * \tparam SourceType type of data stored on the file.
     * \param elements number of elements to be read and ignored.
     */
    template< typename SourceType >
@@ -194,7 +196,7 @@ protected:
 };
 
 /**
- * \brief Serialization of strings
+ * \brief Serialization of strings.
  */
 File&
 operator<<( File& file, const std::string& str );

@@ -9,7 +9,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e ChunkedView is provides a non-owning encapsulation of meta-data stored in
+ * \brief `ChunkedEllpackView` provides a non-owning encapsulation of meta-data stored in
  * the \ref TNL::Algorithms::Segments::ChunkedEllpack segments.
  *
  * \tparam Device is type of device where the segments will be operating.

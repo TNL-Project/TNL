@@ -3,6 +3,16 @@
 
 #pragma once
 
+/**
+ * \brief Convenience header file which includes all headers from the
+ `TNL/Backend/` subdirectory.
+ *
+ * Users may use this to avoid having to include many header files in their projects.
+ * On the other hand,
+ * parts of the TNL library should generally include only the specific headers they need,
+ * in order to avoid cycles in the header inclusion.
+ */
+
 #include <TNL/Backend/Types.h>
 #include <TNL/Backend/Macros.h>
 #include <TNL/Backend/Functions.h>

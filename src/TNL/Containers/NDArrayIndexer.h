@@ -81,7 +81,7 @@ public:
      overlaps( std::move( overlaps ) )
    {}
 
-   //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
+   //! \brief Returns the dimension of the `N`-dimensional array, i.e. `N`.
    [[nodiscard]] static constexpr std::size_t
    getDimension()
    {
@@ -160,7 +160,7 @@ public:
    /**
     * \brief Returns the size (number of elements) needed to store the N-dimensional array.
     *
-    * \returns The product of the aligned sizes.
+    * \return The product of the aligned sizes.
     */
    [[nodiscard]] __cuda_callable__
    IndexType
@@ -174,9 +174,9 @@ public:
     *        of the N-dimensional array.
     *
     * \param indices Indices of the element in the N-dimensional array. The
-    *                number of indices supplied must be equal to \e N, i.e.
+    *                number of indices supplied must be equal to `N`, i.e.
     *                \ref getDimension().
-    * \returns An index that can be used to address the element in a
+    * \return An index that can be used to address the element in a
     *          one-dimensional array.
     */
    template< typename... IndexTypes >

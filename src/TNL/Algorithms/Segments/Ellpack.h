@@ -29,8 +29,8 @@ namespace TNL::Algorithms::Segments {
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  * \tparam Organization The organization of the elements in the segments—either
- * row-major or column-major order. \tparam Alignment The alignment of the
- * number of segments (to optimize data alignment, particularly on GPUs).
+ * row-major or column-major order.
+ * \tparam Alignment The alignment of the number of segments (to optimize data alignment, particularly on GPUs).
  */
 template<
    typename Device,
@@ -90,7 +90,7 @@ public:
    /**
     * \brief Constructor that initializes segments based on their sizes.
     *
-    * The number of segments is determined by the size of \e segmentsSizes.
+    * The number of segments is determined by the size of `segmentsSizes`.
     * Each element in this container specifies the size of a corresponding
     * segment.
     *
@@ -113,7 +113,7 @@ public:
    /**
     * \brief Constructor that initializes segments using an initializer list.
     *
-    * The number of segments is determined by the size of \e segmentsSizes.
+    * The number of segments is determined by the size of `segmentsSizes`.
     * Each element in this initializer list specifies the size of a corresponding
     * segment.
     *

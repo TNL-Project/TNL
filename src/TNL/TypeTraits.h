@@ -38,7 +38,7 @@ struct enable_if_type
 };
 
 /**
- * \brief Type trait for checking if T has getArrayData method.
+ * \brief Type trait for checking if `T` has a `getArrayData` method.
  */
 template< typename T >
 class HasGetArrayDataMethod
@@ -55,7 +55,7 @@ public:
 };
 
 /**
- * \brief Type trait for checking if T has getSize method.
+ * \brief Type trait for checking if `T` has a `getSize` method.
  */
 template< typename T >
 class HasGetSizeMethod
@@ -72,7 +72,7 @@ public:
 };
 
 /**
- * \brief Type trait for checking if T has setSize method.
+ * \brief Type trait for checking if `T` has a `setSize` method.
  */
 template< typename T >
 class HasSetSizeMethod
@@ -95,7 +95,7 @@ public:
 };
 
 /**
- * \brief Type trait for checking if T has operator[] taking one index argument.
+ * \brief Type trait for checking if `T` has `operator[]` taking one index argument.
  */
 template< typename T >
 class HasSubscriptOperator
@@ -119,7 +119,7 @@ public:
 };
 
 /**
- * \brief Type trait for checking if T has operator+= taking one argument of type T.
+ * \brief Type trait for checking if `T` has `operator+=` taking one argument of type `T`.
  */
 template< typename T >
 class HasAddAssignmentOperator
@@ -142,7 +142,7 @@ public:
 };
 
 /**
- * \brief Type trait for checking if T is a [scalar type](https://en.wikipedia.org/wiki/Scalar_(mathematics))
+ * \brief Type trait for checking if `T` is a [scalar type](https://en.wikipedia.org/wiki/Scalar_(mathematics))
  * (in the mathematical sense). Not to be confused with \ref std::is_scalar.
  *
  * For example, \ref std::is_arithmetic "arithmetic types" as defined by the STL
@@ -157,7 +157,7 @@ struct IsScalarType
 {};
 
 /**
- * \brief Type trait for checking if T is an array type, e.g.
+ * \brief Type trait for checking if `T` is an array type, e.g.
  *        \ref Containers::Array or \ref Containers::Vector.
  *
  * The trait combines \ref HasGetArrayDataMethod, \ref HasGetSizeMethod,
@@ -172,7 +172,7 @@ struct IsArrayType
 {};
 
 /**
- * \brief Type trait for checking if T is a vector type, e.g.
+ * \brief Type trait for checking if `T` is a vector type, e.g.
  *        \ref Containers::Vector or \ref Containers::VectorView.
  */
 template< typename T >
@@ -183,7 +183,7 @@ struct IsVectorType
 {};
 
 /**
- * \brief Type trait for checking if T has a \e constexpr \e getSize method.
+ * \brief Type trait for checking if `T` has a `constexpr` `getSize` method.
  */
 template< typename T >
 struct HasConstexprGetSizeMethod
@@ -234,9 +234,9 @@ public:
 };
 
 /**
- * \brief Type trait for checking if T is a static array type.
+ * \brief Type trait for checking if `T` is a static array type.
  *
- * Static array types are array types which have a \e constexpr \e getSize
+ * Static array types are array types which have a `constexpr getSize`
  * method.
  */
 template< typename T >
@@ -247,7 +247,7 @@ struct IsStaticArrayType
 {};
 
 /**
- * \brief Type trait for checking if T is a view type.
+ * \brief Type trait for checking if `T` is a view type.
  */
 template< typename T >
 struct IsViewType
@@ -263,7 +263,7 @@ public:
 };
 
 /**
- * \brief Type trait for checking if T has getCommunicator method.
+ * \brief Type trait for checking if `T` has a `getCommunicator` method.
  */
 template< typename T >
 class HasGetCommunicatorMethod
@@ -281,7 +281,7 @@ public:
 };
 
 /**
- * \brief Copy const qualifier from Source type to Target type.
+ * \brief Copy const qualifier from `Source` type to `Target` type.
  */
 template< typename Target >
 struct copy_const
@@ -296,7 +296,7 @@ struct copy_const
 };
 
 /**
- * \brief Type trait for checking if T has count member
+ * \brief Type trait for checking if `T` has a `count` member.
  */
 template< typename T >
 class HasCountMember

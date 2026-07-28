@@ -15,7 +15,7 @@ namespace TNL::Containers {
  * \brief Holds static and dynamic sizes of an N-dimensional array.
  *
  * The dimension of the array and static sizes are specified as
- * \ref std::size_t, the type of dynamic sizes is configurable with \e Index.
+ * \ref std::size_t, the type of dynamic sizes is configurable with `Index`.
  *
  * \tparam Index Integral type used for storing dynamic sizes.
  * \tparam sizes Sequence of integers specifying static and dynamic sizes. The
@@ -49,7 +49,7 @@ public:
          } );
    }
 
-   //! \brief Returns the dimension of the array, i.e. number of \e sizes
+   //! \brief Returns the dimension of the array, i.e. number of `sizes`
    //! specified in the template parameters.
    [[nodiscard]] static constexpr std::size_t
    getDimension()
@@ -57,7 +57,7 @@ public:
       return sizeof...( sizes );
    }
 
-   //! \brief Returns the _static_ size of a specific dimension.
+   //! \brief Returns the *static* size of a specific dimension.
    template< std::size_t level >
    [[nodiscard]] static constexpr std::size_t
    getStaticSize()
@@ -66,8 +66,8 @@ public:
       return detail::get_from_pack< level >( sizes... );
    }
 
-   //! \brief Returns the _static_ size of a specific dimension identified by
-   //! a _runtime_ parameter \e level.
+   //! \brief Returns the *static* size of a specific dimension identified by
+   //! a *runtime* parameter `level`.
    [[nodiscard]] static constexpr Index
    getStaticSize( Index level )
    {
@@ -81,7 +81,7 @@ public:
       return result;
    }
 
-   //! \brief Returns the _dynamic_ size along a specific axis.
+   //! \brief Returns the *dynamic* size along a specific axis.
    template< std::size_t level >
    [[nodiscard]] __cuda_callable__
    Index
@@ -97,7 +97,7 @@ public:
       }
    }
 
-   //! \brief Sets the _dynamic_ size along a specific axis.
+   //! \brief Sets the *dynamic* size along a specific axis.
    template< std::size_t level >
    __cuda_callable__
    void
@@ -114,12 +114,12 @@ public:
    }
 
    /**
-    * \brief Dynamic accessor for the _dynamic_ size along a specific axis.
+    * \brief Dynamic accessor for the *dynamic* size along a specific axis.
     *
     * **Warning:** The static size of given level must be equal to zero.
     *
     * **Note:** The access is less efficient compared to the \ref getSize and
-    * \ref setSize methods, since the mapping from \e level to the dynamic
+    * \ref setSize methods, since the mapping from `level` to the dynamic
     * storage must be computed at runtime rather than compile-time.
     */
    [[nodiscard]] __cuda_callable__
@@ -135,12 +135,12 @@ public:
    }
 
    /**
-    * \brief Dynamic non-const accessor for the _dynamic_ size along a specific axis.
+    * \brief Dynamic non-const accessor for the *dynamic* size along a specific axis.
     *
     * **Warning:** The static size of given level must be equal to zero.
     *
     * **Note:** The access is less efficient compared to the \ref getSize and
-    * \ref setSize methods, since the mapping from \e level to the dynamic
+    * \ref setSize methods, since the mapping from `level` to the dynamic
     * storage must be computed at runtime rather than compile-time.
     */
    [[nodiscard]] __cuda_callable__
@@ -172,7 +172,7 @@ public:
    }
 
 protected:
-   //! \brief Checks if given \e level corresponds to a static size.
+   //! \brief Checks if given `level` corresponds to a static size.
    template< std::size_t level >
    [[nodiscard]] static constexpr bool
    isStaticSize()
@@ -195,13 +195,13 @@ protected:
    }
 
    /**
-    * \brief Returns the index of given \e level in the array of dynamic sizes.
+    * \brief Returns the index of given `level` in the array of dynamic sizes.
     *
-    * **WARNING:** \e level must correspond to a dynamic size, otherwise the
-    * \e level should **not** be used for indexing the array of dynamic sizes.
+    * **WARNING:** `level` must correspond to a dynamic size, otherwise the
+    * `level` should **not** be used for indexing the array of dynamic sizes.
     * This must be ensured before calling this method - it can't be checked by
     * a `static_assert` here, because we want to be able to specify the
-    * \e level it at runtime as well.
+    * `level` it at runtime as well.
     */
    [[nodiscard]] static constexpr std::size_t
    getDynamicSizeIndex( std::size_t level )
@@ -312,11 +312,11 @@ struct make_sizes_holder_impl< Index, dimension, value, std::index_sequence< Ind
 
 /**
  * \brief Alias template which simplifies creating a \ref SizesHolder type
- * with a constant \e value for each \e dimension.
+ * with a constant `value` for each `dimension`.
  *
  * \tparam Index Integral type used for storing dynamic sizes.
  * \tparam Dimension Number of values stored in the SizesHolder.
- * \tparam Value The value to substitute to the \e SizesHolder for each dimension.
+ * \tparam Value The value to substitute to the `SizesHolder` for each dimension.
  */
 template< typename Index, std::size_t dimension, Index value = 0 >
 using make_sizes_holder =

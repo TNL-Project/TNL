@@ -13,7 +13,7 @@
 
 namespace TNL {
 
-//! \brief Value of the pi constant
+//! \brief Value of the pi constant.
 inline constexpr double pi = 3.14159265358979323846;
 
 /**
@@ -30,7 +30,7 @@ min( const T1& a, const T2& b )
 /**
  * \brief This function returns minimum of a variadic number of inputs.
  *
- * The inputs are folded with the binary \e min function from the left to the
+ * The inputs are folded with the binary `min` function from the left to the
  * right.
  */
 template< typename T1, typename T2, typename T3, typename... Ts >
@@ -53,9 +53,9 @@ max( const T1& a, const T2& b )
 }
 
 /**
- * \brief This function returns minimum of a variadic number of inputs.
+ * \brief This function returns maximum of a variadic number of inputs.
  *
- * The inputs are folded with the binary \e max function from the left to the
+ * The inputs are folded with the binary `max` function from the left to the
  * right.
  */
 template< typename T1, typename T2, typename T3, typename... Ts >
@@ -67,7 +67,7 @@ max( T1&& val1, T2&& val2, T3&& val3, Ts&&... vs )
 }
 
 /**
- * \brief This function returns absolute value of given number \e n.
+ * \brief This function returns absolute value of given number `n`.
  */
 template< class T, std::enable_if_t< std::is_arithmetic_v< T > && ! std::is_unsigned_v< T >, bool > = true >
 __cuda_callable__
@@ -85,7 +85,7 @@ abs( const T& n )
 }
 
 /**
- * \brief This function returns the absolute value of given unsigned number \e n, i.e. \e n.
+ * \brief This function returns the absolute value of given unsigned number `n`, i.e. `n`.
  */
 template< class T, std::enable_if_t< std::is_unsigned_v< T >, bool > = true >
 __cuda_callable__
@@ -95,7 +95,7 @@ abs( const T& n )
    return n;
 }
 
-/***
+/**
  * \brief This function returns argument of minimum of two numbers.
  */
 template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
@@ -105,7 +105,7 @@ argMin( const T1& a, const T2& b )
    return ( a < b ) ? a : b;
 }
 
-/***
+/**
  * \brief This function returns argument of maximum of two numbers.
  */
 template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
@@ -115,7 +115,7 @@ argMax( const T1& a, const T2& b )
    return ( a > b ) ? a : b;
 }
 
-/***
+/**
  * \brief This function returns argument of minimum of absolute values of two numbers.
  */
 template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
@@ -126,7 +126,7 @@ argAbsMin( const T1& a, const T2& b )
    return ( TNL::abs( a ) < TNL::abs( b ) ) ? a : b;
 }
 
-/***
+/**
  * \brief This function returns argument of maximum of absolute values of two numbers.
  */
 template< typename T1, typename T2, typename ResultType = std::common_type_t< T1, T2 > >
@@ -138,7 +138,7 @@ argAbsMax( const T1& a, const T2& b )
 }
 
 /**
- * \brief This function returns the result of \e base to the power of \e exp.
+ * \brief This function returns the result of `base` to the power of `exp`.
  */
 template<
    typename T1,
@@ -158,7 +158,7 @@ pow( const T1& base, const T2& exp )
 }
 
 /**
- * \brief This function returns the base-e exponential of the given \e value.
+ * \brief This function returns the base-e exponential of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -173,7 +173,7 @@ exp( const T& value ) -> decltype( std::exp( value ) )
 }
 
 /**
- * \brief This function returns the squared magnitude of the given real \e value.
+ * \brief This function returns the squared magnitude of the given real `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -187,7 +187,7 @@ sqr( const T& value )
 }
 
 /**
- * \brief This function returns the squared magnitude of the given complex \e value.
+ * \brief This function returns the squared magnitude of the given complex `value`.
  *
  * Note that the result is equivalent to `std::norm( value )` which is equivalent to
  * `std::conj( value ) * value`.
@@ -202,7 +202,7 @@ sqr( const T& value )
 }
 
 /**
- * \brief This function returns square root of the given \e value.
+ * \brief This function returns square root of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -217,7 +217,7 @@ sqrt( const T& value ) -> decltype( std::sqrt( value ) )
 }
 
 /**
- * \brief This function returns cubic root of the given \e value.
+ * \brief This function returns cubic root of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -232,7 +232,7 @@ cbrt( const T& value ) -> decltype( std::cbrt( value ) )
 }
 
 /**
- * \brief This function returns the natural logarithm of the given \e value.
+ * \brief This function returns the natural logarithm of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -247,7 +247,7 @@ log( const T& value ) -> decltype( std::log( value ) )
 }
 
 /**
- * \brief This function returns the common logarithm of the given \e value.
+ * \brief This function returns the common logarithm of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -262,7 +262,7 @@ log10( const T& value ) -> decltype( std::log10( value ) )
 }
 
 /**
- * \brief This function returns the binary logarithm of the given \e value.
+ * \brief This function returns the binary logarithm of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -277,7 +277,7 @@ log2( const T& value ) -> decltype( std::log2( value ) )
 }
 
 /**
- * \brief This function returns sine of the given \e value.
+ * \brief This function returns sine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -292,7 +292,7 @@ sin( const T& value ) -> decltype( std::sin( value ) )
 }
 
 /**
- * \brief This function returns cosine of the given \e value.
+ * \brief This function returns cosine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -307,7 +307,7 @@ cos( const T& value ) -> decltype( std::cos( value ) )
 }
 
 /**
- * \brief This function returns tangent of the given \e value.
+ * \brief This function returns tangent of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -322,7 +322,7 @@ tan( const T& value ) -> decltype( std::tan( value ) )
 }
 
 /**
- * \brief This function returns the arc sine of the given \e value.
+ * \brief This function returns the arc sine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -337,7 +337,7 @@ asin( const T& value ) -> decltype( std::asin( value ) )
 }
 
 /**
- * \brief This function returns the arc cosine of the given \e value.
+ * \brief This function returns the arc cosine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -352,7 +352,7 @@ acos( const T& value ) -> decltype( std::acos( value ) )
 }
 
 /**
- * \brief This function returns the arc tangent of the given \e value.
+ * \brief This function returns the arc tangent of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -367,7 +367,7 @@ atan( const T& value ) -> decltype( std::atan( value ) )
 }
 
 /**
- * \brief This function returns the arc tangent of \e y/x using the signs of
+ * \brief This function returns the arc tangent of `y/x` using the signs of
  * arguments to determine the correct quadrant.
  */
 template< typename T >
@@ -383,7 +383,7 @@ atan2( const T& y, const T& x ) -> decltype( std::atan2( y, x ) )
 }
 
 /**
- * \brief This function returns the hyperbolic sine of the given \e value.
+ * \brief This function returns the hyperbolic sine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -398,7 +398,7 @@ sinh( const T& value ) -> decltype( std::sinh( value ) )
 }
 
 /**
- * \brief This function returns the hyperbolic cosine of the given \e value.
+ * \brief This function returns the hyperbolic cosine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -413,7 +413,7 @@ cosh( const T& value ) -> decltype( std::cosh( value ) )
 }
 
 /**
- * \brief This function returns the hyperbolic tangent of the given \e value.
+ * \brief This function returns the hyperbolic tangent of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -428,7 +428,7 @@ tanh( const T& value ) -> decltype( std::tanh( value ) )
 }
 
 /**
- * \brief This function returns the inverse hyperbolic sine of the given \e value.
+ * \brief This function returns the inverse hyperbolic sine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -443,7 +443,7 @@ asinh( const T& value ) -> decltype( std::asinh( value ) )
 }
 
 /**
- * \brief This function returns the inverse hyperbolic cosine of the given \e value.
+ * \brief This function returns the inverse hyperbolic cosine of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -458,7 +458,7 @@ acosh( const T& value ) -> decltype( std::acosh( value ) )
 }
 
 /**
- * \brief This function returns the inverse hyperbolic tangent of the given \e value.
+ * \brief This function returns the inverse hyperbolic tangent of the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -473,7 +473,7 @@ atanh( const T& value ) -> decltype( std::atanh( value ) )
 }
 
 /**
- * \brief This function returns largest integer value not greater than the given \e value.
+ * \brief This function returns largest integer value not greater than the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -488,7 +488,7 @@ floor( const T& value ) -> decltype( std::floor( value ) )
 }
 
 /**
- * \brief This function returns the smallest integer value not less than the given \e value.
+ * \brief This function returns the smallest integer value not less than the given `value`.
  */
 template< typename T >
 __cuda_callable__
@@ -510,7 +510,7 @@ using std::conj;
 /**
  * \brief This function swaps values of two parameters.
  *
- * It assigns the value of \e a to the parameter \e b and vice versa.
+ * It assigns the value of `a` to the parameter `b` and vice versa.
  */
 template< typename Type >
 __cuda_callable__
@@ -525,7 +525,7 @@ swap( Type& a, Type& b ) noexcept
 /**
  * \brief This function represents the signum function.
  *
- * It extracts the sign of \e value. In other words, the signum function projects
+ * It extracts the sign of `value`. In other words, the signum function projects
  * negative numbers to value -1, positive numbers to value 1 and zero to value 0.
  */
 template<
@@ -542,8 +542,9 @@ sign( const T& value )
 /**
  * \brief This function tests whether the given real number is small.
  *
- * It tests whether the number \e v is in \e tolerance, in other words, whether
- * \e v in absolute value is less then or equal to \e tolerance.
+ * It tests whether the number `v` is in `tolerance`, in other words, whether
+ * `v` in absolute value is less then or equal to `tolerance`.
+ *
  * \param v Real number.
  * \param tolerance Critical value which is set to 0.00001 by default.
  */

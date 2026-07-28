@@ -41,7 +41,7 @@ public:
    using ConstViewType = typename ViewType::ConstViewType;
 
    /**
-    * \brief Bind or copy data into a new \e GinkgoVector object.
+    * \brief Bind or copy data into a new `GinkgoVector` object.
     *
     * \param exec Ginkgo executor to associate with this vector.
     * \param vector Input vector or vector view. See

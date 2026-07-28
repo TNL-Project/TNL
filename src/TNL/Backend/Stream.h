@@ -62,17 +62,17 @@ public:
    /**
     * \brief Creates a new stream.
     *
-    * The stream is created by calling \e cudaStreamCreateWithPriority with the
+    * The stream is created by calling `cudaStreamCreateWithPriority` with the
     * following parameters:
     *
     * \param flags Custom flags for stream creation. Possible values are:
-    *    - \e cudaStreamDefault: Default stream creation flag.
-    *    - \e cudaStreamNonBlocking: Specifies that work running in the created
+    *    - `cudaStreamDefault`: Default stream creation flag.
+    *    - `cudaStreamNonBlocking`: Specifies that work running in the created
     *      stream may run concurrently with work in stream 0 (the `NULL`
     *      stream), and that the created stream should perform no implicit
     *      synchronization with stream 0.
     * \param priority Priority of the stream. Lower numbers represent higher
-    *    priorities. See \e cudaDeviceGetStreamPriorityRange for more
+    *    priorities. See `cudaDeviceGetStreamPriorityRange` for more
     *    information about the meaningful stream priorities that can be passed.
     */
    static Stream

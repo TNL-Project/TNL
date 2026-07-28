@@ -8,20 +8,20 @@
 namespace TNL::Algorithms {
 
 /**
- * \brief Compares memory from \e source with \e destination.
+ * \brief Compares memory from `source` with `destination`.
  *
- * The \e source data is allocated on the device specified by \e SourceDevice and the
- * \e destination data is allocated on the device specified by \e DestinationDevice.
+ * The `source` data is allocated on the device specified by `SourceDevice` and the
+ * `destination` data is allocated on the device specified by `DestinationDevice`.
  *
- * \tparam DestinationDevice is the device where the \e destination data is allocated.
- * \tparam SourceDevice is the device where the \e source data is allocated.
- * \tparam DestinationElement is the type of the \e destination data.
- * \tparam SourceElement is the type of the \e source data.
+ * \tparam DestinationDevice is the device where the `destination` data is allocated.
+ * \tparam SourceDevice is the device where the `source` data is allocated.
+ * \tparam DestinationElement is the type of the `destination` data.
+ * \tparam SourceElement is the type of the `source` data.
  * \tparam Index is the type of the size of the data.
- * \param destination is the pointer to the \e destination data.
- * \param source is the pointer to the \e source data.
+ * \param destination is the pointer to the `destination` data.
+ * \param source is the pointer to the `source` data.
  * \param size is the size of the data.
- * \returns `true` if all elements are equal, `false` otherwise.
+ * \return `true` if all elements are equal, `false` otherwise.
  */
 template<
    typename DestinationDevice,

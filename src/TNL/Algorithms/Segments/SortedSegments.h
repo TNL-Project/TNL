@@ -72,7 +72,7 @@ public:
    /**
     * \brief Constructor that initializes segments based on their sizes.
     *
-    * The number of segments is determined by the size of \e segmentsSizes.
+    * The number of segments is determined by the size of `segmentsSizes`.
     * Each element in this container specifies the size of a corresponding segment.
     *
     * \tparam SizesContainer The type of container used to store segment sizes.
@@ -93,7 +93,7 @@ public:
    /**
     * \brief Constructor that initializes segments using an initializer list.
     *
-    * The number of segments is determined by the size of \e segmentsSizes.
+    * The number of segments is determined by the size of `segmentsSizes`.
     * Each element in this initializer list specifies the size of a corresponding segment.
     *
     * \tparam ListIndex The type used for indexing elements in the initializer list.

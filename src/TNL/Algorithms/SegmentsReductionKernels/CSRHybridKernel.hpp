@@ -49,9 +49,7 @@ reduceSegmentsCSRHybridVectorKernel(
       localIdx += ThreadsPerSegment;
    }
 
-   /****
-    * Reduction in each segment.
-    */
+   // Reduction in each segment.
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
    aux = BlockReduce::template warpReduce< ThreadsPerSegment >( reduction, aux );
 

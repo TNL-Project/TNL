@@ -66,7 +66,7 @@ public:
    getCPUTime() const;
 
    /**
-    * \brief Writes a record into the \e logger.
+    * \brief Writes a record into the `logger`.
     *
     * \param logger Name of Logger object.
     * \param logLevel A non-negative integer recording the log record indent.

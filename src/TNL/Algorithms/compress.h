@@ -76,7 +76,7 @@ compress( BeginIndex begin, EndIndex end, MarksFunction&& marksFunction, OutputV
  * \brief This function compress the input vector.
  *
  * The function return a vector containing indices of marks equal to 1 or true
- * in the input vector within the range on indices [\e begin, \e end).
+ * in the input vector within the range on indices `[begin, end)`.
  *
  * Performance note: The function copies internally the marks into a temporary vector
  * which requires dynamic memory allocation and deallocation. If you want to avoid
@@ -113,7 +113,7 @@ compress( const MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0
  * \brief This function compress the input vector.
  *
  * The function return a vector containing indices of marks equal to 1 or true
- * in the input vector within the range on indices [\e begin, \e end).
+ * in the input vector within the range on indices `[begin, end)`.
  * Only if the size of the output vector is smaller than the number of marks equal to 1 or true,
  * the size of the output vector is increased. Otherwise no reallocation is performed.
  * The function returns the number of marks equal to 1 or true.
@@ -153,9 +153,9 @@ compress( const MarksVector& marksVector, OutputVector& outputVector, BeginIndex
  * \brief This function compress the input vector.
  *
  * The function return a vector containing indices of marks equal to 1 or true
- * in the input vector within the range on indices [\e begin, \e end).
+ * in the input vector within the range on indices `[begin, end)`.
  *
- * Warning: The function uses the input vector \e marksVector for internal computations.
+ * Warning: The function uses the input vector `marksVector` for internal computations.
  * The content of the input vector is therefore modified. On the other hand, the
  * performance of this function is better compared to the function \ref TNL::Algorithms::compress.
  *
@@ -189,12 +189,12 @@ compressFast( MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0 )
  * \brief This function compress the input vector.
  *
  * The function return a vector containing indices of marks equal to 1 or true
- * in the input vector within the range on indices [\e begin, \e end).
+ * in the input vector within the range on indices `[begin, end)`.
  * Only if the size of the output vector is smaller than the number of marks equal to 1 or true,
  * the size of the output vector is increased. Otherwise no reallocation is performed.
  * The function returns the number of marks equal to 1 or true.
  *
- * Warning: The function uses the input vector \e marksVector for internal computations.
+ * Warning: The function uses the input vector `marksVector` for internal computations.
  * The content of the input vector is therefore modified. On the other hand, the
  * performance of this function is better compared to the function \ref TNL::Algorithms::compress.
  *

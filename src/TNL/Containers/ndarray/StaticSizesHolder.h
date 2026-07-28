@@ -12,7 +12,7 @@ namespace TNL::Containers {
 /**
  * \brief Holds static sizes of an N-dimensional array.
  *
- * The difference from \ref SizesHolder is that zero value in \e sizes
+ * The difference from \ref SizesHolder is that zero value in `sizes`
  * does not indicate a dynamic value, the corresponding size is always
  * zero (both static and dynamic).
  *
@@ -31,7 +31,7 @@ public:
    //! \brief Default constructor.
    StaticSizesHolder() = default;
 
-   //! \brief Returns the dimension of the array, i.e. number of \e sizes
+   //! \brief Returns the dimension of the array, i.e. number of `sizes`
    //! specified in the template parameters.
    [[nodiscard]] static constexpr std::size_t
    getDimension()
@@ -39,7 +39,7 @@ public:
       return sizeof...( sizes );
    }
 
-   //! \brief Returns the _static_ size of a specific dimension.
+   //! \brief Returns the *static* size of a specific dimension.
    template< std::size_t level >
    [[nodiscard]] static constexpr std::size_t
    getStaticSize()
@@ -48,8 +48,8 @@ public:
       return detail::get_from_pack< level >( sizes... );
    }
 
-   //! \brief Returns the _static_ size of a specific dimension identified by
-   //! a _runtime_ parameter \e level.
+   //! \brief Returns the *static* size of a specific dimension identified by
+   //! a *runtime* parameter `level`.
    [[nodiscard]] static constexpr Index
    getStaticSize( Index level )
    {
@@ -63,8 +63,8 @@ public:
       return result;
    }
 
-   //! \brief Returns the _dynamic_ size along a specific axis.
-   //! It is always equal to the _static_ size.
+   //! \brief Returns the *dynamic* size along a specific axis.
+   //! It is always equal to the *static* size.
    template< std::size_t level >
    [[nodiscard]] __cuda_callable__
    Index
@@ -74,8 +74,8 @@ public:
       return getStaticSize< level >();
    }
 
-   //! \brief Returns the _dynamic_ size along a specific axis.
-   //! It is always equal to the _static_ size.
+   //! \brief Returns the *dynamic* size along a specific axis.
+   //! It is always equal to the *static* size.
    [[nodiscard]] __cuda_callable__
    Index
    operator[]( Index level ) const
@@ -107,8 +107,8 @@ public:
       return constSize;
    }
 
-   //! \brief Returns the _static_ size of a specific dimension identified by
-   //! a _runtime_ parameter \e level.
+   //! \brief Returns the *static* size of a specific dimension identified by
+   //! a *runtime* parameter `level`.
    [[nodiscard]] static constexpr Index
    getStaticSize( Index level )
    {
@@ -124,8 +124,8 @@ public:
       return constSize;
    }
 
-   //! \brief Returns the _dynamic_ size along a specific axis.
-   //! It is always equal to the _static_ size.
+   //! \brief Returns the *dynamic* size along a specific axis.
+   //! It is always equal to the *static* size.
    [[nodiscard]] __cuda_callable__
    Index
    operator[]( Index level ) const

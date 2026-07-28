@@ -83,7 +83,7 @@ public:
    //! \brief A shallow-copy copy-constructor.
    DistributedNDArrayView( const DistributedNDArrayView& ) = default;
 
-   //! \brief Move constructor for initialization from \e rvalues.
+   //! \brief Move constructor for initialization from `rvalues`.
    DistributedNDArrayView( DistributedNDArrayView&& ) noexcept = default;
 
    /**
@@ -149,7 +149,7 @@ public:
       localEnds = SizesHolderType{};
    }
 
-   //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
+   //! \brief Returns the dimension of the `N`-dimensional array, i.e. `N`.
    [[nodiscard]] static constexpr std::size_t
    getDimension()
    {
@@ -267,9 +267,9 @@ public:
     * \brief Returns the **local** storage index for given **global** indices.
     *
     * \param indices Global indices of the element in the N-dimensional array.
-    *                The number of indices supplied must be equal to \e N, i.e.
+    *                The number of indices supplied must be equal to `N`, i.e.
     *                \ref getDimension().
-    * \returns An index that can be used to address the element in a local
+    * \return An index that can be used to address the element in a local
     *          one-dimensional array.
     */
    template< typename... IndexTypes >
@@ -292,7 +292,7 @@ public:
       return localView.getData();
    }
 
-   //! \brief Returns a \e const-qualified raw pointer to the local data.
+   //! \brief Returns a `const`-qualified raw pointer to the local data.
    [[nodiscard]] std::add_const_t< ValueType >*
    getData() const
    {
@@ -325,9 +325,9 @@ public:
     * accessed.
     *
     * \param indices Global indices of the element in the N-dimensional array.
-    *                The number of indices supplied must be equal to \e N, i.e.
+    *                The number of indices supplied must be equal to `N`, i.e.
     *                \ref getDimension().
-    * \returns Reference to the array element.
+    * \return Reference to the array element.
     */
    template< typename... IndexTypes >
    [[nodiscard]] ValueType&
@@ -345,9 +345,9 @@ public:
     * accessed.
     *
     * \param indices Global indices of the element in the N-dimensional array.
-    *                The number of indices supplied must be equal to \e N, i.e.
+    *                The number of indices supplied must be equal to `N`, i.e.
     *                \ref getDimension().
-    * \returns Constant reference to the array element.
+    * \return Constant reference to the array element.
     */
    template< typename... IndexTypes >
    [[nodiscard]] const ValueType&
@@ -368,7 +368,7 @@ public:
     *          equal to 1.
     *
     * \param index Global index of the element in the one-dimensional array.
-    * \returns Reference to the array element.
+    * \return Reference to the array element.
     */
    [[nodiscard]] ValueType&
    operator[]( IndexType index )
@@ -388,7 +388,7 @@ public:
     *          equal to 1.
     *
     * \param index Global index of the element in the one-dimensional array.
-    * \returns Reference to the array element.
+    * \return Reference to the array element.
     */
    [[nodiscard]] const ValueType&
    operator[]( IndexType index ) const
