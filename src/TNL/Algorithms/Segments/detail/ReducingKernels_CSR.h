@@ -1421,7 +1421,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
       if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 ) {  // first lane in the warp
          TNL_ASSERT_LT( scheduled_segment + 1, offsets.getSize(), "" );
          bool emptySegment = ( offsets[ scheduled_segment ] == offsets[ scheduled_segment + 1 ] );
-         store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_, emptySegment );
+         store( warps_scheduler[ warp_idx ], scheduled_segment, argument_, result_, emptySegment );
       }
       warp_idx += warpsPerBlock;
    }

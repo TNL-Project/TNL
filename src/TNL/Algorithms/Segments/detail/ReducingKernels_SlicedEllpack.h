@@ -209,10 +209,8 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       //          |  T11/W1 | T15/W1 | T11/W1 | T15/W1 | T11/W1 |
       //          +---------+--------+--------+--------+--------+
       //
-      // We can use warp shuffles to perform reduction within each row (i.e. within each segment).
-      /////
-      __syncthreads();
-      // Parallel reduction using strided warp shuffle (SliceSize stride)
+      // We can use strided warp shuffle (SliceSize stride) to perform reduction within each row (i.e. within each
+      // segment).
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       result = BlockReduce::template warpReduce< ThreadsPerSegment, SliceSize >( reduce, result );
       // Write the result
