@@ -124,53 +124,85 @@ public:
 
       GunrockBenchmark< Real, Index > gunrockBenchmark;
       benchmark.setMetadataElement( { "solver", "Gunrock" } );
+      // Propagate exceptions (e.g. an unsupported load-balance strategy on
+      // this platform) to the per-iteration try/catch below instead of
+      // having them silently swallowed inside benchmark.time().
+      benchmark.setCatchExceptions( false );
 
       // Benchmarking single-source shortest path of directed graph
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataElement( { "problem", "SSSP dir" } );
       benchmark.setMetadataElement( { "kernel", "N/A" } );
-      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       std::vector< Real > ssspDistances( digraph.getVertexCount() );
-      gunrockBenchmark.singleSourceShortestPath(
-         benchmark, gunrockDigraphHolder.graph, largestNode, digraph.getVertexCount(), ssspDistances );
-      HostRealVector gunrock_sssp_dist( ssspDistances );
-      gunrock_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
-         {
-            x = x == std::numeric_limits< Real >::max() ? -1 : x;
-         } );
-      this->gunrockSSSPDistancesDirected = gunrock_sssp_dist;
+      for( const auto& loadBalanceEntry : GunrockBenchmark< Real, Index >::loadBalanceConfigurations() ) {
+         const auto& loadBalance = loadBalanceEntry.first;
+         const auto& tag = loadBalanceEntry.second;
+         benchmark.setMetadataElement( { "launch cfg.", tag } );
+
+         try {
+            gunrockBenchmark.singleSourceShortestPath(
+               benchmark, gunrockDigraphHolder.graph, largestNode, digraph.getVertexCount(), ssspDistances, loadBalance );
+         }
+         catch( const std::exception& e ) {
+            std::cerr << "Gunrock SSSP on directed graph with load balance '" << tag << "' failed: " << e.what() << '\n';
+            continue;
+         }
+
+         HostRealVector gunrock_sssp_dist( ssspDistances );
+         gunrock_sssp_dist.forAllElements(
+            [] __cuda_callable__( Index i, Real & x )
+            {
+               x = x == std::numeric_limits< Real >::max() ? -1 : x;
+            } );
+
+         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped )
+            this->gunrockSSSPDistancesDirected = gunrock_sssp_dist;
 
    #ifdef HAVE_BOOST
-      if( withBoost && this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
-         std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!\n";
-         this->errors++;
-      }
+         if( withBoost && this->boostSSSPDistancesDirected != gunrock_sssp_dist ) {
+            std::cout << "SSSP distances of directed graph from Boost and Gunrock (" << tag << ") are not equal!\n";
+            this->errors++;
+         }
    #endif
+      }
 
       // Benchmarking single-source shortest path of undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataElement( { "problem", "SSSP undir" } );
       benchmark.setMetadataElement( { "kernel", "N/A" } );
-      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
-      gunrockBenchmark.singleSourceShortestPath(
-         benchmark, gunrockGraphHolder.graph, largestNode, graph.getVertexCount(), ssspDistances );
-      gunrock_sssp_dist = ssspDistances;
-      gunrock_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
-         {
-            x = x == std::numeric_limits< Real >::max() ? -1 : x;
-         } );
-      this->gunrockSSSPDistancesUndirected = gunrock_sssp_dist;
+      for( const auto& loadBalanceEntry : GunrockBenchmark< Real, Index >::loadBalanceConfigurations() ) {
+         const auto& loadBalance = loadBalanceEntry.first;
+         const auto& tag = loadBalanceEntry.second;
+         benchmark.setMetadataElement( { "launch cfg.", tag } );
+
+         try {
+            gunrockBenchmark.singleSourceShortestPath(
+               benchmark, gunrockGraphHolder.graph, largestNode, graph.getVertexCount(), ssspDistances, loadBalance );
+         }
+         catch( const std::exception& e ) {
+            std::cerr << "Gunrock SSSP on undirected graph with load balance '" << tag << "' failed: " << e.what() << '\n';
+            continue;
+         }
+
+         HostRealVector gunrock_sssp_dist( ssspDistances );
+         gunrock_sssp_dist.forAllElements(
+            [] __cuda_callable__( Index i, Real & x )
+            {
+               x = x == std::numeric_limits< Real >::max() ? -1 : x;
+            } );
+
+         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped )
+            this->gunrockSSSPDistancesUndirected = gunrock_sssp_dist;
 
    #ifdef HAVE_BOOST
-      if( withBoost && this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
-         std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!\n";
-         this->errors++;
-      }
+         if( withBoost && this->boostSSSPDistancesUndirected != gunrock_sssp_dist ) {
+            std::cout << "SSSP distances of undirected graph from Boost and Gunrock (" << tag << ") are not equal!\n";
+            this->errors++;
+         }
    #endif
+      }
 #endif  // HAVE_GUNROCK
    }
 

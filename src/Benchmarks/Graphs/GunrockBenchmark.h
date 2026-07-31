@@ -11,12 +11,58 @@
 #endif
 
 #include <TNL/Algorithms/copy.h>
+#include <list>
+#include <string>
+#include <utility>
 
 template< typename Value = double, typename Index = int >
 struct GunrockBenchmark
 {
    using IndexType = Index;
    using ValueType = Value;
+
+   /**
+    * Gunrock's advance load-balancing strategies that are actually runtime
+    * dispatchable (see gunrock::operators::load_balance_t and
+    * operators::advance::execute_runtime).  warp_mapped, bucketing and
+    * work_stealing are declared in Gunrock but are unimplemented (WIP), so
+    * they are intentionally left out here.  merge_path_v2 is also excluded:
+    * its advance kernel (merge_path_v2.hxx) unconditionally dumps the input
+    * and output frontiers to stdout with no way to silence it, and it was
+    * observed to produce incorrect BFS/SSSP distances on undirected graphs.
+    */
+   enum class LoadBalance : std::uint8_t
+   {
+      ThreadMapped,
+      BlockMapped,
+      MergePath
+   };
+
+   static std::list< std::pair< LoadBalance, std::string > >
+   loadBalanceConfigurations()
+   {
+      return {
+         { LoadBalance::ThreadMapped, "thread_mapped" },
+         { LoadBalance::BlockMapped, "block_mapped" },
+         { LoadBalance::MergePath, "merge_path" },
+      };
+   }
+
+#ifdef HAVE_GUNROCK
+   static gunrock::operators::load_balance_t
+   toGunrockLoadBalance( LoadBalance loadBalance )
+   {
+      switch( loadBalance ) {
+         case LoadBalance::ThreadMapped:
+            return gunrock::operators::load_balance_t::thread_mapped;
+         case LoadBalance::MergePath:
+            return gunrock::operators::load_balance_t::merge_path;
+         case LoadBalance::BlockMapped:
+         default:
+            return gunrock::operators::load_balance_t::block_mapped;
+      }
+   }
+#endif
 
 #ifdef HAVE_GUNROCK
    template< typename HostGraphType >
@@ -75,16 +121,25 @@ struct GunrockBenchmark
       Graph& graph,
       Index start,
       Index size,
-      std::vector< Index >& distances )
+      std::vector< Index >& distances,
+      LoadBalance loadBalance = LoadBalance::BlockMapped )
    {
 #ifdef HAVE_GUNROCK
       thrust::device_vector< typename Graph::vertex_type > d_distances( size );
       thrust::device_vector< typename Graph::vertex_type > d_predecessors( size );
 
       typename Graph::vertex_type source = start;
+      auto gunrockLoadBalance = toGunrockLoadBalance( loadBalance );
       auto bfs_gunrock = [ & ]() mutable
       {
-         gunrock::bfs::run( graph, source, d_distances.data().get(), d_predecessors.data().get() );
+         // A fresh context must be constructed on every call: benchmark.time()
+         // invokes this lambda repeatedly (warmup + measured loops), and
+         // Gunrock's enactor is not safe to reuse the same multi_context_t
+         // across independent runs (matches gunrock::bfs::run's own default
+         // argument, which likewise constructs a new context per call).
+         auto context = std::shared_ptr< gunrock::gcuda::multi_context_t >( new gunrock::gcuda::multi_context_t( 0 ) );
+         gunrock::bfs::run(
+            graph, source, d_distances.data().get(), d_predecessors.data().get(), context, gunrockLoadBalance );
       };
       benchmark.time< TNL::Devices::Cuda >( "cuda", bfs_gunrock );
       TNL_ASSERT_EQ( d_distances.size(), distances.size(), "Size mismatch in Gunrock BFS distances." );
@@ -99,16 +154,21 @@ struct GunrockBenchmark
       Graph& graph,
       Index start,
       Index size,
-      std::vector< Value >& distances )
+      std::vector< Value >& distances,
+      LoadBalance loadBalance = LoadBalance::BlockMapped )
    {
 #ifdef HAVE_GUNROCK
       thrust::device_vector< ValueType > d_distances( size );
       thrust::device_vector< IndexType > d_predecessors( size );
 
       typename Graph::vertex_type source = start;
+      auto gunrockLoadBalance = toGunrockLoadBalance( loadBalance );
       auto sssp_gunrock = [ & ]() mutable
       {
-         gunrock::sssp::run( graph, source, d_distances.data().get(), d_predecessors.data().get() );
+         // See breadthFirstSearch above: a fresh context per call is required.
+         auto context = std::shared_ptr< gunrock::gcuda::multi_context_t >( new gunrock::gcuda::multi_context_t( 0 ) );
+         gunrock::sssp::run(
+            graph, source, d_distances.data().get(), d_predecessors.data().get(), context, gunrockLoadBalance );
       };
       benchmark.time< TNL::Devices::Cuda >( "cuda", sssp_gunrock );
       TNL_ASSERT_EQ( d_distances.size(), distances.size(), "Size mismatch in Gunrock SSSP distances." );

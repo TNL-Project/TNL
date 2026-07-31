@@ -133,6 +133,10 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
       GunrockBenchmark< Real, Index > gunrockBenchmark;
       benchmark.setMetadataElement( { "solver", "Gunrock" } );
+      // Propagate exceptions (e.g. an unsupported load-balance strategy on
+      // this platform) to the per-iteration try/catch below instead of
+      // having them silently swallowed inside benchmark.time().
+      benchmark.setCatchExceptions( false );
 
       // Benchmarking breadth-first search of directed graph
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
@@ -140,56 +144,79 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       benchmark.setMetadataElement( { "kernel", "N/A" } );
 
       std::vector< Index > bfsDistances( digraph.getVertexCount() );
-      benchmark.setCatchExceptions( false );
-      gunrockBenchmark.breadthFirstSearch(
-         benchmark, gunrockDigraphHolder.graph, largestNode, digraph.getVertexCount(), bfsDistances );
+      for( const auto& loadBalanceEntry : GunrockBenchmark< Real, Index >::loadBalanceConfigurations() ) {
+         const auto& loadBalance = loadBalanceEntry.first;
+         const auto& tag = loadBalanceEntry.second;
+         benchmark.setMetadataElement( { "launch cfg.", tag } );
 
-      // Convert and normalize distances
-      this->gunrockBfsDistancesDirected = bfsDistances;
-      this->gunrockBfsDistancesDirected.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
-         {
-            if( x == std::numeric_limits< Index >::max() )
-               x = -1;
-         } );
+         try {
+            gunrockBenchmark.breadthFirstSearch(
+               benchmark, gunrockDigraphHolder.graph, largestNode, digraph.getVertexCount(), bfsDistances, loadBalance );
+         }
+         catch( const std::exception& e ) {
+            std::cerr << "Gunrock BFS on directed graph with load balance '" << tag << "' failed: " << e.what() << '\n';
+            continue;
+         }
+
+         // Convert and normalize distances
+         HostIndexVector gunrockDistances( bfsDistances );
+         gunrockDistances.forAllElements(
+            [] __cuda_callable__( Index i, Index & x )
+            {
+               if( x == std::numeric_limits< Index >::max() )
+                  x = -1;
+            } );
+
+         // The block-mapped strategy is Gunrock's own default (used by its own
+         // benchmarks and by our TNL-vs-Gunrock cross-checks below).
+         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped )
+            this->gunrockBfsDistancesDirected = gunrockDistances;
 
    #ifdef HAVE_BOOST
-      if( withBoost && this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
-         std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!\n";
-         this->errors++;
-      }
+         if( withBoost && this->boostBfsDistancesDirected != gunrockDistances ) {
+            std::cout << "BFS distances of directed graph from Boost and Gunrock (" << tag << ") are not equal!\n";
+            this->errors++;
+         }
    #endif
+      }
 
       // Benchmarking breadth-first search of undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataElement( { "problem", "BFS undir" } );
-      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
-      try {
-         gunrockBenchmark.breadthFirstSearch(
-            benchmark, gunrockGraphHolder.graph, largestNode, graph.getVertexCount(), bfsDistances );
-      }
-      catch( const std::exception& e ) {
-         std::cerr << "Gunrock BFS on undirected graph failed: " << e.what() << '\n';
-         this->errors++;
-         return;
-      }
+      for( const auto& loadBalanceEntry : GunrockBenchmark< Real, Index >::loadBalanceConfigurations() ) {
+         const auto& loadBalance = loadBalanceEntry.first;
+         const auto& tag = loadBalanceEntry.second;
+         benchmark.setMetadataElement( { "launch cfg.", tag } );
 
-      // Convert and normalize distances
-      this->gunrockBfsDistancesUndirected = HostIndexVector( bfsDistances );
-      this->gunrockBfsDistancesUndirected.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
-         {
-            if( x == std::numeric_limits< Index >::max() )
-               x = -1;
-         } );
+         try {
+            gunrockBenchmark.breadthFirstSearch(
+               benchmark, gunrockGraphHolder.graph, largestNode, graph.getVertexCount(), bfsDistances, loadBalance );
+         }
+         catch( const std::exception& e ) {
+            std::cerr << "Gunrock BFS on undirected graph with load balance '" << tag << "' failed: " << e.what() << '\n';
+            continue;
+         }
+
+         // Convert and normalize distances
+         HostIndexVector gunrockDistances( bfsDistances );
+         gunrockDistances.forAllElements(
+            [] __cuda_callable__( Index i, Index & x )
+            {
+               if( x == std::numeric_limits< Index >::max() )
+                  x = -1;
+            } );
+
+         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped )
+            this->gunrockBfsDistancesUndirected = gunrockDistances;
 
    #ifdef HAVE_BOOST
-      if( withBoost && this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
-         std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!\n";
-         this->errors++;
-      }
+         if( withBoost && this->boostBfsDistancesUndirected != gunrockDistances ) {
+            std::cout << "BFS distances of undirected graph from Boost and Gunrock (" << tag << ") are not equal!\n";
+            this->errors++;
+         }
    #endif
+      }
 #endif  // HAVE_GUNROCK
    }
 
