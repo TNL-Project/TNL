@@ -89,3 +89,41 @@ Outputs are written to the current directory:
 - Speedups are computed vs Boost on CPU, and vs Gunrock on CUDA when available.
 - Requires Python with pandas, numpy, matplotlib, and the TNL Python helpers (`TNL.BenchmarkLogs`, `TNL.MultiindexCreator`).
 
+## Speedup summary table
+
+`tnl-benchmark-graphs-speedup-table.py` reads one or more JSON-lines log files and
+builds a single per-graph table (one row per graph) with a structured (MultiIndex)
+header. For every TNL run on a GPU it computes the speedup relative to TNL on CPU
+(the "host" run with plain CSR segments), to Boost, to each individual Gunrock
+launch configuration, and to the best (fastest) of the Gunrock launch
+configurations; it also computes the speedup of TNL on CPU relative to Boost.
+Semiring problem variants (e.g. `Semiring BFS dir`) are compared against the
+baselines of the corresponding plain problem, since Boost/Gunrock have no semiring
+implementations. It uses `TNL.BenchmarkLogs` and `TNL.MultiindexCreator`
+(`src/Python/BenchmarkLogs.py` and `src/Python/MultiindexCreator.py`).
+
+For each problem, it also renders two performance-profile plots. In both, the
+x-axis is the speedup relative to the best Gunrock launch configuration (log
+scale) and the y-axis is the percentage of graphs that reach that speedup or
+better:
+- `<problem>-vs-gunrock-best.pdf`: one curve per TNL kernel (best time across its
+  launch configurations) plus a "best TNL (GPU)" curve (the best time across
+  *all* GPU kernels, host excluded).
+- `<problem>-vs-gunrock-best-CSR.pdf`: one curve per launch configuration of the
+  CSR kernel only (Ellpack-family kernels are ignored), plus a "best TNL (GPU,
+  CSR)" curve — this compares traversal/launch strategies rather than segment
+  storage formats.
+
+```bash
+python3 tnl-benchmark-graphs-speedup-table.py \
+  -i graphs-benchmark.log other.log \
+  -o graphs-benchmark-speedup \  # base name for the .html/.csv outputs
+  --plot-dir Plots \             # directory for the profile plots
+  --xlim-min 0.1 --xlim-max 4    # range of the logarithmic speedup axis
+```
+
+Outputs:
+- `<output>.html` / `<output>.csv`: the speedup table
+- `Plots/<problem>-vs-gunrock-best.pdf` and `Plots/<problem>-vs-gunrock-best-CSR.pdf`:
+  the two profile plots per problem
+
