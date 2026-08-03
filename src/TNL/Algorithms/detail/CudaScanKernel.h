@@ -648,8 +648,8 @@ CudaScanKernelLookback(
    using BlockScan = CudaBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
 
    __shared__ Backend::Uninitialized< typename TileScan::Storage > tileStorage;
-   __shared__ ValueType sharedAggregate;
-   __shared__ ValueType sharedPrefix;
+   __shared__ Backend::Uninitialized< ValueType > sharedAggregateStorage;
+   __shared__ Backend::Uninitialized< ValueType > sharedPrefixStorage;
 
    constexpr int maxElementsInBlock = blockSize * valuesPerThread;
    const int remainingElements = end - begin - blockIdx.x * maxElementsInBlock;
@@ -660,6 +660,8 @@ CudaScanKernelLookback(
    outputBegin += threadOffset;
 
    auto& storage = tileStorage.get();
+   auto& sharedAggregate = sharedAggregateStorage.get();
+   auto& sharedPrefix = sharedPrefixStorage.get();
 
    // Phase 1: strided load of the block tile into shared memory; pad the
    // remainder with identity so the last block runs the same code path.
@@ -749,11 +751,7 @@ CudaScanKernelLookback(
       // Aggregate so successors can start consuming it.
       states[ blockIdx.x ].aggregate = blockAggregate;
       __threadfence();
-   #if defined( __CUDACC__ )
       atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Aggregate ) );
-   #else
-      __atomic_exchange_n( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Aggregate ), __ATOMIC_SEQ_CST );
-   #endif
 
       // 5b: walk predecessors right-to-left, accumulating their aggregates.
       // Stop as soon as a predecessor advertises Prefix (its prefix field
@@ -762,11 +760,7 @@ CudaScanKernelLookback(
       for( int pred = blockIdx.x - 1; pred >= 0; pred-- ) {
          int status;
          do {
-   #if defined( __CUDACC__ )
             status = atomicAdd( &states[ pred ].status, 0 );
-   #else
-            status = __atomic_load_n( &states[ pred ].status, __ATOMIC_ACQUIRE );
-   #endif
          } while( status == static_cast< int >( LookbackStatus::Invalid ) );
 
          ValueType predValue =
@@ -782,11 +776,7 @@ CudaScanKernelLookback(
       // (sum of previous blocks only) to avoid double-counting in Phase 6.
       states[ blockIdx.x ].prefix = reduction( prefix, blockAggregate );
       __threadfence();
-   #if defined( __CUDACC__ )
       atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Prefix ) );
-   #else
-      __atomic_exchange_n( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Prefix ), __ATOMIC_SEQ_CST );
-   #endif
 
       sharedPrefix = prefix;
    }
