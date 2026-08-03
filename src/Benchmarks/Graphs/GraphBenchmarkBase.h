@@ -30,6 +30,23 @@
 
 namespace TNL::Benchmarks::Graphs {
 
+namespace detail {
+
+// Detects an opt-in `static constexpr bool needsNonNegativeWeights` on the
+// CRTP Derived class (e.g. GraphBenchmarkSSSP, since Dijkstra requires
+// non-negative weights); defaults to false so other benchmarks (CC, SCC,
+// Coloring, MST, BFS) don't need to declare it explicitly.
+template< typename Derived, typename = void >
+struct NeedsNonNegativeWeights : std::false_type
+{};
+
+template< typename Derived >
+struct NeedsNonNegativeWeights< Derived, std::void_t< decltype( Derived::needsNonNegativeWeights ) > >
+: std::bool_constant< Derived::needsNonNegativeWeights >
+{};
+
+}  // namespace detail
+
 template< typename Real, typename Index, typename Derived >  // CRTP – Curiously Recurring Template Pattern
 class GraphBenchmarkBase
 {
@@ -145,8 +162,12 @@ public:
          TNL::Graphs::Readers::MtxReader< HostDigraph >::read( inputFile, digraph );
       else
          TNL::Graphs::Readers::EdgeListReader< HostDigraph >::read( inputFile, digraph );
-      // Make all weights positive because of benchmarking SSSP
-      digraph.getAdjacencyMatrix().getValues() = abs( digraph.getAdjacencyMatrix().getValues() );
+
+      // Dijkstra (used for SSSP) requires non-negative weights; other
+      // algorithms don't need this and some (e.g. MST) actually care about
+      // the true, possibly negative weights, so only SSSP opts in.
+      if constexpr( detail::NeedsNonNegativeWeights< Derived >::value )
+         digraph.getAdjacencyMatrix().getValues() = abs( digraph.getAdjacencyMatrix().getValues() );
 
       auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );

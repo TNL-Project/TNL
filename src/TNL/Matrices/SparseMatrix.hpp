@@ -547,7 +547,9 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             const Index transLocalIdx = Algorithms::AtomicOperations< Device >::add( offsets_view[ transRowIdx ], Index( 1 ) );
             // get the row in the transposed matrix and set the value
             auto transRow = trans_view.getRow( transRowIdx );
-            transRow.setElement( transLocalIdx, rowIdx, row.getValue( c ) * matrixMultiplicator );
+            const Real transposedValue =
+               static_cast< Real >( static_cast< ComputeReal >( row.getValue( c ) ) * matrixMultiplicator );
+            transRow.setElement( transLocalIdx, rowIdx, transposedValue );
          }
       } );
 }

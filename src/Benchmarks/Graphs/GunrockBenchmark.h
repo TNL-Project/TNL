@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <TNL/Benchmarks/Benchmark.h>
+#include <algorithm>
 #include <vector>
 #ifdef HAVE_GUNROCK
    #include <thrust/device_vector.h>
@@ -73,11 +74,10 @@ struct GunrockBenchmark
       const auto& segments = adjacencyMatrix.getSegments();
       const auto& offsets = segments.getOffsets();
       const auto& columnIndexes = adjacencyMatrix.getColumnIndexes();
-      const auto& values = adjacencyMatrix.getValues();
 
       const IndexType numRows = adjacencyMatrix.getRows();
       const IndexType numCols = adjacencyMatrix.getColumns();
-      const IndexType numNonzeros = values.getSize();
+      const IndexType numNonzeros = adjacencyMatrix.getNonzeroElementsCount();
 
       using csr_t = gunrock::format::csr_t< gunrock::memory_space_t::device, IndexType, IndexType, ValueType >;
       using graph_type = decltype( gunrock::graph::build< gunrock::memory_space_t::device, IndexType, IndexType, ValueType >(
@@ -101,7 +101,15 @@ struct GunrockBenchmark
       holder.csr.column_indices = h_columns;
 
       thrust::host_vector< ValueType > h_values( numNonzeros );
-      TNL::Algorithms::copy< TNL::Devices::Host, TNL::Devices::Host >( h_values.data(), values.getData(), numNonzeros );
+      if constexpr( HostGraphType::AdjacencyMatrixType::isBinary() ) {
+         // Binary matrices don't store any values -- Gunrock still expects a
+         // nonzero_values array, so fill it with a constant "edge present" value.
+         std::fill( h_values.begin(), h_values.end(), ValueType{ 1 } );
+      }
+      else {
+         const auto& values = adjacencyMatrix.getValues();
+         TNL::Algorithms::copy< TNL::Devices::Host, TNL::Devices::Host >( h_values.data(), values.getData(), numNonzeros );
+      }
       holder.csr.nonzero_values = h_values;
 
       auto properties = gunrock::graph::graph_properties_t{};
@@ -138,8 +146,7 @@ struct GunrockBenchmark
          // across independent runs (matches gunrock::bfs::run's own default
          // argument, which likewise constructs a new context per call).
          auto context = std::shared_ptr< gunrock::gcuda::multi_context_t >( new gunrock::gcuda::multi_context_t( 0 ) );
-         gunrock::bfs::run(
-            graph, source, d_distances.data().get(), d_predecessors.data().get(), context, gunrockLoadBalance );
+         gunrock::bfs::run( graph, source, d_distances.data().get(), d_predecessors.data().get(), context, gunrockLoadBalance );
       };
       benchmark.time< TNL::Devices::Cuda >( "cuda", bfs_gunrock );
       TNL_ASSERT_EQ( d_distances.size(), distances.size(), "Size mismatch in Gunrock BFS distances." );
