@@ -23,6 +23,11 @@ public:
    using typename Base::IndexType;
    using typename Base::RealType;
 
+   // Dijkstra (used here) requires non-negative edge weights; GraphBenchmarkBase
+   // reads this flag to decide whether to make all weights positive after
+   // loading the input graph.
+   static constexpr bool needsNonNegativeWeights = true;
+
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
