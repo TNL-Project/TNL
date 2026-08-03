@@ -70,10 +70,14 @@ struct EdgeListReader
          int to_node;
          ss >> from_node >> to_node;
          vertices = std::max( vertices, std::max( from_node, to_node ) );
-         ValueType weight = 1.0;
+         // Read through a double first: istream::operator>> for a bool ValueType
+         // (binary/pattern graphs) only accepts "0"/"1" tokens in non-boolalpha
+         // mode and would fail to parse arbitrary edge weights.
+         double weightValue = 1.0;
          if( ! ss.eof() ) {
-            ss >> weight;
+            ss >> weightValue;
          }
+         const ValueType weight = static_cast< ValueType >( weightValue );
          edges.emplace( Edge( from_node, to_node ), weight );
       }
       vertices++;  // vertices are numbered from 0
