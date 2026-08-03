@@ -27,13 +27,12 @@ startBenchmark( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterCon
 bool
 resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
-   auto precision = parameters.getParameter< TNL::String >( "precision" );
-   bool result = true;
-   if( precision == "all" || precision == "float" )
-      result = startBenchmark< float >( benchmark, parameters ) && result;
-   if( precision == "all" || precision == "double" )
-      result = startBenchmark< double >( benchmark, parameters ) && result;
-   return result;
+   // BFS never uses edge weights, only connectivity, so it always benchmarks
+   // a binary (bool) adjacency matrix regardless of --precision. The option
+   // is still accepted (and ignored) so that run-tnl-benchmark-graphs, which
+   // passes --precision unconditionally to every benchmark binary, keeps
+   // working unmodified.
+   return startBenchmark< bool >( benchmark, parameters );
 }
 
 int
