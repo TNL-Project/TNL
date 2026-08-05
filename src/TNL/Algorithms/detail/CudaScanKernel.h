@@ -922,15 +922,7 @@ struct CudaScanKernelLauncher
       using Index = typename InputArray::IndexType;
       const Index n = end - begin;
 
-      // valuesPerThread=9 was tuned on RTX 3060 using median-of-51
-      // measurements. It is the most robust choice across value types
-      // (1B to 16B): for 64-bit types it is optimal, for 32-bit types it is
-      // within ~5 % of the optimum (VPT=15), and for small types (char, short)
-      // higher VPT would help but those workloads are rarely performance-
-      // critical. VPT=9 keeps shared memory per block low (~10 KB), which
-      // maintains 4 blocks/SM occupancy on RTX 3060.
-      constexpr int tunedVpt = 9;
-      performLookbackImpl< tunedVpt >(
+      performLookbackImpl< valuesPerThread >(
          input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
    }
 
