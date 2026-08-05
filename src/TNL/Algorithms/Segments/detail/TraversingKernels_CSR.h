@@ -72,8 +72,10 @@ dynamicGroupingTraversingKernel_CSR(
    __syncthreads();
 
    // Each thread owning segment with size larger than warpSize registers for scheduling
-   if( traverse_segment && segment_size > warpSize )
+   if( traverse_segment && segment_size > warpSize ) {
       warps_scheduler[ AtomicOperations< Devices::GPU >::add( active_warps[ 0 ], 1 ) ] = segmentIdx;
+      traverse_segment = false;
+   }
    __syncthreads();
 
    // Now traverse scheduled segments in warps
@@ -93,9 +95,6 @@ dynamicGroupingTraversingKernel_CSR(
          for( ; globalIdx < endIdx; globalIdx += warpSize ) {
             function( scheduled_segment, globalIdx );
          }
-      }
-      if( segmentIdx == scheduled_segment ) {
-         traverse_segment = false;
       }
       warp_idx += warpsPerBlock;
    }
