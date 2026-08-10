@@ -20,6 +20,11 @@ struct Fill< Devices::Sequential >
    __cuda_callable__
    static void
    fill( Element* data, const Element& value, Index size );
+
+   template< typename Element, typename Index >
+   __cuda_callable__
+   static void
+   fillAsync( Element* data, const Element& value, Index size );
 };
 
 template<>
@@ -28,6 +33,10 @@ struct Fill< Devices::Host >
    template< typename Element, typename Index >
    static void
    fill( Element* data, const Element& value, Index size );
+
+   template< typename Element, typename Index >
+   static void
+   fillAsync( Element* data, const Element& value, Index size );
 };
 
 template<>
@@ -36,6 +45,10 @@ struct Fill< Devices::Cuda >
    template< typename Element, typename Index >
    static void
    fill( Element* data, const Element& value, Index size );
+
+   template< typename Element, typename Index >
+   static void
+   fillAsync( Element* data, const Element& value, Index size );
 };
 
 }  // namespace TNL::Algorithms::detail
