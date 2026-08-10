@@ -7,6 +7,7 @@
 #include <TNL/Math.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/TypeTraits.h>
+#include <TNL/Algorithms/fill.h>
 #include "ScanType.h"
 
 namespace TNL::Algorithms::detail {
@@ -944,7 +945,7 @@ struct CudaScanKernelLauncher
       // Reuse a thread-local cache of the lookback states array across calls
       // to avoid cudaMalloc/cudaFree churn. The cache grows as needed; when
       // the requested size shrinks we keep the existing (larger) allocation
-      // and only memset the actually used prefix. Memset is still required
+      // and only reset the actually used prefix. Resetting is still required
       // because the kernel reads predecessor statuses during the lookback
       // walk and they must start as Invalid.
       auto& states = lookbackStatesCache();
@@ -952,9 +953,9 @@ struct CudaScanKernelLauncher
          states.setSize( numberOfBlocks );
       }
 #if defined( __CUDACC__ )
-      cudaMemsetAsync( states.getData(), 0, numberOfBlocks * sizeof( LookbackState< ValueType > ), 0 );
+      Algorithms::fillAsync< Devices::Cuda >( states.getData(), LookbackState< ValueType >{}, numberOfBlocks );
 #elif defined( __HIP__ )
-      hipMemsetAsync( states.getData(), 0, numberOfBlocks * sizeof( LookbackState< ValueType > ), 0 );
+      Algorithms::fillAsync< Devices::Hip >( states.getData(), LookbackState< ValueType >{}, numberOfBlocks );
 #endif
 
       constexpr auto kernel = CudaScanKernelLookback<
