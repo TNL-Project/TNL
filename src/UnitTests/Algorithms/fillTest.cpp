@@ -36,4 +36,17 @@ TYPED_TEST( FillTest, fill_host )
    allocator.deallocate( data, ARRAY_TEST_SIZE );
 }
 
+TYPED_TEST( FillTest, fillAsync_host )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using Allocator = Allocators::Host< ValueType >;
+
+   Allocator allocator;
+   ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
+   fillAsync< Devices::Host >( data, (ValueType) 13, ARRAY_TEST_SIZE );
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
+      EXPECT_EQ( data[ i ], 13 );
+   allocator.deallocate( data, ARRAY_TEST_SIZE );
+}
+
 #include "../main.h"
