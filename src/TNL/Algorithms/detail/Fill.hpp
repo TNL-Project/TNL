@@ -50,4 +50,37 @@ Fill< Devices::Cuda >::fill( Element* data, const Element& value, Index size )
    parallelFor< Devices::Cuda >( 0, size, kernel );
 }
 
+template< typename Element, typename Index >
+__cuda_callable__
+void
+Fill< Devices::Sequential >::fillAsync( Element* data, const Element& value, Index size )
+{
+   // there is no asynchronous execution on the sequential backend
+   fill( data, value, size );
+}
+
+template< typename Element, typename Index >
+void
+Fill< Devices::Host >::fillAsync( Element* data, const Element& value, Index size )
+{
+   // there is no asynchronous execution on the host backend
+   fill( data, value, size );
+}
+
+template< typename Element, typename Index >
+void
+Fill< Devices::Cuda >::fillAsync( Element* data, const Element& value, Index size )
+{
+   if( size == 0 )
+      return;
+   TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
+   auto kernel = [ data, value ] __cuda_callable__( Index i )
+   {
+      data[ i ] = value;
+   };
+   Devices::Cuda::LaunchConfiguration launch_config;
+   launch_config.blockHostUntilFinished = false;
+   parallelFor< Devices::Cuda >( 0, size, launch_config, kernel );
+}
+
 }  // namespace TNL::Algorithms::detail

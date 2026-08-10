@@ -4,6 +4,7 @@
 #include <TNL/Devices/Hip.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Algorithms/fill.h>
+#include <TNL/Backend/Functions.h>
 
 #include "gtest/gtest.h"
 
@@ -37,6 +38,27 @@ TYPED_TEST( FillTest, fill_hip )
    ValueType* deviceData = hipAllocator.allocate( ARRAY_TEST_SIZE );
    fill< Devices::Host >( hostData, (ValueType) 0, ARRAY_TEST_SIZE );
    fill< Devices::Hip >( deviceData, (ValueType) 13, ARRAY_TEST_SIZE );
+   copy< Devices::Host, Devices::Hip >( hostData, deviceData, ARRAY_TEST_SIZE );
+   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
+      EXPECT_EQ( hostData[ i ], 13 );
+   hostAllocator.deallocate( hostData, ARRAY_TEST_SIZE );
+   hipAllocator.deallocate( deviceData, ARRAY_TEST_SIZE );
+}
+
+TYPED_TEST( FillTest, fillAsync_hip )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using HostAllocator = Allocators::Host< ValueType >;
+   using HipAllocator = Allocators::Hip< ValueType >;
+
+   HostAllocator hostAllocator;
+   HipAllocator hipAllocator;
+   ValueType* hostData = hostAllocator.allocate( ARRAY_TEST_SIZE );
+   ValueType* deviceData = hipAllocator.allocate( ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, (ValueType) 0, ARRAY_TEST_SIZE );
+   fillAsync< Devices::Hip >( deviceData, (ValueType) 13, ARRAY_TEST_SIZE );
+   // fillAsync does not block the host, so we must synchronize before reading the result
+   Backend::deviceSynchronize();
    copy< Devices::Host, Devices::Hip >( hostData, deviceData, ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( hostData[ i ], 13 );
