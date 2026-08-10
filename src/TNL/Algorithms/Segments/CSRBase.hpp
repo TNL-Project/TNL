@@ -7,7 +7,7 @@
 #include <TNL/Backend.h>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/find.h>
-#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScanKernel.h>
 
 #include "detail/TraversingKernels_CSR.h"
 

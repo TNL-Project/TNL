@@ -17,7 +17,7 @@ namespace TNL::Algorithms::detail {
  * followed by its prefix once all predecessor aggregates are known. Other
  * blocks spin on these flags to consume the partial results.
  *
- * It is used in CudaScanKernelLookback function.
+ * It is used in GPUScanKernelLookback function.
  */
 enum class LookbackStatus : int
 {
@@ -36,7 +36,7 @@ enum class LookbackStatus : int
  * would invalidate the cache line also holding another block's state, forcing
  * redundant memory traffic and serialising otherwise independent blocks.
  *
- * It is used in CudaScanKernelLookback function.
+ * It is used in GPUScanKernelLookback function.
  */
 template< typename ValueType >
 struct alignas( 128 ) LookbackState
@@ -56,11 +56,11 @@ struct alignas( 16 ) Vec4
    int x, y, z, w;
 };
 
-// Keeping the following storage structures outside of CudaScan objects make
+// Keeping the following storage structures outside of GPUScan objects make
 // them independent of the scan operation type. This allows to reuse the same
 // storage for both inclusive and exclusive scan.
 template< typename ValueType, int BlockSize >
-struct CudaScanStorage
+struct GPUScanStorage
 {
    // accessed via Backend::getInterleaving()
    ValueType chunkResults[ BlockSize + BlockSize / Backend::getNumberOfSharedMemoryBanks() ];
@@ -68,13 +68,13 @@ struct CudaScanStorage
 };
 
 template< typename ValueType >
-struct CudaScanShflStorage
+struct GPUScanShflStorage
 {
    ValueType warpResults[ Backend::getWarpSize() ];
 };
 
 template< typename ValueType, typename BlockStorage, int BlockSize, int ValuesPerThread >
-struct CudaTileScanStorage
+struct GPUTileScanStorage
 {
    alignas( 16 ) ValueType data[ BlockSize * ValuesPerThread ];
    BlockStorage blockScanStorage;
@@ -90,10 +90,10 @@ struct CudaTileScanStorage
  * value types.
  */
 template< ScanType scanType, int blockSize, typename Reduction, typename ValueType >
-struct CudaBlockScan
+struct GPUBlockScan
 {
    // storage to be allocated in shared memory
-   using Storage = CudaScanStorage< ValueType, blockSize >;
+   using Storage = GPUScanStorage< ValueType, blockSize >;
 
    /* Cooperative scan across the CUDA block - each thread will get the
     * result of the scan according to its ID.
@@ -112,7 +112,7 @@ struct CudaBlockScan
    scan( const Reduction& reduction, ValueType identity, ValueType threadValue, int tid, Storage& storage )
    {
       // verify the configuration
-      TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaBlockScan::scan" );
+      TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in GPUBlockScan::scan" );
       static_assert(
          blockSize / Backend::getWarpSize() <= Backend::getWarpSize(),
          "blockSize is too large, it would not be possible to scan warpResults using one warp" );
@@ -182,10 +182,10 @@ template<
    int __unused,  // the __shfl implementation does not depend on the blockSize
    typename Reduction,
    typename ValueType >
-struct CudaBlockScanShfl
+struct GPUBlockScanShfl
 {
    // storage to be allocated in shared memory
-   using Storage = CudaScanShflStorage< ValueType >;
+   using Storage = GPUScanShflStorage< ValueType >;
 
    /* Cooperative scan across the CUDA block - each thread will get the
     * result of the scan according to its ID.
@@ -268,41 +268,41 @@ struct CudaBlockScanShfl
 };
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, int > : public CudaBlockScanShfl< scanType, blockSize, Reduction, int >
+struct GPUBlockScan< scanType, blockSize, Reduction, int > : public GPUBlockScanShfl< scanType, blockSize, Reduction, int >
 {};
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, unsigned int >
-: public CudaBlockScanShfl< scanType, blockSize, Reduction, unsigned int >
+struct GPUBlockScan< scanType, blockSize, Reduction, unsigned int >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, unsigned int >
 {};
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, long > : public CudaBlockScanShfl< scanType, blockSize, Reduction, long >
+struct GPUBlockScan< scanType, blockSize, Reduction, long > : public GPUBlockScanShfl< scanType, blockSize, Reduction, long >
 {};
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, unsigned long >
-: public CudaBlockScanShfl< scanType, blockSize, Reduction, unsigned long >
+struct GPUBlockScan< scanType, blockSize, Reduction, unsigned long >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, unsigned long >
 {};
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, long long >
-: public CudaBlockScanShfl< scanType, blockSize, Reduction, long long >
+struct GPUBlockScan< scanType, blockSize, Reduction, long long >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, long long >
 {};
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, unsigned long long >
-: public CudaBlockScanShfl< scanType, blockSize, Reduction, unsigned long long >
+struct GPUBlockScan< scanType, blockSize, Reduction, unsigned long long >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, unsigned long long >
 {};
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, float >
-: public CudaBlockScanShfl< scanType, blockSize, Reduction, float >
+struct GPUBlockScan< scanType, blockSize, Reduction, float >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, float >
 {};
 
 template< ScanType scanType, int blockSize, typename Reduction >
-struct CudaBlockScan< scanType, blockSize, Reduction, double >
-: public CudaBlockScanShfl< scanType, blockSize, Reduction, double >
+struct GPUBlockScan< scanType, blockSize, Reduction, double >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, double >
 {};
 
 /* Template for cooperative scan of a data tile in the global memory.
@@ -310,12 +310,12 @@ struct CudaBlockScan< scanType, blockSize, Reduction, double >
  * otherwise it will deadlock!
  */
 template< ScanType scanType, int blockSize, int valuesPerThread, typename Reduction, typename ValueType >
-struct CudaTileScan
+struct GPUTileScan
 {
-   using BlockScan = CudaBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
+   using BlockScan = GPUBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
 
    // storage to be allocated in shared memory
-   using Storage = CudaTileScanStorage< ValueType, typename BlockScan::Storage, blockSize, valuesPerThread >;
+   using Storage = GPUTileScanStorage< ValueType, typename BlockScan::Storage, blockSize, valuesPerThread >;
 
    /* Cooperative scan of a data tile in the global memory - each thread will
     * get the result of its chunk (i.e. the last value of the (inclusive) scan
@@ -351,7 +351,7 @@ struct CudaTileScan
       Storage& storage )
    {
       // verify the configuration
-      TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaTileScan::scan" );
+      TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in GPUTileScan::scan" );
       static_assert(
          valuesPerThread % 2,
          "valuesPerThread must be odd, otherwise there would be shared memory bank conflicts "
@@ -425,12 +425,12 @@ struct CudaTileScan
 };
 #endif
 
-/* CudaScanKernelUpsweep - compute partial reductions per each CUDA block.
+/* GPUScanKernelUpsweep - compute partial reductions per each CUDA block.
  */
 template< int blockSize, int valuesPerThread, typename InputView, typename Reduction, typename ValueType >
 __global__
 void
-CudaScanKernelUpsweep(
+GPUScanKernelUpsweep(
    const InputView input,
    typename InputView::IndexType begin,
    typename InputView::IndexType end,
@@ -440,7 +440,7 @@ CudaScanKernelUpsweep(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    // verify the configuration
-   TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaScanKernelUpsweep" );
+   TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in GPUScanKernelUpsweep" );
    static_assert(
       valuesPerThread % 2,
       "valuesPerThread must be odd, otherwise there would be shared memory bank conflicts "
@@ -503,13 +503,13 @@ CudaScanKernelUpsweep(
 #endif
 }
 
-/* CudaScanKernelDownsweep - scan each tile of the input separately in each CUDA
+/* GPUScanKernelDownsweep - scan each tile of the input separately in each CUDA
  * block and use the result of spine scan as the initial value
  */
 template< ScanType scanType, int blockSize, int valuesPerThread, typename InputView, typename OutputView, typename Reduction >
 __global__
 void
-CudaScanKernelDownsweep(
+GPUScanKernelDownsweep(
    const InputView input,
    OutputView output,
    typename InputView::IndexType begin,
@@ -522,7 +522,7 @@ CudaScanKernelDownsweep(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ValueType = typename OutputView::ValueType;
-   using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
+   using TileScan = GPUTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
 
    // allocate shared memory
    __shared__ Backend::Uninitialized< typename TileScan::Storage > storage;
@@ -535,14 +535,14 @@ CudaScanKernelDownsweep(
 #endif
 }
 
-/* CudaScanKernelParallel - scan each tile of the input separately in each CUDA
- * block (first phase to be followed by CudaScanKernelUniformShift when there
+/* GPUScanKernelParallel - scan each tile of the input separately in each CUDA
+ * block (first phase to be followed by GPUScanKernelUniformShift when there
  * are multiple CUDA blocks).
  */
 template< ScanType scanType, int blockSize, int valuesPerThread, typename InputView, typename OutputView, typename Reduction >
 __global__
 void
-CudaScanKernelParallel(
+GPUScanKernelParallel(
    const InputView input,
    OutputView output,
    typename InputView::IndexType begin,
@@ -554,7 +554,7 @@ CudaScanKernelParallel(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ValueType = typename OutputView::ValueType;
-   using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
+   using TileScan = GPUTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
 
    // allocate shared memory
    __shared__ Backend::Uninitialized< typename TileScan::Storage > storage;
@@ -569,18 +569,18 @@ CudaScanKernelParallel(
 #endif
 }
 
-/* CudaScanKernelUniformShift - apply a uniform shift to a pre-scanned output
+/* GPUScanKernelUniformShift - apply a uniform shift to a pre-scanned output
  * array.
  *
  * \param blockResults  An array of per-block shifts coming from the first phase
- *                      (computed by CudaScanKernelParallel)
+ *                      (computed by GPUScanKernelParallel)
  * \param shift         A global shift to be applied to all elements of the
  *                      output array.
  */
 template< int blockSize, int valuesPerThread, typename OutputView, typename Reduction >
 __global__
 void
-CudaScanKernelUniformShift(
+GPUScanKernelUniformShift(
    OutputView output,
    typename OutputView::IndexType outputBegin,
    typename OutputView::IndexType outputEnd,
@@ -595,7 +595,7 @@ CudaScanKernelUniformShift(
       storage.get() = blockResults[ blockIdx.x ];
 
    // update the output offset for the thread
-   TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaScanKernelUniformShift" );
+   TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in GPUScanKernelUniformShift" );
    constexpr int maxElementsInBlock = blockSize * valuesPerThread;
    const int threadOffset = blockIdx.x * maxElementsInBlock + threadIdx.x;
    outputBegin += threadOffset;
@@ -613,7 +613,7 @@ CudaScanKernelUniformShift(
 #endif
 }
 
-/* CudaScanKernelLookback - single-pass parallel prefix scan using decoupled
+/* GPUScanKernelLookback - single-pass parallel prefix scan using decoupled
  * lookback synchronisation between CUDA blocks. Each block computes its local
  * scan and per-block aggregate, publishes the aggregate via the LookbackState
  * array, then walks predecessor aggregates to assemble its own prefix. Blocks
@@ -634,7 +634,7 @@ template<
    typename ValueType >
 __global__
 void
-CudaScanKernelLookback(
+GPUScanKernelLookback(
    const InputView input,
    OutputView output,
    typename InputView::IndexType begin,
@@ -645,8 +645,8 @@ CudaScanKernelLookback(
    LookbackState< ValueType >* states )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
-   using BlockScan = CudaBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
+   using TileScan = GPUTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
+   using BlockScan = GPUBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
 
    __shared__ Backend::Uninitialized< typename TileScan::Storage > tileStorage;
    __shared__ Backend::Uninitialized< ValueType > sharedAggregateStorage;
@@ -861,7 +861,7 @@ template<
    int blockSize = 256 * 4 / sizeof( ValueType ),
    // valuesPerThread should be odd to avoid shared memory bank conflicts
    int valuesPerThread = 7 >
-struct CudaScanKernelLauncher
+struct GPUScanKernelLauncher
 {
    /**
     * \brief Performs both phases of prefix sum.
@@ -954,7 +954,7 @@ struct CudaScanKernelLauncher
       }
 
       Algorithms::fillAsync< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, numberOfBlocks );
-      constexpr auto kernel = CudaScanKernelLookback<
+      constexpr auto kernel = GPUScanKernelLookback<
          scanType,
          blockSize,
          elementsPerThread,
@@ -1019,7 +1019,7 @@ struct CudaScanKernelLauncher
 
          // run the kernel with just 1 block
          if( end - begin <= blockSize ) {
-            constexpr auto kernel = CudaScanKernelParallel<
+            constexpr auto kernel = GPUScanKernelParallel<
                scanType,
                blockSize,
                1,
@@ -1040,7 +1040,7 @@ struct CudaScanKernelLauncher
                &blockResults.getData()[ 1 ] );
          }
          else if( end - begin <= blockSize * 3 ) {
-            constexpr auto kernel = CudaScanKernelParallel<
+            constexpr auto kernel = GPUScanKernelParallel<
                scanType,
                blockSize,
                3,
@@ -1061,7 +1061,7 @@ struct CudaScanKernelLauncher
                &blockResults.getData()[ 1 ] );
          }
          else if( end - begin <= blockSize * 5 ) {
-            constexpr auto kernel = CudaScanKernelParallel<
+            constexpr auto kernel = GPUScanKernelParallel<
                scanType,
                blockSize,
                5,
@@ -1082,7 +1082,7 @@ struct CudaScanKernelLauncher
                &blockResults.getData()[ 1 ] );
          }
          else {
-            constexpr auto kernel = CudaScanKernelParallel<
+            constexpr auto kernel = GPUScanKernelParallel<
                scanType,
                blockSize,
                valuesPerThread,
@@ -1135,7 +1135,7 @@ struct CudaScanKernelLauncher
             switch( phaseType ) {
                case ScanPhaseType::WriteInFirstPhase:
                   {
-                     constexpr auto kernel = CudaScanKernelParallel<
+                     constexpr auto kernel = GPUScanKernelParallel<
                         scanType,
                         blockSize,
                         valuesPerThread,
@@ -1158,7 +1158,7 @@ struct CudaScanKernelLauncher
 
                case ScanPhaseType::WriteInSecondPhase:
                   {
-                     constexpr auto kernel = CudaScanKernelUpsweep<
+                     constexpr auto kernel = GPUScanKernelUpsweep<
                         blockSize,
                         valuesPerThread,
                         typename InputArray::ConstViewType,
@@ -1179,7 +1179,7 @@ struct CudaScanKernelLauncher
          }
 
          // No sync needed: null-stream kernel launches are implicitly ordered.
-         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::perform(
+         GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::perform(
             blockResults, blockResults, 0, blockResults.getSize(), 0, reduction, identity );
 
          // Store the number of CUDA grids for the purpose of unit testing, i.e.
@@ -1230,7 +1230,7 @@ struct CudaScanKernelLauncher
       // it must be shifted uniformly in the second phase
       if( end - begin <= blockSize * valuesPerThread ) {
          constexpr auto kernel =
-            CudaScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
+            GPUScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
          Backend::launchKernelSync(
             kernel,
             Backend::LaunchConfiguration( 1, blockSize ),
@@ -1263,7 +1263,7 @@ struct CudaScanKernelLauncher
                case ScanPhaseType::WriteInFirstPhase:
                   {
                      constexpr auto kernel =
-                        CudaScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
+                        GPUScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
                      Backend::launchKernelAsync(
                         kernel,
                         launch_config,
@@ -1278,7 +1278,7 @@ struct CudaScanKernelLauncher
 
                case ScanPhaseType::WriteInSecondPhase:
                   {
-                     constexpr auto kernel = CudaScanKernelDownsweep<
+                     constexpr auto kernel = GPUScanKernelDownsweep<
                         scanType,
                         blockSize,
                         valuesPerThread,

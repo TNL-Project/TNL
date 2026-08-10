@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
-#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScanKernel.h>
 #include <TNL/Backend/LaunchHelpers.h>
 
 namespace TNL::Algorithms::Segments::detail {
@@ -260,7 +260,7 @@ forElementsIfBlockMergeKernel_Ellpack(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using InclusiveCudaScan =
-      Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Inclusive, BlockSize, Plus, Index >;
+      Algorithms::detail::GPUBlockScanShfl< Algorithms::detail::ScanType::Inclusive, BlockSize, Plus, Index >;
    using InclusiveScanStorage = typename InclusiveCudaScan::Storage;  // TODO: Storage should not depend on the scan type
 
    __shared__ InclusiveScanStorage inclusive_scan_storage;

@@ -7,7 +7,7 @@
 #include <TNL/Backend.h>
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Algorithms/scan.h>
-#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScanKernel.h>
 #include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 //defines the shared memory size
@@ -169,7 +169,7 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
          return result;
       }
    };
-   using BlockScan = CudaBlockScan< ScanType::Inclusive, blockSize, Uint2Plus, uint2 >;
+   using BlockScan = GPUBlockScan< ScanType::Inclusive, blockSize, Uint2Plus, uint2 >;
    using BlockReduceMax = CudaBlockReduce< blockSize, TNL::Max, Type >;
    using BlockReduceMin = CudaBlockReduce< blockSize, TNL::Min, Type >;
 

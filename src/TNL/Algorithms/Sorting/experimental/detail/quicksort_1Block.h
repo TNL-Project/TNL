@@ -6,7 +6,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Assert.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
-#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScanKernel.h>
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
@@ -132,7 +132,7 @@ singleBlockQuickSort(
       countElements( src.getView( begin, end ), compare, smaller, bigger, pivot );
 
       // synchronization is in this function already
-      using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
+      using BlockScan = Algorithms::detail::GPUBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
       __shared__ typename BlockScan::Storage storage;
       int smallerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, smaller, threadIdx.x, storage );
       int biggerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, bigger, threadIdx.x, storage );
