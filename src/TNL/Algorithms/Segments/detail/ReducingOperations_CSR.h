@@ -6,6 +6,8 @@
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Backend/DeviceInfo.h>
+#include <TNL/Containers/Array.h>
 #include <TNL/TypeTraits.h>
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_CSR.h"
@@ -100,6 +102,60 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             reduceSegmentsSequential( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
+         }
+         else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WorkStealing ) {
+            if( end <= begin )
+               return;
+
+            // Variant A: a per-instantiation scratch counter, lazily allocated
+            // once and reset (cheap - just a fill, no allocation) before every
+            // call. Safe because this function stream-synchronizes before
+            // returning, so there is never a concurrent writer. Revisit (e.g.
+            // move the counter onto the segments/matrix object, mirroring how
+            // AdaptiveCSR carries its precomputed block descriptors) if
+            // allocation-free reuse is not enough, e.g. for multi-stream or
+            // multi-GPU use.
+            static Containers::Array< IndexType, Device > rowCounter( 1 );
+            rowCounter.setValue( IndexType( 0 ) );
+
+            // Grid is sized to just saturate the device (occupancy-based),
+            // independently of the segment count - see B, T in Liu, Schmidt:
+            // "LightSpMV: Faster CSR-based sparse matrix-vector multiplication
+            // on CUDA-enabled GPUs", HiPC 2015. The paper (and the reference
+            // implementation in src/LightSpMV-1.0) uses T = maxThreadsPerBlock,
+            // but that does not evenly divide maxThreadsPerMultiprocessor on
+            // every GPU (e.g. 1024 vs. 1536 on Ampere), wasting a third of the
+            // SM's thread slots. T = 256 divides evenly on the GPUs checked so
+            // far and measured ~8% faster than 1024 on an irregular test
+            // matrix; T is intentionally not derived from getMaxThreadsPerBlock
+            // for that reason.
+            const int deviceNum = Backend::getDevice();
+            const int T = 256;
+            const int B = Backend::getDeviceMultiprocessors( deviceNum )
+                        * ( Backend::getMaxThreadsPerMultiprocessor( deviceNum ) / T );
+
+            Backend::LaunchConfiguration launch_config;
+            launch_config.blockSize.x = T;
+            launch_config.gridSize.x = B;
+
+            constexpr auto kernel = reduceSegmentsCSRWorkStealingKernel<
+               ConstViewType,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value >;
+            Backend::launchKernelAsync( kernel,
+                                         launch_config,
+                                         segments.getConstView(),
+                                         begin,
+                                         end,
+                                         rowCounter.getData(),
+                                         fetch,
+                                         reduction,
+                                         storer,
+                                         identity );
+            Backend::streamSynchronize( launch_config.stream );
          }
          else {
             std::size_t threadsCount = end - begin;

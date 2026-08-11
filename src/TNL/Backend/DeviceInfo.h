@@ -133,6 +133,52 @@ getDeviceMultiprocessors( int deviceNum )
 }
 
 [[nodiscard]] inline int
+getMaxThreadsPerMultiprocessor( int deviceNum )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   // results are cached because they are used for configuration of some kernels
+   static std::unordered_map< int, int > results;
+   if( results.count( deviceNum ) == 0 ) {
+   #if defined( __CUDACC__ )
+      cudaDeviceProp properties;
+      TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, deviceNum ) );
+   #elif defined( __HIP__ )
+      hipDeviceProp_t properties;
+      TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
+   #endif
+      results.emplace( deviceNum, properties.maxThreadsPerMultiProcessor );
+      return properties.maxThreadsPerMultiProcessor;
+   }
+   return results[ deviceNum ];
+#else
+   throw Exceptions::BackendSupportMissing();
+#endif
+}
+
+[[nodiscard]] inline int
+getMaxThreadsPerBlock( int deviceNum )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   // results are cached because they are used for configuration of some kernels
+   static std::unordered_map< int, int > results;
+   if( results.count( deviceNum ) == 0 ) {
+   #if defined( __CUDACC__ )
+      cudaDeviceProp properties;
+      TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, deviceNum ) );
+   #elif defined( __HIP__ )
+      hipDeviceProp_t properties;
+      TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
+   #endif
+      results.emplace( deviceNum, properties.maxThreadsPerBlock );
+      return properties.maxThreadsPerBlock;
+   }
+   return results[ deviceNum ];
+#else
+   throw Exceptions::BackendSupportMissing();
+#endif
+}
+
+[[nodiscard]] inline int
 getDeviceCoresPerMultiprocessors( int deviceNum )
 {
 #if defined( __CUDACC__ )

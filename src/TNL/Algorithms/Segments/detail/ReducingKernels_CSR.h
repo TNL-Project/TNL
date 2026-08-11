@@ -351,6 +351,94 @@ reduceSegmentsCSRDynamicGroupingKernel(
 #endif
 }
 
+/**
+ * \brief Persistent-kernel, grid-wide dynamic row distribution (a.k.a. work stealing).
+ *
+ * Inspired by LightSpMV [Liu, Schmidt: *LightSpMV: Faster CSR-based sparse
+ * matrix-vector multiplication on CUDA-enabled GPUs*, HiPC 2015]. Unlike
+ * \ref reduceSegmentsCSRDynamicGroupingKernel, which only rebalances work
+ * among warps within a single thread block, every warp in the whole grid
+ * competes for the next unprocessed segment through a single counter in
+ * global memory. This eliminates load imbalance caused by irregular segment
+ * sizes at the cost of the grid being launched with a fixed, occupancy-sized
+ * number of blocks (see the caller for the B, T formula from the paper)
+ * rather than one sized to cover all segments.
+ *
+ * Only warp-wide (32- or 64-lane, i.e. one segment processed by one whole
+ * warp at a time) granularity is supported. Splitting a warp into several
+ * independently-scheduled sub-groups (as the original LightSpMV also does
+ * for THREADS_PER_VECTOR < warpSize) would make different sub-groups of the
+ * same warp reach the broadcast shuffle at different loop iterations, which
+ * is undefined behavior for a full-mask `__shfl_sync`. That variant is
+ * intentionally not implemented here.
+ */
+template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
+__global__
+void
+reduceSegmentsCSRWorkStealingKernel(
+   const Segments segments,
+   Index begin,
+   Index end,
+   Index* rowCounter,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   constexpr Index warpSize = Backend::getWarpSize();
+   const Index laneIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
+
+   Index row = 0;
+   if( laneIdx == 0 )
+      row = Algorithms::AtomicOperations< Devices::GPU >::add( *rowCounter, Index( 1 ) );
+   row = Backend::warp_shuffle( row, 0, warpSize );
+
+   while( begin + row < end ) {
+      const Index segmentIdx = begin + row;
+      // Only lane 0 loads the row bounds from global memory and broadcasts
+      // them to the rest of the warp, instead of every lane issuing the same
+      // load (mirrors LightSpMV's two-thread read + broadcast via shared
+      // memory - here done via shuffle since a "vector" is a whole warp).
+      Index beginIdx = 0;
+      Index endIdx = 0;
+      if( laneIdx == 0 ) {
+         beginIdx = segments.getOffsets()[ segmentIdx ];
+         endIdx = segments.getOffsets()[ segmentIdx + 1 ];
+      }
+      beginIdx = Backend::warp_shuffle( beginIdx, 0, warpSize );
+      endIdx = Backend::warp_shuffle( endIdx, 0, warpSize );
+
+      ReturnType result = identity;
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         Index localIdx = laneIdx;
+         for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += warpSize ) {
+            result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
+            localIdx += warpSize;
+         }
+      }
+      else {
+         for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += warpSize )
+            result = reduce( result, fetch( globalIdx ) );
+      }
+
+      // Reduction in each warp which means in each segment.
+      using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
+      result = BlockReduce::warpReduce( reduce, result );
+
+      // Write the result and grab the next segment - every lane must reach the
+      // broadcast below in lockstep, so the atomic add happens before it, not
+      // interleaved with the loop condition.
+      if( laneIdx == 0 ) {
+         store( segmentIdx, result );
+         row = Algorithms::AtomicOperations< Devices::GPU >::add( *rowCounter, Index( 1 ) );
+      }
+      row = Backend::warp_shuffle( row, 0, warpSize );
+   }
+#endif
+}
+
 // Reduction with segment indexes
 
 // TODO: The following vector kernel is special case of the general variable vector kernel.

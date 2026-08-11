@@ -347,6 +347,37 @@ warp_shuffle_xor( T val, int laneMask )
 }
 
 /**
+ * \brief Generic warp shuffle broadcast (arbitrary source lane and sub-group
+ * width) for any bit-copyable type.
+ *
+ * See \ref warp_shuffle_xor for details.
+ */
+template< typename T >
+__device__
+T
+warp_shuffle( T val, int srcLane, int width = 32 )
+{
+   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
+   if constexpr( is_warp_shuffle_native_v< T > ) {
+      return __shfl_sync( getWarpFullMask(), val, srcLane, width );
+   }
+   else {
+      // Use store()/load() — see warp_shuffle_xor for the aliasing rationale.
+      using U = Uninitialized< T, 4 >;
+      U u;
+      u.store( val );
+      #pragma unroll
+      for( int i = 0; i < U::WORDS; ++i )
+         u.storage[ i ] = __shfl_sync( getWarpFullMask(), u.storage[ i ], srcLane, width );
+      return u.load();
+   }
+#else
+   return val;
+#endif
+}
+
+/**
  * \brief Generic warp shuffle down for any bit-copyable type.
  *
  * See \ref warp_shuffle_xor for details.
