@@ -43,8 +43,11 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+         // The precomputed adaptive blocks cover the whole matrix, so they cannot be used
+         // to restrict the reduction to a sub-range of segments. Fall back to the plain
+         // CSR kernels, which respect begin/end, whenever a sub-range is requested.
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         if( valueSizeLog >= segments.MaxValueSizeLog() ) {
+         if( valueSizeLog >= segments.MaxValueSizeLog() || begin != 0 || end != segments.getSegmentCount() ) {
             ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
          }
@@ -110,8 +113,11 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+         // The precomputed adaptive blocks cover the whole matrix, so they cannot be used
+         // to restrict the reduction to a sub-range of segments. Fall back to the plain
+         // CSR kernels, which respect begin/end, whenever a sub-range is requested.
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         if( valueSizeLog >= segments.MaxValueSizeLog() ) {
+         if( valueSizeLog >= segments.MaxValueSizeLog() || begin != 0 || end != segments.getSegmentCount() ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
                segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
