@@ -8,6 +8,8 @@
 #include <TNL/Containers/Vector.h>
 
 #include "CSRView.h"
+#include "AdaptiveCSR.h"
+#include "LaunchConfiguration.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -27,7 +29,8 @@ namespace TNL::Algorithms::Segments {
 template< typename Segments >
 struct LaunchConfigurationSetter_HybridCSR
 {
-   static_assert( isCSRSegments_v< Segments >, "Segments must be of CSR type." );
+   static_assert( isCSRSegments_v< Segments > || isAdaptiveCSRSegments_v< Segments >,
+                   "Segments must be of CSR or AdaptiveCSR type." );
    using Index = typename Segments::IndexType;
    static LaunchConfiguration
    create( const Segments& segments )
