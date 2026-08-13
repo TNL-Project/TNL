@@ -43,53 +43,51 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+         // The precomputed adaptive blocks cover the whole matrix, so they cannot be used
+         // to restrict the reduction to a sub-range of segments. Fall back to the plain
+         // CSR kernels, which respect begin/end, whenever a sub-range is requested.
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         if( valueSizeLog >= segments.MaxValueSizeLog() ) {
+         if( valueSizeLog >= segments.MaxValueSizeLog() || begin != 0 || end != segments.getSegmentCount() ) {
             ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
          }
 
-         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-            ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
-         }
-         else {
-            using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-            Backend::LaunchConfiguration launch_config;
-            launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
-            constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
+         using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+         Backend::LaunchConfiguration launch_config;
+         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+         constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
-            // Fill blocks
-            const auto blocks = segments.getBlocks()[ valueSizeLog ];
-            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+         // Fill blocks
+         const auto blocks = segments.getBlocks()[ valueSizeLog ];
+         std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
 
-            // Execute kernels on device
-            for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
-               if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-                  launch_config.gridSize.x =
-                     roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
-                  neededThreads = 0;
-               }
-               else {
-                  launch_config.gridSize.x = maxGridSize;
-                  neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
-               }
-
-               using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
-               using BlocksView = typename SegmentsViewType::BlocksView;
-
-               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernel<
-                  BlocksView,
-                  OffsetsView,
-                  IndexType,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  Value >;
-               Backend::launchKernelAsync(
-                  kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
+         // Execute kernels on device
+         for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
+            if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
+               launch_config.gridSize.x =
+                  roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
+               neededThreads = 0;
             }
-            Backend::streamSynchronize( launch_config.stream );
+            else {
+               launch_config.gridSize.x = maxGridSize;
+               neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
+            }
+
+            using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
+            using BlocksView = typename SegmentsViewType::BlocksView;
+
+            constexpr auto kernel = reduceSegmentsCSRAdaptiveKernel<
+               BlocksView,
+               OffsetsView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value >;
+            Backend::launchKernelAsync(
+               kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
          }
+         Backend::streamSynchronize( launch_config.stream );
       }
       else {
          ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
@@ -115,56 +113,52 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+         // The precomputed adaptive blocks cover the whole matrix, so they cannot be used
+         // to restrict the reduction to a sub-range of segments. Fall back to the plain
+         // CSR kernels, which respect begin/end, whenever a sub-range is requested.
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         if( valueSizeLog >= segments.MaxValueSizeLog() ) {
+         if( valueSizeLog >= segments.MaxValueSizeLog() || begin != 0 || end != segments.getSegmentCount() ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
                segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
          }
 
-         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-            ReducingOperationsCSR::reduceSegmentsWithArgument(
-               segments, begin, end, fetch, reduction, storer, identity, launchConfig );
-         }
-         else {
-            using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-            Backend::LaunchConfiguration launch_config;
-            launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
-            constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
+         using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+         Backend::LaunchConfiguration launch_config;
+         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+         constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
-            // Fill blocks
-            const auto& blocks = segments.getBlocks()[ valueSizeLog ];
-            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+         // Fill blocks
+         const auto& blocks = segments.getBlocks()[ valueSizeLog ];
+         std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
 
-            // Execute kernels on device
-            for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
-               if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-                  launch_config.gridSize.x =
-                     roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
-                  neededThreads = 0;
-               }
-               else {
-                  launch_config.gridSize.x = maxGridSize;
-                  neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
-               }
-
-               using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
-               using BlocksView = typename SegmentsViewType::BlocksView;
-               //OffsetsView offsets = segments.getOffsets();
-
-               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument<
-                  BlocksView,
-                  OffsetsView,
-                  IndexType,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  Value >;
-               Backend::launchKernelAsync(
-                  kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
+         // Execute kernels on device
+         for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
+            if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
+               launch_config.gridSize.x =
+                  roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
+               neededThreads = 0;
             }
-            Backend::streamSynchronize( launch_config.stream );
+            else {
+               launch_config.gridSize.x = maxGridSize;
+               neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
+            }
+
+            using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
+            using BlocksView = typename SegmentsViewType::BlocksView;
+
+            constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument<
+               BlocksView,
+               OffsetsView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value >;
+            Backend::launchKernelAsync(
+               kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
          }
+         Backend::streamSynchronize( launch_config.stream );
       }
       else {
          ReducingOperationsCSR::reduceSegmentsWithArgument(

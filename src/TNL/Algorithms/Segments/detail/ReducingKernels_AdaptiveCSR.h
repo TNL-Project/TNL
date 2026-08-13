@@ -62,21 +62,35 @@ reduceSegmentsCSRAdaptiveKernel(
    {
       const Index warpIdx = threadIdx.x / Backend::getWarpSize();
       const Index end = begin + block.getSize();
-
-      // Stream data to shared memory
-      for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
-         streamShared[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
-      auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
-      warp.sync();
       const Index lastSegmentIdx = firstSegmentIdx + block.getSegmentsInBlock();
 
-      for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
-         const Index sharedEnd = offsets[ i + 1 ] - begin;  // end of preprocessed data
-         result = identity;
-         // Scalar reduction
-         for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++ )
-            result = reduction( result, streamShared[ warpIdx ][ sharedIdx ].get() );
-         store( i, result );
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         // 3-arg fetch: reduce per-segment directly (no shared memory streaming)
+         for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
+            const Index segBegin = offsets[ i ];
+            const Index segEnd = offsets[ i + 1 ];
+            result = identity;
+            Index localIdx = 0;
+            for( Index globalIdx = segBegin; globalIdx < segEnd; globalIdx++, localIdx++ )
+               result = reduction( result, FetchLambdaAdapter< Index, Fetch >::call( fetch, i, localIdx, globalIdx ) );
+            store( i, result );
+         }
+      }
+      else {
+         // 1-arg fetch: stream data to shared memory for coalesced access
+         for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
+            streamShared[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
+         auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
+         warp.sync();
+
+         for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
+            const Index sharedEnd = offsets[ i + 1 ] - begin;  // end of preprocessed data
+            result = identity;
+            // Scalar reduction
+            for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++ )
+               result = reduction( result, streamShared[ warpIdx ][ sharedIdx ].get() );
+            store( i, result );
+         }
       }
    }
    else if( block.getType() == detail::Type::VECTOR )  // Vector kernel - one segment per warp
@@ -85,7 +99,8 @@ reduceSegmentsCSRAdaptiveKernel(
       const Index segmentIdx = block.getFirstSegment();
 
       for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += WarpSize )
-         result = reduction( result, fetch( globalIdx ) );
+         result =
+            reduction( result, FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, globalIdx - begin, globalIdx ) );
 
       // Parallel reduction
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
@@ -104,7 +119,8 @@ reduceSegmentsCSRAdaptiveKernel(
       for( Index globalIdx = begin + laneIdx + Backend::getWarpSize() * block.getWarpIdx(); globalIdx < end;
            globalIdx += Backend::getWarpSize() * block.getWarpsCount() )
       {
-         result = reduction( result, fetch( globalIdx ) );
+         result =
+            reduction( result, FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, globalIdx - begin, globalIdx ) );
       }
 
       // Parallel reduction
@@ -184,23 +200,38 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
    {
       const Index warpIdx = threadIdx.x / Backend::getWarpSize();
       const Index end = begin + block.getSize();
-
-      // Stream data to shared memory
-      for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
-         streamShared_result[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
-      auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
-      warp.sync();
       const Index lastSegmentIdx = firstSegmentIdx + block.getSegmentsInBlock();
 
-      for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
-         const Index sharedEnd = offsets[ i + 1 ] - begin;  // end of preprocessed data
-         result = identity;
-         // Scalar reduction
-         Index localIdx = 0;
-         for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++, localIdx++ )
-            reduction( result, streamShared_result[ warpIdx ][ sharedIdx ].get(), argument, localIdx );
-         bool emptySegment = ( offsets[ i ] == offsets[ i + 1 ] );
-         store( i, argument, result, emptySegment );
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+         // 3-arg fetch: reduce per-segment directly (no shared memory streaming)
+         for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
+            const Index segBegin = offsets[ i ];
+            const Index segEnd = offsets[ i + 1 ];
+            result = identity;
+            Index localIdx = 0;
+            for( Index globalIdx = segBegin; globalIdx < segEnd; globalIdx++, localIdx++ )
+               reduction(
+                  result, FetchLambdaAdapter< Index, Fetch >::call( fetch, i, localIdx, globalIdx ), argument, localIdx );
+            bool emptySegment = ( segBegin == segEnd );
+            store( i, argument, result, emptySegment );
+         }
+      }
+      else {
+         // 1-arg fetch: stream data to shared memory for coalesced access
+         for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
+            streamShared_result[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
+         auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
+         warp.sync();
+
+         for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
+            const Index sharedEnd = offsets[ i + 1 ] - begin;  // end of preprocessed data
+            result = identity;
+            Index localIdx = 0;
+            for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++, localIdx++ )
+               reduction( result, streamShared_result[ warpIdx ][ sharedIdx ].get(), argument, localIdx );
+            bool emptySegment = ( offsets[ i ] == offsets[ i + 1 ] );
+            store( i, argument, result, emptySegment );
+         }
       }
    }
    else if( block.getType() == detail::Type::VECTOR )  // Vector kernel - one segment per warp
@@ -209,7 +240,11 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
       const Index segmentIdx = block.getFirstSegment();
 
       for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += WarpSize )
-         reduction( result, fetch( globalIdx ), argument, globalIdx - begin );
+         reduction(
+            result,
+            FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, globalIdx - begin, globalIdx ),
+            argument,
+            globalIdx - begin );
 
       // Parallel reduction
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
@@ -230,7 +265,11 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
       for( Index globalIdx = begin + laneIdx + Backend::getWarpSize() * block.getWarpIdx(); globalIdx < end;
            globalIdx += Backend::getWarpSize() * block.getWarpsCount() )
       {
-         reduction( result, fetch( globalIdx ), argument, globalIdx - begin );
+         reduction(
+            result,
+            FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, globalIdx - begin, globalIdx ),
+            argument,
+            globalIdx - begin );
       }
 
       // Parallel reduction

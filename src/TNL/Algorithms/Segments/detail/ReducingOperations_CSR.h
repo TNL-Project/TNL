@@ -953,8 +953,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                else {
                   throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
                }
-               Backend::streamSynchronize( launch_config.stream );
             }
+            Backend::streamSynchronize( launch_config.stream );
          }
       }
       else {
