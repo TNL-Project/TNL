@@ -89,8 +89,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          // The unspecified Default mapping resolves to the same strategy as the plain sequential
-         // {Fixed, 1}.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // {Uniform, 1}.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -98,7 +98,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          }
          else {
             std::size_t threadsCount( 0 );
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                const std::size_t segmentsCount = end - begin;
                const std::size_t slicesCount = roundUpDivision( segmentsCount, static_cast< std::size_t >( SliceSize ) );
                threadsCount = slicesCount * static_cast< std::size_t >( SliceSize )
@@ -119,7 +119,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = forElementsKernel_SlicedEllpack<
                      ConstViewType,
                      IndexType,
@@ -221,8 +221,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          // The unspecified Default mapping resolves to the same strategy as the plain sequential
-         // {Fixed, 1}.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // {Uniform, 1}.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -231,7 +231,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount = segmentIndexes.getSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
@@ -243,7 +243,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = forElementsWithSegmentIndexesKernel_SlicedEllpack<
                      ConstViewType,
                      typename Array::ConstViewType,
@@ -358,8 +358,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             return;
 
          // The unspecified Default mapping resolves to the same strategy as the plain sequential
-         // {Fixed, 1}.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // {Uniform, 1}.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -367,7 +367,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          }
          else {
             std::size_t threadsCount = end - begin;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             Backend::LaunchConfiguration launch_config;
@@ -378,7 +378,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = forElementsIfKernel_SlicedEllpack<
                      ConstViewType,
                      IndexType,

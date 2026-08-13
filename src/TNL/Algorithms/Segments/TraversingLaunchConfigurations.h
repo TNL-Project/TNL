@@ -29,19 +29,19 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
    if constexpr( isCSRSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" }
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 128 ), "128 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 256 ), "256 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 2 ), "2 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 4 ), "4 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 8 ), "8 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 16 ), "16 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
@@ -53,26 +53,26 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
    if constexpr( isSlicedEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" }
          };
       }
       else {
          if constexpr( Segments::getOrganization() == ColumnMajorOrder )
             return std::list< std::pair< LaunchConfiguration, std::string > >{
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
             };
          else
             return std::list< std::pair< LaunchConfiguration, std::string > >{
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 128 ), "128 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 256 ), "256 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 2 ), "2 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 4 ), "4 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 8 ), "8 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 16 ), "16 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
             };
       }
@@ -81,25 +81,25 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
    if constexpr( isEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 128 ), "128 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 256 ), "256 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 2 ), "2 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 4 ), "4 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 8 ), "8 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 16 ), "16 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
          };
    }
 
    return std::list< std::pair< LaunchConfiguration, std::string > >{
-      { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
+      { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" }
    };
 }
 

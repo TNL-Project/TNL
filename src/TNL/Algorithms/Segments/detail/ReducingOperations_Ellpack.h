@@ -61,8 +61,8 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
                }
             };
-            // The unspecified Default mapping resolves to the same strategy as Fixed.
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+            // The unspecified Default mapping resolves to the same strategy as Uniform.
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
             {
                constexpr auto kernel1 = EllpackCudaReductionKernel<

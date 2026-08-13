@@ -142,12 +142,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          // The unspecified Default mapping resolves to a warp of threads per segment - the
          // library-wide GPU default for CSR-based formats.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
          // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
-         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Fixed, 1} strategy.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Uniform, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                && launchConfig.getThreadsPerSegmentCount() == 1 )
              || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
@@ -155,7 +155,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
          else {
             std::size_t threadsCount = end - begin;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
@@ -165,7 +165,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
@@ -439,12 +439,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          // The unspecified Default mapping resolves to a warp of threads per segment - the
          // library-wide GPU default for CSR-based formats.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
          // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
-         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Fixed, 1} strategy.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Uniform, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                && launchConfig.getThreadsPerSegmentCount() == 1 )
              || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
@@ -452,7 +452,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
@@ -463,7 +463,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
@@ -744,12 +744,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          // The unspecified Default mapping resolves to a warp of threads per segment - the
          // library-wide GPU default for CSR-based formats.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
          // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
-         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Fixed, 1} strategy.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Uniform, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                && launchConfig.getThreadsPerSegmentCount() == 1 )
              || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
@@ -757,7 +757,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
          else {
             std::size_t threadsCount = end - begin;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
@@ -767,7 +767,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
@@ -1042,12 +1042,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          // The unspecified Default mapping resolves to a warp of threads per segment - the
          // library-wide GPU default for CSR-based formats.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
          // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
-         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Fixed, 1} strategy.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // AdaptiveCSR), so it is treated as a synonym for the plain sequential {Uniform, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                && launchConfig.getThreadsPerSegmentCount() == 1 )
              || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
@@ -1056,7 +1056,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
@@ -1067,7 +1067,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
