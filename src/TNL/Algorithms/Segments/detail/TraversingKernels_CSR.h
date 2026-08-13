@@ -181,43 +181,6 @@ forElementsBlockMergeKernel_CSR(
 #endif
 }
 
-template< typename OffsetsView, typename ArrayView, typename Index, typename Function >
-__global__
-void
-forElementsWithSegmentIndexesKernel_CSR(
-   const Index gridIdx,
-   const Index threadsPerSegment,
-   const OffsetsView offsets,
-   const ArrayView segmentIndexes,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-   if( idx >= segmentIndexes.getSize() )
-      return;
-   TNL_ASSERT_GE( idx, 0, "" );
-   TNL_ASSERT_LT( idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ idx ];
-   TNL_ASSERT_GE( segmentIdx, 0, "Wrong index segment index - smaller that 0." );
-   TNL_ASSERT_LT( segmentIdx, offsets.getSize() - 1, "Wrong index segment index - larger that the number of indexes." );
-
-   const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
-   Index endIdx = offsets[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      if constexpr( callableArgumentCount< Function >() == 3 )
-         function( segmentIdx, localIdx, globalIdx );
-      else
-         function( segmentIdx, globalIdx );
-      localIdx += threadsPerSegment;
-   }
-#endif
-}
-
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int BlockSize = 256 >
 __global__
 void
@@ -323,40 +286,6 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR(
       idx += BlockSize;
    }
 
-#endif
-}
-
-template< typename OffsetsView, typename Index, typename Condition, typename Function >
-__global__
-void
-forElementsIfKernel_CSR(
-   const Index gridIdx,
-   const Index threadsPerSegment,
-   const OffsetsView offsets,
-   const Index begin,
-   const Index end,
-   Condition condition,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-   if( segmentIdx >= end || ! condition( segmentIdx ) )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
-   Index endIdx = offsets[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      if constexpr( callableArgumentCount< Function >() == 3 )
-         function( segmentIdx, localIdx, globalIdx );
-      else
-         function( segmentIdx, globalIdx );
-      localIdx += threadsPerSegment;
-   }
 #endif
 }
 
