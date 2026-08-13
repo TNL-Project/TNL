@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/CSRView.h>
+#include <TNL/Algorithms/Segments/AdaptiveCSR.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/LaunchConfigurationSetter_Default.h>
@@ -33,13 +34,13 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
       return reductionLaunchConfigurations( segments.getEmbeddedSegmentsView() );
    }
 
-   if constexpr( isCSRSegments_v< Segments > ) {
+   if constexpr( isCSRSegments_v< Segments > || isAdaptiveCSRSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
-      else
-         return std::list< std::pair< LaunchConfiguration, std::string > >{
+      else {
+         std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
@@ -56,6 +57,10 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             { LaunchConfigurationSetter_LightCSR< Segments >::create( segments ), "Light CSR" },
             { LaunchConfigurationSetter_HybridCSR< Segments >::create( segments ), "Hybrid CSR" }
          };
+         if constexpr( isAdaptiveCSRSegments_v< Segments > )
+            launchConfigs.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Adaptive, 1 ), "Adaptive" );
+         return launchConfigs;
+      }
    }
    else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
