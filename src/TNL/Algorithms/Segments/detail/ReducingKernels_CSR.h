@@ -13,53 +13,6 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-// TODO: The following vector kernel is special case of the general variable vector kernel.
-// Check the performance and if it is the same, we can erase this kernel.
-template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
-__global__
-void
-reduceSegmentsCSRVectorKernel(
-   Index gridIdx,
-   const Segments segments,
-   Index begin,
-   Index end,
-   Fetch fetch,
-   const Reduction reduction,
-   ResultStorer store,
-   const Value identity )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   // We map one warp to each segment
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
-   if( segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
-   Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   ReturnType result = identity;
-   for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + localIdx; globalIdx < endIdx;
-        globalIdx += Backend::getWarpSize() )
-   {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      result = reduction( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
-      localIdx += Backend::getWarpSize();
-   }
-
-   // Reduction in each warp which means in each segment.
-   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce( reduction, result );
-
-   // Write the result
-   if( laneIdx == 0 )
-      store( segmentIdx, result );
-#endif
-}
-
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -83,8 +36,7 @@ reduceSegmentsCSRVariableVectorKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx =
-      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -353,61 +305,6 @@ reduceSegmentsCSRDynamicGroupingKernel(
 
 // Reduction with segment indexes
 
-// TODO: The following vector kernel is special case of the general variable vector kernel.
-// Check the performance and if it is the same, we can erase this kernel.
-template<
-   typename Segments,
-   typename ArrayView,
-   typename Index,
-   typename Fetch,
-   typename Reduction,
-   typename ResultStorer,
-   typename Value >
-__global__
-void
-reduceSegmentsCSRVectorKernelWithIndexes(
-   Index gridIdx,
-   const Segments segments,
-   const ArrayView segmentIndexes,
-   Fetch fetch,
-   const Reduction reduction,
-   ResultStorer store,
-   const Value identity )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   // We map one warp to each segment
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
-   Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   ReturnType result = identity;
-   for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + localIdx; globalIdx < endIdx;
-        globalIdx += Backend::getWarpSize() )
-   {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      result = reduction( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
-      localIdx += Backend::getWarpSize();
-   }
-   // Reduction in each warp which means in each segment.
-   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce( reduction, result );
-
-   // Write the result
-   if( laneIdx == 0 )
-      store( segmentIdx_idx, segmentIdx, result );
-
-#endif
-}
-
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -431,8 +328,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx =
-      ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -712,60 +608,6 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
 
 // Reduction with argument
 
-// TODO: The following vector kernel is special case of the general variable vector kernel.
-// Check the performance and if it is the same, we can erase this kernel.
-template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
-__global__
-void
-reduceSegmentsCSRVectorKernelWithArgument(
-   Index gridIdx,
-   const Segments segments,
-   Index begin,
-   Index end,
-   Fetch fetch,
-   const Reduction reduction,
-   ResultStorer store,
-   const Value identity )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   // We map one warp to each segment
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
-   if( segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
-   Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   Index argument = 0;
-   ReturnType result = identity;
-   for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + localIdx; globalIdx < endIdx;
-        globalIdx += Backend::getWarpSize() )
-   {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      reduction(
-         result,
-         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-         argument,
-         localIdx );
-      localIdx += Backend::getWarpSize();
-   }
-
-   // Reduction in each warp which means in each segment.
-   using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
-
-   // Write the result
-   if( laneIdx == 0 ) {
-      bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == endIdx );
-      store( segmentIdx, argument_, result_, emptySegment );
-   }
-#endif
-}
-
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -790,8 +632,7 @@ reduceSegmentsCSRVariableVectorKernelWithArgument(
 
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx =
-      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -1071,68 +912,6 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
 
 // Reduction with segment indexes and argument
 
-// TODO: The following vector kernel is special case of the general variable vector kernel.
-// Check the performance and if it is the same, we can erase this kernel.
-template<
-   typename Segments,
-   typename ArrayView,
-   typename Index,
-   typename Fetch,
-   typename Reduction,
-   typename ResultStorer,
-   typename Value >
-__global__
-void
-reduceSegmentsCSRVectorKernelWithIndexesAndArgument(
-   Index gridIdx,
-   const Segments segments,
-   const ArrayView segmentIndexes,
-   Fetch fetch,
-   const Reduction reduction,
-   ResultStorer store,
-   const Value identity )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   // We map one warp to each segment
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
-   if( segmentIdx_idx >= segmentIndexes.getSize() )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
-   Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   ReturnType result = identity;
-   Index argument = 0;
-   for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + localIdx; globalIdx < endIdx;
-        globalIdx += Backend::getWarpSize() )
-   {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      reduction(
-         result,
-         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-         argument,
-         localIdx );
-      localIdx += Backend::getWarpSize();
-   }
-   // Reduction in each warp which means in each segment.
-   using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
-   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
-
-   // Write the result
-   if( laneIdx == 0 ) {
-      bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == endIdx );
-      store( segmentIdx_idx, segmentIdx, argument_, result_, emptySegment );
-   }
-
-#endif
-}
-
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -1156,8 +935,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx =
-      ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
