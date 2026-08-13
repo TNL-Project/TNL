@@ -12,6 +12,7 @@
 #include "CSRHostScheduling.h"
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_CSR.h"
+#include "ReducingKernels_CSR_Uniform.h"
 #include "ReducingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
@@ -169,7 +170,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform<
                               2,
                               ConstViewType,
                               IndexType,
@@ -192,7 +193,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 4:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform<
                               4,
                               ConstViewType,
                               IndexType,
@@ -215,7 +216,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 8:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform<
                               8,
                               ConstViewType,
                               IndexType,
@@ -238,7 +239,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 16:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform<
                               16,
                               ConstViewType,
                               IndexType,
@@ -261,7 +262,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 32:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform<
                               32,
                               ConstViewType,
                               IndexType,
@@ -284,7 +285,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 64:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernel<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps<
                               256,
                               64,
                               ConstViewType,
@@ -308,7 +309,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 128:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernel<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps<
                               256,
                               128,
                               ConstViewType,
@@ -467,7 +468,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexes<
                               2,
                               ConstViewType,
                               ArrayView,
@@ -490,7 +491,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 4:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexes<
                               4,
                               ConstViewType,
                               ArrayView,
@@ -513,7 +514,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 8:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexes<
                               8,
                               ConstViewType,
                               ArrayView,
@@ -536,7 +537,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 16:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexes<
                               16,
                               ConstViewType,
                               ArrayView,
@@ -559,7 +560,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 32:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexes<
                               32,
                               ConstViewType,
                               ArrayView,
@@ -582,7 +583,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 64:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithIndexes<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes<
                               256,
                               64,
                               ConstViewType,
@@ -606,7 +607,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 128:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithIndexes<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes<
                               256,
                               128,
                               ConstViewType,
@@ -771,7 +772,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithArgument<
                               2,
                               ConstViewType,
                               IndexType,
@@ -794,7 +795,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 4:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithArgument<
                               4,
                               ConstViewType,
                               IndexType,
@@ -817,7 +818,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 8:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithArgument<
                               8,
                               ConstViewType,
                               IndexType,
@@ -840,7 +841,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 16:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithArgument<
                               16,
                               ConstViewType,
                               IndexType,
@@ -863,7 +864,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 32:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithArgument<
                               32,
                               ConstViewType,
                               IndexType,
@@ -886,7 +887,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 64:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps_WithArgument<
                               256,
                               64,
                               ConstViewType,
@@ -910,7 +911,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 128:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps_WithArgument<
                               256,
                               128,
                               ConstViewType,
@@ -1071,7 +1072,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexesAndArgument<
                               2,
                               ConstViewType,
                               ArrayView,
@@ -1094,7 +1095,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 4:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexesAndArgument<
                               4,
                               ConstViewType,
                               ArrayView,
@@ -1117,7 +1118,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 8:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexesAndArgument<
                               8,
                               ConstViewType,
                               ArrayView,
@@ -1140,7 +1141,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 16:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexesAndArgument<
                               16,
                               ConstViewType,
                               ArrayView,
@@ -1163,7 +1164,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 32:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_WithIndexesAndArgument<
                               32,
                               ConstViewType,
                               ArrayView,
@@ -1186,7 +1187,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 64:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps_WithIndexesAndArgument<
                               256,
                               64,
                               ConstViewType,
@@ -1210,7 +1211,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         }
                      case 128:
                         {
-                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument<
+                           constexpr auto kernel = reduceSegments_CSR_Uniform_MultipleWarps_WithIndexesAndArgument<
                               256,
                               128,
                               ConstViewType,
