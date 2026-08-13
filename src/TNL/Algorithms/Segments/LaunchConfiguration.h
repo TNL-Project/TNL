@@ -17,6 +17,7 @@ namespace TNL::Algorithms::Segments {
  */
 enum class ThreadsToSegmentsMapping : std::uint8_t
 {
+   Default,
    Fixed,
    Warp,
    Block,
@@ -82,7 +83,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
    }
 
 protected:
-   ThreadsToSegmentsMapping threadsToSegmentsMapping = ThreadsToSegmentsMapping::Fixed;
+   ThreadsToSegmentsMapping threadsToSegmentsMapping = ThreadsToSegmentsMapping::Default;
    int threadsPerSegmentCount = 1;
 };
 
