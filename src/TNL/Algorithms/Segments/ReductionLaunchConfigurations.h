@@ -8,7 +8,6 @@
 #include <TNL/Algorithms/Segments/AdaptiveCSR.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
-#include <TNL/Algorithms/Segments/LaunchConfigurationSetter_Default.h>
 #include <TNL/Algorithms/Segments/LaunchConfigurationSetter_LightCSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfigurationSetter_HybridCSR.h>
 
