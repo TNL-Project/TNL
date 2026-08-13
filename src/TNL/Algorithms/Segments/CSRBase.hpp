@@ -10,6 +10,7 @@
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
 #include "detail/TraversingKernels_CSR.h"
+#include "detail/TraversingKernels_CSR_Uniform.h"
 
 #include "CSRBase.h"
 
@@ -184,7 +185,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
                return true;
             };
             constexpr auto kernel =
-               detail::forElementsIfKernel_CSR< ConstOffsetsView, IndexType, decltype( condition ), Function >;
+               detail::forElements_CSR_Uniform< ConstOffsetsView, IndexType, decltype( condition ), Function >;
             Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, condition, function );
          }
          else {
@@ -250,7 +251,7 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
          constexpr auto kernel = detail::
-            forElementsWithSegmentIndexesKernel_CSR< ConstOffsetsView, typename Array::ConstViewType, IndexType, Function >;
+            forElements_CSR_Uniform_WithIndexes< ConstOffsetsView, typename Array::ConstViewType, IndexType, Function >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, segmentIndexesView, begin, end, function );
       }
       Backend::streamSynchronize( launch_config.stream );
@@ -322,7 +323,7 @@ CSRBase< Device, Index >::forElementsIf( IndexType begin, IndexType end, Conditi
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         constexpr auto kernel = detail::forElementsIfKernel_CSR< ConstOffsetsView, IndexType, Condition, Function >;
+         constexpr auto kernel = detail::forElements_CSR_Uniform< ConstOffsetsView, IndexType, Condition, Function >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, condition, function );
       }
       Backend::streamSynchronize( launch_config.stream );

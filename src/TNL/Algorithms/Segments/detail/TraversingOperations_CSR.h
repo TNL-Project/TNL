@@ -7,6 +7,7 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "TraversingKernels_CSR.h"
+#include "TraversingKernels_CSR_Uniform.h"
 #include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
@@ -100,7 +101,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      return true;
                   };
                   constexpr auto kernel =
-                     forElementsIfKernel_CSR< ConstOffsetsView, IndexType, decltype( condition ), Function >;
+                     forElements_CSR_Uniform< ConstOffsetsView, IndexType, decltype( condition ), Function >;
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
@@ -217,7 +218,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = detail::forElementsWithSegmentIndexesKernel_CSR<
+                  constexpr auto kernel = detail::forElements_CSR_Uniform_WithIndexes<
                      ConstOffsetsView,
                      typename Array::ConstViewType,
                      IndexType,
@@ -394,7 +395,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = forElementsIfKernel_CSR<
+                  constexpr auto kernel = forElements_CSR_Uniform<
                      ConstOffsetsView,
                      IndexType,
                      std::remove_reference_t< Condition >,
