@@ -18,8 +18,8 @@ namespace TNL::Algorithms::Segments {
 enum class ThreadsToSegmentsMapping : std::uint8_t
 {
    Default,
-   Fixed,
-   Warp,
+   Uniform,
+   UniformWarp,
    Block,
    BlockMerged,
    DynamicGrouping,
