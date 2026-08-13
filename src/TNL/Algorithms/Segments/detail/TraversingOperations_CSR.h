@@ -63,6 +63,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
+         // The unspecified Default mapping resolves to a warp of threads per segment - the
+         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated Warp
+         // kernel, but the Fixed kernel already takes the thread count as a runtime parameter,
+         // so a warp-sized Fixed mapping achieves the same effect.
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsPerSegmentCountToWarpSize();
+         }
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -175,6 +183,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+         // The unspecified Default mapping resolves to a warp of threads per segment - the
+         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated Warp
+         // kernel, but the Fixed kernel already takes the thread count as a runtime parameter,
+         // so a warp-sized Fixed mapping achieves the same effect.
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsPerSegmentCountToWarpSize();
+         }
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -348,6 +364,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          if( end <= begin )
             return;
 
+         // The unspecified Default mapping resolves to a warp of threads per segment - the
+         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated Warp
+         // kernel, but the Fixed kernel already takes the thread count as a runtime parameter,
+         // so a warp-sized Fixed mapping achieves the same effect.
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsPerSegmentCountToWarpSize();
+         }
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {

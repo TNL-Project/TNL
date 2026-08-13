@@ -117,7 +117,10 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       }
       else {
          const int warpSize = Backend::getWarpSize( Backend::getDevice() );
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // The unspecified Default mapping resolves to the same strategy as the plain sequential
+         // {Fixed, 1}.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             reduceSegmentsSequential(

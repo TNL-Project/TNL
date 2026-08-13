@@ -54,7 +54,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             launch_config.gridSize.x = blocksCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+            // The unspecified Default mapping resolves to the same strategy as Fixed.
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
+            {
                constexpr auto kernel1 = EllpackCudaReductionKernel<
                   1,
                   ConstViewType,

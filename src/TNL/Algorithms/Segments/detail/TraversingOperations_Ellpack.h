@@ -83,7 +83,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // The unspecified Default mapping resolves to the same strategy as Fixed.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
@@ -213,7 +215,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // The unspecified Default mapping resolves to the same strategy as Fixed.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
@@ -348,7 +352,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          if( end <= begin )
             return;
 
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // The unspecified Default mapping resolves to the same strategy as Fixed.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
