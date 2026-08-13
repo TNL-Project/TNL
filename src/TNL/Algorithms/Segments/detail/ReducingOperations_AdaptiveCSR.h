@@ -43,21 +43,11 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The adaptive block kernel is the native strategy of this format. It is used when
-         // the caller asks for it explicitly (ThreadsToSegmentsMapping::Adaptive), or implicitly
-         // via the unset default LaunchConfiguration (which resolves to {Fixed, 1}). Any other
-         // explicitly requested mapping, as well as a sub-range or an unsupported value size
-         // (the precomputed blocks cover the whole matrix and only a limited set of value sizes),
-         // is not supported by the adaptive kernel and falls back to the plain CSR kernels, which
-         // support the full range of launch configurations.
-         const bool isDefaultOrAdaptiveMapping = launchConfig.getThreadsToSegmentsMapping()
-                                                     == ThreadsToSegmentsMapping::Adaptive
-                                               || ( launchConfig.getThreadsToSegmentsMapping()
-                                                       == ThreadsToSegmentsMapping::Fixed
-                                                    && launchConfig.getThreadsPerSegmentCount() == 1 );
+         const bool isNativeMapping = launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive
+                                   || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default;
          const int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         const bool canUseAdaptiveKernel = isDefaultOrAdaptiveMapping && valueSizeLog < segments.MaxValueSizeLog()
-                                         && begin == 0 && end == segments.getSegmentCount();
+         const bool canUseAdaptiveKernel =
+            isNativeMapping && valueSizeLog < segments.MaxValueSizeLog() && begin == 0 && end == segments.getSegmentCount();
          if( ! canUseAdaptiveKernel ) {
             ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
@@ -124,21 +114,11 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The adaptive block kernel is the native strategy of this format. It is used when
-         // the caller asks for it explicitly (ThreadsToSegmentsMapping::Adaptive), or implicitly
-         // via the unset default LaunchConfiguration (which resolves to {Fixed, 1}). Any other
-         // explicitly requested mapping, as well as a sub-range or an unsupported value size
-         // (the precomputed blocks cover the whole matrix and only a limited set of value sizes),
-         // is not supported by the adaptive kernel and falls back to the plain CSR kernels, which
-         // support the full range of launch configurations.
-         const bool isDefaultOrAdaptiveMapping = launchConfig.getThreadsToSegmentsMapping()
-                                                     == ThreadsToSegmentsMapping::Adaptive
-                                               || ( launchConfig.getThreadsToSegmentsMapping()
-                                                       == ThreadsToSegmentsMapping::Fixed
-                                                    && launchConfig.getThreadsPerSegmentCount() == 1 );
+         const bool isNativeMapping = launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive
+                                   || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default;
          const int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         const bool canUseAdaptiveKernel = isDefaultOrAdaptiveMapping && valueSizeLog < segments.MaxValueSizeLog()
-                                         && begin == 0 && end == segments.getSegmentCount();
+         const bool canUseAdaptiveKernel =
+            isNativeMapping && valueSizeLog < segments.MaxValueSizeLog() && begin == 0 && end == segments.getSegmentCount();
          if( ! canUseAdaptiveKernel ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
                segments, begin, end, fetch, reduction, storer, identity, launchConfig );
