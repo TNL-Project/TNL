@@ -21,7 +21,8 @@ enum class ThreadsToSegmentsMapping : std::uint8_t
    Warp,
    Block,
    BlockMerged,
-   DynamicGrouping
+   DynamicGrouping,
+   Adaptive
 };
 
 /**

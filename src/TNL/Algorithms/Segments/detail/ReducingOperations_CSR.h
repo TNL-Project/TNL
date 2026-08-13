@@ -139,8 +139,11 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
-             && launchConfig.getThreadsPerSegmentCount() == 1 )
+         // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
+         // AdaptiveCSR), so it is treated as a synonym for the default {Fixed, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               && launchConfig.getThreadsPerSegmentCount() == 1 )
+             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
             reduceSegmentsSequential( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          }
@@ -440,8 +443,11 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
-             && launchConfig.getThreadsPerSegmentCount() == 1 )
+         // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
+         // AdaptiveCSR), so it is treated as a synonym for the default {Fixed, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               && launchConfig.getThreadsPerSegmentCount() == 1 )
+             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
             reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
          }
@@ -758,8 +764,11 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
-             && launchConfig.getThreadsPerSegmentCount() == 1 )
+         // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
+         // AdaptiveCSR), so it is treated as a synonym for the default {Fixed, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               && launchConfig.getThreadsPerSegmentCount() == 1 )
+             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
             reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          }
@@ -1060,8 +1069,11 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
-             && launchConfig.getThreadsPerSegmentCount() == 1 )
+         // CSR has no dedicated kernel for the Adaptive mapping (that strategy belongs to
+         // AdaptiveCSR), so it is treated as a synonym for the default {Fixed, 1} strategy.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+               && launchConfig.getThreadsPerSegmentCount() == 1 )
+             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
          {
             reduceSegmentsWithIndexesAndArgumentSequential(
                segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
