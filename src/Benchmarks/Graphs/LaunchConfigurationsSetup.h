@@ -17,7 +17,7 @@ struct LaunchConfigurationsSetup
    create() -> std::list< std::pair< LaunchConfiguration, std::string > >
    {
       return std::list< std::pair< LaunchConfiguration, std::string > >{
-         { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
+         { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" }
       };
    }
 };
@@ -30,12 +30,12 @@ struct LaunchConfigurationsSetup< TNL::Algorithms::Segments::CSR< Device, Index,
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Host > || std::is_same_v< Device, TNL::Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" }
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UniformWarp, 1 ), "UniformWarp per segment" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },

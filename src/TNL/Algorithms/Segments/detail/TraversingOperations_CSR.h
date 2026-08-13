@@ -64,14 +64,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated Warp
-         // kernel, but the Fixed kernel already takes the thread count as a runtime parameter,
-         // so a warp-sized Fixed mapping achieves the same effect.
+         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated UniformWarp
+         // kernel, but the Uniform kernel already takes the thread count as a runtime parameter,
+         // so a warp-sized Uniform mapping achieves the same effect.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
@@ -83,7 +83,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             {
                launchConfig.blockSize.x = 256;
             }
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
             if( threadsCount > std::numeric_limits< IndexType >::max() )
@@ -94,7 +94,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   auto condition = [] __cuda_callable__( IndexType )
                   {
                      return true;
@@ -184,14 +184,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated Warp
-         // kernel, but the Fixed kernel already takes the thread count as a runtime parameter,
-         // so a warp-sized Fixed mapping achieves the same effect.
+         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated UniformWarp
+         // kernel, but the Uniform kernel already takes the thread count as a runtime parameter,
+         // so a warp-sized Uniform mapping achieves the same effect.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
@@ -199,7 +199,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount = segmentIndexes.getSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
@@ -216,7 +216,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = detail::forElementsWithSegmentIndexesKernel_CSR<
                      ConstOffsetsView,
                      typename Array::ConstViewType,
@@ -365,14 +365,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             return;
 
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated Warp
-         // kernel, but the Fixed kernel already takes the thread count as a runtime parameter,
-         // so a warp-sized Fixed mapping achieves the same effect.
+         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated UniformWarp
+         // kernel, but the Uniform kernel already takes the thread count as a runtime parameter,
+         // so a warp-sized Uniform mapping achieves the same effect.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
@@ -380,7 +380,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          else {
             const Index segmentsCount = end - begin;
             std::size_t threadsCount = segmentsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             if( threadsCount > std::numeric_limits< IndexType >::max() )
@@ -393,7 +393,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = forElementsIfKernel_CSR<
                      ConstOffsetsView,
                      IndexType,

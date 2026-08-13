@@ -118,8 +118,8 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       else {
          const int warpSize = Backend::getWarpSize( Backend::getDevice() );
          // The unspecified Default mapping resolves to the same strategy as the plain sequential
-         // {Fixed, 1}.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+         // {Uniform, 1}.
+         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -137,9 +137,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
          std::size_t sliceCount = end / SliceSize + ( end % SliceSize != 0 ) - begin / SliceSize;
          TNL_ASSERT_LE( sliceCount, (std::size_t) segments.getSliceSegmentSizesView().getSize(), "Too many slices." );
          std::size_t threadsCount = sliceCount * ConstViewType::getSliceSize();
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UniformWarp )
             threadsCount *= warpSize;
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
             threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
          if( threadsCount > std::numeric_limits< IndexType >::max() )
             throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -151,7 +151,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
          Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
          for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
             Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                switch( launchConfig.getThreadsPerSegmentCount() ) {
                   case 2:
                      {
