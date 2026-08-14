@@ -1,0 +1,122 @@
+<!-- Custom HTML header for Doxygen, generated from the default header template
+     of Doxygen 1.16.1 (doxygen -w html header.html delete_me.html delete_me.css)
+     with doxygen-awesome-css extensions loaded at the end of the head section.
+     See https://jothepro.github.io/doxygen-awesome-css/md_docs_2extensions.html -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$langISO">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen $doxygenversion"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!--BEGIN PROJECT_NAME--><title>$projectname: $title</title><!--END PROJECT_NAME-->
+<!--BEGIN !PROJECT_NAME--><title>$title</title><!--END !PROJECT_NAME-->
+<!--BEGIN PROJECT_ICON-->
+<link rel="icon" href="$relpath^$projecticon" type="image/x-icon" />
+<!--END PROJECT_ICON-->
+<link href="$relpath^tabs.css" rel="stylesheet" type="text/css"/>
+<!--BEGIN FULL_SIDEBAR-->
+<script type="text/javascript">var page_layout=1;</script>
+<!--END FULL_SIDEBAR-->
+<script type="text/javascript" src="$relpath^jquery.js"></script>
+<script type="text/javascript" src="$relpath^dynsections.js"></script>
+<!--BEGIN COPY_CLIPBOARD-->
+<script type="text/javascript" src="$relpath^clipboard.js"></script>
+<!--END COPY_CLIPBOARD-->
+$treeview
+$search
+$mathjax
+$darkmode
+<link href="$relpath^$stylesheet" rel="stylesheet" type="text/css" />
+$extrastylesheet
+<!-- doxygen-awesome-css extensions (see Doxyfile: HTML_EXTRA_FILES) -->
+<script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="$relpath^doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="$relpath^doxygen-awesome-interactive-toc.js"></script>
+<script type="text/javascript">
+  DoxygenAwesomeDarkModeToggle.init()
+  DoxygenAwesomeFragmentCopyButton.init()
+  DoxygenAwesomeParagraphLink.init()
+  DoxygenAwesomeInteractiveToc.init()
+</script>
+<script type="text/javascript">
+  // Reorder the top-level treeview items: the built-in pages tab emits its
+  // content as one block, which cannot be interleaved with tab-based entries.
+  window.addEventListener('load', function () {
+    const order = ['Comparison with other libraries', "Users' Guide",
+                   'Algorithm reference', 'API reference', "Developers' Guide"];
+    // All top-level entries are children of the single page root node ("Template
+    // Numerical Library"), so the list to reorder is the ul nested under it.
+    const rootUl = [...document.querySelectorAll('#nav-tree ul')].find(u =>
+      [...u.children].filter(c => c.tagName === 'LI').filter(li => {
+        const a = li.querySelector(':scope > .item .label a');
+        return a && order.includes(a.textContent.trim());
+      }).length >= 2);
+    if (!rootUl) return;
+    const items = [...rootUl.children].filter(e => e.tagName === 'LI');
+    const byName = new Map();
+    items.forEach(li => {
+      const a = li.querySelector(':scope > .item .label a');
+      if (a && order.includes(a.textContent.trim())) byName.set(a.textContent.trim(), li);
+    });
+    // insert at the position of the first matched item
+    const anchor = items.find(li => [...byName.values()].includes(li));
+    if (!anchor) return;
+    const ordered = order.map(n => byName.get(n)).filter(Boolean);
+    if (ordered.length < 2) return;
+    const marker = document.createElement('li');
+    rootUl.insertBefore(marker, anchor);
+    ordered.forEach(li => { rootUl.removeChild(li); });
+    ordered.forEach(li => { rootUl.insertBefore(li, marker); });
+    marker.remove();
+  });
+</script>
+</head>
+<body>
+<!--BEGIN FULL_SIDEBAR-->
+<div id="side-nav" class="ui-resizable side-nav-resizable"><!-- do not remove this div, it is closed by doxygen! -->
+<!--END FULL_SIDEBAR-->
+
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+
+<!--BEGIN TITLEAREA-->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <!--BEGIN PROJECT_LOGO-->
+  <td id="projectlogo"><img alt="Logo" src="$relpath^$projectlogo"$logosize/></td>
+  <!--END PROJECT_LOGO-->
+  <!--BEGIN PROJECT_NAME-->
+  <td id="projectalign">
+   <div id="projectname">$projectname<!--BEGIN PROJECT_NUMBER--><span id="projectnumber">&#160;$projectnumber</span><!--END PROJECT_NUMBER-->
+   </div>
+   <!--BEGIN PROJECT_BRIEF--><div id="projectbrief">$projectbrief</div><!--END PROJECT_BRIEF-->
+  </td>
+  <!--END PROJECT_NAME-->
+  <!--BEGIN !PROJECT_NAME-->
+   <!--BEGIN PROJECT_BRIEF-->
+    <td>
+    <div id="projectbrief">$projectbrief</div>
+    </td>
+   <!--END PROJECT_BRIEF-->
+  <!--END !PROJECT_NAME-->
+  <!--BEGIN DISABLE_INDEX-->
+   <!--BEGIN SEARCHENGINE-->
+     <!--BEGIN !FULL_SIDEBAR-->
+    <td>$searchbox</td>
+     <!--END !FULL_SIDEBAR-->
+   <!--END SEARCHENGINE-->
+  <!--END DISABLE_INDEX-->
+ </tr>
+  <!--BEGIN SEARCHENGINE-->
+   <!--BEGIN FULL_SIDEBAR-->
+   <tr><td colspan="2">$searchbox</td></tr>
+   <!--END FULL_SIDEBAR-->
+  <!--END SEARCHENGINE-->
+ </tbody>
+</table>
+</div>
+<!--END TITLEAREA-->
+<!-- end header part -->
