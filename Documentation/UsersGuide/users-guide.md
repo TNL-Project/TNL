@@ -4,24 +4,24 @@
 
 ## Basic topics
 
-1. [General concepts](#ug_GeneralConcepts)
-2. [Arrays](#ug_Arrays)
-3. [Vectors](#ug_Vectors)
-4. [For loops](#ug_ForLoops)
-5. [Flexible parallel reduction and scan](#ug_ReductionAndScan)
-6. [Sorting](#ug_Sorting)
-7. [Cross-device pointers](#ug_Pointers)
+1. \subpage ug_GeneralConcepts
+2. \subpage ug_Arrays
+3. \subpage ug_Vectors
+4. \subpage ug_ForLoops
+5. \subpage ug_ReductionAndScan
+6. \subpage ug_Sorting
+7. \subpage ug_Pointers
 
 ## Data structures
 
-1. [Multidimensional arrays](#ug_NDArrays)
-2. [Matrices](#ug_Matrices)
-3. [Segments (sparse formats)](#ug_Segments)
-4. [Graphs](#ug_Graphs)
-5. [Orthogonal grids](#ug_Grids)
-6. [Unstructured meshes](#ug_Meshes)
+1. \subpage ug_NDArrays
+2. \subpage ug_Matrices
+3. \subpage ug_Segments
+4. \subpage ug_Graphs
+5. \subpage ug_Grids
+6. \subpage ug_Meshes
 
 ## Numerical solvers
 
-1. [Linear solvers](#ug_Linear_solvers)
-2. [ODE solvers](#ug_ODE_solvers)
+1. \subpage ug_Linear_solvers
+2. \subpage ug_ODE_solvers

@@ -1029,6 +1029,7 @@ WARN_LOGFILE           =
 
 INPUT += Pages
 INPUT += UsersGuide
+INPUT += Reference
 INPUT += ../src/TNL
 
 # This tag can be used to specify the character encoding of the source files
