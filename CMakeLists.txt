@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.30)
 
 project(
     TNL
-    VERSION 0.4.1
+    VERSION 0.4.2
     # TODO: SPDX_LICENSE added in CMake 4.3
     #SPDX_LICENSE MIT
     DESCRIPTION "Template Numerical Library"
