@@ -24,6 +24,16 @@ if(DOXYGEN_FOUND)
         )
     endif()
 
+    # fetch the doxygen-awesome-css theme for the HTML output
+    include(FetchContent)
+    FetchContent_Declare(
+        doxygen-awesome-css
+        GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+        GIT_TAG v2.4.2
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(doxygen-awesome-css)
+
     # extract the version string during the configure step
     execute_process(
         COMMAND ${CMAKE_SOURCE_DIR}/scripts/get-version
@@ -71,7 +81,8 @@ if(DOXYGEN_FOUND)
             ${CMAKE_COMMAND} -E env PROJECT_NUMBER="version ${TNL_DOC_VERSION}"
             OUTPUT_SNIPPETS_PATH="${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}" OUTPUT_DIRECTORY="${CMAKE_CURRENT_BINARY_DIR}"
             WARN_AS_ERROR="${DOXYGEN_WARN_AS_ERROR}" CLANG_ASSISTED_PARSING="${DOXYGEN_CLANG_ASSISTED_PARSING}"
-            CLANG_OPTIONS="${DOXYGEN_CLANG_OPTIONS}" CLANG_DATABASE_PATH="${CMAKE_CURRENT_BINARY_DIR}" ${DOXYGEN_EXECUTABLE}
+            CLANG_OPTIONS="${DOXYGEN_CLANG_OPTIONS}" CLANG_DATABASE_PATH="${CMAKE_CURRENT_BINARY_DIR}"
+            DOXYGEN_AWESOME_CSS_DIR="${doxygen-awesome-css_SOURCE_DIR}" ${DOXYGEN_EXECUTABLE}
         COMMAND cmake -E touch "${DOXYGEN_STAMP_FILE}"
         DEPENDS ${TNL_DOC_INPUT_FILES}
         OUTPUT ${DOXYGEN_STAMP_FILE}

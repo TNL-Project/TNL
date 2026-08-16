@@ -1,6 +1,42 @@
-div.toc
+/*
+ * Overrides for the doxygen-awesome theme (loaded after all theme stylesheets,
+ * see HTML_EXTRA_STYLESHEET in Doxyfile).
+ */
+
+/*
+ * Allow the project name and version number to wrap inside the fixed-width
+ * sidebar. The sidebar-only theme styles #projectname with white-space: nowrap,
+ * which overflows the sidebar (clipped by #top with overflow: hidden) for long
+ * project names and version strings.
+ */
+#projectname
 {
-    float: none;
-    width: unset;
-    max-width: max-content;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+/* --top-height must fit the two-line project name + search row; nav offsets derive from it. */
+html
+{
+    --top-height: 150px;
+}
+
+#projectnumber
+{
+    display: block;
+}
+
+/* Blend code spans into TOC links (theme forces 14px chips with !important, breaking the compact rows). */
+.toc span.tt
+{
+    font-size: inherit !important;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* Hide the non-expandable duplicate Users' Guide tree node from the user layout tab. */
+#nav-tree li:has(> .item a[href="UsersGuide.html"]):not(:has(span.arrowhead))
+{
+    display: none;
 }
