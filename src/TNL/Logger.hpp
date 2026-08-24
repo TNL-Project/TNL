@@ -50,7 +50,13 @@ Logger::writeSystemInformation( bool printGPUInfo )
    writeParameter< std::string >( "Model name:", getCPUInfo().modelName, 1 );
    writeParameter< int >( "Cores:", cores, 1 );
    writeParameter< int >( "Threads per core:", threadsPerCore, 1 );
-   writeParameter< double >( "Max clock rate (in MHz):", getCPUMaxFrequency() / 1000, 1 );
+   try {
+      writeParameter< double >( "Max clock rate (in MHz):", getCPUMaxFrequency() / 1000, 1 );
+   }
+   catch( const std::exception& e ) {
+      writeParameter< std::string >( "Max clock rate (in MHz):", "N/A", 1 );
+      std::cerr << "Warning: failed to determine the CPU max clock rate: " << e.what() << '\n';
+   }
    const CPUCacheSizes cacheSizes = getCPUCacheSizes();
    const auto cacheInfo = std::to_string( cacheSizes.L1data ) + ", " + std::to_string( cacheSizes.L1instruction ) + ", "
                         + std::to_string( cacheSizes.L2 ) + ", " + std::to_string( cacheSizes.L3 );

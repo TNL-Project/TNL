@@ -238,7 +238,7 @@ public:
     * auto f = [=] __cuda_callable__ ( const SegmentView& segment ) {...}
     * ```
     * where `segment` represents given segment (see \ref TNL::Algorithms::Segments::SegmentView).
-    * Its type is given by \ref SegmentViewType.
+    * Its type is given by \ref SegmentViewType, i.e. a segment view.
     *
     */
    template< typename Function >
