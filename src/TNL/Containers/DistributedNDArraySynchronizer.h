@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <array>
 #include <map>
 #include <stdexcept>
 #include <future>
@@ -50,6 +52,11 @@ private:
    SyncDirection mask = SyncDirection::All;
    Buffers buffers;
 
+   // parameters of the last setBufferOffsets call, used to re-apply the offsets
+   // to new buffers created by a mid-lifetime setSynchronizationPattern call
+   int offsets_shift = 0;
+   bool offsets_initialized = false;
+
 public:
    using RequestsVector = std::vector< MPI_Request >;
    RequestsVector requests;
@@ -78,6 +85,8 @@ public:
      array_view( std::move( other.array_view ) ),
      mask( other.mask ),
      buffers( std::move( other.buffers ) ),
+     offsets_shift( other.offsets_shift ),
+     offsets_initialized( other.offsets_initialized ),
      requests( std::move( other.requests ) )
    {}
 
@@ -98,6 +107,12 @@ public:
       for( SyncDirection direction : pattern ) {
          buffers.emplace( std::make_pair( direction, direction ) );
       }
+
+      // re-apply the buffer offsets to the new buffers - they are normally set
+      // from stage_0, but its skip condition only tracks the array geometry,
+      // so it would not update the offsets after a pattern change
+      if( offsets_initialized )
+         setBufferOffsets( offsets_shift );
    }
 
    void
@@ -138,6 +153,9 @@ public:
    void
    setBufferOffsets( int shift = 0 )
    {
+      offsets_shift = shift;
+      offsets_initialized = true;
+
       const int dim0 = getDimensionWithOverlap< 0 >( array_view );
       const int overlap0 = array_view.getOverlaps()[ dim0 ];
 
@@ -190,6 +208,10 @@ public:
             }
          }
       }
+
+      // Re-evaluate which receive buffers must stay staged - it depends on the offsets set above,
+      // so it must be recomputed whenever they change.
+      evaluateReceiveStaging();
    }
 
    /**
@@ -430,6 +452,72 @@ public:
    }
 
 protected:
+   // Determines which receive buffers must stay staged:
+   // a contiguous receive view may be bound directly to the array
+   // (the MPI receive then places the payload without an extra copy)
+   // only if the stage_3 copy-kernel unpack of another buffer of this synchronizer can never overwrite its receive region
+   // (such a direct placement completes already in stage_2 and a colliding unpack would overwrite it with stale content).
+   // Buffers with non-contiguous receive regions always stay staged because the unpack is their only copy path,
+   // so the staging need propagates over overlapping receive regions
+   // and is resolved by a fixpoint iteration.
+   void
+   evaluateReceiveStaging()
+   {
+      // Upper bound on the number of buffers for which the receive-staging detection is evaluated.
+      // Larger (exotic) patterns keep the conservative default of staging all receives.
+      static constexpr std::size_t staging_detection_capacity = 64;
+
+      if( buffers.empty() || buffers.size() > staging_detection_capacity )
+         return;
+
+      using SizesHolder = typename DistributedNDArray::SizesHolderType;
+      using OffsetsHolder = typename DistributedNDArray::LocalBeginsType;
+
+      std::array< OffsetsHolder, staging_detection_capacity > recv_begins{};
+      std::array< SizesHolder, staging_detection_capacity > recv_ends{};
+      std::array< bool, staging_detection_capacity > staged{};
+
+      std::size_t nb = 0;
+      for( auto& [ direction, buffer ] : buffers ) {
+         recv_begins[ nb ] = buffer.recv_offsets;
+         recv_ends[ nb ] = buffer.recv_buffer.getSizes() + buffer.recv_offsets;
+         // buffers with non-contiguous receive regions always stay staged
+         staged[ nb ] = ! array_view.getLocalView().isContiguousBlock( recv_begins[ nb ], recv_ends[ nb ] );
+         nb++;
+      }
+
+      // half-open box intersection over all dimensions
+      auto overlaps = [ & ]( std::size_t i, std::size_t j )
+      {
+         for( std::size_t dim = 0; dim < DistributedNDArray::getDimension(); dim++ ) {
+            if( std::max( recv_begins[ i ][ dim ], recv_begins[ j ][ dim ] )
+                >= std::min( recv_ends[ i ][ dim ], recv_ends[ j ][ dim ] ) )
+               return false;
+         }
+         return true;
+      };
+
+      // propagate the staging need over overlapping regions until fixpoint
+      for( bool changed = true; changed; ) {
+         changed = false;
+         for( std::size_t i = 0; i < nb; i++ ) {
+            if( staged[ i ] )
+               continue;
+            for( std::size_t j = 0; j < nb; j++ ) {
+               if( i != j && staged[ j ] && overlaps( i, j ) ) {
+                  staged[ i ] = true;
+                  changed = true;
+                  break;
+               }
+            }
+         }
+      }
+
+      nb = 0;
+      for( auto& [ direction, buffer ] : buffers )
+         buffer.recv_needs_staging = staged[ nb++ ];
+   }
+
    static int
    countDimensionsWithOverlap( const DistributedNDArrayView& array_view )
    {
@@ -563,35 +651,52 @@ protected:
          typename DistributedNDArray::SizesHolderType ends = buffer.send_buffer.getSizes() + buffer.send_offsets;
          const bool is_contiguous = array_view.getLocalView().isContiguousBlock( buffer.send_offsets, ends );
 
-         if( is_contiguous ) {
-            // avoid buffering - bind buffer views directly to the array
-            buffer.send_view.bind( &detail::call_with_offsets( buffer.send_offsets, array_view.getLocalView() ) );
-            buffer.recv_view.bind( &detail::call_with_offsets( buffer.recv_offsets, array_view.getLocalView() ) );
+         // On the buffer-filling pass,
+         // point the buffer views at the memory stage_2 posts the MPI operations on:
+         // - contiguous send regions avoid buffering and bind directly to the array,
+         // - a receive region binds directly to the array only if the overlap detection (see setBufferOffsets)
+         //   proved that the copy-kernel unpack of no other buffer can write into it.
+         //   Otherwise,
+         //   it stays staged through the receive buffer,
+         //   so the deterministic application order of the unpacks (subset directions before their supersets) is enforced
+         //   against the direct MPI placement,
+         //   which completes during/just after stage_2.
+         if( to_buffer ) {
+            if( is_contiguous )
+               // avoid buffering - bind the send buffer view directly to the array
+               buffer.send_view.bind( &detail::call_with_offsets( buffer.send_offsets, array_view.getLocalView() ) );
+            if( buffer.recv_needs_staging )
+               buffer.recv_view.bind( buffer.recv_buffer.getView() );
+            else
+               buffer.recv_view.bind( &detail::call_with_offsets( buffer.recv_offsets, array_view.getLocalView() ) );
+         }
+
+         // skip the copy kernel for buffers that take the direct path
+         if( ( to_buffer && is_contiguous ) || ( ! to_buffer && ! buffer.recv_needs_staging ) )
+            continue;
+
+         using BufferView = typename Buffer::NDArrayType::ViewType;
+         CopyKernel< BufferView > copy_kernel;
+         copy_kernel.local_array_view.bind( array_view.getLocalView() );
+         copy_kernel.to_buffer = to_buffer;
+
+         // create launch configuration to specify the CUDA stream
+         typename DistributedNDArray::DeviceType::LaunchConfiguration launch_config;
+
+         if( to_buffer ) {
+            if( ( mask & buffer.direction ) != SyncDirection::None ) {
+               copy_kernel.buffer_view.bind( buffer.send_view );
+               copy_kernel.local_array_offsets = buffer.send_offsets;
+               setCudaStream( launch_config, buffer.stream_id );
+               buffer.send_view.forAll( copy_kernel, launch_config );
+            }
          }
          else {
-            using BufferView = typename Buffer::NDArrayType::ViewType;
-            CopyKernel< BufferView > copy_kernel;
-            copy_kernel.local_array_view.bind( array_view.getLocalView() );
-            copy_kernel.to_buffer = to_buffer;
-
-            // create launch configuration to specify the CUDA stream
-            typename DistributedNDArray::DeviceType::LaunchConfiguration launch_config;
-
-            if( to_buffer ) {
-               if( ( mask & buffer.direction ) != SyncDirection::None ) {
-                  copy_kernel.buffer_view.bind( buffer.send_view );
-                  copy_kernel.local_array_offsets = buffer.send_offsets;
-                  setCudaStream( launch_config, buffer.stream_id );
-                  buffer.send_view.forAll( copy_kernel, launch_config );
-               }
-            }
-            else {
-               if( ( mask & opposite( buffer.direction ) ) != SyncDirection::None ) {
-                  copy_kernel.buffer_view.bind( buffer.recv_view );
-                  copy_kernel.local_array_offsets = buffer.recv_offsets;
-                  setCudaStream( launch_config, buffer.stream_id );
-                  buffer.recv_view.forAll( copy_kernel, launch_config );
-               }
+            if( ( mask & opposite( buffer.direction ) ) != SyncDirection::None ) {
+               copy_kernel.buffer_view.bind( buffer.recv_view );
+               copy_kernel.local_array_offsets = buffer.recv_offsets;
+               setCudaStream( launch_config, buffer.stream_id );
+               buffer.recv_view.forAll( copy_kernel, launch_config );
             }
          }
       }

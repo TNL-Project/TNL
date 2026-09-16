@@ -64,7 +64,14 @@ using DistributedNDArrayTypes = ::testing::Types<
       std::index_sequence< 0, 1 >,  // permutation - should not matter
       Devices::Host,
       int,
-      StaticSizesHolder< int, 2, 3 > > >  // overlaps
+      StaticSizesHolder< int, 2, 3 > > >,  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0 >,     // X, Y
+      std::index_sequence< 1, 0 >,  // permutation - X is the fastest dimension
+      Devices::Host,
+      int,
+      StaticSizesHolder< int, 1, 1 > > >  // overlaps
 #ifdef __CUDACC__
    ,
    DistributedNDArray< NDArray<
@@ -73,7 +80,14 @@ using DistributedNDArrayTypes = ::testing::Types<
       std::index_sequence< 0, 1 >,  // permutation - should not matter
       Devices::Cuda,
       int,
-      StaticSizesHolder< int, 2, 3 > > >  // overlaps
+      StaticSizesHolder< int, 2, 3 > > >,  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0 >,     // X, Y
+      std::index_sequence< 1, 0 >,  // permutation - X is the fastest dimension
+      Devices::Cuda,
+      int,
+      StaticSizesHolder< int, 1, 1 > > >  // overlaps
 #endif
    >;
 
@@ -483,6 +497,193 @@ test_helper_synchronize_D2Q9(
 TYPED_TEST( DistributedNDArrayOverlaps_2D_test, synchronize_D2Q9 )
 {
    test_helper_synchronize_D2Q9(
+      this->distributedNDArray, this->globalSize, this->rank, this->decomposition, this->globalBlock );
+}
+
+// Regression test for the receive-buffer staging (via setBufferOffsets):
+// with shifted buffer offsets the receive regions of several directions overlap in the interior corner cells,
+// so a staged copy-kernel unpack would be able to overwrite data placed into the array by a contiguous (unstaged) receive.
+// The synchronizer must stage all colliding receives,
+// which gives a deterministic application order where the corner (most specific) buffers are applied last.
+// The tested types use the permutation <1,0> (fastest X dimension):
+// the Left/Right columns are then non-contiguous (staged) and the Top/Bottom rows contiguous (direct) for unit overlaps,
+// so the corner cells pit the staged Left/Right unpack against the direct Bottom/Top receive in the unpatched code.
+template< typename DistributedArray, typename BlockType >
+void
+test_helper_synchronize_D2Q9_shifted(
+   DistributedArray& a,
+   int globalSize,
+   int rank,
+   const std::vector< BlockType >& decomposition,
+   const BlockType& globalBlock )
+{
+   using IndexType = typename DistributedArray::IndexType;
+   using ValueType = typename DistributedArray::ValueType;
+
+   const int overlapX = a.template getOverlap< 0 >();
+   const int overlapY = a.template getOverlap< 1 >();
+
+   // unit overlaps are required so that some receive regions are contiguous
+   // (single rows or points) and both receive paths are exercised
+   if( overlapX != 1 || overlapY != 1 )
+      GTEST_SKIP() << "the test requires unit overlaps in both dimensions";
+
+   const auto localRangeX = a.template getLocalRange< 0 >();
+   const auto localRangeY = a.template getLocalRange< 1 >();
+   const IndexType lx0 = localRangeX.getBegin();
+   const IndexType ly0 = localRangeY.getBegin();
+   const IndexType ex = localRangeX.getEnd();
+   const IndexType ey = localRangeY.getEnd();
+   const IndexType L0 = ex - lx0;
+   const IndexType L1 = ey - ly0;
+   auto a_view = a.getLocalView();
+
+   DistributedNDArraySynchronizer< DistributedArray > s1;
+   s1.setSynchronizationPattern( NDArraySyncPatterns::D2Q9 );
+   setNeighbors( s1, NDArraySyncPatterns::D2Q9, rank, decomposition, globalBlock );
+
+   // the first synchronization binds the array view and allocates the buffers
+   // with the default (unshifted) offsets
+   s1.synchronize( a );
+
+   // shift the offsets so that the receive regions of different directions
+   // overlap in the interior corner cells
+   s1.setBufferOffsets( 1 );
+
+   // fill the interior with a unique global function and the ghosts with the
+   // same function plus a rank tag, so the writes of different neighbors can be
+   // distinguished and the application order of colliding receives checked
+   auto interior_setter = [ = ] __cuda_callable__( IndexType gi, IndexType gj ) mutable
+   {
+      a_view( gi - lx0, gj - ly0 ) = 1000 * gj + gi;
+   };
+   auto ghost_setter = [ = ] __cuda_callable__( IndexType gi, IndexType gj ) mutable
+   {
+      a_view( gi - lx0, gj - ly0 ) = 1000000 * ( rank + 1 ) + 1000 * gj + gi;
+   };
+   a.forAll( interior_setter );
+   a.forGhosts( ghost_setter );
+
+   s1.synchronize( a );
+
+   // wraparound for periodic block boundaries
+   auto wrap = [ = ]( IndexType gi ) -> IndexType
+   {
+      return ( ( gi % globalSize ) + globalSize ) % globalSize;
+   };
+
+   // value of the global function at the given coordinates
+   auto global_value = [ & ]( IndexType gi, IndexType gj ) -> ValueType
+   {
+      return 1000 * wrap( gj ) + wrap( gi );
+   };
+
+   // tag identifying the data written by the given rank
+   auto rank_tag = []( IndexType r ) -> ValueType
+   {
+      return 1000000 * ( r + 1 );
+   };
+
+   // rank of the block satisfying the given condition on its coordinates
+   auto find_rank = [ & ]( auto condition ) -> IndexType
+   {
+      for( std::size_t i = 0; i < decomposition.size(); i++ )
+         if( condition( decomposition[ i ] ) )
+            return i;
+      ADD_FAILURE() << "neighbor block not found in the decomposition";
+      return -1;
+   };
+
+   // find the ranks of the corner neighbors
+   const IndexType rBL = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.end.x() ) == wrap( lx0 ) && wrap( b.end.y() ) == wrap( ly0 );
+      } );
+   const IndexType rBR = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.begin.x() ) == wrap( ex ) && wrap( b.end.y() ) == wrap( ly0 );
+      } );
+   const IndexType rTL = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.end.x() ) == wrap( lx0 ) && wrap( b.begin.y() ) == wrap( ey );
+      } );
+   const IndexType rTR = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.begin.x() ) == wrap( ex ) && wrap( b.begin.y() ) == wrap( ey );
+      } );
+   // find the ranks of the edge neighbors (sharing the full edge of this block)
+   const IndexType rL = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.end.x() ) == wrap( lx0 ) && wrap( b.begin.y() ) == wrap( ly0 ) && wrap( b.end.y() ) == wrap( ey );
+      } );
+   const IndexType rR = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.begin.x() ) == wrap( ex ) && wrap( b.begin.y() ) == wrap( ly0 ) && wrap( b.end.y() ) == wrap( ey );
+      } );
+   const IndexType rB = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.end.y() ) == wrap( ly0 ) && wrap( b.begin.x() ) == wrap( lx0 ) && wrap( b.end.x() ) == wrap( ex );
+      } );
+   const IndexType rT = find_rank(
+      [ & ]( const BlockType& b )
+      {
+         return wrap( b.begin.y() ) == wrap( ey ) && wrap( b.begin.x() ) == wrap( lx0 ) && wrap( b.end.x() ) == wrap( ex );
+      } );
+
+   if( rBL < 0 || rBR < 0 || rTL < 0 || rTR < 0 || rL < 0 || rR < 0 || rB < 0 || rT < 0 )
+      return;
+
+   // value with which the ghost cell at the given global coordinates was
+   // filled on the given rank (the coordinates may lie outside the global
+   // block, so no wraparound is applied here)
+   auto ghost_value = [ & ]( IndexType gi, IndexType gj, IndexType r ) -> ValueType
+   {
+      return rank_tag( r ) + 1000 * gj + gi;
+   };
+
+   const BlockType& BLK = decomposition[ rBL ];
+   const BlockType& BRK = decomposition[ rBR ];
+   const BlockType& TLK = decomposition[ rTL ];
+   const BlockType& TRK = decomposition[ rTR ];
+   const BlockType& LNK = decomposition[ rL ];
+   const BlockType& RNK = decomposition[ rR ];
+   const BlockType& BNK = decomposition[ rB ];
+   const BlockType& TNK = decomposition[ rT ];
+
+   auto value_at = [ & ]( IndexType x, IndexType y ) -> ValueType
+   {
+      return a.getElement( lx0 + x, ly0 + y );
+   };
+
+   if( L0 > 2 && L1 > 2 ) {
+      const IndexType xm = L0 / 2;
+      const IndexType ym = L1 / 2;
+      // cells that are covered only by a single (edge) buffer
+      EXPECT_EQ( value_at( 0, ym ), ghost_value( LNK.end.x(), LNK.begin.y() + ym, rL ) );
+      EXPECT_EQ( value_at( L0 - 1, ym ), ghost_value( RNK.begin.x() - 1, RNK.begin.y() + ym, rR ) );
+      EXPECT_EQ( value_at( xm, 0 ), ghost_value( BNK.begin.x() + xm, BNK.end.y(), rB ) );
+      EXPECT_EQ( value_at( xm, L1 - 1 ), ghost_value( TNK.begin.x() + xm, TNK.begin.y() - 1, rT ) );
+      // cells that are covered by no receive buffer are not modified
+      EXPECT_EQ( value_at( xm, ym ), global_value( lx0 + xm, ly0 + ym ) );
+   }
+   // corner cells are contested by several buffers: the corner buffer must be
+   // applied last, so the data must come from the corner neighbor
+   EXPECT_EQ( value_at( 0, 0 ), ghost_value( BLK.end.x(), BLK.end.y(), rBL ) );
+   EXPECT_EQ( value_at( L0 - 1, 0 ), ghost_value( BRK.begin.x() - 1, BRK.end.y(), rBR ) );
+   EXPECT_EQ( value_at( 0, L1 - 1 ), ghost_value( TLK.end.x(), TLK.begin.y() - 1, rTL ) );
+   EXPECT_EQ( value_at( L0 - 1, L1 - 1 ), ghost_value( TRK.begin.x() - 1, TRK.begin.y() - 1, rTR ) );
+}
+
+TYPED_TEST( DistributedNDArrayOverlaps_2D_test, synchronize_D2Q9_shifted_offsets )
+{
+   test_helper_synchronize_D2Q9_shifted(
       this->distributedNDArray, this->globalSize, this->rank, this->decomposition, this->globalBlock );
 }
 
