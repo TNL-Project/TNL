@@ -29,6 +29,12 @@ struct SynchronizerBuffers
 
    Backend::stream_t stream_id = 0;  // NOLINT(modernize-use-nullptr)
 
+   // Whether the receive side must stay staged through `recv_buffer`
+   // and be unpacked with a copy kernel in stage_3.
+   // See DistributedNDArraySynchronizer::setBufferOffsets for handling unstaged buffers.
+   // The default keeps the safe staged behavior.
+   bool recv_needs_staging = true;
+
    SynchronizerBuffers() = delete;
 
    SynchronizerBuffers( SyncDirection direction )
