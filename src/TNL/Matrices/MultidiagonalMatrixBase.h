@@ -742,7 +742,7 @@ public:
     * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::MultidiagonalMatrixBase::ConstRowView.
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::MultidiagonalMatrixBase::ConstRowView "ConstRowView".
     */
    template< typename Function >
    [[deprecated( "Use free function TNL::Matrices::forRows instead" )]] void
@@ -787,7 +787,7 @@ public:
     * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::MultidiagonalMatrixBase::ConstRowView.
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::MultidiagonalMatrixBase::ConstRowView "ConstRowView".
     */
    template< typename Function >
    [[deprecated( "Use free function TNL::Matrices::forAllRows instead" )]] void
@@ -802,7 +802,7 @@ public:
     * auto function = [] __cuda_callable__ ( const ConstRowView& row ) { ... };
     * ```
     *
-    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::MultidiagonalMatrixBase::ConstRowView.
+    * \e ConstRowView represents matrix row - see \ref TNL::Matrices::MultidiagonalMatrixBase::ConstRowView "ConstRowView".
     *
     * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
     * \param end defines ending of the range `[begin, end)` of rows to be processed.
