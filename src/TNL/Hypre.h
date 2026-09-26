@@ -104,10 +104,10 @@ getHypreMemoryLocation()
 }  // namespace TNL
 
 // clang-format off
-   #ifdef HYPRE_USING_CUDA
-      #include <TNL/Devices/Cuda.h>
+   #if defined( HYPRE_USING_CUDA ) || defined( HYPRE_USING_HIP )
+      #include <TNL/Devices/GPU.h>
       namespace TNL {
-         using HYPRE_Device = Devices::Cuda;
+         using HYPRE_Device = Devices::GPU;
       }
    #else
       #include <TNL/Devices/Host.h>
@@ -118,7 +118,7 @@ getHypreMemoryLocation()
           *
           * The type depends on how the Hypre library was configured. By
           * default, it is \ref Devices::Host. When using Hypre built with CUDA
-          * support, it is \ref Devices::Cuda.
+          * or HIP support, it is \ref Devices::GPU.
           *
           * \ingroup Hypre
           */

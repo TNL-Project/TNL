@@ -13,7 +13,7 @@ TEST( ParallelForTest, 1D_hip )
 
    Array a;
 
-   for( int size = 1; size <= 100000000; size *= 100 ) {
+   for( int size : { 1, 100, 10000, 1000000, 100000000 } ) {
       ArrayHost expected;
       expected.setSize( size );
       for( int i = 0; i < size; i++ )
@@ -45,7 +45,7 @@ TEST( ParallelForTest, 2D_hip )
 
    Array a;
 
-   for( int size = 1; size <= 100000000; size *= 100 ) {
+   for( int size : { 1, 100, 10000, 1000000, 100000000 } ) {
       ArrayHost expected;
       expected.setSize( size );
       for( int i = 0; i < size; i++ )
@@ -90,7 +90,7 @@ TEST( ParallelForTest, 3D_hip )
 
    Array a;
 
-   for( int size = 1; size <= 100000000; size *= 100 ) {
+   for( int size : { 1, 100, 10000, 1000000, 100000000 } ) {
       ArrayHost expected;
       expected.setSize( size );
       for( int i = 0; i < size; i++ )

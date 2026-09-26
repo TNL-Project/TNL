@@ -106,10 +106,15 @@ main( int argc, char* argv[] )
       // Generate an ILU preconditioner factory by setting lower and upper
       // triangular solver - in this case incomplete sparse approximate inverse
       const int sparsity_power = 2;  // TODO: parametrize
+#if GKO_VERSION_MAJOR >= 2
+      // since Ginkgo 2.0, the L and U solvers are set only via the factory parameters
+      using IluType = gko::preconditioner::Ilu< ValueType, false, IndexType >;
+#else
+      using IluType = gko::preconditioner::
+         Ilu< gko::preconditioner::LowerIsai< ValueType, IndexType >, gko::preconditioner::UpperIsai< ValueType, IndexType > >;
+#endif
       auto ilu_pre_factory = gko::share(
-         gko::preconditioner::Ilu<
-            gko::preconditioner::LowerIsai< ValueType, IndexType >,
-            gko::preconditioner::UpperIsai< ValueType, IndexType > >::build()
+         IluType::build()
             .with_factorization( fact_factory )
             .with_l_solver(
                gko::preconditioner::LowerIsai< ValueType, IndexType >::build()

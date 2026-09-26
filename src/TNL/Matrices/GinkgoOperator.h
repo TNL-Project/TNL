@@ -70,18 +70,39 @@ getGinkgoMatrixCsr( std::shared_ptr< const gko::Executor > exec, Matrix& matrix 
  * \ingroup Ginkgo
  */
 template< typename Matrix >
-class GinkgoOperator : public gko::EnableLinOp< GinkgoOperator< Matrix > >,
-                       public gko::EnableCreateMethod< GinkgoOperator< Matrix > >
+class GinkgoOperator :
+#if GKO_VERSION_MAJOR >= 2
+   // Ginkgo 2.0 removed gko::EnableLinOp - a LinOp now derives from gko::LinOp
+   // and gets the polymorphic object interface (clone, copy_from, ...) from
+   // gko::EnableCloneable
+   public gko::LinOp,
+   public gko::EnableCloneable< GinkgoOperator< Matrix > >,
+#else
+   public gko::EnableLinOp< GinkgoOperator< Matrix > >,
+#endif
+   public gko::EnableCreateMethod< GinkgoOperator< Matrix > >
 {
+#if GKO_VERSION_MAJOR >= 2
+   using LinOpBase = gko::LinOp;
+   friend class gko::EnableCloneable< GinkgoOperator >;
+#else
+   using LinOpBase = gko::EnableLinOp< GinkgoOperator< Matrix > >;
+#endif
+
 public:
+#if GKO_VERSION_MAJOR >= 2
+   using gko::EnableCloneable< GinkgoOperator >::convert_to;
+   using gko::EnableCloneable< GinkgoOperator >::move_to;
+#endif
+
    // dummy constructor to make Ginkgo happy
    GinkgoOperator( std::shared_ptr< const gko::Executor > exec )
-   : gko::EnableLinOp< GinkgoOperator< Matrix > >( exec, gko::dim< 2 >{ 0, 0 } ),
+   : LinOpBase( exec, gko::dim< 2 >{ 0, 0 } ),
      gko::EnableCreateMethod< GinkgoOperator< Matrix > >()
    {}
 
    GinkgoOperator( std::shared_ptr< const gko::Executor > exec, const Matrix& matrix )
-   : gko::EnableLinOp< GinkgoOperator< Matrix > >(
+   : LinOpBase(
         exec,
         gko::dim< 2 >{ static_cast< std::size_t >( matrix.getRows() ), static_cast< std::size_t >( matrix.getColumns() ) } ),
      gko::EnableCreateMethod< GinkgoOperator< Matrix > >()
