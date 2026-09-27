@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <fstream>
 #include <filesystem>
@@ -174,6 +175,14 @@ getHardwareMetadata()
    const CPUCacheSizes cacheSizes = getCPUCacheSizes();
    const std::string cacheInfo = std::to_string( cacheSizes.L1data ) + ", " + std::to_string( cacheSizes.L1instruction ) + ", "
                                + std::to_string( cacheSizes.L2 ) + ", " + std::to_string( cacheSizes.L3 );
+   std::string cpuMaxFrequency;
+   try {
+      cpuMaxFrequency = std::to_string( getCPUMaxFrequency() / 1e3 );
+   }
+   catch( const std::exception& e ) {
+      cpuMaxFrequency = "N/A";
+      std::cerr << "Warning: failed to determine the CPU max frequency: " << e.what() << '\n';
+   }
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const int activeGPU = Backend::getDevice();
    const std::string deviceArch = std::to_string( Backend::getArchitectureMajor( activeGPU ) ) + "."
@@ -203,7 +212,7 @@ getHardwareMetadata()
       { "CPU model name", getCPUInfo().modelName },
       { "CPU cores", std::to_string( getCPUInfo().cores ) },
       { "CPU threads per core", std::to_string( getCPUInfo().threads / getCPUInfo().cores ) },
-      { "CPU max frequency (MHz)", std::to_string( getCPUMaxFrequency() / 1e3 ) },
+      { "CPU max frequency (MHz)", cpuMaxFrequency },
       { "CPU cache sizes (L1d, L1i, L2, L3) (kiB)", cacheInfo },
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       { "GPU name", Backend::getDeviceName( activeGPU ) },
