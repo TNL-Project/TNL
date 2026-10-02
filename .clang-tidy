@@ -20,6 +20,7 @@ Checks: >
   -modernize-avoid-c-arrays,
   -modernize-use-trailing-return-type,
   -modernize-raw-string-literal,
+  -modernize-use-string-view,
   performance-*,
   -performance-unnecessary-value-param,
   mpi-*,
