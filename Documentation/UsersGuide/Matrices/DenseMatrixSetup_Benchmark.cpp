@@ -31,7 +31,7 @@ setElement_on_host_and_transfer( const int matrixSize, Matrix& matrix )
    for( int j = 0; j < matrixSize; j++ )
       for( int i = 0; i < matrixSize; i++ )
          hostMatrix.setElement( i, j, i + j );
-   matrix = hostMatrix;
+   matrix = std::move( hostMatrix );
 }
 
 template< typename Matrix >

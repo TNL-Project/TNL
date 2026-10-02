@@ -897,7 +897,7 @@ compressSparseMatrix( Matrix& A )
             if( element.value() != 0.0 )
                aux_matrix_row.setElement( localIdx++, element.columnIndex(), element.value() );
       } );
-   A = aux_matrix;
+   A = std::move( aux_matrix );
 }
 
 template< typename Array1, typename Array2, typename PermutationArray >
