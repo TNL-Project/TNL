@@ -70,6 +70,12 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
 endif()
 
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
+    # CUDA 13 moved the CCCL headers (e.g. <cuda/std/...>) from include/ to include/cccl/,
+    # which CUDA toolkit detection in Clang 23 (--cuda-path) does not know about.
+    # We need to extend the include path, otherwise headers like <cuda/std/type_traits> are not found.
+    if(EXISTS "${CMAKE_CUDA_COMPILER_TOOLKIT_ROOT}/include/cccl")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -isystem ${CMAKE_CUDA_COMPILER_TOOLKIT_ROOT}/include/cccl")
+    endif()
     if(TNL_USE_CI_FLAGS)
         # enforce (more or less) warning-free builds
         # -Wno-error=pass-failed due to optimizer noise in CCCL headers (e.g. non-unrolled loops in CUB radix sort) - not actionable
