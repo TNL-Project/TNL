@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <iterator>
 #include <set>
 #include <stdexcept>
 #include <vector>
