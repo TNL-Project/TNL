@@ -156,7 +156,7 @@ check-python:
     #just _ensure-command mypy
     #mypy
 
-# Checks the code using ruff
+# Checks the code using clang-tidy
 check-clang-tidy +target_paths="Documentation/.* src/Benchmarks/.* src/Examples/.* src/Tools/.*":
     #!/usr/bin/env bash
     set -euo pipefail
