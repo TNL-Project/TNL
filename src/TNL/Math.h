@@ -512,7 +512,11 @@ using std::conj;
  *
  * It assigns the value of `a` to the parameter `b` and vice versa.
  */
-template< typename Type >
+template<
+   typename Type,
+   // enable_if is necessary to avoid ambiguity with std::swap in argument-dependent lookup
+   // (e.g. when the STL internally swaps pointers to TNL types such as TNL::String*)
+   std::enable_if_t< std::is_arithmetic_v< Type >, bool > = true >
 __cuda_callable__
 constexpr void
 swap( Type& a, Type& b ) noexcept

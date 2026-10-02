@@ -47,7 +47,7 @@ bitonicMergeGlobal(
       ascending = true;
 
    if( ascending == compare( arr[ e ], arr[ s ] ) )
-      TNL::swap( arr[ s ], arr[ e ] );
+      swapValues( arr[ s ], arr[ e ] );
 #endif
 }
 
@@ -112,7 +112,7 @@ bitonicMergeSharedMemory(
          // Bounds check to avoid touching virtual padding
          if( e < myBlockEnd - myBlockStart )
             if( ascending == compare( sharedMem[ e ], sharedMem[ s ] ) )
-               TNL::swap( sharedMem[ s ], sharedMem[ e ] );
+               swapValues( sharedMem[ s ], sharedMem[ e ] );
          __syncthreads();
       }
    }
@@ -180,7 +180,7 @@ bitonicSortFirstStepSharedMemory( Containers::ArrayView< Value, Devices::GPU, Ar
             // Bounds check to avoid touching virtual padding
             if( e < myBlockEnd - myBlockStart )
                if( ascending == compare( sharedMem[ e ], sharedMem[ s ] ) )
-                  TNL::swap( sharedMem[ s ], sharedMem[ e ] );
+                  swapValues( sharedMem[ s ], sharedMem[ e ] );
             __syncthreads();
          }
       }

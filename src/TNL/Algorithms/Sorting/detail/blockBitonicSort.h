@@ -8,6 +8,22 @@
 
 namespace TNL::Algorithms::Sorting::detail {
 
+/**
+ * \brief This function swaps two values, working for any value type in both host and device code.
+ *
+ * std::swap is not used because NVCC treats it as host-only for element types without
+ * constexpr special member functions.
+ */
+template< typename Value >
+__cuda_callable__
+constexpr void
+swapValues( Value& a, Value& b ) noexcept
+{
+   Value tmp = a;
+   a = b;
+   b = tmp;
+}
+
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
 /**
@@ -62,7 +78,7 @@ bitonicSort_Block(
                   ascending = true;
 
                if( ascending == compare( sharedMem[ e ], sharedMem[ s ] ) )
-                  TNL::swap( sharedMem[ s ], sharedMem[ e ] );
+                  swapValues( sharedMem[ s ], sharedMem[ e ] );
             }
 
             __syncthreads();
@@ -115,7 +131,7 @@ bitonicSort_Block( Containers::ArrayView< Value, Devices::GPU, Index > src, cons
                ascending = true;
 
             if( ascending == compare( src[ e ], src[ s ] ) )
-               TNL::swap( src[ s ], src[ e ] );
+               swapValues( src[ s ], src[ e ] );
          }
          __syncthreads();
       }
