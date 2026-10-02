@@ -519,7 +519,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, 
 {
    auto values = this->getValues().getView();
    using SegmentViewType = typename SegmentsViewType::SegmentViewType;
-   auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+   auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
    {
       auto rowView = RowView( segmentView, values );
       function( rowView );
@@ -717,14 +717,14 @@ DenseMatrixBase< Real, Device, Index, Organization >::addMatrix(
       if( transpose == TransposeState::Transpose ) {
          if( thisMatrixMultiplicator == RealType{ 1 } )
             this->forAllElements(
-               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType& value )
                {
                   // NOLINTNEXTLINE(readability-suspicious-call-argument)
                   value += matrixMultiplicator * matrixView( column, row );
                } );
          else  // thisMatrixMultiplicator != 1
             this->forAllElements(
-               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType& value )
                {
                   // NOLINTNEXTLINE(readability-suspicious-call-argument)
                   value = thisMatrixMultiplicator * value + matrixMultiplicator * matrixView( column, row );
@@ -733,13 +733,13 @@ DenseMatrixBase< Real, Device, Index, Organization >::addMatrix(
       else {  // TransposeState::None
          if( thisMatrixMultiplicator == RealType{ 1 } )
             this->forAllElements(
-               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType& value )
                {
                   value += matrixMultiplicator * matrixView( row, column );
                } );
          else  // thisMatrixMultiplicator != 1
             this->forAllElements(
-               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType& value )
                {
                   value = thisMatrixMultiplicator * value + matrixMultiplicator * matrixView( row, column );
                } );

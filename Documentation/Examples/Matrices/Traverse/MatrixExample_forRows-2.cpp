@@ -16,7 +16,7 @@ forRowsExample2()
 
    using RowView = typename TNL::Matrices::SparseMatrix< double, Device >::RowView;
 
-   auto setupRow = [] __cuda_callable__( RowView & row )
+   auto setupRow = [] __cuda_callable__( RowView& row )
    {
       const int rowIdx = row.getRowIndex();
       const int size = 5;
@@ -41,7 +41,7 @@ forRowsExample2()
    /***
     * Normalize each row by dividing by the sum of its elements.
     */
-   auto normalizeRow = [] __cuda_callable__( RowView & row )
+   auto normalizeRow = [] __cuda_callable__( RowView& row )
    {
       double sum = 0.0;
       for( auto element : row )

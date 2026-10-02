@@ -36,7 +36,7 @@ solveHeatEquation( const char* file_name )
    //! [Initial condition]
    Vector u( n );
    u.forAllElements(
-      [ = ] __cuda_callable__( Index i, Real & value )
+      [ = ] __cuda_callable__( Index i, Real& value )
       {
          const Real x = i * h;
          if( x >= 0.4 && x <= 0.6 )

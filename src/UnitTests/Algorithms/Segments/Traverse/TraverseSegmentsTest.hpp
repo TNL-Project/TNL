@@ -135,7 +135,7 @@ test_forElements()
 
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize;
       } );
@@ -236,7 +236,7 @@ test_forElementsIf()
 
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize;
       } );
@@ -357,7 +357,7 @@ test_forElementsWithSegmentIndexes_EmptySegments()
       segmentIndexes.forElements(
          0,
          segmentsCount / 2,
-         [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+         [ = ] __cuda_callable__( IndexType idx, IndexType& value )
          {
             value = 2 * idx;
          } );
@@ -413,7 +413,7 @@ test_forElementsWithSegmentIndexes()
 
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize;
       } );
@@ -430,7 +430,7 @@ test_forElementsWithSegmentIndexes()
       segmentIndexes.forElements(
          0,
          segmentsCount / 2,
-         [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+         [ = ] __cuda_callable__( IndexType idx, IndexType& value )
          {
             value = 2 * idx;
          } );
@@ -520,7 +520,7 @@ test_forSegments()
 
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize;
       } );
@@ -581,7 +581,7 @@ test_forSegmentsWithIndexes()
 
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize;
       } );
@@ -594,7 +594,7 @@ test_forSegmentsWithIndexes()
 
    VectorType segmentIndexes( segmentsCount / 2 );
    segmentIndexes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = 2 * idx;
       } );
@@ -638,7 +638,7 @@ test_forSegmentsIf()
 
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize;
       } );
@@ -679,7 +679,7 @@ test_forSegmentsSequential()
 
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize;
       } );

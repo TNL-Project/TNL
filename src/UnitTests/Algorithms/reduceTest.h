@@ -90,7 +90,7 @@ void
 iota( Array& array, typename Array::ValueType start = 0 )
 {
    array.forAllElements(
-      [ start ] __cuda_callable__( typename Array::IndexType idx, typename Array::ValueType & value )
+      [ start ] __cuda_callable__( typename Array::IndexType idx, typename Array::ValueType& value )
       {
          value = idx + start;
       } );
@@ -101,7 +101,7 @@ void
 mod( Array& array, typename Array::IndexType mod = 0 )
 {
    array.forAllElements(
-      [ mod ] __cuda_callable__( typename Array::IndexType idx, typename Array::ValueType & value )
+      [ mod ] __cuda_callable__( typename Array::IndexType idx, typename Array::ValueType& value )
       {
          value = idx % mod;
       } );
@@ -243,7 +243,7 @@ test_bitAnd( ArrayType& a )
    for( int size = 1; size <= 100000; size *= 10 ) {
       a.setSize( size );
       a.forAllElements(
-         [] __cuda_callable__( typename ArrayType::IndexType idx, typename ArrayType::ValueType & value )
+         [] __cuda_callable__( typename ArrayType::IndexType idx, typename ArrayType::ValueType& value )
          {
             value = 1 | ( 1 << ( idx % 8 ) );
          } );
@@ -273,7 +273,7 @@ test_bitOr( ArrayType& a )
    for( int size = 10; size <= 100000; size *= 10 ) {
       a.setSize( size );
       a.forAllElements(
-         [] __cuda_callable__( typename ArrayType::IndexType idx, typename ArrayType::ValueType & value )
+         [] __cuda_callable__( typename ArrayType::IndexType idx, typename ArrayType::ValueType& value )
          {
             value = 1 << ( idx % 8 );
          } );

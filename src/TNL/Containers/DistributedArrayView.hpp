@@ -364,7 +364,7 @@ DistributedArrayView< Value, Device, Index >::forElements( IndexType begin, Inde
    const IndexType localBegin = TNL::max( begin, localRange.getBegin() ) - localRange.getBegin();
    const IndexType localEnd = TNL::min( end, localRange.getEnd() ) - localRange.getBegin();
    const LocalRangeType localRange = getLocalRange();
-   auto local_f = [ = ] __cuda_callable__( IndexType idx, ValueType & value ) mutable
+   auto local_f = [ = ] __cuda_callable__( IndexType idx, ValueType& value ) mutable
    {
       f( localRange.getGlobalIndex( idx ), value );
    };

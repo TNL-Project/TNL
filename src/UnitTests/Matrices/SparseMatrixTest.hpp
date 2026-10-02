@@ -1257,7 +1257,7 @@ test_ForElements()
 
    Matrix m( { 3, 3, 3, 3, 3, 3, 3, 3, 3 }, cols );
    m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1.0;
          columnIdx = localIdx;
@@ -1293,7 +1293,7 @@ test_ForElementsIf()
 
    Matrix m( { 3, 3, 3, 3, 3, 3, 3, 3, 3 }, cols );
    m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          value = 1.0;
          columnIdx = localIdx;
@@ -1304,7 +1304,7 @@ test_ForElementsIf()
       {
          return rowIdx % 2 == 1;
       },
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1.0;
          columnIdx = localIdx;
@@ -1343,7 +1343,7 @@ test_ForElementsWithArray()
 
    Matrix m( { 3, 3, 3, 3, 3, 3, 3, 3, 3 }, cols );
    m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          value = 1.0;
          columnIdx = localIdx;
@@ -1352,7 +1352,7 @@ test_ForElementsWithArray()
    TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3, 5, 7 };
    m.forElements(
       rowIndices,
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1.0;
          columnIdx = localIdx;
@@ -1383,7 +1383,7 @@ test_ForRows()
    Matrix m( { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, cols );
    using RowView = typename Matrix::RowView;
    m.forAllRows(
-      [] __cuda_callable__( RowView & row ) mutable
+      [] __cuda_callable__( RowView& row ) mutable
       {
          for( IndexType localIdx = 0; localIdx <= row.getRowIndex(); localIdx++ ) {
             row.setValue( localIdx, row.getRowIndex() - localIdx + 1.0 );
@@ -1403,7 +1403,7 @@ test_ForRows()
    // Test with iterator
    m.getValues() = 0.0;
    m.forAllRows(
-      [] __cuda_callable__( RowView & row ) mutable
+      [] __cuda_callable__( RowView& row ) mutable
       {
          for( auto element : row ) {
             if( element.localIndex() <= element.rowIndex() ) {

@@ -25,7 +25,7 @@ forRowsExample()
    /***
     * Set the matrix elements.
     */
-   auto f = [] __cuda_callable__( RowView & row )
+   auto f = [] __cuda_callable__( RowView& row )
    {
       const int rowIdx = row.getRowIndex();
       if( rowIdx == 0 ) {
@@ -47,7 +47,7 @@ forRowsExample()
     * Divide each matrix row by a sum of all elements in the row - with use of iterators.
     */
    matrix.forAllRows(
-      [] __cuda_callable__( RowView & row )
+      [] __cuda_callable__( RowView& row )
       {
          double sum = 0.0;
          for( auto element : row )

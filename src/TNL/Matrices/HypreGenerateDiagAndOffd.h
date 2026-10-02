@@ -116,7 +116,7 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
       // prepare array for the mapping of offd column indices
       IntArray perm( hypre_CSRMatrixNumNonzeros( offd ) );
       perm.forAllElements(
-         [] __cuda_callable__( HYPRE_Int idx, HYPRE_Int & value )
+         [] __cuda_callable__( HYPRE_Int idx, HYPRE_Int& value )
          {
             value = idx;
          } );

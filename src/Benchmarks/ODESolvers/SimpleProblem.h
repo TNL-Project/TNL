@@ -25,7 +25,7 @@ struct SimpleProblem
       using ViewType = typename VectorType::ViewType;
       auto u = _u->getView();
       auto fu = _fu->getView();
-      auto computeF = [ = ] __cuda_callable__( IndexType i, ViewType & u, ViewType & fu )
+      auto computeF = [ = ] __cuda_callable__( IndexType i, ViewType& u, ViewType& fu )
       {
          fu[ i ] = 1.0;
       };

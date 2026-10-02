@@ -177,7 +177,7 @@ singleSourceShortestPath(
       parallelSingleSourceShortestPath( graph, start, distances, launchConfig );
    }
    distances.forAllElements(
-      [] __cuda_callable__( Index i, Real & x )
+      [] __cuda_callable__( Index i, Real& x )
       {
          x = ( x == std::numeric_limits< Real >::max() ) ? -1.0 : x;
       } );

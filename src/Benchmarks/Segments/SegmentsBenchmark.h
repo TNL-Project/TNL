@@ -117,7 +117,7 @@ struct SegmentsBenchmark
          IndexVector segmentIndexes( segmentsSizes.getSize() / stride );
          auto segmentIndexes_view = segmentIndexes.getView();
          segmentIndexes.forAllElements(
-            [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+            [ = ] __cuda_callable__( IndexType idx, IndexType& value )
             {
                value = stride * idx;
             } );
@@ -260,7 +260,7 @@ struct SegmentsBenchmark
          IndexVector segmentIndexes( segmentsSizes.getSize() / stride );
          auto segmentIndexes_view = segmentIndexes.getConstView();
          segmentIndexes.forAllElements(
-            [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+            [ = ] __cuda_callable__( IndexType idx, IndexType& value )
             {
                value = stride * idx;
             } );
@@ -431,7 +431,7 @@ struct SegmentsBenchmark
             for( Index segmentSize = minSegmentSize; segmentSize < maxSegmentSize; segmentSize *= 2 ) {
                HostVector segmentSizes( segmentsCount );
                segmentSizes.forAllElements(
-                  [ = ] __cuda_callable__( Index i, Index & x ) mutable
+                  [ = ] __cuda_callable__( Index i, Index& x ) mutable
                   {
                      x = i % segmentSize + 1;
                   } );
@@ -446,7 +446,7 @@ struct SegmentsBenchmark
             for( Index segmentSize = minSegmentSize; segmentSize < maxSegmentSize; segmentSize *= 2 ) {
                HostVector segmentSizes( segmentsCount );
                segmentSizes.forAllElements(
-                  [ = ] __cuda_callable__( Index i, Index & x ) mutable
+                  [ = ] __cuda_callable__( Index i, Index& x ) mutable
                   {
                      std::size_t val = i * i;
                      x = val % segmentSize + 1;

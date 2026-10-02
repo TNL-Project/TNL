@@ -295,7 +295,7 @@ ArrayViewEvaluateTest( ArrayType& u )
    ViewType v( u );
 
    v.forAllElements(
-      [] __cuda_callable__( IndexType i, ValueType & value )
+      [] __cuda_callable__( IndexType i, ValueType& value )
       {
          value = 3 * i % 4;
       } );

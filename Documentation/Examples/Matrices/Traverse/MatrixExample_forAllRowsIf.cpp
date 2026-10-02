@@ -25,7 +25,7 @@ forAllRowsIfExample()
 
    using DenseRowView = typename TNL::Matrices::DenseMatrix< double, Device >::RowView;
 
-   auto processDenseRow = [] __cuda_callable__( DenseRowView & row )
+   auto processDenseRow = [] __cuda_callable__( DenseRowView& row )
    {
       const int rowIdx = row.getRowIndex();
       for( int i = 0; i < row.getSize(); i++ )
@@ -51,7 +51,7 @@ forAllRowsIfExample()
 
    using SparseRowView = typename TNL::Matrices::SparseMatrix< double, Device >::RowView;
 
-   auto processSparseRow = [] __cuda_callable__( SparseRowView & row )
+   auto processSparseRow = [] __cuda_callable__( SparseRowView& row )
    {
       const int rowIdx = row.getRowIndex();
       row.setElement( 0, rowIdx - 1, 1.0 );

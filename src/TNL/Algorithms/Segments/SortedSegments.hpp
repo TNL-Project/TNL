@@ -141,7 +141,7 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    Containers::Array< Tuple, DeviceType, IndexType > aux( sizes.getSize() );
    auto sizesView = sizes.getConstView();
    aux.forAllElements(
-      [ = ] __cuda_callable__( IndexType i, Tuple & tuple )
+      [ = ] __cuda_callable__( IndexType i, Tuple& tuple )
       {
          tuple[ 0 ] = sizesView[ i ];
          tuple[ 1 ] = i;
@@ -168,7 +168,7 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    auto auxView = aux.getConstView();
    SizesHolder sortedSizes( sizes.getSize() );
    sortedSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType i, IndexType & value )
+      [ = ] __cuda_callable__( IndexType i, IndexType& value )
       {
          value = auxView[ i ][ 0 ];
       } );
@@ -177,7 +177,7 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    // Create the inverse segments permutation and the segments permutation
    this->inverseSegmentsPermutation.setSize( sizes.getSize() );
    this->inverseSegmentsPermutation.forAllElements(
-      [ = ] __cuda_callable__( IndexType i, IndexType & value )
+      [ = ] __cuda_callable__( IndexType i, IndexType& value )
       {
          value = auxView[ i ][ 1 ];
       } );

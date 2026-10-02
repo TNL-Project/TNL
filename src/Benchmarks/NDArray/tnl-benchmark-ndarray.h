@@ -53,7 +53,7 @@ benchmark_array( Benchmark& benchmark, index_type size = 500000000 )
    a.setValue( -1 );
    b.setValue( 1 );
 
-   auto kernel = [] __cuda_callable__( index_type i, value_type * a, const value_type* b )
+   auto kernel = [] __cuda_callable__( index_type i, value_type* a, const value_type* b )
    {
       a[ i ] = b[ i ];
    };

@@ -97,7 +97,7 @@ setLinearSequence( Array& array )
 {
    using Value = typename Array::ValueType;
    using Index = typename Array::IndexType;
-   auto f1 = [] __cuda_callable__( Index i, Value & value )
+   auto f1 = [] __cuda_callable__( Index i, Value& value )
    {
       value = i;
    };
@@ -110,7 +110,7 @@ setupFlags( FlagsView& flags )
 {
    using Value = typename FlagsView::ValueType;
    using Index = typename FlagsView::IndexType;
-   auto f1 = [] __cuda_callable__( Index i, Value & value )
+   auto f1 = [] __cuda_callable__( Index i, Value& value )
    {
       value = ( i % 5 == 0 );
    };

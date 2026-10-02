@@ -889,7 +889,7 @@ compressSparseMatrix( Matrix& A )
 
    auto aux_matrix_view = aux_matrix.getView();
    A.forAllRows(
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          auto aux_matrix_row = aux_matrix_view.getRow( row.getRowIndex() );
          Index localIdx = 0;

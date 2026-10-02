@@ -179,7 +179,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
          return 0;
       return value * inVectorView[ columnIdx ];
    };
-   auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
+   auto reduce = [] __cuda_callable__( RealType& sum, const RealType& value ) -> RealType
    {
       return sum + value;
    };

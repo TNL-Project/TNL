@@ -80,7 +80,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       // Convert and normalize distances
       this->boostBfsDistancesDirected = HostIndexVector( boostBfsDistances );
       this->boostBfsDistancesDirected.forAllElements(
-         [ largestNode ] __cuda_callable__( Index i, Index & x )
+         [ largestNode ] __cuda_callable__( Index i, Index& x )
          {
             if( x == std::numeric_limits< Index >::max() || ( x == 0 && i != largestNode ) )
                x = -1;
@@ -98,7 +98,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       // Convert and normalize distances
       this->boostBfsDistancesUndirected = HostIndexVector( boostBfsDistances );
       this->boostBfsDistancesUndirected.forAllElements(
-         [ largestNode ] __cuda_callable__( Index i, Index & x )
+         [ largestNode ] __cuda_callable__( Index i, Index& x )
          {
             if( x == std::numeric_limits< Index >::max() || ( x == 0 && i != largestNode ) )
                x = -1;
@@ -133,7 +133,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       // Convert and normalize distances
       this->gunrockBfsDistancesDirected = bfsDistances;
       this->gunrockBfsDistancesDirected.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
+         [] __cuda_callable__( Index i, Index& x )
          {
             if( x == std::numeric_limits< Index >::max() )
                x = -1;
@@ -163,7 +163,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       // Convert and normalize distances
       this->gunrockBfsDistancesUndirected = HostIndexVector( bfsDistances );
       this->gunrockBfsDistancesUndirected.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
+         [] __cuda_callable__( Index i, Index& x )
          {
             if( x == std::numeric_limits< Index >::max() )
                x = -1;

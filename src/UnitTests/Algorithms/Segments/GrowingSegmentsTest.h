@@ -155,7 +155,7 @@ reduceSegmentsTest()
    TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentCount(), f1 );
    EXPECT_EQ( sum( data ), 220 );
    data.forAllElements(
-      [] __cuda_callable__( IndexType i, IndexType & value ) mutable
+      [] __cuda_callable__( IndexType i, IndexType& value ) mutable
       {
          if( value == 0 )
             value = -5;

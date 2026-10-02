@@ -42,7 +42,7 @@ test_forElements_Range()
       view,
       1,
       4,
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          if( columnIdx != paddingIndex )
             TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( columnSumView[ columnIdx ], value );
@@ -99,7 +99,7 @@ test_forAllElements()
 
    TNL::Matrices::forAllElements(
       view,
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          if( columnIdx != paddingIndex )
             TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( sumView[ 0 ], value );
@@ -154,7 +154,7 @@ test_forElements_WithIndexArray()
       rowIndexesView,
       0,
       2,
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          if( columnIdx != paddingIndex )
             resultView[ rowIdx * 10 + columnIdx ] = value;
@@ -206,7 +206,7 @@ test_forElements_WithFullIndexArray()
    TNL::Matrices::forElements(
       view,
       rowIndexes.getView(),
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          if( columnIdx != paddingIndex )
             TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( sumView[ 0 ], value );
@@ -263,7 +263,7 @@ test_forElementsIf()
       {
          return rowIdx % 2 == 0;
       },
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          if( columnIdx != paddingIndex )
             TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( sumView[ 0 ], value );
@@ -321,7 +321,7 @@ test_forAllElementsIf()
       {
          return rowIdx > 1;
       },
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
       {
          if( columnIdx != paddingIndex )
             TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( sumView[ 0 ], value );
@@ -374,7 +374,7 @@ test_forRows()
    IndexVectorType rowSums( 5, 0 );
    auto rowSumsView = rowSums.getView();
 
-   auto f = [ = ] __cuda_callable__( RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( RowView& row ) mutable
    {
       RealType sum = 0;
       for( IndexType i = 0; i < row.getSize(); i++ )
@@ -452,7 +452,7 @@ test_forRows_WithIndexArray()
       rowIndexes.getView(),
       0,
       3,
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          RealType sum = 0;
          for( IndexType i = 0; i < row.getSize(); i++ )
@@ -509,7 +509,7 @@ test_forRows_WithFullIndexArray()
    TNL::Matrices::forRows(
       view,
       rowIndexes.getView(),
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ], (IndexType) 1 );
       } );
@@ -561,7 +561,7 @@ test_forRowsIf()
       {
          return ( rowIdx % 2 ) == 1;
       },
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          RealType sum = 0;
          for( IndexType i = 0; i < row.getSize(); i++ )
@@ -625,7 +625,7 @@ test_forAllRowsIf()
       {
          return rowIdx >= 2;
       },
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ], (IndexType) 1 );
       } );

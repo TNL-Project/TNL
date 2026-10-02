@@ -53,7 +53,7 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, const Matrices::Factoriz
          if constexpr( std::is_same< PrecisionType, double >() ) {
             MatrixType matrixVector( matrix.getColumns(), matrix.getColumns() );
             matrixVector.getMatrixProduct( matrix, eigenvectors );
-            auto f = [] __cuda_callable__( typename MatrixType::RowView & row )
+            auto f = [] __cuda_callable__( typename MatrixType::RowView& row )
             {
                const int& rowIdx = row.getRowIndex();
                int size = row.getSize();
@@ -74,7 +74,7 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, const Matrices::Factoriz
             doubleEigenvalues = eigenvalues;
             doubleEigenvectors = eigenvectors;
             matrixVector.getMatrixProduct( doubleMatrix, doubleEigenvectors );
-            auto f = [] __cuda_callable__( typename DoubleMatrix::RowView & row )
+            auto f = [] __cuda_callable__( typename DoubleMatrix::RowView& row )
             {
                const int& rowIdx = row.getRowIndex();
                int size = row.getSize();

@@ -27,7 +27,7 @@ forRowsExample()
       { -1, 0, 1 } );  // matrix diagonals offsets
    auto view = matrix.getView();
 
-   auto f = [] __cuda_callable__( typename MatrixType::RowView & row )
+   auto f = [] __cuda_callable__( typename MatrixType::RowView& row )
    {
       const int& rowIdx = row.getRowIndex();
       if( rowIdx > 0 )

@@ -109,7 +109,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
       Function&& function,
       TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
+      auto f = [ = ] __cuda_callable__( RowViewType& rowView ) mutable
       {
          VertexView vertexView( rowView );
          function( vertexView );
@@ -143,7 +143,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
       Function&& function,
       TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
+      auto f = [ = ] __cuda_callable__( RowViewType& rowView ) mutable
       {
          VertexView vertexView( rowView );
          function( vertexView );
@@ -178,7 +178,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
       Function&& function,
       TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
+      auto f = [ = ] __cuda_callable__( RowViewType& rowView ) mutable
       {
          VertexView vertexView( rowView );
          function( vertexView );
