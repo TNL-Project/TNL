@@ -149,9 +149,7 @@ singleSourceShortestPath(
       pq.emplace( 0, start );
 
       while( ! pq.empty() ) {
-         Real current_distance;
-         Index current;
-         std::tie( current_distance, current ) = pq.top();
+         const auto [ current_distance, current ] = pq.top();
          pq.pop();
 
          if( current_distance > distances[ current ] ) {
