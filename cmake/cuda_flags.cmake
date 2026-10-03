@@ -72,13 +72,17 @@ endif()
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
     if(TNL_USE_CI_FLAGS)
         # enforce (more or less) warning-free builds
+        # -Wno-error=pass-failed due to optimizer noise in CCCL headers (e.g. non-unrolled loops in CUB radix sort) - not actionable
         set(CMAKE_CUDA_FLAGS
-            "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version"
+            "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version -Wno-error=pass-failed"
         )
     endif()
-    # workaround for Clang 15 (linker from Clang 18 triggers -Wunused-command-line-argument)
-    # https://github.com/llvm/llvm-project/issues/58491
-    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0 -Wno-error=unused-command-line-argument")
+    # CMake passes --no-cuda-include-ptx=<arch> (for CMAKE_CUDA_ARCHITECTURES) also in compile-only steps
+    # with -fgpu-rdc, where the option has no effect because PTX embedding is decided at link time.
+    # Clang reports it as an unused argument (https://github.com/llvm/llvm-project/issues/58491)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-error=unused-command-line-argument")
+
+    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0")
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled
