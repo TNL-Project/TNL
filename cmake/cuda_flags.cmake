@@ -82,6 +82,11 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
     # Clang reports it as an unused argument (https://github.com/llvm/llvm-project/issues/58491)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-error=unused-command-line-argument")
 
+    # libstdc++ enables assertion-based hardening in unoptimized builds (since GCC 12)
+    # and clang's CUDA wrapper for __glibcxx_assert_fail compiles to an unresolved abort
+    # reference in device code; disable the hardening for the device compilation only
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xarch_device -D_GLIBCXX_NO_ASSERTIONS")
+
     set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0")
 endif()
 
