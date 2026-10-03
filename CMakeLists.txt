@@ -144,8 +144,12 @@ if(TNL_USE_CUDA)
         set(CMAKE_CUDA_STANDARD_REQUIRED ON)
         set(CMAKE_CUDA_EXTENSIONS OFF)
 
-        # enable separable compilation
-        set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
+        # enable separable compilation, except for Clang:
+        # binaries built with -fgpu-rdc by Clang 23 and CUDA 13 fail to launch kernels at runtime
+        # (cudaErrorInvalidResourceHandle), so use whole compilation per translation unit instead
+        if(NOT CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
+            set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
+        endif()
 
         # set CUDA compiler flags
         include(cmake/cuda_flags.cmake)
