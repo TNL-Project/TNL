@@ -270,25 +270,33 @@ forElementsIfBlockMergeKernel_Ellpack(
       segmentSize = segments.getSegmentSize();
    const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
    Index conditionValue = 0;
-   if( segmentIdx < end && threadIdx.x < SegmentsPerBlock ) {
+   if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );
+
+   // initialize all shared slots that any later phase may read: threads whose segment index
+   // is out of range do not write anything below and their slots must still have a defined value
+   if( threadIdx.x < SegmentsPerBlock ) {
+      conditions[ threadIdx.x ] = 0;
+      shared_segment_indexes[ threadIdx.x ] = 0;
    }
    __syncthreads();
 
    const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
-   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
+   if( threadIdx.x < SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    __syncthreads();
 
    __shared__ Index activeSegmentsCount;
    if( threadIdx.x == 0 )
       activeSegmentsCount = conditions[ SegmentsPerBlock - 1 ];
-   if( ( threadIdx.x == 0 && conditions[ 0 ] != 0 ) || conditions[ threadIdx.x ] != conditions[ threadIdx.x - 1 ] )
+   const Index prevConditions = ( threadIdx.x == 0 ) ? 0 : conditions[ threadIdx.x - 1 ];
+   if( threadIdx.x < SegmentsPerBlock && conditions[ threadIdx.x ] != prevConditions )
       shared_segment_indexes[ conditions[ threadIdx.x ] - 1 ] = segmentIdx;
    __syncthreads();
 
    const Index last_idx = activeSegmentsCount * segments.getSegmentSize();
-   TNL_ASSERT_LE( last_idx, segments.getStorageSize() - shared_segment_indexes[ 0 ], "" );
+   if( activeSegmentsCount > 0 )
+      TNL_ASSERT_LE( last_idx, segments.getStorageSize() - shared_segment_indexes[ 0 ], "" );
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {
