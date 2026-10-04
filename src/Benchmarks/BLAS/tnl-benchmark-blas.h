@@ -118,7 +118,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
    config.addEntry< int >( "min-size", "Minimum size of arrays/vectors used in the benchmark.", 100000 );
-   config.addEntry< int >( "max-size", "Minimum size of arrays/vectors used in the benchmark.", 10000000 );
+   config.addEntry< int >( "max-size", "Maximum size of arrays/vectors used in the benchmark.", 10000000 );
    config.addEntry< int >(
       "size-step-factor",
       "Factor determining the size of arrays/vectors used in the benchmark. First size is min-size and "
