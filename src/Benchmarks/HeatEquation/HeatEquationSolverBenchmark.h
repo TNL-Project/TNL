@@ -43,8 +43,6 @@ struct HeatEquationSolverBenchmark
       config.addEntry< double >( "beta", "Beta value in initial condition", -0.05 );
       config.addEntry< double >( "gamma", "Gamma key in initial condition", 5 );
 
-      config.addEntry< double >( "sigma", "Sigma in exponential initial condition.", 1.0 );
-
       config.addEntry< double >( "time-step", "Time step. By default it is proportional to one over space step square.", 0.0 );
       config.addEntry< double >( "final-time", "Final time of the simulation.", 0.01 );
       config.addEntry< int >( "max-iterations", "Maximum time iterations.", 0 );
