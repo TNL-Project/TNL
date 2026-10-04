@@ -24,7 +24,7 @@ benchmarkDenseLinearSolvers( TNL::Benchmarks::Benchmark& benchmark, const TNL::C
    benchmark.getMonitor().setStage( "GEM elimination stage:" );
 
    HostMatrixType input_matrix;
-   if( parameters.checkParameter( "input-matrix" ) ) {
+   if( parameters.checkParameter( "input-file" ) ) {
       TNL::Matrices::MatrixReader< HostMatrixType > reader;
       reader.readMtx( parameters.getParameter< TNL::String >( "input-file" ), input_matrix );
    }
