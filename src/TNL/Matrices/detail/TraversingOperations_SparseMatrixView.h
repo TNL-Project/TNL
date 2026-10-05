@@ -220,7 +220,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = RowView( segmentView, values_view, columns_view );
          function( rowView );
@@ -240,7 +240,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = ConstRowView( segmentView, values_view, columns_view );
          function( rowView );
@@ -261,7 +261,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = RowView( segmentView, values_view, columns_view );
          function( rowView );
@@ -282,7 +282,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = ConstRowView( segmentView, values_view, columns_view );
          function( rowView );
@@ -303,7 +303,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = RowView( segmentView, values_view, columns_view );
          function( rowView );
@@ -324,7 +324,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = RowView( segmentView, values_view, columns_view );
          function( rowView );

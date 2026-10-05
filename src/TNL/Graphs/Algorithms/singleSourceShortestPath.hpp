@@ -149,9 +149,7 @@ singleSourceShortestPath(
       pq.emplace( 0, start );
 
       while( ! pq.empty() ) {
-         Real current_distance;
-         Index current;
-         std::tie( current_distance, current ) = pq.top();
+         const auto [ current_distance, current ] = pq.top();
          pq.pop();
 
          if( current_distance > distances[ current ] ) {
@@ -177,7 +175,7 @@ singleSourceShortestPath(
       parallelSingleSourceShortestPath( graph, start, distances, launchConfig );
    }
    distances.forAllElements(
-      [] __cuda_callable__( Index i, Real & x )
+      [] __cuda_callable__( Index i, Real& x )
       {
          x = ( x == std::numeric_limits< Real >::max() ) ? -1.0 : x;
       } );

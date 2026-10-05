@@ -432,12 +432,12 @@ test_VectorProduct_largeMatrix()
    Matrix m1( size, size );
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowCapacities( size );
    rowCapacities.forAllElements(
-      [] __cuda_callable__( IndexType i, IndexType & value )
+      [] __cuda_callable__( IndexType i, IndexType& value )
       {
          value = 1;
       } );
    m1.setRowCapacities( rowCapacities );
-   auto f1 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
+   auto f1 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType& column, RealType& value )
    {
       if( localIdx == 0 ) {
          value = row + 1;
@@ -465,12 +465,12 @@ test_VectorProduct_largeMatrix()
    Matrix m2( rows, columns );
    rowCapacities.setSize( rows );
    rowCapacities.forAllElements(
-      [ = ] __cuda_callable__( IndexType i, IndexType & value )
+      [ = ] __cuda_callable__( IndexType i, IndexType& value )
       {
          value = i + 1;
       } );
    m2.setRowCapacities( rowCapacities );
-   auto f2 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
+   auto f2 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType& column, RealType& value )
    {
       if( localIdx <= row ) {
          value = localIdx + 1;
@@ -512,7 +512,7 @@ test_VectorProduct_longRowsMatrix()
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowCapacities( rows );
       rowCapacities = columns;
       m3.setRowCapacities( rowCapacities );
-      auto f = [ columns ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
+      auto f = [ columns ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType& column, RealType& value )
       {
          if( localIdx < columns ) {
             column = localIdx;

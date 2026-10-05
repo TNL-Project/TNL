@@ -143,7 +143,7 @@ benchmark_qr( Benchmark& benchmark, MatrixType& matrix, Matrices::Factorization:
       {
          MatrixType matrixVector( matrix.getColumns(), matrix.getColumns() );
          matrixVector.getMatrixProduct( matrix, eigenvectors );
-         auto f = [] __cuda_callable__( typename MatrixType::RowView & row )
+         auto f = [] __cuda_callable__( typename MatrixType::RowView& row )
          {
             const int& rowIdx = row.getRowIndex();
             int size = row.getSize();

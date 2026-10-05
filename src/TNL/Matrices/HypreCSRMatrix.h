@@ -381,7 +381,7 @@ public:
          return;
 
       getView().forAllRows(
-         [] __cuda_callable__( ViewType::RowView & row ) mutable
+         [] __cuda_callable__( ViewType::RowView& row ) mutable
          {
             const IndexType j_diag = row.getRowIndex();
             IndexType c_diag = 0;

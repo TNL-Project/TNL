@@ -51,6 +51,7 @@ Diagnostics:
       - modernize-avoid-c-arrays
       - modernize-use-trailing-return-type
       - modernize-raw-string-literal
+      - modernize-use-string-view
     CheckOptions:
       readability-function-size.LineThreshold: 64
       readability-function-size.ParameterThreshold: 15

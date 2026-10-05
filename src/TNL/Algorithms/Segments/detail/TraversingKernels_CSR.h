@@ -409,23 +409,34 @@ forElementsIfBlockMergeKernel_CSR(
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
    const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
-   const Index last_local_segment_idx = min( SegmentsPerBlock, end - begin - blockIdx.x * SegmentsPerBlock );
+   const Index last_local_segment_idx =
+      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
    Index conditionValue = 0;
-   if( segmentIdx < end && threadIdx.x < SegmentsPerBlock ) {
+   if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );
+
+   // initialize all shared slots that any later phase may read: threads whose segment index
+   // is out of range do not write anything below and their slots must still have a defined value
+   if( threadIdx.x < SegmentsPerBlock ) {
+      conditions[ threadIdx.x ] = 0;
       shared_offsets[ threadIdx.x ] = 0;
+      shared_global_offsets[ threadIdx.x ] = 0;
+      shared_segment_indexes[ threadIdx.x ] = 0;
    }
+   if( threadIdx.x == 0 )
+      shared_offsets[ SegmentsPerBlock ] = 0;
    __syncthreads();
 
    const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, scan_storage );
-   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
+   if( threadIdx.x < SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    __syncthreads();
 
    __shared__ Index activeSegmentsCount;
    if( threadIdx.x == 0 )
       activeSegmentsCount = conditions[ SegmentsPerBlock - 1 ];
-   if( ( threadIdx.x == 0 && conditions[ 0 ] != 0 ) || conditions[ threadIdx.x ] != conditions[ threadIdx.x - 1 ] ) {
+   const Index prevConditions = ( threadIdx.x == 0 ) ? 0 : conditions[ threadIdx.x - 1 ];
+   if( threadIdx.x < SegmentsPerBlock && conditions[ threadIdx.x ] != prevConditions ) {
       TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
       shared_segment_indexes[ conditions[ threadIdx.x ] - 1 ] = segmentIdx;
       shared_global_offsets[ conditions[ threadIdx.x ] - 1 ] = offsets[ segmentIdx ];
@@ -433,7 +444,7 @@ forElementsIfBlockMergeKernel_CSR(
    }
    __syncthreads();
 
-   Index segmentSize = shared_offsets[ threadIdx.x ];
+   const Index segmentSize = shared_offsets[ threadIdx.x ];
    const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
@@ -451,7 +462,8 @@ forElementsIfBlockMergeKernel_CSR(
    __syncthreads();
 
    const Index last_idx = shared_offsets[ activeSegmentsCount ];
-   TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - offsets[ shared_segment_indexes[ 0 ] ], "" );
+   if( activeSegmentsCount > 0 )
+      TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - offsets[ shared_segment_indexes[ 0 ] ], "" );
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {

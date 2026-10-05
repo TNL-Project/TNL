@@ -53,7 +53,7 @@ operator<<( std::ostream& str, const SegmentsPrinter< SegmentsView, Fetch >& pri
       const IndexType segmentSize = printer.segments.getSegmentSize( segmentIdx );
       for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ ) {
          aux.forAllElements(
-            [ = ] __cuda_callable__( IndexType elementIdx, ValueType & v ) mutable
+            [ = ] __cuda_callable__( IndexType elementIdx, ValueType& v ) mutable
             {
                v = printer.fetch( printer.segments.getGlobalIndex( segmentIdx, localIdx ) );
             } );

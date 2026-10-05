@@ -194,7 +194,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       auto segmentsPermutationView = segments.getSegmentsPermutationView();
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       aux.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             TNL_ASSERT_LT( i, segmentIndexesView.getSize(), "" );
             value = segmentsPermutationView[ segmentIndexesView[ i ] ];
@@ -355,7 +355,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       auto segmentsPermutationView = segments.getSegmentsPermutationView();
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       aux.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             TNL_ASSERT_LT( i, segmentIndexesView.getSize(), "" );
             value = segmentsPermutationView[ segmentIndexesView[ i ] ];

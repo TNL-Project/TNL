@@ -347,7 +347,7 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions(
 }
 
 template< typename Vector, typename SolverMonitor >
-typename Vector ::RealType
+typename Vector::RealType
 MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
 {
    const IndexType size = k1.getSize();

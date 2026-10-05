@@ -97,7 +97,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       auto segmentsPermutationView = segments.getSegmentsPermutationView();
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       aux.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             TNL_ASSERT_LT( i, segmentIndexesView.getSize(), "" );
             value = segmentsPermutationView[ segmentIndexesView[ i ] ];
@@ -192,7 +192,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
       VectorType conditions( end - begin );
       conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             value = condition( i );
          } );
@@ -222,7 +222,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             segments.getEmbeddedSegmentsView(),
             0,
             segments.getSegmentCount(),
-            [ = ] __cuda_callable__( SegmentView & segment ) mutable
+            [ = ] __cuda_callable__( SegmentView& segment ) mutable
             {
                segment.setSegmentIndex( segments_view.getInverseSegmentsPermutationView()[ segment.getSegmentIndex() ] );
                function( segment );
@@ -233,7 +233,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( end - begin );
          auto segmentsPermutationView = segments.getConstView().getSegmentsPermutationView();
          segmentIndexes.forAllElements(
-            [ = ] __cuda_callable__( IndexType i, IndexType & value )
+            [ = ] __cuda_callable__( IndexType i, IndexType& value )
             {
                TNL_ASSERT_LT( i + begin, segments.getSegmentCount(), "" );
                value = segmentsPermutationView[ i + begin ];
@@ -241,7 +241,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          TraversingOperations< EmbeddedSegmentsView >::forSegments(
             segments.getEmbeddedSegmentsView(),
             segmentIndexes,
-            [ = ] __cuda_callable__( SegmentView & segment ) mutable
+            [ = ] __cuda_callable__( SegmentView& segment ) mutable
             {
                segment.setSegmentIndex( segments_view.getInverseSegmentsPermutationView()[ segment.getSegmentIndex() ] );
                function( segment );
@@ -270,7 +270,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       transformedSegmentIndexes.forElements(
          0,
          segmentIndexes.getSize(),
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             value = segmentsPermutationView[ segmentIndexesView[ i ] ];
          } );
@@ -278,7 +278,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       TraversingOperations< EmbeddedSegmentsView >::forSegments(
          segments.getEmbeddedSegmentsView(),
          transformedSegmentIndexes,
-         [ = ] __cuda_callable__( SegmentView & segment ) mutable
+         [ = ] __cuda_callable__( SegmentView& segment ) mutable
          {
             segment.setSegmentIndex( segments_view.getInverseSegmentsPermutationView()[ segment.getSegmentIndex() ] );
             function( segment );
@@ -302,7 +302,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
       VectorType conditions( end - begin );
       conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             value = segmentCondition( i );
          } );

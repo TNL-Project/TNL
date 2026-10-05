@@ -184,7 +184,7 @@ test_findInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -271,7 +271,7 @@ test_findInSegmentsWithIndexes()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -281,7 +281,7 @@ test_findInSegmentsWithIndexes()
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( segmentsCount / 2 );
    segmentIndexes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx * 2;
       } );
@@ -365,7 +365,7 @@ test_findInSegmentsIf()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -456,7 +456,7 @@ test_sortSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -541,7 +541,7 @@ test_sortSegmentsWithSegmentIndexes()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -552,7 +552,7 @@ test_sortSegmentsWithSegmentIndexes()
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( segmentsCount / 2 );
    v = -1;
    segmentIndexes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx * 2;
       } );
@@ -643,7 +643,7 @@ test_sortSegmentsIf()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );

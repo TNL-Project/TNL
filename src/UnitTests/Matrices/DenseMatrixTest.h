@@ -807,7 +807,7 @@ test_ForElementsWithArray()
 
    Matrix m( rows, cols );
    m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          value = 1.0;
       } );
@@ -815,7 +815,7 @@ test_ForElementsWithArray()
    TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3, 5, 7 };
    m.forElements(
       rowIndices,
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1.0;
       } );
@@ -853,7 +853,7 @@ test_ForElementsIf()
 
    Matrix m( rows, cols );
    m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          value = 1.0;
       } );
@@ -863,7 +863,7 @@ test_ForElementsIf()
       {
          return rowIdx % 2 == 1;
       },
-      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1.0;
       } );
@@ -893,7 +893,7 @@ test_ForRows()
    Matrix m( rows, cols );
    using RowView = typename Matrix::RowView;
    m.forAllRows(
-      [] __cuda_callable__( RowView & row ) mutable
+      [] __cuda_callable__( RowView& row ) mutable
       {
          for( IndexType localIdx = 0; localIdx <= row.getRowIndex(); localIdx++ )
             row.setValue( localIdx, row.getRowIndex() - localIdx + 1.0 );
@@ -911,7 +911,7 @@ test_ForRows()
    // Test without iterator
    m.getValues() = 0.0;
    m.forAllRows(
-      [] __cuda_callable__( RowView & row ) mutable
+      [] __cuda_callable__( RowView& row ) mutable
       {
          for( auto element : row )
             if( element.columnIndex() <= element.rowIndex() )
@@ -1116,7 +1116,7 @@ test_LargeVectorProduct()
 
    Matrix m( rows, cols );
    m.forAllElements(
-      [] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, RealType & value )
+      [] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx_, RealType& value )
       {
          value = columnIdx + 1.0;
       } );
@@ -1125,7 +1125,7 @@ test_LargeVectorProduct()
 
    VectorType inVector( cols );
    inVector.forAllElements(
-      [] __cuda_callable__( IndexType i, RealType & value )
+      [] __cuda_callable__( IndexType i, RealType& value )
       {
          value = 1.0;
       } );

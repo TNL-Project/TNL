@@ -70,15 +70,30 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
 endif()
 
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
+    # CUDA 13 moved the CCCL headers (e.g. <cuda/std/...>) from include/ to include/cccl/,
+    # which CUDA toolkit detection in Clang 23 (--cuda-path) does not know about.
+    # We need to extend the include path, otherwise headers like <cuda/std/type_traits> are not found.
+    if(EXISTS "${CMAKE_CUDA_COMPILER_TOOLKIT_ROOT}/include/cccl")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -isystem ${CMAKE_CUDA_COMPILER_TOOLKIT_ROOT}/include/cccl")
+    endif()
     if(TNL_USE_CI_FLAGS)
         # enforce (more or less) warning-free builds
+        # -Wno-error=pass-failed due to optimizer noise in CCCL headers (e.g. non-unrolled loops in CUB radix sort) - not actionable
         set(CMAKE_CUDA_FLAGS
-            "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version"
+            "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version -Wno-error=pass-failed"
         )
     endif()
-    # workaround for Clang 15 (linker from Clang 18 triggers -Wunused-command-line-argument)
-    # https://github.com/llvm/llvm-project/issues/58491
-    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0 -Wno-error=unused-command-line-argument")
+    # CMake passes --no-cuda-include-ptx=<arch> (for CMAKE_CUDA_ARCHITECTURES) also in compile-only steps
+    # with -fgpu-rdc, where the option has no effect because PTX embedding is decided at link time.
+    # Clang reports it as an unused argument (https://github.com/llvm/llvm-project/issues/58491)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-error=unused-command-line-argument")
+
+    # libstdc++ enables assertion-based hardening in unoptimized builds (since GCC 12)
+    # and clang's CUDA wrapper for __glibcxx_assert_fail compiles to an unresolved abort
+    # reference in device code; disable the hardening for the device compilation only
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xarch_device -D_GLIBCXX_NO_ASSERTIONS")
+
+    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0")
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled

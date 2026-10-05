@@ -116,7 +116,7 @@ set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::Real
    TNL::Algorithms::parallelFor< TNL::Devices::Host >( 0, host_v.getSize(), kernel );
 
    // copy the data to the device vector
-   v = host_v;
+   v = std::move( host_v );
 }
 
 template< typename Matrix, typename Vector >

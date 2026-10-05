@@ -55,7 +55,7 @@ printSegments( std::ostream& str, const Segments& segments, Fetch&& fetch )
       const IndexType segmentSize = segments.getSegmentSize( segmentIdx );
       for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ ) {
          aux.forAllElements(
-            [ = ] __cuda_callable__( IndexType elementIdx, ValueType & v ) mutable
+            [ = ] __cuda_callable__( IndexType elementIdx, ValueType& v ) mutable
             {
                v = fetch( view.getGlobalIndex( segmentIdx, localIdx ) );
             } );

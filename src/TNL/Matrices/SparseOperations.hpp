@@ -889,7 +889,7 @@ compressSparseMatrix( Matrix& A )
 
    auto aux_matrix_view = aux_matrix.getView();
    A.forAllRows(
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          auto aux_matrix_row = aux_matrix_view.getRow( row.getRowIndex() );
          Index localIdx = 0;
@@ -897,7 +897,7 @@ compressSparseMatrix( Matrix& A )
             if( element.value() != 0.0 )
                aux_matrix_row.setElement( localIdx++, element.columnIndex(), element.value() );
       } );
-   A = aux_matrix;
+   A = std::move( aux_matrix );
 }
 
 template< typename Array1, typename Array2, typename PermutationArray >

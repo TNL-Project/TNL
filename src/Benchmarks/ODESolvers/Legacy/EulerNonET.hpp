@@ -51,7 +51,7 @@ EulerNonET< Vector, SolverMonitor >::setCFLCondition( const RealType& cfl )
 }
 
 template< typename Vector, typename SolverMonitor >
-const typename Vector ::RealType&
+const typename Vector::RealType&
 EulerNonET< Vector, SolverMonitor >::getCFLCondition() const
 {
    return this->cflCondition;

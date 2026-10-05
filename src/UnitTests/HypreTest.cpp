@@ -121,7 +121,7 @@ getGlobalMatrix( int size )
    capacities.setElement( size - 1, 2 );
    matrix.setRowCapacities( capacities );
 
-   auto f = [ = ] __cuda_callable__( typename MatrixType::ViewType::RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( typename MatrixType::ViewType::RowView& row ) mutable
    {
       const int rowIdx = row.getRowIndex();
       if( rowIdx == 0 ) {
@@ -161,7 +161,7 @@ getLocalBlock(
       capacities.setElement( local_row_range.getSize() - 1, 2 );
    matrix.setRowCapacities( capacities );
 
-   auto f = [ = ] __cuda_callable__( typename MatrixType::ViewType::RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( typename MatrixType::ViewType::RowView& row ) mutable
    {
       const int rowIdx = row.getRowIndex();
       const int colIdx = local_row_range.getBegin() + rowIdx;

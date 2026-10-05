@@ -45,7 +45,7 @@ struct ReducingOperationsBase
 
       VectorType conditions( end - begin );
       conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             value = condition( i + begin );
          } );
@@ -87,7 +87,7 @@ struct ReducingOperationsBase
 
       VectorType conditions( end - begin );
       conditions.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         [ = ] __cuda_callable__( IndexType i, IndexType& value )
          {
             value = condition( i + begin );
          } );

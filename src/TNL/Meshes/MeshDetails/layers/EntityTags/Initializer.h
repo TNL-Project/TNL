@@ -49,7 +49,7 @@ initializeEntityTags( Mesh& mesh )
             }
          } );
 
-      auto kernel = [] __cuda_callable__( GlobalIndexType faceIndex, Mesh * mesh )
+      auto kernel = [] __cuda_callable__( GlobalIndexType faceIndex, Mesh* mesh )
       {
          const auto& face = mesh->template getEntity< Mesh::getMeshDimension() - 1 >( faceIndex );
          if( face.template getSuperentitiesCount< Mesh::getMeshDimension() >() == 1 ) {

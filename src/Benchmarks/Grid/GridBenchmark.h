@@ -79,7 +79,7 @@ public:
    void
    timeTraverse( Benchmark& benchmark, const Grid& grid ) const
    {
-      auto exec = [] __cuda_callable__( typename Grid::template EntityType< EntityDimension > & entity ) mutable
+      auto exec = [] __cuda_callable__( typename Grid::template EntityType< EntityDimension >& entity ) mutable
       {
          Operation::exec( entity );
       };

@@ -371,7 +371,7 @@ test_reduceRows()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
+   auto reduce = [] __cuda_callable__( RealType& sum, const RealType& value ) -> RealType
    {
       return sum + value;
    };

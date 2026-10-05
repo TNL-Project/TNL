@@ -97,7 +97,7 @@ public:
       };
 
       // kernel to copy permuted values back to the mesh
-      auto kernel2 = [] __cuda_callable__( IndexType i, ValueType * array, const ValueType* buffer )
+      auto kernel2 = [] __cuda_callable__( IndexType i, ValueType* array, const ValueType* buffer )
       {
          array[ i ] = buffer[ i ];
       };

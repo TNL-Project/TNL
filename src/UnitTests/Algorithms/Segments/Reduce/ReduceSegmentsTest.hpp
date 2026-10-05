@@ -52,7 +52,7 @@ test_reduceSegments_MaximumInSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto reduce = [] __cuda_callable__( IndexType & a, const IndexType b ) -> IndexType
+      auto reduce = [] __cuda_callable__( IndexType& a, const IndexType b ) -> IndexType
       {
          return TNL::max( a, b );
       };
@@ -91,7 +91,7 @@ test_reduceSegments_MaximumInTriangularSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [] __cuda_callable__( IndexType i, IndexType & value )
+      [] __cuda_callable__( IndexType i, IndexType& value )
       {
          value = i + 1;
       } );
@@ -124,7 +124,7 @@ test_reduceSegments_MaximumInTriangularSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto reduce = [] __cuda_callable__( IndexType & a, const IndexType b ) -> IndexType
+      auto reduce = [] __cuda_callable__( IndexType& a, const IndexType b ) -> IndexType
       {
          return TNL::max( a, b );
       };
@@ -195,7 +195,7 @@ test_reduceSegments_MaximumInSegments_short_fetch()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto reduce = [] __cuda_callable__( IndexType & a, const IndexType b ) -> IndexType
+      auto reduce = [] __cuda_callable__( IndexType& a, const IndexType b ) -> IndexType
       {
          return TNL::max( a, b );
       };
@@ -229,7 +229,7 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -311,7 +311,7 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -320,7 +320,7 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( ( segmentsCount + 1 ) / 2 );
    segmentIndexes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = 2 * idx;
       } );
@@ -400,7 +400,7 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -409,7 +409,7 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( ( segmentsCount + 1 ) / 2 );
    segmentIndexes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = 2 * idx;
       } );
@@ -504,7 +504,7 @@ test_reduceSegmentsIf_MaximumInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -591,7 +591,7 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -694,7 +694,7 @@ test_reduce_SumOfMaximums()
    // Initialize segments with equal sizes
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -737,7 +737,7 @@ test_reduce_SumOfMaximums()
 
       TNL::Containers::Vector< ValueType, DeviceType, IndexType > resultVector( segmentsCount );
       resultVector.forAllElements(
-         [ = ] __cuda_callable__( IndexType segmentIdx, ValueType & value )
+         [ = ] __cuda_callable__( IndexType segmentIdx, ValueType& value )
          {
             value = segmentIdx + segmentIdx % maxSegmentSize + 1;  // Each segment's maximum is (segmentIdx + segmentSize)
          } );
@@ -765,7 +765,7 @@ test_reduce_ProductOfSums()
    // Initialize segments with equal sizes
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes.forAllElements(
-      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
       {
          value = idx % maxSegmentSize + 1;
       } );
@@ -806,7 +806,7 @@ test_reduce_ProductOfSums()
 
       TNL::Containers::Vector< ValueType, DeviceType, IndexType > resultVector( segmentsCount );
       resultVector.forAllElements(
-         [ = ] __cuda_callable__( IndexType segmentIdx, ValueType & value )
+         [ = ] __cuda_callable__( IndexType segmentIdx, ValueType& value )
          {
             value = ( segmentIdx + 1 )
                   * ( segmentIdx % maxSegmentSize + 1 );  // Each segment's sum is (segmentIdx + 1) * segmentSize

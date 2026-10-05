@@ -26,7 +26,7 @@ iterativeLinearSolverExample()
    matrix_ptr->setDimensions( size, size );
    matrix_ptr->setRowCapacities( Vector( { 2, 3, 3, 3, 2 } ) );
 
-   auto f = [ = ] __cuda_callable__( typename MatrixType::RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( typename MatrixType::RowView& row ) mutable
    {
       const int rowIdx = row.getRowIndex();
       if( rowIdx == 0 ) {

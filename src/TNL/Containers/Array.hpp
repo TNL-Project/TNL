@@ -302,8 +302,8 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::swap( Array< Value, Device, Index, Allocator >& array ) noexcept
 {
-   TNL::swap( this->size, array.size );
-   TNL::swap( this->data, array.data );
+   std::swap( this->size, array.size );
+   std::swap( this->data, array.data );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >

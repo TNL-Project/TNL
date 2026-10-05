@@ -935,7 +935,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
    using SegmentViewType = typename SegmentsViewType::SegmentViewType;
-   auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+   auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
    {
       auto rowView = RowView( segmentView, values_view, columns_view );
       function( rowView );
@@ -1046,7 +1046,7 @@ void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sortColumnIndexes()
 {
    this->forAllRows(
-      [ = ] __cuda_callable__( RowView & row )
+      [ = ] __cuda_callable__( RowView& row )
       {
          row.sortColumnIndexes();
       } );

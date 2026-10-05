@@ -97,7 +97,7 @@ generateStencilMatrix( Matrix& A_local, Vector& b_local, typename Matrix::IndexT
 
    // Now assemble the local matrix. Each row has at most 7 entries.
    A_local.forAllRows(
-      [ = ] __cuda_callable__( typename Matrix::RowView & row ) mutable
+      [ = ] __cuda_callable__( typename Matrix::RowView& row ) mutable
       {
          // The row index must be converted from local to global
          const Index i = ilower + row.getRowIndex();

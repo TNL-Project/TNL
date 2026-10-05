@@ -150,7 +150,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
    {
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = RowView( segmentView, values_view );
          function( rowView );
@@ -169,7 +169,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
    {
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = ConstRowView( segmentView, values_view );
          function( rowView );
@@ -189,7 +189,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
    {
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = RowView( segmentView, values_view );
          function( rowView );
@@ -209,7 +209,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
    {
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          const auto rowView = ConstRowView( segmentView, values_view );
          function( rowView );
@@ -229,7 +229,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
    {
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType & segmentView ) mutable
+      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
       {
          auto rowView = RowView( segmentView, values_view );
          function( rowView );

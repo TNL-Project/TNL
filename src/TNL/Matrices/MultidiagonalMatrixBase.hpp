@@ -76,7 +76,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLe
    {
       return value != 0.0;
    };
-   auto reduce = [] __cuda_callable__( IndexType & aux, IndexType a )
+   auto reduce = [] __cuda_callable__( IndexType& aux, IndexType a )
    {
       aux += a;
    };
@@ -589,7 +589,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
    {
       return value * inVectorView[ column ];
    };
-   auto reduction = [] __cuda_callable__( RealType & sum, const RealType& value )
+   auto reduction = [] __cuda_callable__( RealType& sum, const RealType& value )
    {
       sum += value;
    };

@@ -24,7 +24,7 @@ sort( ArrayT& array )
       {
          aux_array[ i ] = std::rand() % ( 2 * size );
       } );
-   array = aux_array;
+   array = std::move( aux_array );
 
    std::cout << "Random array: " << array << '\n';
 

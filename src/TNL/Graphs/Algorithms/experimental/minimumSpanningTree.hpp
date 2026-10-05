@@ -199,7 +199,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
    IndexVector hook_targets( n, static_cast< IndexType >( -1 ) );
    IndexVector hook_sources( n, static_cast< IndexType >( -1 ) );
    p.forAllElements(
-      [] __cuda_callable__( Index i, Index & value )
+      [] __cuda_callable__( Index i, Index& value )
       {
          value = i;
       } );
@@ -247,7 +247,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       hook_candidates.clear();
 
       // Find hook candidates
-      auto hooking = [ = ] __cuda_callable__( RowView & row ) mutable
+      auto hooking = [ = ] __cuda_callable__( RowView& row ) mutable
       {
          const Index& source_node = row.getRowIndex();
          Index minEdgeTarget = -1;

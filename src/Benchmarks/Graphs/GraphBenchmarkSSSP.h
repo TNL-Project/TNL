@@ -80,7 +80,7 @@ public:
       benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_dir );
       HostRealVector boost_sssp_dist( boostSSSPDistances );
       boost_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
+         [] __cuda_callable__( Index i, Real& x )
          {
             x = x == std::numeric_limits< Real >::max() ? -1 : x;
          } );
@@ -98,7 +98,7 @@ public:
       benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_undir );
       boost_sssp_dist = boostSSSPDistances;
       boost_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
+         [] __cuda_callable__( Index i, Real& x )
          {
             x = x == std::numeric_limits< Real >::max() ? -1 : x;
          } );
@@ -132,7 +132,7 @@ public:
          benchmark, gunrockDigraph, largestNode, digraph.getVertexCount(), ssspDistances );
       HostRealVector gunrock_sssp_dist( ssspDistances );
       gunrock_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
+         [] __cuda_callable__( Index i, Real& x )
          {
             x = x == std::numeric_limits< Real >::max() ? -1 : x;
          } );
@@ -154,7 +154,7 @@ public:
       gunrockBenchmark.singleSourceShortestPath( benchmark, gunrockGraph, largestNode, graph.getVertexCount(), ssspDistances );
       gunrock_sssp_dist = ssspDistances;
       gunrock_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
+         [] __cuda_callable__( Index i, Real& x )
          {
             x = x == std::numeric_limits< Real >::max() ? -1 : x;
          } );

@@ -54,7 +54,7 @@ permuteMatrixRows( Matrix& matrix, const PermutationArray& perm )
    Algorithms::parallelFor< DeviceType >( 0, matrix.getRows(), kernel );
 
    // copy the permuted data back into the matrix
-   matrix = matrixCopy;
+   matrix = std::move( matrixCopy );
 }
 
 template< typename Matrix, typename PermutationArray >

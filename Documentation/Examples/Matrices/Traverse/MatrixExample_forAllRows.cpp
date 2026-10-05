@@ -20,7 +20,7 @@ forAllRowsExample()
     */
    using DenseRowView = typename TNL::Matrices::DenseMatrix< double, Device >::RowView;
 
-   auto multiplyByRowIndex = [] __cuda_callable__( DenseRowView & row )
+   auto multiplyByRowIndex = [] __cuda_callable__( DenseRowView& row )
    {
       const int rowIdx = row.getRowIndex();
       for( int i = 0; i < row.getSize(); i++ )
@@ -41,7 +41,7 @@ forAllRowsExample()
     */
    using SparseRowView = typename TNL::Matrices::SparseMatrix< double, Device >::RowView;
 
-   auto setupTridiagonal = [] __cuda_callable__( SparseRowView & row )
+   auto setupTridiagonal = [] __cuda_callable__( SparseRowView& row )
    {
       const int rowIdx = row.getRowIndex();
       const int size = 5;

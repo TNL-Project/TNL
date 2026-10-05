@@ -502,7 +502,7 @@ testArrayForEachElement()
 
    ArrayType a( 10 );
    a.forAllElements(
-      [] __cuda_callable__( IndexType i, ValueType & v ) mutable
+      [] __cuda_callable__( IndexType i, ValueType& v ) mutable
       {
          v = i;
       } );

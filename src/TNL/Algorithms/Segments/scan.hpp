@@ -109,7 +109,7 @@ inclusiveScanSegments(
       segments,
       begin,
       end,
-      [ = ] __cuda_callable__( SegmentView & segment ) mutable
+      [ = ] __cuda_callable__( SegmentView& segment ) mutable
       {
          inclusiveScanSegment(
             segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
@@ -134,7 +134,7 @@ exclusiveScanSegments(
       segments,
       begin,
       end,
-      [ = ] __cuda_callable__( SegmentView & segment ) mutable
+      [ = ] __cuda_callable__( SegmentView& segment ) mutable
       {
          exclusiveScanSegment(
             segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
@@ -157,7 +157,7 @@ inclusiveScanSegments(
    forSegments(
       segments,
       segmentIndexes,
-      [ = ] __cuda_callable__( SegmentView & segment ) mutable
+      [ = ] __cuda_callable__( SegmentView& segment ) mutable
       {
          inclusiveScanSegment(
             segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
@@ -180,7 +180,7 @@ exclusiveScanSegments(
    forSegments(
       segments,
       segmentIndexes,
-      [ = ] __cuda_callable__( SegmentView & segment ) mutable
+      [ = ] __cuda_callable__( SegmentView& segment ) mutable
       {
          exclusiveScanSegment(
             segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );

@@ -146,9 +146,7 @@ struct EntityDecomposer<
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          const auto face = mesh.template getEntity< 2 >( entity.template getSubentityIndex< 2 >( i ) );
 
-         GlobalIndexType faceExtraPoints;
-         GlobalIndexType faceEntitiesCount;
-         std::tie( faceExtraPoints, faceEntitiesCount ) = SubentityDecomposer::getExtraPointsAndEntitiesCount( face );
+         const auto [ faceExtraPoints, faceEntitiesCount ] = SubentityDecomposer::getExtraPointsAndEntitiesCount( face );
          extraPointsCount += faceExtraPoints;  // add extra points from decomposition of faces
          entitiesCount += faceEntitiesCount;   // there is a new tetrahedron per triangle of a face
       }
@@ -205,9 +203,7 @@ struct EntityDecomposer<
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          const auto face = mesh.template getEntity< 2 >( entity.template getSubentityIndex< 2 >( i ) );
          if( ! faceContainsPoint( face, v3 ) ) {  // include only faces, that don't contain point v3
-            GlobalIndexType faceExtraPoints;
-            GlobalIndexType faceEntitiesCount;
-            std::tie( faceExtraPoints, faceEntitiesCount ) = SubentityDecomposer::getExtraPointsAndEntitiesCount( face );
+            const auto [ faceExtraPoints, faceEntitiesCount ] = SubentityDecomposer::getExtraPointsAndEntitiesCount( face );
             extraPointsCount += faceExtraPoints;  // add extra points from decomposition of faces
             entitiesCount += faceEntitiesCount;   // there is a new tetrahedron per triangle of a face
          }

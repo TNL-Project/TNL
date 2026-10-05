@@ -35,13 +35,13 @@ configure:
 # Lists available build targets
 list-build-targets:
     just _ensure-cmake-configured
-    cmake --build build --target help 2>/dev/null | grep ": phony" | grep -v "/" | sed 's/: phony//'
+    cmake --build "$BUILD_DIR" --target help 2>/dev/null | grep ": phony" | grep -v "/" | sed 's/: phony//'
 
 # Builds the project using cmake (this is the default recipe)
 [default]
 build +targets="all":
     just _ensure-cmake-configured
-    cmake --build build --target {{ targets }}
+    cmake --build "$BUILD_DIR" --target {{ targets }}
 
 # Installs the project using cmake (valid components: headers, benchmarks, documentation, examples, tools, or all)
 install +components="headers":
@@ -66,11 +66,11 @@ install +components="headers":
     # Installing all components must be done without the --component flag
     # shellcheck disable=SC2050
     if [[ "{{ components }}" == "all" ]]; then
-        cmake --install build
+        cmake --install "$BUILD_DIR"
     else
         # shellcheck disable=SC2043
         for component in {{ components }}; do
-            cmake --install build --component "$component"
+            cmake --install "$BUILD_DIR" --component "$component"
         done
     fi
 
@@ -78,7 +78,7 @@ install +components="headers":
 test: (build "tests")
     just _ensure-cmake-configured
     just _ensure-command ctest
-    ctest --preset all-tests --test-dir build
+    ctest --preset all-tests --test-dir "$BUILD_DIR"
 
 # Cleans the build directory
 clean:
@@ -156,7 +156,7 @@ check-python:
     #just _ensure-command mypy
     #mypy
 
-# Checks the code using ruff
+# Checks the code using clang-tidy
 check-clang-tidy +target_paths="Documentation/.* src/Benchmarks/.* src/Examples/.* src/Tools/.*":
     #!/usr/bin/env bash
     set -euo pipefail

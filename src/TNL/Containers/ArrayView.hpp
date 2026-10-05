@@ -114,7 +114,12 @@ __cuda_callable__
 void
 ArrayView< Value, Device, Index >::swap( ArrayView& view ) noexcept
 {
-   TNL::swap( data, view.data );
+   // FIXME: replace with std::swap when switching to C++20 - it is not constexpr
+   // in C++17 and thus unusable in this __cuda_callable__ member, while the
+   // constrained TNL::swap does not match pointer types
+   Value* tmp = data;
+   data = view.data;
+   view.data = tmp;
    TNL::swap( size, view.size );
 }
 
