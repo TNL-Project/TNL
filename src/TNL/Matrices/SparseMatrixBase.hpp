@@ -127,8 +127,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       {
          row_sums_view[ row ] = value;
       };
-      Algorithms::Segments::reduceSegments(
-         this->segments, 0, this->getRows(), fetch, TNL::Plus{}, keeper, static_cast< IndexType >( 0 ) );
+      Algorithms::Segments::reduceSegments( this->segments, 0, this->getRows(), fetch, TNL::Plus{}, keeper );
       return sum( row_sums );
    }
 }
@@ -464,7 +463,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          typename OutVector::RealType aux = matrixMultiplicator * value;
          Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
       };
-      kernel.reduceSegments( this->segments, begin, end, fetch, TNL::Plus{}, keep, static_cast< ComputeRealType >( 0.0 ) );
+      kernel.reduceSegments( this->segments, begin, end, fetch, TNL::Plus{}, keep );
    }
    else {
       auto fetch =
@@ -491,8 +490,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_LT( row, outVectorView.getSize(), "Row index must be smaller than the number of elements." );
                outVectorView[ row ] = value;
             };
-            kernel.reduceSegments(
-               this->segments, begin, end, fetch, TNL::Plus{}, keep, static_cast< ComputeRealType >( 0.0 ) );
+            kernel.reduceSegments( this->segments, begin, end, fetch, TNL::Plus{}, keep );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
@@ -500,8 +498,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = matrixMultiplicator * value;
             };
-            kernel.reduceSegments(
-               this->segments, begin, end, fetch, TNL::Plus{}, keep, static_cast< ComputeRealType >( 0.0 ) );
+            kernel.reduceSegments( this->segments, begin, end, fetch, TNL::Plus{}, keep );
          }
       }
       else {
@@ -511,8 +508,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
             };
-            kernel.reduceSegments(
-               this->segments, begin, end, fetch, TNL::Plus{}, keep, static_cast< ComputeRealType >( 0.0 ) );
+            kernel.reduceSegments( this->segments, begin, end, fetch, TNL::Plus{}, keep );
          }
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
@@ -520,8 +516,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
             };
-            kernel.reduceSegments(
-               this->segments, begin, end, fetch, TNL::Plus{}, keep, static_cast< ComputeRealType >( 0.0 ) );
+            kernel.reduceSegments( this->segments, begin, end, fetch, TNL::Plus{}, keep );
          }
       }
    }

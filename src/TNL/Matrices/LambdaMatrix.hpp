@@ -104,7 +104,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   TNL::Matrices::reduceAllRows( *this, fetch, TNL::Plus{}, keep, IndexType( 0 ) );
+   TNL::Matrices::reduceAllRows( *this, fetch, TNL::Plus{}, keep );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -180,10 +180,6 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
          return 0;
       return value * inVectorView[ columnIdx ];
    };
-   auto reduce = [] __cuda_callable__( RealType& sum, const RealType& value ) -> RealType
-   {
-      return sum + value;
-   };
    auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
       if( outVectorMultiplicator == 0 )
@@ -193,7 +189,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    };
    if( ! end )
       end = this->getRows();
-   TNL::Matrices::reduceRows( *this, begin, end, fetch, reduce, keep, RealType( 0.0 ) );
+   TNL::Matrices::reduceRows( *this, begin, end, fetch, TNL::Plus{}, keep );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >

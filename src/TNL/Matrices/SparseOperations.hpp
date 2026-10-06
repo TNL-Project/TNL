@@ -884,8 +884,7 @@ compressSparseMatrix( Matrix& A )
       [ = ] __cuda_callable__( Index rowIdx, Index value ) mutable
       {
          row_capacities_view[ rowIdx ] = value;
-      },
-      0 );
+      } );
    Matrix aux_matrix( A.getRows(), A.getColumns() );
    aux_matrix.setRowCapacities( row_capacities );
 
