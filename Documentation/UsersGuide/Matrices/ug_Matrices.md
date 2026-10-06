@@ -1597,39 +1597,16 @@ Note that the interface of the lambda functions is the same as for other matrix 
 
 ## Free-function traverse and reduce API
 
+TODO: The member traversal and reduction methods are deprecated and will be removed. Then this section should be replaced by a detailed description of the free functions.
+
 In addition to the member functions described above, TNL provides a generic free-function API in the namespace `TNL::Matrices` for matrix traversal and row reduction. The free functions now support all five matrix types: dense, sparse, tridiagonal, multidiagonal, and lambda matrices.
 
-The traversal functions are:
+The complete list of the functions, their variants and the signatures of the lambda functions they accept are described in the following pages:
 
-* `TNL::Matrices::forElements(matrix, begin, end, function)`
-* `TNL::Matrices::forAllElements(matrix, function)`
-* `TNL::Matrices::forElements(matrix, rowIndexes, function)`
-* `TNL::Matrices::forElementsIf(matrix, begin, end, condition, function)`
-* `TNL::Matrices::forElementsIf(matrix, rowIndexes, begin, end, condition, function)` (row-index array variant)
-* `TNL::Matrices::forAllElementsIf(matrix, condition, function)`
-* `TNL::Matrices::forRows(matrix, begin, end, function)`
-* `TNL::Matrices::forAllRows(matrix, function)`
-* `TNL::Matrices::forRows(matrix, rowIndexes, function)`
-* `TNL::Matrices::forRowsIf(matrix, begin, end, condition, function)`
-* `TNL::Matrices::forRowsIf(matrix, rowIndexes, begin, end, condition, function)` (row-index array variant)
-* `TNL::Matrices::forAllRowsIf(matrix, condition, function)`
-
-The reduction functions are:
-
-* `TNL::Matrices::reduceRows(matrix, begin, end, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceAllRows(matrix, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceRows(matrix, rowIndexes, fetch, reduce, keep, identity)` (row-index array variant)
-* `TNL::Matrices::reduceAllRowsIf(matrix, condition, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceRowsIf(matrix, begin, end, condition, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceRowsIf(matrix, rowIndexes, begin, end, condition, fetch, reduce, keep, identity)` (row-index array variant)
-* `TNL::Matrices::reduceAllRowsWithArgument(matrix, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceRowsWithArgument(matrix, begin, end, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceRowsWithArgument(matrix, rowIndexes, fetch, reduce, keep, identity)` (row-index array variant)
-* `TNL::Matrices::reduceAllRowsWithArgumentIf(matrix, condition, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceRowsWithArgumentIf(matrix, begin, end, condition, fetch, reduce, keep, identity)`
-* `TNL::Matrices::reduceRowsWithArgumentIf(matrix, rowIndexes, begin, end, condition, fetch, reduce, keep, identity)` (row-index array variant)
-
-All reduction functions also have overloads that accept a function object for `reduce` and deduce the identity value automatically.
+* \ref MatrixTraversalOverview
+* \ref MatrixTraversalLambdas
+* \ref MatrixReductionOverview
+* \ref MatrixReductionLambdas
 
 These functions mirror the corresponding member functions and use the same lambda signatures described in the previous sections. The following example demonstrates `TNL::Matrices::forElements` on dense and sparse matrices:
 
