@@ -14,23 +14,23 @@ namespace TNL::Matrices::detail {
  *
  * This base class provides implementations that \ref ReductionOperations
  * specializations inherit to avoid code duplication. Currently it provides
- * the conditional \c reduceRowsIf and \c reduceRowsWithArgumentIf methods
- * (both range and array overloads). The unconditional \c reduceRows and
- * \c reduceRowsWithArgument methods are implemented by each specialization
+ * the conditional `reduceRowsIf` and `reduceRowsWithArgumentIf` methods
+ * (both range and array overloads). The unconditional `reduceRows` and
+ * `reduceRowsWithArgument` methods are implemented by each specialization
  * individually, since they differ per matrix format.
  *
- * The \c *If methods follow a compress + gather + delegate strategy (see
+ * The `*If` methods follow a compress + gather + delegate strategy (see
  * \ref buildSelectedRowIndexes and \ref buildSelectedRowIndexesFromArray in RowSelection.h):
  *
  * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressFast.
  * 2. For the array overloads, gather the actual row indexes from the user-supplied
- *    \e rowIndexes array using the compressed mask.
+ *    `rowIndexes` array using the compressed mask.
  * 3. Delegate to \ref ReductionOperations<Matrix>::reduceRows or
  *    \ref ReductionOperations<Matrix>::reduceRowsWithArgument with the filtered
  *    row indexes.
  *
  * The compress+gather approach is universally applicable, so no specialization
- * needs to override the \c *If methods.
+ * needs to override the `*If` methods.
  *
  * \tparam Matrix The matrix type (view or owning) the operations act on.
  */

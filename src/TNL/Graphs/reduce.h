@@ -116,23 +116,23 @@ namespace TNL::Graphs {
  *
  * \section FetchLambdas Fetch Lambda Functions
  *
- * The \e fetch lambda is used to extract and transform weights from graph edges during reduction.
+ * The `fetch` lambda is used to extract and transform weights from graph edges during reduction.
  *
  * \subsection FetchLambda_NonConst For Non-Const Graphs
  *
  * For **non-const graphs** (\ref TNL::Graphs::Graph and \ref TNL::Graphs::GraphView) having a sparse
  * adjacency matrix (\ref TNL::Matrices::SparseMatrix, \ref TNL::Matrices::SparseMatrixView),
- * the signature of the \e fetch lambda is:
+ * the signature of the `fetch` lambda is:
  *
  * ```cpp
  * auto fetch = [] __cuda_callable__ ( IndexType sourceIdx, IndexType& targetIdx, RealType& weight ) -> FetchValue { ... }
  * ```
  *
  * **Parameters:**
- * - \e sourceIdx - The index of the source graph vertex
- * - \e targetIdx - The index of the target graph vertex  (can be modified)
- * - \e weight - The weight of the graph edge (can be modified)
- * - Returns: A value of type \e FetchValue to be used in the reduction
+ * - `sourceIdx` - The index of the source graph vertex
+ * - `targetIdx` - The index of the target graph vertex  (can be modified)
+ * - `weight` - The weight of the graph edge (can be modified)
+ * - Returns: A value of type `FetchValue` to be used in the reduction
  *
  * For graphs having other type of the adjacency matrix like dense matrix (\ref TNL::Matrices::DenseMatrix, \ref
  * TNL::Matrices::DenseMatrixView), tridiagonal graphs (\ref TNL::Matrices::TridiagonalMatrix, \ref
@@ -145,10 +145,10 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e sourceIdx - The index of the source graph vertex
- * - \e targetIdx - The index of the target graph vertex (passed by value)
- * - \e weight - The weight of the graph edge (can be modified)
- * - Returns: A value of type \e FetchValue to be used in the reduction
+ * - `sourceIdx` - The index of the source graph vertex
+ * - `targetIdx` - The index of the target graph vertex (passed by value)
+ * - `weight` - The weight of the graph edge (can be modified)
+ * - Returns: A value of type `FetchValue` to be used in the reduction
  *
  * \subsection FetchLambda_Const For Const Graphs
  *
@@ -157,14 +157,14 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e sourceIdx - The index of the source graph vertex
- * - \e targetIdx - The index of the target graph vertex (passed by value)
- * - \e weight - The weight of the graph edge (const reference)
- * - Returns: A value of type \e FetchValue to be used in the reduction
+ * - `sourceIdx` - The index of the source graph vertex
+ * - `targetIdx` - The index of the target graph vertex (passed by value)
+ * - `weight` - The weight of the graph edge (const reference)
+ * - Returns: A value of type `FetchValue` to be used in the reduction
  *
  * \section ReductionLambdas Reduction Lambda Functions
  *
- * The \e reduction lambda defines how weights are combined during the reduction operation.
+ * The `reduction` lambda defines how weights are combined during the reduction operation.
  *
  * \subsection ReductionLambda_Basic Basic Reduction (Without Arguments)
  *
@@ -173,9 +173,9 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e a - First weight to be reduced
- * - \e b - Second weight to be reduced
- * - Returns: The result of reducing \e a and \e b
+ * - `a` - First weight to be reduced
+ * - `b` - Second weight to be reduced
+ * - Returns: The result of reducing `a` and `b`
  *
  * \subsection ReductionLambda_WithArgument Reduction With Argument (Position Tracking)
  *
@@ -184,17 +184,17 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e a - First weight to be reduced (mutable reference)
- * - \e b - Second weight to be reduced (const reference)
- * - \e aIdx - Index/position associated with weight \e a (mutable reference for tracking)
- * - \e bIdx - Index/position associated with weight \e b (const reference)
+ * - `a` - First weight to be reduced (mutable reference)
+ * - `b` - Second weight to be reduced (const reference)
+ * - `aIdx` - Index/position associated with weight `a` (mutable reference for tracking)
+ * - `bIdx` - Index/position associated with weight `b` (const reference)
  *
  * Note: This variant is used when you need to track which edge produced the final result
  * (e.g., finding the maximum weight and its position).
  *
  * \section GraphStoreLambdas Store Lambda Functions
  *
- * The \e store lambda is used to store the final reduction result for each vertex.
+ * The `store` lambda is used to store the final reduction result for each vertex.
  *
  * \subsection GraphStoreLambda_Basic Basic Store (Vertex Index Only)
  *
@@ -203,8 +203,8 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e sourceIdx - The index of the source graph vertex
- * - \e weight - The result of the reduction for this vertex
+ * - `sourceIdx` - The index of the source graph vertex
+ * - `weight` - The result of the reduction for this vertex
  *
  * \subsection GraphStoreLambda_WithLocalIdx Store With Argument (Position Tracking)
  *
@@ -215,11 +215,11 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e sourceIdx - The index of the source graph vertex
- * - \e localIdx - The local index of the edge within the vertex (when tracking positions)
- * - \e targetIdx - The index of the target vertex of given edge (when tracking positions)
- * - \e weight - The result of the reduction for this vertex
- * - \e isolatedVertex - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
+ * - `sourceIdx` - The index of the source graph vertex
+ * - `localIdx` - The local index of the edge within the vertex (when tracking positions)
+ * - `targetIdx` - The index of the target vertex of given edge (when tracking positions)
+ * - `weight` - The result of the reduction for this vertex
+ * - `isolatedVertex` - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
  * targetIdx values are meaningless and should not be used.
  *
  * \subsection GraphStoreLambda_WithIndexArray Store With Vertex Index Array Or Condition
@@ -229,10 +229,10 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e indexOfVertexIdx - The position within the \e vertexIndexes array or the rank in the set of vertices for which the
+ * - `indexOfVertexIdx` - The position within the `vertexIndexes` array or the rank in the set of vertices for which the
  * condition was true.
- * - \e sourceIdx - The actual index of the vertex
- * - \e weight - The result of the reduction for this vertex
+ * - `sourceIdx` - The actual index of the vertex
+ * - `weight` - The result of the reduction for this vertex
  *
  * \subsection GraphStoreLambda_WithIndexArrayAndLocalIdx Store With Vertex Index Array and With Argument
  *
@@ -243,18 +243,18 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e indexOfVertexIdx - The position within the \e vertexIndexes array or the rank in the set of vertices for which the
+ * - `indexOfVertexIdx` - The position within the `vertexIndexes` array or the rank in the set of vertices for which the
  * condition was true.
- * - \e sourceIdx - The index of the source graph vertex
- * - \e localIdx - The position of the edge within the vertex
- * - \e targetIdx - The index of the target vertex of given edge
- * - \e weight - The result of the reduction for this vertex
- * - \e isolatedVertex - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
+ * - `sourceIdx` - The index of the source graph vertex
+ * - `localIdx` - The position of the edge within the vertex
+ * - `targetIdx` - The index of the target vertex of given edge
+ * - `weight` - The result of the reduction for this vertex
+ * - `isolatedVertex` - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
  * targetIdx values are meaningless and should not be used.
  *
  * \section GraphConditionLambdas Condition Lambda Functions
  *
- * The \e condition lambda determines which vertices should be processed (used in "If" variants).
+ * The `condition` lambda determines which vertices should be processed (used in "If" variants).
  *
  * \subsection GraphConditionLambda Condition Check
  *
@@ -263,8 +263,8 @@ namespace TNL::Graphs {
  * ```
  *
  * **Parameters:**
- * - \e sourceIdx - The index of the graph vertex
- * - Returns: \e true if the vertex should be processed, \e false otherwise
+ * - `sourceIdx` - The index of the graph vertex
+ * - Returns: `true` if the vertex should be processed, `false` otherwise
  *
  * \section GraphReductionFunctionObjects Reduction Function Objects
  *
@@ -272,9 +272,9 @@ namespace TNL::Graphs {
  * from \ref ReductionFunctionObjects or \ref ReductionFunctionObjectsWithArgument.
  *
  * When using function objects:
- * - They must provide a static template method \e getIdentity to automatically deduce the identity value
+ * - They must provide a static template method `getIdentity` to automatically deduce the identity value
  * - For WithArgument variants, they must be instances of \ref ReductionFunctionObjectsWithArgument
- * - Common examples: \e Min, \e Max, \e Sum, \e Product, \e MinWithArg, \e MaxWithArg
+ * - Common examples: `Min`, `Max`, `Sum`, `Product`, `MinWithArg`, `MaxWithArg`
  *
  *
  * \section GraphReductionIsolatedVertices Behavior for Isolated Vertices
@@ -284,14 +284,14 @@ namespace TNL::Graphs {
  *
  * The behavior depends on the reduction variant:
  *
- * - **Basic reduction** (reduceAllVertices, reduceVertices, etc.): The \e store lambda is called with the
- *   \e identity value. The user is responsible for choosing an \e identity that is a meaningful neutral element
+ * - **Basic reduction** (`reduceAllVertices`, `reduceVertices`, etc.): The `store` lambda is called with the
+ *   `identity` value. The user is responsible for choosing an `identity` that is a meaningful neutral element
  *   for the reduction (e.g., 0 for sum, 1 for product, \f$-\infty\f$ for max).
  *
- * - **WithArgument reduction** (reduceAllVerticesWithArgument, reduceVerticesWithArgument, etc.): The \e store
- *   lambda is called with \e isolatedVertex set to \e true. In this case, the \e localIdx and \e targetIdx
- *   values passed to the \e store lambda are meaningless and should not be used. The \e weight parameter is
- *   set to the \e identity value.
+ * - **WithArgument reduction** (`reduceAllVerticesWithArgument`, `reduceVerticesWithArgument`, etc.): The `store`
+ *   lambda is called with `isolatedVertex` set to `true`. In this case, the `localIdx` and `targetIdx`
+ *   values passed to the `store` lambda are meaningless and should not be used. The `weight` parameter is
+ *   set to the `identity` value.
  * \section GraphReductionLambdasRelatedPages Related Pages
  *
  * - \ref GraphReductionOverview - Overview of graph reduction functions
@@ -306,7 +306,7 @@ namespace TNL::Graphs {
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
@@ -339,7 +339,7 @@ reduceAllVertices(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
@@ -431,19 +431,19 @@ reduceAllVertices(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for the reduction operation. See \ref ReductionLambda_Basic.
@@ -482,19 +482,19 @@ reduceVertices(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for the reduction operation. See \ref ReductionLambda_Basic.
@@ -534,18 +534,18 @@ reduceVertices(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
@@ -582,18 +582,18 @@ reduceVertices(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
@@ -630,14 +630,14 @@ reduceVertices(
  *
  * \tparam Graph The type of the graph.
  * \tparam Array The type of the array containing the indexes of the vertices to iterate over.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertex indexes where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertex indexes where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
@@ -680,7 +680,7 @@ reduceVertices(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
@@ -803,7 +803,7 @@ reduceVertices(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
@@ -841,7 +841,7 @@ reduceAllVerticesIf(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
@@ -947,19 +947,19 @@ reduceAllVerticesIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
@@ -1002,19 +1002,19 @@ reduceVerticesIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
@@ -1057,9 +1057,9 @@ reduceVerticesIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1067,8 +1067,8 @@ reduceVerticesIf(
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
@@ -1108,9 +1108,9 @@ reduceVerticesIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1118,8 +1118,8 @@ reduceVerticesIf(
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
@@ -1162,7 +1162,7 @@ reduceVerticesIf(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
@@ -1196,7 +1196,7 @@ reduceAllVerticesWithArgument(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
@@ -1289,18 +1289,18 @@ reduceAllVerticesWithArgument(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation with argument. See \ref ReductionLambda_WithArgument.
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
@@ -1334,18 +1334,18 @@ reduceVerticesWithArgument(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction operation with argument. See \ref ReductionLambda_WithArgument.
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
@@ -1379,17 +1379,17 @@ reduceVerticesWithArgument(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Function object for reduction operation with argument. See \ref GraphReductionFunctionObjects.
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
@@ -1420,17 +1420,17 @@ reduceVerticesWithArgument(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Function object for reduction operation with argument. See \ref GraphReductionFunctionObjects.
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
@@ -1465,7 +1465,7 @@ reduceVerticesWithArgument(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
@@ -1509,7 +1509,7 @@ reduceVerticesWithArgument(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
@@ -1633,7 +1633,7 @@ reduceVerticesWithArgument(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
@@ -1678,7 +1678,7 @@ reduceAllVerticesWithArgumentIf(
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
  * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
@@ -1791,19 +1791,19 @@ reduceAllVerticesWithArgumentIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
@@ -1846,19 +1846,19 @@ reduceVerticesWithArgumentIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
- * \tparam FetchValue The type returned by the \e Fetch lambda function.
+ * \tparam FetchValue The type returned by the `Fetch` lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
@@ -1901,9 +1901,9 @@ reduceVerticesWithArgumentIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1911,8 +1911,8 @@ reduceVerticesWithArgumentIf(
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
@@ -1952,9 +1952,9 @@ reduceVerticesWithArgumentIf(
  * See also: \ref GraphReductionOverview
  *
  * \tparam Graph The type of the graph.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of vertices where the reduction will be performed.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1962,8 +1962,8 @@ reduceVerticesWithArgumentIf(
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
+ * \param begin The beginning of the interval `[begin, end)` of vertices where the reduction will be performed.
+ * \param end The end of the interval `[begin, end)` of vertices where the reduction will be performed.
  * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
