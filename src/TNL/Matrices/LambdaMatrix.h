@@ -16,6 +16,12 @@ namespace TNL::Matrices {
  * The elements of this matrix are not stored explicitly in memory but
  * implicitly on a form of lambda functions.
  *
+ * \note Elements for which the lambda function `matrixElements` returns zero value are treated as
+ * structural zeros, the same way as in sparse matrices. The traversal functions (\ref TNL::Matrices::forElements
+ * and its variants) do not call the user function for them and the reduction functions
+ * (\ref TNL::Matrices::reduceRows and its variants) do not call `fetch` for them. The reduction uses
+ * the identity element instead, or skips the element entirely in the variants with argument.
+ *
  * \tparam MatrixElementsLambda is a lambda function returning matrix elements values and positions.
  *
  * \tparam MatrixElementsLambda is a lambda function returning matrix elements values and positions.

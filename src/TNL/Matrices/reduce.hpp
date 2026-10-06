@@ -706,7 +706,7 @@ reduceAllRowsWithArgument(
 {
    reduceRowsWithArgument(
       matrix,
-      0,
+      static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -727,7 +727,7 @@ reduceAllRowsWithArgument(
 {
    reduceRowsWithArgument(
       matrix,
-      0,
+      static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -749,7 +749,7 @@ reduceAllRowsWithArgument(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRowsWithArgument(
       matrix,
-      0,
+      static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,
@@ -771,7 +771,7 @@ reduceAllRowsWithArgument(
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRowsWithArgument(
       matrix,
-      0,
+      static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
       std::forward< Fetch >( fetch ),
       reduction,

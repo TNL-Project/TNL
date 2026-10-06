@@ -236,7 +236,7 @@ namespace TNL::Matrices {
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -261,7 +261,7 @@ forAllElements(
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -362,7 +362,7 @@ forElements(
  *    of row indexes whose elements will be processed using the lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param begin The beginning of the interval `[begin, end)` of row indexes whose elements
  *    will be processed using the lambda function.
@@ -402,7 +402,7 @@ forElements(
  *    of row indexes whose elements will be processed using the lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param begin The beginning of the interval `[begin, end)` of row indexes whose elements
  *    will be processed using the lambda function.
@@ -438,7 +438,7 @@ forElements(
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -468,7 +468,7 @@ forElements(
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -505,7 +505,7 @@ forElements(
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param begin The beginning of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
  * \param end The end of the interval `[begin, end)` of rows whose elements
@@ -548,7 +548,7 @@ forElementsIf(
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param begin The beginning of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
  * \param end The end of the interval `[begin, end)` of rows whose elements
@@ -586,7 +586,7 @@ forElementsIf(
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -620,7 +620,7 @@ forAllElementsIf(
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -747,7 +747,7 @@ forElementsIf(
  *    of matrix rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param begin The beginning of the interval `[begin, end)` of matrix rows
  *    that will be processed using the lambda function.
  * \param end The end of the interval `[begin, end)` of matrix rows
@@ -791,7 +791,7 @@ forRows(
  *    of matrix rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param begin The beginning of the interval `[begin, end)` of matrix rows
  *    that will be processed using the lambda function.
  * \param end The end of the interval `[begin, end)` of matrix rows
@@ -830,7 +830,7 @@ forRows(
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -860,7 +860,7 @@ forAllRows(
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -896,7 +896,7 @@ forAllRows(
  *    of rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param begin The beginning of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
@@ -943,7 +943,7 @@ forRows(
  *    of rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param begin The beginning of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
@@ -986,7 +986,7 @@ forRows(
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -1016,7 +1016,7 @@ forRows(
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -1051,7 +1051,7 @@ forRows(
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param begin The beginning of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
  * \param end The end of the interval `[begin, end)` of row indexes
@@ -1143,7 +1143,7 @@ forRowsIf(
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -1175,7 +1175,7 @@ forAllRowsIf(
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
- * \param matrix The matrixon which the lambda function will be applied.
+ * \param matrix The matrix on which the lambda function will be applied.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
