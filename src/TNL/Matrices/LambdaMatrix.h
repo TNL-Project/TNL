@@ -271,9 +271,12 @@ public:
    getRow( IndexType rowIdx ) const;
 
    /**
-    * \brief Returns a modifiable view of the lambda matrix.
+    * \brief Returns a view of the lambda matrix.
     *
-    * \return lambda matrix view.
+    * A lambda matrix cannot be modified and it serves as its own view. The method exists so that the
+    * lambda matrix can be used with the generic matrix functions like \ref TNL::Matrices::forElements.
+    *
+    * \return copy of the lambda matrix.
     */
    [[nodiscard]] ViewType
    getView()
