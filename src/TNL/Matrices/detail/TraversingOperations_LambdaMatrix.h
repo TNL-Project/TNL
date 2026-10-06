@@ -90,6 +90,10 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const IndexType rows = matrix.getRows();
       const IndexType columns = matrix.getColumns();
       auto rowLengths = matrix.getCompressedRowLengthsLambda();
@@ -120,6 +124,10 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const IndexType rows = matrix.getRows();
       const IndexType columns = matrix.getColumns();
       auto rowLengths = matrix.getCompressedRowLengthsLambda();
@@ -184,6 +192,10 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
@@ -204,6 +216,10 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
