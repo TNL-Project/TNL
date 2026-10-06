@@ -16,7 +16,11 @@ namespace TNL::Matrices {
  * The elements of this matrix are not stored explicitly in memory but
  * implicitly on a form of lambda functions.
  *
- * \tparam MatrixElementsLambda is a lambda function returning matrix elements values and positions.
+ * \note Elements for which the lambda function `matrixElements` returns zero value are treated as
+ * structural zeros, the same way as in sparse matrices. The traversal functions (\ref TNL::Matrices::forElements
+ * and its variants) do not call the user function for them and the reduction functions
+ * (\ref TNL::Matrices::reduceRows and its variants) do not call `fetch` for them. The reduction uses
+ * the identity element instead, or skips the element entirely in the variants with argument.
  *
  * \tparam MatrixElementsLambda is a lambda function returning matrix elements values and positions.
  *
@@ -29,8 +33,9 @@ namespace TNL::Matrices {
  *
  *    where \e rows is the number of matrix rows, \e columns is the number of matrix columns, \e rowIdx is the index of matrix
  * row being queried, \e localIdx is the rank of the non-zero element in given row, \e columnIdx is a column index of the matrix
- * element computed by this lambda and \e value is a value of the matrix element computed by this lambda. \tparam
- * CompressedRowLengthsLambda is a lambda function returning a number of non-zero elements in each row.
+ * element computed by this lambda and \e value is a value of the matrix element computed by this lambda.
+ *
+ * \tparam CompressedRowLengthsLambda is a lambda function returning a number of non-zero elements in each row.
  *
  * It has the following form:
  *
