@@ -5,6 +5,7 @@
 
 #include "reduce.h"
 #include "detail/ReductionOperations.h"
+#include "detail/RowSelection.h"
 
 namespace TNL::Matrices {
 template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -233,6 +234,7 @@ reduceRows(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::ReductionOperations< typename Matrix::ViewType >::reduceRows(
       matrix_view,
@@ -255,6 +257,7 @@ reduceRows(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRows(
       matrix.getConstView(),
       rowIndexes,
@@ -275,6 +278,7 @@ reduceRows(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRows(
@@ -297,6 +301,7 @@ reduceRows(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRows(
@@ -562,6 +567,7 @@ reduceRowsIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    return detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsIf(
       matrix_view,
@@ -600,6 +606,7 @@ reduceRowsIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    return detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsIf(
       matrix.getConstView(),
       rowIndexes,
@@ -635,6 +642,7 @@ reduceRowsIf(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsIf(
@@ -672,6 +680,7 @@ reduceRowsIf(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsIf(
@@ -909,6 +918,7 @@ reduceRowsWithArgument(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsWithArgument(
       matrix_view,
@@ -931,6 +941,7 @@ reduceRowsWithArgument(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsWithArgument(
       matrix.getConstView(),
       rowIndexes,
@@ -951,6 +962,7 @@ reduceRowsWithArgument(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRowsWithArgument(
@@ -981,6 +993,7 @@ reduceRowsWithArgument(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRowsWithArgument(
@@ -1244,6 +1257,7 @@ reduceRowsWithArgumentIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    return detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsWithArgumentIf(
       matrix_view,
@@ -1282,6 +1296,7 @@ reduceRowsWithArgumentIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    return detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsWithArgumentIf(
       matrix.getConstView(),
       rowIndexes,
@@ -1317,6 +1332,7 @@ reduceRowsWithArgumentIf(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsWithArgumentIf(
@@ -1354,6 +1370,7 @@ reduceRowsWithArgumentIf(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    return reduceRowsWithArgumentIf(

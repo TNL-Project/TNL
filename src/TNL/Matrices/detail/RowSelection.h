@@ -3,11 +3,28 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Algorithms/compress.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/Vector.h>
 
 namespace TNL::Matrices::detail {
+
+/**
+ * \brief Checks at compile time that the array of row indexes is stored on the same device as the matrix.
+ *
+ * Used by all matrix traversal and reduction functions accepting an array of row indexes, because the
+ * array is accessed from kernels launched on the matrix device.
+ */
+template< typename DeviceType, typename Array >
+constexpr void
+checkRowIndexesDevice()
+{
+   static_assert(
+      std::is_same_v< typename Array::DeviceType, DeviceType >,
+      "The array of row indexes must be stored on the same device as the matrix." );
+}
 
 /**
  * \brief Builds a dense array of row indexes in `[begin, end)` for which `condition(rowIdx)` holds.
@@ -47,6 +64,7 @@ template< typename IndexType, typename DeviceType, typename Array, typename Inde
 Containers::Vector< IndexType, DeviceType, IndexType >
 buildSelectedRowIndexesFromArray( const Array& rowIndexes, IndexBegin begin, IndexEnd end, Condition&& condition )
 {
+   checkRowIndexesDevice< DeviceType, Array >();
    using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
    auto rowIndexes_view = rowIndexes.getConstView();
 
