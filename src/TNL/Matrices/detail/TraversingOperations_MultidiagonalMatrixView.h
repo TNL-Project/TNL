@@ -86,6 +86,10 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto values_view = matrix.getValues().getView();
       const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
       const IndexType diagonalsCount = matrix.getDiagonalsCount();
@@ -114,6 +118,10 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const auto values_view = matrix.getValues().getConstView();
       const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
       const IndexType diagonalsCount = matrix.getDiagonalsCount();
@@ -176,6 +184,10 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
@@ -196,6 +208,10 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {

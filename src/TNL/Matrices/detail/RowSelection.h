@@ -5,6 +5,7 @@
 
 #include <type_traits>
 
+#include <TNL/Assert.h>
 #include <TNL/Algorithms/compress.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/Vector.h>
@@ -65,6 +66,10 @@ Containers::Vector< IndexType, DeviceType, IndexType >
 buildSelectedRowIndexesFromArray( const Array& rowIndexes, IndexBegin begin, IndexEnd end, Condition&& condition )
 {
    checkRowIndexesDevice< DeviceType, Array >();
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE(
+      end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
    using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
    auto rowIndexes_view = rowIndexes.getConstView();
 

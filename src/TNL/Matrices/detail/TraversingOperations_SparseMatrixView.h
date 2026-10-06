@@ -113,6 +113,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
       auto columns = matrix.getColumns();
@@ -143,6 +147,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
       auto columns = matrix.getColumns();
@@ -276,6 +284,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -297,6 +309,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
