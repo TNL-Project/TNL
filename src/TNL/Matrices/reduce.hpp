@@ -973,15 +973,7 @@ reduceRowsWithArgument(
       launchConfig );
 }
 
-template<
-   typename Matrix,
-   typename Array,
-   typename IndexBegin,
-   typename IndexEnd,
-   typename Fetch,
-   typename Reduction,
-   typename Store,
-   typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRowsWithArgument(
    const Matrix& matrix,
@@ -995,7 +987,7 @@ reduceRowsWithArgument(
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRowsWithArgument(
-      matrix.getConstView(),
+      matrix,
       rowIndexes,
       std::forward< Fetch >( fetch ),
       reduction,

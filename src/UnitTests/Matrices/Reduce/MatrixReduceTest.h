@@ -396,6 +396,34 @@ test_reduceRowsWithArgument()
       //EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
       EXPECT_EQ( maxValues.getElement( 4 ), 16 );
       EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
+
+      // The same with the identity deduced from TNL::MaxWithArg
+      maxValues = 0;
+      maxColumns = -1;
+      TNL::Matrices::reduceRowsWithArgument( matrix, rowIndexes, fetch, TNL::MaxWithArg{}, storeWithRowIndexes, launch_config );
+
+      EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
+      EXPECT_EQ( maxValues.getElement( 1 ), 7 );
+      EXPECT_EQ( maxColumns.getElement( 1 ), 2 );
+      EXPECT_EQ( maxValues.getElement( 2 ), 10 );
+      EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // skipped
+      EXPECT_EQ( maxValues.getElement( 4 ), 16 );
+      EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
+
+      maxValues = 0;
+      maxColumns = -1;
+      TNL::Matrices::reduceRowsWithArgument(
+         constMatrix, rowIndexes, fetch, TNL::MaxWithArg{}, storeWithRowIndexes, launch_config );
+
+      EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
+      EXPECT_EQ( maxValues.getElement( 1 ), 7 );
+      EXPECT_EQ( maxColumns.getElement( 1 ), 2 );
+      EXPECT_EQ( maxValues.getElement( 2 ), 10 );
+      EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // skipped
+      EXPECT_EQ( maxValues.getElement( 4 ), 16 );
+      EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
    }
 }
 
