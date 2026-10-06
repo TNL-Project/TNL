@@ -42,7 +42,7 @@ set(COMMON_TESTS
     DenseMatrixTransMultiplication
 )
 
-set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest)
+set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest MatrixReaderTest)
 set(CUDA_TESTS)
 set(HIP_TESTS)
 
