@@ -155,8 +155,8 @@ test_reduceRows()
 
    auto fetch = [ = ] __cuda_callable__( Index row, Index columnIdx, const Real& value ) -> Real
    {
-      TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
-      return value;
+      // A wrong column index spoils the result, which is checked on the host.
+      return columnIdx == size - 1 - row ? value : static_cast< Real >( -1000 );
    };
    auto keep = [ = ] __cuda_callable__( Index row, const Real& value ) mutable
    {
@@ -201,8 +201,8 @@ test_reduceAllRows_explicit_identity()
 
    auto fetch = [ = ] __cuda_callable__( Index row, Index columnIdx, const Real& value ) -> Real
    {
-      TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
-      return value;
+      // A wrong column index spoils the result, which is checked on the host.
+      return columnIdx == size - 1 - row ? value : static_cast< Real >( -1000 );
    };
    auto keep = [ = ] __cuda_callable__( Index row, const Real& value ) mutable
    {
@@ -248,8 +248,8 @@ test_reduceAllRows_deduced_identity()
 
    auto fetch = [ = ] __cuda_callable__( Index row, Index columnIdx, const Real& value ) -> Real
    {
-      TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
-      return value;
+      // A wrong column index spoils the result, which is checked on the host.
+      return columnIdx == size - 1 - row ? value : static_cast< Real >( -1000 );
    };
    auto keep = [ = ] __cuda_callable__( Index row, const Real& value ) mutable
    {

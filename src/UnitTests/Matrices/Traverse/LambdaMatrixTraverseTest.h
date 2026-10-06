@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <algorithm>
+#include <vector>
+
 #include <TNL/Matrices/LambdaMatrix.h>
 #include <TNL/Matrices/traverse.h>
 #include <TNL/Containers/Vector.h>
@@ -99,8 +102,8 @@ test_forElements_Range()
       (Index) 4,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
-         rowSumsView[ rowIdx ] = value;
+         // A wrong column index spoils the stored value, which is checked on the host.
+         rowSumsView[ rowIdx ] = columnIdx == size - 1 - rowIdx ? value : static_cast< Real >( -1000 );
       } );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );
@@ -118,8 +121,8 @@ test_forElements_Range()
       (Index) 4,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
-         rowSumsView[ rowIdx ] = value;
+         // A wrong column index spoils the stored value, which is checked on the host.
+         rowSumsView[ rowIdx ] = columnIdx == size - 1 - rowIdx ? value : static_cast< Real >( -1000 );
       } );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );
@@ -148,8 +151,8 @@ test_forAllElements()
       matrix,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
-         rowSumsView[ rowIdx ] = value;
+         // A wrong column index spoils the stored value, which is checked on the host.
+         rowSumsView[ rowIdx ] = columnIdx == size - 1 - rowIdx ? value : static_cast< Real >( -1000 );
       } );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 5 );
@@ -165,8 +168,8 @@ test_forAllElements()
       constMatrix,
       [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
       {
-         TNL_ASSERT_EQ( columnIdx, size - 1 - rowIdx, "wrong columnIdx for anti-diagonal matrix" );
-         rowSumsView[ rowIdx ] = value;
+         // A wrong column index spoils the stored value, which is checked on the host.
+         rowSumsView[ rowIdx ] = columnIdx == size - 1 - rowIdx ? value : static_cast< Real >( -1000 );
       } );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 5 );
@@ -284,6 +287,120 @@ test_forAllRows()
    EXPECT_EQ( rowSums.getElement( 4 ), 1 );
 }
 
+// Tests the variants with an array of row indexes and the conditional variants. Each variant records
+// the value and the column index of the only element in each processed row, which are checked on the host.
+template< typename TestType >
+void
+test_variantsWithRowIndexesAndConditions()
+{
+   using Real = typename TestType::RealType;
+   using Index = typename TestType::IndexType;
+   using Device = typename TestType::DeviceType;
+   using RealVector = TNL::Containers::Vector< Real, Device, Index >;
+   using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
+   using MatrixType = decltype( createAntiDiagonalMatrix< TestType >( (Index) 6 ) );
+   using RowView = typename MatrixType::RowView;
+
+   const Index size = 6;
+   auto matrix = createAntiDiagonalMatrix< TestType >( size );
+   const auto& constMatrix = matrix;
+
+   RealVector values( size );
+   IndexVector columns( size );
+   auto values_view = values.getView();
+   auto columns_view = columns.getView();
+   auto recordElement = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+   {
+      values_view[ rowIdx ] = value;
+      columns_view[ rowIdx ] = columnIdx;
+   };
+   auto recordRow = [ = ] __cuda_callable__( const RowView& row ) mutable
+   {
+      values_view[ row.getRowIndex() ] = row.getValue( 0 );
+      columns_view[ row.getRowIndex() ] = row.getColumnIndex( 0 );
+   };
+   auto evenRows = [] __cuda_callable__( Index rowIdx ) -> bool
+   {
+      return rowIdx % 2 == 0;
+   };
+   const IndexVector rowIndexes{ 5, 0, 3, 2 };
+
+   auto reset = [ & ]()
+   {
+      values.setValue( -1 );
+      columns.setValue( -1 );
+   };
+   // Checks that exactly the given rows were processed
+   auto check = [ & ]( const std::vector< Index >& processedRows )
+   {
+      TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostValues;
+      TNL::Containers::Vector< Index, TNL::Devices::Host, Index > hostColumns;
+      hostValues = values;
+      hostColumns = columns;
+      for( Index rowIdx = 0; rowIdx < size; rowIdx++ ) {
+         const bool processed = std::find( processedRows.begin(), processedRows.end(), rowIdx ) != processedRows.end();
+         EXPECT_EQ( hostValues[ rowIdx ], processed ? size - rowIdx : -1 ) << "row " << rowIdx;
+         EXPECT_EQ( hostColumns[ rowIdx ], processed ? size - 1 - rowIdx : -1 ) << "row " << rowIdx;
+      }
+   };
+
+   reset();
+   TNL::Matrices::forElements( matrix, (Index) 1, (Index) 4, recordElement );
+   check( { 1, 2, 3 } );
+
+   reset();
+   TNL::Matrices::forAllElements( constMatrix, recordElement );
+   check( { 0, 1, 2, 3, 4, 5 } );
+
+   reset();
+   TNL::Matrices::forElements( matrix, rowIndexes, recordElement );
+   check( { 5, 0, 3, 2 } );
+
+   reset();
+   TNL::Matrices::forElements( constMatrix, rowIndexes, (Index) 1, (Index) 3, recordElement );
+   check( { 0, 3 } );
+
+   reset();
+   TNL::Matrices::forElementsIf( matrix, (Index) 1, (Index) 5, evenRows, recordElement );
+   check( { 2, 4 } );
+
+   reset();
+   TNL::Matrices::forAllElementsIf( constMatrix, evenRows, recordElement );
+   check( { 0, 2, 4 } );
+
+   reset();
+   TNL::Matrices::forElementsIf( matrix, rowIndexes, (Index) 0, (Index) 4, evenRows, recordElement );
+   check( { 0, 2 } );
+
+   reset();
+   TNL::Matrices::forElementsIf( constMatrix, rowIndexes, (Index) 2, (Index) 4, evenRows, recordElement );
+   check( { 2 } );
+
+   reset();
+   TNL::Matrices::forRows( matrix, rowIndexes, recordRow );
+   check( { 5, 0, 3, 2 } );
+
+   reset();
+   TNL::Matrices::forRows( constMatrix, rowIndexes, (Index) 1, (Index) 3, recordRow );
+   check( { 0, 3 } );
+
+   reset();
+   TNL::Matrices::forRowsIf( matrix, (Index) 1, (Index) 5, evenRows, recordRow );
+   check( { 2, 4 } );
+
+   reset();
+   TNL::Matrices::forAllRowsIf( constMatrix, evenRows, recordRow );
+   check( { 0, 2, 4 } );
+
+   reset();
+   TNL::Matrices::forRowsIf( matrix, rowIndexes, (Index) 0, (Index) 4, evenRows, recordRow );
+   check( { 0, 2 } );
+
+   reset();
+   TNL::Matrices::forRowsIf( constMatrix, rowIndexes, (Index) 2, (Index) 4, evenRows, recordRow );
+   check( { 2 } );
+}
+
 // Test fixture
 template< typename TestType >
 class LambdaMatrixTraverseTest : public ::testing::Test
@@ -314,7 +431,18 @@ TYPED_TEST_P( LambdaMatrixTraverseTest, forAllRows )
    test_forAllRows< TypeParam >();
 }
 
-REGISTER_TYPED_TEST_SUITE_P( LambdaMatrixTraverseTest, forElements_Range, forAllElements, forRows, forAllRows );
+TYPED_TEST_P( LambdaMatrixTraverseTest, variantsWithRowIndexesAndConditions )
+{
+   test_variantsWithRowIndexesAndConditions< TypeParam >();
+}
+
+REGISTER_TYPED_TEST_SUITE_P(
+   LambdaMatrixTraverseTest,
+   forElements_Range,
+   forAllElements,
+   forRows,
+   forAllRows,
+   variantsWithRowIndexesAndConditions );
 
 INSTANTIATE_TYPED_TEST_SUITE_P( LambdaMatrix, LambdaMatrixTraverseTest, LambdaMatrixTraverseTypes );
 

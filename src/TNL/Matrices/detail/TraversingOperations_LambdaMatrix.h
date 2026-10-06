@@ -26,32 +26,8 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
    // TODO: `launchConfig` is accepted below but never forwarded to Algorithms::parallelFor (see
    // TraversingOperationsBase.h for why). Should eventually be fixed, pending a benchmark.
 
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements(
-      Matrix& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      const IndexType rows = matrix.getRows();
-      const IndexType columns = matrix.getColumns();
-      auto rowLengths = matrix.getCompressedRowLengthsLambda();
-      auto matrixElements = matrix.getMatrixElementsLambda();
-      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
-      {
-         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
-         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
-            IndexType columnIdx( 0 );
-            Real elementValue( 0.0 );
-            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
-            if( elementValue != 0.0 )
-               function( rowIdx, localIdx, columnIdx, elementValue );
-         }
-      };
-      Algorithms::parallelFor< DeviceType >( begin, end, f );
-   }
+   // A lambda matrix cannot be modified, so only the const overloads are provided. They accept also
+   // non-const matrices and pass the matrix elements to the user function as constant values.
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
@@ -74,41 +50,7 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
             Real elementValue( 0.0 );
             matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
             if( elementValue != 0.0 )
-               function( rowIdx, localIdx, columnIdx, elementValue );
-         }
-      };
-      Algorithms::parallelFor< DeviceType >( begin, end, f );
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements(
-      Matrix& matrix,
-      const Array& rowIndexes,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
-      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
-      TNL_ASSERT_LE(
-         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
-      const IndexType rows = matrix.getRows();
-      const IndexType columns = matrix.getColumns();
-      auto rowLengths = matrix.getCompressedRowLengthsLambda();
-      auto matrixElements = matrix.getMatrixElementsLambda();
-      auto rowIndexes_view = rowIndexes.getConstView();
-      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
-      {
-         const auto rowIdx = rowIndexes_view[ idx ];
-         const IndexType rowLength = rowLengths( rows, columns, rowIdx );
-         for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
-            IndexType columnIdx( 0 );
-            Real elementValue( 0.0 );
-            matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
-            if( elementValue != 0.0 )
-               function( rowIdx, localIdx, columnIdx, elementValue );
+               function( rowIdx, localIdx, columnIdx, static_cast< const Real& >( elementValue ) );
          }
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
@@ -135,32 +77,15 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowIdx = rowIndexes_view[ idx ];
          const IndexType rowLength = rowLengths( rows, columns, rowIdx );
          for( IndexType localIdx = 0; localIdx < rowLength; localIdx++ ) {
             IndexType columnIdx( 0 );
             Real elementValue( 0.0 );
             matrixElements( rows, columns, rowIdx, localIdx, columnIdx, elementValue );
             if( elementValue != 0.0 )
-               function( rowIdx, localIdx, columnIdx, elementValue );
+               function( rowIdx, localIdx, columnIdx, static_cast< const Real& >( elementValue ) );
          }
-      };
-      Algorithms::parallelFor< DeviceType >( begin, end, f );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forRows(
-      Matrix& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
-      {
-         auto rowView = matrix.getRow( rowIdx );
-         function( rowView );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -185,30 +110,6 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forRows(
-      Matrix& matrix,
-      const Array& rowIndexes,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
-      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
-      TNL_ASSERT_LE(
-         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
-      auto rowIndexes_view = rowIndexes.getConstView();
-      auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
-      {
-         auto rowIdx = rowIndexes_view[ idx ];
-         auto rowView = matrix.getRow( rowIdx );
-         function( rowView );
-      };
-      Algorithms::parallelFor< DeviceType >( begin, end, f );
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forRows(
       const ConstMatrixView& matrix,
       const Array& rowIndexes,
       IndexBegin begin,
@@ -223,7 +124,7 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowIdx = rowIndexes_view[ idx ];
          auto rowView = matrix.getRow( rowIdx );
          function( rowView );
       };
