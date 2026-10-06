@@ -110,7 +110,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCo
    {
       return values_view[ i ] != 0.0;
    };
-   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, TNL::Plus{}, 0 );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, TNL::Plus{} );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
