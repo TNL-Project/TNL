@@ -4,6 +4,8 @@
 #pragma once
 
 #include <map>
+#include <tuple>
+#include <vector>
 
 #include <TNL/Allocators/Default.h>
 
@@ -305,6 +307,22 @@ public:
    void
    setElements(
       const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
+
+   /**
+    * \brief This method sets the dense matrix elements from std::vector of tuples.
+    *
+    * Each element of the vector \e elements is a tuple ( row, column, value ). The elements can be given in any order,
+    * but each position can appear only once, otherwise an exception is thrown.
+    *
+    * \param elements is std::vector containing the matrix elements. It is passed by value and sorted in place, so it can be
+    * moved into the method to avoid a copy.
+    * \param encoding defines encoding for symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding and the method
+    * setting the elements from std::map for details.
+    */
+   void
+   setElements(
+      std::vector< std::tuple< Index, Index, Real > > elements,
       MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**

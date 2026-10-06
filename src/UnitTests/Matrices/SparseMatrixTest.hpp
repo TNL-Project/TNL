@@ -1,6 +1,9 @@
 #pragma once
 
 #include <functional>
+#include <stdexcept>
+#include <tuple>
+#include <vector>
 
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
@@ -389,6 +392,45 @@ test_GetNonzeroElementsCount()
 
    A.getValues() -= 1.0;
    EXPECT_EQ( A.getNonzeroElementsCount(), 9 );
+}
+
+template< typename Matrix >
+void
+test_SetElementsFromVector()
+{
+   using Index = typename Matrix::IndexType;
+   using Device = typename Matrix::DeviceType;
+   using Real = typename Matrix::RealType;
+   using SymmetricMatrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::SymmetricMatrix >;
+
+   // the elements do not need to be sorted
+   Matrix m( 3, 4 );
+   m.setElements( std::vector< std::tuple< Index, Index, Real > >{ { 2, 3, 6 }, { 0, 0, 1 }, { 1, 2, 4 }, { 0, 3, 2 } } );
+   EXPECT_EQ( m.getNonzeroElementsCount(), 4 );
+   EXPECT_EQ( m.getElement( 0, 0 ), Real{ 1 } );
+   EXPECT_EQ( m.getElement( 0, 3 ), Real{ 2 } );
+   EXPECT_EQ( m.getElement( 1, 2 ), Real{ 4 } );
+   EXPECT_EQ( m.getElement( 2, 3 ), Real{ 6 } );
+   EXPECT_EQ( m.getElement( 1, 1 ), Real{ 0 } );
+
+   // each position can appear only once
+   EXPECT_THROW(
+      m.setElements( std::vector< std::tuple< Index, Index, Real > >{ { 0, 0, 1 }, { 1, 1, 2 }, { 0, 0, 3 } } ),
+      std::logic_error );
+
+   // the lower part of a symmetric matrix into a general and a symmetric matrix
+   const std::vector< std::tuple< Index, Index, Real > > lower{ { 1, 0, 2 }, { 0, 0, 1 }, { 2, 1, 3 } };
+   Matrix general( 3, 3 );
+   general.setElements( lower, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   SymmetricMatrix symmetric( 3, 3 );
+   symmetric.setElements( lower, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   for( Index row = 0; row < 3; row++ )
+      for( Index column = 0; column < 3; column++ ) {
+         EXPECT_EQ( general.getElement( row, column ), general.getElement( column, row ) );
+         EXPECT_EQ( symmetric.getElement( row, column ), general.getElement( row, column ) );
+      }
+   EXPECT_EQ( general.getElement( 0, 1 ), Real{ 2 } );
+   EXPECT_EQ( general.getElement( 1, 2 ), Real{ 3 } );
 }
 
 template< typename Matrix >

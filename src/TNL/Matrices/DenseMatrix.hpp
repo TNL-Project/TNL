@@ -3,11 +3,16 @@
 
 #pragma once
 
+#include <tuple>
+#include <utility>
+#include <vector>
+
 #include <TNL/Backend.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Hip.h>
 
 #include "DenseMatrix.h"
+#include "detail/MatrixElements.h"
 #include "DenseSparseOperations.h"
 #include "DenseOperations.h"
 
@@ -137,14 +142,27 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
    MatrixElementsEncoding encoding )
 {
+   std::vector< std::tuple< Index, Index, Real > > elements;
+   elements.reserve( map.size() );
+   for( const auto& [ coordinates, value ] : map )
+      elements.emplace_back( coordinates.first, coordinates.second, value );
+   this->setElements( std::move( elements ), encoding );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+void
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
+   std::vector< std::tuple< Index, Index, Real > > elements,
+   MatrixElementsEncoding encoding )
+{
    if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
-      hostMatrix.setElements( map, encoding );
+      hostMatrix.setElements( std::move( elements ), encoding );
       *this = hostMatrix;
       return;
    }
-   for( const auto& [ coordinates, value ] : map ) {
-      auto [ rowIdx, columnIdx ] = coordinates;
+   detail::sortMatrixElements( elements );
+   for( const auto& [ rowIdx, columnIdx, value ] : elements ) {
       if( rowIdx >= this->getRows() )
          throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
       if( columnIdx >= this->getColumns() )
@@ -154,8 +172,8 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
       if( encoding == MatrixElementsEncoding::SymmetricUpper && rowIdx > columnIdx )
          throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
       if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
-         auto query = map.find( { columnIdx, rowIdx } );
-         if( query != map.end() && query->second != value )
+         const Real* query = detail::findMatrixElement( elements, columnIdx, rowIdx );
+         if( query != nullptr && *query != value )
             throw std::logic_error(
                "The input data are supposed to be symmetric (matrix elements encoding equals "
                "SymmetricMixed) but it is not. The matrix elements at position ("

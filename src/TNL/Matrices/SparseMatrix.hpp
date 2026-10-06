@@ -3,8 +3,13 @@
 
 #pragma once
 
+#include <tuple>
+#include <utility>
+#include <vector>
+
 #include "SparseMatrix.h"
 #include "SparseOperations.h"
+#include "detail/MatrixElements.h"
 
 namespace TNL::Matrices {
 
@@ -361,16 +366,39 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
    MatrixElementsEncoding encoding )
 {
+   std::vector< std::tuple< Index, Index, Real > > elements;
+   elements.reserve( map.size() );
+   for( const auto& [ coordinates, value ] : map )
+      elements.emplace_back( coordinates.first, coordinates.second, value );
+   this->setElements( std::move( elements ), encoding );
+}
+
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
+void
+SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setElements(
+   std::vector< std::tuple< Index, Index, Real > > elements,
+   MatrixElementsEncoding encoding )
+{
    if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       SparseMatrix< Real, Devices::Host, Index, MatrixType, Segments, ComputeReal > hostMatrix(
          this->getRows(), this->getColumns() );
-      hostMatrix.setElements( map, encoding );
+      hostMatrix.setElements( std::move( elements ), encoding );
       *this = hostMatrix;
    }
    else {
+      detail::sortMatrixElements( elements );
       RowCapacitiesVectorType capacities( this->getRows(), 0 );
-      for( const auto& [ coordinates, value ] : map ) {
-         auto [ rowIdx, columnIdx ] = coordinates;
+      for( const auto& [ elementRowIdx, elementColumnIdx, value ] : elements ) {
+         Index rowIdx = elementRowIdx;
+         Index columnIdx = elementColumnIdx;
          if( rowIdx >= this->getRows() )
             throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
          if( columnIdx >= this->getColumns() )
@@ -380,8 +408,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          if( encoding == MatrixElementsEncoding::SymmetricUpper && rowIdx > columnIdx )
             throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
          if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
-            auto query = map.find( { columnIdx, rowIdx } );
-            if( query != map.end() && query->second != value )
+            const Real* query = detail::findMatrixElement( elements, columnIdx, rowIdx );
+            if( query != nullptr && *query != value )
                throw std::logic_error(
                   "The input data are supposed to be symmetric (matrix elements encoding equals "
                   "SymmetricMixed) but it is not. The matrix elements at position ("
@@ -389,8 +417,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          }
          if( Base::isSymmetric() ) {
             if( encoding == MatrixElementsEncoding::Complete ) {
-               auto query = map.find( { columnIdx, rowIdx } );
-               if( query != map.end() && query->second != value )
+               const Real* query = detail::findMatrixElement( elements, columnIdx, rowIdx );
+               if( query != nullptr && *query != value )
                   throw std::logic_error(
                      "SparseMatrix is configured as symmetric, but the input data is not symmetric. The "
                      "matrix elements at position ("
@@ -425,15 +453,14 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          ( ! Base::isSymmetric() && encoding == MatrixElementsEncoding::Complete )
          || ( Base::isSymmetric() && ( encoding == MatrixElementsEncoding::Complete || encoding == MatrixElementsEncoding::SymmetricLower ) ) )
       {
-         // The following algorithm is based on the fact that the matrix elements in std::map
+         // The following algorithm is based on the fact that the matrix elements
          // are sorted in a row-major order and that row capacities were already
          // set. It is much more efficient than calling setElement over and over again,
          // since it avoids the sequential lookups of column indexes in each row.
 
          Index lastRowIdx = 0;
          Index localIdx = 0;
-         for( const auto& [ coordinates, value ] : map ) {
-            auto [ rowIdx, columnIdx ] = coordinates;
+         for( const auto& [ rowIdx, columnIdx, value ] : elements ) {
             if( Base::isSymmetric() && encoding == MatrixElementsEncoding::Complete && rowIdx < columnIdx )
                continue;
             auto row = this->getRow( rowIdx );
@@ -444,8 +471,9 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          }
       }
       else {
-         for( const auto& [ coordinates, value ] : map ) {
-            auto [ rowIdx, columnIdx ] = coordinates;
+         for( const auto& [ elementRowIdx, elementColumnIdx, value ] : elements ) {
+            Index rowIdx = elementRowIdx;
+            Index columnIdx = elementColumnIdx;
             if( Base::isSymmetric()
                 && ( encoding == MatrixElementsEncoding::SymmetricUpper || encoding == MatrixElementsEncoding::SymmetricMixed ) )
             {

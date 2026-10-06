@@ -61,6 +61,14 @@ TYPED_TEST( MatrixTest, setElementsTest )
       test_SetElementsForSymmetricMatrix< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, setElementsFromVectorTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   if constexpr( ! MatrixType::isSymmetric() )
+      test_SetElementsFromVector< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, resetTest )
 {
    using MatrixType = typename TestFixture::MatrixType;
