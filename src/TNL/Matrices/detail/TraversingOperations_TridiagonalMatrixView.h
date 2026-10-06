@@ -8,6 +8,7 @@
 #include "../TridiagonalMatrixView.h"
 #include "TraversingOperations.h"
 #include "TraversingOperationsBase.h"
+#include "TridiagonalRowTraversal.h"
 
 namespace TNL::Matrices::detail {
 
@@ -39,22 +40,13 @@ struct TraversingOperations< TridiagonalMatrixView< Real, Device, Index, Organiz
       const auto indexer = matrix.getIndexer();
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
-         if( rowIdx == 0 ) {
-            function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -72,22 +64,13 @@ struct TraversingOperations< TridiagonalMatrixView< Real, Device, Index, Organiz
       const auto indexer = matrix.getIndexer();
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
-         if( rowIdx == 0 ) {
-            function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -111,23 +94,14 @@ struct TraversingOperations< TridiagonalMatrixView< Real, Device, Index, Organiz
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         const auto rowIdx = rowIndexes_view[ idx ];
-         if( rowIdx == 0 ) {
-            function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         const IndexType rowIdx = rowIndexes_view[ idx ];
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -151,23 +125,14 @@ struct TraversingOperations< TridiagonalMatrixView< Real, Device, Index, Organiz
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         const auto rowIdx = rowIndexes_view[ idx ];
-         if( rowIdx == 0 ) {
-            function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         const IndexType rowIdx = rowIndexes_view[ idx ];
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
