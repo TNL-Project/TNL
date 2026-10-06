@@ -61,6 +61,19 @@ TYPED_TEST( MatrixTest, setElementsTest )
       test_SetElementsForSymmetricMatrix< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, setElementsFromVectorTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+
+   // the test creates a symmetric matrix which requires atomic operations on GPU
+   if constexpr(
+      ! MatrixType::isSymmetric()
+      && ( std::is_same_v< DeviceType, TNL::Devices::Sequential > || std::is_same_v< DeviceType, TNL::Devices::Host > || (std::is_same_v< std::decay_t< RealType >, float > || std::is_same_v< std::decay_t< RealType >, double > || std::is_same_v< std::decay_t< RealType >, int > || std::is_same_v< std::decay_t< RealType >, long long int > || std::is_same_v< std::decay_t< RealType >, bool >) ) )
+      test_SetElementsFromVector< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, resetTest )
 {
    using MatrixType = typename TestFixture::MatrixType;
