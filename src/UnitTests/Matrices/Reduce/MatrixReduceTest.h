@@ -247,6 +247,25 @@ test_reduceRowsIf()
       EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
       EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // not in array
       EXPECT_EQ( rowCounts.getElement( 4 ), 4 );  // 13, 14, 15, 16
+
+      // The same with the identity deduced from TNL::Plus
+      rowCounts = 0;
+      TNL::Matrices::reduceRowsIf(
+         matrix, rowIndexes, 0, rowIndexes.getSize(), conditionArray, fetch, TNL::Plus{}, store, launch_config );
+      EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
+      EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
+      EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 4 ), 4 );  // 13, 14, 15, 16
+
+      rowCounts = 0;
+      TNL::Matrices::reduceRowsIf(
+         constMatrix, rowIndexes, 0, rowIndexes.getSize(), conditionArray, fetch, TNL::Plus{}, store, launch_config );
+      EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
+      EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
+      EXPECT_EQ( rowCounts.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( rowCounts.getElement( 4 ), 4 );  // 13, 14, 15, 16
    }
 }
 
@@ -586,6 +605,37 @@ test_reduceRowsWithArgumentIf()
          (RealType) 0,
          launch_config );
 
+      EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
+      EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
+      EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 4 ), 16 );  // max of {13, 14, 15, 16}
+      EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
+
+      // The same with the identity deduced from TNL::MaxWithArg
+      maxValues = 0;
+      maxColumns = -1;
+      TNL::Matrices::reduceRowsWithArgumentIf(
+         matrix, rowIndexes, 0, rowIndexes.getSize(), conditionArray, fetch, TNL::MaxWithArg{}, store, launch_config );
+      EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
+      EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
+      EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // not in array
+      EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 4 ), 16 );  // max of {13, 14, 15, 16}
+      EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
+
+      maxValues = 0;
+      maxColumns = -1;
+      TNL::Matrices::reduceRowsWithArgumentIf(
+         constMatrix, rowIndexes, 0, rowIndexes.getSize(), conditionArray, fetch, TNL::MaxWithArg{}, store, launch_config );
       EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // not in array
       EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
       EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped by condition (rowIdx=1)
