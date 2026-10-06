@@ -3,11 +3,16 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Matrices/reduce.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Functional.h>
 #include <gtest/gtest.h>
+
+#include "../TridiagonalMatrixShapes.h"
 
 using TridiagonalMatrixReduceTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
@@ -67,10 +72,9 @@ test_reduceRows()
 
    auto fetch = [] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) -> RealType
    {
-      // For TridiagonalMatrix, the second fetch argument is the actual column index.
-      TNL_ASSERT_GE( columnIdx, row - 1, "Wrong column index." );
-      TNL_ASSERT_LE( columnIdx, row + 1, "Wrong column index." );
-      return value;
+      // For TridiagonalMatrix, the second fetch argument is the actual column index. A wrong column
+      // index spoils the result, which is checked on the host.
+      return columnIdx >= row - 1 && columnIdx <= row + 1 ? value : static_cast< RealType >( 1000 );
    };
    auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
@@ -537,6 +541,168 @@ test_reduceRows_rectangularTailRow()
    EXPECT_EQ( maxColumns.getElement( 4 ), 3 );  // must be the sub-diagonal column, not rowIdx (4)
 }
 
+template< typename MatrixType >
+void
+test_reduceRows_Shapes()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using RealVector = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using HostRealVector = TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType >;
+   using HostIndexVector = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
+
+   for( const auto& shape : getTridiagonalTestShapes() ) {
+      const IndexType rows = shape.first;
+      const IndexType columns = shape.second;
+      SCOPED_TRACE( "matrix " + std::to_string( rows ) + "x" + std::to_string( columns ) );
+      MatrixType matrix( rows, columns );
+      setupTridiagonalTestMatrix( matrix );
+      const auto constView = matrix.getConstView();
+
+      // Expected results: the sum of `1000 * value + columnIdx` over the row checks both the values
+      // and the column indexes, the maximum is the element with the largest column index.
+      std::vector< RealType > expectedSums( rows, 0 );
+      std::vector< IndexType > expectedMaxColumns( rows, -1 );
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+         for( IndexType localIdx = 0; localIdx < 3; localIdx++ ) {
+            const int columnIdx = getTridiagonalColumnIndex( rowIdx, localIdx, columns );
+            if( columnIdx >= 0 ) {
+               expectedSums[ rowIdx ] += 1000 * getTridiagonalTestValue( rowIdx, columnIdx ) + columnIdx;
+               expectedMaxColumns[ rowIdx ] = columnIdx;
+            }
+         }
+
+      // Row indexes in reverse order
+      std::vector< IndexType > hostRowIndexes( rows );
+      for( IndexType i = 0; i < rows; i++ )
+         hostRowIndexes[ i ] = rows - 1 - i;
+      IndexVector rowIndexes( hostRowIndexes );
+
+      RealVector sums( rows );
+      IndexVector maxColumns( rows );
+      IndexVector maxLocalIdxs( rows );
+      RealVector maxValues( rows );
+      IndexVector emptyRows( rows );
+      auto sums_view = sums.getView();
+      auto maxColumns_view = maxColumns.getView();
+      auto maxLocalIdxs_view = maxLocalIdxs.getView();
+      auto maxValues_view = maxValues.getView();
+      auto emptyRows_view = emptyRows.getView();
+
+      auto fetch = [] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
+      {
+         return 1000 * value + columnIdx;
+      };
+      auto valueFetch = [] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
+      {
+         return value;
+      };
+      auto store = [ = ] __cuda_callable__( IndexType rowIdx, const RealType& value ) mutable
+      {
+         sums_view[ rowIdx ] = value;
+      };
+      auto storeWithRowIndexes =
+         [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const RealType& value ) mutable
+      {
+         sums_view[ rowIdx ] = value;
+      };
+      auto storeWithArgument =
+         [ = ] __cuda_callable__(
+            IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value, bool emptyRow ) mutable
+      {
+         maxColumns_view[ rowIdx ] = emptyRow ? -1 : columnIdx;
+         maxLocalIdxs_view[ rowIdx ] = emptyRow ? -1 : localIdx;
+         maxValues_view[ rowIdx ] = emptyRow ? 0 : value;
+         emptyRows_view[ rowIdx ] = emptyRow;
+      };
+      auto storeWithArgumentAndRowIndexes = [ = ] __cuda_callable__(
+                                               IndexType indexOfRowIdx,
+                                               IndexType rowIdx,
+                                               IndexType localIdx,
+                                               IndexType columnIdx,
+                                               const RealType& value,
+                                               bool emptyRow ) mutable
+      {
+         maxColumns_view[ rowIdx ] = emptyRow ? -1 : columnIdx;
+         maxLocalIdxs_view[ rowIdx ] = emptyRow ? -1 : localIdx;
+         maxValues_view[ rowIdx ] = emptyRow ? 0 : value;
+         emptyRows_view[ rowIdx ] = emptyRow;
+      };
+      auto resetMaxima = [ & ]()
+      {
+         maxColumns.setValue( -2 );
+         maxLocalIdxs.setValue( -2 );
+         maxValues.setValue( -1 );
+         emptyRows.setValue( -1 );
+      };
+
+      auto checkSums = [ & ]( const std::vector< bool >& processedRows )
+      {
+         HostRealVector hostSums;
+         hostSums = sums;
+         for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+            EXPECT_EQ( hostSums[ rowIdx ], processedRows[ rowIdx ] ? expectedSums[ rowIdx ] : -1 ) << "row " << rowIdx;
+      };
+      auto checkMaxima = [ & ]()
+      {
+         HostIndexVector hostColumns;
+         HostIndexVector hostLocalIdxs;
+         HostRealVector hostValues;
+         HostIndexVector hostEmptyRows;
+         hostColumns = maxColumns;
+         hostLocalIdxs = maxLocalIdxs;
+         hostValues = maxValues;
+         hostEmptyRows = emptyRows;
+         for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ ) {
+            const IndexType columnIdx = expectedMaxColumns[ rowIdx ];
+            EXPECT_EQ( hostEmptyRows[ rowIdx ], columnIdx < 0 ? 1 : 0 ) << "row " << rowIdx;
+            EXPECT_EQ( hostColumns[ rowIdx ], columnIdx ) << "row " << rowIdx;
+            EXPECT_EQ( hostLocalIdxs[ rowIdx ], columnIdx < 0 ? -1 : columnIdx - rowIdx + 1 ) << "row " << rowIdx;
+            EXPECT_EQ( hostValues[ rowIdx ], columnIdx < 0 ? 0 : getTridiagonalTestValue( rowIdx, columnIdx ) ) << "row " << rowIdx;
+         }
+      };
+      const std::vector< bool > allRows( rows, true );
+      std::vector< bool > evenRows( rows );
+      for( IndexType i = 0; i < rows; i++ )
+         evenRows[ i ] = i % 2 == 0;
+
+      sums.setValue( -1 );
+      TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, store );
+      checkSums( allRows );
+
+      sums.setValue( -1 );
+      TNL::Matrices::reduceAllRows( constView, fetch, TNL::Plus{}, store );
+      checkSums( allRows );
+
+      sums.setValue( -1 );
+      TNL::Matrices::reduceRows( matrix, rowIndexes, fetch, TNL::Plus{}, storeWithRowIndexes );
+      checkSums( allRows );
+
+      sums.setValue( -1 );
+      TNL::Matrices::reduceAllRowsIf(
+         constView,
+         [] __cuda_callable__( IndexType rowIdx ) -> bool
+         {
+            return rowIdx % 2 == 0;
+         },
+         fetch,
+         TNL::Plus{},
+         storeWithRowIndexes );
+      checkSums( evenRows );
+
+      resetMaxima();
+      TNL::Matrices::reduceAllRowsWithArgument( matrix, valueFetch, TNL::MaxWithArg{}, storeWithArgument );
+      checkMaxima();
+
+      resetMaxima();
+      TNL::Matrices::reduceRowsWithArgument(
+         constView, rowIndexes, valueFetch, TNL::MaxWithArg{}, storeWithArgumentAndRowIndexes );
+      checkMaxima();
+   }
+}
+
 // Test fixture
 template< typename MatrixType >
 class TridiagonalMatrixReduceTest : public ::testing::Test
@@ -587,6 +753,11 @@ TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRows_rectangularTailRow )
    test_reduceRows_rectangularTailRow< TypeParam >();
 }
 
+TYPED_TEST_P( TridiagonalMatrixReduceTest, reduceRows_Shapes )
+{
+   test_reduceRows_Shapes< TypeParam >();
+}
+
 REGISTER_TYPED_TEST_SUITE_P(
    TridiagonalMatrixReduceTest,
    reduceRows,
@@ -596,7 +767,8 @@ REGISTER_TYPED_TEST_SUITE_P(
    reduceRowsWithArgument_range,
    reduceRowsWithArgument_array,
    reduceRowsWithArgumentIf,
-   reduceRows_rectangularTailRow );
+   reduceRows_rectangularTailRow,
+   reduceRows_Shapes );
 
 INSTANTIATE_TYPED_TEST_SUITE_P( TridiagonalMatrix, TridiagonalMatrixReduceTest, TridiagonalMatrixReduceTypes );
 

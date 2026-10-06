@@ -3,10 +3,15 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Matrices/traverse.h>
 #include <TNL/Containers/Vector.h>
 #include <gtest/gtest.h>
+
+#include "../TridiagonalMatrixShapes.h"
 
 using TridiagonalMatrixTraverseTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
@@ -75,10 +80,10 @@ test_forElements_Range()
       (IndexType) 4,
       [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
       {
-         // For TridiagonalMatrix, columnIdx is the actual column index, not just localIdx.
-         TNL_ASSERT_GE( columnIdx, rowIdx - 1, "columnIdx must be >= rowIdx - 1" );
-         TNL_ASSERT_LE( columnIdx, rowIdx + 1, "columnIdx must be <= rowIdx + 1" );
-         TNL::Algorithms::AtomicOperations< DeviceType >::add( rowSumsView[ rowIdx ], value );
+         // For TridiagonalMatrix, columnIdx is the actual column index, not just localIdx. A wrong column
+         // index spoils the row sum, which is checked on the host.
+         const bool validColumn = columnIdx == rowIdx + localIdx - 1;
+         TNL::Algorithms::AtomicOperations< DeviceType >::add( rowSumsView[ rowIdx ], validColumn ? value : 1000 );
       } );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );
@@ -557,6 +562,116 @@ test_forAllRowsIf()
 }
 
 // Test fixture
+// Checks the elements recorded by a traversal. The slot `3 * rowIdx + localIdx` holds the column index
+// and the value of the visited element, or -1 and 0 if the element was not visited.
+template< typename IndexVector, typename RealVector >
+void
+checkVisitedElements(
+   const IndexVector& visitedColumns,
+   const RealVector& visitedValues,
+   int rows,
+   int columns,
+   const std::vector< bool >& processedRows )
+{
+   using IndexType = typename IndexVector::ValueType;
+   using RealType = typename RealVector::ValueType;
+   TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostColumns;
+   TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > hostValues;
+   hostColumns = visitedColumns;
+   hostValues = visitedValues;
+   for( int rowIdx = 0; rowIdx < rows; rowIdx++ )
+      for( int localIdx = 0; localIdx < 3; localIdx++ ) {
+         SCOPED_TRACE(
+            "matrix " + std::to_string( rows ) + "x" + std::to_string( columns ) + ", row " + std::to_string( rowIdx )
+            + ", localIdx " + std::to_string( localIdx ) );
+         const int columnIdx = processedRows[ rowIdx ] ? getTridiagonalColumnIndex( rowIdx, localIdx, columns ) : -1;
+         EXPECT_EQ( hostColumns[ 3 * rowIdx + localIdx ], columnIdx );
+         EXPECT_EQ( hostValues[ 3 * rowIdx + localIdx ], columnIdx >= 0 ? getTridiagonalTestValue( rowIdx, columnIdx ) : 0 );
+      }
+}
+
+template< typename MatrixType >
+void
+test_forElements_Shapes()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using RealVector = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   for( const auto& shape : getTridiagonalTestShapes() ) {
+      const IndexType rows = shape.first;
+      const IndexType columns = shape.second;
+      MatrixType matrix( rows, columns );
+      setupTridiagonalTestMatrix( matrix );
+      const auto constView = matrix.getConstView();
+
+      IndexVector visitedColumns( 3 * rows );
+      RealVector visitedValues( 3 * rows );
+      auto visitedColumns_view = visitedColumns.getView();
+      auto visitedValues_view = visitedValues.getView();
+      auto reset = [ & ]()
+      {
+         visitedColumns.setValue( -1 );
+         visitedValues.setValue( 0 );
+      };
+      auto record =
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value ) mutable
+      {
+         visitedColumns_view[ 3 * rowIdx + localIdx ] = columnIdx;
+         visitedValues_view[ 3 * rowIdx + localIdx ] = value;
+      };
+
+      // Row indexes in reverse order and the selection of rows for the conditional traversal
+      std::vector< IndexType > hostRowIndexes( rows );
+      for( IndexType i = 0; i < rows; i++ )
+         hostRowIndexes[ i ] = rows - 1 - i;
+      IndexVector rowIndexes( hostRowIndexes );
+      auto evenRows = [] __cuda_callable__( IndexType rowIdx ) -> bool
+      {
+         return rowIdx % 2 == 0;
+      };
+      std::vector< bool > allRows( rows, true );
+      std::vector< bool > allButFirstRow( rows, true );
+      allButFirstRow[ 0 ] = false;
+      std::vector< bool > allButLastRow( rows, true );
+      allButLastRow[ rows - 1 ] = false;
+      std::vector< bool > selectedEvenRows( rows );
+      for( IndexType i = 0; i < rows; i++ )
+         selectedEvenRows[ i ] = i % 2 == 0;
+
+      reset();
+      TNL::Matrices::forAllElements( matrix, record );
+      checkVisitedElements( visitedColumns, visitedValues, rows, columns, allRows );
+
+      reset();
+      TNL::Matrices::forAllElements( constView, record );
+      checkVisitedElements( visitedColumns, visitedValues, rows, columns, allRows );
+
+      reset();
+      TNL::Matrices::forElements( matrix, (IndexType) 1, rows, record );
+      checkVisitedElements( visitedColumns, visitedValues, rows, columns, allButFirstRow );
+
+      reset();
+      TNL::Matrices::forElements( matrix, rowIndexes, record );
+      checkVisitedElements( visitedColumns, visitedValues, rows, columns, allRows );
+
+      // The array is reversed, so skipping its first item skips the last row
+      reset();
+      TNL::Matrices::forElements( constView, rowIndexes, (IndexType) 1, rows, record );
+      checkVisitedElements( visitedColumns, visitedValues, rows, columns, allButLastRow );
+
+      reset();
+      TNL::Matrices::forAllElementsIf( matrix, evenRows, record );
+      checkVisitedElements( visitedColumns, visitedValues, rows, columns, selectedEvenRows );
+
+      reset();
+      TNL::Matrices::forElementsIf( constView, rowIndexes, (IndexType) 0, rows, evenRows, record );
+      checkVisitedElements( visitedColumns, visitedValues, rows, columns, selectedEvenRows );
+   }
+}
+
 template< typename MatrixType >
 class TridiagonalMatrixTraverseTest : public ::testing::Test
 {
@@ -611,6 +726,11 @@ TYPED_TEST_P( TridiagonalMatrixTraverseTest, forAllRowsIf )
    test_forAllRowsIf< TypeParam >();
 }
 
+TYPED_TEST_P( TridiagonalMatrixTraverseTest, forElements_Shapes )
+{
+   test_forElements_Shapes< TypeParam >();
+}
+
 REGISTER_TYPED_TEST_SUITE_P(
    TridiagonalMatrixTraverseTest,
    forElements_Range,
@@ -621,7 +741,8 @@ REGISTER_TYPED_TEST_SUITE_P(
    forRows,
    forRows_WithIndexArray,
    forRowsIf,
-   forAllRowsIf );
+   forAllRowsIf,
+   forElements_Shapes );
 
 INSTANTIATE_TYPED_TEST_SUITE_P( TridiagonalMatrix, TridiagonalMatrixTraverseTest, TridiagonalMatrixTraverseTypes );
 

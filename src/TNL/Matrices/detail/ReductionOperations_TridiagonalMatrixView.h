@@ -8,6 +8,7 @@
 #include "../TridiagonalMatrixView.h"
 #include "ReductionOperations.h"
 #include "ReductionOperationsBase.h"
+#include "TridiagonalRowTraversal.h"
 
 namespace TNL::Matrices::detail {
 
@@ -41,22 +42,13 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
          FetchValue result = identity;
-         if( rowIdx == 0 ) {
-            result = reduction( result, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-            result = reduction( result, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         }
-         else {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         }
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               result = reduction( result, fetch( rowIdx, columnIdx, values_view[ globalIdx ] ) );
+            } );
          store( rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
@@ -79,22 +71,13 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
          FetchValue result = identity;
-         if( rowIdx == 0 ) {
-            result = reduction( result, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-            result = reduction( result, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         }
-         else {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         }
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               result = reduction( result, fetch( rowIdx, columnIdx, values_view[ globalIdx ] ) );
+            } );
          store( rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
@@ -116,24 +99,15 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowIdx = rowIndexes_view[ idx ];
          FetchValue result = identity;
-         if( rowIdx == 0 ) {
-            result = reduction( result, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-            result = reduction( result, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         }
-         else {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         }
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               result = reduction( result, fetch( rowIdx, columnIdx, values_view[ globalIdx ] ) );
+            } );
          store( idx, rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
@@ -155,24 +129,15 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowIdx = rowIndexes_view[ idx ];
          FetchValue result = identity;
-         if( rowIdx == 0 ) {
-            result = reduction( result, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-            result = reduction( result, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-            result = reduction( result, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         }
-         else {
-            result = reduction( result, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         }
+         forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               result = reduction( result, fetch( rowIdx, columnIdx, values_view[ globalIdx ] ) );
+            } );
          store( idx, rowIdx, result );
       };
       Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
@@ -199,9 +164,9 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
          IndexType resultColumnIdx = 0;
          bool emptyRow = true;
 
-         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, ValueType& val ) mutable
+         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx ) mutable
          {
-            auto fetchValue = fetch( rowIdx, columnIdx, val );
+            auto fetchValue = fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
             if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
@@ -216,22 +181,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             }
          };
 
-         if( rowIdx == 0 ) {
-            process( 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            process( 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            process( 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         forTridiagonalRowElements( indexer, rowIdx, process );
          store( rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
@@ -258,9 +208,9 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
          IndexType resultColumnIdx = 0;
          bool emptyRow = true;
 
-         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, const ValueType& val ) mutable
+         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx ) mutable
          {
-            auto fetchValue = fetch( rowIdx, columnIdx, val );
+            auto fetchValue = fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
             if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
@@ -275,22 +225,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             }
          };
 
-         if( rowIdx == 0 ) {
-            process( 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            process( 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            process( 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         forTridiagonalRowElements( indexer, rowIdx, process );
          store( rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
@@ -312,15 +247,15 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowIdx = rowIndexes_view[ idx ];
          FetchValue result = identity;
          IndexType resultLocalIdx = 0;
          IndexType resultColumnIdx = 0;
          bool emptyRow = true;
 
-         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, ValueType& val ) mutable
+         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx ) mutable
          {
-            auto fetchValue = fetch( rowIdx, columnIdx, val );
+            auto fetchValue = fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
             if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
@@ -335,22 +270,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             }
          };
 
-         if( rowIdx == 0 ) {
-            process( 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            process( 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            process( 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         forTridiagonalRowElements( indexer, rowIdx, process );
          store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
@@ -372,15 +292,15 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         const auto rowIdx = rowIndexes_view[ idx ];
+         const IndexType rowIdx = rowIndexes_view[ idx ];
          FetchValue result = identity;
          IndexType resultLocalIdx = 0;
          IndexType resultColumnIdx = 0;
          bool emptyRow = true;
 
-         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, const ValueType& val ) mutable
+         auto process = [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx ) mutable
          {
-            auto fetchValue = fetch( rowIdx, columnIdx, val );
+            auto fetchValue = fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
             if( emptyRow ) {
                result = fetchValue;
                resultLocalIdx = localIdx;
@@ -395,22 +315,7 @@ struct ReductionOperations< TridiagonalMatrixView< Real, Device, Index, Organiza
             }
          };
 
-         if( rowIdx == 0 ) {
-            process( 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-            process( 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-         }
-         else if( rowIdx + 1 < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-            process( 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-         }
-         else if( rowIdx < indexer.getColumns() ) {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-            process( 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         }
-         else {
-            process( 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         }
+         forTridiagonalRowElements( indexer, rowIdx, process );
          store( idx, rowIdx, resultLocalIdx, resultColumnIdx, result, emptyRow );
       };
       Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
