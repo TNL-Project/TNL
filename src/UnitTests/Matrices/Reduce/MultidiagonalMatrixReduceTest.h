@@ -3,11 +3,16 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <TNL/Functional.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Matrices/reduce.h>
 #include <TNL/Containers/Vector.h>
 #include <gtest/gtest.h>
+
+#include "../MultidiagonalMatrixShapes.h"
 
 // Types for which MultidiagonalMatrixReduceTest exercises the free reduction functions.
 using MultidiagonalMatrixReduceTypes = ::testing::Types<
@@ -452,6 +457,116 @@ test_reduceRowsWithArgumentIf()
    EXPECT_EQ( maxColumns.getElement( 5 ), 5 );
 }
 
+template< typename MatrixType >
+void
+test_reduceRows_Shapes()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using RealVector = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using HostRealVector = TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType >;
+   using HostIndexVector = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
+
+   const IndexType diagonals = getMultidiagonalTestOffsets().size();
+   for( const auto& shape : getMultidiagonalTestShapes() ) {
+      const IndexType rows = shape.first;
+      const IndexType columns = shape.second;
+      SCOPED_TRACE( "matrix " + std::to_string( rows ) + "x" + std::to_string( columns ) );
+      MatrixType matrix;
+      setupMultidiagonalTestMatrix( matrix, rows, columns );
+      const auto constView = matrix.getConstView();
+
+      // Expected results: the sum of `1000 * value + columnIdx` over the row checks both the values
+      // and the column indexes, the maximum is the element with the largest column index.
+      std::vector< RealType > expectedSums( rows, 0 );
+      std::vector< IndexType > expectedMaxColumns( rows, -1 );
+      std::vector< IndexType > expectedMaxLocalIdxs( rows, -1 );
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+         for( IndexType localIdx = 0; localIdx < diagonals; localIdx++ ) {
+            const int columnIdx = getMultidiagonalColumnIndex( rowIdx, localIdx, columns );
+            if( columnIdx >= 0 ) {
+               expectedSums[ rowIdx ] += 1000 * getMultidiagonalTestValue( rowIdx, columnIdx ) + columnIdx;
+               expectedMaxColumns[ rowIdx ] = columnIdx;
+               expectedMaxLocalIdxs[ rowIdx ] = localIdx;
+            }
+         }
+
+      // Row indexes in reverse order
+      std::vector< IndexType > hostRowIndexes( rows );
+      for( IndexType i = 0; i < rows; i++ )
+         hostRowIndexes[ i ] = rows - 1 - i;
+      IndexVector rowIndexes( hostRowIndexes );
+
+      RealVector sums( rows );
+      IndexVector maxColumns( rows );
+      IndexVector maxLocalIdxs( rows );
+      IndexVector emptyRows( rows );
+      auto sums_view = sums.getView();
+      auto maxColumns_view = maxColumns.getView();
+      auto maxLocalIdxs_view = maxLocalIdxs.getView();
+      auto emptyRows_view = emptyRows.getView();
+
+      auto fetch = [] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
+      {
+         return 1000 * value + columnIdx;
+      };
+      auto valueFetch = [] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
+      {
+         return value;
+      };
+      auto store = [ = ] __cuda_callable__( IndexType rowIdx, const RealType& value ) mutable
+      {
+         sums_view[ rowIdx ] = value;
+      };
+      auto storeWithRowIndexes =
+         [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const RealType& value ) mutable
+      {
+         sums_view[ rowIdx ] = value;
+      };
+      auto storeWithArgument =
+         [ = ] __cuda_callable__(
+            IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value, bool emptyRow ) mutable
+      {
+         maxColumns_view[ rowIdx ] = emptyRow ? -1 : columnIdx;
+         maxLocalIdxs_view[ rowIdx ] = emptyRow ? -1 : localIdx;
+         emptyRows_view[ rowIdx ] = emptyRow;
+      };
+      auto checkSums = [ & ]()
+      {
+         HostRealVector hostSums;
+         hostSums = sums;
+         for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+            EXPECT_EQ( hostSums[ rowIdx ], expectedSums[ rowIdx ] ) << "row " << rowIdx;
+      };
+
+      sums.setValue( -1 );
+      TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, store );
+      checkSums();
+
+      sums.setValue( -1 );
+      TNL::Matrices::reduceRows( constView, rowIndexes, fetch, TNL::Plus{}, storeWithRowIndexes );
+      checkSums();
+
+      maxColumns.setValue( -2 );
+      maxLocalIdxs.setValue( -2 );
+      emptyRows.setValue( -1 );
+      TNL::Matrices::reduceAllRowsWithArgument( constView, valueFetch, TNL::MaxWithArg{}, storeWithArgument );
+      HostIndexVector hostColumns;
+      HostIndexVector hostLocalIdxs;
+      HostIndexVector hostEmptyRows;
+      hostColumns = maxColumns;
+      hostLocalIdxs = maxLocalIdxs;
+      hostEmptyRows = emptyRows;
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ ) {
+         EXPECT_EQ( hostEmptyRows[ rowIdx ], expectedMaxColumns[ rowIdx ] < 0 ? 1 : 0 ) << "row " << rowIdx;
+         EXPECT_EQ( hostColumns[ rowIdx ], expectedMaxColumns[ rowIdx ] ) << "row " << rowIdx;
+         EXPECT_EQ( hostLocalIdxs[ rowIdx ], expectedMaxLocalIdxs[ rowIdx ] ) << "row " << rowIdx;
+      }
+   }
+}
+
 // Test fixture
 template< typename MatrixType >
 class MultidiagonalMatrixReduceTest : public ::testing::Test
@@ -492,6 +607,11 @@ TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceRowsWithArgumentIf )
    test_reduceRowsWithArgumentIf< TypeParam >();
 }
 
+TYPED_TEST_P( MultidiagonalMatrixReduceTest, reduceRows_Shapes )
+{
+   test_reduceRows_Shapes< TypeParam >();
+}
+
 REGISTER_TYPED_TEST_SUITE_P(
    MultidiagonalMatrixReduceTest,
    reduceRows,
@@ -499,7 +619,8 @@ REGISTER_TYPED_TEST_SUITE_P(
    reduceAllRows,
    reduceAllRows_AutoIdentity,
    reduceRowsWithArgument,
-   reduceRowsWithArgumentIf );
+   reduceRowsWithArgumentIf,
+   reduceRows_Shapes );
 
 INSTANTIATE_TYPED_TEST_SUITE_P( MultidiagonalMatrix, MultidiagonalMatrixReduceTest, MultidiagonalMatrixReduceTypes );
 
