@@ -76,7 +76,7 @@ namespace TNL::Matrices {
  *
  * \section MatrixTraversalRowFunctions Row-wise Traversal Functions
  *
- * These functions iterate over rows as whole units using \e RowView:
+ * These functions iterate over rows as whole units using `RowView`:
  *
  * \subsection MatrixTraversalBasicRowFunctions Basic Row Traversal
  *
@@ -283,16 +283,16 @@ forAllElements(
  * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows whose elements we want to process using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows whose elements we want to process using the lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrix whose elements will be processed using the lambda function.
- * \param begin The beginning of the interval [ \e begin, \e end ) of rows whose elements
+ * \param begin The beginning of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of rows whose elements
+ * \param end The end of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -318,16 +318,16 @@ forElements(
  * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows whose elements we want to process using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows whose elements we want to process using the lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrix whose elements will be processed using the lambda function.
- * \param begin The beginning of the interval [ \e begin, \e end ) of rows whose elements
+ * \param begin The beginning of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of rows whose elements
+ * \param end The end of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -356,17 +356,17 @@ forElements(
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of row indexes whose elements will be processed using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of row indexes whose elements will be processed using the lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrixwhose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes whose elements
+ * \param begin The beginning of the interval `[begin, end)` of row indexes whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes whose elements
+ * \param end The end of the interval `[begin, end)` of row indexes whose elements
  *    will be processed using the lambda function.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -396,17 +396,17 @@ forElements(
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of row indexes whose elements will be processed using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of row indexes whose elements will be processed using the lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrixwhose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes whose elements
+ * \param begin The beginning of the interval `[begin, end)` of row indexes whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes whose elements
+ * \param end The end of the interval `[begin, end)` of row indexes whose elements
  *    will be processed using the lambda function.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -493,22 +493,22 @@ forElements(
  *
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, all elements of the row are traversed,
+ * If the condition lambda function returns `true`, all elements of the row are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
- * \e false, the row is skipped.
+ * `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows whose elements will be processed using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows whose elements will be processed using the lambda function.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrixwhose elements will be processed using the lambda function.
- * \param begin The beginning of the interval [ \e begin, \e end ) of rows whose elements
+ * \param begin The beginning of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of rows whose elements
+ * \param end The end of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
@@ -536,22 +536,22 @@ forElementsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, all elements of the row are traversed,
+ * If the condition lambda function returns `true`, all elements of the row are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
- * \e false, the row is skipped.
+ * `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows whose elements will be processed using the lambda function.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows whose elements will be processed using the lambda function.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrixwhose elements will be processed using the lambda function.
- * \param begin The beginning of the interval [ \e begin, \e end ) of rows whose elements
+ * \param begin The beginning of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of rows whose elements
+ * \param end The end of the interval `[begin, end)` of rows whose elements
  *    will be processed using the lambda function.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
@@ -578,9 +578,9 @@ forElementsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, all elements of the row are traversed,
+ * If the condition lambda function returns `true`, all elements of the row are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
- * \e false, the row is skipped.
+ * `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the condition lambda function.
@@ -612,9 +612,9 @@ forAllElementsIf(
  * This function is for **constant matrices**.
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, all elements of the row are traversed,
+ * If the condition lambda function returns `true`, all elements of the row are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
- * \e false, the row is skipped.
+ * `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the condition lambda function.
@@ -644,25 +644,25 @@ forAllElementsIf(
  *
  * See also: \ref MatrixTraversalOverview
  *
- * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * For each row index in the `rowIndexes` array within the interval `[begin, end)`, a condition lambda
  * function is evaluated with the actual row index. If the condition lambda function returns
- * \e true, all elements of the corresponding row are traversed, and the specified lambda function is applied
- * to each element. If the condition lambda function returns \e false, the row is skipped.
+ * `true`, all elements of the corresponding row are traversed, and the specified lambda function is applied
+ * to each element. If the condition lambda function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param begin The beginning of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param end The end of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
@@ -692,25 +692,25 @@ forElementsIf(
  *
  * See also: \ref MatrixTraversalOverview
  *
- * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * For each row index in the `rowIndexes` array within the interval `[begin, end)`, a condition lambda
  * function is evaluated with the actual row index. If the condition lambda function returns
- * \e true, all elements of the corresponding row are traversed, and the specified lambda function is applied
- * to each element. If the condition lambda function returns \e false, the row is skipped.
+ * `true`, all elements of the corresponding row are traversed, and the specified lambda function is applied
+ * to each element. If the condition lambda function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param matrix The matrix whose elements will be processed using the lambda function.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param begin The beginning of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param end The end of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
@@ -741,16 +741,16 @@ forElementsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of matrix rows on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of matrix rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
- * \param begin The beginning of the interval [ \e begin, \e end ) of matrix rows
+ * \param begin The beginning of the interval `[begin, end)` of matrix rows
  *    that will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of matrix rows
+ * \param end The end of the interval `[begin, end)` of matrix rows
  *    that will be processed using the lambda function.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -785,16 +785,16 @@ forRows(
  * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of matrix rows on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of matrix rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
- * \param begin The beginning of the interval [ \e begin, \e end ) of matrix rows
+ * \param begin The beginning of the interval `[begin, end)` of matrix rows
  *    that will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of matrix rows
+ * \param end The end of the interval `[begin, end)` of matrix rows
  *    that will be processed using the lambda function.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -890,17 +890,17 @@ forAllRows(
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes
+ * \param begin The beginning of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes
+ * \param end The end of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -937,17 +937,17 @@ forRows(
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
  *   \ref TNL::Containers::Vector, or \ref TNL::Containers::VectorView.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the matrix rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes
+ * \param begin The beginning of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes
+ * \param end The end of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
@@ -1040,21 +1040,21 @@ forRows(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
- * If the condition lambda function returns \e false, the row is skipped.
+ * If the condition lambda function returns `true`, the specified lambda function is executed for the row.
+ * If the condition lambda function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrixon which the lambda function will be applied.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes
+ * \param begin The beginning of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes
+ * \param end The end of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
@@ -1088,21 +1088,21 @@ forRowsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
- * If the condition lambda function returns \e false, the row is skipped.
+ * If the condition lambda function returns `true`, the specified lambda function is executed for the row.
+ * If the condition lambda function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of rows on which the lambda function will be applied.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrix on which the lambda function will be applied.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes
+ * \param begin The beginning of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes
+ * \param end The end of the interval `[begin, end)` of row indexes
  *    whose corresponding rows will be processed using the lambda function.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.
@@ -1136,8 +1136,8 @@ forRowsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
- * If the condition lambda function returns \e false, the row is skipped.
+ * If the condition lambda function returns `true`, the specified lambda function is executed for the row.
+ * If the condition lambda function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the condition lambda function.
@@ -1168,8 +1168,8 @@ forAllRowsIf(
  * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
- * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
- * If the condition lambda function returns \e false, the row is skipped.
+ * If the condition lambda function returns `true`, the specified lambda function is executed for the row.
+ * If the condition lambda function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the condition lambda function.
@@ -1198,25 +1198,25 @@ forAllRowsIf(
  *
  * See also: \ref MatrixTraversalOverview
  *
- * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * For each row index in the `rowIndexes` array within the interval `[begin, end)`, a condition lambda
  * function is evaluated with the actual row index. If the condition lambda function returns
- * \e true, the specified lambda function is executed for the corresponding row. If the condition lambda
- * function returns \e false, the row is skipped.
+ * `true`, the specified lambda function is executed for the corresponding row. If the condition lambda
+ * function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrix on which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param begin The beginning of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param end The end of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_NonConst.
@@ -1246,25 +1246,25 @@ forRowsIf(
  *
  * See also: \ref MatrixTraversalOverview
  *
- * For each row index in the \e rowIndexes array within the interval [ \e begin, \e end ), a condition lambda
+ * For each row index in the `rowIndexes` array within the interval `[begin, end)`, a condition lambda
  * function is evaluated with the actual row index. If the condition lambda function returns
- * \e true, the specified lambda function is executed for the corresponding row. If the condition lambda
- * function returns \e false, the row is skipped.
+ * `true`, the specified lambda function is executed for the corresponding row. If the condition lambda
+ * function returns `false`, the row is skipped.
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
- * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
+ * \tparam IndexBegin The type of the index defining the beginning of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
- * \tparam IndexEnd The type of the index defining the end of the interval [ \e begin, \e end )
+ * \tparam IndexEnd The type of the index defining the end of the interval `[begin, end)`
  *    of row indexes where the traversal will be performed.
  * \tparam Condition The type of the condition lambda function.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
  * \param matrix The matrix on which the lambda function will be applied.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param begin The beginning of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes where the traversal
+ * \param end The end of the interval `[begin, end)` of row indexes where the traversal
  *    will be performed.
  * \param condition Lambda function to check row condition. See \ref TraversalConditionLambda.
  * \param function Lambda function to be applied to each row. See \ref TraversalRowFunction_Const.

@@ -93,18 +93,18 @@ namespace TNL::Algorithms::Segments {
  * \section SegmentReductionEmptySegments Behavior for Empty Segments
  *
  * An **empty segment** is a segment that contains no elements to reduce over. This can happen when a segment
- * has zero length, or when all elements in the segment are filtered out by the \e fetch lambda (e.g., padding
+ * has zero length, or when all elements in the segment are filtered out by the `fetch` lambda (e.g., padding
  * elements in sparse storage formats).
  *
  * The behavior depends on the reduction variant:
  *
- * - **Basic reduction** (reduceAllSegments, reduceSegments, etc.): The \e storer lambda is called with the
- *   \e identity value. The user is responsible for choosing an \e identity that is a meaningful neutral element
+ * - **Basic reduction** (`reduceAllSegments`, `reduceSegments`, etc.): The `storer` lambda is called with the
+ *   `identity` value. The user is responsible for choosing an `identity` that is a meaningful neutral element
  *   for the reduction (e.g., 0 for sum, 1 for product, \f$-\infty\f$ for max).
  *
- * - **WithArgument reduction** (reduceAllSegmentsWithArgument, reduceSegmentsWithArgument, etc.): The \e storer
- *   lambda is called with \e emptySegment set to \e true. In this case, the \e localIdx value passed to the
- *   \e storer lambda is meaningless and should not be used. The \e value parameter is set to the \e identity
+ * - **WithArgument reduction** (`reduceAllSegmentsWithArgument`, `reduceSegmentsWithArgument`, etc.): The `storer`
+ *   lambda is called with `emptySegment` set to `true`. In this case, the `localIdx` value passed to the
+ *   `storer` lambda is meaningless and should not be used. The `value` parameter is set to the `identity`
  *   value.
  *
  * \section SegmentReductionRelatedPages Related Pages

@@ -14,11 +14,11 @@ namespace TNL::Matrices::detail {
  *
  * This base class provides implementations that \ref TraversingOperations
  * specializations inherit to avoid code duplication. Currently it provides
- * the conditional \c forElementsIf and \c forRowsIf methods. The unconditional
- * \c forElements and \c forRows methods are implemented by each specialization
+ * the conditional `forElementsIf` and `forRowsIf` methods. The unconditional
+ * `forElements` and `forRows` methods are implemented by each specialization
  * individually, since they differ per matrix format.
  *
- * The \c *If methods follow a compress + delegate strategy (see \ref buildSelectedRowIndexes
+ * The `*If` methods follow a compress + delegate strategy (see \ref buildSelectedRowIndexes
  * and \ref buildSelectedRowIndexesFromArray in RowSelection.h):
  *
  * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressFast.
@@ -26,7 +26,7 @@ namespace TNL::Matrices::detail {
  *    \ref TraversingOperations<Matrix>::forRows with the filtered row indexes.
  *
  * Dense and Sparse specializations of \ref TraversingOperations override
- * \c forElementsIf to use optimized conditional GPU kernels from the
+ * `forElementsIf` to use optimized conditional GPU kernels from the
  * Segments layer (\ref TNL::Algorithms::Segments::forElementsIf). The other
  * specializations (Tridiagonal, Multidiagonal, Lambda) inherit the default
  * compress+delegate implementation from this base.
