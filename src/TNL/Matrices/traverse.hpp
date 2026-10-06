@@ -194,8 +194,6 @@ forAllElementsIf(
       launchConfig );
 }
 
-// ===================== forElementsIf (array) =====================
-
 template<
    typename Matrix,
    typename Array,
@@ -431,8 +429,6 @@ forAllRowsIf(
       std::forward< Function >( function ),
       launchConfig );
 }
-
-// ===================== forRowsIf (array) =====================
 
 template<
    typename Matrix,

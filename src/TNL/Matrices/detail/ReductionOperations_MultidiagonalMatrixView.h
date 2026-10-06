@@ -24,8 +24,6 @@ struct ReductionOperations< MultidiagonalMatrixView< Real, Device, Index, Organi
    // TODO: `launchConfig` is accepted below but never forwarded to Algorithms::parallelFor (see
    // ReductionOperationsBase.h for why). Should eventually be fixed, pending a benchmark.
 
-   // ===================== reduceRows (range) =====================
-
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRows(
@@ -87,8 +85,6 @@ struct ReductionOperations< MultidiagonalMatrixView< Real, Device, Index, Organi
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
-
-   // ===================== reduceRows (array) =====================
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
@@ -153,8 +149,6 @@ struct ReductionOperations< MultidiagonalMatrixView< Real, Device, Index, Organi
       };
       Algorithms::parallelFor< DeviceType >( 0, rowIndexes.getSize(), f );
    }
-
-   // ===================== reduceRowsWithArgument (range) =====================
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
@@ -247,8 +241,6 @@ struct ReductionOperations< MultidiagonalMatrixView< Real, Device, Index, Organi
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
-
-   // ===================== reduceRowsWithArgument (array) =====================
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
