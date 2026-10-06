@@ -3,11 +3,16 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Matrices/traverse.h>
 #include <TNL/Containers/Vector.h>
 #include <gtest/gtest.h>
+
+#include "../MultidiagonalMatrixShapes.h"
 
 // Types for which MultidiagonalMatrixTraverseTest exercises the free traversal functions.
 using MultidiagonalMatrixTraverseTypes = ::testing::Types<
@@ -498,6 +503,91 @@ test_forRowsIf()
    EXPECT_EQ( rowSums.getElement( 5 ), 153 );
 }
 
+template< typename MatrixType >
+void
+test_forElements_Shapes()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using RealVector = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   const IndexType diagonals = getMultidiagonalTestOffsets().size();
+   for( const auto& shape : getMultidiagonalTestShapes() ) {
+      const IndexType rows = shape.first;
+      const IndexType columns = shape.second;
+      SCOPED_TRACE( "matrix " + std::to_string( rows ) + "x" + std::to_string( columns ) );
+      MatrixType matrix;
+      setupMultidiagonalTestMatrix( matrix, rows, columns );
+      const auto constView = matrix.getConstView();
+
+      // The slot `diagonals * rowIdx + localIdx` holds the column index and the value of the visited
+      // element, or -1 and 0 if the element was not visited.
+      IndexVector visitedColumns( diagonals * rows );
+      RealVector visitedValues( diagonals * rows );
+      auto visitedColumns_view = visitedColumns.getView();
+      auto visitedValues_view = visitedValues.getView();
+      auto record =
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value ) mutable
+      {
+         visitedColumns_view[ diagonals * rowIdx + localIdx ] = columnIdx;
+         visitedValues_view[ diagonals * rowIdx + localIdx ] = value;
+      };
+      auto check = [ & ]( const std::vector< bool >& processedRows )
+      {
+         TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostColumns;
+         TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > hostValues;
+         hostColumns = visitedColumns;
+         hostValues = visitedValues;
+         for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+            for( IndexType localIdx = 0; localIdx < diagonals; localIdx++ ) {
+               const int columnIdx = processedRows[ rowIdx ] ? getMultidiagonalColumnIndex( rowIdx, localIdx, columns ) : -1;
+               EXPECT_EQ( hostColumns[ diagonals * rowIdx + localIdx ], columnIdx ) << "row " << rowIdx << ", localIdx "
+                  << localIdx;
+               EXPECT_EQ( hostValues[ diagonals * rowIdx + localIdx ],
+                          columnIdx >= 0 ? getMultidiagonalTestValue( rowIdx, columnIdx ) : 0 )
+                  << "row " << rowIdx << ", localIdx " << localIdx;
+            }
+      };
+      auto reset = [ & ]()
+      {
+         visitedColumns.setValue( -1 );
+         visitedValues.setValue( 0 );
+      };
+
+      // Row indexes in reverse order
+      std::vector< IndexType > hostRowIndexes( rows );
+      for( IndexType i = 0; i < rows; i++ )
+         hostRowIndexes[ i ] = rows - 1 - i;
+      IndexVector rowIndexes( hostRowIndexes );
+      auto evenRows = [] __cuda_callable__( IndexType rowIdx ) -> bool
+      {
+         return rowIdx % 2 == 0;
+      };
+      const std::vector< bool > allRows( rows, true );
+      std::vector< bool > selectedEvenRows( rows );
+      for( IndexType i = 0; i < rows; i++ )
+         selectedEvenRows[ i ] = i % 2 == 0;
+
+      reset();
+      TNL::Matrices::forAllElements( matrix, record );
+      check( allRows );
+
+      reset();
+      TNL::Matrices::forAllElements( constView, record );
+      check( allRows );
+
+      reset();
+      TNL::Matrices::forElements( matrix, rowIndexes, record );
+      check( allRows );
+
+      reset();
+      TNL::Matrices::forAllElementsIf( constView, evenRows, record );
+      check( selectedEvenRows );
+   }
+}
+
 // Test fixture
 template< typename MatrixType >
 class MultidiagonalMatrixTraverseTest : public ::testing::Test
@@ -548,6 +638,11 @@ TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forRowsIf )
    test_forRowsIf< TypeParam >();
 }
 
+TYPED_TEST_P( MultidiagonalMatrixTraverseTest, forElements_Shapes )
+{
+   test_forElements_Shapes< TypeParam >();
+}
+
 REGISTER_TYPED_TEST_SUITE_P(
    MultidiagonalMatrixTraverseTest,
    forElements_Range,
@@ -557,7 +652,8 @@ REGISTER_TYPED_TEST_SUITE_P(
    forRows_Range,
    forAllRows,
    forRows_WithIndexArray,
-   forRowsIf );
+   forRowsIf,
+   forElements_Shapes );
 
 INSTANTIATE_TYPED_TEST_SUITE_P( MultidiagonalMatrix, MultidiagonalMatrixTraverseTest, MultidiagonalMatrixTraverseTypes );
 
