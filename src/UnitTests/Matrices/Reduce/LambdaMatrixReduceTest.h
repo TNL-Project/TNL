@@ -158,16 +158,13 @@ test_reduceRows()
       TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
       return value;
    };
-   auto reduce = [] __cuda_callable__( Real & sum, const Real& value ) -> Real
-   {
-      return sum + value;
-   };
    auto keep = [ = ] __cuda_callable__( Index row, const Real& value ) mutable
    {
       rowSumsView[ row ] = value;
    };
 
-   TNL::Matrices::reduceRows( matrix, (Index) 1, (Index) 4, fetch, reduce, keep, (Real) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
+   TNL::Matrices::reduceRows( matrix, (Index) 1, (Index) 4, fetch, TNL::Plus{}, keep, (Real) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );
    EXPECT_EQ( rowSums.getElement( 1 ), 4 );
@@ -178,7 +175,7 @@ test_reduceRows()
    const auto constMatrix = matrix;
    rowSums = 0;
 
-   TNL::Matrices::reduceRows( constMatrix, (Index) 1, (Index) 4, fetch, reduce, keep, (Real) 0 );
+   TNL::Matrices::reduceRows( constMatrix, (Index) 1, (Index) 4, fetch, TNL::Plus{}, keep, (Real) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );
    EXPECT_EQ( rowSums.getElement( 1 ), 4 );
@@ -207,16 +204,14 @@ test_reduceAllRows_explicit_identity()
       TNL_ASSERT_EQ( columnIdx, size - 1 - row, "wrong columnIdx for anti-diagonal matrix" );
       return value;
    };
-   auto reduce = [] __cuda_callable__( Real & sum, const Real& value ) -> Real
-   {
-      return sum + value;
-   };
    auto keep = [ = ] __cuda_callable__( Index row, const Real& value ) mutable
    {
       rowSumsView[ row ] = value;
    };
 
-   TNL::Matrices::reduceAllRows( matrix, fetch, reduce, keep, (Real) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter,
+   // even though TNL::Plus could deduce it (see test_reduceAllRows_deduced_identity).
+   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, keep, (Real) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 5 );
    EXPECT_EQ( rowSums.getElement( 1 ), 4 );
@@ -227,7 +222,7 @@ test_reduceAllRows_explicit_identity()
    const auto constMatrix = matrix;
    rowSums = 0;
 
-   TNL::Matrices::reduceAllRows( constMatrix, fetch, reduce, keep, (Real) 0 );
+   TNL::Matrices::reduceAllRows( constMatrix, fetch, TNL::Plus{}, keep, (Real) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 5 );
    EXPECT_EQ( rowSums.getElement( 1 ), 4 );
@@ -303,13 +298,6 @@ test_reduceRowsWithArgument()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( Real & a, const Real& b, Index& aIdx, Index bIdx )
-   {
-      if( b > a ) {
-         a = b;
-         aIdx = bIdx;
-      }
-   };
    auto store = [ = ] __cuda_callable__( Index row, Index localIdx, Index columnIdx, const Real& value, bool emptyRow ) mutable
    {
       maxValuesView[ row ] = value;
@@ -319,7 +307,8 @@ test_reduceRowsWithArgument()
 
    // reduceAllRowsWithArgument — each row has one element on the anti-diagonal
    // Row 0 -> col 4 value 5, Row 1 -> col 3 value 4, etc.
-   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduce, store, (Real) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
+   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, TNL::MaxWithArg{}, store, (Real) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 5 );
    EXPECT_EQ( maxColumns.getElement( 0 ), 4 );
@@ -336,7 +325,7 @@ test_reduceRowsWithArgument()
    const auto constMatrix = matrix;
    maxValues = 0;
    maxColumns = -1;
-   TNL::Matrices::reduceRowsWithArgument( constMatrix, (Index) 1, (Index) 4, fetch, reduce, store, (Real) 0 );
+   TNL::Matrices::reduceRowsWithArgument( constMatrix, (Index) 1, (Index) 4, fetch, TNL::MaxWithArg{}, store, (Real) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by range
    EXPECT_EQ( maxValues.getElement( 1 ), 4 );
@@ -378,6 +367,7 @@ test_reduceRowsIf()
    };
 
    // reduceAllRowsIf (range-based condition)
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
    TNL::Matrices::reduceAllRowsIf( matrix, condition, fetch, TNL::Plus{}, store, (Real) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 5 );  // processed
@@ -436,13 +426,6 @@ test_reduceRowsWithArgumentIf()
    {
       return rowIdx >= 2;  // Process only rows with index >= 2
    };
-   auto reduce = [] __cuda_callable__( Real & a, const Real& b, Index& aIdx, Index bIdx )
-   {
-      if( b > a ) {
-         a = b;
-         aIdx = bIdx;
-      }
-   };
    auto store = [ = ] __cuda_callable__(
                    Index rank, Index row, Index localIdx, Index columnIdx, const Real& value, bool emptyRow ) mutable
    {
@@ -452,7 +435,8 @@ test_reduceRowsWithArgumentIf()
    };
 
    // reduceAllRowsWithArgumentIf
-   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, reduce, store, (Real) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
+   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, TNL::MaxWithArg{}, store, (Real) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
@@ -471,7 +455,7 @@ test_reduceRowsWithArgumentIf()
    maxColumns = -1;
    IndexVectorType rowIndexes{ 0, 2, 4 };
    TNL::Matrices::reduceRowsWithArgumentIf(
-      constMatrix, rowIndexes, (Index) 0, rowIndexes.getSize(), condition, fetch, reduce, store, (Real) 0 );
+      constMatrix, rowIndexes, (Index) 0, rowIndexes.getSize(), condition, fetch, TNL::MaxWithArg{}, store, (Real) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition (rowIdx=0)
    EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // not in array
@@ -507,6 +491,7 @@ test_emptyRows()
    };
 
    // Basic reduction: empty rows should get the identity value (0)
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
    TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, keep, (Real) 0 );
 
    // Row 0: cols 1,2,3,4 -> values 1,2,3,4 -> sum = 10
@@ -523,13 +508,6 @@ test_emptyRows()
    // WithArgument reduction: empty rows should get emptyRow = true
    VectorType maxValues( size, -1 );
    auto maxValuesView = maxValues.getView();
-   auto reduce = [] __cuda_callable__( Real & a, const Real& b, Index& aIdx, Index bIdx )
-   {
-      if( b > a ) {
-         a = b;
-         aIdx = bIdx;
-      }
-   };
    auto store = [ = ] __cuda_callable__( Index row, Index localIdx, Index columnIdx, const Real& value, bool emptyRow ) mutable
    {
       if( emptyRow )
@@ -538,7 +516,7 @@ test_emptyRows()
          maxValuesView[ row ] = value;
    };
 
-   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduce, store, (Real) 0 );
+   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, TNL::MaxWithArg{}, store, (Real) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 4 );  // max of {1,2,3,4}
    EXPECT_EQ( maxValues.getElement( 1 ), 14 );  // max of {12,13,14}

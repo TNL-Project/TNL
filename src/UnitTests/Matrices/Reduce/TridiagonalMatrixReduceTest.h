@@ -72,16 +72,13 @@ test_reduceRows()
       TNL_ASSERT_LE( columnIdx, row + 1, "Wrong column index." );
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
-   {
-      return sum + value;
-   };
    auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
       rowSumsView[ row ] = value;
    };
 
-   TNL::Matrices::reduceRows( matrix, (IndexType) 1, (IndexType) 4, fetch, reduce, keep, (RealType) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
+   TNL::Matrices::reduceRows( matrix, (IndexType) 1, (IndexType) 4, fetch, TNL::Plus{}, keep, (RealType) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );
    EXPECT_EQ( rowSums.getElement( 1 ), 12 );
@@ -91,7 +88,7 @@ test_reduceRows()
    const auto constMatrix( matrix );
    rowSums = 0;
 
-   TNL::Matrices::reduceRows( constMatrix, (IndexType) 1, (IndexType) 4, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceRows( constMatrix, (IndexType) 1, (IndexType) 4, fetch, TNL::Plus{}, keep, (RealType) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );
    EXPECT_EQ( rowSums.getElement( 1 ), 12 );
@@ -119,16 +116,14 @@ test_reduceAllRows_explicit_identity()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
-   {
-      return sum + value;
-   };
    auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
       rowSumsView[ row ] = value;
    };
 
-   TNL::Matrices::reduceAllRows( matrix, fetch, reduce, keep, (RealType) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter,
+   // even though TNL::Plus could deduce it (see test_reduceAllRows_deduced_identity).
+   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, keep, (RealType) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 3 );
    EXPECT_EQ( rowSums.getElement( 1 ), 12 );
@@ -139,7 +134,7 @@ test_reduceAllRows_explicit_identity()
    const auto constMatrix( matrix );
    rowSums = 0;
 
-   TNL::Matrices::reduceAllRows( constMatrix, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceAllRows( constMatrix, fetch, TNL::Plus{}, keep, (RealType) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 3 );
    EXPECT_EQ( rowSums.getElement( 1 ), 12 );
@@ -222,6 +217,7 @@ test_reduceRowsIf()
       rowSumsView[ rowIdx ] = value;
    };
 
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
    TNL::Matrices::reduceAllRowsIf( matrix, condition, fetch, TNL::Plus{}, store, (RealType) 0 );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 3 );  // 1+2
@@ -262,13 +258,6 @@ test_reduceRowsWithArgument_range()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
-   {
-      if( b > a ) {
-         a = b;
-         aIdx = bIdx;
-      }
-   };
    auto store = [ = ] __cuda_callable__(
                    IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value, bool emptyRow ) mutable
    {
@@ -277,7 +266,8 @@ test_reduceRowsWithArgument_range()
          maxColumnsView[ rowIdx ] = columnIdx;
    };
 
-   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduce, store, (RealType) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
+   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, TNL::MaxWithArg{}, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 2 );
    EXPECT_EQ( maxColumns.getElement( 0 ), 1 );
@@ -293,7 +283,8 @@ test_reduceRowsWithArgument_range()
    const auto constMatrix( matrix );
    maxValues = 0;
    maxColumns = -1;
-   TNL::Matrices::reduceRowsWithArgument( constMatrix, (IndexType) 1, (IndexType) 4, fetch, reduce, store, (RealType) 0 );
+   TNL::Matrices::reduceRowsWithArgument(
+      constMatrix, (IndexType) 1, (IndexType) 4, fetch, TNL::MaxWithArg{}, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
@@ -329,13 +320,6 @@ test_reduceRowsWithArgument_array()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
-   {
-      if( b > a ) {
-         a = b;
-         aIdx = bIdx;
-      }
-   };
    auto store = [ = ] __cuda_callable__(
                    IndexType idx,
                    IndexType rowIdx,
@@ -350,7 +334,8 @@ test_reduceRowsWithArgument_array()
    };
 
    IndexVectorType rowIndexes{ 1, 2, 4 };
-   TNL::Matrices::reduceRowsWithArgument( matrix, rowIndexes, fetch, reduce, store, (RealType) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
+   TNL::Matrices::reduceRowsWithArgument( matrix, rowIndexes, fetch, TNL::MaxWithArg{}, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxValues.getElement( 1 ), 5 );
@@ -364,7 +349,7 @@ test_reduceRowsWithArgument_array()
    const auto constMatrix( matrix );
    maxValues = 0;
    maxColumns = -1;
-   TNL::Matrices::reduceRowsWithArgument( constMatrix, rowIndexes, fetch, reduce, store, (RealType) 0 );
+   TNL::Matrices::reduceRowsWithArgument( constMatrix, rowIndexes, fetch, TNL::MaxWithArg{}, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxValues.getElement( 1 ), 5 );
@@ -398,13 +383,6 @@ test_reduceRowsWithArgumentIf()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
-   {
-      if( b > a ) {
-         a = b;
-         aIdx = bIdx;
-      }
-   };
    auto condition = [] __cuda_callable__( IndexType rowIdx ) -> bool
    {
       return rowIdx >= 2;
@@ -423,7 +401,8 @@ test_reduceRowsWithArgumentIf()
    };
 
    // Range variant
-   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, reduce, store, (RealType) 0 );
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
+   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, TNL::MaxWithArg{}, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
@@ -446,7 +425,15 @@ test_reduceRowsWithArgumentIf()
    maxValues = 0;
    maxColumns = -1;
    TNL::Matrices::reduceRowsWithArgumentIf(
-      constMatrix, rowIndexes, (IndexType) 0, rowIndexes.getSize(), conditionArray, fetch, reduce, store, (RealType) 0 );
+      constMatrix,
+      rowIndexes,
+      (IndexType) 0,
+      rowIndexes.getSize(),
+      conditionArray,
+      fetch,
+      TNL::MaxWithArg{},
+      store,
+      (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped by condition (rowIdx=0)
    EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // not in array
@@ -515,6 +502,7 @@ test_reduceRows_rectangularTailRow()
       sumsView[ row ] = value;
    };
 
+   // Pass the identity explicitly to exercise the overload with the identity parameter.
    TNL::Matrices::reduceAllRows( view, fetch, TNL::Plus{}, keep, (RealType) 0 );
 
    EXPECT_EQ( columnIndexSums.getElement( 0 ), 1 );  // columns 0 + 1
@@ -535,13 +523,6 @@ test_reduceRows_rectangularTailRow()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
-   {
-      if( b > a ) {
-         a = b;
-         aIdx = bIdx;
-      }
-   };
    auto store = [ = ] __cuda_callable__(
                    IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value, bool emptyRow ) mutable
    {
@@ -550,7 +531,7 @@ test_reduceRows_rectangularTailRow()
          maxColumnsView[ rowIdx ] = columnIdx;
    };
 
-   TNL::Matrices::reduceAllRowsWithArgument( view, valueFetch, reduce, store, (RealType) 0 );
+   TNL::Matrices::reduceAllRowsWithArgument( view, valueFetch, TNL::MaxWithArg{}, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 4 ), 11 );
    EXPECT_EQ( maxColumns.getElement( 4 ), 3 );  // must be the sub-diagonal column, not rowIdx (4)
