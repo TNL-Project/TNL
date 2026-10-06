@@ -305,10 +305,8 @@ reduceRows(
    using FetchValue =
       decltype( fetch( typename Matrix::IndexType(), typename Matrix::IndexType(), typename Matrix::RealType() ) );
    reduceRows(
-      matrix.getConstView(),
+      matrix,
       rowIndexes,
-      0,
-      rowIndexes.getSize(),
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),

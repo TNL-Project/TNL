@@ -110,6 +110,23 @@ test_reduceRows()
       EXPECT_EQ( rowSums.getElement( 2 ), 27 );  // 8+9+10
       EXPECT_EQ( rowSums.getElement( 3 ), 0 );  // skipped
       EXPECT_EQ( rowSums.getElement( 4 ), 58 );  // 13+14+15+16
+
+      // The same with the identity deduced from TNL::Plus
+      rowSums = 0;
+      TNL::Matrices::reduceRows( matrix, rowIndexes, fetch, TNL::Plus{}, storeWithRowIndexes, launch_config );
+      EXPECT_EQ( rowSums.getElement( 0 ), 0 );  // skipped
+      EXPECT_EQ( rowSums.getElement( 1 ), 13 );  // 6+7
+      EXPECT_EQ( rowSums.getElement( 2 ), 27 );  // 8+9+10
+      EXPECT_EQ( rowSums.getElement( 3 ), 0 );  // skipped
+      EXPECT_EQ( rowSums.getElement( 4 ), 58 );  // 13+14+15+16
+
+      rowSums = 0;
+      TNL::Matrices::reduceRows( matrix.getConstView(), rowIndexes, fetch, TNL::Plus{}, storeWithRowIndexes, launch_config );
+      EXPECT_EQ( rowSums.getElement( 0 ), 0 );  // skipped
+      EXPECT_EQ( rowSums.getElement( 1 ), 13 );  // 6+7
+      EXPECT_EQ( rowSums.getElement( 2 ), 27 );  // 8+9+10
+      EXPECT_EQ( rowSums.getElement( 3 ), 0 );  // skipped
+      EXPECT_EQ( rowSums.getElement( 4 ), 58 );  // 13+14+15+16
    }
 }
 
