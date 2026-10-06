@@ -4,6 +4,7 @@
 #pragma once
 
 #include "detail/TraversingOperations.h"
+#include "detail/RowSelection.h"
 
 namespace TNL::Matrices {
 
@@ -67,6 +68,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
       matrix_view, rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
@@ -82,6 +84,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
       matrix.getConstView(), rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -94,6 +97,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
@@ -113,6 +117,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
       matrix.getConstView(),
@@ -212,6 +217,7 @@ forElementsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElementsIf(
       matrix_view,
@@ -241,6 +247,7 @@ forElementsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElementsIf(
       matrix.getConstView(),
       rowIndexes,
@@ -310,6 +317,7 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRows(
       matrix_view, rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
@@ -325,6 +333,7 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::TraversingOperations< typename Matrix::ConstViewType >::forRows(
       matrix.getConstView(), rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -333,6 +342,7 @@ template< typename Matrix, typename Array, typename Function, typename T >
 void
 forRows( Matrix& matrix, const Array& rowIndexes, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
    forRows(
@@ -352,6 +362,7 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    forRows(
       matrix,
@@ -448,6 +459,7 @@ forRowsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRowsIf(
       matrix_view,
@@ -477,6 +489,7 @@ forRowsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::TraversingOperations< typename Matrix::ConstViewType >::forRowsIf(
       matrix.getConstView(),
       rowIndexes,
