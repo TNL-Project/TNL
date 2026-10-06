@@ -538,8 +538,6 @@ reduceRowsIf(
       launchConfig );
 }
 
-// ===================== reduceRowsIf (array) =====================
-
 template<
    typename Matrix,
    typename Array,
@@ -1221,8 +1219,6 @@ reduceRowsWithArgumentIf(
       Reduction::template getIdentity< FetchValue >(),
       launchConfig );
 }
-
-// ===================== reduceRowsWithArgumentIf (array) =====================
 
 template<
    typename Matrix,

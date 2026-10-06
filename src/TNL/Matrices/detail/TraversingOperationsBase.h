@@ -40,14 +40,6 @@ struct TraversingOperationsBase
    using DeviceType = typename Matrix::DeviceType;
    using ConstMatrixView = typename Matrix::ConstViewType;
 
-   // TODO: `launchConfig` (Algorithms::Segments::LaunchConfiguration) is accepted by the methods
-   // below but never forwarded to Algorithms::parallelFor -- the types don't match
-   // (Segments::LaunchConfiguration vs. Device::LaunchConfiguration). Fix once it's benchmarked
-   // whether this actually matters; likely via launchConfig.getBackendLaunchConfiguration() on
-   // GPU devices.
-
-   // ===================== forElementsIf (range) =====================
-
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
    forElementsIf(
@@ -88,8 +80,6 @@ struct TraversingOperationsBase
          matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
 
-   // ===================== forRowsIf (range) =====================
-
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
    forRowsIf(
@@ -129,8 +119,6 @@ struct TraversingOperationsBase
       TraversingOperations< Matrix >::forRows(
          matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
-
-   // ===================== forElementsIf (array) =====================
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
@@ -173,8 +161,6 @@ struct TraversingOperationsBase
       TraversingOperations< Matrix >::forElements(
          matrix, selectedRowIndexes, 0, selectedRowIndexes.getSize(), std::forward< Function >( function ), launchConfig );
    }
-
-   // ===================== forRowsIf (array) =====================
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
