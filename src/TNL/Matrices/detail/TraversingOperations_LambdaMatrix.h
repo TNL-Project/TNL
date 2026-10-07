@@ -26,20 +26,8 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
    // TODO: `launchConfig` is accepted below but never forwarded to Algorithms::parallelFor (see
    // TraversingOperationsBase.h for why). Should eventually be fixed, pending a benchmark.
 
-   // A lambda matrix cannot be modified. The non-const overloads therefore delegate to the const ones,
-   // which pass the matrix elements to the user function as constant values.
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements(
-      Matrix& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forElements( static_cast< const Matrix& >( matrix ), begin, end, std::forward< Function >( function ), launchConfig );
-   }
+   // A lambda matrix cannot be modified, so only the const overloads are provided. They accept also
+   // non-const matrices and pass the matrix elements to the user function as constant values.
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
@@ -66,20 +54,6 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
          }
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements(
-      Matrix& matrix,
-      const Array& rowIndexes,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forElements(
-         static_cast< const Matrix& >( matrix ), rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -119,18 +93,6 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forRows(
-      Matrix& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forRows( static_cast< const Matrix& >( matrix ), begin, end, std::forward< Function >( function ), launchConfig );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forRows(
       const ConstMatrixView& matrix,
       IndexBegin begin,
       IndexEnd end,
@@ -143,20 +105,6 @@ struct TraversingOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLe
          function( rowView );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forRows(
-      Matrix& matrix,
-      const Array& rowIndexes,
-      IndexBegin begin,
-      IndexEnd end,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      forRows(
-         static_cast< const Matrix& >( matrix ), rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
