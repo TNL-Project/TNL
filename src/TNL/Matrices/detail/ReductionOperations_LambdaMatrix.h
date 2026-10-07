@@ -21,8 +21,10 @@ struct ReductionOperations< LambdaMatrix< MatrixElementsLambda, CompressedRowLen
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
-   // TODO: `launchConfig` is accepted below but never forwarded to Algorithms::parallelFor (see
-   // ReductionOperationsBase.h for why). Should eventually be fixed, pending a benchmark.
+   // TODO: `launchConfig` is accepted below only for consistency with the other matrix types and it is
+   // not used. Most of it describes how threads are mapped to segments, but the rows of this matrix type
+   // are not stored in segments and each row is processed by one thread of Algorithms::parallelFor.
+   // Only its block size could be forwarded to parallelFor on GPUs, which should be benchmarked first.
 
    // A lambda matrix cannot be modified, so only the const overloads are provided. They accept also
    // non-const matrices and pass the matrix elements to the fetch function as constant values.
