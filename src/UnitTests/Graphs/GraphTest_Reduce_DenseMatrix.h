@@ -6,6 +6,7 @@
 #include <TNL/Graphs/reduce.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Functional.h>
 
 #include <gtest/gtest.h>
 
@@ -481,6 +482,54 @@ TYPED_TEST( DenseGraphReductionTest, reduceVerticesWithArgument_Array_MaxWeight 
    // Vertex 1: max weight 6.0 to vertex 3
    // Vertex 2: max weight 9.0 to vertex 3
    // Vertex 3: not in array
+   EXPECT_EQ( maxWeights.getElement( 0 ), 0.0 );
+   EXPECT_EQ( maxTargets.getElement( 0 ), -1 );
+   EXPECT_EQ( maxWeights.getElement( 1 ), 6.0 );
+   EXPECT_EQ( maxTargets.getElement( 1 ), 3 );
+   EXPECT_EQ( maxWeights.getElement( 2 ), 9.0 );
+   EXPECT_EQ( maxTargets.getElement( 2 ), 3 );
+   EXPECT_EQ( maxWeights.getElement( 3 ), 0.0 );
+   EXPECT_EQ( maxTargets.getElement( 3 ), -1 );
+}
+
+TYPED_TEST( DenseGraphReductionTest, reduceVerticesWithArgument_Array_DeducedIdentity )
+{
+   using GraphType = typename TestFixture::DirectedGraphType;
+   using ValueType = typename TestFixture::ValueType;
+   using DeviceType = typename TestFixture::DeviceType;
+   using IndexType = typename TestFixture::IndexType;
+
+   GraphType graph;
+   createCompleteDirectedGraph( graph );
+   const GraphType& constGraph = graph;
+
+   // Find maximum edge weight for vertices 1 and 2 with the identity deduced from TNL::MaxWithArg
+   TNL::Containers::Vector< ValueType, DeviceType > maxWeights( 4 );
+   TNL::Containers::Vector< IndexType, DeviceType > maxTargets( 4 );
+   TNL::Containers::Vector< IndexType, DeviceType > vertexIndices( { 1, 2 } );
+
+   auto maxWeightsView = maxWeights.getView();
+   auto maxTargetsView = maxTargets.getView();
+   MaxWeightFetch< IndexType > fetch;
+   StoreIntoVectorWithArgument< decltype( maxWeightsView ), decltype( maxTargetsView ), ValueType, IndexType > store{
+      maxWeightsView, maxTargetsView
+   };
+
+   maxWeights.setValue( 0.0 );
+   maxTargets.setValue( -1 );
+   TNL::Graphs::reduceVerticesWithArgument( graph, vertexIndices, fetch, TNL::MaxWithArg{}, store );
+   EXPECT_EQ( maxWeights.getElement( 0 ), 0.0 );
+   EXPECT_EQ( maxTargets.getElement( 0 ), -1 );
+   EXPECT_EQ( maxWeights.getElement( 1 ), 6.0 );
+   EXPECT_EQ( maxTargets.getElement( 1 ), 3 );
+   EXPECT_EQ( maxWeights.getElement( 2 ), 9.0 );
+   EXPECT_EQ( maxTargets.getElement( 2 ), 3 );
+   EXPECT_EQ( maxWeights.getElement( 3 ), 0.0 );
+   EXPECT_EQ( maxTargets.getElement( 3 ), -1 );
+
+   maxWeights.setValue( 0.0 );
+   maxTargets.setValue( -1 );
+   TNL::Graphs::reduceVerticesWithArgument( constGraph, vertexIndices, fetch, TNL::MaxWithArg{}, store );
    EXPECT_EQ( maxWeights.getElement( 0 ), 0.0 );
    EXPECT_EQ( maxTargets.getElement( 0 ), -1 );
    EXPECT_EQ( maxWeights.getElement( 1 ), 6.0 );
