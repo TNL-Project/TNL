@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Assert.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Containers/Vector.h>
 #include "RowSelection.h"
@@ -137,6 +138,10 @@ struct ReductionOperationsBase
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       if( end <= begin )
          return 0;
       auto selectedRowIndexes = buildSelectedRowIndexesFromArray< IndexType, DeviceType >(
@@ -176,6 +181,10 @@ struct ReductionOperationsBase
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       if( end <= begin )
          return 0;
       auto selectedRowIndexes = buildSelectedRowIndexesFromArray< IndexType, DeviceType >(
@@ -289,6 +298,10 @@ struct ReductionOperationsBase
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       if( end <= begin )
          return 0;
       auto selectedRowIndexes = buildSelectedRowIndexesFromArray< IndexType, DeviceType >(
@@ -328,6 +341,10 @@ struct ReductionOperationsBase
       const FetchValue& identity,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       if( end <= begin )
          return 0;
       auto selectedRowIndexes = buildSelectedRowIndexesFromArray< IndexType, DeviceType >(
