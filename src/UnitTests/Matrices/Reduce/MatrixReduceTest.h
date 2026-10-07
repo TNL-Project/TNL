@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <limits>
+#include <vector>
+
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/reduce.h>
@@ -649,6 +652,203 @@ test_reduceRowsWithArgumentIf()
    }
 }
 
+// Tests the overloads with an interval of the array of row indexes and the conditional overloads
+// with the whole array. Besides the results, the test checks the index passed to the store function,
+// which is the position within the array for the interval and the rank of the processed row for the
+// conditional overloads.
+template< typename MatrixType >
+void
+test_reduceRowsWithRowIndexes()
+{
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using IndexType = typename MatrixType::IndexType;
+   using RealVector = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   /*
+    * Sets up the following 5x5 matrix:
+    *
+    *    /  1  2  0  4  5 \
+    *    |  0  6  7  0  0 |
+    *    |  8  0  9 10  0 |
+    *    |  0  0  0  0  0 |
+    *    \ 13 14 15  0 16 /
+    */
+   const IndexType rows = 5;
+   const IndexType cols = 5;
+   MatrixType matrix( rows, cols );
+   typename MatrixType::RowCapacitiesType rowCapacities{ 4, 2, 3, 0, 4 };
+   matrix.setRowCapacities( rowCapacities );
+   matrix.setElement( 0, 0, 1 );
+   matrix.setElement( 0, 1, 2 );
+   matrix.setElement( 0, 3, 4 );
+   matrix.setElement( 0, 4, 5 );
+   matrix.setElement( 1, 1, 6 );
+   matrix.setElement( 1, 2, 7 );
+   matrix.setElement( 2, 0, 8 );
+   matrix.setElement( 2, 2, 9 );
+   matrix.setElement( 2, 3, 10 );
+   matrix.setElement( 4, 0, 13 );
+   matrix.setElement( 4, 1, 14 );
+   matrix.setElement( 4, 2, 15 );
+   matrix.setElement( 4, 4, 16 );
+   const MatrixType& constMatrix = matrix;
+
+   const std::vector< RealType > rowSums{ 12, 13, 27, 0, 58 };
+   const std::vector< RealType > rowMaxima{ 5, 7, 10, 0, 16 };
+   const std::vector< IndexType > rowMaxColumns{ 4, 2, 3, -1, 4 };
+
+   const IndexVector rowIndexes{ 4, 0, 3, 1, 2 };
+   RealVector values( rows );
+   IndexVector columns( rows );
+   IndexVector positions( rows );
+   auto values_view = values.getView();
+   auto columns_view = columns.getView();
+   auto positions_view = positions.getView();
+
+   auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> RealType
+   {
+      return value;
+   };
+   auto condition = [] __cuda_callable__( IndexType rowIdx ) -> bool
+   {
+      return rowIdx >= 2;
+   };
+   auto store = [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const RealType& value ) mutable
+   {
+      values_view[ rowIdx ] = value;
+      positions_view[ rowIdx ] = indexOfRowIdx;
+   };
+   auto storeWithArgument = [ = ] __cuda_callable__(
+                               IndexType indexOfRowIdx,
+                               IndexType rowIdx,
+                               IndexType localIdx,
+                               IndexType columnIdx,
+                               const RealType& value,
+                               bool emptyRow ) mutable
+   {
+      values_view[ rowIdx ] = value;
+      columns_view[ rowIdx ] = emptyRow ? -1 : columnIdx;
+      positions_view[ rowIdx ] = indexOfRowIdx;
+   };
+   const RealType lowest = std::numeric_limits< RealType >::lowest();
+
+   auto reset = [ & ]()
+   {
+      values.setValue( -1 );
+      columns.setValue( -2 );
+      positions.setValue( -1 );
+   };
+   // Checks that exactly the rows in `expectedPositions` were processed and that the store function
+   // received the expected index for them.
+   auto check = [ & ]( const std::vector< IndexType >& expectedPositions, bool withArgument )
+   {
+      TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > hostValues;
+      TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostColumns;
+      TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostPositions;
+      hostValues = values;
+      hostColumns = columns;
+      hostPositions = positions;
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ ) {
+         const bool processed = expectedPositions[ rowIdx ] >= 0;
+         EXPECT_EQ( hostPositions[ rowIdx ], expectedPositions[ rowIdx ] ) << "row " << rowIdx;
+         // Ellpack based segments cannot detect a segment full of padding zeros as an empty segment,
+         // so the maximum of the empty row 3 is not checked.
+         if( ! processed )
+            EXPECT_EQ( hostValues[ rowIdx ], -1 ) << "row " << rowIdx;
+         else if( ! withArgument )
+            EXPECT_EQ( hostValues[ rowIdx ], rowSums[ rowIdx ] ) << "row " << rowIdx;
+         else if( rowIdx != 3 ) {
+            EXPECT_EQ( hostValues[ rowIdx ], rowMaxima[ rowIdx ] ) << "row " << rowIdx;
+            EXPECT_EQ( hostColumns[ rowIdx ], rowMaxColumns[ rowIdx ] ) << "row " << rowIdx;
+         }
+      }
+   };
+   // Interval [1, 4) of rowIndexes = { 4, 0, 3, 1, 2 } contains rows 0, 3 and 1 at positions 1, 2 and 3.
+   const std::vector< IndexType > intervalPositions{ 1, 3, -1, 2, -1 };
+   // The condition selects rows 4, 3 and 2, which are processed in this order.
+   const std::vector< IndexType > conditionRanks{ -1, -1, 2, 1, 0 };
+
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
+      SCOPED_TRACE( tag );
+
+      reset();
+      TNL::Matrices::reduceRows( matrix, rowIndexes, 1, 4, fetch, TNL::Plus{}, store, RealType( 0 ), launch_config );
+      check( intervalPositions, false );
+      reset();
+      TNL::Matrices::reduceRows( constMatrix, rowIndexes, 1, 4, fetch, TNL::Plus{}, store, RealType( 0 ), launch_config );
+      check( intervalPositions, false );
+      reset();
+      TNL::Matrices::reduceRows( matrix, rowIndexes, 1, 4, fetch, TNL::Plus{}, store, launch_config );
+      check( intervalPositions, false );
+      reset();
+      TNL::Matrices::reduceRows( constMatrix, rowIndexes, 1, 4, fetch, TNL::Plus{}, store, launch_config );
+      check( intervalPositions, false );
+
+      reset();
+      TNL::Matrices::reduceRowsWithArgument(
+         matrix, rowIndexes, 1, 4, fetch, TNL::MaxWithArg{}, storeWithArgument, lowest, launch_config );
+      check( intervalPositions, true );
+      reset();
+      TNL::Matrices::reduceRowsWithArgument(
+         constMatrix, rowIndexes, 1, 4, fetch, TNL::MaxWithArg{}, storeWithArgument, lowest, launch_config );
+      check( intervalPositions, true );
+      reset();
+      TNL::Matrices::reduceRowsWithArgument(
+         matrix, rowIndexes, 1, 4, fetch, TNL::MaxWithArg{}, storeWithArgument, launch_config );
+      check( intervalPositions, true );
+      reset();
+      TNL::Matrices::reduceRowsWithArgument(
+         constMatrix, rowIndexes, 1, 4, fetch, TNL::MaxWithArg{}, storeWithArgument, launch_config );
+      check( intervalPositions, true );
+
+      reset();
+      EXPECT_EQ(
+         TNL::Matrices::reduceRowsIf( matrix, rowIndexes, condition, fetch, TNL::Plus{}, store, RealType( 0 ), launch_config ),
+         3 );
+      check( conditionRanks, false );
+      reset();
+      EXPECT_EQ(
+         TNL::Matrices::reduceRowsIf(
+            constMatrix, rowIndexes, condition, fetch, TNL::Plus{}, store, RealType( 0 ), launch_config ),
+         3 );
+      check( conditionRanks, false );
+      reset();
+      EXPECT_EQ( TNL::Matrices::reduceRowsIf( matrix, rowIndexes, condition, fetch, TNL::Plus{}, store, launch_config ), 3 );
+      check( conditionRanks, false );
+      reset();
+      EXPECT_EQ(
+         TNL::Matrices::reduceRowsIf( constMatrix, rowIndexes, condition, fetch, TNL::Plus{}, store, launch_config ), 3 );
+      check( conditionRanks, false );
+
+      reset();
+      EXPECT_EQ(
+         TNL::Matrices::reduceRowsWithArgumentIf(
+            matrix, rowIndexes, condition, fetch, TNL::MaxWithArg{}, storeWithArgument, lowest, launch_config ),
+         3 );
+      check( conditionRanks, true );
+      reset();
+      EXPECT_EQ(
+         TNL::Matrices::reduceRowsWithArgumentIf(
+            constMatrix, rowIndexes, condition, fetch, TNL::MaxWithArg{}, storeWithArgument, lowest, launch_config ),
+         3 );
+      check( conditionRanks, true );
+      reset();
+      EXPECT_EQ(
+         TNL::Matrices::reduceRowsWithArgumentIf(
+            matrix, rowIndexes, condition, fetch, TNL::MaxWithArg{}, storeWithArgument, launch_config ),
+         3 );
+      check( conditionRanks, true );
+      reset();
+      EXPECT_EQ(
+         TNL::Matrices::reduceRowsWithArgumentIf(
+            constMatrix, rowIndexes, condition, fetch, TNL::MaxWithArg{}, storeWithArgument, launch_config ),
+         3 );
+      check( conditionRanks, true );
+   }
+}
+
 // Test fixture template
 template< typename MatrixType >
 class MatrixReduceTest : public ::testing::Test
@@ -679,11 +879,17 @@ TYPED_TEST_P( MatrixReduceTest, reduceRowsWithArgumentIfTest )
    test_reduceRowsWithArgumentIf< typename TestFixture::MatrixType_ >();
 }
 
+TYPED_TEST_P( MatrixReduceTest, reduceRowsWithRowIndexesTest )
+{
+   test_reduceRowsWithRowIndexes< typename TestFixture::MatrixType_ >();
+}
+
 REGISTER_TYPED_TEST_SUITE_P(
    MatrixReduceTest,
    reduceRowsTest,
    reduceRowsIfTest,
    reduceRowsWithArgumentTest,
-   reduceRowsWithArgumentIfTest );
+   reduceRowsWithArgumentIfTest,
+   reduceRowsWithRowIndexesTest );
 
 #include "../../main.h"
