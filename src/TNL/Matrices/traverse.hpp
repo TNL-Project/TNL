@@ -128,7 +128,7 @@ forElements(
       launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forElementsIf(
    Matrix& matrix,
@@ -143,7 +143,7 @@ forElementsIf(
       matrix_view, begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ), launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forElementsIf(
    const Matrix& matrix,
@@ -253,6 +253,44 @@ forElementsIf(
       rowIndexes,
       begin,
       end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forElementsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forElementsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forElementsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forElementsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
       std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
@@ -495,6 +533,44 @@ forRowsIf(
       rowIndexes,
       begin,
       end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forRowsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forRowsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forRowsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forRowsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
       std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
