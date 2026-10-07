@@ -344,9 +344,12 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 );
+      // Position of the segment in the array segmentIndexes passed to keep
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > positions( segmentsCount, -1 );
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
+      auto positions_view = positions.getView();
       auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
       {
          if( v_view[ globalIdx ] >= 0 )
@@ -357,18 +360,24 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
          [ = ] __cuda_callable__( const IndexType indexOfSegmentIdx, const IndexType segmentIdx, const IndexType res ) mutable
       {
          result_view[ segmentIdx ] = res;
+         positions_view[ segmentIdx ] = indexOfSegmentIdx;
       };
       TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch, TNL::Max{}, keep, launch_config );
 
       for( IndexType i = 0; i < segmentsCount; i++ ) {
-         if( i % 2 == 0 )
+         if( i % 2 == 0 ) {
             EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-         else
+            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
+         }
+         else {
             EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
+         }
       }
 
       // Test with segments view and short fetch
       result_view = -1;
+      positions_view = -1;
       auto short_fetch = [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
       {
          if( v_view[ globalIdx ] >= 0 )
@@ -380,10 +389,14 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
          segments.getView(), segmentIndexes, short_fetch, TNL::Max{}, keep, launch_config );
 
       for( IndexType i = 0; i < segmentsCount; i++ ) {
-         if( i % 2 == 0 )
+         if( i % 2 == 0 ) {
             EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-         else
+            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
+         }
+         else {
             EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
+         }
       }
    }
 }
@@ -434,10 +447,13 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 );
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount, -1 );
+      // Position of the segment in the array segmentIndexes passed to keep
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > positions( segmentsCount, -1 );
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
       auto args_view = args.getView();
+      auto positions_view = positions.getView();
       auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
       {
          if( v_view[ globalIdx ] >= 0 )
@@ -451,6 +467,7 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
          if( ! emptySegment )
             args_view[ segmentIdx ] = localIdx;
          result_view[ segmentIdx ] = res;
+         positions_view[ segmentIdx ] = indexOfSegmentIdx;
       };
       TNL::Algorithms::Segments::reduceSegmentsWithArgument(
          segments, segmentIndexes, fetch, TNL::MaxWithArg{}, keep, launch_config );
@@ -459,16 +476,19 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
          if( i % 2 == 0 ) {
             EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
             EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
          }
          else {
             EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
             EXPECT_EQ( args.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
          }
       }
 
       // Test with segments view and short fetch
       result_view = -1;
       args_view = -1;
+      positions_view = -1;
       auto short_fetch = [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
       {
          if( v_view[ globalIdx ] >= 0 )
@@ -483,10 +503,12 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
          if( i % 2 == 0 ) {
             EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
             EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
          }
          else {
             EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
             EXPECT_EQ( args.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
          }
       }
    }
