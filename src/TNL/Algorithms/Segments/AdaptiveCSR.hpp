@@ -212,8 +212,12 @@ AdaptiveCSR< Device, Index, IndexAllocator >::initValueSize( const Offsets& offs
       nextStart = findLimit< SizeOfValue >( start, hostOffsets, rows, type );
       if( type == detail::Type::LONG ) {
          const Index blocksCount = inBlocks.size();
-         const Index warpsPerCudaBlock =
-            detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / Backend::getWarpSize( Backend::getDevice() );
+         // Backend::getDevice() throws in builds without CUDA or HIP, so the
+         // device is not queried for the segments on the host
+         int warpSize = Backend::getWarpSize();
+         if constexpr( ! std::is_same_v< Device, Devices::Host > )
+            warpSize = Backend::getWarpSize( Backend::getDevice() );
+         const Index warpsPerCudaBlock = detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / warpSize;
          Index warpsLeft = roundUpDivision( blocksCount, warpsPerCudaBlock ) * warpsPerCudaBlock - blocksCount;
          if( warpsLeft == 0 )
             warpsLeft = warpsPerCudaBlock;

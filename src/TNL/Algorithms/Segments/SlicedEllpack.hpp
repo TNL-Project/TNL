@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include <cstdint>
+#include <limits>
+#include <stdexcept>
+
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
 
@@ -141,6 +146,18 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegm
       slice_segment_size_view[ i ] = res;
    };
    reduceAllSegments( ellpack, fetch, TNL::Max{}, keep );
+
+   // The storage size is the sum of the sizes of the slices, it is computed in
+   // 64 bits to detect the overflow of the index type.
+   auto sliceStorageSize = [ = ] __cuda_callable__( Index i ) -> std::int64_t
+   {
+      return static_cast< std::int64_t >( slice_segment_size_view[ i ] ) * SliceSize;
+   };
+   const std::int64_t storageSize = Algorithms::reduce< Device >( (Index) 0, slicesCount, sliceStorageSize, TNL::Plus{} );
+   if( storageSize > static_cast< std::int64_t >( std::numeric_limits< Index >::max() ) )
+      throw( std::overflow_error(
+         "SlicedEllpack: overflow - the storage size required for the segments is larger "
+         "than the maximal value of used index type." ) );
    Algorithms::inplaceExclusiveScan( this->sliceOffsets );
 
    // update the base

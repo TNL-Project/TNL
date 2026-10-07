@@ -164,10 +164,20 @@ template< typename Index, std::enable_if_t< std::is_integral_v< Index >, bool > 
 bool
 integerMultiplyOverflow( Index a, Index b )
 {
+   // The product a * b must not be computed, since the overflow of signed
+   // integers is undefined behavior and the compiler may optimize out a check
+   // like a != ( a * b ) / b.
    if( a == 0 || b == 0 )
       return false;
-   const Index result = a * b;
-   return a != result / b;
+   constexpr Index minValue = std::numeric_limits< Index >::min();
+   constexpr Index maxValue = std::numeric_limits< Index >::max();
+   if constexpr( std::is_signed_v< Index > ) {
+      if( a > 0 )
+         return b > 0 ? a > maxValue / b : b < minValue / a;
+      return b > 0 ? a < minValue / b : b < maxValue / a;
+   }
+   else
+      return a > maxValue / b;
 }
 
 /**
