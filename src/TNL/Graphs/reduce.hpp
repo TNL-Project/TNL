@@ -785,15 +785,7 @@ reduceVerticesWithArgument(
       launchConfig );
 }
 
-template<
-   typename Graph,
-   typename Array,
-   typename IndexBegin,
-   typename IndexEnd,
-   typename Fetch,
-   typename Reduction,
-   typename Store,
-   typename T >
+template< typename Graph, typename Array, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceVerticesWithArgument(
    const Graph& graph,
@@ -806,7 +798,7 @@ reduceVerticesWithArgument(
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVerticesWithArgument(
-      graph.getConstView(),
+      graph,
       vertexIndexes,
       std::forward< Fetch >( fetch ),
       reduction,
