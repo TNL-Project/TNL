@@ -650,6 +650,99 @@ test_forAllRowsIf()
 }
 
 // Test fixture for typed tests
+template< typename MatrixType >
+void
+test_forElementsIf_WithFullIndexArray()
+{
+   using RealType = typename MatrixType::RealType;
+   using IndexType = typename MatrixType::IndexType;
+   using IndexVectorType = TNL::Containers::Vector< IndexType, typename MatrixType::DeviceType, IndexType >;
+
+   MatrixType matrix( 4, 4 );
+   matrix.setRowCapacities( IndexVectorType( 4, 1 ) );
+   auto view = matrix.getView();
+   for( IndexType rowIdx = 0; rowIdx < 4; rowIdx++ )
+      view.setElement( rowIdx, rowIdx, 1.0 );
+
+   // Rows 2 and 3 satisfy the condition, row 1 is not in the array
+   IndexVectorType rowIndexes{ 0, 2, 3 };
+   auto condition = [] __cuda_callable__( IndexType rowIdx ) -> bool
+   {
+      return rowIdx >= 2;
+   };
+   IndexVectorType visited( 4, 0 );
+   auto visitedView = visited.getView();
+
+   TNL::Matrices::forElementsIf(
+      view,
+      rowIndexes,
+      condition,
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value ) mutable
+      {
+         visitedView[ rowIdx ] = 1;
+      } );
+   EXPECT_EQ( visited, IndexVectorType( { 0, 0, 1, 1 } ) );
+
+   const auto constView = view;
+   visited = 0;
+   TNL::Matrices::forElementsIf(
+      constView,
+      rowIndexes,
+      condition,
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value ) mutable
+      {
+         visitedView[ rowIdx ] = 1;
+      } );
+   EXPECT_EQ( visited, IndexVectorType( { 0, 0, 1, 1 } ) );
+}
+
+template< typename MatrixType >
+void
+test_forRowsIf_WithFullIndexArray()
+{
+   using IndexType = typename MatrixType::IndexType;
+   using IndexVectorType = TNL::Containers::Vector< IndexType, typename MatrixType::DeviceType, IndexType >;
+   using RowView = typename MatrixType::RowView;
+   using ConstRowView = typename MatrixType::ConstRowView;
+
+   MatrixType matrix( 4, 4 );
+   matrix.setRowCapacities( IndexVectorType( 4, 1 ) );
+   auto view = matrix.getView();
+   for( IndexType rowIdx = 0; rowIdx < 4; rowIdx++ )
+      view.setElement( rowIdx, rowIdx, 1.0 );
+
+   // Rows 2 and 3 satisfy the condition, row 1 is not in the array
+   IndexVectorType rowIndexes{ 0, 2, 3 };
+   auto condition = [] __cuda_callable__( IndexType rowIdx ) -> bool
+   {
+      return rowIdx >= 2;
+   };
+   IndexVectorType visited( 4, 0 );
+   auto visitedView = visited.getView();
+
+   TNL::Matrices::forRowsIf(
+      view,
+      rowIndexes,
+      condition,
+      [ = ] __cuda_callable__( RowView& row ) mutable
+      {
+         visitedView[ row.getRowIndex() ] = 1;
+      } );
+   EXPECT_EQ( visited, IndexVectorType( { 0, 0, 1, 1 } ) );
+
+   const auto constView = view;
+   visited = 0;
+   TNL::Matrices::forRowsIf(
+      constView,
+      rowIndexes,
+      condition,
+      [ = ] __cuda_callable__( const ConstRowView& row ) mutable
+      {
+         visitedView[ row.getRowIndex() ] = 1;
+      } );
+   EXPECT_EQ( visited, IndexVectorType( { 0, 0, 1, 1 } ) );
+}
+
 template< typename Matrix >
 class MatrixTraverseTest : public ::testing::Test
 {
@@ -721,6 +814,16 @@ TYPED_TEST_P( MatrixTraverseTest, forAllRowsIfTest )
    test_forAllRowsIf< typename TestFixture::MatrixType >();
 }
 
+TYPED_TEST_P( MatrixTraverseTest, forElementsIf_WithFullIndexArrayTest )
+{
+   test_forElementsIf_WithFullIndexArray< typename TestFixture::MatrixType >();
+}
+
+TYPED_TEST_P( MatrixTraverseTest, forRowsIf_WithFullIndexArrayTest )
+{
+   test_forRowsIf_WithFullIndexArray< typename TestFixture::MatrixType >();
+}
+
 REGISTER_TYPED_TEST_SUITE_P(
    MatrixTraverseTest,
    forElements_RangeTest,
@@ -733,6 +836,8 @@ REGISTER_TYPED_TEST_SUITE_P(
    forRows_WithIndexArrayTest,
    forRows_WithFullIndexArrayTest,
    forRowsIfTest,
-   forAllRowsIfTest );
+   forAllRowsIfTest,
+   forElementsIf_WithFullIndexArrayTest,
+   forRowsIf_WithFullIndexArrayTest );
 
 #include "../../main.h"
