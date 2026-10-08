@@ -10,6 +10,11 @@
 namespace TNL::Benchmarks {
 
 /**
+ * \brief Conversion factor for bytes to gigabytes (1 GB = 2^30 bytes).
+ */
+inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
+
+/**
  * \brief Container for benchmark measurement results.
  *
  * Stores timing data and derived metrics from benchmark runs. The class
@@ -29,7 +34,6 @@ namespace TNL::Benchmarks {
  * Derived values (computed by \ref setDerivedResults):
  *
  * - `bandwidth`: Dataset size divided by execution time (GB/s)
- * - `speedup`: Baseline time divided by execution time
  * - `cpu_cycles_per_operation`: CPU cycles divided by operations per loop
  */
 struct BenchmarkResult
@@ -47,7 +51,6 @@ struct BenchmarkResult
    double cpu_cycles_median = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
-   double speedup = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_per_operation = 0;
    std::size_t operations_per_loop = 0;
 
@@ -87,18 +90,16 @@ struct BenchmarkResult
    /**
     * \brief Computes derived metrics from raw timing data.
     *
-    * Must be called after \ref setTimeResults. Calculates bandwidth, speedup, and
-    * cycles per operation based on dataset size, baseline time, and operation count.
+    * Must be called after \ref setTimeResults. Calculates bandwidth and
+    * cycles per operation based on dataset size and operation count.
     *
-    * \param datasetSize Dataset size in gigabytes
-    * \param baseTime Baseline time for speedup calculation
+    * \param datasetSize Dataset size in bytes
     * \param operationsPerLoop Number of operations performed per iteration
     */
    virtual void
-   setDerivedResults( double datasetSize, double baseTime, std::size_t operationsPerLoop )
+   setDerivedResults( std::size_t datasetSize, std::size_t operationsPerLoop )
    {
-      bandwidth = datasetSize / time;
-      speedup = baseTime / time;
+      bandwidth = ( static_cast< double >( datasetSize ) / oneGB ) / time;
       operations_per_loop = operationsPerLoop;
       if( cpu_cycles != 0.0 && operationsPerLoop != 0 )
          cpu_cycles_per_operation = cpu_cycles / operationsPerLoop;
@@ -115,7 +116,6 @@ struct BenchmarkResult
       return HeaderElements(
          { "time",
            "time_median",
-           "speedup",
            "bandwidth",
            "cycles/op",
            "cycles",
@@ -144,10 +144,6 @@ struct BenchmarkResult
       elements << std::scientific;
 
       elements << time << time_median;
-      if( speedup != 0 )
-         elements << speedup;
-      else
-         elements << "N/A";
       elements << bandwidth;
       if( cpu_cycles_per_operation != 0 )
          elements << cpu_cycles_per_operation;

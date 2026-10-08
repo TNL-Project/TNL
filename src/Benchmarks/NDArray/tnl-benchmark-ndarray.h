@@ -22,18 +22,6 @@ using value_type = float;
 //using index_type = std::size_t;
 using index_type = unsigned;
 
-template< typename Device >
-const char*
-performer()
-{
-   if( std::is_same_v< Device, Devices::Host > )
-      return "CPU";
-   else if( std::is_same_v< Device, Devices::Cuda > )
-      return "GPU";
-   else
-      return "unknown";
-}
-
 void
 reset()
 {}
@@ -63,9 +51,10 @@ benchmark_array( Benchmark& benchmark, index_type size = 500000000 )
       Algorithms::parallelFor< Device >( static_cast< index_type >( 0 ), size, kernel, a.getData(), b.getData() );
    };
 
-   const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "array", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * sizeof( value_type );
+   benchmark.setOperation( "array" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -91,9 +80,10 @@ benchmark_1D( Benchmark& benchmark, index_type size = 500000000 )
          b );
    };
 
-   const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "1D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * sizeof( value_type );
+   benchmark.setOperation( "1D" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -119,9 +109,10 @@ benchmark_2D( Benchmark& benchmark, index_type size = 22333 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "2D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * sizeof( value_type );
+   benchmark.setOperation( "2D" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -147,9 +138,10 @@ benchmark_3D( Benchmark& benchmark, index_type size = 800 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "3D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "3D" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -175,9 +167,10 @@ benchmark_4D( Benchmark& benchmark, index_type size = 150 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "4D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "4D" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -203,9 +196,10 @@ benchmark_5D( Benchmark& benchmark, index_type size = 56 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "5D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "5D" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -231,9 +225,10 @@ benchmark_6D( Benchmark& benchmark, index_type size = 28 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "6D", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "6D" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -259,9 +254,10 @@ benchmark_2D_perm( Benchmark& benchmark, index_type size = 22333 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "2D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * sizeof( value_type );
+   benchmark.setOperation( "2D permuted" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -287,9 +283,10 @@ benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "3D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "3D permuted" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -315,9 +312,10 @@ benchmark_4D_perm( Benchmark& benchmark, index_type size = 150 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "4D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "4D permuted" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -344,9 +342,10 @@ benchmark_5D_perm( Benchmark& benchmark, index_type size = 56 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "5D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "5D permuted" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -373,9 +372,10 @@ benchmark_6D_perm( Benchmark& benchmark, index_type size = 28 )
          b );
    };
 
-   const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
-   benchmark.setOperation( "6D permuted", datasetSize );
-   benchmark.time< Device >( reset, performer< Device >(), f );
+   const std::size_t datasetSize = 2 * size * size * size * size * size * size * sizeof( value_type );
+   benchmark.setOperation( "6D permuted" );
+   benchmark.setDatasetSize( datasetSize );
+   benchmark.time< Device >( reset, "TNL", f );
 }
 
 template< typename Device >
@@ -397,20 +397,37 @@ run_benchmarks( Benchmark& benchmark )
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+resolveDevice( Benchmark& benchmark, const Config::ParameterContainer& parameters )
+{
+   const auto& device = parameters.getParameter< String >( "device" );
+
+   if( device == "sequential" || device == "all" )
+      run_benchmarks< Devices::Sequential >( benchmark );
+
+   if( device == "host" || device == "all" )
+      run_benchmarks< Devices::Host >( benchmark );
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( device == "cuda" || device == "hip" || device == "all" )
+      run_benchmarks< Devices::GPU >( benchmark );
+#endif
+}
+
+void
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
    config.addDelimiter( "NDArray benchmark settings:" );
-   config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
-   config.addEntryEnum( "all" );
+   config.addEntry< String >( "device", "Device to run benchmarks on.", "all" );
+   config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
-#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-#endif
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -419,27 +436,19 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-
-   // init benchmark and set parameters
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   const String devices = parameters.getParameter< String >( "devices" );
-   if( devices == "all" || devices == "host" )
-      run_benchmarks< Devices::Host >( benchmark );
-#ifdef __CUDACC__
-   if( devices == "all" || devices == "cuda" )
-      run_benchmarks< Devices::Cuda >( benchmark );
-#endif
+   resolveDevice( benchmark, parameters );
 
    return EXIT_SUCCESS;
 }

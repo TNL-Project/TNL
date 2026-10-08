@@ -24,18 +24,6 @@ using namespace TNL::Benchmarks;
 using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
-template< typename Device >
-const char*
-performer()
-{
-   if( std::is_same_v< Device, Devices::Host > )
-      return "CPU";
-   else if( std::is_same_v< Device, Devices::Cuda > )
-      return "GPU";
-   else
-      return "unknown";
-}
-
 void
 reset()
 {}
@@ -55,10 +43,11 @@ benchmark_reduction1D( Benchmark& benchmark, index_type size )
       (void) res;
    };
 
-   const double datasetSize = size * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "1D", datasetSize );
+   const std::size_t datasetSize = size * sizeof( index_type );
+   benchmark.setOperation( "1D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device >
@@ -83,11 +72,12 @@ benchmark_reduction2D( Benchmark& benchmark, index_type size, index_type n )
       Reduction2D< Device >::reduce( static_cast< index_type >( 0 ), fetch, std::plus<>{}, size, n, result.getView() );
    };
 
-   const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "2D", datasetSize );
+   const std::size_t datasetSize = ( size * n + n ) * sizeof( index_type );
+   benchmark.setOperation( "2D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns( { { "size", convertToString( size ) }, { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device >
@@ -118,12 +108,13 @@ benchmark_reduction3D( Benchmark& benchmark, index_type size, index_type m, inde
       Reduction3D< Device >::reduce( static_cast< index_type >( 0 ), fetch, std::plus<>{}, size, m, n, output );
    };
 
-   const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "3D", datasetSize );
+   const std::size_t datasetSize = ( m * n * size + m * n ) * sizeof( index_type );
+   benchmark.setOperation( "3D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "size", convertToString( size ) }, { "m", convertToString( m ) }, { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device >
@@ -153,20 +144,37 @@ run_benchmarks( Benchmark& benchmark )
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+resolveDevice( Benchmark& benchmark, const Config::ParameterContainer& parameters )
+{
+   const auto& device = parameters.getParameter< String >( "device" );
+
+   if( device == "sequential" || device == "all" )
+      run_benchmarks< Devices::Sequential >( benchmark );
+
+   if( device == "host" || device == "all" )
+      run_benchmarks< Devices::Host >( benchmark );
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( device == "cuda" || device == "hip" || device == "all" )
+      run_benchmarks< Devices::GPU >( benchmark );
+#endif
+}
+
+void
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
-   config.addDelimiter( "NDArray benchmark settings:" );
-   config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
-   config.addEntryEnum( "all" );
+   config.addDelimiter( "Reduction benchmark settings:" );
+   config.addEntry< String >( "device", "Device to run benchmarks on.", "all" );
+   config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
-#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-#endif
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -175,27 +183,19 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-
-   // init benchmark and set parameters
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   const String devices = parameters.getParameter< String >( "devices" );
-   if( devices == "all" || devices == "host" )
-      run_benchmarks< Devices::Host >( benchmark );
-#ifdef __CUDACC__
-   if( devices == "all" || devices == "cuda" )
-      run_benchmarks< Devices::Cuda >( benchmark );
-#endif
+   resolveDevice( benchmark, parameters );
 
    return EXIT_SUCCESS;
 }

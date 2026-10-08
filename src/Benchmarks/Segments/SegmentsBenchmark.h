@@ -10,10 +10,14 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
-#include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Matrices/MatrixOperations.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRScalarKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/SlicedEllpackKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/BiEllpackKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
 
 namespace TNL::Benchmarks::Segments {
 
@@ -48,16 +52,16 @@ struct SegmentsBenchmark
       config.addEntry< int >( "max-segment-size", "Maximum segment size.", 128 );
       config.addEntry< int >( "min-segments-count", "Minimum number of segments.", 1 << 8 );
       config.addEntry< int >( "max-segments-count", "Maximum number of segments.", 1 << 20 );
-      //config.addEntry< bool >( "with-bfs", "Run breadth-first search benchmark.", true );
 
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
-      config.addEntryEnum< TNL::String >( "all" );
       config.addEntryEnum< TNL::String >( "host" );
       config.addEntryEnum< TNL::String >( "sequential" );
       config.addEntryEnum< TNL::String >( "cuda" );
+      config.addEntryEnum< TNL::String >( "hip" );
+      config.addEntryEnum< TNL::String >( "all" );
       TNL::Devices::Host::configSetup( config );
-      TNL::Devices::Cuda::configSetup( config );
+      TNL::Devices::GPU::configSetup( config );
    }
 
    SegmentsBenchmark( const TNL::Config::ParameterContainer& parameters_ )
@@ -69,11 +73,7 @@ struct SegmentsBenchmark
       template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
       template< typename Index_, typename Device_ > class SegmentsKernel >
    void
-   TNLBenchmarks(
-      const HostVector& hostSegmentsSizes,
-      TNL::Benchmarks::Benchmark& benchmark,
-      const TNL::String& device,
-      const TNL::String& segmentsType )
+   TNLBenchmarks( const HostVector& hostSegmentsSizes, TNL::Benchmarks::Benchmark& benchmark, const TNL::String& segmentsType )
    {
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
       using IndexAllocator = typename TNL::Allocators::Default< Device >::template Allocator< Index >;
@@ -103,13 +103,7 @@ struct SegmentsBenchmark
                },
                launchConfig_ );
          };
-         benchmark.time< Device >( device, f );
-         HostVector dataHost( data );  // NOLINT(performance-unnecessary-copy-initialization)
-         for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
-            for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
-               if( dataHost.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ) != segmentIdx + localIdx )
-                  throw std::runtime_error( "Error in forElements" );
-         }
+         benchmark.time< Device >( "TNL", f );
       }
 
       for( auto stride : { 2, 4, 8 } ) {
@@ -147,7 +141,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
          }
       }
 
@@ -183,7 +177,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
          }
 
          benchmark.setMetadataElement( { "function", "forSelectedElements with stride " + convertToString( stride ) } );
@@ -208,7 +202,7 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
          }
       }
 
@@ -246,10 +240,10 @@ struct SegmentsBenchmark
                },
                launchConfig_ );
          };
-         benchmark.time< Device >( device, f );
+         benchmark.time< Device >( "TNL", f );
          HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
-         for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
-            if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+         for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
+            if( resultHost[ segmentIdx ] != hostSegmentsSizes[ segmentIdx ] )
                throw std::runtime_error( "Error in reduceSegments" );
          }
       }
@@ -295,11 +289,11 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
             HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
-            for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
+            for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
-                  if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+                  if( resultHost[ segmentIdx ] != hostSegmentsSizes[ segmentIdx ] )
                      throw std::runtime_error( "Error in reduceSegments" );
                }
                else {
@@ -347,11 +341,11 @@ struct SegmentsBenchmark
                   },
                   launchConfig_ );
             };
-            benchmark.time< Device >( device, f );
+            benchmark.time< Device >( "TNL", f );
             HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
-            for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
+            for( IndexType segmentIdx = 0; segmentIdx < hostSegmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
-                  if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+                  if( resultHost[ segmentIdx ] != hostSegmentsSizes[ segmentIdx ] )
                      throw std::runtime_error( "Error in reduceSegments" );
                }
                else {
@@ -378,43 +372,38 @@ struct SegmentsBenchmark
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            segmentsSizes, benchmark, "sequential", "CSR" );
+            segmentsSizes, benchmark, "CSR" );
       if( device == "host" || device == "all" )
          TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            segmentsSizes, benchmark, "host", "CSR" );
-#ifdef __CUDACC__
-      if( device == "cuda" || device == "all" ) {
-         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            segmentsSizes, benchmark, "cuda", "CSR" );
-         TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "Ellpack" );
+            segmentsSizes, benchmark, "CSR" );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+      if( device == "cuda" || device == "hip" || device == "all" ) {
+         TNLBenchmarks< TNL::Devices::GPU, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
+            segmentsSizes, benchmark, "CSR" );
+         TNLBenchmarks< TNL::Devices::GPU, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
+            segmentsSizes, benchmark, "Ellpack" );
          TNLBenchmarks<
-            TNL::Devices::Cuda,
+            TNL::Devices::GPU,
             SlicedEllpackSegments,
-            TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "SlicedEllpack" );
-         TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "BiEllpack" );
+            TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >( segmentsSizes, benchmark, "SlicedEllpack" );
+         TNLBenchmarks< TNL::Devices::GPU, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
+            segmentsSizes, benchmark, "BiEllpack" );
          TNLBenchmarks<
-            TNL::Devices::Cuda,
+            TNL::Devices::GPU,
             ChunkedEllpackSegments,
-            TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
-            segmentsSizes, benchmark, "cuda", "ChunkedEllpack" );
+            TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >( segmentsSizes, benchmark, "ChunkedEllpack" );
       }
 #endif
    }
 
    void
-   setupBenchmark( const std::string& programName = "" )
+   setupBenchmark( TNL::Benchmarks::Benchmark& benchmark )
    {
       const auto segmentsSetup = parameters.getParameter< TNL::String >( "segments-setup" );
       const int minSegmentsCount = parameters.getParameter< int >( "min-segments-count" );
       const int maxSegmentsCount = parameters.getParameter< int >( "max-segments-count" );
       const int minSegmentSize = parameters.getParameter< int >( "min-segment-size" );
       const int maxSegmentSize = parameters.getParameter< int >( "max-segment-size" );
-
-      TNL::Benchmarks::Benchmark benchmark;
-      benchmark.setup( parameters, programName );
 
       // Constant segments
       if( segmentsSetup == "constant" || segmentsSetup == "all" ) {

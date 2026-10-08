@@ -8,13 +8,15 @@
 #include <TNL/Allocators/HipHost.h>
 #include <TNL/Allocators/HipManaged.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
+#include <TNL/Benchmarks/Benchmark.h>
+#include <TNL/Config/ConfigDescription.h>
+#include <TNL/Config/ParameterContainer.h>
 #include <TNL/Config/parseCommandLine.h>
 
 #include "array-operations.h"
 #include "vector-operations.h"
 #include "triad.h"
-#include "gemv.h"
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -104,31 +106,10 @@ runBlasBenchmarks( Benchmark& benchmark, const std::size_t& minSize, const std::
       benchmarkTriad< Real >( benchmark, size );
    }
 #endif
-
-   // Dense matrix-vector multiplication
-   std::cout << "\n== Dense matrix-vector multiplication ==\n\n";
-   for( std::size_t rows = 10; rows <= 20000 * 20000; rows *= 2 ) {
-      for( std::size_t columns = 10; columns <= 20000 * 20000; columns *= 2 ) {
-         if( rows * columns > 20000 * 20000 )
-            break;
-         benchmark.setMetadataColumns(
-            Benchmark::MetadataColumns(
-               { { "precision", getType< Real >() },
-                 { "rows", convertToString( rows ) },
-                 { "columns", convertToString( columns ) } } ) );
-
-         // don't abort due to out-of-memory errors
-         try {
-            benchmarkGemv< Real >( benchmark, rows, columns );
-         }
-         catch( Exceptions::BackendBadAlloc& ) {
-         }
-      }
-   }
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
    config.addDelimiter( "BLAS benchmark settings:" );
@@ -137,7 +118,7 @@ setupConfig( Config::ConfigDescription& config )
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
    config.addEntry< int >( "min-size", "Minimum size of arrays/vectors used in the benchmark.", 100000 );
-   config.addEntry< int >( "max-size", "Minimum size of arrays/vectors used in the benchmark.", 10000000 );
+   config.addEntry< int >( "max-size", "Maximum size of arrays/vectors used in the benchmark.", 10000000 );
    config.addEntry< int >(
       "size-step-factor",
       "Factor determining the size of arrays/vectors used in the benchmark. First size is min-size and "
@@ -146,7 +127,7 @@ setupConfig( Config::ConfigDescription& config )
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -155,12 +136,12 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
    const String& precision = parameters.getParameter< String >( "precision" );
@@ -178,6 +159,7 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
    }
 
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 

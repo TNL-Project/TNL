@@ -28,15 +28,16 @@ benchmarkTriad( Benchmark& benchmark, const long& size )
    using CudaManagedAllocator = Allocators::CudaManaged< Real >;
 #endif
 
-   double datasetSize = size * sizeof( Real ) / oneGB;
-   benchmark.setOperation( "triad", 3 * datasetSize );
+   std::size_t datasetSize = size * sizeof( Real );
+   benchmark.setOperation( "triad" );
+   benchmark.setDatasetSize( 3 * datasetSize );
 
    const Real scalar = 3.1415926535;
 
    // pageable
    {
       using HostArray = Containers::Array< Real, Devices::Host, Index, HostAllocator >;
-      using CudaArray = Containers::Array< Real, Devices::Cuda, Index, CudaAllocator >;
+      using CudaArray = Containers::Array< Real, Devices::GPU, Index, CudaAllocator >;
 
       HostArray a_h;
       HostArray b_h;
@@ -73,18 +74,18 @@ benchmarkTriad( Benchmark& benchmark, const long& size )
          {
             a_v[ i ] = b_v[ i ] + scalar * c_v[ i ];
          };
-         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
+         Algorithms::parallelFor< Devices::GPU >( 0, size, kernel );
 
          a_h = a_d;
       };
 
-      benchmark.time< Devices::Cuda >( reset, "pageable", triad );
+      benchmark.time< Devices::GPU >( reset, "pageable", triad );
    }
 
    // pinned
    {
       using HostArray = Containers::Array< Real, Devices::Host, Index, CudaHostAllocator >;
-      using CudaArray = Containers::Array< Real, Devices::Cuda, Index, CudaAllocator >;
+      using CudaArray = Containers::Array< Real, Devices::GPU, Index, CudaAllocator >;
 
       HostArray a_h;
       HostArray b_h;
@@ -121,12 +122,12 @@ benchmarkTriad( Benchmark& benchmark, const long& size )
          {
             a_v[ i ] = b_v[ i ] + scalar * c_v[ i ];
          };
-         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
+         Algorithms::parallelFor< Devices::GPU >( 0, size, kernel );
 
          a_h = a_d;
       };
 
-      benchmark.time< Devices::Cuda >( reset, "pinned", triad );
+      benchmark.time< Devices::GPU >( reset, "pinned", triad );
    }
 
    // zero-copy
@@ -156,10 +157,10 @@ benchmarkTriad( Benchmark& benchmark, const long& size )
       };
       auto triad = [ & ]()
       {
-         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
+         Algorithms::parallelFor< Devices::GPU >( 0, size, kernel );
       };
 
-      benchmark.time< Devices::Cuda >( reset, "zero-copy", triad );
+      benchmark.time< Devices::GPU >( reset, "zero-copy", triad );
    }
 
    // unified memory
@@ -189,10 +190,10 @@ benchmarkTriad( Benchmark& benchmark, const long& size )
       };
       auto triad = [ & ]()
       {
-         Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
+         Algorithms::parallelFor< Devices::GPU >( 0, size, kernel );
       };
 
-      benchmark.time< Devices::Cuda >( reset, "unified memory", triad );
+      benchmark.time< Devices::GPU >( reset, "unified memory", triad );
    }
 
    // TODO: unified memory with AccessedBy hint and/or prefetching - see https://github.com/cwpearson/triad-gpu-bandwidth

@@ -11,7 +11,7 @@
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
 #include <TNL/Solvers/ODE/ODESolver.h>
@@ -44,11 +44,6 @@
 using namespace TNL;
 using namespace TNL::Benchmarks;
 
-template< typename Real, typename Index >
-void
-benchmarkODESolvers( Benchmark& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
-{}
-
 template< typename Real, typename Device, typename Index >
 struct ODESolversBenchmark
 {
@@ -65,11 +60,6 @@ struct ODESolversBenchmark
       using ElementType = typename SolverElementType< SolverType >::type;
       using VectorType = TNL::Containers::Vector< ElementType, DeviceType, IndexType >;
       using VectorView = typename VectorType::ViewType;
-
-      std::string device = "host";
-      if( std::is_same_v< DeviceType, Devices::Cuda > ) {
-         device = "cuda";
-      }
 
       double adaptivity = parameters.getParameter< double >( "adaptivity" );
       SolverType solver;
@@ -118,7 +108,7 @@ struct ODESolversBenchmark
                      solver.solve( u_view[ i ], problem );
                   } );
             };
-            benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
+            benchmark.time< DeviceType >( reset_u, "TNL", solve, benchmarkResult );
          }
          else {
             auto problem = [ = ]( const RealType& t, const RealType& tau, const VectorView& u_view, VectorView& fu_view )
@@ -136,7 +126,7 @@ struct ODESolversBenchmark
                solver.setTau( tau );
                solver.solve( u, problem );
             };
-            benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
+            benchmark.time< DeviceType >( reset_u, "TNL", solve, benchmarkResult );
          }
          tau /= 2.0;
       }
@@ -147,7 +137,7 @@ struct ODESolversBenchmark
    run( Benchmark& benchmark, const Config::ParameterContainer& parameters )
    {
       using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
-      const auto& solvers = parameters.getList< String >( "solvers" );
+      const auto& solvers = parameters.getList< std::string >( "solvers" );
       const bool legacy_solvers = parameters.getParameter< bool >( "legacy-solvers" );
       for( auto&& solver : solvers ) {
          if( solver == "euler" || solver == "all" ) {
@@ -225,7 +215,7 @@ struct ODESolversBenchmark
             benchmarkSolver< Solver >( benchmark, parameters, "Ralston2" );
          }
          if( solver == "ralston3" || solver == "all" ) {
-            using Method = TNL::Solvers::ODE::Methods::Ralston2< RealType >;
+            using Method = TNL::Solvers::ODE::Methods::Ralston3< RealType >;
             using Solver = TNL::Solvers::ODE::ODESolver< Method, VectorType, SolverMonitorType >;
             benchmarkSolver< Solver >( benchmark, parameters, "Ralston3" );
          }
@@ -273,7 +263,7 @@ template< typename Real, typename Device >
 bool
 resolveIndexType( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
-   const String& index = parameters.getParameter< String >( "index-type" );
+   const auto& index = parameters.getParameter< std::string >( "index-type" );
    if( index == "int" && ! ODESolversBenchmark< Real, Device, int >::run( benchmark, parameters ) )
       return false;
    if( index == "long int" && ! ODESolversBenchmark< Real, Device, long int >::run( benchmark, parameters ) )
@@ -283,33 +273,29 @@ resolveIndexType( Benchmark& benchmark, Config::ParameterContainer& parameters )
 
 template< typename Real >
 bool
-resolveDeviceType( Benchmark& benchmark, Config::ParameterContainer& parameters )
+resolveDevice( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
-   const String& device = parameters.getParameter< String >( "device" );
+   const auto& device = parameters.getParameter< std::string >( "device" );
    if( ( device == "sequential" || device == "all" )
        && ! resolveIndexType< Real, Devices::Sequential >( benchmark, parameters ) )
       return false;
    if( ( device == "host" || device == "all" ) && ! resolveIndexType< Real, Devices::Host >( benchmark, parameters ) )
       return false;
-   if( device == "cuda" || device == "all" ) {
-#ifdef __CUDACC__
-      if( ! resolveIndexType< Real, Devices::Cuda >( benchmark, parameters ) )
-         return false;
-#else
-      std::cerr << "CUDA support not compiled in.\n";
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( ( device == "cuda" || device == "hip" || device == "all" )
+       && ! resolveIndexType< Real, Devices::GPU >( benchmark, parameters ) )
       return false;
 #endif
-   }
    return true;
 }
 
 bool
-resolveRealTypes( Benchmark& benchmark, Config::ParameterContainer& parameters )
+resolvePrecision( Benchmark& benchmark, Config::ParameterContainer& parameters )
 {
-   const String& realType = parameters.getParameter< String >( "precision" );
-   if( ( realType == "float" || realType == "all" ) && ! resolveDeviceType< float >( benchmark, parameters ) )
+   const auto& realType = parameters.getParameter< std::string >( "precision" );
+   if( ( realType == "float" || realType == "all" ) && ! resolveDevice< float >( benchmark, parameters ) )
       return false;
-   if( ( realType == "double" || realType == "all" ) && ! resolveDeviceType< double >( benchmark, parameters ) )
+   if( ( realType == "double" || realType == "all" ) && ! resolveDevice< double >( benchmark, parameters ) )
       return false;
    return true;
 }
@@ -319,38 +305,39 @@ configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
    config.addDelimiter( "ODE solvers benchmark settings:" );
-   config.addList< String >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
-   config.addEntryEnum< String >( "bogacki-shampin" );
-   config.addEntryEnum< String >( "cash-karp" );
-   config.addEntryEnum< String >( "dormand-prince" );
-   config.addEntryEnum< String >( "euler" );
-   config.addEntryEnum< String >( "fehlberg2" );
-   config.addEntryEnum< String >( "fehlberg5" );
-   config.addEntryEnum< String >( "heun2" );
-   config.addEntryEnum< String >( "heun3" );
-   config.addEntryEnum< String >( "kutta" );
-   config.addEntryEnum< String >( "kutta-merson" );
-   config.addEntryEnum< String >( "midpoint" );
-   config.addEntryEnum< String >( "ralston2" );
-   config.addEntryEnum< String >( "ralston3" );
-   config.addEntryEnum< String >( "ralston4" );
-   config.addEntryEnum< String >( "rule38" );
-   config.addEntryEnum< String >( "original-runge-kutta" );
-   config.addEntryEnum< String >( "ssprk3" );
-   config.addEntryEnum< String >( "vanderhouwen-wray" );
-   config.addEntryEnum< String >( "all" );
-   config.addEntry< String >( "device", "Run benchmarks using given device.", "host" );
+   config.addList< std::string >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
+   config.addEntryEnum( "bogacki-shampin" );
+   config.addEntryEnum( "cash-karp" );
+   config.addEntryEnum( "dormand-prince" );
+   config.addEntryEnum( "euler" );
+   config.addEntryEnum( "fehlberg2" );
+   config.addEntryEnum( "fehlberg5" );
+   config.addEntryEnum( "heun2" );
+   config.addEntryEnum( "heun3" );
+   config.addEntryEnum( "kutta" );
+   config.addEntryEnum( "kutta-merson" );
+   config.addEntryEnum( "midpoint" );
+   config.addEntryEnum( "ralston2" );
+   config.addEntryEnum( "ralston3" );
+   config.addEntryEnum( "ralston4" );
+   config.addEntryEnum( "rule38" );
+   config.addEntryEnum( "original-runge-kutta" );
+   config.addEntryEnum( "ssprk3" );
+   config.addEntryEnum( "vanderhouwen-wray" );
+   config.addEntryEnum( "all" );
+   config.addEntry< std::string >( "device", "Run benchmarks using given device.", "host" );
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
    config.addEntryEnum( "cuda" );
+   config.addEntryEnum( "hip" );
    config.addEntryEnum( "all" );
-   config.addEntry< String >( "precision", "Precision of the arithmetics.", "double" );
+   config.addEntry< std::string >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
-   config.addEntry< String >( "index-type", "Run benchmarks with given index type.", "int" );
-   config.addEntryEnum< String >( "int" );
-   config.addEntryEnum< String >( "long int" );
+   config.addEntry< std::string >( "index-type", "Run benchmarks with given index type.", "int" );
+   config.addEntryEnum( "int" );
+   config.addEntryEnum( "long int" );
    config.addEntry< int >( "size", "Size of the ODE system (all ODEs are the same).", 1 << 20 );
    config.addEntry< double >( "final-time", "Final time of the benchmark test.", 1.0 );
    config.addEntry< double >( "time-step", "Time step of the benchmark test.", 1.0e-2 );
@@ -359,7 +346,7 @@ configSetup( Config::ConfigDescription& config )
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
    TNL::MPI::configSetup( config );
 
    config.addDelimiter( "ODE solver settings:" );
@@ -385,12 +372,13 @@ main( int argc, char* argv[] )
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   const bool status = resolveRealTypes( benchmark, parameters );
+   const bool status = resolvePrecision( benchmark, parameters );
    return static_cast< int >( ! status );
 }

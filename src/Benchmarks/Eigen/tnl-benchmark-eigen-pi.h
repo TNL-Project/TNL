@@ -8,11 +8,13 @@
 #include <TNL/Assert.h>
 #include <TNL/Math.h>
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Config/ConfigDescription.h>
+#include <TNL/Config/ParameterContainer.h>
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Solvers/Eigen/experimental/PowerIteration.h>
 #include <TNL/Solvers/Eigen/experimental/ShiftedPowerIteration.h>
 #include <TNL/Solvers/Eigen/experimental/QRAlgorithm.h>
@@ -21,8 +23,9 @@
 
 #include <TNL/Benchmarks/Benchmark.h>
 #include <string>
+#include <type_traits>
 
-#include "EigenBenchmark.h"
+#include "EigenBenchmarkResult.h"
 
 using namespace TNL;
 using namespace Benchmarks;
@@ -48,8 +51,10 @@ benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOr
    DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
    Vector< double, Device > doubleEigenvector( matrix.getColumns() );
    doubleMatrix = matrix;
-   for( int i = 1; i < 15; i += 2 ) {
+   constexpr int max_i = std::is_same_v< PrecisionType, float > ? 7 : 13;
+   for( int i = 1; i <= max_i; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
+      benchmark.setMetadataElement( { "epsilon", TNL::convertToString( epsilon ) } );
       double error = 0;
       int iterations = 0;
       PrecisionType eigenvalue = 0;
@@ -72,8 +77,8 @@ benchmark_pi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecOr
          std::tie( eigenvalue, eigenvector, iter ) =
             Solvers::Eigen::experimental::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
-      EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
-      benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
+      EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
+      benchmark.time< Device >( resetFunction, "TNL", testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
    }
@@ -87,8 +92,10 @@ benchmark_spi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecO
    PrecisionType eigenvalue = 0;
    DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
    doubleMatrix = matrix;
-   for( int i = 1; i < 14; i += 2 ) {
+   constexpr int max_i = std::is_same_v< PrecisionType, float > ? 7 : 13;
+   for( int i = 1; i <= max_i; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
+      benchmark.setMetadataElement( { "epsilon", TNL::convertToString( epsilon ) } );
       double error = 0;
       int iterations = 0;
       VectorType eigenvector( matrix.getColumns() );
@@ -112,8 +119,8 @@ benchmark_spi( Benchmark& benchmark, MatrixType& matrix, VectorType& initialVecO
          std::tie( eigenvalue, eigenvector, iter ) =
             Solvers::Eigen::experimental::shiftedPowerIteration< MatrixType >( matrix, epsilon, shiftValue, initialVec, 10000 );
       };
-      EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
-      benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
+      EigenBenchmarkResult eigenBenchmarkResult( iterations, error );
+      benchmark.time< Device >( resetFunction, "TNL", testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
    }
@@ -134,8 +141,8 @@ run_benchmarks_DM(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
-            { "matrixName", matrixName },
-            { "matrixType", "DM_CMO" },
+            { "matrix name", matrixName },
+            { "matrix type", "DM_CMO" },
             { "size", std::to_string( size ) },
          } ) );
    benchmark_pi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig );
@@ -145,8 +152,8 @@ run_benchmarks_DM(
             {
                { "operation", "SPI" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "DM_CMO" },
+               { "matrix name", matrixName },
+               { "matrix type", "DM_CMO" },
                { "size", std::to_string( size ) },
             } ) );
       benchmark_spi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig, shiftValue );
@@ -155,8 +162,8 @@ run_benchmarks_DM(
             {
                { "operation", "SPI0" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "DM_CMO" },
+               { "matrix name", matrixName },
+               { "matrix type", "DM_CMO" },
                { "size", std::to_string( size ) },
             } ) );
       benchmark_spi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig, 0 );
@@ -170,8 +177,8 @@ run_benchmarks_DM(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
-            { "matrixName", matrixName },
-            { "matrixType", "DM_RMO" },
+            { "matrix name", matrixName },
+            { "matrix type", "DM_RMO" },
             { "size", std::to_string( size ) },
          } ) );
    benchmark_pi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig );
@@ -181,8 +188,8 @@ run_benchmarks_DM(
             {
                { "operation", "SPI" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "DM_RMO" },
+               { "matrix name", matrixName },
+               { "matrix type", "DM_RMO" },
                { "size", std::to_string( size ) },
             } ) );
       benchmark_spi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig, shiftValue );
@@ -191,8 +198,8 @@ run_benchmarks_DM(
             {
                { "operation", "SPI0" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "DM_RMO" },
+               { "matrix name", matrixName },
+               { "matrix type", "DM_RMO" },
                { "size", std::to_string( size ) },
             } ) );
       benchmark_spi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig, 0 );
@@ -214,8 +221,8 @@ run_benchmarks_SM(
          {
             { "operation", "PI" },
             { "precision", getType< PrecisionType >() },
-            { "matrixName", matrixName },
-            { "matrixType", "SM" },
+            { "matrix name", matrixName },
+            { "matrix type", "SM" },
             { "size", std::to_string( size ) },
          } ) );
    benchmark_pi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig );
@@ -225,8 +232,8 @@ run_benchmarks_SM(
             {
                { "operation", "SPI" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "SM" },
+               { "matrix name", matrixName },
+               { "matrix type", "SM" },
                { "size", std::to_string( size ) },
             } ) );
       benchmark_spi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig, shiftValue );
@@ -235,17 +242,22 @@ run_benchmarks_SM(
             {
                { "operation", "SPI0" },
                { "precision", getType< PrecisionType >() },
-               { "matrixName", matrixName },
-               { "matrixType", "SM" },
+               { "matrix name", matrixName },
+               { "matrix type", "SM" },
                { "size", std::to_string( size ) },
             } ) );
       benchmark_spi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig, 0 );
    }
 }
+
 template< typename PrecisionType >
 void
-run_benchmarks_file( Benchmark& benchmark, const std::string& fileName, PrecisionType shiftValue = 0 )
+run_benchmarks_file( Benchmark& benchmark, const Config::ParameterContainer& parameters )
 {
+   const auto& fileName = parameters.getParameter< std::string >( "input-matrix" );
+   const auto& device = parameters.getParameter< std::string >( "device" );
+   auto shiftValue = parameters.getParameter< double >( "shift-value" );
+
    std::string matrixName = fileName;
    matrixName.erase( matrixName.length() - 4, 4 );
    using MatrixTypeHostSM = Matrices::SparseMatrix< PrecisionType, Devices::Host, int >;
@@ -254,101 +266,76 @@ run_benchmarks_file( Benchmark& benchmark, const std::string& fileName, Precisio
    auto size = matrixSM.getColumns();
    using VectorTypeHost = Vector< PrecisionType, Devices::Host >;
    auto initialVecOrig = generateVector< VectorTypeHost >( size );
-   run_benchmarks_SM< Devices::Host, PrecisionType >( benchmark, matrixName, size, matrixSM, initialVecOrig, shiftValue );
-#ifdef __CUDACC__
-   using VectorTypeCuda = Vector< PrecisionType, Devices::Cuda >;
-   VectorTypeCuda initialVecOrigCuda( size );
-   initialVecOrigCuda = initialVecOrig;
-   Matrices::SparseMatrix< PrecisionType, Devices::Cuda, int > matrixCUDACMO( size, size );
-   matrixCUDACMO = matrixSM;
-   run_benchmarks_SM< Devices::Cuda, PrecisionType >(
-      benchmark, matrixName, size, matrixCUDACMO, initialVecOrigCuda, shiftValue );
+
+   if( device == "host" || device == "all" )
+      run_benchmarks_SM< Devices::Host, PrecisionType >( benchmark, matrixName, size, matrixSM, initialVecOrig, shiftValue );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( device == "cuda" || device == "hip" || device == "all" ) {
+      using VectorTypeGPU = Vector< PrecisionType, Devices::GPU >;
+      VectorTypeGPU initialVecOrigGPU( size );
+      initialVecOrigGPU = initialVecOrig;
+      Matrices::SparseMatrix< PrecisionType, Devices::GPU, int > matrixGPUCMO( size, size );
+      matrixGPUCMO = matrixSM;
+      run_benchmarks_SM< Devices::GPU, PrecisionType >(
+         benchmark, matrixName, size, matrixGPUCMO, initialVecOrigGPU, shiftValue );
+   }
 #endif
+
    if( size <= 1600 ) {
       using MatrixTypeHostCMO =
          Matrices::DenseMatrix< PrecisionType, Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
       MatrixTypeHostCMO matrixDoubleDM;
       TNL::Matrices::MatrixReader< MatrixTypeHostCMO >::readMtx( fileName, matrixDoubleDM );
-      run_benchmarks_DM< Devices::Host, PrecisionType >(
-         benchmark, matrixName, size, matrixDoubleDM, initialVecOrig, shiftValue );
-#ifdef __CUDACC__
-      Matrices::DenseMatrix< PrecisionType, Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >
-         matrixCUDADoubleCMO( size, size );
-      matrixCUDADoubleCMO = matrixDoubleDM;
-      run_benchmarks_DM< Devices::Cuda, PrecisionType >(
-         benchmark, matrixName, size, matrixCUDADoubleCMO, initialVecOrigCuda, shiftValue );
+
+      if( device == "host" || device == "all" )
+         run_benchmarks_DM< Devices::Host, PrecisionType >(
+            benchmark, matrixName, size, matrixDoubleDM, initialVecOrig, shiftValue );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+      if( device == "cuda" || device == "hip" || device == "all" ) {
+         Matrices::DenseMatrix< PrecisionType, Devices::GPU, int, TNL::Algorithms::Segments::ColumnMajorOrder >
+            matrixGPUDoubleCMO( size, size );
+         matrixGPUDoubleCMO = matrixDoubleDM;
+         using VectorTypeGPU = Vector< PrecisionType, Devices::GPU >;
+         VectorTypeGPU initialVecOrigGPUDM( size );
+         initialVecOrigGPUDM = initialVecOrig;
+         run_benchmarks_DM< Devices::GPU, PrecisionType >(
+            benchmark, matrixName, size, matrixGPUDoubleCMO, initialVecOrigGPUDM, shiftValue );
+      }
 #endif
    }
 }
 
 void
-run_benchmarks( Benchmark& benchmark )
+resolvePrecision( Benchmark& benchmark, const Config::ParameterContainer& parameters )
 {
-   //https://sparse.tamu.edu/HB/bcspwr01
-   run_benchmarks_file< float >( benchmark, "bcspwr01.mtx", -0.8 );
-   run_benchmarks_file< double >( benchmark, "bcspwr01.mtx", -0.8 );
-   //https://sparse.tamu.edu/HB/bcsstk01
-   run_benchmarks_file< float >( benchmark, "bcsstk01.mtx" );
-   run_benchmarks_file< double >( benchmark, "bcsstk01.mtx" );
-   //http://sparse.tamu.edu/Bai/bfwb62
-   run_benchmarks_file< float >( benchmark, "bfwb62.mtx" );
-   run_benchmarks_file< double >( benchmark, "bfwb62.mtx" );
-   //https://sparse.tamu.edu/Newman/polbooks
-   run_benchmarks_file< float >( benchmark, "polbooks.mtx" );
-   run_benchmarks_file< double >( benchmark, "polbooks.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstm03
-   run_benchmarks_file< float >( benchmark, "bcsstm03.mtx", -1000 );
-   run_benchmarks_file< double >( benchmark, "bcsstm03.mtx", -1000 );
-   //https://sparse.tamu.edu/HB/bcsstm05
-   run_benchmarks_file< float >( benchmark, "bcsstm05.mtx" );
-   run_benchmarks_file< double >( benchmark, "bcsstm05.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstk05
-   run_benchmarks_file< float >( benchmark, "bcsstk05.mtx", -2603912.5565242684 );
-   run_benchmarks_file< double >( benchmark, "bcsstk05.mtx", -2603912.5565242684 );
-   //https://sparse.tamu.edu/HB/plat362
-   run_benchmarks_file< float >( benchmark, "plat362.mtx" );
-   run_benchmarks_file< double >( benchmark, "plat362.mtx" );
-   //http://sparse.tamu.edu/Bai/bfwa782
-   run_benchmarks_file< float >( benchmark, "bfwa782.mtx" );
-   run_benchmarks_file< double >( benchmark, "bfwa782.mtx" );
-   //https://sparse.tamu.edu/HB/lshp1561
-   run_benchmarks_file< float >( benchmark, "lshp1561.mtx", -2.46630660850344 );
-   run_benchmarks_file< double >( benchmark, "lshp1561.mtx", -2.46630660850344 );
-   //https://sparse.tamu.edu/HB/bcsstk13 - python no convergence
-   run_benchmarks_file< float >( benchmark, "bcsstk13.mtx" );
-   run_benchmarks_file< double >( benchmark, "bcsstk13.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstk21 - python no convergence
-   run_benchmarks_file< float >( benchmark, "bcsstk21.mtx" );
-   run_benchmarks_file< double >( benchmark, "bcsstk21.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstk29
-   run_benchmarks_file< float >( benchmark, "bcsstk29.mtx" );
-   run_benchmarks_file< double >( benchmark, "bcsstk29.mtx" );
-   //https://sparse.tamu.edu/HB/bcsstk30
-   run_benchmarks_file< float >( benchmark, "bcsstk30.mtx", -30.735151383497943 );
-   run_benchmarks_file< double >( benchmark, "bcsstk30.mtx", -30.735151383497943 );
-   //https://sparse.tamu.edu/HB/bcsstk32
-   run_benchmarks_file< float >( benchmark, "bcsstk32.mtx" );
-   run_benchmarks_file< double >( benchmark, "bcsstk32.mtx" );
-   //https://sparse.tamu.edu/GHS_psdef/s3dkt3m2
-   run_benchmarks_file< float >( benchmark, "s3dkt3m2.mtx" );
-   run_benchmarks_file< double >( benchmark, "s3dkt3m2.mtx" );
+   const auto& precision = parameters.getParameter< std::string >( "precision" );
+
+   if( precision == "all" || precision == "float" )
+      run_benchmarks_file< float >( benchmark, parameters );
+   if( precision == "all" || precision == "double" )
+      run_benchmarks_file< double >( benchmark, parameters );
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
    config.addDelimiter( "Eigen benchmark settings:" );
-   config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
+   config.addRequiredEntry< std::string >( "input-matrix", "Path to the input matrix in Matrix Market format (.mtx)." );
+   config.addEntry< double >( "shift-value", "Shift value for the shifted power iteration method.", 0.0 );
+   config.addEntry< std::string >( "precision", "Precision of the arithmetics.", "double" );
+   config.addEntryEnum( "float" );
+   config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
+   config.addEntry< std::string >( "device", "Device to run benchmarks on.", "all" );
    config.addEntryEnum( "host" );
-#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-#endif
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -357,19 +344,19 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   // init benchmark and set parameters
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   run_benchmarks( benchmark );
+   resolvePrecision( benchmark, parameters );
 
    return EXIT_SUCCESS;
 }

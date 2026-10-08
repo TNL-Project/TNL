@@ -77,6 +77,25 @@ if(TNL_BUILD_CUDA)
     install(TARGETS ${GRAPH_BENCHMARK_TARGETS_CUDA} RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
+if(TNL_BUILD_HIP)
+    set(GRAPH_BENCHMARK_TARGETS_HIP)
+
+    foreach(bench IN LISTS GRAPH_BENCHMARKS)
+        set(target tnl-benchmark-graphs-${bench}-hip)
+        add_executable(${target} tnl-benchmark-graphs-${bench}.hip)
+        target_link_libraries(${target} PUBLIC TNL::TNL)
+
+        if(Boost_GRAPH_FOUND)
+            target_link_libraries(${target} PUBLIC Boost::graph)
+            target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
+        endif()
+
+        list(APPEND GRAPH_BENCHMARK_TARGETS_HIP ${target})
+    endforeach()
+
+    install(TARGETS ${GRAPH_BENCHMARK_TARGETS_HIP} RUNTIME DESTINATION bin COMPONENT benchmarks)
+endif()
+
 set(GRAPH_BENCHMARK_TARGETS)
 
 foreach(bench IN LISTS GRAPH_BENCHMARKS)

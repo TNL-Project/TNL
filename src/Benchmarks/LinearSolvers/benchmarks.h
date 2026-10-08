@@ -6,18 +6,10 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 #include <TNL/Matrices/DistributedMatrix.h>
+#include <TNL/Benchmarks/Devices.h>
 
 #include <stdexcept>  // std::runtime_error
 #include "LinearSolversBenchmarkResult.h"
-
-template< typename Device >
-const char*
-getPerformer()
-{
-   if( std::is_same_v< Device, TNL::Devices::Cuda > )
-      return "GPU";
-   return "CPU";
-}
 
 template< typename Matrix >
 void
@@ -31,20 +23,6 @@ barrier( const TNL::Matrices::DistributedMatrix< Matrix >& matrix )
    TNL::MPI::Barrier( matrix.getCommunicator() );
 }
 
-template< typename Device >
-bool
-checkDevice( const TNL::Config::ParameterContainer& parameters )
-{
-   const auto device = parameters.getParameter< TNL::String >( "devices" );
-   if( device == "all" )
-      return true;
-   if( std::is_same_v< Device, TNL::Devices::Host > && device == "host" )
-      return true;
-   if( std::is_same_v< Device, TNL::Devices::Cuda > && device == "cuda" )
-      return true;
-   return false;
-}
-
 template< template< typename > class Solver, typename Matrix >
 void
 benchmarkSolverSetup(
@@ -54,11 +32,10 @@ benchmarkSolverSetup(
    const std::string& solver_name )
 {
    // skip benchmarks on devices which the user did not select
-   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+   if( ! TNL::Benchmarks::checkDevice< typename Matrix::DeviceType >( parameters ) )
       return;
 
    barrier( matrix );
-   const char* performer = getPerformer< typename Matrix::DeviceType >();
 
    Solver< Matrix > solver;
    solver.setup( parameters );
@@ -69,8 +46,8 @@ benchmarkSolverSetup(
       barrier( matrix );
    };
 
-   benchmark.setOperation( solver_name + " setMatrix" );
-   benchmark.time< typename Matrix::DeviceType >( performer, compute );
+   benchmark.setOperation( "setMatrix" );
+   benchmark.time< typename Matrix::DeviceType >( solver_name, compute );
 }
 
 template< template< typename > class Preconditioner, typename Matrix >
@@ -82,11 +59,10 @@ benchmarkPreconditionerUpdate(
    const std::string& preconditioner_name )
 {
    // skip benchmarks on devices which the user did not select
-   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+   if( ! TNL::Benchmarks::checkDevice< typename Matrix::DeviceType >( parameters ) )
       return;
 
    barrier( matrix );
-   const char* performer = getPerformer< typename Matrix::DeviceType >();
    Preconditioner< Matrix > preconditioner;
    preconditioner.setup( parameters );
 
@@ -96,8 +72,8 @@ benchmarkPreconditionerUpdate(
       barrier( matrix );
    };
 
-   benchmark.setOperation( preconditioner_name + " preconditioner update" );
-   benchmark.time< typename Matrix::DeviceType >( performer, compute );
+   benchmark.setOperation( "preconditioner update" );
+   benchmark.time< typename Matrix::DeviceType >( preconditioner_name, compute );
 }
 
 template< typename >
@@ -119,11 +95,10 @@ benchmarkSolver(
    const std::string& solver_name )
 {
    // skip benchmarks on devices which the user did not select
-   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+   if( ! TNL::Benchmarks::checkDevice< typename Matrix::DeviceType >( parameters ) )
       return;
 
    barrier( matrix );
-   const char* performer = getPerformer< typename Matrix::DeviceType >();
 
    // setup
    Solver< Matrix > solver;
@@ -164,8 +139,8 @@ benchmarkSolver(
    };
 
    LinearSolversBenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
-   benchmark.setOperation( solver_name );
-   benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
+   benchmark.setOperation( "solve" );
+   benchmark.time< typename Matrix::DeviceType >( reset, solver_name, compute, benchmarkResult );
 }
 
 template< template< typename > class Solver, typename Matrix, typename Vector >
@@ -179,5 +154,5 @@ benchmarkDirectSolver(
    const std::string& solver_name )
 {
    benchmarkSolverSetup< Solver >( benchmark, parameters, matrix, solver_name );
-   benchmarkSolver< Solver >( benchmark, parameters, matrix, x0, b, solver_name + " solve" );
+   benchmarkSolver< Solver >( benchmark, parameters, matrix, x0, b, solver_name );
 }

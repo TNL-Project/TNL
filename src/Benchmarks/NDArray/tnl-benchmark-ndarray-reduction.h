@@ -17,22 +17,12 @@
 
 #include <TNL/Benchmarks/Benchmark.h>
 
+#include <limits>
+
 using namespace TNL;
 using namespace TNL::Benchmarks;
 using namespace TNL::Containers;
 using namespace TNL::Algorithms;
-
-template< typename Device >
-const char*
-performer()
-{
-   if( std::is_same_v< Device, Devices::Host > )
-      return "CPU";
-   else if( std::is_same_v< Device, Devices::Cuda > )
-      return "GPU";
-   else
-      return "unknown";
-}
 
 template< typename T, T... ints >
 std::string
@@ -63,10 +53,11 @@ benchmark_ndarray_reduction1D( Benchmark& benchmark, index_type size )
       (void) res;
    };
 
-   const double datasetSize = size * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "1D", datasetSize );
+   const std::size_t datasetSize = size * sizeof( index_type );
+   benchmark.setOperation( "1D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -85,15 +76,16 @@ benchmark_ndarray_reduction2D( Benchmark& benchmark, index_type size, index_type
       nd_reduce< axis >( input, TNL::Plus{}, 0, result );
    };
 
-   const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "2D", datasetSize );
+   const std::size_t datasetSize = ( size * n + n ) * sizeof( index_type );
+   benchmark.setOperation( "2D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
            { "permutation", print_sequence( Permutation{} ) },
            { "size", convertToString( size ) },
            { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -112,8 +104,9 @@ benchmark_ndarray_reduction3D( Benchmark& benchmark, index_type size, index_type
       nd_reduce< axis >( input, TNL::Plus{}, 0, result );
    };
 
-   const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "3D", datasetSize );
+   const std::size_t datasetSize = ( m * n * size + m * n ) * sizeof( index_type );
+   benchmark.setOperation( "3D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -121,7 +114,7 @@ benchmark_ndarray_reduction3D( Benchmark& benchmark, index_type size, index_type
            { "size", convertToString( size ) },
            { "m", convertToString( m ) },
            { "n", convertToString( n ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -145,8 +138,9 @@ benchmark_ndarray_reduction4D( Benchmark& benchmark, index_type size, index_type
       result_host = result;
    };
 
-   const double datasetSize = ( m * n * o * size + m * n * o ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "4D", datasetSize );
+   const std::size_t datasetSize = ( m * n * o * size + m * n * o ) * sizeof( index_type );
+   benchmark.setOperation( "4D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -155,7 +149,7 @@ benchmark_ndarray_reduction4D( Benchmark& benchmark, index_type size, index_type
            { "m", convertToString( m ) },
            { "n", convertToString( n ) },
            { "o", convertToString( o ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -179,8 +173,9 @@ benchmark_ndarray_reduction5D( Benchmark& benchmark, index_type size, index_type
       result_host = result;
    };
 
-   const double datasetSize = ( m * n * o * p * size + m * n * o * p ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "5D", datasetSize );
+   const std::size_t datasetSize = ( m * n * o * p * size + m * n * o * p ) * sizeof( index_type );
+   benchmark.setOperation( "5D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -190,7 +185,7 @@ benchmark_ndarray_reduction5D( Benchmark& benchmark, index_type size, index_type
            { "n", convertToString( n ) },
            { "o", convertToString( o ) },
            { "p", convertToString( p ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
@@ -222,8 +217,9 @@ benchmark_ndarray_reduction6D(
       result_host = result;
    };
 
-   const double datasetSize = ( m * n * o * p * q * size + m * n * o * p * q ) * sizeof( index_type ) / oneGB;
-   benchmark.setOperation( "6D", datasetSize );
+   const std::size_t datasetSize = ( m * n * o * p * q * size + m * n * o * p * q ) * sizeof( index_type );
+   benchmark.setOperation( "6D" );
+   benchmark.setDatasetSize( datasetSize );
    benchmark.setMetadataColumns(
       Benchmark::MetadataColumns(
          { { "axis", convertToString( axis ) },
@@ -234,29 +230,35 @@ benchmark_ndarray_reduction6D(
            { "o", convertToString( o ) },
            { "p", convertToString( p ) },
            { "q", convertToString( q ) } } ) );
-   benchmark.time< Device >( reset, performer< Device >(), compute );
+   benchmark.time< Device >( reset, "TNL", compute );
 }
 
 template< typename Device >
 void
-run_benchmarks( Benchmark& benchmark )
+run_benchmarks( Benchmark& benchmark, const Config::ParameterContainer& parameters )
 {
-   std::vector sizes_23 = { 64, 256, 1024, 4096, 16384 };
+   auto sizes_1d = parameters.getList< index_type >( "sizes-1d" );
+   auto sizes_23 = parameters.getList< index_type >( "sizes-2d-3d" );
+   auto sizes_4 = parameters.getList< index_type >( "sizes-4d" );
+   auto sizes_56 = parameters.getList< index_type >( "sizes-5d-6d" );
+   const auto max_elements = parameters.getParameter< std::size_t >( "max-elements" );
+   const auto min_elements = parameters.getParameter< std::size_t >( "min-elements" );
 
-   std::vector sizes_4 = { 4, 16, 128, 256 };
+   if( max_elements > static_cast< std::size_t >( std::numeric_limits< index_type >::max() ) )
+      throw std::runtime_error(
+         "max-elements value " + convertToString( max_elements ) + " exceeds index_type maximum ("
+         + convertToString( std::numeric_limits< index_type >::max() ) + ")" );
 
-   std::vector sizes_56 = { 2, 16, 128 };
-
-   for( index_type size : { 5000000, 50000000, 500000000 } ) {
+   for( index_type size : sizes_1d ) {
       benchmark_ndarray_reduction1D< Device >( benchmark, size );
    }
 
    TNL::Algorithms::staticFor< std::size_t, 0, 2 >(
       [ & ]( auto axis )
       {
-         for( index_type size : sizes_23 ) {
-            for( index_type m : sizes_23 ) {
-               if( size * m > 3e9 )
+         for( std::size_t size : sizes_23 ) {
+            for( std::size_t m : sizes_23 ) {
+               if( size * m > max_elements )
                   continue;
                benchmark_ndarray_reduction2D< Device, std::index_sequence< 0, 1 >, axis >( benchmark, size, m );
                benchmark_ndarray_reduction2D< Device, std::index_sequence< 1, 0 >, axis >( benchmark, size, m );
@@ -270,7 +272,7 @@ run_benchmarks( Benchmark& benchmark )
          for( std::size_t size : sizes_23 ) {
             for( std::size_t m : sizes_23 ) {
                for( std::size_t n : sizes_23 ) {
-                  if( size * m * n > 3e9 )
+                  if( size * m * n > max_elements )
                      continue;
                   benchmark_ndarray_reduction3D< Device, std::index_sequence< 0, 1, 2 >, axis >( benchmark, size, m, n );
                   benchmark_ndarray_reduction3D< Device, std::index_sequence< 0, 2, 1 >, axis >( benchmark, size, m, n );
@@ -290,9 +292,9 @@ run_benchmarks( Benchmark& benchmark )
             for( std::size_t m : sizes_4 ) {
                for( std::size_t n : sizes_4 ) {
                   for( std::size_t o : sizes_4 ) {
-                     if( size * m * n * o < 5e7 )
+                     if( size * m * n * o < min_elements )
                         continue;
-                     if( size * m * n * o > 2e9 )
+                     if( size * m * n * o > max_elements )
                         continue;
                      benchmark_ndarray_reduction4D< Device, std::index_sequence< 0, 1, 2, 3 >, axis >(
                         benchmark, size, m, n, o );
@@ -318,9 +320,9 @@ run_benchmarks( Benchmark& benchmark )
                for( std::size_t n : sizes_56 ) {
                   for( std::size_t o : sizes_56 ) {
                      for( std::size_t p : sizes_56 ) {
-                        if( size * m * n * o * p < 5e7 )
+                        if( size * m * n * o * p < min_elements )
                            continue;
-                        if( size * m * n * o * p > 3e9 )
+                        if( size * m * n * o * p > max_elements )
                            continue;
                         benchmark_ndarray_reduction5D< Device, std::index_sequence< 0, 1, 2, 3, 4 >, axis >(
                            benchmark, size, m, n, o, p );
@@ -348,9 +350,9 @@ run_benchmarks( Benchmark& benchmark )
                   for( std::size_t o : sizes_56 ) {
                      for( std::size_t p : sizes_56 ) {
                         for( std::size_t q : sizes_56 ) {
-                           if( size * m * n * o * p * q < 5e7 )
+                           if( size * m * n * o * p * q < min_elements )
                               continue;
-                           if( size * m * n * o * p * q > 3e9 )
+                           if( size * m * n * o * p * q > max_elements )
                               continue;
                            benchmark_ndarray_reduction6D< Device, std::index_sequence< 0, 1, 2, 3, 4, 5 >, axis >(
                               benchmark, size, m, n, o, p, q );
@@ -374,20 +376,49 @@ run_benchmarks( Benchmark& benchmark )
 }
 
 void
-setupConfig( Config::ConfigDescription& config )
+resolveDevice( Benchmark& benchmark, const Config::ParameterContainer& parameters )
+{
+   const auto& device = parameters.getParameter< String >( "device" );
+
+   if( device == "sequential" || device == "all" )
+      run_benchmarks< Devices::Sequential >( benchmark, parameters );
+
+   if( device == "host" || device == "all" )
+      run_benchmarks< Devices::Host >( benchmark, parameters );
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if( device == "cuda" || device == "hip" || device == "all" )
+      run_benchmarks< Devices::GPU >( benchmark, parameters );
+#endif
+}
+
+void
+configSetup( Config::ConfigDescription& config )
 {
    Benchmark::configSetup( config );
-   config.addDelimiter( "NDArray benchmark settings:" );
-   config.addEntry< String >( "devices", "Run benchmarks on these devices.", "cuda" );
-   config.addEntryEnum( "all" );
+   config.addDelimiter( "NDArray reduction benchmark settings:" );
+   config.addEntry< String >( "device", "Device to run benchmarks on.", "all" );
+   config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
-#ifdef __CUDACC__
    config.addEntryEnum( "cuda" );
-#endif
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
+
+   config.addList< index_type >( "sizes-1d", "Sizes for 1D reduction.", { 5000000, 50000000, 500000000 } );
+   config.addList< index_type >( "sizes-2d-3d", "Sizes for 2D and 3D reduction.", { 64, 256, 1024, 4096, 16384 } );
+   config.addList< index_type >( "sizes-4d", "Sizes for 4D reduction.", { 4, 16, 128, 256 } );
+   config.addList< index_type >( "sizes-5d-6d", "Sizes for 5D and 6D reduction.", { 2, 16, 128 } );
+   config.addEntry< std::size_t >(
+      "min-elements", "Skip combinations with fewer total elements (applied only to 4D, 5D, and 6D).", 50000000 );
+   config.addEntry< std::size_t >(
+      "max-elements",
+      "Skip combinations with more total elements. Values larger than "
+         + convertToString( std::numeric_limits< index_type >::max() ) + " may cause overflow in internal index computations.",
+      2000000000 );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   Devices::GPU::configSetup( config );
 }
 
 int
@@ -396,27 +427,19 @@ main( int argc, char* argv[] )
    Config::ParameterContainer parameters;
    Config::ConfigDescription conf_desc;
 
-   setupConfig( conf_desc );
+   configSetup( conf_desc );
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-
-   // init benchmark and set parameters
+   // init benchmark
    Benchmark benchmark;
    benchmark.setup( parameters, argv[ 0 ] );
 
-   const String devices = parameters.getParameter< String >( "devices" );
-   if( devices == "all" || devices == "host" )
-      run_benchmarks< Devices::Host >( benchmark );
-#ifdef __CUDACC__
-   if( devices == "all" || devices == "cuda" )
-      run_benchmarks< Devices::Cuda >( benchmark );
-#endif
+   resolveDevice( benchmark, parameters );
 
    return EXIT_SUCCESS;
 }
