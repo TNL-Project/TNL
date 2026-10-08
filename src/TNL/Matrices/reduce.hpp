@@ -5,6 +5,8 @@
 
 #include <type_traits>
 
+#include <TNL/Assert.h>
+
 #include "reduce.h"
 #include "detail/ReductionOperations.h"
 #include "detail/RowSelection.h"
@@ -120,6 +122,9 @@ reduceRows(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::ReductionOperations< typename Matrix::ViewType >::reduceRows(
       matrix_view,
@@ -152,6 +157,9 @@ reduceRows(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRows(
       matrix.getConstView(),
       begin,
@@ -582,6 +590,9 @@ reduceRowsIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    return detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsIf(
       matrix_view,
@@ -617,6 +628,9 @@ reduceRowsIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    return detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsIf(
       matrix.getConstView(),
       begin,
@@ -1074,6 +1088,9 @@ reduceRowsWithArgument(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsWithArgument(
       matrix_view,
@@ -1106,6 +1123,9 @@ reduceRowsWithArgument(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsWithArgument(
       matrix.getConstView(),
       begin,
@@ -1548,6 +1568,9 @@ reduceRowsWithArgumentIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    return detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsWithArgumentIf(
       matrix_view,
@@ -1583,6 +1606,9 @@ reduceRowsWithArgumentIf(
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    return detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsWithArgumentIf(
       matrix.getConstView(),
       begin,

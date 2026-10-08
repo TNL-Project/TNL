@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <TNL/Assert.h>
+
 #include "detail/TraversingOperations.h"
 #include "detail/RowSelection.h"
 
@@ -17,6 +19,9 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
       matrix_view, begin, end, std::forward< Function >( function ), launchConfig );
@@ -31,6 +36,9 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
       matrix.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -138,6 +146,9 @@ forElementsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElementsIf(
       matrix_view, begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ), launchConfig );
@@ -153,6 +164,9 @@ forElementsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElementsIf(
       matrix.getConstView(),
       begin,
@@ -305,6 +319,9 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRows(
       matrix_view, begin, end, std::forward< Function >( function ), launchConfig );
@@ -319,6 +336,9 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forRows(
       matrix.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -421,6 +441,9 @@ forRowsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRowsIf(
       matrix_view, begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ), launchConfig );
@@ -436,6 +459,9 @@ forRowsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forRowsIf(
       matrix.getConstView(),
       begin,
