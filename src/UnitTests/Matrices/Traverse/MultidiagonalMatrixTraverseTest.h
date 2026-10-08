@@ -20,7 +20,8 @@ using MultidiagonalMatrixTraverseTypes = ::testing::Types<
    TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int >,
    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, int >,
    TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, long >,
-   TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, long >
+   TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, long >,
+   TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >
 #elif defined( __CUDACC__ )
    TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, int >,
    TNL::Matrices::MultidiagonalMatrix< double, TNL::Devices::Cuda, int >,
