@@ -8,6 +8,7 @@
 #include "../MultidiagonalMatrixView.h"
 #include "TraversingOperations.h"
 #include "TraversingOperationsBase.h"
+#include "MultidiagonalRowTraversal.h"
 
 namespace TNL::Matrices::detail {
 
@@ -39,16 +40,17 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
    {
       auto values_view = matrix.getValues().getView();
       const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
-      const IndexType diagonalsCount = matrix.getDiagonalsCount();
-      const IndexType columns = matrix.getColumns();
       const auto indexer = matrix.getIndexer();
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
-         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
-            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
-            if( columnIdx >= 0 && columnIdx < columns )
-               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
-         }
+         forMultidiagonalRowElements(
+            indexer,
+            diagonalOffsets_view,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -64,16 +66,17 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
    {
       const auto values_view = matrix.getValues().getConstView();
       const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
-      const IndexType diagonalsCount = matrix.getDiagonalsCount();
-      const IndexType columns = matrix.getColumns();
       const auto indexer = matrix.getIndexer();
       auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
       {
-         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
-            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
-            if( columnIdx >= 0 && columnIdx < columns )
-               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
-         }
+         forMultidiagonalRowElements(
+            indexer,
+            diagonalOffsets_view,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -94,18 +97,19 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
          end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto values_view = matrix.getValues().getView();
       const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
-      const IndexType diagonalsCount = matrix.getDiagonalsCount();
-      const IndexType columns = matrix.getColumns();
       const auto indexer = matrix.getIndexer();
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
          const auto rowIdx = rowIndexes_view[ idx ];
-         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
-            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
-            if( columnIdx >= 0 && columnIdx < columns )
-               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
-         }
+         forMultidiagonalRowElements(
+            indexer,
+            diagonalOffsets_view,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
@@ -126,18 +130,19 @@ struct TraversingOperations< MultidiagonalMatrixView< Real, Device, Index, Organ
          end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const auto values_view = matrix.getValues().getConstView();
       const auto diagonalOffsets_view = matrix.getDiagonalOffsets().getConstView();
-      const IndexType diagonalsCount = matrix.getDiagonalsCount();
-      const IndexType columns = matrix.getColumns();
       const auto indexer = matrix.getIndexer();
       auto rowIndexes_view = rowIndexes.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
       {
          const auto rowIdx = rowIndexes_view[ idx ];
-         for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
-            const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
-            if( columnIdx >= 0 && columnIdx < columns )
-               function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
-         }
+         forMultidiagonalRowElements(
+            indexer,
+            diagonalOffsets_view,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+            } );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
