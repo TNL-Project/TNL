@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "reduce.h"
 #include "detail/ReductionOperations.h"
 
@@ -69,7 +71,7 @@ reduceAllVertices(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -92,7 +94,7 @@ reduceAllVertices(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -179,7 +181,7 @@ reduceVertices(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -203,7 +205,7 @@ reduceVertices(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -268,7 +270,7 @@ reduceVertices(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -292,7 +294,7 @@ reduceVertices(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -362,7 +364,7 @@ reduceAllVerticesIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -386,7 +388,7 @@ reduceAllVerticesIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -486,7 +488,7 @@ reduceVerticesIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -519,7 +521,7 @@ reduceVerticesIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -583,7 +585,7 @@ reduceAllVerticesWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -605,7 +607,7 @@ reduceAllVerticesWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -692,7 +694,7 @@ reduceVerticesWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -716,7 +718,7 @@ reduceVerticesWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -781,7 +783,7 @@ reduceVerticesWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -803,7 +805,7 @@ reduceVerticesWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -873,7 +875,7 @@ reduceAllVerticesWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -897,7 +899,7 @@ reduceAllVerticesWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -997,7 +999,7 @@ reduceVerticesWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1030,7 +1032,7 @@ reduceVerticesWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 

@@ -81,6 +81,16 @@ test_reduceRows()
       EXPECT_EQ( rowSums.getElement( 3 ), 0 );  // empty row
       EXPECT_EQ( rowSums.getElement( 4 ), 58 );  // 13+14+15+16
 
+      // The identity is deduced also from a reduction passed as lvalue
+      rowSums = -1;
+      const TNL::Plus plus;
+      TNL::Matrices::reduceAllRows( matrix, fetch, plus, store, launch_config );
+      EXPECT_EQ( rowSums.getElement( 0 ), 12 );  // 1+2+4+5
+      EXPECT_EQ( rowSums.getElement( 1 ), 13 );  // 6+7
+      EXPECT_EQ( rowSums.getElement( 2 ), 27 );  // 8+9+10
+      EXPECT_EQ( rowSums.getElement( 3 ), 0 );  // empty row
+      EXPECT_EQ( rowSums.getElement( 4 ), 58 );  // 13+14+15+16
+
       const auto constMatrix( matrix );
 
       rowSums = 0;
