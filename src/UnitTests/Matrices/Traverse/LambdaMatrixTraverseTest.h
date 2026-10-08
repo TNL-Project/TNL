@@ -197,7 +197,7 @@ test_forRows()
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
 
-   auto f = [ = ] __cuda_callable__( RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( RowView& row ) mutable
    {
       Real sum = 0;
       for( Index i = 0; i < row.getSize(); i++ )
@@ -251,7 +251,7 @@ test_forAllRows()
    VectorType rowSums( size, 0 );
    auto rowSumsView = rowSums.getView();
 
-   auto f = [ = ] __cuda_callable__( RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( RowView& row ) mutable
    {
       Real sum = 0;
       for( Index i = 0; i < row.getSize(); i++ )

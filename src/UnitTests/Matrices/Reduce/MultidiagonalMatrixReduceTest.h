@@ -322,7 +322,7 @@ test_reduceRowsWithArgument()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
+   auto reduce = [] __cuda_callable__( RealType& a, const RealType& b, IndexType& aIdx, IndexType bIdx )
    {
       if( b > a ) {
          a = b;
@@ -404,7 +404,7 @@ test_reduceRowsWithArgumentIf()
    {
       return value;
    };
-   auto reduce = [] __cuda_callable__( RealType & a, const RealType& b, IndexType& aIdx, IndexType bIdx )
+   auto reduce = [] __cuda_callable__( RealType& a, const RealType& b, IndexType& aIdx, IndexType bIdx )
    {
       if( b > a ) {
          a = b;

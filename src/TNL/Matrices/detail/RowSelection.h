@@ -42,7 +42,7 @@ buildSelectedRowIndexes( IndexBegin begin, IndexEnd end, Condition&& condition )
    // Build a 0/1 mask: 1 where condition(rowIdx) holds, 0 otherwise
    VectorType conditionMask( end - begin );
    conditionMask.forAllElements(
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType& value ) mutable
       {
          value = condition( rowIdx + begin ) ? 1 : 0;
       } );
@@ -76,7 +76,7 @@ buildSelectedRowIndexesFromArray( const Array& rowIndexes, IndexBegin begin, Ind
    // Build a 0/1 mask over positions [begin, end): condition receives the row index, not the position
    VectorType conditionMask( end - begin );
    conditionMask.forAllElements(
-      [ = ] __cuda_callable__( IndexType positionIdx, IndexType & value ) mutable
+      [ = ] __cuda_callable__( IndexType positionIdx, IndexType& value ) mutable
       {
          value = condition( rowIndexes_view[ positionIdx + begin ] ) ? 1 : 0;
       } );
