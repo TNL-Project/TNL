@@ -92,9 +92,10 @@ namespace TNL::Algorithms::Segments {
  *
  * \section SegmentReductionEmptySegments Behavior for Empty Segments
  *
- * An **empty segment** is a segment that contains no elements to reduce over. This can happen when a segment
- * has zero length, or when all elements in the segment are filtered out by the `fetch` lambda (e.g., padding
- * elements in sparse storage formats).
+ * An **empty segment** is a segment of zero size, i.e. a segment that contains no elements to reduce over.
+ * Note that the segments know nothing about the meaning of their elements. A segment of nonzero size is not
+ * empty even if the `fetch` lambda returns the `identity` for all its elements (e.g., for the padding elements
+ * of sparse matrices).
  *
  * The behavior depends on the reduction variant:
  *
