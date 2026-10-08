@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "reduce.h"
 #include "detail/ReductionOperations.h"
 #include "detail/RowSelection.h"
@@ -71,7 +73,7 @@ reduceAllRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -94,7 +96,7 @@ reduceAllRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -188,7 +190,7 @@ reduceRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -219,7 +221,7 @@ reduceRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -287,7 +289,7 @@ reduceRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -310,7 +312,7 @@ reduceRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -425,7 +427,7 @@ reduceRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -460,7 +462,7 @@ reduceRows(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -530,7 +532,7 @@ reduceAllRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -554,7 +556,7 @@ reduceAllRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -657,7 +659,7 @@ reduceRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -691,7 +693,7 @@ reduceRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -806,7 +808,7 @@ reduceRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -844,7 +846,7 @@ reduceRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -937,7 +939,7 @@ reduceRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -962,7 +964,7 @@ reduceRowsIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1026,7 +1028,7 @@ reduceAllRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1048,7 +1050,7 @@ reduceAllRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1142,7 +1144,7 @@ reduceRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1173,7 +1175,7 @@ reduceRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1241,7 +1243,7 @@ reduceRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1264,7 +1266,7 @@ reduceRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1391,7 +1393,7 @@ reduceRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1426,7 +1428,7 @@ reduceRowsWithArgument(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1496,7 +1498,7 @@ reduceAllRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1520,7 +1522,7 @@ reduceAllRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1623,7 +1625,7 @@ reduceRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1657,7 +1659,7 @@ reduceRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1772,7 +1774,7 @@ reduceRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1810,7 +1812,7 @@ reduceRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1903,7 +1905,7 @@ reduceRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
@@ -1928,7 +1930,7 @@ reduceRowsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       reduction,
       std::forward< Store >( store ),
-      Reduction::template getIdentity< FetchValue >(),
+      std::decay_t< Reduction >::template getIdentity< FetchValue >(),
       launchConfig );
 }
 
