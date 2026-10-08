@@ -17,7 +17,8 @@
 using TridiagonalMatrixReduceTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, int >,
-   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, long >
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, long >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >
 #elif defined( __CUDACC__ )
    TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, int >,
    TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, long >
