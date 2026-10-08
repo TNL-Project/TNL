@@ -79,7 +79,7 @@ test_forElements_Range()
       view,
       (IndexType) 1,
       (IndexType) 4,
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          // For TridiagonalMatrix, columnIdx is the actual column index, not just localIdx. A wrong column
          // index spoils the row sum, which is checked on the host.
@@ -130,7 +130,7 @@ test_forAllElements()
 
    TNL::Matrices::forAllElements(
       view,
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( totalSumView[ 0 ], value );
       } );
@@ -174,7 +174,7 @@ test_forElements_WithIndexArray()
       rowIndexes.getView(),
       (IndexType) 0,
       (IndexType) 2,
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( rowSumsView[ rowIdx ], value );
       } );
@@ -228,7 +228,7 @@ test_forElementsIf()
       {
          return rowIdx % 2 == 0;
       },
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( rowSumsView[ rowIdx ], value );
       } );
@@ -284,7 +284,7 @@ test_forAllElementsIf()
       {
          return rowIdx > 1;
       },
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( rowSumsView[ rowIdx ], value );
       } );
@@ -334,7 +334,7 @@ test_forRows()
    VectorType rowSums( 5, 0 );
    auto rowSumsView = rowSums.getView();
 
-   auto f = [ = ] __cuda_callable__( RowView & row ) mutable
+   auto f = [ = ] __cuda_callable__( RowView& row ) mutable
    {
       RealType sum = 0;
       for( IndexType i = 0; i < row.getSize(); i++ )
@@ -414,7 +414,7 @@ test_forRows_WithIndexArray()
       rowIndexes.getView(),
       (IndexType) 0,
       (IndexType) 3,
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          RealType sum = 0;
          for( IndexType i = 0; i < row.getSize(); i++ )
@@ -475,7 +475,7 @@ test_forRowsIf()
       {
          return rowIdx % 2 == 1;
       },
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          RealType sum = 0;
          for( IndexType i = 0; i < row.getSize(); i++ )
@@ -538,7 +538,7 @@ test_forAllRowsIf()
       {
          return rowIdx >= 2;
       },
-      [ = ] __cuda_callable__( RowView & row ) mutable
+      [ = ] __cuda_callable__( RowView& row ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], (IndexType) 1 );
       } );

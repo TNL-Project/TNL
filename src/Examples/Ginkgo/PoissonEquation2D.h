@@ -95,7 +95,7 @@ generateStencilMatrix( Matrix& A_local, Vector& b_local, typename Matrix::IndexT
     */
    TNL::Matrices::forAllRows(
       A_local,
-      [ = ] __cuda_callable__( typename Matrix::RowView & row ) mutable
+      [ = ] __cuda_callable__( typename Matrix::RowView& row ) mutable
       {
          // The row index must be converted from local to global
          const Index i = ilower + row.getRowIndex();
