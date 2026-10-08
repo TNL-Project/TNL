@@ -110,8 +110,9 @@ namespace TNL::Matrices {
  * \section MatrixReductionEmptyRows Behavior for Empty Rows
  *
  * An **empty row** is a row that contains no matrix elements to reduce over. This can happen, for example,
- * with sparse matrices that have a row with zero non-zero elements, or with multidiagonal/tridiagonal matrices
- * where all diagonals fall outside the valid column range for a given row.
+ * with sparse matrices that have a row with zero non-zero elements (even if the row contains padding elements),
+ * with multidiagonal/tridiagonal matrices where all diagonals fall outside the valid column range for a given
+ * row, or with lambda matrices where all elements of a row are zero.
  *
  * The behavior depends on the reduction variant:
  *

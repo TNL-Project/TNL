@@ -220,11 +220,13 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                columnIndexes_view.getSize(),
                "Global index out of bounds for columnIndexes_view in reduceRowsWithArgument." );
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( rowIdx, localIdx, columnIdx, value, emptyRow );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptyRow );
-         }
+         store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -267,11 +269,13 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( rowIdx, localIdx, columnIdx, value, emptyRow );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptyRow );
-         }
+         store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -310,11 +314,13 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptyRow );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptyRow );
-         }
+         store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -357,11 +363,13 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptyRow );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptyRow );
-         }
+         store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(

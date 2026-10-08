@@ -8,6 +8,7 @@
 
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Matrices/TypeTraits.h>
 #include <TNL/Matrices/reduce.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
@@ -293,6 +294,10 @@ test_reduceRowsWithArgument()
    const IndexType rows = 5;
    const IndexType cols = 5;
 
+   // Row 3 has no nonzero elements. Sparse matrices report it as empty (even with padding elements),
+   // dense matrices store its zeros explicitly and so the maximum is found in the column 0.
+   const IndexType emptyRowColumn = TNL::Matrices::is_dense_matrix_v< MatrixType > ? 0 : -1;
+
    MatrixType matrix( rows, cols );
 
    // For sparse matrices, set row capacities
@@ -347,9 +352,6 @@ test_reduceRowsWithArgument()
       maxValues_view[ rowIdx ] = value;
       if( ! emptyRow )
          maxColumns_view[ rowIdx ] = columnIdx;
-      // TODO: Fix the following - Ellpack based segments cannot detect segment full of padding zeros as an empty segment.
-      //else
-      //   maxColumns_view[ rowIdx ] = 0;
    };
    auto storeWithRowIndexes = [ = ] __cuda_callable__(
                                  const IndexType indexOfRowIdx,
@@ -362,9 +364,6 @@ test_reduceRowsWithArgument()
       maxValues_view[ rowIdx ] = value;
       if( ! emptyRow )
          maxColumns_view[ rowIdx ] = columnIdx;
-      // TODO: Fix the following - Ellpack based segments cannot detect segment full of padding zeros as an empty segment.
-      //else
-      //   maxColumns_view[ rowIdx ] = 0;
    };
 
    for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
@@ -380,8 +379,8 @@ test_reduceRowsWithArgument()
       EXPECT_EQ( maxColumns.getElement( 1 ), 2 );
       EXPECT_EQ( maxValues.getElement( 2 ), 10 );
       EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
-      //EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
-      //EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
+      EXPECT_EQ( maxColumns.getElement( 3 ), emptyRowColumn );
       EXPECT_EQ( maxValues.getElement( 4 ), 16 );
       EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
 
@@ -394,11 +393,11 @@ test_reduceRowsWithArgument()
       EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
       EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
       EXPECT_EQ( maxValues.getElement( 1 ), 0 );  // skipped
-                                              //EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
+      EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
       EXPECT_EQ( maxValues.getElement( 2 ), 10 );
       EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
-      //EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
-      //EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
+      EXPECT_EQ( maxColumns.getElement( 3 ), emptyRowColumn );
       EXPECT_EQ( maxValues.getElement( 4 ), 0 );  // skipped
       EXPECT_EQ( maxColumns.getElement( 4 ), -1 );
 
@@ -409,13 +408,13 @@ test_reduceRowsWithArgument()
          constMatrix.getConstView(), rowIndexes, fetch, reduce, storeWithRowIndexes, (RealType) 0, launch_config );
 
       EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
-      //EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
+      EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
       EXPECT_EQ( maxValues.getElement( 1 ), 7 );
       EXPECT_EQ( maxColumns.getElement( 1 ), 2 );
       EXPECT_EQ( maxValues.getElement( 2 ), 10 );
       EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
       EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // skipped
-      //EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
       EXPECT_EQ( maxValues.getElement( 4 ), 16 );
       EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
 
@@ -469,6 +468,10 @@ test_reduceRowsWithArgumentIf()
 
    const IndexType rows = 5;
    const IndexType cols = 5;
+
+   // Row 3 has no nonzero elements. Sparse matrices report it as empty (even with padding elements),
+   // dense matrices store its zeros explicitly and so the maximum is found in the column 0.
+   const IndexType emptyRowColumn = TNL::Matrices::is_dense_matrix_v< MatrixType > ? 0 : -1;
 
    MatrixType matrix( rows, cols );
 
@@ -529,9 +532,6 @@ test_reduceRowsWithArgumentIf()
       maxValues_view[ rowIdx ] = value;
       if( ! emptyRow )
          maxColumns_view[ rowIdx ] = columnIdx;
-      // TODO: Fix the following - Ellpack based segments cannot detect segment full of padding zeros as an empty segment.
-      //else
-      //   maxColumns_view[ rowIdx ] = 0;
    };
 
    for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
@@ -547,8 +547,8 @@ test_reduceRowsWithArgumentIf()
       EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
       EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
       EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
-      //EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
-      //EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
+      EXPECT_EQ( maxColumns.getElement( 3 ), emptyRowColumn );
       EXPECT_EQ( maxValues.getElement( 4 ), 16 );  // max of {13, 14, 15, 16}
       EXPECT_EQ( maxColumns.getElement( 4 ), 4 );
 
@@ -564,8 +564,8 @@ test_reduceRowsWithArgumentIf()
       EXPECT_EQ( maxColumns.getElement( 1 ), -1 );
       EXPECT_EQ( maxValues.getElement( 2 ), 10 );  // max of {8, 9, 10}
       EXPECT_EQ( maxColumns.getElement( 2 ), 3 );
-      //EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
-      //EXPECT_EQ( maxColumns.getElement( 3 ), -1 );
+      EXPECT_EQ( maxValues.getElement( 3 ), 0 );  // empty row
+      EXPECT_EQ( maxColumns.getElement( 3 ), emptyRowColumn );
       EXPECT_EQ( maxValues.getElement( 4 ), 0 );  // skipped
       EXPECT_EQ( maxColumns.getElement( 4 ), -1 );
 
@@ -697,15 +697,18 @@ test_reduceRowsWithRowIndexes()
 
    const std::vector< RealType > rowSums{ 12, 13, 27, 0, 58 };
    const std::vector< RealType > rowMaxima{ 5, 7, 10, 0, 16 };
-   const std::vector< IndexType > rowMaxColumns{ 4, 2, 3, -1, 4 };
+   // Dense matrices store the zeros of row 3 explicitly and so its maximum is found in the column 0
+   const std::vector< IndexType > rowMaxColumns{ 4, 2, 3, 0, 4 };
 
    const IndexVector rowIndexes{ 4, 0, 3, 1, 2 };
    RealVector values( rows );
    IndexVector columns( rows );
    IndexVector positions( rows );
+   IndexVector emptyRows( rows );
    auto values_view = values.getView();
    auto columns_view = columns.getView();
    auto positions_view = positions.getView();
+   auto emptyRows_view = emptyRows.getView();
 
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> RealType
    {
@@ -731,6 +734,7 @@ test_reduceRowsWithRowIndexes()
       values_view[ rowIdx ] = value;
       columns_view[ rowIdx ] = emptyRow ? -1 : columnIdx;
       positions_view[ rowIdx ] = indexOfRowIdx;
+      emptyRows_view[ rowIdx ] = emptyRow;
    };
    const RealType lowest = std::numeric_limits< RealType >::lowest();
 
@@ -739,6 +743,7 @@ test_reduceRowsWithRowIndexes()
       values.setValue( -1 );
       columns.setValue( -2 );
       positions.setValue( -1 );
+      emptyRows.setValue( -1 );
    };
    // Checks that exactly the rows in `expectedPositions` were processed and that the store function
    // received the expected index for them.
@@ -747,21 +752,27 @@ test_reduceRowsWithRowIndexes()
       TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > hostValues;
       TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostColumns;
       TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostPositions;
+      TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostEmptyRows;
       hostValues = values;
       hostColumns = columns;
       hostPositions = positions;
+      hostEmptyRows = emptyRows;
       for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ ) {
          const bool processed = expectedPositions[ rowIdx ] >= 0;
          EXPECT_EQ( hostPositions[ rowIdx ], expectedPositions[ rowIdx ] ) << "row " << rowIdx;
-         // Ellpack based segments cannot detect a segment full of padding zeros as an empty segment,
-         // so the maximum of the empty row 3 is not checked.
          if( ! processed )
             EXPECT_EQ( hostValues[ rowIdx ], -1 ) << "row " << rowIdx;
          else if( ! withArgument )
             EXPECT_EQ( hostValues[ rowIdx ], rowSums[ rowIdx ] ) << "row " << rowIdx;
-         else if( rowIdx != 3 ) {
+         else if( rowIdx == 3 && ! TNL::Matrices::is_dense_matrix_v< MatrixType > ) {
+            // Row 3 has no nonzero elements and sparse matrices report it as empty (even with padding elements)
+            EXPECT_EQ( hostValues[ rowIdx ], lowest ) << "row " << rowIdx;
+            EXPECT_EQ( hostEmptyRows[ rowIdx ], 1 ) << "row " << rowIdx;
+         }
+         else {
             EXPECT_EQ( hostValues[ rowIdx ], rowMaxima[ rowIdx ] ) << "row " << rowIdx;
             EXPECT_EQ( hostColumns[ rowIdx ], rowMaxColumns[ rowIdx ] ) << "row " << rowIdx;
+            EXPECT_EQ( hostEmptyRows[ rowIdx ], 0 ) << "row " << rowIdx;
          }
       }
    };
