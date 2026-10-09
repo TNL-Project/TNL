@@ -6,6 +6,7 @@
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "CSRHostScheduling.h"
 #include "TraversingKernels_CSR.h"
 #include "TraversingOperationsBase.h"
 
@@ -30,22 +31,53 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       const LaunchConfiguration& launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
-      auto l = [ offsetsView, function ] __cuda_callable__( IndexType segmentIdx ) mutable
-      {
-         const IndexType begin = offsetsView[ segmentIdx ];
-         const IndexType end = offsetsView[ segmentIdx + 1 ];
-         if constexpr( callableArgumentCount< Function >() == 3 ) {
-            IndexType localIdx( 0 );
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               function( segmentIdx, localIdx++, globalIdx );
+
+      // On the host, a plain parallelFor over the segment range balances the work by the number of
+      // segments, not by the number of elements. For rows of very different lengths (e.g. power-law
+      // graphs), this leads to a poor load balance between threads, so the segments are split into
+      // contiguous blocks balanced by the number of elements instead (see forSegmentsHost).
+      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > || std::is_same_v< Device, TNL::Devices::Host > ) {
+         auto l = [ offsetsView, function ]( IndexType segmentIdx ) mutable
+         {
+            const IndexType begin = offsetsView[ segmentIdx ];
+            const IndexType end = offsetsView[ segmentIdx + 1 ];
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
+               IndexType localIdx( 0 );
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, localIdx++, globalIdx );
+            }
+            else {
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, globalIdx );
+            }
+         };
+
+         if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
+            for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+               l( segmentIdx );
          }
          else {
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               function( segmentIdx, globalIdx );
+            forSegmentsHost( offsetsView, begin, end, l );
          }
-      };
-      // TODO: Add launch config
-      Algorithms::parallelFor< Device >( begin, end, l );
+      }
+      else {
+         auto l = [ offsetsView, function ] __cuda_callable__( IndexType segmentIdx ) mutable
+         {
+            const IndexType begin = offsetsView[ segmentIdx ];
+            const IndexType end = offsetsView[ segmentIdx + 1 ];
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
+               IndexType localIdx( 0 );
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, localIdx++, globalIdx );
+            }
+            else {
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, globalIdx );
+            }
+         };
+         // TODO: Add launch config
+         Algorithms::parallelFor< Device >( begin, end, l );
+      }
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
