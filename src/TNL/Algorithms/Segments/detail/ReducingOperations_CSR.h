@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
@@ -43,36 +45,76 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
 
-      auto l = [ offsets, fetch, reduction, storer, identity ] __cuda_callable__( const Index segmentIdx ) mutable
-      {
-         const IndexType begin = offsets[ segmentIdx ];
-         const IndexType end = offsets[ segmentIdx + 1 ];
-         using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
-         ReturnType aux = identity;
-         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-            IndexType localIdx = 0;
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx ) );
+      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > || std::is_same_v< Device, TNL::Devices::Host > ) {
+         // Long segments are reduced into several independent partial results, so that the loop
+         // is not bound by the latency of the reduction operation (e.g. the FMA in SpMV). Short
+         // segments are faster with a single partial result.
+         auto l = [ offsets, fetch, reduction, storer, identity ]( const Index segmentIdx ) mutable
+         {
+            const IndexType begin = offsets[ segmentIdx ];
+            const IndexType end = offsets[ segmentIdx + 1 ];
+            using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
+            ReturnType aux0 = identity;
+            IndexType globalIdx = begin;
+            if( end - begin >= 16 ) {
+               ReturnType aux1 = identity;
+               ReturnType aux2 = identity;
+               ReturnType aux3 = identity;
+               for( ; globalIdx + 3 < end; globalIdx += 4 ) {
+                  if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+                     const IndexType localIdx = globalIdx - begin;
+                     aux0 = reduction( aux0, fetch( segmentIdx, localIdx, globalIdx ) );
+                     aux1 = reduction( aux1, fetch( segmentIdx, localIdx + 1, globalIdx + 1 ) );
+                     aux2 = reduction( aux2, fetch( segmentIdx, localIdx + 2, globalIdx + 2 ) );
+                     aux3 = reduction( aux3, fetch( segmentIdx, localIdx + 3, globalIdx + 3 ) );
+                  }
+                  else {
+                     aux0 = reduction( aux0, fetch( globalIdx ) );
+                     aux1 = reduction( aux1, fetch( globalIdx + 1 ) );
+                     aux2 = reduction( aux2, fetch( globalIdx + 2 ) );
+                     aux3 = reduction( aux3, fetch( globalIdx + 3 ) );
+                  }
+               }
+               // the reduction may take its first argument by a non-const reference
+               aux0 = reduction( aux0, aux1 );
+               aux2 = reduction( aux2, aux3 );
+               aux0 = reduction( aux0, aux2 );
+            }
+            for( ; globalIdx < end; globalIdx++ ) {
+               if constexpr( callableArgumentCount< Fetch >() == 3 )
+                  aux0 = reduction( aux0, fetch( segmentIdx, globalIdx - begin, globalIdx ) );
+               else
+                  aux0 = reduction( aux0, fetch( globalIdx ) );
+            }
+            storer( segmentIdx, aux0 );
+         };
+
+         if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
+            for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+               l( segmentIdx );
          }
          else {
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               aux = reduction( aux, fetch( globalIdx ) );
+            forSegmentsHost( offsets, begin, end, l );
          }
-         storer( segmentIdx, aux );
-      };
-
-      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
-#ifdef HAVE_OPENMP
-         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
       }
       else {
+         auto l = [ offsets, fetch, reduction, storer, identity ] __cuda_callable__( const Index segmentIdx ) mutable
+         {
+            const IndexType begin = offsets[ segmentIdx ];
+            const IndexType end = offsets[ segmentIdx + 1 ];
+            using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
+            ReturnType aux = identity;
+            if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+               IndexType localIdx = 0;
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx ) );
+            }
+            else {
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  aux = reduction( aux, fetch( globalIdx ) );
+            }
+            storer( segmentIdx, aux );
+         };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
    }
@@ -693,11 +735,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             l( segmentIdx );
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
-#ifdef HAVE_OPENMP
-         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
+         forSegmentsHost( offsets, begin, end, l );
       }
       else {
          Algorithms::parallelFor< Device >( begin, end, l );
@@ -1276,6 +1314,60 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          reduceSegmentsWithIndexesAndArgumentSequential(
             segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
       }
+   }
+
+protected:
+   // Returns the first segment of the given part when the segments [begin, end) are split into
+   // parts with approximately the same weight. The weight of a segment is its number of elements
+   // plus one, so that empty segments are accounted for, too.
+   static IndexType
+   getBalancedPartitionBoundary( const ConstOffsetsView& offsets, IndexType begin, IndexType end, int part, int parts )
+   {
+      const auto weight = [ &offsets ]( IndexType i )
+      {
+         return static_cast< std::int64_t >( offsets[ i ] ) + static_cast< std::int64_t >( i );
+      };
+      const std::int64_t target = weight( begin ) + ( weight( end ) - weight( begin ) ) * part / parts;
+      // binary search for the first segment i in [begin, end] such that weight( i ) >= target
+      IndexType low = begin;
+      IndexType high = end;
+      while( low < high ) {
+         const IndexType middle = low + ( high - low ) / 2;
+         if( weight( middle ) < target )
+            low = middle + 1;
+         else
+            high = middle;
+      }
+      return low;
+   }
+
+   // Calls f( segmentIdx ) for all segments in [begin, end) on the host. Each OpenMP thread
+   // processes one contiguous block of segments with approximately the same number of elements.
+   // Contrary to dynamic scheduling, this keeps the memory access pattern of each thread
+   // sequential and maps the same segments to the same threads in repeated calls, which
+   // preserves data locality in caches and NUMA nodes.
+   template< typename Function >
+   static void
+   forSegmentsHost( const ConstOffsetsView& offsets, IndexType begin, IndexType end, Function& f )
+   {
+#ifdef HAVE_OPENMP
+      // Small problems are not worth the overhead of the parallel region.
+      const std::int64_t work = static_cast< std::int64_t >( offsets[ end ] ) - offsets[ begin ] + end - begin;
+      if( Devices::Host::isOMPEnabled() && work > 4096 ) {
+         #pragma omp parallel firstprivate( f )
+         {
+            const int parts = omp_get_num_threads();
+            const int part = omp_get_thread_num();
+            const IndexType blockBegin = getBalancedPartitionBoundary( offsets, begin, end, part, parts );
+            const IndexType blockEnd = getBalancedPartitionBoundary( offsets, begin, end, part + 1, parts );
+            for( IndexType segmentIdx = blockBegin; segmentIdx < blockEnd; segmentIdx++ )
+               f( segmentIdx );
+         }
+         return;
+      }
+#endif
+      for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+         f( segmentIdx );
    }
 };
 }  // namespace TNL::Algorithms::Segments::detail
