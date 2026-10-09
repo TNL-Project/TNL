@@ -35,6 +35,12 @@ static const std::string symmetricMtx =
    "2 2 3.0\n"
    "3 3 4.0\n";
 
+static const std::string skewSymmetricMtx =
+   "%%MatrixMarket matrix coordinate real skew-symmetric\n"
+   "3 3 2\n"
+   "2 1 2.0\n"
+   "3 2 -3.0\n";
+
 template< typename MatrixType = Matrix >
 MatrixType
 readFromString( const std::string& text )
@@ -100,6 +106,75 @@ TEST( MatrixReaderTest, readMtx_denseMatrix )
 {
    const DenseMatrix matrix = readFromString< DenseMatrix >( generalMtx );
    expectElements( matrix, { { 1, 0, 0 }, { 2, 3, 0 }, { 0, 0, 4 } } );
+}
+
+TEST( MatrixReaderTest, readMtx_skewSymmetric )
+{
+   // the elements below the diagonal are mirrored above it with the opposite sign
+   const Matrix matrix = readFromString( skewSymmetricMtx );
+   expectElements( matrix, { { 0, -2, 0 }, { 2, 0, 3 }, { 0, -3, 0 } } );
+   EXPECT_EQ( matrix.getNonzeroElementsCount(), 4 );
+}
+
+TEST( MatrixReaderTest, readMtx_skewSymmetricIntoDenseMatrix )
+{
+   const DenseMatrix matrix = readFromString< DenseMatrix >( skewSymmetricMtx );
+   expectElements( matrix, { { 0, -2, 0 }, { 2, 0, 3 }, { 0, -3, 0 } } );
+}
+
+TEST( MatrixReaderTest, readMtx_skewSymmetricIntoSymmetricMatrix )
+{
+   EXPECT_THROW( readFromString< SymmetricMatrix >( skewSymmetricMtx ), std::runtime_error );
+}
+
+TEST( MatrixReaderTest, readMtx_skewSymmetricUpperTriangle )
+{
+   // the element (1,2) is the element (2,1) with the opposite sign
+   const Matrix matrix = readFromString(
+      "%%MatrixMarket matrix coordinate real skew-symmetric\n"
+      "2 2 1\n"
+      "1 2 2.0\n" );
+   expectElements( matrix, { { 0, 2 }, { -2, 0 } } );
+}
+
+TEST( MatrixReaderTest, readMtx_skewSymmetricBothTriangles )
+{
+   // the elements (i,j) and (j,i) of a skew-symmetric matrix are the same element
+   const std::string mtx =
+      "%%MatrixMarket matrix coordinate real skew-symmetric\n"
+      "2 2 2\n"
+      "2 1 2.0\n"
+      "1 2 3.0\n";
+   EXPECT_THROW( readFromString( mtx ), std::runtime_error );
+
+   TNL::Matrices::MtxReaderOptions options;
+   options.duplicates = TNL::Matrices::MtxDuplicateElements::Sum;
+   expectElements( readFromString( mtx, options ), { { 0, 1 }, { -1, 0 } } );
+}
+
+TEST( MatrixReaderTest, readMtx_skewSymmetricInvalid )
+{
+   // element on the diagonal
+   EXPECT_THROW(
+      readFromString(
+         "%%MatrixMarket matrix coordinate real skew-symmetric\n"
+         "2 2 1\n"
+         "1 1 1.0\n" ),
+      std::runtime_error );
+   // non-square matrix
+   EXPECT_THROW(
+      readFromString(
+         "%%MatrixMarket matrix coordinate real skew-symmetric\n"
+         "3 2 1\n"
+         "2 1 1.0\n" ),
+      std::runtime_error );
+   // pattern matrix
+   EXPECT_THROW(
+      readFromString(
+         "%%MatrixMarket matrix coordinate pattern skew-symmetric\n"
+         "2 2 1\n"
+         "2 1\n" ),
+      std::runtime_error );
 }
 
 TEST( MatrixReaderTest, readMtx_pattern )
@@ -312,13 +387,7 @@ TEST( MatrixReaderTest, readMtx_unsupportedFormats )
          "1 1 1\n"
          "1 1 1.0 2.0\n" ),
       std::runtime_error );
-   // skew-symmetric and hermitian matrices
-   EXPECT_THROW(
-      readFromString(
-         "%%MatrixMarket matrix coordinate real skew-symmetric\n"
-         "2 2 1\n"
-         "2 1 1.0\n" ),
-      std::runtime_error );
+   // hermitian matrices
    EXPECT_THROW(
       readFromString(
          "%%MatrixMarket matrix coordinate real hermitian\n"
@@ -566,10 +635,16 @@ TEST( MatrixReaderTest, isSymmetric_pattern )
    EXPECT_TRUE( Reader::isSymmetric( stream ) );
 }
 
+TEST( MatrixReaderTest, isSymmetric_skewSymmetric )
+{
+   std::istringstream stream( skewSymmetricMtx );
+   EXPECT_FALSE( Reader::isSymmetric( stream ) );
+}
+
 TEST( MatrixReaderTest, isSymmetric_unsupportedSymmetry )
 {
    std::istringstream stream(
-      "%%MatrixMarket matrix coordinate real skew-symmetric\n"
+      "%%MatrixMarket matrix coordinate real hermitian\n"
       "2 2 1\n"
       "2 1 1.0\n" );
    EXPECT_THROW( (void) Reader::isSymmetric( stream ), std::runtime_error );
