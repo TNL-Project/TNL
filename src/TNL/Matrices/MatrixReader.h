@@ -125,7 +125,7 @@ public:
     * are not checked.
     *
     * \param fileName is the name of the source file.
-    * \return \e true if the header declares a symmetric matrix and \e false if it declares
+    * \return `true` if the header declares a symmetric matrix and `false` if it declares
     * a general one.
     */
    [[nodiscard]] static bool
@@ -137,7 +137,7 @@ public:
     * The header is read from the beginning of the stream.
     *
     * \param file is the input stream.
-    * \return \e true if the header declares a symmetric matrix and \e false if it declares
+    * \return `true` if the header declares a symmetric matrix and `false` if it declares
     * a general one.
     */
    [[nodiscard]] static bool
@@ -222,7 +222,7 @@ public:
     * are not checked.
     *
     * \param fileName is the name of the source file.
-    * \return \e true if the header declares a symmetric matrix and \e false if it declares
+    * \return `true` if the header declares a symmetric matrix and `false` if it declares
     * a general one.
     */
    [[nodiscard]] static bool
@@ -234,7 +234,7 @@ public:
     * The header is read from the beginning of the stream.
     *
     * \param file is the input stream.
-    * \return \e true if the header declares a symmetric matrix and \e false if it declares
+    * \return `true` if the header declares a symmetric matrix and `false` if it declares
     * a general one.
     */
    [[nodiscard]] static bool

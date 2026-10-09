@@ -48,19 +48,15 @@ template< std::size_t maxWords >
 std::size_t
 splitMtxLine( std::string_view line, std::array< std::string_view, maxWords >& words )
 {
-   const auto isSpace = []( char c )
-   {
-      return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\v' || c == '\f';
-   };
    std::size_t count = 0;
    std::size_t position = 0;
    while( true ) {
-      while( position < line.size() && isSpace( line[ position ] ) )
+      while( position < line.size() && std::isspace( static_cast< unsigned char >( line[ position ] ) ) )
          position++;
       if( position == line.size() )
          return count;
       const std::size_t begin = position;
-      while( position < line.size() && ! isSpace( line[ position ] ) )
+      while( position < line.size() && ! std::isspace( static_cast< unsigned char >( line[ position ] ) ) )
          position++;
       if( count == maxWords )
          return count + 1;
