@@ -15,7 +15,7 @@ namespace TNL::Matrices {
 /**
  * \brief Handling of matrix elements which appear more than once in an MTX file.
  *
- * In a symmetric MTX file, the elements (i,j) and (j,i) are the same element.
+ * In a symmetric or skew-symmetric MTX file, the elements (i,j) and (j,i) are the same element.
  */
 enum class MtxDuplicateElements : std::uint8_t
 {
@@ -126,7 +126,7 @@ public:
     *
     * \param fileName is the name of the source file.
     * \return `true` if the header declares a symmetric matrix and `false` if it declares
-    * a general one.
+    * a general or skew-symmetric one.
     */
    [[nodiscard]] static bool
    isSymmetric( const std::string& fileName );
@@ -138,7 +138,7 @@ public:
     *
     * \param file is the input stream.
     * \return `true` if the header declares a symmetric matrix and `false` if it declares
-    * a general one.
+    * a general or skew-symmetric one.
     */
    [[nodiscard]] static bool
    isSymmetric( std::istream& file );
@@ -223,7 +223,7 @@ public:
     *
     * \param fileName is the name of the source file.
     * \return `true` if the header declares a symmetric matrix and `false` if it declares
-    * a general one.
+    * a general or skew-symmetric one.
     */
    [[nodiscard]] static bool
    isSymmetric( const std::string& fileName );
@@ -235,7 +235,7 @@ public:
     *
     * \param file is the input stream.
     * \return `true` if the header declares a symmetric matrix and `false` if it declares
-    * a general one.
+    * a general or skew-symmetric one.
     */
    [[nodiscard]] static bool
    isSymmetric( std::istream& file );
@@ -247,6 +247,7 @@ protected:
       IndexType columns = 0;
       IndexType elements = 0;
       bool symmetric = false;
+      bool skewSymmetric = false;
       bool pattern = false;
    };
 
@@ -255,8 +256,8 @@ protected:
    static MtxHeader
    readMtxHeader( std::istream& file, long& lineNumber );
 
-   // Reads the next matrix element from the stream, skipping comments and blank lines. The elements of a symmetric matrix
-   // are returned below the diagonal. Returns false at the end of the stream.
+   // Reads the next matrix element from the stream, skipping comments and blank lines. The elements of a symmetric or
+   // skew-symmetric matrix are returned below the diagonal. Returns false at the end of the stream.
    static bool
    readMatrixElement(
       std::istream& file,

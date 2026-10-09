@@ -291,8 +291,12 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file, l
    header.pattern = words[ 3 ] == "pattern";
    if( words[ 4 ] == "symmetric" )
       header.symmetric = true;
+   else if( words[ 4 ] == "skew-symmetric" )
+      header.skewSymmetric = true;
    else if( words[ 4 ] != "general" )
-      throw std::runtime_error( "Only 'general' and 'symmetric' matrices are supported, not " + words[ 4 ] );
+      throw std::runtime_error( "Only 'general', 'symmetric' and 'skew-symmetric' matrices are supported, not " + words[ 4 ] );
+   if( header.pattern && header.skewSymmetric )
+      throw std::runtime_error( "A 'pattern' matrix cannot be 'skew-symmetric'." );
 
    // The size line follows after comments and blank lines.
    while( std::getline( file, line ) ) {
@@ -307,7 +311,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file, l
       header.elements = detail::parseMtxSize< IndexType >( words[ 2 ], lineNumber );
       if( header.rows == 0 || header.columns == 0 )
          detail::throwMtxError( lineNumber, "the numbers of rows and columns must be positive." );
-      if( header.symmetric && header.rows != header.columns )
+      if( ( header.symmetric || header.skewSymmetric ) && header.rows != header.columns )
          detail::throwMtxError( lineNumber, "a symmetric matrix must be square." );
       return header;
    }
@@ -339,8 +343,16 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElement(
       value = header.pattern ? RealType{ 1 } : static_cast< RealType >( detail::parseMtxReal( words[ 2 ], lineNumber ) );
       // The elements of a symmetric matrix are stored below the diagonal, so that
       // the elements (i,j) and (j,i) are recognized as the same element.
-      if( header.symmetric && row < column )
+      if( ( header.symmetric || header.skewSymmetric ) && row < column ) {
          std::swap( row, column );
+         // The elements of a skew-symmetric matrix satisfy a_ji = -a_ij.
+         if constexpr( ! std::is_same_v< RealType, bool > )
+            if( header.skewSymmetric )
+               value = -value;
+      }
+      // The diagonal of a skew-symmetric matrix is zero and it is not stored in the file.
+      if( header.skewSymmetric && row == column )
+         detail::throwMtxError( lineNumber, "a skew-symmetric matrix cannot have elements on the diagonal." );
       return true;
    }
    return false;
@@ -435,6 +447,16 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElements(
          const auto [ elementRow, elementColumn, elementValue ] = elements[ i ];
          if( elementRow != elementColumn )
             elements.emplace_back( elementColumn, elementRow, elementValue );
+      }
+   }
+   if( header.skewSymmetric ) {
+      const std::size_t lowerElements = elements.size();
+      for( std::size_t i = 0; i < lowerElements; i++ ) {
+         const auto [ elementRow, elementColumn, elementValue ] = elements[ i ];
+         if constexpr( std::is_same_v< RealType, bool > )
+            elements.emplace_back( elementColumn, elementRow, elementValue );
+         else
+            elements.emplace_back( elementColumn, elementRow, -elementValue );
       }
    }
 
