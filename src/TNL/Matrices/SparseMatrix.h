@@ -458,7 +458,7 @@ public:
    /**
     * \brief This method sets the sparse matrix elements from std::vector of tuples.
     *
-    * Each element of the vector \e elements is a tuple ( row, column, value ). The elements can be given in any order,
+    * Each element of the vector `elements` is a tuple `(row, column, value)`. The elements can be given in any order,
     * but each position can appear only once, otherwise an exception is thrown. It is more efficient than std::map for
     * large numbers of elements, since it needs less memory and it is sorted at once.
     *

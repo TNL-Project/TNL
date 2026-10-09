@@ -312,7 +312,7 @@ public:
    /**
     * \brief This method sets the dense matrix elements from std::vector of tuples.
     *
-    * Each element of the vector \e elements is a tuple ( row, column, value ). The elements can be given in any order,
+    * Each element of the vector `elements` is a tuple `(row, column, value)`. The elements can be given in any order,
     * but each position can appear only once, otherwise an exception is thrown.
     *
     * \param elements is std::vector containing the matrix elements. It is passed by value and sorted in place, so it can be
