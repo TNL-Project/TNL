@@ -61,7 +61,7 @@ forSegmentsHost(
    // Small problems are not worth the overhead of the parallel region.
    const std::int64_t work = static_cast< std::int64_t >( offsets[ end ] ) - offsets[ begin ] + end - begin;
    if( Devices::Host::isOMPEnabled() && work > 4096 ) {
-   #pragma omp parallel firstprivate( f )
+      #pragma omp parallel firstprivate( f )
       {
          const int parts = omp_get_num_threads();
          const int part = omp_get_thread_num();
