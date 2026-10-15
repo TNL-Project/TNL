@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <TNL/DiscreteMath.h>
 
 #include <gtest/gtest.h>
@@ -149,6 +151,44 @@ TEST( DiscreteMathTest, detectMultiplicationOverflowTest )
          EXPECT_TRUE( TNL::integerMultiplyOverflow( a, b ) ) << "a = " << +a << ", b = " << +b;
          EXPECT_TRUE( TNL::integerMultiplyOverflow( b, a ) ) << "a = " << +a << ", b = " << +b;
       }
+}
+
+TEST( DiscreteMathTest, detectAdditionOverflowTest )
+{
+   for( int a = -128; a <= 127; a++ )
+      for( int b = -128; b <= 127; b++ ) {
+         const bool overflow = a + b < -128 || a + b > 127;
+         EXPECT_EQ( TNL::integerAddOverflow( (signed char) a, (signed char) b ), overflow ) << "a = " << a << ", b = " << b;
+      }
+   for( int a = 0; a <= 255; a++ )
+      for( int b = 0; b <= 255; b++ ) {
+         const bool overflow = a + b > 255;
+         EXPECT_EQ( TNL::integerAddOverflow( (unsigned char) a, (unsigned char) b ), overflow ) << "a = " << a << ", b = " << b;
+      }
+}
+
+TEST( DiscreteMathTest, saturatingAddTest )
+{
+   for( int a = -128; a <= 127; a++ )
+      for( int b = -128; b <= 127; b++ )
+         EXPECT_EQ( TNL::saturatingAdd( (signed char) a, (signed char) b ), std::clamp( a + b, -128, 127 ) ) << "a = " << a
+            << ", b = " << b;
+   for( int a = 0; a <= 255; a++ )
+      for( int b = 0; b <= 255; b++ )
+         EXPECT_EQ( TNL::saturatingAdd( (unsigned char) a, (unsigned char) b ), std::min( a + b, 255 ) ) << "a = " << a
+            << ", b = " << b;
+}
+
+TEST( DiscreteMathTest, saturatingMultiplyTest )
+{
+   for( int a = -128; a <= 127; a++ )
+      for( int b = -128; b <= 127; b++ )
+         EXPECT_EQ( TNL::saturatingMultiply( (signed char) a, (signed char) b ), std::clamp( a * b, -128, 127 ) ) << "a = " << a
+            << ", b = " << b;
+   for( int a = 0; a <= 255; a++ )
+      for( int b = 0; b <= 255; b++ )
+         EXPECT_EQ( TNL::saturatingMultiply( (unsigned char) a, (unsigned char) b ), std::min( a * b, 255 ) ) << "a = " << a
+            << ", b = " << b;
 }
 
 TEST( DiscreteMathTest, primeFactorizationTest )
