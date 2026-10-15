@@ -18,7 +18,7 @@ forElementsBlockMergeKernel_Ellpack( Index gridIdx, SegmentsView segments, Index
 
    if( segments.getSegmentSize() == 0 )
       return;
-   const Index globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
    if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
       const Index localIdx = globalThreadIdx % segments.getSegmentSize();
       const Index segmentIdx = begin + globalThreadIdx / segments.getSegmentSize();
@@ -56,7 +56,7 @@ __global__
 void
 forElementsWithSegmentIndexesKernel_Ellpack(
    const Index gridIdx,
-   const Index totalThreadsCount,
+   const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
    SegmentsView segments,
    ArrayView segmentIndexes,
@@ -96,7 +96,8 @@ forElementsWithSegmentIndexesKernel_Ellpack(
    else {  // ColumnMajorOrder
       const Index segmentsCount = segmentIndexes.getSize();
       const Index elementsCount = segmentsCount * segmentSize;
-      for( Index globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx ); globalThreadIdx < elementsCount;
+      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+           globalThreadIdx < static_cast< std::size_t >( elementsCount );
            globalThreadIdx += totalThreadsCount )
       {
          const Index segmentIdx = segmentIndexes[ globalThreadIdx / segmentSize ];
@@ -131,7 +132,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_Ellpack(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    if( segments.getSegmentSize() == 0 )
       return;
-   const Index globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
    if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
       const Index localIdx = globalThreadIdx % segments.getSegmentSize();
       const Index segmentIdx_idx = globalThreadIdx / segments.getSegmentSize();
@@ -178,7 +179,7 @@ __global__
 void
 forElementsIfKernel_Ellpack(
    const Index gridIdx,
-   const Index totalThreadsCount,
+   const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
    SegmentsView segments,
    const Index begin,
@@ -219,7 +220,8 @@ forElementsIfKernel_Ellpack(
    else {  // ColumnMajorOrder
       const Index segmentsCount = ( end - begin );
       const Index elementsCount = segmentsCount * segmentSize;
-      for( Index globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx ); globalThreadIdx < elementsCount;
+      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+           globalThreadIdx < static_cast< std::size_t >( elementsCount );
            globalThreadIdx += totalThreadsCount )
       {
          const Index segmentIdx = globalThreadIdx / segmentSize + begin;

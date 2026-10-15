@@ -138,8 +138,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             threadsCount *= warpSize;
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
             threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-         if( threadsCount > std::numeric_limits< IndexType >::max() )
-            throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
          Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;
