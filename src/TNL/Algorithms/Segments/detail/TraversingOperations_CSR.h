@@ -121,8 +121,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   {
                      return true;
                   };
-                  constexpr auto kernel =
-                     forElementsIfKernel_CSR< ConstOffsetsView, IndexType, decltype( condition ), Function >;
+                  constexpr auto kernel = forElementsIfKernel_CSR<
+                     ConstOffsetsView,
+                     IndexType,
+                     decltype( condition ),
+                     std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
@@ -135,11 +138,13 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;
+                  constexpr auto kernel =
+                     forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = forElementsDynamicGroupingKernel_CSR< ConstOffsetsView, IndexType, Function >;
+                  constexpr auto kernel =
+                     forElementsDynamicGroupingKernel_CSR< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                }
                else {
