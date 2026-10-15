@@ -7,8 +7,6 @@
 #include <array>
 #include <cctype>
 #include <charconv>
-#include <cerrno>
-#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -102,18 +100,8 @@ parseMtxReal( std::string_view word, long lineNumber )
    if( number.size() > 1 && number[ 0 ] == '+' && number[ 1 ] != '-' && number[ 1 ] != '+' )
       number.remove_prefix( 1 );
    double value = 0;
-#if defined( __cpp_lib_to_chars ) && __cpp_lib_to_chars >= 201611L
    const auto [ end, error ] = std::from_chars( number.data(), number.data() + number.size(), value );
-   const bool valid = error == std::errc{} && end == number.data() + number.size();
-#else
-   // older standard libraries do not support std::from_chars for floating-point numbers
-   const std::string text( number );
-   char* end = nullptr;
-   errno = 0;
-   value = std::strtod( text.c_str(), &end );
-   const bool valid = ! text.empty() && *end == '\0' && errno != ERANGE;
-#endif
-   if( ! valid )
+   if( error != std::errc{} || end != number.data() + number.size() )
       throwMtxError( lineNumber, "'" + std::string( word ) + "' is not a valid number." );
    return value;
 }
