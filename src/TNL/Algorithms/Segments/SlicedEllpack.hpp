@@ -3,8 +3,13 @@
 
 #pragma once
 
+#include <limits>
+#include <stdexcept>
+
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
+#include <TNL/DiscreteMath.h>
 
 #include "Ellpack.h"
 #include "SlicedEllpack.h"
@@ -135,12 +140,29 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegm
          return sizes_view[ globalIdx ];
       return 0;
    };
+   // The storage sizes of the slices saturate at the maximal value of the index
+   // type instead of overflowing, so the overflow can be detected for any index
+   // type, including std::int64_t.
    auto keep = [ = ] __cuda_callable__( Index i, Index res ) mutable
    {
-      slices_view[ i ] = res * SliceSize;
+      slices_view[ i ] = saturatingMultiply( res, static_cast< Index >( SliceSize ) );
       slice_segment_size_view[ i ] = res;
    };
    reduceAllSegments( ellpack, fetch, TNL::Max{}, keep );
+
+   // The storage size is the sum of the sizes of the slices. The last element
+   // of sliceOffsets is zero, so the whole array can be reduced. The sum
+   // saturates as well, so it equals the maximal value of the index type if
+   // any slice saturated or if the sum itself overflows.
+   auto saturatingPlus = [] __cuda_callable__( Index a, Index b ) -> Index
+   {
+      return saturatingAdd( a, b );
+   };
+   const Index storageSize = Algorithms::reduce( this->sliceOffsets, saturatingPlus, static_cast< Index >( 0 ) );
+   if( storageSize == std::numeric_limits< Index >::max() )
+      throw( std::overflow_error(
+         "SlicedEllpack: overflow - the storage size required for the segments is larger "
+         "than the maximal value of used index type." ) );
    Algorithms::inplaceExclusiveScan( this->sliceOffsets );
 
    // update the base

@@ -20,6 +20,11 @@ TYPED_TEST_P( SegmentsTest, setSegmentsSizes_EqualSizes )
    test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST_P( SegmentsTest, setSegmentsSizes_Overflow )
+{
+   test_setSegmentsSizes_Overflow< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST_P( SegmentsTest, findInSegments )
 {
    test_findInSegments< typename TestFixture::SegmentsType >();
@@ -71,6 +76,7 @@ REGISTER_TYPED_TEST_SUITE_P(
    isSegments,
    getView,
    setSegmentsSizes_EqualSizes,
+   setSegmentsSizes_Overflow,
    findInSegments,
    findInSegmentsWithIndexes,
    findInSegmentsIf,

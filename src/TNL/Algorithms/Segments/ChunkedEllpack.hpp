@@ -3,7 +3,11 @@
 
 #pragma once
 
+#include <stdexcept>
+
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
+#include <TNL/DiscreteMath.h>
 
 #include "ChunkedEllpack.h"
 
@@ -158,7 +162,13 @@ void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes( const SizesContainer& segmentsSizes )
 {
    if constexpr( std::is_same_v< Device, Devices::Host > ) {
-      this->size = sum( segmentsSizes );
+      // The number of elements saturates instead of overflowing, the overflow is
+      // detected later since the storage size is not smaller.
+      auto saturatingPlus = [] __cuda_callable__( Index a, Index b ) -> Index
+      {
+         return saturatingAdd( a, b );
+      };
+      this->size = Algorithms::reduce( segmentsSizes, saturatingPlus, static_cast< Index >( 0 ) );
       const Index segmentsCount = segmentsSizes.getSize();
       this->slices.setSize( segmentsCount );
       this->segmentToChunkMapping.setSize( segmentsCount );
@@ -293,7 +303,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::resolveSliceSizes
    while( segmentIdx < segmentsSizes.getSize() ) {
       // Add one segment to the current slice until we reach the desired
       // number of elements in a slice.
-      allocatedElementsInSlice += segmentsSizes[ segmentIdx ];
+      // The number of elements in the slice is used only to distribute the
+      // chunks among the segments, so it may saturate. The overflow of the
+      // storage size is detected in setSlice.
+      allocatedElementsInSlice = saturatingAdd( allocatedElementsInSlice, segmentsSizes[ segmentIdx ] );
       sliceSize++;
       segmentIdx++;
       if( allocatedElementsInSlice < desiredElementsInSlice )
@@ -332,7 +345,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice(
       this->segmentToChunkMapping.setElement( i, 1 );
 
    int totalAddedChunks = 0;
-   int maxSegmentLength( segmentsSizes[ sliceBegin ] );
+   Index maxSegmentLength( segmentsSizes[ sliceBegin ] );
    for( Index i = sliceBegin; i < sliceEnd; i++ ) {
       double segmentRatio = 0.0;
       if( allocatedElementsInSlice != 0 )
@@ -362,6 +375,11 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice(
    // Set up the slice info.
    this->slices[ sliceIndex ].chunkSize = maxChunkInSlice;
    this->slices[ sliceIndex ].pointer = elementsToAllocation;
+   if( integerMultiplyOverflow( this->chunksInSlice, maxChunkInSlice )
+       || integerAddOverflow( elementsToAllocation, this->chunksInSlice * maxChunkInSlice ) )
+      throw( std::overflow_error(
+         "ChunkedEllpack: overflow - the storage size required for the segments is larger "
+         "than the maximal value of used index type." ) );
    elementsToAllocation += this->chunksInSlice * maxChunkInSlice;
 
    for( Index i = sliceBegin; i < sliceEnd; i++ )
