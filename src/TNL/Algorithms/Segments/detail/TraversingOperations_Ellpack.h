@@ -95,13 +95,10 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
                threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
 
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
-
             dim3 blocksCount;
             dim3 gridsCount;
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
-            const IndexType totalThreadsCount = blocksCount.x * launchConfig.blockSize.x;
+            const std::size_t totalThreadsCount = static_cast< std::size_t >( blocksCount.x ) * launchConfig.blockSize.x;
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
@@ -225,13 +222,11 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
                threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
             dim3 blocksCount;
             dim3 gridsCount;
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
-            const IndexType totalThreadsCount = blocksCount.x * launchConfig.blockSize.x;
+            const std::size_t totalThreadsCount = static_cast< std::size_t >( blocksCount.x ) * launchConfig.blockSize.x;
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
@@ -357,15 +352,13 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
             dim3 gridsCount;
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-            const IndexType totalThreadsCount = blocksCount.x * launch_config.blockSize.x;
+            const std::size_t totalThreadsCount = static_cast< std::size_t >( blocksCount.x ) * launch_config.blockSize.x;
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 

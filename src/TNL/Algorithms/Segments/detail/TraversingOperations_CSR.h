@@ -110,8 +110,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
             dim3 blocksCount;
             dim3 gridsCount;
@@ -224,8 +222,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                launchConfig.blockSize.x = 256;
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
             dim3 blocksCount;
             dim3 gridsCount;
@@ -390,9 +386,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             std::size_t threadsCount = segmentsCount;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;

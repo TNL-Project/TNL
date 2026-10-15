@@ -83,8 +83,7 @@ reduceSegmentsCSRVariableVectorKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx =
-      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -431,8 +430,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx =
-      ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -790,8 +788,7 @@ reduceSegmentsCSRVariableVectorKernelWithArgument(
 
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx =
-      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -1156,8 +1153,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx =
-      ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
