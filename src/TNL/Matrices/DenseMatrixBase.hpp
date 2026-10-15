@@ -624,9 +624,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct(
       const std::size_t blocksCount = Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x );
       const std::size_t gridsCount = Backend::getNumberOfGrids( blocksCount, Backend::getMaxGridXSize() );
       for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-         launch_config.gridSize.x = Backend::getMaxGridXSize();
-         if( gridIdx == gridsCount - 1 )
-            launch_config.gridSize.x = blocksCount % Backend::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
          constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel<
             DenseMatrixBase,
             decltype( inVectorView ),
