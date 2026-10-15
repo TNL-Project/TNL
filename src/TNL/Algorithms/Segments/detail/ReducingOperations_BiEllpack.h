@@ -92,9 +92,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            if( gridIdx == cudaGrids - 1 )
-               launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
+            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = BiEllpackReduceSegmentsKernel<
                ConstSegmentsView,
@@ -182,9 +180,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            if( gridIdx == cudaGrids - 1 )
-               launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
+            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexes<
                ConstSegmentsView,
@@ -286,9 +282,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            if( gridIdx == cudaGrids - 1 )
-               launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
+            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = BiEllpackReduceSegmentsKernelWithArgument<
                ConstSegmentsView,
@@ -382,9 +376,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            if( gridIdx == cudaGrids - 1 )
-               launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
+            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexesAndArgument<
                ConstSegmentsView,

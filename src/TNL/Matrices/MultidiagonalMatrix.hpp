@@ -299,8 +299,7 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
       const Index cudaBlocks = Backend::getNumberOfBlocks( matrix.getRows(), launch_config.blockSize.x );
       const Index cudaGrids = Backend::getNumberOfGrids( cudaBlocks, launch_config.gridSize.x );
       for( Index gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
          constexpr auto kernel =
             MultidiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, Real, Index >;
          Backend::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
