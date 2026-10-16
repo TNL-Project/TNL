@@ -3,7 +3,12 @@
 
 #pragma once
 
+#include <limits>
+#include <stdexcept>
+
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
+#include <TNL/DiscreteMath.h>
 
 #include "CSR.h"
 
@@ -96,6 +101,17 @@ CSR< Device, Index, IndexAllocator >::setSegmentsSizes( const SizesHolder& sizes
       view = sizes;
    }
    offsets.setElement( sizes.getSize(), 0 );
+
+   // The sum of the segments sizes saturates at the maximal value of the index
+   // type, so it equals the maximal value if the scan would overflow.
+   auto saturatingPlus = [] __cuda_callable__( Index a, Index b ) -> Index
+   {
+      return saturatingAdd( a, b );
+   };
+   if( Algorithms::reduce( offsets, saturatingPlus, static_cast< Index >( 0 ) ) == std::numeric_limits< Index >::max() )
+      throw( std::overflow_error(
+         "CSR: overflow - the storage size required for the segments is larger "
+         "than the maximal value of used index type." ) );
    inplaceExclusiveScan( offsets );
 
    // update the base

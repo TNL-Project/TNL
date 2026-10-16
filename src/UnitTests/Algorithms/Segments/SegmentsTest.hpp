@@ -9,6 +9,8 @@
 #include <TNL/Math.h>
 
 #include <iostream>
+#include <limits>
+#include <stdexcept>
 #include <gtest/gtest.h>
 
 template< typename Segments, bool isSorted = TNL::Algorithms::Segments::isSortedSegments_v< Segments > >
@@ -123,6 +125,28 @@ test_setSegmentsSizes_EqualSizes()
    for( IndexType i = 0; i < segmentsCount; i++ )
       // Some formats may use padding zeros and allocate more slots than the segment size
       EXPECT_GE( segmentsView.getSegmentSize( i ), segmentSize );
+}
+
+template< typename Segments >
+void
+test_setSegmentsSizes_Overflow()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   constexpr IndexType maxIndex = std::numeric_limits< IndexType >::max();
+
+   // A few huge segments, the storage size of each slice or group overflows
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > hugeSegmentsSizes( 3 );
+   hugeSegmentsSizes = maxIndex / 2;
+   Segments hugeSegments;
+   EXPECT_THROW( hugeSegments.setSegmentsSizes( hugeSegmentsSizes ), std::overflow_error );
+
+   // Many large segments, the storage size of each slice or group fits into
+   // the index type, but their sum overflows
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > largeSegmentsSizes( 128 );
+   largeSegmentsSizes = maxIndex / 64 + 1;
+   Segments largeSegments;
+   EXPECT_THROW( largeSegments.setSegmentsSizes( largeSegmentsSizes ), std::overflow_error );
 }
 
 template< typename Segments >

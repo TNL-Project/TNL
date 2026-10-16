@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <type_traits>
+
+#include <TNL/Devices/GPU.h>
+
 #include "AdaptiveCSR.h"
 
 namespace TNL::Algorithms::Segments {
@@ -64,9 +68,14 @@ AdaptiveCSR< Device, Index, IndexAllocator >&
 AdaptiveCSR< Device, Index, IndexAllocator >::operator=( const AdaptiveCSR< Device_, Index_, IndexAllocator_ >& segments )
 {
    Base::operator=( segments );
-   for( int i = 0; i < MaxValueSizeLog(); i++ )
-      this->blocksArray[ i ] = segments.getBlocks()[ i ];
-   this->view.bind( Base::getOffsets(), this->blocksArray );
+   // The blocks exist only on GPUs, so they are copied only between GPUs
+   if constexpr( std::is_same_v< Device, Devices::GPU > && std::is_same_v< Device_, Devices::GPU > ) {
+      for( int i = 0; i < MaxValueSizeLog(); i++ )
+         this->blocksArray[ i ] = segments.getBlocks()[ i ];
+      this->view.bind( Base::getOffsets(), this->blocksArray );
+   }
+   else
+      this->initBlocks();
    return *this;
 }
 
@@ -104,25 +113,7 @@ void
 AdaptiveCSR< Device, Index, IndexAllocator >::setSegmentsSizes( const SizesContainer& segmentsSizes )
 {
    Base::setSegmentsSizes( segmentsSizes );
-   const auto& offsets = this->getOffsets();
-
-   if( max( offsets ) == 0 ) {
-      for( int i = 0; i < MaxValueSizeLog(); i++ ) {
-         this->blocksArray[ i ].reset();
-         this->view.setBlocks( this->blocksArray[ i ], i );
-      }
-   }
-   else {
-      this->template initValueSize< 1 >( offsets );
-      this->template initValueSize< 2 >( offsets );
-      this->template initValueSize< 4 >( offsets );
-      this->template initValueSize< 8 >( offsets );
-      this->template initValueSize< 16 >( offsets );
-      this->template initValueSize< 32 >( offsets );
-      for( int i = 0; i < MaxValueSizeLog(); i++ )
-         this->view.setBlocks( this->blocksArray[ i ], i );
-   }
-   this->view.bind( Base::getOffsets(), this->blocksArray );
+   this->initBlocks();
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
@@ -159,7 +150,8 @@ AdaptiveCSR< Device, Index, IndexAllocator >::load( File& file )
    Base::load( file );
    for( int i = 0; i < MaxValueSizeLog(); i++ )
       file >> this->blocksArray[ i ];
-   this->view.bind( Base::getOffsets(), this->blocksArray );
+   // The file may come from segments on another device, which have no blocks
+   this->initBlocks();
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
@@ -227,6 +219,32 @@ AdaptiveCSR< Device, Index, IndexAllocator >::initValueSize( const Offsets& offs
    }
    inBlocks.emplace_back( nextStart );
    this->blocksArray[ getSizeValueLog( SizeOfValue ) ] = inBlocks;
+}
+
+template< typename Device, typename Index, typename IndexAllocator >
+void
+AdaptiveCSR< Device, Index, IndexAllocator >::initBlocks()
+{
+   // The blocks are used only by the reduction on GPUs. On the host and the
+   // sequential device, the reduction falls back to the CSR kernels, so the
+   // sequential construction of the blocks is skipped.
+   bool hasBlocks = false;
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+      const auto& offsets = this->getOffsets();
+      hasBlocks = max( offsets ) != 0;
+      if( hasBlocks ) {
+         this->template initValueSize< 1 >( offsets );
+         this->template initValueSize< 2 >( offsets );
+         this->template initValueSize< 4 >( offsets );
+         this->template initValueSize< 8 >( offsets );
+         this->template initValueSize< 16 >( offsets );
+         this->template initValueSize< 32 >( offsets );
+      }
+   }
+   if( ! hasBlocks )
+      for( int i = 0; i < MaxValueSizeLog(); i++ )
+         this->blocksArray[ i ].reset();
+   this->view.bind( Base::getOffsets(), this->blocksArray );
 }
 
 }  // namespace TNL::Algorithms::Segments

@@ -3,7 +3,11 @@
 
 #pragma once
 
+#include <limits>
+#include <stdexcept>
+
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/DiscreteMath.h>
 
@@ -180,13 +184,28 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsS
       // depend on this->size being set
       const Index segmentsCount = segmentsSizes.getSize();
       this->segmentsPermutation.setSize( segmentsCount );
-      this->size = sum( segmentsSizes );
+      // The number of elements saturates instead of overflowing, the overflow is
+      // detected later since the storage size is not smaller.
+      auto saturatingPlus = [] __cuda_callable__( Index a, Index b ) -> Index
+      {
+         return saturatingAdd( a, b );
+      };
+      this->size = Algorithms::reduce( segmentsSizes, saturatingPlus, static_cast< Index >( 0 ) );
       const Index strips = this->getVirtualSegments( segmentsCount ) / Base::getWarpSize();
       this->groupPointers.setSize( strips * ( Base::getLogWarpSize() + 1 ) + 1 );
       this->groupPointers = 0;
 
       this->initSegmentsPermutation( segmentsSizes );
       this->initGroupPointers( segmentsSizes );
+
+      // The sizes of the groups saturate at the maximal value of the index type
+      // and so does their sum. The last element of groupPointers is zero, so the
+      // whole array can be reduced.
+      if( Algorithms::reduce( this->groupPointers, saturatingPlus, static_cast< Index >( 0 ) )
+          == std::numeric_limits< Index >::max() )
+         throw( std::overflow_error(
+            "BiEllpack: overflow - the storage size required for the segments is larger "
+            "than the maximal value of used index type." ) );
       inplaceExclusiveScan( this->groupPointers );
 
       const Index storageSize = this->groupPointers.getElement( strips * ( Base::getLogWarpSize() + 1 ) );
@@ -333,7 +352,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initGroupPoi
             permSegm++;
          const Index groupWidth = segmentsSizesView[ permSegm + firstSegment ] - allocatedColumns;
          const Index groupHeight = TNL::pow( 2, Base::getLogWarpSize() - groupIdx );
-         const Index groupSize = groupWidth * groupHeight;
+         const Index groupSize = saturatingMultiply( groupWidth, groupHeight );
          allocatedColumns = segmentsSizesView[ permSegm + firstSegment ];
          groupPointersView[ groupIdx + groupBegin ] = groupSize;
       }

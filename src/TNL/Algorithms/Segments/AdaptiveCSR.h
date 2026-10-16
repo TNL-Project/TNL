@@ -201,7 +201,12 @@ public:
    void
    reset();
 
-   //! \brief Returns a view with blocks used in the Adaptive CSR format.
+   /**
+    * \brief Returns a view with blocks used in the Adaptive CSR format.
+    *
+    * The blocks are used only by the reduction on GPUs. On the other devices,
+    * the reduction falls back to the CSR kernels and so the blocks are empty.
+    */
    [[nodiscard]] const BlocksViewArray&
    getBlocks() const;
 
@@ -241,6 +246,10 @@ protected:
    template< int SizeOfValue, typename Offsets >
    void
    initValueSize( const Offsets& offsets );
+
+   //! \brief Initializes the blocks on GPUs and resets them on the other devices.
+   void
+   initBlocks();
 
    /**
     * \brief  blocksArray[ i ] stores blocks for sizeof( Value ) == 2^i.

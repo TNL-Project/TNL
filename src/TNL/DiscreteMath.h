@@ -161,13 +161,98 @@ firstKCombinationsSum( Index k, Index n )
  *         and `false` if the result fits into the `Index` type.
  */
 template< typename Index, std::enable_if_t< std::is_integral_v< Index >, bool > = true >
-bool
+constexpr bool
 integerMultiplyOverflow( Index a, Index b )
 {
+   // The product a * b must not be computed, since the overflow of signed
+   // integers is undefined behavior and the compiler may optimize out a check
+   // like a != ( a * b ) / b.
    if( a == 0 || b == 0 )
       return false;
-   const Index result = a * b;
-   return a != result / b;
+   constexpr Index minValue = std::numeric_limits< Index >::min();
+   constexpr Index maxValue = std::numeric_limits< Index >::max();
+   if constexpr( std::is_signed_v< Index > ) {
+      if( a > 0 )
+         return b > 0 ? a > maxValue / b : b < minValue / a;
+      return b > 0 ? a < minValue / b : b < maxValue / a;
+   }
+   else {
+      return a > maxValue / b;
+   }
+}
+
+/**
+ * \brief Checks if two values of the same integral type can be added
+ * without causing integer overflow or underflow.
+ *
+ * \tparam Index is the integral type of input values.
+ * \param a is the first operand in the expression `a + b`.
+ * \param b is the second operand in the expression `a + b`.
+ * \return `true` if the operation `a + b` results in an integer overflow or underflow,
+ *         and `false` if the result fits into the `Index` type.
+ */
+template< typename Index, std::enable_if_t< std::is_integral_v< Index >, bool > = true >
+constexpr bool
+integerAddOverflow( Index a, Index b )
+{
+   // The sum a + b must not be computed, since the overflow of signed integers
+   // is undefined behavior.
+   constexpr Index minValue = std::numeric_limits< Index >::min();
+   constexpr Index maxValue = std::numeric_limits< Index >::max();
+   if constexpr( std::is_signed_v< Index > )
+      return b > 0 ? a > maxValue - b : a < minValue - b;
+   else
+      return a > maxValue - b;
+}
+
+/**
+ * \brief Adds two integers and saturates the result at the maximal or minimal
+ * value of the type instead of overflowing or underflowing.
+ *
+ * For operands of the same sign, the saturated addition is associative and
+ * commutative, so it can be used as a reduction operation, e.g. for summing
+ * non-negative sizes. A result equal to the maximal value then indicates an
+ * overflow. For operands of different signs, the saturated addition is not
+ * associative, e.g. `(max + 1) + (-1)` differs from `max + (1 + (-1))`.
+ *
+ * \tparam Index is the integral type of input values.
+ * \param a is the first operand.
+ * \param b is the second operand.
+ * \return `a + b` if it fits into the `Index` type, the maximal value of `Index`
+ *         in case of overflow and the minimal value of `Index` in case of underflow.
+ */
+template< typename Index, std::enable_if_t< std::is_integral_v< Index >, bool > = true >
+constexpr Index
+saturatingAdd( Index a, Index b )
+{
+   if( integerAddOverflow( a, b ) )
+      // The sum can overflow only for a positive b and underflow only for a negative b.
+      return b > 0 ? std::numeric_limits< Index >::max() : std::numeric_limits< Index >::min();
+   return a + b;
+}
+
+/**
+ * \brief Multiplies two integers and saturates the result at the maximal or
+ * minimal value of the type instead of overflowing or underflowing.
+ *
+ * \tparam Index is the integral type of input values.
+ * \param a is the first operand.
+ * \param b is the second operand.
+ * \return `a * b` if it fits into the `Index` type, the maximal value of `Index`
+ *         in case of overflow and the minimal value of `Index` in case of underflow.
+ */
+template< typename Index, std::enable_if_t< std::is_integral_v< Index >, bool > = true >
+constexpr Index
+saturatingMultiply( Index a, Index b )
+{
+   if( integerMultiplyOverflow( a, b ) ) {
+      // The product overflows if the operands have the same sign and underflows otherwise.
+      if constexpr( std::is_signed_v< Index > )
+         if( ( a < 0 ) != ( b < 0 ) )
+            return std::numeric_limits< Index >::min();
+      return std::numeric_limits< Index >::max();
+   }
+   return a * b;
 }
 
 /**
