@@ -61,6 +61,21 @@ readFromString( const std::string& text, const TNL::Matrices::MtxReaderOptions& 
    return matrix;
 }
 
+// Read the matrix and return the message of the exception thrown by the reader
+template< typename MatrixType >
+std::string
+getErrorMessage( const std::string& text )
+{
+   try {
+      readFromString< MatrixType >( text );
+   }
+   catch( const std::runtime_error& e ) {
+      return e.what();
+   }
+   ADD_FAILURE() << "an exception was expected";
+   return "";
+}
+
 // Compare all elements of the matrix with the expected dense matrix given row by row
 template< typename MatrixType >
 void
@@ -100,6 +115,12 @@ TEST( MatrixReaderTest, readMtx_symmetricIntoSymmetricMatrix )
 TEST( MatrixReaderTest, readMtx_generalIntoSymmetricMatrix )
 {
    EXPECT_THROW( readFromString< SymmetricMatrix >( generalMtx ), std::runtime_error );
+}
+
+TEST( MatrixReaderTest, readMtx_sequentialMatrix )
+{
+   using SequentialMatrix = TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >;
+   expectElements( readFromString< SequentialMatrix >( symmetricMtx ), { { 1, 2, 0 }, { 2, 3, 0 }, { 0, 0, 4 } } );
 }
 
 TEST( MatrixReaderTest, readMtx_denseMatrix )
@@ -148,7 +169,7 @@ TEST( MatrixReaderTest, readMtx_skewSymmetricBothTriangles )
    EXPECT_THROW( readFromString( mtx ), std::runtime_error );
 
    TNL::Matrices::MtxReaderOptions options;
-   options.duplicates = TNL::Matrices::MtxDuplicateElements::Sum;
+   options.duplicates = TNL::Matrices::MatrixElementsDuplicates::Sum;
    expectElements( readFromString( mtx, options ), { { 0, 1 }, { -1, 0 } } );
 }
 
@@ -362,6 +383,22 @@ TEST( MatrixReaderTest, readMtx_emptyFile )
    EXPECT_THROW( readFromString( "" ), std::runtime_error );
 }
 
+TEST( MatrixReaderTest, readMtx_wrongNumberOfBannerWords )
+{
+   EXPECT_THROW(
+      readFromString(
+         "%%MatrixMarket matrix coordinate real\n"
+         "2 2 1\n"
+         "1 1 1.0\n" ),
+      std::runtime_error );
+   EXPECT_THROW(
+      readFromString(
+         "%%MatrixMarket matrix coordinate real general extra\n"
+         "2 2 1\n"
+         "1 1 1.0\n" ),
+      std::runtime_error );
+}
+
 TEST( MatrixReaderTest, readMtx_missingBanner )
 {
    EXPECT_THROW(
@@ -549,15 +586,22 @@ TEST( MatrixReaderTest, readMtx_duplicatesError )
 TEST( MatrixReaderTest, readMtx_duplicatesKeepLast )
 {
    TNL::Matrices::MtxReaderOptions options;
-   options.duplicates = TNL::Matrices::MtxDuplicateElements::KeepLast;
+   options.duplicates = TNL::Matrices::MatrixElementsDuplicates::KeepLast;
    expectElements( readFromString( duplicatesMtx, options ), { { 0, 2 }, { 0, 5 } } );
 }
 
 TEST( MatrixReaderTest, readMtx_duplicatesSum )
 {
    TNL::Matrices::MtxReaderOptions options;
-   options.duplicates = TNL::Matrices::MtxDuplicateElements::Sum;
+   options.duplicates = TNL::Matrices::MatrixElementsDuplicates::Sum;
    expectElements( readFromString( duplicatesMtx, options ), { { 0, 3 }, { 0, 5 } } );
+}
+
+TEST( MatrixReaderTest, readMtx_duplicatesAverage )
+{
+   TNL::Matrices::MtxReaderOptions options;
+   options.duplicates = TNL::Matrices::MatrixElementsDuplicates::Average;
+   expectElements( readFromString( duplicatesMtx, options ), { { 0, 1.5 }, { 0, 5 } } );
 }
 
 TEST( MatrixReaderTest, readMtx_symmetricBothTriangles )
@@ -568,10 +612,14 @@ TEST( MatrixReaderTest, readMtx_symmetricBothTriangles )
       "2 2 2\n"
       "2 1 2.0\n"
       "1 2 3.0\n";
-   EXPECT_THROW( readFromString( mtx ), std::runtime_error );
+   // the message gives the lines of the element for both general and symmetric matrices
+   for( const std::string& message : { getErrorMessage< Matrix >( mtx ), getErrorMessage< SymmetricMatrix >( mtx ) } ) {
+      EXPECT_NE( message.find( "row 2 and column 1" ), std::string::npos ) << message;
+      EXPECT_NE( message.find( "lines 3, 4" ), std::string::npos ) << message;
+   }
 
    TNL::Matrices::MtxReaderOptions options;
-   options.duplicates = TNL::Matrices::MtxDuplicateElements::Sum;
+   options.duplicates = TNL::Matrices::MatrixElementsDuplicates::Sum;
    expectElements( readFromString( mtx, options ), { { 0, 5 }, { 5, 0 } } );
    expectElements( readFromString< SymmetricMatrix >( mtx, options ), { { 0, 5 }, { 5, 0 } } );
 }
@@ -604,7 +652,7 @@ TEST( MatrixReaderTest, readMtx_fileWithOptions )
       file << duplicatesMtx;
    }
    TNL::Matrices::MtxReaderOptions options;
-   options.duplicates = TNL::Matrices::MtxDuplicateElements::Sum;
+   options.duplicates = TNL::Matrices::MatrixElementsDuplicates::Sum;
    Matrix matrix;
    Reader::readMtx( fileName.string(), matrix, options );
    std::filesystem::remove( fileName );

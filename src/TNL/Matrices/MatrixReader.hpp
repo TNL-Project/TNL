@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -29,21 +28,11 @@ namespace TNL::Matrices {
 
 namespace detail {
 
-// Split a line of an MTX file into words separated by any whitespace, which also drops the '\r' of Windows line endings.
-inline std::vector< std::string >
-splitMtxLine( const std::string& line )
-{
-   std::vector< std::string > words;
-   std::istringstream stream( line );
-   for( std::string word; stream >> word; )
-      words.push_back( std::move( word ) );
-   return words;
-}
-
-// Split a line of an MTX file into at most maxWords words without allocating memory. Returns the number of words, which is
-// greater than maxWords if there are more words in the line.
+// Split a line of an MTX file into at most maxWords words separated by any whitespace, which also drops the '\r' of Windows
+// line endings. No memory is allocated. Returns the number of words, which is greater than maxWords if there are more words
+// in the line.
 template< std::size_t maxWords >
-std::size_t
+[[nodiscard]] std::size_t
 splitMtxLine( std::string_view line, std::array< std::string_view, maxWords >& words )
 {
    std::size_t count = 0;
@@ -62,18 +51,19 @@ splitMtxLine( std::string_view line, std::array< std::string_view, maxWords >& w
    }
 }
 
-inline std::string
-mtxToLowerCase( std::string word )
+// Compare a word of an MTX file with a lower-case keyword. The keywords are case-insensitive.
+[[nodiscard]] inline bool
+isMtxKeyword( std::string_view word, std::string_view keyword )
 {
-   std::transform(
+   return std::equal(
       word.begin(),
       word.end(),
-      word.begin(),
-      []( unsigned char c )
+      keyword.begin(),
+      keyword.end(),
+      []( unsigned char a, unsigned char b )
       {
-         return std::tolower( c );
+         return std::tolower( a ) == b;
       } );
-   return word;
 }
 
 [[noreturn]] inline void
@@ -82,7 +72,7 @@ throwMtxError( long lineNumber, const std::string& message )
    throw std::runtime_error( "Error in the MTX file at line " + std::to_string( lineNumber ) + ": " + message );
 }
 
-inline long long
+[[nodiscard]] inline long long
 parseMtxInteger( std::string_view word, long lineNumber )
 {
    long long value = 0;
@@ -92,7 +82,7 @@ parseMtxInteger( std::string_view word, long lineNumber )
    return value;
 }
 
-inline double
+[[nodiscard]] inline double
 parseMtxReal( std::string_view word, long lineNumber )
 {
    // std::from_chars does not accept the plus sign
@@ -107,7 +97,7 @@ parseMtxReal( std::string_view word, long lineNumber )
 }
 
 template< typename Index >
-Index
+[[nodiscard]] Index
 parseMtxSize( std::string_view word, long lineNumber )
 {
    const long long value = parseMtxInteger( word, lineNumber );
@@ -118,7 +108,7 @@ parseMtxSize( std::string_view word, long lineNumber )
 
 // Parse a 1-based row or column index and return the 0-based one.
 template< typename Index >
-Index
+[[nodiscard]] Index
 parseMtxIndex( std::string_view word, Index size, long lineNumber )
 {
    const long long value = parseMtxInteger( word, lineNumber );
@@ -130,63 +120,9 @@ parseMtxIndex( std::string_view word, Index size, long lineNumber )
 
 }  // namespace detail
 
-template< typename Matrix, typename Device >
-void
-MatrixReader< Matrix, Device >::readMtx( const std::string& fileName, Matrix& matrix, bool verbose )
-{
-   MtxReaderOptions options;
-   options.verbose = verbose;
-   readMtx( fileName, matrix, options );
-}
-
-template< typename Matrix, typename Device >
-void
-MatrixReader< Matrix, Device >::readMtx( std::istream& str, Matrix& matrix, bool verbose )
-{
-   MtxReaderOptions options;
-   options.verbose = verbose;
-   readMtx( str, matrix, options );
-}
-
-template< typename Matrix, typename Device >
-void
-MatrixReader< Matrix, Device >::readMtx( const std::string& fileName, Matrix& matrix, const MtxReaderOptions& options )
-{
-   HostMatrix hostMatrix;
-   MatrixReader< HostMatrix >::readMtx( fileName, hostMatrix, options );
-   matrix = hostMatrix;
-}
-
-template< typename Matrix, typename Device >
-void
-MatrixReader< Matrix, Device >::readMtx( std::istream& file, Matrix& matrix, const MtxReaderOptions& options )
-{
-   HostMatrix hostMatrix;
-   MatrixReader< HostMatrix >::readMtx( file, hostMatrix, options );
-   matrix = hostMatrix;
-}
-
-template< typename Matrix, typename Device >
-bool
-MatrixReader< Matrix, Device >::isSymmetric( const std::string& fileName )
-{
-   return MatrixReader< HostMatrix >::isSymmetric( fileName );
-}
-
-template< typename Matrix, typename Device >
-bool
-MatrixReader< Matrix, Device >::isSymmetric( std::istream& file )
-{
-   return MatrixReader< HostMatrix >::isSymmetric( file );
-}
-
-// MatrixReader specialization for TNL::Devices::Host.
-
-// This is to prevent Doxygen warnings due to hidden class.
-/// \cond
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMtx( const std::string& fileName, Matrix& matrix, bool verbose )
+MatrixReader< Matrix >::readMtx( const std::string& fileName, Matrix& matrix, bool verbose )
 {
    MtxReaderOptions options;
    options.verbose = verbose;
@@ -195,7 +131,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx( const std::string& fileName
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix& matrix, bool verbose )
+MatrixReader< Matrix >::readMtx( std::istream& file, Matrix& matrix, bool verbose )
 {
    MtxReaderOptions options;
    options.verbose = verbose;
@@ -204,10 +140,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix&
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMtx(
-   const std::string& fileName,
-   Matrix& matrix,
-   const MtxReaderOptions& options )
+MatrixReader< Matrix >::readMtx( const std::string& fileName, Matrix& matrix, const MtxReaderOptions& options )
 {
    std::ifstream file( fileName );
    if( ! file )
@@ -217,7 +150,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx(
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix& matrix, const MtxReaderOptions& options )
+MatrixReader< Matrix >::readMtx( std::istream& file, Matrix& matrix, const MtxReaderOptions& options )
 {
    long lineNumber = 0;
    const MtxHeader header = readMtxHeader( file, lineNumber );
@@ -234,7 +167,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix&
 
 template< typename Matrix >
 bool
-MatrixReader< Matrix, TNL::Devices::Host >::isSymmetric( const std::string& fileName )
+MatrixReader< Matrix >::isSymmetric( const std::string& fileName )
 {
    std::ifstream file( fileName );
    if( ! file )
@@ -244,7 +177,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::isSymmetric( const std::string& file
 
 template< typename Matrix >
 bool
-MatrixReader< Matrix, TNL::Devices::Host >::isSymmetric( std::istream& file )
+MatrixReader< Matrix >::isSymmetric( std::istream& file )
 {
    long lineNumber = 0;
    return readMtxHeader( file, lineNumber ).symmetric;
@@ -252,7 +185,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::isSymmetric( std::istream& file )
 
 template< typename Matrix >
 auto
-MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file, long& lineNumber ) -> MtxHeader
+MatrixReader< Matrix >::readMtxHeader( std::istream& file, long& lineNumber ) -> MtxHeader
 {
    file.clear();
    file.seekg( 0, std::ios::beg );
@@ -263,36 +196,39 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file, l
    std::string line;
    std::getline( file, line );
    lineNumber++;
-   std::vector< std::string > words = detail::splitMtxLine( line );
-   for( auto& word : words )
-      word = detail::mtxToLowerCase( word );
-   if( words.size() < 5 || words[ 0 ] != "%%matrixmarket" )
+   std::array< std::string_view, 5 > banner;
+   if( detail::splitMtxLine( line, banner ) != banner.size() || ! detail::isMtxKeyword( banner[ 0 ], "%%matrixmarket" ) )
       throw std::runtime_error(
          "Unknown format of the source file. We expect line like this: %%MatrixMarket matrix coordinate real general" );
-   if( words[ 1 ] != "matrix" )
+   if( ! detail::isMtxKeyword( banner[ 1 ], "matrix" ) )
       throw std::runtime_error( "Keyword 'matrix' is expected in the header line: " + line );
-   if( words[ 2 ] != "coordinates" && words[ 2 ] != "coordinate" )
-      throw std::runtime_error( "Error: Only 'coordinates' format is supported now, not " + words[ 2 ] );
+   if( ! detail::isMtxKeyword( banner[ 2 ], "coordinates" ) && ! detail::isMtxKeyword( banner[ 2 ], "coordinate" ) )
+      throw std::runtime_error( "Error: Only 'coordinates' format is supported now, not " + std::string( banner[ 2 ] ) );
    // TODO: add support for complex matrices
-   if( words[ 3 ] != "real" && words[ 3 ] != "integer" && words[ 3 ] != "pattern" )
-      throw std::runtime_error( "Only 'real', 'integer' and 'pattern' matrices are supported, not " + words[ 3 ] );
-   header.pattern = words[ 3 ] == "pattern";
-   if( words[ 4 ] == "symmetric" )
+   const std::string_view field = banner[ 3 ];
+   if( ! detail::isMtxKeyword( field, "real" ) && ! detail::isMtxKeyword( field, "integer" )
+       && ! detail::isMtxKeyword( field, "pattern" ) )
+      throw std::runtime_error( "Only 'real', 'integer' and 'pattern' matrices are supported, not " + std::string( field ) );
+   header.pattern = detail::isMtxKeyword( field, "pattern" );
+   const std::string_view symmetry = banner[ 4 ];
+   if( detail::isMtxKeyword( symmetry, "symmetric" ) )
       header.symmetric = true;
-   else if( words[ 4 ] == "skew-symmetric" )
+   else if( detail::isMtxKeyword( symmetry, "skew-symmetric" ) )
       header.skewSymmetric = true;
-   else if( words[ 4 ] != "general" )
-      throw std::runtime_error( "Only 'general', 'symmetric' and 'skew-symmetric' matrices are supported, not " + words[ 4 ] );
+   else if( ! detail::isMtxKeyword( symmetry, "general" ) )
+      throw std::runtime_error(
+         "Only 'general', 'symmetric' and 'skew-symmetric' matrices are supported, not " + std::string( symmetry ) );
    if( header.pattern && header.skewSymmetric )
       throw std::runtime_error( "A 'pattern' matrix cannot be 'skew-symmetric'." );
 
    // The size line follows after comments and blank lines.
+   std::array< std::string_view, 3 > words;
    while( std::getline( file, line ) ) {
       lineNumber++;
-      words = detail::splitMtxLine( line );
-      if( words.empty() || words[ 0 ][ 0 ] == '%' )
+      const std::size_t count = detail::splitMtxLine( line, words );
+      if( count == 0 || words[ 0 ][ 0 ] == '%' )
          continue;
-      if( words.size() != 3 )
+      if( count != words.size() )
          throw std::runtime_error( "Wrong number of parameters in the matrix header - should be 3." );
       header.rows = detail::parseMtxSize< IndexType >( words[ 0 ], lineNumber );
       header.columns = detail::parseMtxSize< IndexType >( words[ 1 ], lineNumber );
@@ -308,7 +244,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file, l
 
 template< typename Matrix >
 bool
-MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElement(
+MatrixReader< Matrix >::readMatrixElement(
    std::istream& file,
    const MtxHeader& header,
    std::string& line,
@@ -348,11 +284,14 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElement(
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::throwDuplicateElementError( std::istream& file, IndexType row, IndexType column )
+MatrixReader< Matrix >::throwDuplicateElementError( std::istream& file, IndexType row, IndexType column )
 {
    // The lines of the elements are not stored to save memory, the file is read again to find them.
    long lineNumber = 0;
    const MtxHeader header = readMtxHeader( file, lineNumber );
+   // The elements of a symmetric matrix are compared below the diagonal, see readMatrixElement.
+   if( ( header.symmetric || header.skewSymmetric ) && row < column )
+      std::swap( row, column );
    std::string line;
    std::string lines;
    IndexType elementRow = 0;
@@ -368,7 +307,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::throwDuplicateElementError( std::ist
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElements(
+MatrixReader< Matrix >::readMatrixElements(
    std::istream& file,
    const MtxHeader& header,
    long& lineNumber,
@@ -382,7 +321,9 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElements(
    // and sorting it at once is much faster than inserting the elements into std::map.
    using Element = std::tuple< IndexType, IndexType, RealType >;
    std::vector< Element > elements;
-   elements.reserve( header.elements );
+   // The elements of a symmetric matrix are added also above the diagonal if needed, see below.
+   const bool symmetrize = header.skewSymmetric || ( header.symmetric && ! Matrix::isSymmetric() );
+   elements.reserve( ( symmetrize ? 2 : 1 ) * static_cast< std::size_t >( header.elements ) );
    std::string line;
    IndexType row = 0;
    IndexType column = 0;
@@ -399,52 +340,18 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElements(
          "The size line of the MTX file declares " + std::to_string( header.elements )
          + " matrix elements, but the file contains " + std::to_string( elementsInFile ) + " elements." );
 
-   // The stable sort keeps the elements at the same position in the order of the file.
-   std::stable_sort( elements.begin(), elements.end(), detail::MatrixElementsPositionLess{} );
-
-   // Resolve the elements appearing more than once.
-   std::size_t last = 0;
-   for( std::size_t i = 1; i < elements.size(); i++ ) {
-      Element& current = elements[ last ];
-      const Element& next = elements[ i ];
-      if( std::get< 0 >( current ) != std::get< 0 >( next ) || std::get< 1 >( current ) != std::get< 1 >( next ) ) {
-         elements[ ++last ] = next;
-         continue;
-      }
-      switch( options.duplicates ) {
-         case MtxDuplicateElements::Error:
-            throwDuplicateElementError( file, std::get< 0 >( next ), std::get< 1 >( next ) );
-         case MtxDuplicateElements::KeepLast:
-            std::get< 2 >( current ) = std::get< 2 >( next );
-            break;
-         case MtxDuplicateElements::Sum:
-            if constexpr( std::is_same_v< RealType, bool > )
-               std::get< 2 >( current ) = std::get< 2 >( current ) || std::get< 2 >( next );
-            else
-               std::get< 2 >( current ) += std::get< 2 >( next );
-            break;
-      }
-   }
-   if( ! elements.empty() )
-      elements.resize( last + 1 );
-
-   // A general matrix needs also the elements above the diagonal.
-   if( header.symmetric && ! Matrix::isSymmetric() ) {
-      const std::size_t lowerElements = elements.size();
-      for( std::size_t i = 0; i < lowerElements; i++ ) {
+   // A general matrix needs also the elements above the diagonal. They are added before the elements are sorted, so that
+   // they are sorted only once. The elements at the same position are resolved by setElements, and since the elements of
+   // a symmetric matrix are below the diagonal, the copies above the diagonal are resolved in the same way.
+   if( symmetrize ) {
+      for( std::size_t i = 0; i < elementsInFile; i++ ) {
          const auto [ elementRow, elementColumn, elementValue ] = elements[ i ];
-         if( elementRow != elementColumn )
-            elements.emplace_back( elementColumn, elementRow, elementValue );
-      }
-   }
-   if( header.skewSymmetric ) {
-      const std::size_t lowerElements = elements.size();
-      for( std::size_t i = 0; i < lowerElements; i++ ) {
-         const auto [ elementRow, elementColumn, elementValue ] = elements[ i ];
+         if( elementRow == elementColumn )
+            continue;
          if constexpr( std::is_same_v< RealType, bool > )
             elements.emplace_back( elementColumn, elementRow, elementValue );
          else
-            elements.emplace_back( elementColumn, elementRow, -elementValue );
+            elements.emplace_back( elementColumn, elementRow, header.skewSymmetric ? -elementValue : elementValue );
       }
    }
 
@@ -457,16 +364,21 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElements(
    if( options.verbose )
       std::cout << " Copying matrix elements to the matrix ... \r" << std::flush;
    const std::size_t elementsCount = elements.size();
-   // The elements of a symmetric matrix are below the diagonal.
-   matrix.setElements(
-      std::move( elements ),
-      Matrix::isSymmetric() ? MatrixElementsEncoding::SymmetricLower : MatrixElementsEncoding::Complete );
+   try {
+      // The elements of a symmetric matrix are below the diagonal.
+      matrix.setElements(
+         std::move( elements ),
+         Matrix::isSymmetric() ? MatrixElementsEncoding::SymmetricLower : MatrixElementsEncoding::Complete,
+         options.duplicates );
+   }
+   catch( const detail::DuplicateMatrixElementError< IndexType >& error ) {
+      throwDuplicateElementError( file, error.getRow(), error.getColumn() );
+   }
    timer.stop();
    const double dataSize = static_cast< double >( elementsCount ) * ( sizeof( RealType ) + sizeof( IndexType ) );
    if( options.verbose )
       std::cout << " Copying matrix elements to the matrix ... -> " << timer.getRealTime() << " sec. i.e. "
                 << dataSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s.\n";
 }
-/// \endcond
 
 }  // namespace TNL::Matrices
