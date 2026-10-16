@@ -4,6 +4,8 @@
 #pragma once
 
 #include <map>
+#include <tuple>
+#include <vector>
 
 #include <TNL/Allocators/Default.h>
 
@@ -265,6 +267,7 @@ public:
     * { { row1, column1, value1 },
     *   { row2, column2, value2 },
     * ... }.
+    * If a position appears in the list more than once, the last value is used.
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
@@ -306,6 +309,25 @@ public:
    setElements(
       const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
       MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
+
+   /**
+    * \brief This method sets the dense matrix elements from std::vector of tuples.
+    *
+    * Each element of the vector `elements` is a tuple `(row, column, value)`. The elements can be given in any order.
+    * The elements at the same position are handled as given by `duplicates`.
+    *
+    * \param elements is a \ref std::vector containing the matrix elements. It is passed by value and sorted in place,
+    * so it can be moved into the method to avoid a copy.
+    * \param encoding defines encoding for symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding and the method
+    * setting the elements from \ref std::map for details.
+    * \param duplicates defines handling of the elements at the same position - see
+    * \ref TNL::Matrices::MatrixElementsDuplicates.
+    */
+   void
+   setElements(
+      std::vector< std::tuple< Index, Index, Real > > elements,
+      MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+      MatrixElementsDuplicates duplicates = MatrixElementsDuplicates::Error );
 
    /**
     * \brief Resets the matrix to zero dimensions.

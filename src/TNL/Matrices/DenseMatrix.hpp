@@ -3,11 +3,16 @@
 
 #pragma once
 
+#include <tuple>
+#include <utility>
+#include <vector>
+
 #include <TNL/Backend.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Hip.h>
 
 #include "DenseMatrix.h"
+#include "detail/MatrixElements.h"
 #include "DenseSparseOperations.h"
 #include "DenseOperations.h"
 
@@ -124,10 +129,11 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
    const std::initializer_list< std::tuple< Index, Index, Real > >& data,
    MatrixElementsEncoding encoding )
 {
-   std::map< std::pair< Index, Index >, Real > map;
-   for( const auto& [ row, column, value ] : data )
-      map[ { row, column } ] = value;
-   this->setElements( map, encoding );
+   // A position appearing more than once in the list keeps the last value as with std::map.
+   this->setElements(
+      std::vector< std::tuple< Index, Index, Real > >( data.begin(), data.end() ),
+      encoding,
+      MatrixElementsDuplicates::KeepLast );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -137,14 +143,28 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
    MatrixElementsEncoding encoding )
 {
+   std::vector< std::tuple< Index, Index, Real > > elements;
+   elements.reserve( map.size() );
+   for( const auto& [ coordinates, value ] : map )
+      elements.emplace_back( coordinates.first, coordinates.second, value );
+   this->setElements( std::move( elements ), encoding );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+void
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
+   std::vector< std::tuple< Index, Index, Real > > elements,
+   MatrixElementsEncoding encoding,
+   MatrixElementsDuplicates duplicates )
+{
    if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
-      hostMatrix.setElements( map, encoding );
+      hostMatrix.setElements( std::move( elements ), encoding, duplicates );
       *this = hostMatrix;
       return;
    }
-   for( const auto& [ coordinates, value ] : map ) {
-      auto [ rowIdx, columnIdx ] = coordinates;
+   detail::sortMatrixElements( elements, duplicates );
+   for( const auto& [ rowIdx, columnIdx, value ] : elements ) {
       if( rowIdx >= this->getRows() )
          throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
       if( columnIdx >= this->getColumns() )
@@ -154,8 +174,8 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
       if( encoding == MatrixElementsEncoding::SymmetricUpper && rowIdx > columnIdx )
          throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
       if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
-         auto query = map.find( { columnIdx, rowIdx } );
-         if( query != map.end() && query->second != value )
+         const Real* query = detail::findMatrixElement( elements, columnIdx, rowIdx );
+         if( query != nullptr && *query != value )
             throw std::logic_error(
                "The input data are supposed to be symmetric (matrix elements encoding equals "
                "SymmetricMixed) but it is not. The matrix elements at position ("

@@ -40,6 +40,20 @@ enum class MatrixElementsEncoding : std::uint8_t
 };
 
 /**
+ * \brief Handling of matrix elements which appear more than once at the same position in the input data.
+ *
+ * The elements are at the same position if they have the same row and column indexes, i.e. the elements a_ij and a_ji
+ * are different elements even if \ref MatrixElementsEncoding is symmetric.
+ */
+enum class MatrixElementsDuplicates : std::uint8_t
+{
+   Error,     //!<  Throw an exception.
+   KeepLast,  //!<  Use the value which appears last in the input data.
+   Sum,       //!<  Use the sum of all values at the same position.
+   Average    //!<  Use the average of all values at the same position.
+};
+
+/**
  * \brief Base class for the implementation of concrete matrix types.
  *
  * \tparam Real is a type of matrix elements.

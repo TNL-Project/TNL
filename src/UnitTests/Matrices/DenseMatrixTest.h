@@ -1,5 +1,9 @@
 #include <iostream>
 #include <functional>
+#include <initializer_list>
+#include <stdexcept>
+#include <tuple>
+#include <vector>
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Array.h>
@@ -248,6 +252,71 @@ test_ConstructorWithInitializerListSparse()
    EXPECT_EQ( m_lower.getElement( 2, 0 ), RealType{ 4 } );
    EXPECT_EQ( m_lower.getElement( 2, 1 ), RealType{ 5 } );
    EXPECT_EQ( m_lower.getElement( 2, 2 ), RealType{ 6 } );
+}
+
+template< typename Matrix >
+void
+test_SetElementsFromVector()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+   using Elements = std::vector< std::tuple< IndexType, IndexType, RealType > >;
+
+   // the elements do not need to be sorted
+   Elements elements;
+   elements.emplace_back( IndexType( 2 ), IndexType( 1 ), RealType( 3 ) );
+   elements.emplace_back( IndexType( 0 ), IndexType( 2 ), RealType( 1 ) );
+   elements.emplace_back( IndexType( 1 ), IndexType( 0 ), RealType( 2 ) );
+   Matrix m( 3, 3 );
+   m.setElements( elements );
+   for( IndexType row = 0; row < 3; row++ )
+      for( IndexType column = 0; column < 3; column++ ) {
+         RealType expected = RealType( 0 );
+         if( row == 0 && column == 2 )
+            expected = RealType( 1 );
+         if( row == 1 && column == 0 )
+            expected = RealType( 2 );
+         if( row == 2 && column == 1 )
+            expected = RealType( 3 );
+         EXPECT_EQ( m.getElement( row, column ), expected ) << "row = " << row << ", column = " << column;
+      }
+
+   // each position can appear only once
+   elements.emplace_back( IndexType( 1 ), IndexType( 0 ), RealType( 4 ) );
+   EXPECT_THROW( m.setElements( elements ), std::logic_error );
+
+   // the elements at the same position can be resolved
+   using TNL::Matrices::MatrixElementsDuplicates;
+   using TNL::Matrices::MatrixElementsEncoding;
+   m.setElements( elements, MatrixElementsEncoding::Complete, MatrixElementsDuplicates::KeepLast );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType( 4 ) );
+   EXPECT_EQ( m.getElement( 2, 1 ), RealType( 3 ) );
+   m.setElements( elements, MatrixElementsEncoding::Complete, MatrixElementsDuplicates::Sum );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType( 6 ) );
+   EXPECT_EQ( m.getElement( 2, 1 ), RealType( 3 ) );
+   m.setElements( elements, MatrixElementsEncoding::Complete, MatrixElementsDuplicates::Average );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType( 3 ) );
+   EXPECT_EQ( m.getElement( 2, 1 ), RealType( 3 ) );
+
+   // the initializer list keeps the last value; the list type is explicit, since a braced list of integers would select
+   // the overload with the matrix rows
+   const std::initializer_list< std::tuple< IndexType, IndexType, RealType > > list{
+      { IndexType( 1 ), IndexType( 0 ), RealType( 2 ) }, { IndexType( 1 ), IndexType( 0 ), RealType( 5 ) }
+   };
+   m.setElements( list );
+   EXPECT_EQ( m.getRows(), 3 );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType( 5 ) );
+
+   // the lower part of a symmetric matrix
+   Elements lower;
+   lower.emplace_back( IndexType( 1 ), IndexType( 0 ), RealType( 2 ) );
+   lower.emplace_back( IndexType( 0 ), IndexType( 0 ), RealType( 1 ) );
+   Matrix symmetric( 2, 2 );
+   symmetric.setElements( lower, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   EXPECT_EQ( symmetric.getElement( 0, 0 ), RealType( 1 ) );
+   EXPECT_EQ( symmetric.getElement( 0, 1 ), RealType( 2 ) );
+   EXPECT_EQ( symmetric.getElement( 1, 0 ), RealType( 2 ) );
+   EXPECT_EQ( symmetric.getElement( 1, 1 ), RealType( 0 ) );
 }
 
 template< typename Matrix >
@@ -1676,6 +1745,13 @@ TYPED_TEST( MatrixTest, constructorWithInitializerListSparseTest )
    using MatrixType = typename TestFixture::MatrixType;
 
    test_ConstructorWithInitializerListSparse< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, setElementsFromVectorTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_SetElementsFromVector< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, constructorWithStdMapTest )
