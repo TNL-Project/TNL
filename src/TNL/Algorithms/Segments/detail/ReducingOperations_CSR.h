@@ -3,10 +3,13 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/TypeTraits.h>
+#include "CSRHostScheduling.h"
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_CSR.h"
 #include "ReducingOperationsBase.h"
@@ -43,36 +46,76 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
 
-      auto l = [ offsets, fetch, reduction, storer, identity ] __cuda_callable__( const Index segmentIdx ) mutable
-      {
-         const IndexType begin = offsets[ segmentIdx ];
-         const IndexType end = offsets[ segmentIdx + 1 ];
-         using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
-         ReturnType aux = identity;
-         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
-            IndexType localIdx = 0;
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx ) );
+      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > || std::is_same_v< Device, TNL::Devices::Host > ) {
+         // Long segments are reduced into several independent partial results, so that the loop
+         // is not bound by the latency of the reduction operation (e.g. the FMA in SpMV). Short
+         // segments are faster with a single partial result.
+         auto l = [ offsets, fetch, reduction, storer, identity ]( const Index segmentIdx ) mutable
+         {
+            const IndexType begin = offsets[ segmentIdx ];
+            const IndexType end = offsets[ segmentIdx + 1 ];
+            using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
+            ReturnType aux0 = identity;
+            IndexType globalIdx = begin;
+            if( end - begin >= 16 ) {
+               ReturnType aux1 = identity;
+               ReturnType aux2 = identity;
+               ReturnType aux3 = identity;
+               for( ; globalIdx + 3 < end; globalIdx += 4 ) {
+                  if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+                     const IndexType localIdx = globalIdx - begin;
+                     aux0 = reduction( aux0, fetch( segmentIdx, localIdx, globalIdx ) );
+                     aux1 = reduction( aux1, fetch( segmentIdx, localIdx + 1, globalIdx + 1 ) );
+                     aux2 = reduction( aux2, fetch( segmentIdx, localIdx + 2, globalIdx + 2 ) );
+                     aux3 = reduction( aux3, fetch( segmentIdx, localIdx + 3, globalIdx + 3 ) );
+                  }
+                  else {
+                     aux0 = reduction( aux0, fetch( globalIdx ) );
+                     aux1 = reduction( aux1, fetch( globalIdx + 1 ) );
+                     aux2 = reduction( aux2, fetch( globalIdx + 2 ) );
+                     aux3 = reduction( aux3, fetch( globalIdx + 3 ) );
+                  }
+               }
+               // the reduction may take its first argument by a non-const reference
+               aux0 = reduction( aux0, aux1 );
+               aux2 = reduction( aux2, aux3 );
+               aux0 = reduction( aux0, aux2 );
+            }
+            for( ; globalIdx < end; globalIdx++ ) {
+               if constexpr( callableArgumentCount< Fetch >() == 3 )
+                  aux0 = reduction( aux0, fetch( segmentIdx, globalIdx - begin, globalIdx ) );
+               else
+                  aux0 = reduction( aux0, fetch( globalIdx ) );
+            }
+            storer( segmentIdx, aux0 );
+         };
+
+         if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
+            for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+               l( segmentIdx );
          }
          else {
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               aux = reduction( aux, fetch( globalIdx ) );
+            forSegmentsHost( offsets, begin, end, l );
          }
-         storer( segmentIdx, aux );
-      };
-
-      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
-#ifdef HAVE_OPENMP
-         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
       }
       else {
+         auto l = [ offsets, fetch, reduction, storer, identity ] __cuda_callable__( const Index segmentIdx ) mutable
+         {
+            const IndexType begin = offsets[ segmentIdx ];
+            const IndexType end = offsets[ segmentIdx + 1 ];
+            using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
+            ReturnType aux = identity;
+            if constexpr( callableArgumentCount< Fetch >() == 3 ) {
+               IndexType localIdx = 0;
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx ) );
+            }
+            else {
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  aux = reduction( aux, fetch( globalIdx ) );
+            }
+            storer( segmentIdx, aux );
+         };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
    }
@@ -693,11 +736,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             l( segmentIdx );
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
-#ifdef HAVE_OPENMP
-         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
+         forSegmentsHost( offsets, begin, end, l );
       }
       else {
          Algorithms::parallelFor< Device >( begin, end, l );
