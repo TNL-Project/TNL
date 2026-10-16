@@ -3,8 +3,12 @@
 
 #pragma once
 
+#include <sstream>
+#include <stdexcept>
+
 #include "Types.h"
 #include "Functions.h"
+#include "LaunchHelpers.h"
 #include <TNL/Exceptions/BackendRuntimeError.h>
 #include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/TypeInfo.h>
@@ -50,6 +54,43 @@ struct LaunchConfiguration
    {}
 };
 
+/**
+ * \brief Checks that the launch configuration satisfies the limits of the device.
+ *
+ * Some violations of the limits are not reported by the runtime, e.g. a grid
+ * with too many threads silently runs fewer threads on AMD GPUs.
+ *
+ * \throws std::invalid_argument when the configuration violates some limit.
+ */
+inline void
+checkLaunchConfiguration( const LaunchConfiguration& launch_configuration )
+{
+   const dim3& grid = launch_configuration.gridSize;
+   const dim3& block = launch_configuration.blockSize;
+   const auto error = [ & ]( const char* reason )
+   {
+      std::stringstream msg;
+      msg << "Invalid kernel launch configuration (" << reason << "): grid size " << grid << ", block size " << block;
+      throw std::invalid_argument( msg.str() );
+   };
+
+   if( grid.x == 0 || grid.y == 0 || grid.z == 0 || block.x == 0 || block.y == 0 || block.z == 0 )
+      error( "empty grid or block" );
+   if( grid.x > getMaxGridXSize() || grid.y > getMaxGridYSize() || grid.z > getMaxGridZSize() )
+      error( "too many blocks" );
+   if( block.x > static_cast< unsigned int >( getMaxBlockXSize() )
+       || block.y > static_cast< unsigned int >( getMaxBlockYSize() )
+       || block.z > static_cast< unsigned int >( getMaxBlockZSize() ) )
+      error( "block too large" );
+   const std::size_t blockThreads = static_cast< std::size_t >( block.x ) * block.y * block.z;
+   if( blockThreads > static_cast< std::size_t >( getMaxThreadsPerBlock() ) )
+      error( "too many threads per block" );
+   // the number of blocks fits into std::size_t, but multiplying it by the block size may overflow
+   const std::size_t gridBlocks = static_cast< std::size_t >( grid.x ) * grid.y * grid.z;
+   if( gridBlocks > getMaxThreadsPerGrid() / blockThreads )
+      error( "too many threads per grid" );
+}
+
 template< typename RawKernel, typename... KernelParameters >
 inline void
 launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuration, KernelParameters&&... parameters )
@@ -62,8 +103,6 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
 
    if( kernel_function == nullptr )
       throw std::logic_error( "cannot call a function via nullptr" );
-
-   // TODO: basic verification of the configuration
 
 #ifdef TNL_DEBUG_KERNEL_LAUNCHES
    // clang-format off
@@ -83,6 +122,8 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
 #endif
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   checkLaunchConfiguration( launch_configuration );
+
    // FIXME: clang-format 13.0.0 is still inserting spaces between "<<<" and ">>>":
    // https://github.com/llvm/llvm-project/issues/52881
    // clang-format off
