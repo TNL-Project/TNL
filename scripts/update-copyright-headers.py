@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import argparse
-import datetime
+import datetime as dt
 import fnmatch
 import os
 import re
@@ -426,9 +426,7 @@ def main():
 
     if template_lines is not None:
         template_settings = {}
-        template_settings["current_year"] = str(
-            datetime.datetime.now(tz=datetime.UTC).year
-        )
+        template_settings["current_year"] = str(dt.datetime.now(tz=dt.UTC).year)
         if arguments.current_year:
             template_settings["years"] = arguments.current_year
         elif arguments.years:
