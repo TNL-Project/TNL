@@ -13,6 +13,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Backend/KernelLaunch.h>
 
 #include "FillRandom.h"
 
@@ -59,7 +60,7 @@ void
 fillWithRandomValues( T* data, std::size_t length, T min_val, T max_val, int seed )
 {
 #ifdef __CUDACC__
-   int tid = threadIdx.x + blockIdx.x * blockDim.x;
+   const std::size_t tid = static_cast< std::size_t >( blockIdx.x ) * blockDim.x + threadIdx.x;
    curandState state;
 
    // Initialize the RNG state
@@ -146,13 +147,12 @@ FillRandom< Devices::GPU >::fillRandom( Element* data, Index size, Element min_v
    if( size == 0 )
       return;
    TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
-   int threadsPerBlock = 256;
-   int blocksPerGrid = ( size + threadsPerBlock - 1 ) / threadsPerBlock;
+   Backend::LaunchConfiguration launch_config;
+   launch_config.blockSize.x = 256;
+   launch_config.gridSize.x = Backend::getNumberOfBlocks( size, launch_config.blockSize.x );
    std::random_device rd;  // a seed source for the random number engine
-   // clang-format off
-   fillWithRandomValues<<<blocksPerGrid, threadsPerBlock>>>( data, size, min_val, max_val, rd() );
-   TNL_CHECK_CUDA_DEVICE;
-   // clang-format on
+   constexpr auto kernel = fillWithRandomValues< Element >;
+   Backend::launchKernelSync( kernel, launch_config, data, size, min_val, max_val, rd() );
 #elif defined( __HIP__ )
    throw TNL::Exceptions::NotImplementedError( "Function fillRandom is not implemented for HIP device" );
 #endif
