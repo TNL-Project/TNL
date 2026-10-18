@@ -15,7 +15,7 @@ set(COMMON_EXAMPLES
 
 set(HOST_EXAMPLES staticForExample unrolledForExample pivotPartitionExample)
 
-set(CUDA_EXAMPLES SortingCUBMergeSort SortingCUBRadixSort)
+set(CUDA_EXAMPLES SortingCUBMergeSort SortingCUBRadixSort SortingRadixSort)
 
 foreach(target IN ITEMS ${COMMON_EXAMPLES})
     tnl_add_example_with_output(${target} SOURCES ${target}.cpp)

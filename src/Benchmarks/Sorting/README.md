@@ -14,6 +14,7 @@ and a benchmark of the three-way `pivotPartition` operation (see
 
 - **BitonicSort** – TNL bitonic sort implementation
 - **Quicksort** – experimental TNL quicksort implementation
+- **RadixSort** – native TNL LSD radix sort implementation
 - **CUBMergeSort** – `cub::DeviceMergeSort::SortKeys`
 - **CUBRadixSort** – `cub::DeviceRadixSort::SortKeys`
 - **CedermanQuicksort** – Quicksort implementation based on Cederman & Tsigas

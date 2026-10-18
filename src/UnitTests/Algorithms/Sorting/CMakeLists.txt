@@ -24,3 +24,12 @@ tnl_add_test_executables(
     CUDA_LINK_LIBRARIES CCCL::CCCL
     HIP_LINK_LIBRARIES hip::hipcub
 )
+
+tnl_add_test_executables(
+    RadixSortTest
+    SOURCES RadixSortTest.h
+    BACKENDS CUDA HIP
+    SINGLE
+    CUDA_LINK_LIBRARIES CCCL::CCCL
+    HIP_LINK_LIBRARIES hip::hipcub
+)
