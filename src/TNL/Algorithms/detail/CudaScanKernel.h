@@ -955,14 +955,14 @@ struct CudaScanKernelLauncher
    static std::size_t&
    maxGridSize()
    {
-      static std::size_t maxGridSize = Backend::getMaxGridXSize();
+      static std::size_t maxGridSize = Backend::getMaxGridXSize( blockSize );
       return maxGridSize;
    }
 
    static void
    resetMaxGridSize()
    {
-      maxGridSize() = Backend::getMaxGridXSize();
+      maxGridSize() = Backend::getMaxGridXSize( blockSize );
       gridsCount() = -1;
    }
 
