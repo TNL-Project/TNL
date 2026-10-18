@@ -12,6 +12,7 @@ Performance benchmark for comparing different sorting algorithms on CPU and GPU.
 
 - **BitonicSort** – TNL bitonic sort implementation
 - **Quicksort** – experimental TNL quicksort implementation
+- **RadixSort** – native TNL LSD radix sort implementation
 - **CUBMergeSort** – `cub::DeviceMergeSort::SortKeys`
 - **CUBRadixSort** – `cub::DeviceRadixSort::SortKeys`
 - **CedermanQuicksort** – Quicksort implementation based on Cederman & Tsigas

@@ -15,7 +15,7 @@ set(COMMON_EXAMPLES
 
 set(HOST_EXAMPLES staticForExample unrolledForExample)
 
-set(CUDA_EXAMPLES SortingCUBMergeSort SortingCUBRadixSort)
+set(CUDA_EXAMPLES SortingCUBMergeSort SortingCUBRadixSort SortingRadixSort)
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${COMMON_EXAMPLES} ${CUDA_EXAMPLES})
