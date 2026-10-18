@@ -309,6 +309,17 @@ public:
    void
    reset();
 
+   /**
+    * \brief Sets the matrix to a scaled transposition of another multidiagonal matrix.
+    *
+    * Computes `this(i, j) = matrixMultiplicator * matrix(j, i)`.
+    * The dimensions of the transposed matrix must be swapped with respect to the input matrix, its
+    * diagonal offsets must be the negated diagonal offsets of the input matrix, and the input matrix
+    * must not be the same object as `*this`.
+    *
+    * \param matrix The input multidiagonal matrix to be transposed.
+    * \param matrixMultiplicator The scaling factor applied to all elements.
+    */
    // TODO: refactor this to a free function
    template< typename Real2, typename Index2 >
    void

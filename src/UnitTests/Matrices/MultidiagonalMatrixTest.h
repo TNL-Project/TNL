@@ -1283,56 +1283,89 @@ test_GetTransposition()
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
+
    /*
-    * Sets up the following 3x2 matrix:
+    * Sets up the following 3x2 matrix with diagonal offsets { -1, 0, 1 }:
     *
     *    /  1  2 \
     *    |  3  4 |
-    *    \  5  6 /
+    *    \  0  5 /
     */
    const IndexType rows = 3;
    const IndexType cols = 2;
-   DiagonalOffsetsType diagonalsOffsets( { 0, 1, 2 } );
+   DiagonalOffsetsType diagonalsOffsets( { -1, 0, 1 } );
 
    Matrix m( rows, cols, diagonalsOffsets );
 
-   RealType value = 1;
-   for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < cols; j++ )
-         m.setElement( i, j, value++ );
+   m.setElement( 0, 0, 1 );
+   m.setElement( 0, 1, 2 );
+   m.setElement( 1, 0, 3 );
+   m.setElement( 1, 1, 4 );
+   m.setElement( 2, 1, 5 );
 
    m.print( std::cout );
 
    /*
-    * Sets up the following 2x3 matrix:
+    * The transposed matrix scaled by a factor of 2 is the following 2x3 matrix:
     *
-    *    /  0  0  0 \
-    *    \  0  0  0 /
+    *    /  2  6   0 \
+    *    \  4  8  10 /
     */
    Matrix mTransposed( cols, rows, diagonalsOffsets );
 
-   mTransposed.print( std::cout );
-
-   RealType matrixMultiplicator = 1;
+   const RealType matrixMultiplicator = 2;
 
    mTransposed.getTransposition( m, matrixMultiplicator );
 
    mTransposed.print( std::cout );
 
+   EXPECT_EQ( mTransposed.getElement( 0, 0 ), 2 );
+   EXPECT_EQ( mTransposed.getElement( 0, 1 ), 6 );
+
+   EXPECT_EQ( mTransposed.getElement( 1, 0 ), 4 );
+   EXPECT_EQ( mTransposed.getElement( 1, 1 ), 8 );
+   EXPECT_EQ( mTransposed.getElement( 1, 2 ), 10 );
+
    /*
-    * Should result in the following 2x3 matrix:
+    * Sets up the following 4x4 matrix with diagonal offsets { 0, 2, 3 }:
     *
-    *    /  1  3  5 \
-    *    \  2  4  6 /
+    *    /  1  0  2  3 \
+    *    |  0  5  0  6 |
+    *    |  0  0  9  0 |
+    *    \  0  0  0 13 /
     */
+   DiagonalOffsetsType generalOffsets( { 0, 2, 3 } );
+   DiagonalOffsetsType negatedOffsets( { -3, -2, 0 } );
 
-   EXPECT_EQ( mTransposed.getElement( 0, 0 ), 1 );
-   EXPECT_EQ( mTransposed.getElement( 0, 1 ), 3 );
-   EXPECT_EQ( mTransposed.getElement( 0, 2 ), 5 );
+   Matrix generalMatrix( 4, 4, generalOffsets );
 
-   EXPECT_EQ( mTransposed.getElement( 1, 0 ), 2 );
-   EXPECT_EQ( mTransposed.getElement( 1, 1 ), 4 );
-   EXPECT_EQ( mTransposed.getElement( 1, 2 ), 6 );
+   generalMatrix.setElement( 0, 0, 1 );
+   generalMatrix.setElement( 0, 2, 2 );
+   generalMatrix.setElement( 0, 3, 3 );
+   generalMatrix.setElement( 1, 1, 5 );
+   generalMatrix.setElement( 1, 3, 6 );
+   generalMatrix.setElement( 2, 2, 9 );
+   generalMatrix.setElement( 3, 3, 13 );
+
+   /*
+    * The transposed matrix is the following 4x4 matrix:
+    *
+    *    /  1  0  0  0 \
+    *    |  0  5  0  0 |
+    *    |  2  0  9  0 |
+    *    \  3  6  0 13 /
+    */
+   Matrix generalTransposed( 4, 4, negatedOffsets );
+
+   generalTransposed.getTransposition( generalMatrix );
+
+   EXPECT_EQ( generalTransposed.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( generalTransposed.getElement( 1, 1 ), 5 );
+   EXPECT_EQ( generalTransposed.getElement( 2, 0 ), 2 );
+   EXPECT_EQ( generalTransposed.getElement( 2, 2 ), 9 );
+   EXPECT_EQ( generalTransposed.getElement( 3, 0 ), 3 );
+   EXPECT_EQ( generalTransposed.getElement( 3, 1 ), 6 );
+   EXPECT_EQ( generalTransposed.getElement( 3, 3 ), 13 );
 }
 
 template< typename Matrix >
@@ -1650,6 +1683,13 @@ TYPED_TEST( MatrixTest, vectorProductTest )
 
     test_AddMatrix< MatrixType >();
 }*/
+
+TYPED_TEST( MatrixTest, getTranspositionTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_GetTransposition< MatrixType >();
+}
 
 TYPED_TEST( MatrixTest, assignmentOperatorTest )
 {
