@@ -141,32 +141,65 @@ bool
 SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::operator==(
    const SparseMatrixRowView< _SegmentView, _ValuesView, _ColumnsIndexesView >& other ) const
 {
-   const IndexType minSize = TNL::min( getSize(), other.getSize() );
-   IndexType i = 0;
-   while( i < minSize ) {
-      if( getColumnIndex( i ) != other.getColumnIndex( i ) )
+   // Only elements which are really present in the matrix are compared, i.e. the padding elements and the elements with
+   // explicitly stored zero value are skipped. Two rows are therefore equal even if they differ in the explicitly stored
+   // zero elements only. The elements are compared in the order in which they are stored in the rows, i.e. the rows do
+   // not need to be sorted by the column indexes, but rows which store the same elements in a different order are not
+   // equal.
+   using OtherRowView = SparseMatrixRowView< _SegmentView, _ValuesView, _ColumnsIndexesView >;
+   IndexType thisIdx = 0;
+   IndexType otherIdx = 0;
+   while( true ) {
+      while( thisIdx < getSize() ) {
+         if( getColumnIndex( thisIdx ) == paddingIndex< IndexType > ) {
+            ++thisIdx;
+            continue;
+         }
+         if constexpr( ! isBinary() ) {
+            if( getValue( thisIdx ) == RealType{ 0 } ) {
+               ++thisIdx;
+               continue;
+            }
+         }
+         break;
+      }
+      while( otherIdx < other.getSize() ) {
+         if( other.getColumnIndex( otherIdx ) == paddingIndex< IndexType > ) {
+            ++otherIdx;
+            continue;
+         }
+         if constexpr( ! OtherRowView::isBinary() ) {
+            if( other.getValue( otherIdx ) == typename OtherRowView::RealType{ 0 } ) {
+               ++otherIdx;
+               continue;
+            }
+         }
+         break;
+      }
+      if( thisIdx == getSize() || otherIdx == other.getSize() )
+         break;
+      if( getColumnIndex( thisIdx ) != other.getColumnIndex( otherIdx ) )
          return false;
-      if constexpr( ! isBinary() ) {
-         if( getValue( i ) != other.getValue( i ) )
-            return false;
+      if constexpr( ! isBinary() || ! OtherRowView::isBinary() ) {
+         // A binary matrix stores only the values 1, so the non-binary side is compared with the value 1. This also
+         // avoids mixing of the operands' types in the comparison, which would not compile e.g. for std::complex.
+         if constexpr( isBinary() ) {
+            if( other.getValue( otherIdx ) != typename OtherRowView::RealType{ 1 } )
+               return false;
+         }
+         else if constexpr( OtherRowView::isBinary() ) {
+            if( getValue( thisIdx ) != RealType{ 1 } )
+               return false;
+         }
+         else {
+            if( getValue( thisIdx ) != other.getValue( otherIdx ) )
+               return false;
+         }
       }
-      ++i;
+      ++thisIdx;
+      ++otherIdx;
    }
-   if( getSize() > other.getSize() ) {
-      while( i < getSize() ) {
-         if( getColumnIndex( i ) != paddingIndex< IndexType > )
-            return false;
-         ++i;
-      }
-   }
-   else if( getSize() < other.getSize() ) {
-      while( i < other.getSize() ) {
-         if( other.getColumnIndex( i ) != paddingIndex< IndexType > )
-            return false;
-         ++i;
-      }
-   }
-   return true;
+   return thisIdx == getSize() && otherIdx == other.getSize();
 }
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >

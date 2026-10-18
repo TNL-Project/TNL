@@ -174,3 +174,10 @@ TYPED_TEST( MatrixTest, getTransposition )
 
    test_getTransposition< MatrixType >();
 }
+
+TYPED_TEST( MatrixTest, comparison )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_Comparison< MatrixType >();
+}

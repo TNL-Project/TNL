@@ -218,9 +218,16 @@ public:
     * \brief Comparison of two matrix rows.
     *
     * The other matrix row can be from any other matrix.
+    * Only elements which are really present in the matrix are compared,
+    * i.e. the padding elements and the elements with an explicitly stored zero value
+    * are skipped, so two rows are equal even if they differ
+    * in the explicitly stored zero elements only.
+    * The elements are compared in the order in which they are stored in the rows,
+    * i.e. the rows do not need to be sorted by the column indexes,
+    * but rows which store the same elements in a different order are not equal.
     *
     * \param other is another matrix row.
-    * \return \e true if both rows are the same, \e false otherwise.
+    * \return `true` if both rows are the same, `false` otherwise.
     */
    template< typename _SegmentView, typename _ValuesView, typename _ColumnsIndexesView >
    [[nodiscard]] __cuda_callable__
