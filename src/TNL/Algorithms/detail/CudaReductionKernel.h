@@ -401,27 +401,37 @@ CudaReductionKernel(
 
    // Calculate the grid size (stride of the sequential reduction loop).
    const Index gridSize = blockDim.x * gridDim.x;
-   // Shift the input lower bound by the thread index in the grid.
-   begin += blockIdx.x * blockDim.x + threadIdx.x;
+   // Shift the input lower bound by the thread index in the grid. Threads beyond the end of the
+   // range are clamped to `end` so that `begin` cannot overflow the Index type even when `end`
+   // is close to its maximum value.
+   const Index gridThreadIdx = blockIdx.x * blockDim.x + threadIdx.x;
+   begin = ( end - begin > gridThreadIdx ) ? begin + gridThreadIdx : end;
 
    // Start with the sequential reduction and push the result into the shared memory.
+   // The loop conditions are written as `end - begin > k * gridSize` instead of `begin + k * gridSize < end`
+   // so that the index arithmetic cannot overflow: `gridSize` is bounded by maxThreadsPerBlock
+   // times the number of SMs, and `end - begin` is bounded by the maximum of the Index type. The
+   // increments happen only when the updated `begin` stays below `end`, so `begin` never exceeds
+   // `end` (and thus the maximum of the Index type) either.
    Result result = identity;
-   while( begin + 4 * gridSize < end ) {
+   while( end - begin > 4 * gridSize ) {
       result = reduction( result, dataFetcher( begin ) );
       result = reduction( result, dataFetcher( begin + gridSize ) );
       result = reduction( result, dataFetcher( begin + 2 * gridSize ) );
       result = reduction( result, dataFetcher( begin + 3 * gridSize ) );
       begin += 4 * gridSize;
    }
-   while( begin + 2 * gridSize < end ) {
+   while( end - begin > 2 * gridSize ) {
       result = reduction( result, dataFetcher( begin ) );
       result = reduction( result, dataFetcher( begin + gridSize ) );
       begin += 2 * gridSize;
    }
-   while( begin < end ) {
+   while( end - begin > gridSize ) {
       result = reduction( result, dataFetcher( begin ) );
       begin += gridSize;
    }
+   if( begin < end )
+      result = reduction( result, dataFetcher( begin ) );
    __syncthreads();
 
    // Perform the parallel reduction.
@@ -455,59 +465,68 @@ CudaReductionWithArgumentKernel(
 
    // Calculate the grid size (stride of the sequential reduction loop).
    const Index gridSize = blockDim.x * gridDim.x;
-   // Shift the input lower bound by the thread index in the grid.
-   begin += blockIdx.x * blockDim.x + threadIdx.x;
+   // Shift the input lower bound by the thread index in the grid. Threads beyond the end of the
+   // range are clamped to `end` so that `begin` cannot overflow the Index type even when `end`
+   // is close to its maximum value.
+   const Index gridThreadIdx = blockIdx.x * blockDim.x + threadIdx.x;
+   begin = ( end - begin > gridThreadIdx ) ? begin + gridThreadIdx : end;
 
    // TODO: initialIndex should be passed as an argument to the kernel
    Index initialIndex;
 
    // Start with the sequential reduction and push the result into the shared memory.
+   // The loop conditions are written as `end - begin > k * gridSize` instead of `begin + k * gridSize < end`
+   // so that the index arithmetic cannot overflow (see CudaReductionKernel for details).
    Result result = identity;
    if( idxInput ) {
       if( begin < end ) {
          result = dataFetcher( begin );
          initialIndex = idxInput[ begin ];
-         begin += gridSize;
+         begin = ( end - begin > gridSize ) ? begin + gridSize : end;
       }
-      while( begin + 4 * gridSize < end ) {
+      while( end - begin > 4 * gridSize ) {
          reduction( result, dataFetcher( begin ), initialIndex, idxInput[ begin ] );
          reduction( result, dataFetcher( begin + gridSize ), initialIndex, idxInput[ begin + gridSize ] );
          reduction( result, dataFetcher( begin + 2 * gridSize ), initialIndex, idxInput[ begin + 2 * gridSize ] );
          reduction( result, dataFetcher( begin + 3 * gridSize ), initialIndex, idxInput[ begin + 3 * gridSize ] );
          begin += 4 * gridSize;
       }
-      while( begin + 2 * gridSize < end ) {
+      while( end - begin > 2 * gridSize ) {
          reduction( result, dataFetcher( begin ), initialIndex, idxInput[ begin ] );
          reduction( result, dataFetcher( begin + gridSize ), initialIndex, idxInput[ begin + gridSize ] );
          begin += 2 * gridSize;
       }
-      while( begin < end ) {
+      while( end - begin > gridSize ) {
          reduction( result, dataFetcher( begin ), initialIndex, idxInput[ begin ] );
          begin += gridSize;
       }
+      if( begin < end )
+         reduction( result, dataFetcher( begin ), initialIndex, idxInput[ begin ] );
    }
    else {
       if( begin < end ) {
          result = dataFetcher( begin );
          initialIndex = begin;
-         begin += gridSize;
+         begin = ( end - begin > gridSize ) ? begin + gridSize : end;
       }
-      while( begin + 4 * gridSize < end ) {
+      while( end - begin > 4 * gridSize ) {
          reduction( result, dataFetcher( begin ), initialIndex, begin );
          reduction( result, dataFetcher( begin + gridSize ), initialIndex, begin + gridSize );
          reduction( result, dataFetcher( begin + 2 * gridSize ), initialIndex, begin + 2 * gridSize );
          reduction( result, dataFetcher( begin + 3 * gridSize ), initialIndex, begin + 3 * gridSize );
          begin += 4 * gridSize;
       }
-      while( begin + 2 * gridSize < end ) {
+      while( end - begin > 2 * gridSize ) {
          reduction( result, dataFetcher( begin ), initialIndex, begin );
          reduction( result, dataFetcher( begin + gridSize ), initialIndex, begin + gridSize );
          begin += 2 * gridSize;
       }
-      while( begin < end ) {
+      while( end - begin > gridSize ) {
          reduction( result, dataFetcher( begin ), initialIndex, begin );
          begin += gridSize;
       }
+      if( begin < end )
+         reduction( result, dataFetcher( begin ), initialIndex, begin );
    }
    __syncthreads();
 

@@ -42,23 +42,27 @@ CudaReduction3DKernel(
       return;
 
    // Start with the sequential reduction and push the result into the shared memory.
+   // The loop conditions are written as `size - gid > k * gridSizeX` instead of `gid + k * gridSizeX < size`
+   // so that the index arithmetic cannot overflow (see CudaReductionKernel for details).
    Result result = identity;
-   while( gid + 4 * gridSizeX < size ) {
+   while( size - gid > 4 * gridSizeX ) {
       result = reduction( result, dataFetcher( gid, y, z ) );
       result = reduction( result, dataFetcher( gid + gridSizeX, y, z ) );
       result = reduction( result, dataFetcher( gid + 2 * gridSizeX, y, z ) );
       result = reduction( result, dataFetcher( gid + 3 * gridSizeX, y, z ) );
       gid += 4 * gridSizeX;
    }
-   while( gid + 2 * gridSizeX < size ) {
+   while( size - gid > 2 * gridSizeX ) {
       result = reduction( result, dataFetcher( gid, y, z ) );
       result = reduction( result, dataFetcher( gid + gridSizeX, y, z ) );
       gid += 2 * gridSizeX;
    }
-   while( gid < size ) {
+   while( size - gid > gridSizeX ) {
       result = reduction( result, dataFetcher( gid, y, z ) );
       gid += gridSizeX;
    }
+   if( gid < size )
+      result = reduction( result, dataFetcher( gid, y, z ) );
    __syncthreads();
 
    // Perform the parallel reduction.
