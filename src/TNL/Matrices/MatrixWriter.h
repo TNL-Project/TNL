@@ -7,6 +7,7 @@
 #include <string>
 
 #include <TNL/Devices/Host.h>
+#include <TNL/Devices/Sequential.h>
 
 namespace TNL::Matrices {
 
@@ -20,8 +21,10 @@ namespace TNL::Matrices {
  * 3. EPS format for matrix pattern visualization in [Encapsulated
  * PostScript](https://en.wikipedia.org/wiki/Encapsulated_PostScript)
  *
- * \tparam Matrix is a type of matrix into which we want to import the MTX file.
- * \tparam Device is used only for the purpose of template specialization.
+ * Matrices allocated on \ref TNL::Devices::Host and \ref TNL::Devices::Sequential are
+ * written directly, matrices allocated on other devices are first copied to a host matrix.
+ *
+ * \tparam Matrix is a type of matrix we want to export.
  *
  * \par Example
  * \include Matrices/MatrixWriterReaderExample.cpp
@@ -29,7 +32,7 @@ namespace TNL::Matrices {
  * \include MatrixWriterReaderExample.out
  *
  */
-template< typename Matrix, typename Device = typename Matrix::DeviceType >
+template< typename Matrix >
 class MatrixWriter
 {
 public:
@@ -41,8 +44,7 @@ public:
    /**
     * \brief Device where the matrix is allocated.
     */
-
-   using DeviceType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
 
    /**
     * \brief Type used for indexing of matrix elements.
@@ -110,44 +112,32 @@ public:
    writeMtx( std::ostream& str, const Matrix& matrix, bool verbose = false );
 
 protected:
+   /**
+    * \brief Host copy of the matrix used for exporting matrices from other devices.
+    */
    using HostMatrix = typename Matrix::template Self< RealType, TNL::Devices::Host >;
-};
 
-// This is to prevent from appearing in Doxygen documentation.
-/// \cond
-template< typename Matrix >
-class MatrixWriter< Matrix, TNL::Devices::Host >
-{
-public:
-   using IndexType = typename Matrix::IndexType;
-   using RealType = typename Matrix::RealType;
-
-   static void
-   writeGnuplot( const std::string& fileName, const Matrix& matrix, bool verbose = false );
-
-   static void
-   writeGnuplot( std::ostream& str, const Matrix& matrix, bool verbose = false );
-
-   static void
-   writeEps( const std::string& fileName, const Matrix& matrix, bool verbose = false );
-
-   static void
-   writeEps( std::ostream& str, const Matrix& matrix, bool verbose = false );
-
-   static void
-   writeMtx( const std::string& fileName, const Matrix& matrix, bool verbose = false );
-
-   static void
-   writeMtx( std::ostream& str, const Matrix& matrix, bool verbose = false );
-
-protected:
+   /**
+    * \brief Method for writing the EPS header.
+    *
+    * \param str is the output stream.
+    * \param matrix is the source matrix.
+    * \param elementSize is the size of a single element in PostScript units.
+    */
    static void
    writeEpsHeader( std::ostream& str, const Matrix& matrix, int elementSize );
 
+   /**
+    * \brief Method for writing the EPS body with the matrix pattern.
+    *
+    * \param str is the output stream.
+    * \param matrix is the source matrix.
+    * \param elementSize is the size of a single element in PostScript units.
+    * \param verbose controls verbosity of the matrix export.
+    */
    static void
    writeEpsBody( std::ostream& str, const Matrix& matrix, int elementSize, bool verbose );
 };
-/// \endcond
 
 }  // namespace TNL::Matrices
 
