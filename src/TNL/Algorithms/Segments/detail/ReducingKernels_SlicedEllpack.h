@@ -24,7 +24,7 @@ template<
 __device__
 void
 reduceSegmentsRowMajorSlicedEllpackKernel(
-   const int gridIdx,
+   std::size_t blockOffset,
    const Segments& segments,
    IndexBegin begin,
    IndexEnd end,
@@ -38,7 +38,8 @@ reduceSegmentsRowMajorSlicedEllpackKernel(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    constexpr Index SliceSize = Segments::getSliceSize();
 
-   const Index segmentIdx = ( begin / SliceSize ) * SliceSize + Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx =
+      ( begin / SliceSize ) * SliceSize + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx >= begin && segmentIdx < end );
 
    ReturnType result = identity;
@@ -98,7 +99,7 @@ template<
 __device__
 void
 reduceSegmentsColumnMajorSlicedEllpackKernel(
-   const int gridIdx,
+   std::size_t blockOffset,
    const Segments& segments,
    IndexBegin begin,
    IndexEnd end,
@@ -158,7 +159,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
    /////
 
    const Index firstSliceIdx = begin / SliceSize;
-   const Index sliceIdx = firstSliceIdx + Backend::getGlobalThreadIdx_x( gridIdx ) / ( SliceSize * ThreadsPerSegment );
+   const Index sliceIdx = firstSliceIdx + Backend::getGlobalThreadIdx_x( blockOffset ) / ( SliceSize * ThreadsPerSegment );
    const Index inSliceThreadIdx = threadIdx.x % ( SliceSize * ThreadsPerSegment );
    const Index inSliceSegmentIdx = inSliceThreadIdx % SliceSize;
    const Index segmentIdx = sliceIdx * SliceSize + inSliceSegmentIdx;
@@ -310,7 +311,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel(
       //          +---------+
       /////
       const Index firstSliceInBlock =
-         ( ( blockIdx.x + gridIdx * Backend::getMaxGridXSize() ) * BlockSize ) / ( SliceSize * ThreadsPerSegment );
+         ( Backend::getGlobalBlockIdx_x( blockOffset ) * BlockSize ) / ( SliceSize * ThreadsPerSegment );
       const Index currentSegmentIdx =
          ( begin / SliceSize ) * SliceSize + firstSliceInBlock * SliceSize + threadIdx.x / ThreadsPerSegment;
 
@@ -333,7 +334,7 @@ template<
 __global__
 void
 reduceSegmentsSlicedEllpackKernel(
-   const int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    IndexBegin begin,
    IndexEnd end,
@@ -347,9 +348,9 @@ reduceSegmentsSlicedEllpackKernel(
       "ThreadsPerSegment must be less than or equal to the maximum warp size." );
    if constexpr( Segments::getOrganization() == RowMajorOrder )
       reduceSegmentsRowMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
-         gridIdx, segments, begin, end, fetch, reduce, store, identity );
+         blockOffset, segments, begin, end, fetch, reduce, store, identity );
    else
       reduceSegmentsColumnMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
-         gridIdx, segments, begin, end, fetch, reduce, store, identity );
+         blockOffset, segments, begin, end, fetch, reduce, store, identity );
 }
 }  // namespace TNL::Algorithms::Segments::detail

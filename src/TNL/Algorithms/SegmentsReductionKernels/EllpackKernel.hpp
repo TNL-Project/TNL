@@ -28,9 +28,8 @@ EllpackCudaReductionKernel(
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    constexpr int warpSize = Backend::getWarpSize();
-   const int gridIdx = 0;
-   const Index segmentIdx =
-      begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
+   const int blockOffset = 0;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / warpSize;
    if( segmentIdx >= end )
       return;
 

@@ -30,13 +30,12 @@ CSRVectorReduction(
    Reduce reduce,
    Keep keep,
    const Value identity,
-   const Index gridID )
+   const std::size_t blockOffset )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index warpID =
-      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   const Index warpID = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    if( warpID >= end )
       return;
 
@@ -70,7 +69,7 @@ template<
 __global__
 void
 reduceSegmentsCSRLightMultivectorKernel(
-   int gridIdx,
+   std::size_t blockOffset,
    const Offsets offsets,
    Index begin,
    Index end,
@@ -82,7 +81,7 @@ reduceSegmentsCSRLightMultivectorKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
@@ -236,54 +235,57 @@ CSRLightKernel< Index, Device >::reduceSegments(
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 128;
 
-      std::size_t neededThreads = threadsPerSegment * ( end - begin );
+      const std::size_t neededThreads = threadsPerSegment * ( end - begin );
+      const std::size_t blocksCount = Backend::getNumberOfBlocks( neededThreads, launch_config.blockSize.x );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
 
       using OffsetsView = typename SegmentsView::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
 
-      for( Index grid = 0; neededThreads != 0; ++grid ) {
-         if( Backend::getMaxGridXSize() * launch_config.blockSize.x >= neededThreads ) {
-            launch_config.gridSize.x = Backend::getNumberOfBlocks( neededThreads, launch_config.blockSize.x );
-            neededThreads = 0;
-         }
-         else {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            neededThreads -= Backend::getMaxGridXSize() * launch_config.blockSize.x;
-         }
+      for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
 
          if( threadsPerSegment == 1 ) {
             constexpr auto kernel = CSRVectorReduction< 1, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync(
+               kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, blockOffset );
          }
          if( threadsPerSegment == 2 ) {
             constexpr auto kernel = CSRVectorReduction< 2, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync(
+               kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, blockOffset );
          }
          if( threadsPerSegment == 4 ) {
             constexpr auto kernel = CSRVectorReduction< 4, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync(
+               kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, blockOffset );
          }
          if( threadsPerSegment == 8 ) {
             constexpr auto kernel = CSRVectorReduction< 8, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync(
+               kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, blockOffset );
          }
          if( threadsPerSegment == 16 ) {
             constexpr auto kernel = CSRVectorReduction< 16, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync(
+               kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, blockOffset );
          }
          if( threadsPerSegment == 32 ) {
             constexpr auto kernel = CSRVectorReduction< 32, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
-            Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
+            Backend::launchKernelAsync(
+               kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, blockOffset );
          }
          if( threadsPerSegment == 64 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
                reduceSegmentsCSRLightMultivectorKernel< 128, 64, OffsetsView, Index, Fetch, Reduction, Keep, Value >;
-            Backend::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
+            Backend::launchKernelAsync(
+               kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keep, identity );
          }
          if( threadsPerSegment >= 128 ) {  // Execute CSR MultiVector
             constexpr auto kernel =
                reduceSegmentsCSRLightMultivectorKernel< 128, 128, OffsetsView, Index, Fetch, Reduction, Keep, Value >;
-            Backend::launchKernelAsync( kernel, launch_config, grid, offsets, begin, end, fetch, reduction, keep, identity );
+            Backend::launchKernelAsync(
+               kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keep, identity );
          }
       }
       Backend::streamSynchronize( launch_config.stream );

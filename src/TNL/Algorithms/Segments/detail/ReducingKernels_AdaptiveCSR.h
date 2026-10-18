@@ -24,7 +24,7 @@ template<
 __global__
 void
 reduceSegmentsCSRAdaptiveKernel(
-   int gridIdx,
+   std::size_t blockOffset,
    BlocksView blocks,
    Offsets offsets,
    Fetch fetch,
@@ -44,7 +44,7 @@ reduceSegmentsCSRAdaptiveKernel(
    __shared__ Backend::Uninitialized< ReturnType > streamShared[ WarpsCount ][ StreamedSharedElementsPerWarp ];
    __shared__ Backend::Uninitialized< ReturnType > multivectorShared[ CudaBlockSize / WarpSize ];
 
-   const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
+   const Index index = ( Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x ) + threadIdx.x;
    const Index blockIdx = index / WarpSize;
    if( blockIdx >= blocks.getSize() - 1 )
       return;
@@ -160,7 +160,7 @@ template<
 __global__
 void
 reduceSegmentsCSRAdaptiveKernelWithArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    BlocksView blocks,
    Offsets offsets,
    Fetch fetch,
@@ -181,7 +181,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument(
    __shared__ Backend::Uninitialized< ReturnType > multivectorShared_result[ CudaBlockSize / WarpSize ];
    __shared__ Index multivectorShared_argument[ CudaBlockSize / WarpSize ];
 
-   const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
+   const Index index = ( Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x ) + threadIdx.x;
    const Index blockIdx = index / WarpSize;
    if( blockIdx >= blocks.getSize() - 1 )
       return;

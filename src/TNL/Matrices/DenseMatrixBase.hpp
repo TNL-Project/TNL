@@ -24,7 +24,7 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel(
    OutVector outVector,
    int begin,
    int end,
-   int gridIdx,
+   std::size_t blockOffset,
    typename Matrix::RealType matrixMultiplicator,
    typename Matrix::RealType outVectorMultiplicator )
 {
@@ -36,7 +36,7 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel(
    __shared__ Real result_[ BlockSize ];
 
    constexpr Index rowsPerBlock = 256 / ThreadsPerRow;
-   const Index rowIdx = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
+   const Index rowIdx = ( Backend::getGlobalBlockIdx_x( blockOffset ) * 256 + threadIdx.x ) / ThreadsPerRow + begin;
    const Index localColIdx = threadIdx.x / rowsPerBlock;
    const Index localRowIdx = threadIdx.x % rowsPerBlock;
 
@@ -102,7 +102,7 @@ ColumnMajorDenseMatrixVectorMultiplicationKernel(
    OutVector outVector,
    int begin,
    int end,
-   int gridIdx,
+   std::size_t blockOffset,
    typename Matrix::RealType matrixMultiplicator,
    typename Matrix::RealType outVectorMultiplicator )
 {
@@ -112,7 +112,7 @@ ColumnMajorDenseMatrixVectorMultiplicationKernel(
    constexpr int inVectorCacheSize = 20480 / sizeof( Real );
    __shared__ Real inVectorCache[ inVectorCacheSize ];
 
-   const int rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * 256 + threadIdx.x + begin;
+   const int rowIdx = Backend::getGlobalBlockIdx_x( blockOffset ) * 256 + threadIdx.x + begin;
 
    Real result = 0;
    Index columnIdx = 0;
@@ -622,9 +622,9 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct(
       constexpr int ThreadsPerRow = 1;
       const std::size_t threadsCount = ( end - begin ) * ThreadsPerRow;
       const std::size_t blocksCount = Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x );
-      const std::size_t gridsCount = Backend::getNumberOfGrids( blocksCount, Backend::getMaxGridXSize() );
-      for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
-         launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+      for( std::size_t blockOffset = 0; blockOffset < static_cast< std::size_t >( blocksCount ); blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
          constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel<
             DenseMatrixBase,
             decltype( inVectorView ),
@@ -637,7 +637,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct(
             outVectorView,
             begin,
             end,
-            gridIdx,
+            blockOffset,
             matrixMultiplicator,
             outVectorMultiplicator );
       }

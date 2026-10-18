@@ -15,7 +15,7 @@ __global__
 void
 ChunkedEllpackReduceSegmentsKernel(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -29,7 +29,7 @@ ChunkedEllpackReduceSegmentsKernel(
    const Index firstSlice = segments.getSegmentToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getSegmentToSliceMappingView()[ end - 1 ];
 
-   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
+   const Index sliceIdx = firstSlice + Backend::getGlobalBlockIdx_x( blockOffset );
    if( sliceIdx > lastSlice )
       return;
 
@@ -110,14 +110,14 @@ void
 ChunkedEllpackReduceSegmentsKernelWithIndexes(
    SegmentsView segments,
    ArrayView segmentIndexes,
-   Index gridIdx,
+   std::size_t blockOffset,
    Fetch fetch,
    Reduction reduction,
    ResultStorer storer,
    Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index segmentIdx_idx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
@@ -162,7 +162,7 @@ __global__
 void
 ChunkedEllpackReduceSegmentsKernelWithArgument(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -176,7 +176,7 @@ ChunkedEllpackReduceSegmentsKernelWithArgument(
    const Index firstSlice = segments.getSegmentToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getSegmentToSliceMappingView()[ end - 1 ];
 
-   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
+   const Index sliceIdx = firstSlice + Backend::getGlobalBlockIdx_x( blockOffset );
    if( sliceIdx > lastSlice )
       return;
 
@@ -261,14 +261,14 @@ void
 ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument(
    SegmentsView segments,
    ArrayView segmentIndexes,
-   Index gridIdx,
+   std::size_t blockOffset,
    Fetch fetch,
    Reduction reduction,
    ResultStorer storer,
    Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index segmentIdx_idx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );

@@ -21,7 +21,7 @@ template<
 __global__
 void
 EllpackCudaReductionKernel(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    IndexBegin begin,
    IndexEnd end,
@@ -34,7 +34,7 @@ EllpackCudaReductionKernel(
    using Index = typename Segments::IndexType;
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -83,7 +83,7 @@ template<
 __global__
 void
 EllpackCudaReductionKernelWithSegmentIndexes(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -95,7 +95,7 @@ EllpackCudaReductionKernelWithSegmentIndexes(
    using Index = typename Segments::IndexType;
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -149,7 +149,7 @@ template<
 __global__
 void
 EllpackCudaReductionKernelWithArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    IndexBegin begin,
    IndexEnd end,
@@ -162,7 +162,7 @@ EllpackCudaReductionKernelWithArgument(
    using Index = typename Segments::IndexType;
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -215,7 +215,7 @@ template<
 __global__
 void
 EllpackCudaReductionKernelWithSegmentIndexesAndArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -227,7 +227,7 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument(
    using Index = typename Segments::IndexType;
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;

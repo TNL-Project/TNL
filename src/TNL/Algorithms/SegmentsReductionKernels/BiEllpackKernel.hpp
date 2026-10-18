@@ -26,7 +26,7 @@ __global__
 void
 BiEllpackreduceSegmentsKernel(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -36,9 +36,10 @@ BiEllpackreduceSegmentsKernel(
 {
    if constexpr( callableArgumentCount< Fetch >() == 3 )
       Segments::detail::reduceSegmentsKernelWithAllParameters< BlockDim >(
-         segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+         segments, blockOffset, begin, end, fetch, reduction, keeper, identity );
    else
-      Segments::detail::reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+      Segments::detail::reduceSegmentsKernel< BlockDim >(
+         segments, blockOffset, begin, end, fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >
@@ -133,17 +134,17 @@ BiEllpackKernel< Index, Device >::reduceSegments(
       const IndexType stripsCount = roundUpDivision( end - begin, static_cast< IndexType >( SegmentsView::getWarpSize() ) );
       const IndexType cudaBlocks =
          Backend::getNumberOfBlocks( stripsCount * SegmentsView::getWarpSize(), launch_config.blockSize.x );
-      const IndexType cudaGrids = Backend::getNumberOfGrids( cudaBlocks, Backend::getMaxGridXSize() );
       if( SegmentsView::getOrganization() == Segments::ColumnMajorOrder )
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-      for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+      for( std::size_t blockOffset = 0; blockOffset < static_cast< std::size_t >( cudaBlocks ); blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, blockOffset, maxGridSize );
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel =
             BiEllpackreduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value, BlockDim >;
          Backend::launchKernelAsync(
-            kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
+            kernel, launch_config, segments.getConstView(), blockOffset, begin, end, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );
    }

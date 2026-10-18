@@ -12,13 +12,13 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename SegmentsView, typename Index, typename Function, ElementsOrganization Organization, int BlockSize = 256 >
 __global__
 void
-forElementsBlockMergeKernel_Ellpack( Index gridIdx, SegmentsView segments, Index begin, Index end, Function function )
+forElementsBlockMergeKernel_Ellpack( std::size_t blockOffset, SegmentsView segments, Index begin, Index end, Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
    if( segments.getSegmentSize() == 0 )
       return;
-   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( blockOffset );
    if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
       const Index localIdx = globalThreadIdx % segments.getSegmentSize();
       const Index segmentIdx = begin + globalThreadIdx / segments.getSegmentSize();
@@ -55,7 +55,7 @@ template< typename SegmentsView, typename ArrayView, typename Index, typename Fu
 __global__
 void
 forElementsWithSegmentIndexesKernel_Ellpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
    SegmentsView segments,
@@ -69,7 +69,7 @@ forElementsWithSegmentIndexesKernel_Ellpack(
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+      const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
       if( segmentIdx_idx >= segmentIndexes.getSize() )
          return;
 
@@ -96,7 +96,7 @@ forElementsWithSegmentIndexesKernel_Ellpack(
    else {  // ColumnMajorOrder
       const Index segmentsCount = segmentIndexes.getSize();
       const Index elementsCount = segmentsCount * segmentSize;
-      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( blockOffset );
            globalThreadIdx < static_cast< std::size_t >( elementsCount );
            globalThreadIdx += totalThreadsCount )
       {
@@ -124,7 +124,7 @@ template<
 __global__
 void
 forElementsWithSegmentIndexesBlockMergeKernel_Ellpack(
-   Index gridIdx,
+   std::size_t blockOffset,
    SegmentsConstView segments,
    ArrayView segmentIndexes,
    Function function )
@@ -132,7 +132,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_Ellpack(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    if( segments.getSegmentSize() == 0 )
       return;
-   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( blockOffset );
    if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
       const Index localIdx = globalThreadIdx % segments.getSegmentSize();
       const Index segmentIdx_idx = globalThreadIdx / segments.getSegmentSize();
@@ -178,7 +178,7 @@ template<
 __global__
 void
 forElementsIfKernel_Ellpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
    SegmentsView segments,
@@ -194,7 +194,7 @@ forElementsIfKernel_Ellpack(
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
       if( segmentIdx >= end || ! condition( segmentIdx ) )
          return;
 
@@ -220,7 +220,7 @@ forElementsIfKernel_Ellpack(
    else {  // ColumnMajorOrder
       const Index segmentsCount = ( end - begin );
       const Index elementsCount = segmentsCount * segmentSize;
-      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( blockOffset );
            globalThreadIdx < static_cast< std::size_t >( elementsCount );
            globalThreadIdx += totalThreadsCount )
       {
@@ -251,7 +251,7 @@ template<
 __global__
 void
 forElementsIfBlockMergeKernel_Ellpack(
-   Index gridIdx,
+   std::size_t blockOffset,
    SegmentsView segments,
    const Index begin,
    const Index end,
@@ -270,7 +270,7 @@ forElementsIfBlockMergeKernel_Ellpack(
 
    if( threadIdx.x == 0 )
       segmentSize = segments.getSegmentSize();
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    Index conditionValue = 0;
    if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );

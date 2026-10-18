@@ -50,15 +50,16 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
             auto launch = [ & ]( auto kernel )
             {
-               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+               for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+                  launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                   Backend::launchKernelSync(
-                     kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
+                     kernel, launch_config, blockOffset, segments, begin, end, fetch, reduction, storer, identity );
                }
             };
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
@@ -230,17 +231,18 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
             auto launch = [ & ]( auto kernel )
             {
-               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+               for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+                  launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                   Backend::launchKernelSync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      segments,
                      segmentIndexes.getConstView(),
                      fetch,
@@ -410,15 +412,16 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
             auto launch = [ & ]( auto kernel )
             {
-               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+               for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+                  launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                   Backend::launchKernelSync(
-                     kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
+                     kernel, launch_config, blockOffset, segments, begin, end, fetch, reduction, storer, identity );
                }
             };
             constexpr auto kernel1 = EllpackCudaReductionKernelWithArgument<
@@ -595,17 +598,18 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
             auto launch = [ & ]( auto kernel )
             {
-               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+               for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+                  launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                   Backend::launchKernelSync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      segments,
                      segmentIndexes.getConstView(),
                      fetch,

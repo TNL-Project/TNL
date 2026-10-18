@@ -153,11 +153,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-            for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = reduceSegmentsCSRVectorKernel<
                      ConstViewType,
@@ -167,7 +168,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                      std::remove_reference_t< ResultStorer >,
                      Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, storer, identity );
+                     kernel,
+                     launch_config,
+                     blockOffset,
+                     segments.getConstView(),
+                     begin,
+                     end,
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
@@ -184,7 +194,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -207,7 +217,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -230,7 +240,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -253,7 +263,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -276,7 +286,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -300,7 +310,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -324,7 +334,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -354,7 +364,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getConstView(),
                      begin,
@@ -455,11 +465,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-            for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = reduceSegmentsCSRVectorKernelWithIndexes<
                      ConstViewType,
@@ -472,7 +483,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      segments.getConstView(),
                      segmentIndexes.getConstView(),
                      fetch,
@@ -496,7 +507,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -519,7 +530,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -542,7 +553,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -565,7 +576,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -588,7 +599,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -612,7 +623,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -636,7 +647,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -666,7 +677,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getConstView(),
                      segmentIndexes.getConstView(),
@@ -772,11 +783,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-            for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = reduceSegmentsCSRVectorKernelWithArgument<
                      ConstViewType,
@@ -786,7 +798,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                      std::remove_reference_t< ResultStorer >,
                      Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, storer, identity );
+                     kernel,
+                     launch_config,
+                     blockOffset,
+                     segments.getConstView(),
+                     begin,
+                     end,
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
@@ -803,7 +824,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -826,7 +847,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -849,7 +870,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -872,7 +893,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -895,7 +916,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -919,7 +940,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -943,7 +964,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,
@@ -973,7 +994,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getConstView(),
                      begin,
@@ -1076,11 +1097,12 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-            for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+            const std::size_t blocksCount = max(
+               static_cast< std::size_t >( 1 ),
+               Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = reduceSegmentsCSRVectorKernelWithIndexesAndArgument<
                      ConstViewType,
@@ -1093,7 +1115,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      segments.getConstView(),
                      segmentIndexes.getConstView(),
                      fetch,
@@ -1117,7 +1139,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -1140,7 +1162,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -1163,7 +1185,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -1186,7 +1208,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -1209,7 +1231,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -1233,7 +1255,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -1257,7 +1279,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               segmentIndexes.getConstView(),
                               fetch,
@@ -1287,7 +1309,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getConstView(),
                      segmentIndexes.getConstView(),

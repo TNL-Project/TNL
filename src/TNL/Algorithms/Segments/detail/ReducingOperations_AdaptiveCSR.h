@@ -55,23 +55,17 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
          using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
          Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
-         constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
+         const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
 
          // Fill blocks
          const auto blocks = segments.getBlocks()[ valueSizeLog ];
-         std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+         const std::size_t neededThreads =
+            blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+         const std::size_t blocksCount = Backend::getNumberOfBlocks( neededThreads, launch_config.blockSize.x );
 
          // Execute kernels on device
-         for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
-            if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-               launch_config.gridSize.x =
-                  roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
-               neededThreads = 0;
-            }
-            else {
-               launch_config.gridSize.x = maxGridSize;
-               neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
-            }
+         for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
 
             using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
             using BlocksView = typename SegmentsViewType::BlocksView;
@@ -85,7 +79,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                std::remove_reference_t< ResultStorer >,
                Value >;
             Backend::launchKernelAsync(
-               kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
+               kernel, launch_config, blockOffset, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }
@@ -126,23 +120,17 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
          using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
          Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
-         constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
+         const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
 
          // Fill blocks
          const auto& blocks = segments.getBlocks()[ valueSizeLog ];
-         std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+         const std::size_t neededThreads =
+            blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+         const std::size_t blocksCount = Backend::getNumberOfBlocks( neededThreads, launch_config.blockSize.x );
 
          // Execute kernels on device
-         for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
-            if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-               launch_config.gridSize.x =
-                  roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
-               neededThreads = 0;
-            }
-            else {
-               launch_config.gridSize.x = maxGridSize;
-               neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
-            }
+         for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
 
             using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
             using BlocksView = typename SegmentsViewType::BlocksView;
@@ -156,7 +144,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                std::remove_reference_t< ResultStorer >,
                Value >;
             Backend::launchKernelAsync(
-               kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
+               kernel, launch_config, blockOffset, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }

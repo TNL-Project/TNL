@@ -65,6 +65,28 @@ getMaxThreadsPerBlock()
    return 1024;
 }
 
+/**
+ * \brief Returns the maximal number of blocks of a one-dimensional grid with
+ * `threadsPerBlock` threads per block.
+ *
+ * Besides the limit on the number of blocks, `getMaxGridXSize()`, it
+ * respects the limit on the number of threads per grid,
+ * `getMaxThreadsPerGrid()`, which AMD GPUs impose and HIP does not check.
+ * For a multidimensional grid, pass the number of threads of one slice of the
+ * grid in the x-dimension, i.e. the threads per block times the grid size in
+ * the other dimensions.
+ */
+constexpr std::size_t
+getMaxGridXSize( std::size_t threadsPerBlock )
+{
+   const std::size_t maxBlocks = getMaxThreadsPerGrid() / threadsPerBlock;
+   // at least one block, so that loops over the grids always make progress;
+   // an invalid configuration is then reported by the kernel launch
+   if( maxBlocks == 0 )
+      return 1;
+   return maxBlocks < getMaxGridXSize() ? maxBlocks : getMaxGridXSize();
+}
+
 constexpr int
 getMaxBlockXSize()
 {
@@ -254,46 +276,57 @@ bufferedTransferToDevice( Element* destination, std::size_t size, FillBuffer& fi
 }
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+/**
+ * \brief Returns the global index of the current block in the x-dimension.
+ *
+ * Kernels launched as several grids get the index of the first block of their
+ * grid, `blockOffset`, from the host as a kernel parameter.
+ */
 __device__
 inline std::size_t
-getGlobalBlockIdx_x( const dim3& gridIdx )
+getGlobalBlockIdx_x( std::size_t blockOffset )
 {
-   return static_cast< std::size_t >( gridIdx.x ) * getMaxGridXSize() + blockIdx.x;
+   return blockOffset + blockIdx.x;
 }
 
+//! \brief Returns the global index of the current block in the y-dimension, see \ref getGlobalBlockIdx_x.
 __device__
 inline std::size_t
-getGlobalBlockIdx_y( const dim3& gridIdx )
+getGlobalBlockIdx_y( std::size_t blockOffset )
 {
-   return static_cast< std::size_t >( gridIdx.y ) * getMaxGridYSize() + blockIdx.y;
+   return blockOffset + blockIdx.y;
 }
 
+//! \brief Returns the global index of the current block in the z-dimension, see \ref getGlobalBlockIdx_x.
 __device__
 inline std::size_t
-getGlobalBlockIdx_z( const dim3& gridIdx )
+getGlobalBlockIdx_z( std::size_t blockOffset )
 {
-   return static_cast< std::size_t >( gridIdx.z ) * getMaxGridZSize() + blockIdx.z;
+   return blockOffset + blockIdx.z;
 }
 
+//! \brief Returns the global index of the current thread in the x-dimension, see \ref getGlobalBlockIdx_x.
 __device__
 inline std::size_t
-getGlobalThreadIdx_x( const dim3& gridIdx )
+getGlobalThreadIdx_x( std::size_t blockOffset )
 {
-   return getGlobalBlockIdx_x( gridIdx ) * blockDim.x + threadIdx.x;
+   return getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
 }
 
+//! \brief Returns the global index of the current thread in the y-dimension, see \ref getGlobalBlockIdx_x.
 __device__
 inline std::size_t
-getGlobalThreadIdx_y( const dim3& gridIdx )
+getGlobalThreadIdx_y( std::size_t blockOffset )
 {
-   return getGlobalBlockIdx_y( gridIdx ) * blockDim.y + threadIdx.y;
+   return getGlobalBlockIdx_y( blockOffset ) * blockDim.y + threadIdx.y;
 }
 
+//! \brief Returns the global index of the current thread in the z-dimension, see \ref getGlobalBlockIdx_x.
 __device__
 inline std::size_t
-getGlobalThreadIdx_z( const dim3& gridIdx )
+getGlobalThreadIdx_z( std::size_t blockOffset )
 {
-   return getGlobalBlockIdx_z( gridIdx ) * blockDim.z + threadIdx.z;
+   return getGlobalBlockIdx_z( blockOffset ) * blockDim.z + threadIdx.z;
 }
 #endif
 
@@ -315,72 +348,29 @@ getNumberOfGrids( const Index blocks, const unsigned int gridSize )
    return roundUpDivision( static_cast< CommonType >( blocks ), static_cast< CommonType >( gridSize ) );
 }
 
-inline void
-setupThreads(
-   const dim3& blockSize,
-   dim3& blocksCount,
-   dim3& gridsCount,
-   long long int xThreads,
-   long long int yThreads = 0,
-   long long int zThreads = 0 )
-{
-   blocksCount.x = max( 1, xThreads / blockSize.x + static_cast< long long int >( xThreads % blockSize.x != 0 ) );
-   blocksCount.y = max( 1, yThreads / blockSize.y + static_cast< long long int >( yThreads % blockSize.y != 0 ) );
-   blocksCount.z = max( 1, zThreads / blockSize.z + static_cast< long long int >( zThreads % blockSize.z != 0 ) );
-
-   gridsCount.x =
-      blocksCount.x / getMaxGridXSize() + static_cast< unsigned long int >( blocksCount.x % getMaxGridXSize() != 0 );
-   gridsCount.y =
-      blocksCount.y / getMaxGridYSize() + static_cast< unsigned long int >( blocksCount.y % getMaxGridYSize() != 0 );
-   gridsCount.z =
-      blocksCount.z / getMaxGridZSize() + static_cast< unsigned long int >( blocksCount.z % getMaxGridZSize() != 0 );
-}
-
 /**
- * \brief Returns the number of blocks of the grid with index `gridIdx` when
- * `totalBlocksCount` blocks are split into grids of at most `maxGridSize` blocks.
+ * \brief Returns the number of blocks of the grid starting at the block
+ * `blockOffset` when `totalBlocksCount` blocks are split into grids of at
+ * most `maxGridSize` blocks.
  *
- * All grids except the last one have `maxGridSize` blocks, the last one has
- * the remaining blocks (which is `maxGridSize` when `totalBlocksCount` is its
- * multiple).
+ * Typical use for a one-dimensional launch of `blocksCount` blocks:
  *
- * `gridIdx` must be smaller than the number of grids, i.e.
- * `getNumberOfGrids( totalBlocksCount, maxGridSize )`.
+ * ```cpp
+ * const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+ * for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+ *    launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
+ *    Backend::launchKernelAsync( kernel, launch_config, blockOffset, ... );
+ * }
+ * ```
+ *
+ * `blockOffset` must be smaller than `totalBlocksCount`.
  */
 inline unsigned int
-getGridSize( std::size_t totalBlocksCount, std::size_t gridIdx, std::size_t maxGridSize )
+getGridSize( std::size_t totalBlocksCount, std::size_t blockOffset, std::size_t maxGridSize )
 {
-   TNL_ASSERT_LT( gridIdx * maxGridSize, totalBlocksCount, "The grid index exceeds the number of grids." );
-   const std::size_t remainingBlocks = totalBlocksCount - gridIdx * maxGridSize;
+   TNL_ASSERT_LT( blockOffset, totalBlocksCount, "The block offset exceeds the number of blocks." );
+   const std::size_t remainingBlocks = totalBlocksCount - blockOffset;
    return static_cast< unsigned int >( remainingBlocks < maxGridSize ? remainingBlocks : maxGridSize );
-}
-
-/**
- * \brief Sets the size of the grid with index `gridIdx` when `blocksCount`
- * blocks are split into grids of at most `getMaxGrid{X,Y,Z}Size()` blocks.
- *
- * Each component of `gridIdx` must be smaller than the number of grids in the
- * same dimension.
- */
-inline void
-setupGrid( const dim3& blocksCount, const dim3& /* gridsCount */, const dim3& gridIdx, dim3& gridSize )
-{
-   gridSize.x = getGridSize( blocksCount.x, gridIdx.x, getMaxGridXSize() );
-   gridSize.y = getGridSize( blocksCount.y, gridIdx.y, getMaxGridYSize() );
-   gridSize.z = getGridSize( blocksCount.z, gridIdx.z, getMaxGridZSize() );
-}
-
-/**
- * \brief Sets the size of the grid with index `gridIdx` in the x-dimension.
- *
- * This overload is selected when `gridIdx` is a scalar. Without it, the scalar
- * would be converted to `dim3( gridIdx )`, whose y and z components are 1 and
- * thus refer to a nonexistent second grid in these dimensions.
- */
-inline void
-setupGrid( const dim3& blocksCount, const dim3& gridsCount, std::size_t gridIdx, dim3& gridSize )
-{
-   setupGrid( blocksCount, gridsCount, dim3( gridIdx, 0, 0 ), gridSize );
 }
 
 inline std::ostream&

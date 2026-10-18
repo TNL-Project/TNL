@@ -20,7 +20,7 @@ template<
 __global__
 void
 forElementsBlockMergeKernel_SlicedEllpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const SegmentsConstView segments,
    Index begin,
    Index end,
@@ -46,7 +46,7 @@ forElementsBlockMergeKernel_SlicedEllpack(
    }
    __syncthreads();
 
-   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalThreadIdx_x( blockOffset );
    const Index segmentInSliceIdx = segmentIdx % SliceSize;
    const Index sliceIdx = segmentIdx / SliceSize;
    if( threadIdx.x == 0 ) {
@@ -113,7 +113,7 @@ template< typename SegmentsConstView, typename Index, typename Function, Element
 __global__
 void
 forElementsKernel_SlicedEllpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
    Index begin,
@@ -123,7 +123,7 @@ forElementsKernel_SlicedEllpack(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
    if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
       if( segmentIdx >= end )
          return;
 
@@ -151,8 +151,8 @@ forElementsKernel_SlicedEllpack(
    }
    else {  // ColumnMajorOrder
       const Index firstSliceIdx = begin / SliceSize;
-      const Index sliceIdx = firstSliceIdx + Backend::getGlobalThreadIdx_x( gridIdx ) / ( SliceSize * threadsPerSegment );
-      const Index inSliceIdx = Backend::getGlobalThreadIdx_x( gridIdx ) % ( SliceSize * threadsPerSegment );
+      const Index sliceIdx = firstSliceIdx + Backend::getGlobalThreadIdx_x( blockOffset ) / ( SliceSize * threadsPerSegment );
+      const Index inSliceIdx = Backend::getGlobalThreadIdx_x( blockOffset ) % ( SliceSize * threadsPerSegment );
       const Index inSliceSegmentIdx = inSliceIdx % SliceSize;
       const Index segmentIdx = sliceIdx * SliceSize + inSliceSegmentIdx;
 
@@ -193,14 +193,14 @@ template<
 __global__
 void
 forElementsWithSegmentIndexesKernel_SlicedEllpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
    const ArrayView segmentIndexes,
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index idx = Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_GE( idx, 0, "" );
@@ -251,7 +251,7 @@ template<
 __global__
 void
 forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const SegmentsConstView segments,
    const ArrayView segmentIndexes,
    Function function )
@@ -265,7 +265,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx = min( SegmentsPerBlock, segmentIndexes.getSize() - blockIdx.x * SegmentsPerBlock );
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
@@ -350,7 +350,7 @@ template<
 __global__
 void
 forElementsIfKernel_SlicedEllpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
    Index begin,
@@ -359,7 +359,7 @@ forElementsIfKernel_SlicedEllpack(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( segmentIdx >= end || ! condition( segmentIdx ) )
       return;
 
@@ -418,7 +418,7 @@ template<
 __global__
 void
 forElementsIfBlockMergeKernel_SlicedEllpack(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const SegmentsConstView segments,
    const Index begin,
    const Index end,
@@ -440,9 +440,9 @@ forElementsIfBlockMergeKernel_SlicedEllpack(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx =
-      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock );
    Index conditionValue = 0;
    if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );

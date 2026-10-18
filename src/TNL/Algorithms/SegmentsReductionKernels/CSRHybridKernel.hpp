@@ -23,7 +23,7 @@ template<
 __global__
 void
 reduceSegmentsCSRHybridVectorKernel(
-   int gridIdx,
+   std::size_t blockOffset,
    const Offsets offsets,
    Index begin,
    Index end,
@@ -35,7 +35,7 @@ reduceSegmentsCSRHybridVectorKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
@@ -70,7 +70,7 @@ template<
 __global__
 void
 reduceSegmentsCSRHybridMultivectorKernel(
-   int gridIdx,
+   std::size_t blockOffset,
    const Offsets offsets,
    Index begin,
    Index end,
@@ -82,7 +82,7 @@ reduceSegmentsCSRHybridMultivectorKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
@@ -202,12 +202,13 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = ThreadsInBlock;
       const std::size_t threadsCount = this->threadsPerSegment * ( end - begin );
-      dim3 blocksCount;
-      dim3 gridsCount;
-      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+      const std::size_t blocksCount = max(
+         static_cast< std::size_t >( 1 ),
+         Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
 
-      for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+      for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
          switch( this->threadsPerSegment ) {
             case 0:  // this means zero/empty matrix
                break;
@@ -216,7 +217,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 1, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 2:
@@ -224,7 +225,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 2, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 4:
@@ -232,7 +233,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 4, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 8:
@@ -240,7 +241,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 8, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 16:
@@ -248,7 +249,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 16, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 32:
@@ -256,7 +257,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                   constexpr auto kernel =
                      reduceSegmentsCSRHybridVectorKernel< 32, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 64:
@@ -271,7 +272,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                      ResultKeeper,
                      Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 128:
@@ -286,7 +287,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                      ResultKeeper,
                      Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 256:
@@ -301,7 +302,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
                      ResultKeeper,
                      Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             default:

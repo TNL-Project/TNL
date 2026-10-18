@@ -19,7 +19,7 @@ template< typename Segments, typename Index, typename Fetch, typename Reduction,
 __global__
 void
 reduceSegmentsCSRVectorKernel(
-   Index gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    Index begin,
    Index end,
@@ -32,7 +32,7 @@ reduceSegmentsCSRVectorKernel(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    // We map one warp to each segment
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / Backend::getWarpSize() + begin;
    if( segmentIdx >= end )
       return;
 
@@ -71,7 +71,7 @@ template<
 __global__
 void
 reduceSegmentsCSRVariableVectorKernel(
-   const Index gridID,
+   const std::size_t blockOffset,
    const Segments segments,
    const Index begin,
    const Index end,
@@ -83,7 +83,7 @@ reduceSegmentsCSRVariableVectorKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -128,7 +128,7 @@ template<
 __global__
 void
 reduceSegmentsCSRLightMultivectorKernel(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    Index begin,
    Index end,
@@ -140,7 +140,7 @@ reduceSegmentsCSRLightMultivectorKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment + begin;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -198,7 +198,7 @@ template<
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernel(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    Index begin,
@@ -218,7 +218,7 @@ reduceSegmentsCSRDynamicGroupingKernel(
 
    const Index segmentIdx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
-         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         ? begin + Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
          : none_scheduled;
    bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
@@ -366,7 +366,7 @@ template<
 __global__
 void
 reduceSegmentsCSRVectorKernelWithIndexes(
-   Index gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -378,7 +378,7 @@ reduceSegmentsCSRVectorKernelWithIndexes(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    // We map one warp to each segment
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / Backend::getWarpSize();
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
@@ -420,7 +420,7 @@ template<
 __global__
 void
 reduceSegmentsCSRVariableVectorKernelWithIndexes(
-   const Index gridID,
+   const std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -431,7 +431,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -481,7 +481,7 @@ template<
 __global__
 void
 reduceSegmentsCSRLightMultivectorKernelWithIndexes(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -492,7 +492,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -555,7 +555,7 @@ template<
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    const ArrayView segmentIndexes,
@@ -572,10 +572,9 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx_idx =
-      threadIdx.x < ( BlockSize / threadsPerSegment )
-         ? ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : none_scheduled;
+   const Index segmentIdx_idx = threadIdx.x < ( BlockSize / threadsPerSegment )
+                                 ? Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+                                 : none_scheduled;
    bool reduce_segment = ( segmentIdx_idx < segmentIndexes.getSize() && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
@@ -720,7 +719,7 @@ template< typename Segments, typename Index, typename Fetch, typename Reduction,
 __global__
 void
 reduceSegmentsCSRVectorKernelWithArgument(
-   Index gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    Index begin,
    Index end,
@@ -733,7 +732,7 @@ reduceSegmentsCSRVectorKernelWithArgument(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    // We map one warp to each segment
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / Backend::getWarpSize() + begin;
    if( segmentIdx >= end )
       return;
 
@@ -779,7 +778,7 @@ template<
 __global__
 void
 reduceSegmentsCSRVariableVectorKernelWithArgument(
-   const Index gridID,
+   const std::size_t blockOffset,
    const Segments segments,
    const Index begin,
    const Index end,
@@ -792,7 +791,7 @@ reduceSegmentsCSRVariableVectorKernelWithArgument(
 
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -838,7 +837,7 @@ template<
 __global__
 void
 reduceSegmentsCSRLightMultivectorKernelWithArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    Index begin,
    Index end,
@@ -850,7 +849,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment + begin;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -921,7 +920,7 @@ template<
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernelWithArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    Index begin,
@@ -941,7 +940,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
 
    const Index segmentIdx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
-         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         ? begin + Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
          : none_scheduled;
    bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
@@ -1090,7 +1089,7 @@ template<
 __global__
 void
 reduceSegmentsCSRVectorKernelWithIndexesAndArgument(
-   Index gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -1102,7 +1101,7 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument(
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    // We map one warp to each segment
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / Backend::getWarpSize();
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
@@ -1151,7 +1150,7 @@ template<
 __global__
 void
 reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument(
-   const Index gridID,
+   const std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -1162,7 +1161,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -1212,7 +1211,7 @@ template<
 __global__
 void
 reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -1223,7 +1222,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -1299,7 +1298,7 @@ template<
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    const ArrayView segmentIndexes,
@@ -1316,10 +1315,9 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx_idx =
-      threadIdx.x < ( BlockSize / threadsPerSegment )
-         ? ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : none_scheduled;
+   const Index segmentIdx_idx = threadIdx.x < ( BlockSize / threadsPerSegment )
+                                 ? Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+                                 : none_scheduled;
    bool reduce_segment = ( segmentIdx_idx < segmentIndexes.getSize() && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize

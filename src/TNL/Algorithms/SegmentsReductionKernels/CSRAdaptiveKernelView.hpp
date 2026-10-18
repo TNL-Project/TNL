@@ -72,29 +72,23 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments(
       using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
-      constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
 
       // Fill blocks
       const auto& blocks = this->blocksArray[ valueSizeLog ];
-      std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+      const std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize( Backend::getDevice() );  // one warp per block
+      const std::size_t blocksCount = Backend::getNumberOfBlocks( neededThreads, launch_config.blockSize.x );
 
       // Execute kernels on device
-      for( Index gridIdx = 0; neededThreads != 0; gridIdx++ ) {
-         if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-            launch_config.gridSize.x = Backend::getNumberOfBlocks( neededThreads, launch_config.blockSize.x );
-            neededThreads = 0;
-         }
-         else {
-            launch_config.gridSize.x = maxGridSize;
-            neededThreads -= maxGridSize * launch_config.blockSize.x;
-         }
+      for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
 
          using OffsetsView = typename SegmentsView::ConstOffsetsView;
          OffsetsView offsets = segments.getOffsets();
 
          constexpr auto kernel = Segments::detail::
             reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
-         Backend::launchKernelAsync( kernel, launch_config, blocks, gridIdx, offsets, fetch, reduction, keeper, identity );
+         Backend::launchKernelAsync( kernel, launch_config, blocks, blockOffset, offsets, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );
    }

@@ -75,14 +75,16 @@ CSRVectorKernel< Index, Device >::reduceSegments(
       const std::size_t threadsCount = warpsCount * Backend::getWarpSize( Backend::getDevice() );
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      dim3 blocksCount;
-      dim3 gridsCount;
-      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-      for( Index gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
-         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+      const std::size_t blocksCount = max(
+         static_cast< std::size_t >( 1 ),
+         Backend::getNumberOfBlocks( static_cast< std::size_t >( threadsCount ), launch_config.blockSize.x ) );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+      for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
          constexpr auto kernel =
             Segments::detail::reduceSegmentsCSRVectorKernel< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
-         Backend::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+         Backend::launchKernelAsync(
+            kernel, launch_config, blockOffset, offsets, begin, end, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );
    }

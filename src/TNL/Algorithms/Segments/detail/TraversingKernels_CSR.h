@@ -127,14 +127,14 @@ template< typename OffsetsView, typename Index, typename Function, int BlockSize
 __global__
 void
 forElementsDynamicGroupingKernel_CSR(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const OffsetsView offsets,
    const Index begin,
    const Index end,
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset );
    bool traverse_segment = ( segmentIdx < end );
 
    dynamicGroupingTraversingKernel_CSR( offsets, traverse_segment, segmentIdx, function );
@@ -145,7 +145,7 @@ template< typename OffsetsView, typename Index, typename Function, int BlockSize
 __global__
 void
 forElementsBlockMergeKernel_CSR(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const OffsetsView offsets,
    const Index begin,
    const Index end,
@@ -154,7 +154,7 @@ forElementsBlockMergeKernel_CSR(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
    __shared__ Index shared_offsets[ BlockSize + 1 ];
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset );
    if( segmentIdx <= end )
       shared_offsets[ threadIdx.x ] = offsets[ segmentIdx ];
    if( threadIdx.x == 0 && end - begin >= BlockSize )
@@ -188,7 +188,7 @@ template< typename OffsetsView, typename ArrayView, typename Index, typename Fun
 __global__
 void
 forElementsWithSegmentIndexesKernel_CSR(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
@@ -196,7 +196,7 @@ forElementsWithSegmentIndexesKernel_CSR(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index idx = Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_GE( idx, 0, "" );
@@ -225,14 +225,14 @@ template< typename OffsetsView, typename ArrayView, typename Index, typename Fun
 __global__
 void
 forElementsWithSegmentIndexesDynamicGroupingKernel_CSR(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index segmentIdx_ptr = Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx_ptr = Backend::getGlobalThreadIdx_x( blockOffset );
 
    Index segmentIdx( 0 );
    bool traverse_segment( false );
@@ -253,7 +253,7 @@ template< typename OffsetsView, typename ArrayView, typename Index, typename Fun
 __global__
 void
 forElementsWithSegmentIndexesBlockMergeKernel_CSR(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
    Function function )
@@ -267,9 +267,9 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx =
-      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock );
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       shared_segment_indexes[ threadIdx.x ] = segmentIndexes[ segmentIdx_ptr ];
@@ -333,7 +333,7 @@ template< typename OffsetsView, typename Index, typename Condition, typename Fun
 __global__
 void
 forElementsIfKernel_CSR(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const OffsetsView offsets,
    const Index begin,
@@ -343,7 +343,7 @@ forElementsIfKernel_CSR(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( segmentIdx >= end || ! condition( segmentIdx ) )
       return;
 
@@ -367,7 +367,7 @@ template< typename OffsetsView, typename Index, typename Condition, typename Fun
 __global__
 void
 forElementsIfDynamicGroupingKernel_CSR(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const OffsetsView offsets,
    const Index begin,
    const Index end,
@@ -376,7 +376,7 @@ forElementsIfDynamicGroupingKernel_CSR(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset );
 
    bool traverse_segment = false;
    if( segmentIdx < end ) {
@@ -391,7 +391,7 @@ template< typename OffsetsView, typename Index, typename Condition, typename Fun
 __global__
 void
 forElementsIfBlockMergeKernel_CSR(
-   Index gridIdx,
+   std::size_t blockOffset,
    OffsetsView offsets,
    const Index begin,
    const Index end,
@@ -411,9 +411,9 @@ forElementsIfBlockMergeKernel_CSR(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx =
-      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock );
    Index conditionValue = 0;
    if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );
