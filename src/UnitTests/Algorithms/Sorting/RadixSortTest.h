@@ -338,6 +338,24 @@ TEST( RadixSortLargeIndexTest, index_size2To32 )
    Sorting::RadixSort::sort( view );
    EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for size 2^32 = " << size;
 }
+
+TEST( RadixSortLargeIndexTest, index_int32CloseToMax )
+{
+   // exercises the overflow-prone index arithmetic with a signed index type
+   // and an array size close to the maximum of int
+   const int size = std::numeric_limits< int >::max() - 100;
+   TNL::Containers::Array< std::uint8_t, TNL::Devices::GPU, int > arr( size );
+   arr.setValue( 0 );
+   arr.setElement( 0, 1 );
+   arr.setElement( 1, 2 );
+   arr.setElement( size - 1, 3 );
+
+   auto view = arr.getView();
+   Sorting::RadixSort::sort( view );
+   // isAscending runs the generic GPU reduction, which is also index-overflow
+   // sensitive, over the whole (nearly INT_MAX-sized) array
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for size " << size;
+}
    #endif
 
 #endif
