@@ -14,6 +14,7 @@
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 #include <TNL/Algorithms/Sorting/CUBRadixSort.h>
+#include <TNL/Algorithms/Sorting/RadixSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
 #include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
 #include "generators.h"
@@ -181,6 +182,16 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
    if( ! Algorithms::isAscending( arr ) )
       throw std::runtime_error( "CUBRadixSort result is not sorted" );
    #endif
+
+   auto sortRadixSort = [ &arr ]()
+   {
+      Algorithms::Sorting::RadixSort::sort( arr );
+   };
+
+   benchmark.time< Devices::GPU >( reset, "RadixSort", sortRadixSort, result );
+
+   if( ! Algorithms::isAscending( arr ) )
+      throw std::runtime_error( "RadixSort result is not sorted" );
 }
 #endif
 

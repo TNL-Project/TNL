@@ -18,7 +18,8 @@ namespace TNL::Algorithms {
  * \tparam Sorter is an algorithm for sorting. It can be
  *         \ref TNL::Algorithms::Sorting::STLSort for sorting on host and
  *         \ref TNL::Algorithms::Sorting::experimental::Quicksort,
- *         \ref TNL::Algorithms::Sorting::CUBMergeSort or
+ *         \ref TNL::Algorithms::Sorting::CUBMergeSort,
+ *         \ref TNL::Algorithms::Sorting::RadixSort or
  *         \ref TNL::Algorithms::Sorting::BitonicSort for sorting on CUDA GPU.
  *
  * \param array is an instance of array/array view/vector/vector view for sorting.
@@ -49,7 +50,8 @@ ascendingSort( Array& array, const Sorter& sorter = Sorter{} )
  * \tparam Sorter is an algorithm for sorting. It can be
  *         \ref TNL::Algorithms::Sorting::STLSort for sorting on host and
  *         \ref TNL::Algorithms::Sorting::experimental::Quicksort,
- *         \ref TNL::Algorithms::Sorting::CUBMergeSort or
+ *         \ref TNL::Algorithms::Sorting::CUBMergeSort,
+ *         \ref TNL::Algorithms::Sorting::RadixSort or
  *         \ref TNL::Algorithms::Sorting::BitonicSort for sorting on CUDA GPU.
  *
  * \param array is an instance of array/array view/vector/vector view for sorting.
@@ -87,7 +89,8 @@ descendingSort( Array& array, const Sorter& sorter = Sorter{} )
  * \tparam Sorter is an algorithm for sorting. It can be
  *         \ref TNL::Algorithms::Sorting::STLSort for sorting on host and
  *         \ref TNL::Algorithms::Sorting::experimental::Quicksort,
- *         \ref TNL::Algorithms::Sorting::CUBMergeSort or
+ *         \ref TNL::Algorithms::Sorting::CUBMergeSort,
+ *         \ref TNL::Algorithms::Sorting::RadixSort or
  *         \ref TNL::Algorithms::Sorting::BitonicSort for sorting on CUDA GPU.
  *
  * \param array is an instance of array/array view/vector/vector view for sorting.
