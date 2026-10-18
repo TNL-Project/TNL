@@ -34,7 +34,6 @@ forElementsBlockMergeKernel_SlicedEllpack(
    __shared__ Index firstSliceIdx;              // the slice corresponding to the segment with index `begin`
    __shared__ Index lastSliceIdx;               // the slice corresponding to the segment with index `end - 1`
    __shared__ Index firstSegmentIdx;            // the index of the first segment in the first slice
-   __shared__ Index lastSegmentIdx;             // the index of the last segment in the last slice (increased by one)
    __shared__ Index firstSegmentInBlock;        // the index of the first segment being processed in this block of threads
    __shared__ Index firstSliceInBlockIdx;       // the index of the first slice being processed in this block of threads
    __shared__ Index firstSegmentInBlockOffset;  // the offset of the first segment in this block of threads
@@ -42,9 +41,8 @@ forElementsBlockMergeKernel_SlicedEllpack(
 
    if( threadIdx.x == 0 ) {
       firstSliceIdx = begin / SliceSize;
-      lastSliceIdx = end / SliceSize;
+      lastSliceIdx = ( end - 1 ) / SliceSize;
       firstSegmentIdx = firstSliceIdx * SliceSize;
-      lastSegmentIdx = lastSliceIdx * SliceSize;
    }
    __syncthreads();
 
