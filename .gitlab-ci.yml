@@ -385,9 +385,10 @@ debian:
         - if test -f /usr/local/bin/gfortran; then
               ln -s /usr/local/bin/gfortran /usr/bin/gfortran;
           fi
-        # install new cmake
-        - wget -q https://github.com/Kitware/CMake/releases/download/v4.0.1/cmake-4.0.1-linux-x86_64.sh
-        - bash cmake-4.0.1-linux-x86_64.sh --skip-license --prefix=/usr
+        # install cmake (the images have none or older than the required 3.30)
+        - wget -q --tries=3 https://github.com/Kitware/CMake/releases/download/v4.4.4/cmake-4.4.4-linux-x86_64.sh
+        - echo "9c5c78ff9f5c8c1acc5c496a7d27adafacb3a78d5b2d39b3cd4d97103656bf5b  cmake-4.4.4-linux-x86_64.sh" | sha256sum -c
+        - bash cmake-4.4.4-linux-x86_64.sh --skip-license --prefix=/usr
         # install dependencies for TNL
         - apt-get install -y build-essential git ninja-build libopenmpi-dev zlib1g-dev
         # select the compiler
