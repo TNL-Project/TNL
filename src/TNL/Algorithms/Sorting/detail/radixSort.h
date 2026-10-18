@@ -25,6 +25,15 @@ constexpr int radixSortBuckets = 1 << radixSortBits;
 //! processed by one tile of the kernels.
 constexpr int radixSortTileSize = 256;
 
+// The scatter kernel relies on each thread handling exactly one element per
+// tile and one digit in the per-digit phases, which requires the tile size
+// to be equal to the number of digit buckets.
+static_assert( radixSortTileSize == radixSortBuckets, "radixSortTileSize must be equal to radixSortBuckets" );
+
+//! \brief Maximum number of warps per block in the radix sort kernels,
+//! assuming the smallest supported warp size of 32.
+constexpr int radixSortMaxWarps = radixSortTileSize / 32;
+
 //! \brief Trait telling if the type is a specialization of `std::less`.
 template< typename T >
 struct is_std_less : std::false_type
@@ -102,6 +111,21 @@ valueToRadixSortKey( const Value& value )
 }
 
 /**
+ * \brief Returns the radix sort key of the value, inverted for the
+ * descending order.
+ */
+template< typename Value, bool descending >
+__cuda_callable__
+RadixSortKey< Value >
+radixSortKey( const Value& value )
+{
+   auto key = valueToRadixSortKey( value );
+   if constexpr( descending )
+      key = ~key;
+   return key;
+}
+
+/**
  * \brief Extracts the digit of the sort key for the given pass.
  *
  * When `descending` is true, the key is inverted so that the ascending
@@ -116,9 +140,7 @@ __cuda_callable__
 unsigned
 radixSortDigit( const Value& value, int pass )
 {
-   auto key = valueToRadixSortKey( value );
-   if constexpr( descending )
-      key = ~key;
+   const auto key = radixSortKey< Value, descending >( value );
    return static_cast< unsigned >( key >> ( radixSortBits * pass ) ) & ( radixSortBuckets - 1 );
 }
 
@@ -165,9 +187,13 @@ radixSortHistogramKernel(
    const Index lastTile = TNL::min( numTiles, firstTile + tilesPerBlock );
 
    for( Index tile = firstTile; tile < lastTile; tile++ ) {
-      const Index end = TNL::min( n, ( tile + 1 ) * static_cast< Index >( radixSortTileSize ) );
-      for( Index i = tile * radixSortTileSize + threadIdx.x; i < end; i += blockDim.x ) {
-         const unsigned digit = radixSortDigit< Value, descending >( input[ i ], pass );
+      const Index tileBegin = tile * static_cast< Index >( radixSortTileSize );
+      const Index tileEnd = tileBegin + TNL::min( n - tileBegin, static_cast< Index >( radixSortTileSize ) );
+      const int tileSize = static_cast< int >( tileEnd - tileBegin );
+      // the tile-local loop counter avoids overflow of the index type
+      // when the array size is close to its maximum
+      for( int i = threadIdx.x; i < tileSize; i += blockDim.x ) {
+         const unsigned digit = radixSortDigit< Value, descending >( input[ tileBegin + i ], pass );
          atomicAdd( &s_counts[ digit ], 1u );
       }
    }
@@ -179,20 +205,50 @@ radixSortHistogramKernel(
 #endif
 }
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
+//! \brief Type of the warp synchronization mask, following
+//! \ref Backend::getWarpFullMask (32-bit on CUDA, 64-bit on HIP).
+//!
+//! \note The warp match intrinsic used by the scatter kernel requires
+//! compute capability 7.0 or newer on CUDA and gfx8 or newer on HIP.
+using RadixSortWarpMask = decltype( Backend::getWarpFullMask() );
+
+/**
+ * \brief Counts the set bits in a warp synchronization mask.
+ */
+[[nodiscard]] __device__
+__forceinline__ int
+radixSortPopcount( RadixSortWarpMask mask )
+{
+   if constexpr( sizeof( RadixSortWarpMask ) == 4 )
+      return __popc( mask );
+   else
+      return __popcll( mask );
+}
+
+#endif
+
 /**
  * \brief Kernel scattering elements to their output positions in one pass.
  *
  * The block-to-tiles mapping is identical to \ref radixSortHistogramKernel,
- * which is essential for correctness. The shared array `s_base` holds the
- * (scanned) base offsets of this block, `s_offset` accumulates the counts
- * of the elements with the same digit already processed by this block,
- * `s_counts` holds the per-tile digit counts, and `s_digits` stores the
- * digits of the current tile. The position of an element is composed as
+ * which is essential for correctness. The intra-tile rank of an element
+ * among the elements with the same digit is computed with the warp match
+ * intrinsic, which is O(1) in the tile size instead of a linear scan over
+ * the digits. The shared arrays hold the base offsets `s_base` of this
+ * block, advanced by the tile totals after each tile so that they track
+ * the current position for each digit, and the per-tile counts `s_warpCounts`
+ * of the elements with the same digit per warp, scanned into exclusive
+ * prefixes over the warps. The launch uses `blockSize.x` equal to both
+ * `radixSortTileSize` and `radixSortBuckets`, so each thread handles
+ * exactly one element per tile and one digit in the per-digit phases.
+ * The position of an element is composed as
  *
- * \f[ \mathrm{pos} = \mathrm{base}[ d ] + \mathrm{offset}[ d ] + \mathrm{rank}, \f]
+ * \f[ \mathrm{pos} = \mathrm{base}[ d ] + \mathrm{warpPrefix}[ d, w ] + \mathrm{rank}, \f]
  *
- * where `d` is the element's digit and `rank` is the number of preceding
- * elements in the tile with the same digit. Since all three parts are
+ * where `d` is the element's digit, `w` is its warp and `rank` is the number
+ * of preceding lanes of the warp with the same digit. Since all parts are
  * computed deterministically, the pass is stable, which is required for the
  * correctness of LSD radix sort.
  *
@@ -214,16 +270,14 @@ radixSortScatterKernel(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Index s_base[ radixSortBuckets ];
-   __shared__ Index s_offset[ radixSortBuckets ];
-   __shared__ unsigned int s_counts[ radixSortBuckets ];
-   __shared__ unsigned char s_digits[ radixSortTileSize ];
+   __shared__ unsigned char s_warpCounts[ radixSortBuckets * radixSortMaxWarps ];
 
-   // load the scanned base offsets of this block's digit counts
-   for( int d = threadIdx.x; d < radixSortBuckets; d += blockDim.x )
-      s_base[ d ] = histograms[ d * static_cast< Index >( gridDim.x ) + static_cast< Index >( blockIdx.x ) ];
-   // zero the counts of the elements already processed by this block
-   for( int d = threadIdx.x; d < radixSortBuckets; d += blockDim.x )
-      s_offset[ d ] = 0;
+   // load the scanned base offsets of this block's digit counts; they are
+   // advanced by the tile totals below, so they hold the current offsets of
+   // the elements with each digit already processed by this block
+   // (the launch uses blockSize.x == radixSortBuckets, so each thread
+   // handles exactly one digit in the per-digit phases below)
+   s_base[ threadIdx.x ] = histograms[ threadIdx.x * static_cast< Index >( gridDim.x ) + static_cast< Index >( blockIdx.x ) ];
    __syncthreads();
 
    const Index n = input.getSize();
@@ -231,42 +285,64 @@ radixSortScatterKernel(
    const Index firstTile = static_cast< Index >( blockIdx.x ) * tilesPerBlock;
    const Index lastTile = TNL::min( numTiles, firstTile + tilesPerBlock );
 
+   const int warpId = static_cast< int >( threadIdx.x ) / warpSize;
+   const int lane = static_cast< int >( threadIdx.x ) % warpSize;
+
    for( Index tile = firstTile; tile < lastTile; tile++ ) {
       const Index tileBegin = tile * static_cast< Index >( radixSortTileSize );
-      const Index tileEnd = TNL::min( n, tileBegin + radixSortTileSize );
-      const Index tileSize = tileEnd - tileBegin;
+      const Index tileEnd = tileBegin + TNL::min( n - tileBegin, static_cast< Index >( radixSortTileSize ) );
+      const int tileSize = static_cast< int >( tileEnd - tileBegin );
 
-      // zero the per-tile digit counts
-      for( int d = threadIdx.x; d < radixSortBuckets; d += blockDim.x )
-         s_counts[ d ] = 0;
+      // zero the per-(digit, warp) counts of this tile
+      for( int i = threadIdx.x; i < radixSortBuckets * radixSortMaxWarps; i += blockDim.x )
+         s_warpCounts[ i ] = 0;
       __syncthreads();
 
       // each thread handles the element of the tile with its index
       // (the launch uses blockSize.x == radixSortTileSize)
-      const bool active = static_cast< Index >( threadIdx.x ) < tileSize;
-      unsigned char myDigit = 0;
+      const bool active = static_cast< int >( threadIdx.x ) < tileSize;
+      // active threads of a warp form a prefix of the warp, so the mask of
+      // lanes participating in the warp match can be computed directly
+      const int activeInWarp =
+         TNL::max( 0, TNL::min( static_cast< int >( warpSize ), tileSize - warpId * static_cast< int >( warpSize ) ) );
+      const RadixSortWarpMask activeMask =
+         activeInWarp >= static_cast< int >( warpSize )
+            ? Backend::getWarpFullMask()
+            : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
+      Value myValue{};
+      unsigned myDigit = 0;
+      unsigned warpRank = 0;
       if( active ) {
-         myDigit = radixSortDigit< Value, descending >( input[ tileBegin + threadIdx.x ], pass );
-         s_digits[ threadIdx.x ] = myDigit;
-         atomicAdd( &s_counts[ myDigit ], 1u );
+         myValue = input[ tileBegin + threadIdx.x ];
+         myDigit = radixSortDigit< Value, descending >( myValue, pass );
+         const RadixSortWarpMask match = __match_any_sync( activeMask, myDigit );
+         const RadixSortWarpMask laneMaskLt =
+            ( static_cast< RadixSortWarpMask >( 1 ) << lane ) - static_cast< RadixSortWarpMask >( 1 );
+         warpRank = radixSortPopcount( match & laneMaskLt );
+         // the first lane of each group of equal digits stores its count
+         if( warpRank == 0 )
+            s_warpCounts[ myDigit * radixSortMaxWarps + warpId ] = radixSortPopcount( match );
+      }
+      __syncthreads();
+
+      // exclusive scan of the warp counts of each digit (in place);
+      // the digit total stays in a register for the offset update below
+      unsigned short digitTotal = 0;
+      for( int w = 0; w < radixSortMaxWarps; w++ ) {
+         const auto count = s_warpCounts[ threadIdx.x * radixSortMaxWarps + w ];
+         s_warpCounts[ threadIdx.x * radixSortMaxWarps + w ] = static_cast< unsigned char >( digitTotal );
+         digitTotal += count;
       }
       __syncthreads();
 
       if( active ) {
-         // deterministic rank of this element among the elements
-         // with the same digit in this tile
-         Index rank = 0;
-         for( int j = 0; j < static_cast< int >( threadIdx.x ); j++ )
-            if( s_digits[ j ] == myDigit )
-               rank++;
-         const Index pos = s_base[ myDigit ] + s_offset[ myDigit ] + rank;
-         output[ pos ] = input[ tileBegin + threadIdx.x ];
+         const Index pos = s_base[ myDigit ] + s_warpCounts[ myDigit * radixSortMaxWarps + warpId ] + warpRank;
+         output[ pos ] = myValue;
       }
       __syncthreads();
 
-      // advance the same-digit offsets by the counts of this tile
-      for( int d = threadIdx.x; d < radixSortBuckets; d += blockDim.x )
-         s_offset[ d ] += static_cast< Index >( s_counts[ d ] );
+      // advance the digit offsets by the totals of this tile
+      s_base[ threadIdx.x ] += digitTotal;
       __syncthreads();
    }
 #endif
@@ -301,7 +377,9 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    const Index n = view.getSize();
    constexpr int passes = static_cast< int >( sizeof( Value ) );
 
-   const Index numTiles = ( n + static_cast< Index >( radixSortTileSize ) - 1 ) / static_cast< Index >( radixSortTileSize );
+   // computed without rounding up to avoid overflow of n + radixSortTileSize
+   // when the index type is signed and n is close to its maximum
+   const Index numTiles = n / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( n % radixSortTileSize != 0 );
    const int multiprocessors = Backend::getDeviceMultiprocessors( Backend::getDevice() );
    const Index maxBlocks = static_cast< Index >( multiprocessors ) * 32;
    const Index numBlocks = TNL::min( numTiles, maxBlocks );
@@ -316,19 +394,20 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    launch_config.blockSize.x = radixSortTileSize;
    launch_config.gridSize.x = static_cast< unsigned >( numBlocks );
 
+   constexpr auto histogramKernel = radixSortHistogramKernel< Value, Index, descending >;
+   constexpr auto scatterKernel = radixSortScatterKernel< Value, Index, descending >;
+
+   // all kernels are launched on the same stream, so their execution is
+   // ordered by the stream (the generic scan host-synchronizes internally,
+   // so the passes do not actually overlap)
    for( int pass = 0; pass < passes; pass++ ) {
-      constexpr auto histogramKernel = radixSortHistogramKernel< Value, Index, descending >;
       Backend::launchKernelAsync( histogramKernel, launch_config, input, histograms.getView(), numTiles, pass );
 
       // exclusive scan of the per-block histograms turns the counts into
       // the base offsets for the scatter kernel
       Algorithms::inplaceExclusiveScan( histograms );
 
-      constexpr auto scatterKernel = radixSortScatterKernel< Value, Index, descending >;
       Backend::launchKernelAsync( scatterKernel, launch_config, input, output, histograms.getView(), numTiles, pass );
-
-      // the scan is host-orchestrated, so the passes cannot overlap anyway
-      Backend::streamSynchronize( launch_config.stream );
       input.swap( output );
    }
    Backend::streamSynchronize( launch_config.stream );
