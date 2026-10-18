@@ -1881,6 +1881,29 @@ test_Comparison()
    /**
     * Set up the following 3x3 sparse matrix:
     *
+    *    / 1 0 0 \
+    *    | 0 0 0 |
+    *    \ 0 0 2 /
+    */
+   const Matrix withEmptyRow( 3, 3, { { 0, 0, 1 }, { 2, 2, 2 } } );
+
+   // the same matrix with the empty row containing only explicitly stored zeros
+   const Matrix zeroOnlyRow( 3, 3, { { 0, 0, 1 }, { 1, 0, 0 }, { 1, 1, 0 }, { 1, 2, 0 }, { 2, 2, 2 } } );
+   EXPECT_EQ( withEmptyRow, zeroOnlyRow );
+   EXPECT_EQ( zeroOnlyRow, withEmptyRow );
+
+   // matrices with different dimensions are not equal
+   const Matrix moreRows( 3, 2, { { 0, 0, 1 }, { 1, 1, 2 }, { 2, 0, 3 } } );
+   EXPECT_NE( withoutZeros, moreRows );
+   EXPECT_NE( moreRows, withoutZeros );
+
+   const Matrix moreColumns( 2, 3, { { 0, 0, 1 }, { 1, 1, 2 } } );
+   EXPECT_NE( withoutZeros, moreColumns );
+   EXPECT_NE( moreColumns, withoutZeros );
+
+   /**
+    * Set up the following 3x3 sparse matrix:
+    *
     *    / 1 0 2 \
     *    | 0 3 0 |
     *    \ 0 0 4 /
@@ -1895,4 +1918,22 @@ test_Comparison()
 
    EXPECT_EQ( withoutZeros2, interleavedZeros );
    EXPECT_EQ( interleavedZeros, withoutZeros2 );
+
+   /**
+    * Set up the following 2x2 sparse matrix:
+    *
+    *    / 1 0 \
+    *    \ 0 1 /
+    */
+   const Matrix onesWithZero( 2, 2, { { 0, 0, 1 }, { 0, 1, 0 }, { 1, 1, 1 } } );
+
+   // comparison with a binary matrix having the same pattern
+   using BinaryMatrixType = TNL::Matrices::SparseMatrix< bool, typename Matrix::DeviceType, typename Matrix::IndexType >;
+   const BinaryMatrixType binary( 2, 2, { { 0, 0, true }, { 1, 1, true } } );
+   EXPECT_EQ( onesWithZero, binary );
+   EXPECT_EQ( binary, onesWithZero );
+
+   // comparison with a binary matrix having the same pattern as a matrix with different values
+   EXPECT_NE( withoutZeros, binary );
+   EXPECT_NE( binary, withoutZeros );
 }

@@ -1094,8 +1094,16 @@ public:
    /**
     * \brief Comparison operator with another arbitrary matrix type.
     *
+    * The matrices must have the same dimensions.
+    * Only elements which are really present in the matrices are compared,
+    * i.e. the padding elements and the elements with an explicitly stored zero value
+    * are skipped, so the matrices are equal even if they differ
+    * in the explicitly stored zero elements only.
+    * Within each row, the elements are compared in the order in which they are stored,
+    * see \ref SparseMatrixRowView::operator== "the row comparison".
+    *
     * \param matrix is the right-hand side matrix.
-    * \return \e true if the RHS matrix is equal, \e false otherwise.
+    * \return `true` if the RHS matrix is equal, `false` otherwise.
     */
    template< typename Matrix >
    [[nodiscard]] bool
@@ -1104,8 +1112,10 @@ public:
    /**
     * \brief Comparison operator with another arbitrary matrix type.
     *
+    * The result is the negation of \ref operator==.
+    *
     * \param matrix is the right-hand side matrix.
-    * \return \e false if the RHS matrix is equal, \e true otherwise.
+    * \return `false` if the RHS matrix is equal, `true` otherwise.
     */
    template< typename Matrix >
    [[nodiscard]] bool

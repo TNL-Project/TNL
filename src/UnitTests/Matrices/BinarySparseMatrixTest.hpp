@@ -1020,3 +1020,70 @@ test_SaveAndLoad( const char* filename )
 
    EXPECT_EQ( std::remove( filename ), 0 );
 }
+
+template< typename Matrix >
+void
+test_Comparison()
+{
+   /**
+    * Set up the following 2x2 binary matrix:
+    *
+    *    / 1 0 \
+    *    \ 0 1 /
+    */
+   Matrix tightMatrix( 2, 2 );
+   typename Matrix::RowCapacitiesType tightCapacities( 2, 1 );
+   tightMatrix.setRowCapacities( tightCapacities );
+   tightMatrix.setElement( 0, 0, 1 );
+   tightMatrix.setElement( 1, 1, 1 );
+
+   // the same matrix with larger row capacities, i.e. with padding elements in the rows
+   Matrix paddedMatrix( 2, 2 );
+   typename Matrix::RowCapacitiesType paddedCapacities( 2, 3 );
+   paddedMatrix.setRowCapacities( paddedCapacities );
+   paddedMatrix.setElement( 0, 0, 1 );
+   paddedMatrix.setElement( 1, 1, 1 );
+
+   // matrices with the same pattern of non-zero elements are equal
+   EXPECT_EQ( tightMatrix, tightMatrix );
+   EXPECT_EQ( tightMatrix, paddedMatrix );
+   EXPECT_EQ( paddedMatrix, tightMatrix );
+
+   // matrices with different patterns of non-zero elements are not equal
+   Matrix differentPattern( 2, 2 );
+   differentPattern.setRowCapacities( tightCapacities );
+   differentPattern.setElement( 0, 0, 1 );
+   differentPattern.setElement( 1, 0, 1 );
+   EXPECT_NE( tightMatrix, differentPattern );
+   EXPECT_NE( differentPattern, tightMatrix );
+
+   // matrices with different dimensions are not equal
+   Matrix moreRows( 3, 2 );
+   typename Matrix::RowCapacitiesType moreRowsCapacities( 3, 1 );
+   moreRows.setRowCapacities( moreRowsCapacities );
+   moreRows.setElement( 0, 0, 1 );
+   moreRows.setElement( 1, 1, 1 );
+   moreRows.setElement( 2, 0, 1 );
+   EXPECT_NE( tightMatrix, moreRows );
+   EXPECT_NE( moreRows, tightMatrix );
+
+   Matrix moreColumns( 2, 3 );
+   typename Matrix::RowCapacitiesType moreColumnsCapacities( 2, 1 );
+   moreColumns.setRowCapacities( moreColumnsCapacities );
+   moreColumns.setElement( 0, 0, 1 );
+   moreColumns.setElement( 1, 1, 1 );
+   EXPECT_NE( tightMatrix, moreColumns );
+   EXPECT_NE( moreColumns, tightMatrix );
+
+   // comparison with a non-binary matrix having the same pattern and all values equal to 1,
+   // with an explicitly stored zero in the first row
+   using NonBinaryMatrixType = TNL::Matrices::SparseMatrix< double, typename Matrix::DeviceType, typename Matrix::IndexType >;
+   const NonBinaryMatrixType nonBinaryWithZero( 2, 2, { { 0, 0, 1.0 }, { 0, 1, 0.0 }, { 1, 1, 1.0 } } );
+   EXPECT_EQ( tightMatrix, nonBinaryWithZero );
+   EXPECT_EQ( nonBinaryWithZero, tightMatrix );
+
+   // comparison with a non-binary matrix having the same pattern but different values
+   const NonBinaryMatrixType nonBinaryDifferentValues( 2, 2, { { 0, 0, 1.0 }, { 1, 1, 5.0 } } );
+   EXPECT_NE( tightMatrix, nonBinaryDifferentValues );
+   EXPECT_NE( nonBinaryDifferentValues, tightMatrix );
+}
