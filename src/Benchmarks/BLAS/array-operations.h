@@ -4,13 +4,17 @@
 #pragma once
 
 #include <cstring>
+#include <type_traits>
 
 #include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Containers/Array.h>
+#include <TNL/Devices/GPU.h>
+#include <TNL/Devices/Host.h>
 
 namespace TNL::Benchmarks {
 
 template<
+   typename Device,
    typename Real = double,
    typename Index = int,
    template< typename > class HostAllocator = Allocators::Default< Devices::Host >::Allocator,
@@ -30,8 +34,10 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
    hostArray.setSize( size );
    hostArray2.setSize( size );
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   deviceArray.setSize( size );
-   deviceArray2.setSize( size );
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+      deviceArray.setSize( size );
+      deviceArray2.setSize( size );
+   }
 #endif
 
    Real resultHost;
@@ -59,141 +65,155 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
 
    reset12();
 
-   if( std::is_fundamental_v< Real > ) {
-      // std::memcmp
+   if constexpr( std::is_same_v< Device, Devices::Host > ) {
+      if( std::is_fundamental_v< Real > ) {
+         // std::memcmp
+         auto compareHost = [ & ]()
+         {
+            resultHost = static_cast< Real >(
+               std::memcmp( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) ) == 0 );
+         };
+         benchmark.setOperation( "comparison (memcmp)" );
+         benchmark.setDatasetSize( 2 * datasetSize );
+         benchmark.time< Devices::Host >( reset12, "TNL", compareHost );
+
+         // std::memcpy
+         auto copyHost = [ & ]()
+         {
+            std::memcpy( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) );
+         };
+         benchmark.setOperation( "copy (memcpy)" );
+         benchmark.setDatasetSize( 2 * datasetSize );
+         benchmark.time< Devices::Host >( reset12, "TNL", copyHost );
+      }
+
       auto compareHost = [ & ]()
       {
-         resultHost = static_cast< Real >(
-            std::memcmp( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) ) == 0 );
+         resultHost = static_cast< int >( hostArray == hostArray2 );
       };
-      benchmark.setOperation( "comparison (memcmp)" );
+      benchmark.setOperation( "comparison (operator==)" );
       benchmark.setDatasetSize( 2 * datasetSize );
-      benchmark.time< Devices::Host >( reset12, "TNL", compareHost );
+      benchmark.time< Devices::Host >( reset1, "TNL", compareHost );
 
-      // std::memcpy and Backend::memcpy
-      auto copyHost = [ & ]()
+      auto copyAssignHostHost = [ & ]()
       {
-         std::memcpy( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) );
+         hostArray = hostArray2;
       };
-      benchmark.setOperation( "copy (memcpy)" );
+      benchmark.setOperation( "copy (operator=)" );
       benchmark.setDatasetSize( 2 * datasetSize );
-      benchmark.time< Devices::Host >( reset12, "TNL", copyHost );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto copyCuda = [ & ]()
+      benchmark.time< Devices::Host >( reset1, "TNL", copyAssignHostHost );
+
+      auto setValueHost = [ & ]()
       {
-         Backend::memcpy(
-            deviceArray.getData(),
-            deviceArray2.getData(),
-            deviceArray.getSize() * sizeof( Real ),
-            Backend::MemcpyDeviceToDevice );
+         hostArray.setValue( 3.0 );
       };
-      benchmark.time< Devices::GPU >( reset12, "TNL", copyCuda );
-#endif
+      benchmark.setOperation( "setValue" );
+      benchmark.setDatasetSize( datasetSize );
+      benchmark.time< Devices::Host >( reset1, "TNL", setValueHost );
+
+      auto setSizeHost = [ & ]()
+      {
+         hostArray.setSize( size );
+      };
+      auto resetSize1 = [ & ]()
+      {
+         hostArray.reset();
+      };
+      benchmark.setOperation( "allocation (setSize)" );
+      benchmark.setDatasetSize( datasetSize );
+      benchmark.time< Devices::Host >( resetSize1, "TNL", setSizeHost );
+
+      auto resetSizeHost = [ & ]()
+      {
+         hostArray.reset();
+      };
+      auto setSize1 = [ & ]()
+      {
+         hostArray.setSize( size );
+      };
+      benchmark.setOperation( "deallocation (reset)" );
+      benchmark.setDatasetSize( datasetSize );
+      benchmark.time< Devices::Host >( setSize1, "TNL", resetSizeHost );
    }
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+      if( std::is_fundamental_v< Real > ) {
+         // Backend::memcpy
+         auto copyCuda = [ & ]()
+         {
+            Backend::memcpy(
+               deviceArray.getData(),
+               deviceArray2.getData(),
+               deviceArray.getSize() * sizeof( Real ),
+               Backend::MemcpyDeviceToDevice );
+         };
+         benchmark.setOperation( "copy (memcpy)" );
+         benchmark.setDatasetSize( 2 * datasetSize );
+         benchmark.time< Devices::GPU >( reset12, "TNL", copyCuda );
+      }
 
-   auto compareHost = [ & ]()
-   {
-      resultHost = static_cast< int >( hostArray == hostArray2 );
-   };
-   benchmark.setOperation( "comparison (operator==)" );
-   benchmark.setDatasetSize( 2 * datasetSize );
-   benchmark.time< Devices::Host >( reset1, "TNL", compareHost );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   Real resultDevice;
-   auto compareCuda = [ & ]()
-   {
-      resultDevice = (int) ( deviceArray == deviceArray2 );
-   };
-   benchmark.time< Devices::GPU >( reset1, "TNL", compareCuda );
-#endif
+      Real resultDevice;
+      auto compareCuda = [ & ]()
+      {
+         resultDevice = (int) ( deviceArray == deviceArray2 );
+      };
+      benchmark.setOperation( "comparison (operator==)" );
+      benchmark.setDatasetSize( 2 * datasetSize );
+      benchmark.time< Devices::GPU >( reset1, "TNL", compareCuda );
 
-   auto copyAssignHostHost = [ & ]()
-   {
-      hostArray = hostArray2;
-   };
-   benchmark.setOperation( "copy (operator=)" );
-   benchmark.setDatasetSize( 2 * datasetSize );
-   benchmark.time< Devices::Host >( reset1, "TNL", copyAssignHostHost );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   auto copyAssignCudaCuda = [ & ]()
-   {
-      deviceArray = deviceArray2;
-   };
-   benchmark.time< Devices::GPU >( reset1, "TNL", copyAssignCudaCuda );
-#endif
+      auto copyAssignCudaCuda = [ & ]()
+      {
+         deviceArray = deviceArray2;
+      };
+      benchmark.setOperation( "copy (operator=)" );
+      benchmark.setDatasetSize( 2 * datasetSize );
+      benchmark.time< Devices::GPU >( reset1, "TNL", copyAssignCudaCuda );
 
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   auto copyAssignHostCuda = [ & ]()
-   {
-      deviceArray = hostArray;
-   };
-   auto copyAssignCudaHost = [ & ]()
-   {
-      hostArray = deviceArray;
-   };
-   benchmark.setOperation( "copy (operator=)" );
-   benchmark.setDatasetSize( datasetSize );
-   benchmark.time< Devices::GPU >( reset1, "host-to-device", copyAssignHostCuda );
-   benchmark.time< Devices::GPU >( reset1, "device-to-host", copyAssignCudaHost );
-#endif
+      auto copyAssignHostCuda = [ & ]()
+      {
+         deviceArray = hostArray;
+      };
+      auto copyAssignCudaHost = [ & ]()
+      {
+         hostArray = deviceArray;
+      };
+      benchmark.setOperation( "copy (operator=)" );
+      benchmark.setDatasetSize( datasetSize );
+      benchmark.time< Devices::GPU >( reset1, "host-to-device", copyAssignHostCuda );
+      benchmark.time< Devices::GPU >( reset1, "device-to-host", copyAssignCudaHost );
 
-   auto setValueHost = [ & ]()
-   {
-      hostArray.setValue( 3.0 );
-   };
-   benchmark.setOperation( "setValue" );
-   benchmark.setDatasetSize( datasetSize );
-   benchmark.time< Devices::Host >( reset1, "TNL", setValueHost );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   auto setValueCuda = [ & ]()
-   {
-      deviceArray.setValue( 3.0 );
-   };
-   benchmark.time< Devices::GPU >( reset1, "TNL", setValueCuda );
-#endif
+      auto setValueCuda = [ & ]()
+      {
+         deviceArray.setValue( 3.0 );
+      };
+      benchmark.setOperation( "setValue" );
+      benchmark.setDatasetSize( datasetSize );
+      benchmark.time< Devices::GPU >( reset1, "TNL", setValueCuda );
 
-   auto setSizeHost = [ & ]()
-   {
-      hostArray.setSize( size );
-   };
-   auto resetSize1 = [ & ]()
-   {
-      hostArray.reset();
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      deviceArray.reset();
-#endif
-   };
-   benchmark.setOperation( "allocation (setSize)" );
-   benchmark.setDatasetSize( datasetSize );
-   benchmark.time< Devices::Host >( resetSize1, "TNL", setSizeHost );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   auto setSizeCuda = [ & ]()
-   {
-      deviceArray.setSize( size );
-   };
-   benchmark.time< Devices::GPU >( resetSize1, "TNL", setSizeCuda );
-#endif
+      auto setSizeCuda = [ & ]()
+      {
+         deviceArray.setSize( size );
+      };
+      auto resetSize1 = [ & ]()
+      {
+         deviceArray.reset();
+      };
+      benchmark.setOperation( "allocation (setSize)" );
+      benchmark.setDatasetSize( datasetSize );
+      benchmark.time< Devices::GPU >( resetSize1, "TNL", setSizeCuda );
 
-   auto resetSizeHost = [ & ]()
-   {
-      hostArray.reset();
-   };
-   auto setSize1 = [ & ]()
-   {
-      hostArray.setSize( size );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      deviceArray.setSize( size );
-#endif
-   };
-   benchmark.setOperation( "deallocation (reset)" );
-   benchmark.setDatasetSize( datasetSize );
-   benchmark.time< Devices::Host >( setSize1, "TNL", resetSizeHost );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   auto resetSizeCuda = [ & ]()
-   {
-      deviceArray.reset();
-   };
-   benchmark.time< Devices::GPU >( setSize1, "TNL", resetSizeCuda );
+      auto resetSizeCuda = [ & ]()
+      {
+         deviceArray.reset();
+      };
+      auto setSize1 = [ & ]()
+      {
+         deviceArray.setSize( size );
+      };
+      benchmark.setOperation( "deallocation (reset)" );
+      benchmark.setDatasetSize( datasetSize );
+      benchmark.time< Devices::GPU >( setSize1, "TNL", resetSizeCuda );
+   }
 #endif
 }
 
