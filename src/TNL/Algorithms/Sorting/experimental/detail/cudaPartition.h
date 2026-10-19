@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/detail/GPUScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Atomic.h>
 #include "QuicksortTask.h"
 

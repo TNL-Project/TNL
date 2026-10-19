@@ -7,7 +7,7 @@
 #include <TNL/Backend.h>
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Algorithms/scan.h>
-#include <TNL/Algorithms/detail/GPUScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 //defines the shared memory size
