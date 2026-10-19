@@ -6,7 +6,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Assert.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
-#include <TNL/Algorithms/detail/GPUScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 

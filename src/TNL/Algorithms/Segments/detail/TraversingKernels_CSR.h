@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/AtomicOperations.h>
-#include <TNL/Algorithms/detail/GPUScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Algorithms/find.h>
 
 namespace TNL::Algorithms::Segments::detail {
