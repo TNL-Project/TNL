@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Algorithms/detail/GPUScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Algorithms/find.h>
 #include <TNL/Assert.h>
 #include <TNL/Backend/LaunchHelpers.h>
