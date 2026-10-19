@@ -12,6 +12,7 @@ set(CPP_TESTS
     AllocatorsTest
     AssertTest
     FileTest
+    LaunchConfigurationTest
     base64Test
     CustomScalarTest
     DiscreteMathTest
@@ -22,8 +23,8 @@ set(CPP_TESTS
     TypeInfoTest
     TypeTraitsTest
 )
-set(CUDA_TESTS AllocatorsTestCuda AssertTestCuda FileTestCuda)
-set(HIP_TESTS AllocatorsTestHip AssertTestHip FileTestHip)
+set(CUDA_TESTS AllocatorsTestCuda AssertTestCuda FileTestCuda LaunchConfigurationTestCuda)
+set(HIP_TESTS AllocatorsTestHip AssertTestHip FileTestHip LaunchConfigurationTestHip)
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)
