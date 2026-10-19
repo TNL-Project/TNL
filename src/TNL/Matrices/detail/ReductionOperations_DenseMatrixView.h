@@ -7,11 +7,13 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "../DenseMatrixView.h"
 #include "ReductionOperations.h"
+#include "ReductionOperationsBase.h"
 
 namespace TNL::Matrices::detail {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization > >
+: public ReductionOperationsBase< DenseMatrixView< Real, Device, Index, Organization > >
 {
    using MatrixView = DenseMatrixView< Real, Device, Index, Organization >;
    using ConstMatrixView = typename MatrixView::ConstViewType;
@@ -157,87 +159,6 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          launchConfig );
    }
 
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsIf(
-      MatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      auto values_view = matrix.getValues().getView();
-      const auto columns = matrix.getColumns();
-      auto fetchWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         if( localIdx < columns )
-            return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
-         return identity;
-      };
-      return Algorithms::Segments::reduceSegmentsIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         store,
-         identity,
-         launchConfig );
-   }
-
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsIf(
-      const ConstMatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      const auto values_view = matrix.getValues().getConstView();
-      const auto columns = matrix.getColumns();
-      auto fetchWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         if( localIdx < columns )
-            return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
-         return identity;
-      };
-
-      return Algorithms::Segments::reduceSegmentsIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         store,
-         identity,
-         launchConfig );
-   }
-
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRowsWithArgument(
@@ -259,9 +180,9 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          return identity;
       };
       auto keepWrapper =
-         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         store( rowIdx, localIdx, localIdx, value, emptySegment );
+         store( rowIdx, localIdx, localIdx, value, emptyRow );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -289,9 +210,9 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          return identity;
       };
       auto keepWrapper =
-         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         store( rowIdx, localIdx, localIdx, value, emptySegment );
+         store( rowIdx, localIdx, localIdx, value, emptyRow );
       };
       Algorithms::Segments::reduceSegmentsWithArgument(
          matrix.getSegments(), begin, end, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
@@ -320,9 +241,9 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
       };
       auto keepWrapper =
          [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptyRow );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -351,107 +272,13 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
       };
       auto keepWrapper =
          [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptyRow );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
-   }
-
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsWithArgumentIf(
-      MatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      auto values_view = matrix.getValues().getView();
-      const auto columns = matrix.getColumns();
-      auto fetchWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         if( localIdx < columns )
-            return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
-         return identity;
-      };
-      auto keepWrapper =
-         [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
-      {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
-      };
-
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         keepWrapper,
-         identity,
-         launchConfig );
-   }
-
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsWithArgumentIf(
-      const ConstMatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      const auto values_view = matrix.getValues().getConstView();
-      const auto columns = matrix.getColumns();
-      auto fetchWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         if( localIdx < columns )
-            return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
-         return identity;
-      };
-      auto keepWrapper =
-         [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
-      {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
-      };
-
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         keepWrapper,
-         identity,
-         launchConfig );
    }
 };
 }  // namespace TNL::Matrices::detail

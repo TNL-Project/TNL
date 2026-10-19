@@ -8,6 +8,7 @@
 #include <TNL/Matrices/MatrixBase.h>
 #include "../SparseMatrixView.h"
 #include "ReductionOperations.h"
+#include "ReductionOperationsBase.h"
 
 namespace TNL::Matrices::detail {
 
@@ -19,6 +20,7 @@ template<
    template< typename Device_, typename Index_ > class SegmentsView,
    typename ComputeReal >
 struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal > >
+: public ReductionOperationsBase< SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal > >
 {
    using MatrixView = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal >;
    using ConstMatrixView = SparseMatrixView< const Real, Device, Index, MatrixType_, SegmentsView, ComputeReal >;
@@ -45,6 +47,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
@@ -78,6 +82,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
@@ -109,6 +115,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
@@ -146,6 +154,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
@@ -162,103 +172,6 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
       Algorithms::Segments::reduceSegments(
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
-   }
-
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsIf(
-      MatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
-      auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
-      auto values_view = matrix.getValues().getView();
-
-      auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
-                             IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
-      {
-         if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
-            if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
-            else
-               // For non-constant matrix, we allow modification of columns indexes
-               // and values during the data fetching for the sake of kernels merging.
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
-         }
-         return identity;
-      };
-      return Algorithms::Segments::reduceSegmentsIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         store,
-         identity,
-         launchConfig );
-   }
-
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsIf(
-      const ConstMatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
-      auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
-      auto values_view = matrix.getValues().getConstView();
-
-      auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
-                             IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         IndexType columnIdx = columnIndexes_view[ globalIdx ];
-         if( columnIdx != paddingIndex ) {
-            if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1 ) );
-            else
-               return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
-         }
-         return identity;
-      };
-      return Algorithms::Segments::reduceSegmentsIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         store,
-         identity,
-         launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -281,6 +194,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], static_cast< ValueType >( 1 ) );
@@ -292,9 +207,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          return identity;
       };
       auto storeWrapper =
-         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             TNL_ASSERT_LT( rowIdx, matrix.getRows(), "Row index out of bounds in reduceRowsWithArgument." );
             TNL_ASSERT_LT(
                localIdx,
@@ -305,11 +220,13 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                columnIndexes_view.getSize(),
                "Global index out of bounds for columnIndexes_view in reduceRowsWithArgument." );
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( rowIdx, localIdx, columnIdx, value, emptySegment );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptySegment );
-         }
+         store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -336,6 +253,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          const auto columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
@@ -346,15 +265,17 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          return identity;
       };
       auto storeWrapper =
-         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( rowIdx, localIdx, columnIdx, value, emptySegment );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, emptySegment );
-         }
+         store( rowIdx, localIdx, static_cast< IndexType >( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -389,15 +310,17 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
       auto storeWrapper =
          [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
-         }
+         store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -423,6 +346,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
       {
+         // values_view is used only in the non-binary branch of the constexpr below
+         (void) values_view;
          IndexType columnIdx = columnIndexes_view[ globalIdx ];
          if( columnIdx != paddingIndex ) {
             if constexpr( MatrixView::isBinary() )
@@ -434,273 +359,21 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
       auto storeWrapper =
          [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptyRow ) mutable
       {
-         if( ! emptySegment ) {
+         if( ! emptyRow ) {
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+            // A row containing only padding elements is empty as well
+            if( columnIdx != paddingIndex ) {
+               store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, false );
+               return;
+            }
          }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
-         }
+         store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, true );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
-
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsWithArgumentIf(
-      MatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
-      auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
-      auto values_view = matrix.getValues().getConstView();
-      auto segmentsView = matrix.getSegments();
-
-      auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
-                             IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
-            if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], ValueType( 1.0 ) );
-            else
-               // For non-constant matrix, we allow modification of columns indexes
-               // and values during the data fetching for the sake of kernels merging.
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
-         }
-         return identity;
-      };
-
-      auto storeWrapper =
-         [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
-      {
-         if( ! emptySegment ) {
-            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
-         }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
-         }
-      };
-
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         storeWrapper,
-         identity,
-         launchConfig );
-   }
-
-   template<
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsWithArgumentIf(
-      const ConstMatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
-      auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
-      auto values_view = matrix.getValues().getConstView();
-      auto segmentsView = matrix.getSegments();
-
-      auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
-                             IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         const auto columnIdx = columnIndexes_view[ globalIdx ];
-         if( columnIdx != paddingIndex ) {
-            if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1.0 ) );
-            else
-               return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
-         }
-         return identity;
-      };
-      auto storeWrapper =
-         [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
-      {
-         if( ! emptySegment ) {
-            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
-         }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
-         }
-      };
-
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         begin,
-         end,
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         storeWrapper,
-         identity,
-         launchConfig );
-   }
-
-   template<
-      typename Array,
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsWithArgumentIf(
-      MatrixView& matrix,
-      const Array& rowIndexes,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
-      auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
-      auto values_view = matrix.getValues().getConstView();
-      auto segmentsView = matrix.getSegments();
-
-      auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
-                             IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
-      {
-         if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
-            if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], ValueType( 1.0 ) );
-            else
-               // For non-constant matrix, we allow modification of columns indexes
-               // and values during the data fetching for the sake of kernels merging.
-               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
-         }
-         return identity;
-      };
-      auto storeWrapper =
-         [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
-      {
-         if( ! emptySegment ) {
-            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
-         }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
-         }
-      };
-
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         rowIndexes.getConstView( begin, end ),
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         storeWrapper,
-         identity,
-         launchConfig );
-   }
-
-   template<
-      typename Array,
-      typename IndexBegin,
-      typename IndexEnd,
-      typename Condition,
-      typename Fetch,
-      typename Reduction,
-      typename Store,
-      typename FetchValue >
-   static IndexType
-   reduceRowsWithArgumentIf(
-      const ConstMatrixView& matrix,
-      const Array& rowIndexes,
-      IndexBegin begin,
-      IndexEnd end,
-      Condition&& condition,
-      Fetch&& fetch,
-      Reduction&& reduction,
-      Store&& store,
-      const FetchValue& identity,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
-      auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
-      auto values_view = matrix.getValues().getConstView();
-      auto segmentsView = matrix.getSegments();
-
-      auto fetchWrapper = [ fetch, values_view, columnIndexes_view, identity ] __cuda_callable__(
-                             IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) -> FetchValue
-      {
-         const auto columnIdx = columnIndexes_view[ globalIdx ];
-         if( columnIdx != paddingIndex ) {
-            if constexpr( MatrixView::isBinary() )
-               return fetch( rowIdx, columnIdx, static_cast< ValueType >( 1.0 ) );
-            else
-               return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
-         }
-         return identity;
-      };
-      auto storeWrapper =
-         [ = ] __cuda_callable__(
-            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
-      {
-         if( ! emptySegment ) {
-            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
-         }
-         else {
-            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
-         }
-      };
-
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
-         matrix.getSegments(),
-         rowIndexes.getConstView( begin, end ),
-         std::forward< Condition >( condition ),
-         fetchWrapper,
-         reduction,
-         storeWrapper,
-         identity,
-         launchConfig );
-   }
 };
-
 }  // namespace TNL::Matrices::detail

@@ -16,7 +16,11 @@ namespace TNL::Matrices {
  * The elements of this matrix are not stored explicitly in memory but
  * implicitly on a form of lambda functions.
  *
- * \tparam MatrixElementsLambda is a lambda function returning matrix elements values and positions.
+ * \note Elements for which the lambda function `matrixElements` returns zero value are treated as
+ * structural zeros, the same way as in sparse matrices. The traversal functions (\ref TNL::Matrices::forElements
+ * and its variants) do not call the user function for them and the reduction functions
+ * (\ref TNL::Matrices::reduceRows and its variants) do not call `fetch` for them. The reduction uses
+ * the identity element instead, or skips the element entirely in the variants with argument.
  *
  * \tparam MatrixElementsLambda is a lambda function returning matrix elements values and positions.
  *
@@ -29,8 +33,9 @@ namespace TNL::Matrices {
  *
  *    where \e rows is the number of matrix rows, \e columns is the number of matrix columns, \e rowIdx is the index of matrix
  * row being queried, \e localIdx is the rank of the non-zero element in given row, \e columnIdx is a column index of the matrix
- * element computed by this lambda and \e value is a value of the matrix element computed by this lambda. \tparam
- * CompressedRowLengthsLambda is a lambda function returning a number of non-zero elements in each row.
+ * element computed by this lambda and \e value is a value of the matrix element computed by this lambda.
+ *
+ * \tparam CompressedRowLengthsLambda is a lambda function returning a number of non-zero elements in each row.
  *
  * It has the following form:
  *
@@ -88,6 +93,16 @@ public:
     * \brief Type of constant Lambda matrix row view.
     */
    using ConstRowView = RowView;
+
+   /**
+    * \brief Type of related matrix view.
+    */
+   using ViewType = LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >;
+
+   /**
+    * \brief Matrix view type for constant instances.
+    */
+   using ConstViewType = ViewType;
 
    [[nodiscard]] static constexpr bool
    isSymmetric()
@@ -255,6 +270,31 @@ public:
    getRow( IndexType rowIdx ) const;
 
    /**
+    * \brief Returns a view of the lambda matrix.
+    *
+    * A lambda matrix cannot be modified and it serves as its own view. The method exists so that the
+    * lambda matrix can be used with the generic matrix functions like \ref TNL::Matrices::forElements.
+    *
+    * \return copy of the lambda matrix.
+    */
+   [[nodiscard]] ViewType
+   getView()
+   {
+      return *this;
+   }
+
+   /**
+    * \brief Returns a non-modifiable view of the lambda matrix.
+    *
+    * \return lambda matrix view.
+    */
+   [[nodiscard]] ConstViewType
+   getConstView() const
+   {
+      return *this;
+   }
+
+   /**
     * \brief Returns value of matrix element at position given by its row and column index.
     *
     * \param row is a row index of the matrix element.
@@ -288,7 +328,7 @@ public:
     * \include LambdaMatrixExample_forElements.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forElements instead" )]] void
    forElements( IndexType begin, IndexType end, Function& function ) const;
 
    /**
@@ -305,7 +345,7 @@ public:
     * \include LambdaMatrixExample_forAllElements.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllElements instead" )]] void
    forAllElements( Function& function ) const;
 
    /**
@@ -332,7 +372,7 @@ public:
     * \include LambdaMatrixExample_forRows.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forRows instead" )]] void
    forRows( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -357,7 +397,7 @@ public:
     * \include LambdaMatrixExample_forRows.out
     */
    template< typename Function >
-   void
+   [[deprecated( "Use free function TNL::Matrices::forAllRows instead" )]] void
    forAllRows( Function&& function ) const;
 
    /**
@@ -432,7 +472,7 @@ public:
     * \include LambdaMatrixExample_reduceRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-   void
+   [[deprecated( "Use free function TNL::Matrices::reduceRows instead" )]] void
    reduceRows( IndexType begin, IndexType end, Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity )
       const;
 
@@ -474,7 +514,7 @@ public:
     * \include LambdaMatrixExample_reduceAllRows.out
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
-   void
+   [[deprecated( "Use free function TNL::Matrices::reduceAllRows instead" )]] void
    reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& identity ) const;
 
    /**

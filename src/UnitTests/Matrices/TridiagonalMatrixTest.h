@@ -1,17 +1,22 @@
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 #include <gtest/gtest.h>
 
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/TridiagonalMatrix.h>
+#include <TNL/Matrices/traverse.h>
 #include <TNL/Containers/Array.h>
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Math.h>
+
+#include "TridiagonalMatrixShapes.h"
 
 using Tridiagonal_host_float = TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, int >;
 using Tridiagonal_host_int = TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, int >;
@@ -368,7 +373,8 @@ test_ForElements()
 
    Matrix m( rows, cols );
 
-   m.forAllElements(
+   TNL::Matrices::forAllElements(
+      m,
       [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1;
@@ -427,13 +433,15 @@ test_ForElementsWithArray()
 
    Matrix m( rows, cols );
 
-   m.forAllElements(
+   TNL::Matrices::forAllElements(
+      m,
       [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1;
       } );
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 0, 2, 4 };
-   m.forElements(
+   TNL::Matrices::forElements(
+      m,
       rowIndexes,
       [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
@@ -492,12 +500,14 @@ test_ForElementsIf()
 
    Matrix m( rows, cols );
 
-   m.forAllElements(
+   TNL::Matrices::forAllElements(
+      m,
       [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType& value ) mutable
       {
          value = rowIdx + 1;
       } );
-   m.forAllElementsIf(
+   TNL::Matrices::forAllElementsIf(
+      m,
       [] __cuda_callable__( IndexType rowIdx ) mutable
       {
          return rowIdx % 2 == 0;
@@ -942,7 +952,7 @@ test_forRows()
       if( rowIdx < size - 1 )
          row.setElement( 2, -2.0 );
    };
-   m.forAllRows( f );
+   TNL::Matrices::forAllRows( m, f );
 
    for( IndexType row = 0; row < size; row++ )
       for( IndexType column = 0; column < size; column++ ) {
@@ -972,7 +982,7 @@ test_forRows()
             element.value() = -2.0;
       }
    };
-   m.forAllRows( f_iter );
+   TNL::Matrices::forAllRows( m, f_iter );
 
    for( IndexType row = 0; row < size; row++ )
       for( IndexType column = 0; column < size; column++ ) {
@@ -1380,6 +1390,71 @@ test_SaveAndLoad()
    EXPECT_EQ( savedMatrix.getElement( 3, 3 ), 16 );
 }
 
+template< typename Matrix1, typename Matrix2 = Matrix1 >
+void
+test_Shapes()
+{
+   using RealType = typename Matrix1::RealType;
+   using DeviceType = typename Matrix1::DeviceType;
+   using IndexType = typename Matrix1::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using HostVectorType = TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType >;
+
+   for( const auto& shape : getTridiagonalTestShapes() ) {
+      const IndexType rows = shape.first;
+      const IndexType columns = shape.second;
+      SCOPED_TRACE( "matrix " + std::to_string( rows ) + "x" + std::to_string( columns ) );
+      Matrix1 m( rows, columns );
+      setupTridiagonalTestMatrix( m );
+
+      // Expected row lengths and the product with the vector ( 1, 2, ..., columns )
+      std::vector< IndexType > expectedRowLengths( rows, 0 );
+      std::vector< RealType > expectedProduct( rows, 0 );
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+         for( IndexType localIdx = 0; localIdx < 3; localIdx++ ) {
+            const int columnIdx = getTridiagonalColumnIndex( rowIdx, localIdx, columns );
+            if( columnIdx >= 0 ) {
+               expectedRowLengths[ rowIdx ]++;
+               expectedProduct[ rowIdx ] += getTridiagonalTestValue( rowIdx, columnIdx ) * ( columnIdx + 1 );
+            }
+         }
+
+      typename Matrix1::RowCapacitiesType rowLengths( rows );
+      rowLengths = -1;
+      m.getCompressedRowLengths( rowLengths );
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+         EXPECT_EQ( rowLengths.getElement( rowIdx ), expectedRowLengths[ rowIdx ] ) << "row " << rowIdx;
+
+      HostVectorType hostInVector( columns );
+      for( IndexType columnIdx = 0; columnIdx < columns; columnIdx++ )
+         hostInVector[ columnIdx ] = columnIdx + 1;
+      VectorType inVector;
+      inVector = hostInVector;
+      VectorType outVector( rows );
+      outVector = -1;
+      m.vectorProduct( inVector, outVector );
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+         EXPECT_EQ( outVector.getElement( rowIdx ), expectedProduct[ rowIdx ] ) << "row " << rowIdx;
+
+      outVector = 1;
+      m.vectorProduct( inVector, outVector, 2, 3 );
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+         EXPECT_EQ( outVector.getElement( rowIdx ), 2 * expectedProduct[ rowIdx ] + 3 ) << "row " << rowIdx;
+
+      // m = 2 * m2 + m and then m = m2 + 2 * m, so the result is 7 times the original values
+      Matrix2 m2( rows, columns );
+      setupTridiagonalTestMatrix( m2 );
+      m.addMatrix( m2, 2, 1 );
+      m.addMatrix( m2, 1, 2 );
+      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+         for( IndexType columnIdx = 0; columnIdx < columns; columnIdx++ ) {
+            const bool inPattern = columnIdx >= rowIdx - 1 && columnIdx <= rowIdx + 1;
+            EXPECT_EQ( m.getElement( rowIdx, columnIdx ), inPattern ? 7 * getTridiagonalTestValue( rowIdx, columnIdx ) : 0 )
+               << "row " << rowIdx << " column " << columnIdx;
+         }
+   }
+}
+
 // test fixture for typed tests
 template< typename Matrix >
 class MatrixTest : public ::testing::Test
@@ -1575,6 +1650,32 @@ TYPED_TEST( MatrixTest, addMatrixTest_differentOrdering )
       RealAllocatorType >;
 
    test_AddMatrix< MatrixType, MatrixType2 >();
+}
+
+TYPED_TEST( MatrixTest, shapesTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_Shapes< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, shapesTest_differentOrdering )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using IndexType = typename MatrixType::IndexType;
+   using RealAllocatorType = typename MatrixType::RealAllocatorType;
+   using MatrixType2 = TNL::Matrices::TridiagonalMatrix<
+      RealType,
+      DeviceType,
+      IndexType,
+      MatrixType::getOrganization() == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder
+                                                                                : TNL::Algorithms::Segments::RowMajorOrder,
+      RealAllocatorType >;
+
+   test_Shapes< MatrixType, MatrixType2 >();
 }
 
 TYPED_TEST( MatrixTest, assignmentOperatorTest )

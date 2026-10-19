@@ -7,6 +7,7 @@
 
 #include <TNL/Assert.h>
 #include "TridiagonalMatrixBase.h"
+#include "detail/TridiagonalRowTraversal.h"
 
 namespace TNL::Matrices {
 
@@ -42,21 +43,29 @@ void
 TridiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLengths( Vector& rowLengths ) const
 {
    rowLengths.setSize( this->getRows() );
-   rowLengths = 0;
    auto rowLengths_view = rowLengths.getView();
-   auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
-   {
-      return value != 0.0;
-   };
-   auto reduce = [] __cuda_callable__( IndexType aux, IndexType a ) -> IndexType
-   {
-      return aux + a;
-   };
-   auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
-   {
-      rowLengths_view[ rowIdx ] = value;
-   };
-   this->reduceAllRows( fetch, reduce, keep, 0 );
+   // We traverse the rows with Algorithms::parallelFor and detail::forTridiagonalRowElements instead of
+   // calling the free function TNL::Matrices::reduceAllRows. The free function requires constructing
+   // a TridiagonalMatrixView, but this header is included before TridiagonalMatrixView is defined
+   // (circular dependency).
+   const auto values_view = this->values.getConstView();
+   const auto indexer = this->indexer;
+   Algorithms::parallelFor< DeviceType >(
+      0,
+      this->getRows(),
+      [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         IndexType rowLength = 0;
+         detail::forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               if( values_view[ globalIdx ] != RealType{ 0 } )
+                  rowLength++;
+            } );
+         rowLengths_view[ rowIdx ] = rowLength;
+      } );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -77,7 +86,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCo
    {
       return values_view[ i ] != 0.0;
    };
-   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, std::plus<>{}, 0 );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->values.getSize(), fetch, TNL::Plus{} );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -202,27 +211,14 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows(
    auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
    {
       Real_ sum = identity;
-      if( rowIdx == 0 ) {
-         sum = reduce( sum, fetch( 0, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] ) );
-         sum = reduce( sum, fetch( 0, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] ) );
-         keep( 0, sum );
-         return;
-      }
-      if( rowIdx + 1 < indexer.getColumns() ) {
-         sum = reduce( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         sum = reduce( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         sum = reduce( sum, fetch( rowIdx, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] ) );
-         keep( rowIdx, sum );
-         return;
-      }
-      if( rowIdx < indexer.getColumns() ) {
-         sum = reduce( sum, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-         sum = reduce( sum, fetch( rowIdx, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] ) );
-         keep( rowIdx, sum );
-      }
-      else {
-         keep( rowIdx, fetch( rowIdx, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] ) );
-      }
+      detail::forTridiagonalRowElements(
+         indexer,
+         rowIdx,
+         [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+         {
+            sum = reduce( sum, fetch( rowIdx, columnIdx, values_view[ globalIdx ] ) );
+         } );
+      keep( rowIdx, sum );
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -249,22 +245,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
    const auto indexer = this->indexer;
    auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
    {
-      if( rowIdx == 0 ) {
-         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-      }
-      else if( rowIdx + 1 < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-      }
-      else if( rowIdx < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-      }
-      else {
-         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-      }
+      detail::forTridiagonalRowElements(
+         indexer,
+         rowIdx,
+         [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+         {
+            function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+         } );
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -278,22 +265,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexTy
    const auto indexer = this->indexer;
    auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
    {
-      if( rowIdx == 0 ) {
-         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-      }
-      else if( rowIdx + 1 < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-      }
-      else if( rowIdx < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-      }
-      else {
-         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-      }
+      detail::forTridiagonalRowElements(
+         indexer,
+         rowIdx,
+         [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+         {
+            function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+         } );
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -329,22 +307,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
    auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
    {
       IndexType rowIdx = rowIndexes_view[ idx ];
-      if( rowIdx == 0 ) {
-         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-      }
-      else if( rowIdx + 1 < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-      }
-      else if( rowIdx < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-      }
-      else {
-         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-      }
+      detail::forTridiagonalRowElements(
+         indexer,
+         rowIdx,
+         [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+         {
+            function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+         } );
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -364,22 +333,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
    auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
    {
       IndexType rowIdx = rowIndexes_view[ idx ];
-      if( rowIdx == 0 ) {
-         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-      }
-      else if( rowIdx + 1 < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-      }
-      else if( rowIdx < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-      }
-      else {
-         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-      }
+      detail::forTridiagonalRowElements(
+         indexer,
+         rowIdx,
+         [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+         {
+            function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+         } );
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -415,22 +375,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
    {
       if( ! condition( rowIdx ) )
          return;
-      if( rowIdx == 0 ) {
-         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-      }
-      else if( rowIdx + 1 < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-      }
-      else if( rowIdx < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-      }
-      else {
-         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-      }
+      detail::forTridiagonalRowElements(
+         indexer,
+         rowIdx,
+         [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+         {
+            function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+         } );
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -450,22 +401,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
    {
       if( ! condition( rowIdx ) )
          return;
-      if( rowIdx == 0 ) {
-         function( 0, 1, 0, values_view[ indexer.getGlobalIndex( 0, 1 ) ] );
-         function( 0, 2, 1, values_view[ indexer.getGlobalIndex( 0, 2 ) ] );
-      }
-      else if( rowIdx + 1 < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-         function( rowIdx, 2, rowIdx + 1, values_view[ indexer.getGlobalIndex( rowIdx, 2 ) ] );
-      }
-      else if( rowIdx < indexer.getColumns() ) {
-         function( rowIdx, 0, rowIdx - 1, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-         function( rowIdx, 1, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 1 ) ] );
-      }
-      else {
-         function( rowIdx, 0, rowIdx, values_view[ indexer.getGlobalIndex( rowIdx, 0 ) ] );
-      }
+      detail::forTridiagonalRowElements(
+         indexer,
+         rowIdx,
+         [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+         {
+            function( rowIdx, localIdx, columnIdx, values_view[ globalIdx ] );
+         } );
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
 }
@@ -588,28 +530,31 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
 
    const auto inVectorView = inVector.getConstView();
    auto outVectorView = outVector.getView();
-   auto fetch = [ = ] __cuda_callable__( const IndexType& row, const IndexType& column, const RealType& value ) -> RealType
-   {
-      return value * inVectorView[ column ];
-   };
-   auto reduction = [] __cuda_callable__( const RealType& sum, const RealType& value ) -> RealType
-   {
-      return sum + value;
-   };
-   auto keeper1 = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
-   {
-      outVectorView[ row ] = value;
-   };
-   auto keeper2 = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
-   {
-      outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
-   };
    if( end == 0 )
       end = this->getRows();
-   if( matrixMultiplicator == 1 && outVectorMultiplicator == 0 )
-      this->reduceRows( begin, end, fetch, reduction, keeper1, static_cast< RealType >( 0.0 ) );
-   else
-      this->reduceRows( begin, end, fetch, reduction, keeper2, static_cast< RealType >( 0.0 ) );
+   // We traverse the rows with Algorithms::parallelFor and detail::forTridiagonalRowElements instead of
+   // calling the free function TNL::Matrices::reduceRows. See getCompressedRowLengths above for the
+   // circular-dependency rationale.
+   const auto values_view = this->values.getConstView();
+   const auto indexer = this->indexer;
+   Algorithms::parallelFor< DeviceType >(
+      begin,
+      end,
+      [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         RealType sum = 0.0;
+         detail::forTridiagonalRowElements(
+            indexer,
+            rowIdx,
+            [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+            {
+               sum += values_view[ globalIdx ] * inVectorView[ columnIdx ];
+            } );
+         if( matrixMultiplicator == 1 && outVectorMultiplicator == 0 )
+            outVectorView[ rowIdx ] = sum;
+         else
+            outVectorView[ rowIdx ] = outVectorMultiplicator * outVectorView[ rowIdx ] + matrixMultiplicator * sum;
+      } );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -634,27 +579,33 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
    else {
       const auto matrixMult = matrixMultiplicator;
       const auto thisMult = thisMatrixMultiplicator;
-      auto add0 = [ = ] __cuda_callable__(
-                     const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-      {
-         value = matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-      };
-      auto add1 = [ = ] __cuda_callable__(
-                     const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-      {
-         value += matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-      };
-      auto addGen = [ = ] __cuda_callable__(
-                       const IndexType& rowIdx, const IndexType& localIdx, const IndexType& column, Real& value ) mutable
-      {
-         value = thisMult * value + matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
-      };
-      if( thisMult == 0 )
-         this->forAllElements( add0 );
-      else if( thisMult == 1 )
-         this->forAllElements( add1 );
-      else
-         this->forAllElements( addGen );
+      // We traverse the rows with Algorithms::parallelFor and detail::forTridiagonalRowElements instead of
+      // calling the free function TNL::Matrices::forAllElements. See getCompressedRowLengths above for
+      // the circular-dependency rationale.
+      auto values_view = this->values.getView();
+      const auto indexer = this->indexer;
+      const auto matrixValues = matrix.getValues();
+      const auto matrixIndexer = matrix.getIndexer();
+      Algorithms::parallelFor< DeviceType >(
+         0,
+         this->getRows(),
+         [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+         {
+            detail::forTridiagonalRowElements(
+               indexer,
+               rowIdx,
+               [ & ]( IndexType localIdx, IndexType columnIdx, IndexType globalIdx )
+               {
+                  Real& value = values_view[ globalIdx ];
+                  const Real matrixValue = matrixMult * matrixValues[ matrixIndexer.getGlobalIndex( rowIdx, localIdx ) ];
+                  if( thisMult == 0 )
+                     value = matrixValue;
+                  else if( thisMult == 1 )
+                     value += matrixValue;
+                  else
+                     value = thisMult * value + matrixValue;
+               } );
+         } );
    }
 }
 

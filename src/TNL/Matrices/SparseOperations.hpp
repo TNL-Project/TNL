@@ -15,6 +15,7 @@
 #include <TNL/Pointers/DevicePointer.h>
 
 #include "MatrixBase.h"
+#include "reduce.h"
 
 // This is workaround for nvcc which is not able to compile copySparseToSparseMatrix function
 // due to the lambda functions in the code. This issue appears at least with
@@ -126,7 +127,8 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
    if( generalToSymmetric ) {
       rowCapacities.setSize( B.getRows() );
       auto rowCapacities_view = rowCapacities.getView();
-      B.reduceAllRows(
+      TNL::Matrices::reduceAllRows(
+         B,
          [ = ] __cuda_callable__(
             SourceIndexType rowIdx, SourceIndexType columnIdx, const SourceRealType& value ) mutable -> SourceIndexType
          {
@@ -878,12 +880,11 @@ compressSparseMatrix( Matrix& A )
       {
          return columnIdx != paddingIndex< Index > && ( value != Real{ 0 } );
       },
-      std::plus<>{},
+      TNL::Plus{},
       [ = ] __cuda_callable__( Index rowIdx, Index value ) mutable
       {
          row_capacities_view[ rowIdx ] = value;
-      },
-      0 );
+      } );
    Matrix aux_matrix( A.getRows(), A.getColumns() );
    aux_matrix.setRowCapacities( row_capacities );
 

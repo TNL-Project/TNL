@@ -5,6 +5,7 @@
 
 #include <TNL/TypeTraits.h>
 #include "LaunchConfiguration.h"
+#include "TypeTraits.h"
 #include "detail/FetchLambdaAdapter.h"
 
 namespace TNL::Algorithms::Segments {
@@ -88,6 +89,24 @@ namespace TNL::Algorithms::Segments {
  * - Range and array overloads avoid processing unnecessary segments.
  * - The `fetch` lambda can even modify data on-the-fly if needed and thus it allows merging multiple operations into one
  * kernel and improving performance.
+ *
+ * \section SegmentReductionEmptySegments Behavior for Empty Segments
+ *
+ * An **empty segment** is a segment of zero size, i.e. a segment that contains no elements to reduce over.
+ * Note that the segments know nothing about the meaning of their elements. A segment of nonzero size is not
+ * empty even if the `fetch` lambda returns the `identity` for all its elements (e.g., for the padding elements
+ * of sparse matrices).
+ *
+ * The behavior depends on the reduction variant:
+ *
+ * - **Basic reduction** (`reduceAllSegments`, `reduceSegments`, etc.): The `storer` lambda is called with the
+ *   `identity` value. The user is responsible for choosing an `identity` that is a meaningful neutral element
+ *   for the reduction (e.g., 0 for sum, 1 for product, \f$-\infty\f$ for max).
+ *
+ * - **WithArgument reduction** (`reduceAllSegmentsWithArgument`, `reduceSegmentsWithArgument`, etc.): The `storer`
+ *   lambda is called with `emptySegment` set to `true`. In this case, the `localIdx` value passed to the
+ *   `storer` lambda is meaningless and should not be used. The `value` parameter is set to the `identity`
+ *   value.
  *
  * \section SegmentReductionRelatedPages Related Pages
  *

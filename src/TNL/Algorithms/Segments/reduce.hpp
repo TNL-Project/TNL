@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/reduce.h>
 #include "reduce.h"
@@ -50,7 +52,7 @@ reduceAllSegments(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -111,7 +113,7 @@ reduceSegments(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -160,7 +162,7 @@ reduceSegments(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -208,7 +210,7 @@ reduceAllSegmentsIf(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -275,7 +277,7 @@ reduceSegmentsIf(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -319,7 +321,7 @@ reduceAllSegmentsWithArgument(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -372,7 +374,7 @@ reduceSegmentsWithArgument(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -421,7 +423,7 @@ reduceSegmentsWithArgument(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -469,7 +471,7 @@ reduceAllSegmentsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -536,7 +538,7 @@ reduceSegmentsWithArgumentIf(
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultStorer >( storer ),
-      Reduction::template getIdentity< Value >(),
+      std::decay_t< Reduction >::template getIdentity< Value >(),
       launchConfig );
 }
 
@@ -592,8 +594,8 @@ reduceAll(
       std::forward< SegmentReduction >( segmentReduction ),
       std::forward< FinalFetch >( finalFetch ),
       std::forward< FinalReduction >( finalReduction ),
-      SegmentReduction::template getIdentity< SegmentValue >(),
-      FinalReduction::template getIdentity< FinalValue >(),
+      std::decay_t< SegmentReduction >::template getIdentity< SegmentValue >(),
+      std::decay_t< FinalReduction >::template getIdentity< FinalValue >(),
       launchConfig );
 }
 
@@ -687,8 +689,8 @@ reduce(
       std::forward< SegmentReduction >( segmentReduction ),
       std::forward< FinalFetch >( finalFetch ),
       std::forward< FinalReduction >( finalReduction ),
-      SegmentReduction::template getIdentity< SegmentValue >(),
-      FinalReduction::template getIdentity< FinalValue >(),
+      std::decay_t< SegmentReduction >::template getIdentity< SegmentValue >(),
+      std::decay_t< FinalReduction >::template getIdentity< FinalValue >(),
       launchConfig );
 }
 

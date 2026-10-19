@@ -7,6 +7,7 @@
 #include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/LambdaMatrix.h>
+#include <TNL/Matrices/reduce.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/detail/SparseMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
@@ -103,7 +104,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   this->reduceAllRows( fetch, std::plus<>{}, keep, 0 );
+   TNL::Matrices::reduceAllRows( *this, fetch, TNL::Plus{}, keep );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -179,10 +180,6 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
          return 0;
       return value * inVectorView[ columnIdx ];
    };
-   auto reduce = [] __cuda_callable__( RealType& sum, const RealType& value ) -> RealType
-   {
-      return sum + value;
-   };
    auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
       if( outVectorMultiplicator == 0 )
@@ -192,7 +189,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    };
    if( ! end )
       end = this->getRows();
-   this->reduceRows( begin, end, fetch, reduce, keep, 0.0 );
+   TNL::Matrices::reduceRows( *this, begin, end, fetch, TNL::Plus{}, keep );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >

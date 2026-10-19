@@ -6,6 +6,7 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "../SparseMatrixView.h"
 #include "TraversingOperations.h"
+#include "TraversingOperationsBase.h"
 
 namespace TNL::Matrices::detail {
 
@@ -17,6 +18,7 @@ template<
    template< typename Device_, typename Index_ > class SegmentsView,
    typename ComputeReal >
 struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal > >
+: public TraversingOperationsBase< SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal > >
 {
    using MatrixView = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal >;
    using ConstMatrixView = SparseMatrixView< const Real, Device, Index, MatrixType_, SegmentsView, ComputeReal >;
@@ -26,6 +28,22 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
    using RowView = typename MatrixView::RowView;
    using ConstRowView = typename ConstMatrixView::ConstRowView;
 
+   // Bring in the array-overloads of forElementsIf from the base class: the range-overloads
+   // declared below in this struct would otherwise hide ALL base-class forElementsIf overloads
+   // (C++ name hiding), including the array-based ones.
+   //
+   // The range-overloads declared below use Algorithms::Segments::forElementsIf: a single fused
+   // kernel where `condition` is evaluated per row inline during the same traversal that calls
+   // `function`. The inherited base-class range-overloads (TraversingOperationsBase) instead
+   // build a 0/1 row mask via forAllElements, compact it into a row-index array via
+   // Algorithms::compressFast (which involves a blocking device->host sync), and then delegate
+   // to the array-overload -- effectively three kernel launches plus a sync instead of one fused
+   // kernel. It has not been benchmarked which approach actually performs better in practice
+   // (e.g. the mask+compress path launches a second kernel sized to the number of matching rows,
+   // which could win when `condition` is rarely true); until that is measured, do not assume the
+   // Segments fast path below is strictly superior.
+   using TraversingOperationsBase< MatrixView >::forElementsIf;
+
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forElements(
@@ -95,6 +113,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
       auto columns = matrix.getColumns();
@@ -125,6 +147,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
       auto columns = matrix.getColumns();
@@ -258,6 +284,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -279,6 +309,10 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
       Function&& function,
       Algorithms::Segments::LaunchConfiguration launchConfig )
    {
+      TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+      TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+      TNL_ASSERT_LE(
+         end, rowIndexes.getSize(), "Parameter 'end' must be lower or equal to the size of the array of row indexes." );
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
       using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
@@ -288,48 +322,6 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          function( rowView );
       };
       Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
-   static void
-   forRowsIf(
-      MatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      RowCondition&& rowCondition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      auto columns_view = matrix.getColumnIndexes().getView();
-      auto values_view = matrix.getValues().getView();
-      using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
-      {
-         auto rowView = RowView( segmentView, values_view, columns_view );
-         function( rowView );
-      };
-      Algorithms::Segments::forSegmentsIf( matrix.getSegments(), begin, end, rowCondition, f, launchConfig );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
-   static void
-   forRowsIf(
-      const ConstMatrixView& matrix,
-      IndexBegin begin,
-      IndexEnd end,
-      RowCondition&& rowCondition,
-      Function&& function,
-      Algorithms::Segments::LaunchConfiguration launchConfig )
-   {
-      const auto columns_view = matrix.getColumnIndexes().getConstView();
-      const auto values_view = matrix.getValues().getConstView();
-      using SegmentViewType = typename MatrixView::SegmentsViewType::SegmentViewType;
-      auto f = [ = ] __cuda_callable__( SegmentViewType& segmentView ) mutable
-      {
-         auto rowView = RowView( segmentView, values_view, columns_view );
-         function( rowView );
-      };
-      Algorithms::Segments::forSegmentsIf( matrix.getSegments(), begin, end, rowCondition, f, launchConfig );
    }
 };
 

@@ -1,5 +1,8 @@
 set(COMMON_TESTS
     DenseMatrixReduceTest
+    LambdaMatrixReduceTest
+    MultidiagonalMatrixReduceTest
+    TridiagonalMatrixReduceTest
     SparseMatrixReduceTest_CSR
     SparseMatrixReduceTest_Ellpack
     SparseMatrixReduceTest_BiEllpack

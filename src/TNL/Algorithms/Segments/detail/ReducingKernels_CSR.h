@@ -536,11 +536,10 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes(
       partial = BlockReduce::template warpReduce< warpsPerSegment >( reduce, partial );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
-      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount
-          && segmentIdx_idx + groupIdx < segmentIndexes.getSize() )
-      {
-         store( segmentIdx_idx, segmentIndexes[ segmentIdx_idx + groupIdx ], partial );
-      }
+      // Position of the segment processed by this group in the array of segment indexes
+      const Index groupSegmentIdx_idx = segmentIdx_idx + groupIdx;
+      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && groupSegmentIdx_idx < segmentIndexes.getSize() )
+         store( groupSegmentIdx_idx, segmentIndexes[ groupSegmentIdx_idx ], partial );
    }
 #endif
 }
@@ -1271,12 +1270,12 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
          BlockReduce::template warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
       // Only the first thread in each group has the correct result
       const int groupIdx = inWarpLaneIdx / warpsPerSegment;
-      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount
-          && segmentIdx_idx + groupIdx < segmentIndexes.getSize() )
-      {
-         const Index currentSegmentIdx = segmentIndexes[ segmentIdx_idx + groupIdx ];
+      // Position of the segment processed by this group in the array of segment indexes
+      const Index groupSegmentIdx_idx = segmentIdx_idx + groupIdx;
+      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && groupSegmentIdx_idx < segmentIndexes.getSize() ) {
+         const Index currentSegmentIdx = segmentIndexes[ groupSegmentIdx_idx ];
          bool emptySegment = ( segments.getOffsets()[ currentSegmentIdx ] == segments.getOffsets()[ currentSegmentIdx + 1 ] );
-         store( segmentIdx_idx, segmentIndexes[ segmentIdx_idx + groupIdx ], final_argument, final_result, emptySegment );
+         store( groupSegmentIdx_idx, currentSegmentIdx, final_argument, final_result, emptySegment );
       }
    }
 #endif

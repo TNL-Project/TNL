@@ -3,7 +3,10 @@
 
 #pragma once
 
+#include <TNL/Assert.h>
+
 #include "detail/TraversingOperations.h"
+#include "detail/RowSelection.h"
 
 namespace TNL::Matrices {
 
@@ -16,6 +19,9 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
       matrix_view, begin, end, std::forward< Function >( function ), launchConfig );
@@ -30,6 +36,9 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
       matrix.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -67,6 +76,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
       matrix_view, rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
@@ -82,6 +92,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
       matrix.getConstView(), rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -94,6 +105,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElements(
@@ -113,6 +125,7 @@ forElements(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElements(
       matrix.getConstView(),
@@ -123,7 +136,7 @@ forElements(
       launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forElementsIf(
    Matrix& matrix,
@@ -133,12 +146,15 @@ forElementsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forElementsIf(
       matrix_view, begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ), launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forElementsIf(
    const Matrix& matrix,
@@ -148,6 +164,9 @@ forElementsIf(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forElementsIf(
       matrix.getConstView(),
       begin,
@@ -194,6 +213,103 @@ forAllElementsIf(
       launchConfig );
 }
 
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T >
+void
+forElementsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
+   auto matrix_view = matrix.getView();
+   detail::TraversingOperations< typename Matrix::ViewType >::forElementsIf(
+      matrix_view,
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T >
+void
+forElementsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
+   detail::TraversingOperations< typename Matrix::ConstViewType >::forElementsIf(
+      matrix.getConstView(),
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forElementsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forElementsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forElementsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forElementsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
 template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Function, typename T >
 void
 forRows(
@@ -203,6 +319,9 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRows(
       matrix_view, begin, end, std::forward< Function >( function ), launchConfig );
@@ -217,6 +336,9 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forRows(
       matrix.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -253,6 +375,7 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRows(
       matrix_view, rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
@@ -268,6 +391,7 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    detail::TraversingOperations< typename Matrix::ConstViewType >::forRows(
       matrix.getConstView(), rowIndexes, begin, end, std::forward< Function >( function ), launchConfig );
 }
@@ -276,6 +400,7 @@ template< typename Matrix, typename Array, typename Function, typename T >
 void
 forRows( Matrix& matrix, const Array& rowIndexes, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    auto matrix_view = matrix.getView();
    forRows(
@@ -295,6 +420,7 @@ forRows(
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
    using IndexType = typename Matrix::IndexType;
    forRows(
       matrix,
@@ -305,50 +431,51 @@ forRows(
       launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forRowsIf(
    Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    auto matrix_view = matrix.getView();
    detail::TraversingOperations< typename Matrix::ViewType >::forRowsIf(
-      matrix_view,
-      begin,
-      end,
-      std::forward< RowCondition >( rowCondition ),
-      std::forward< Function >( function ),
-      launchConfig );
+      matrix_view, begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ), launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Condition, typename Function, typename T >
 void
 forRowsIf(
    const Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   TNL_ASSERT_GE( begin, 0, "Parameter 'begin' must be non-negative." );
+   TNL_ASSERT_LE( begin, end, "Parameter 'begin' must be lower or equal to the parameter 'end'." );
+   TNL_ASSERT_LE( end, matrix.getRows(), "Parameter 'end' must be lower or equal to the number of matrix rows." );
    detail::TraversingOperations< typename Matrix::ConstViewType >::forRowsIf(
       matrix.getConstView(),
       begin,
       end,
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
 
-template< typename Matrix, typename RowCondition, typename Function >
+template< typename Matrix, typename Condition, typename Function >
 void
 forAllRowsIf(
    Matrix& matrix,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -356,16 +483,16 @@ forAllRowsIf(
       matrix,
       static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
 
-template< typename Matrix, typename RowCondition, typename Function >
+template< typename Matrix, typename Condition, typename Function >
 void
 forAllRowsIf(
    const Matrix& matrix,
-   RowCondition&& rowCondition,
+   Condition&& condition,
    Function&& function,
    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -373,7 +500,104 @@ forAllRowsIf(
       matrix,
       static_cast< typename Matrix::IndexType >( 0 ),
       matrix.getRows(),
-      std::forward< RowCondition >( rowCondition ),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T >
+void
+forRowsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
+   auto matrix_view = matrix.getView();
+   detail::TraversingOperations< typename Matrix::ViewType >::forRowsIf(
+      matrix_view,
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template<
+   typename Matrix,
+   typename Array,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Function,
+   typename T >
+void
+forRowsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   detail::checkRowIndexesDevice< typename Matrix::DeviceType, Array >();
+   detail::TraversingOperations< typename Matrix::ConstViewType >::forRowsIf(
+      matrix.getConstView(),
+      rowIndexes,
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forRowsIf(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forRowsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
+}
+
+template< typename Matrix, typename Array, typename Condition, typename Function, typename T >
+void
+forRowsIf(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Condition&& condition,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   forRowsIf(
+      matrix,
+      rowIndexes,
+      static_cast< typename Matrix::IndexType >( 0 ),
+      rowIndexes.getSize(),
+      std::forward< Condition >( condition ),
       std::forward< Function >( function ),
       launchConfig );
 }
