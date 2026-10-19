@@ -21,18 +21,27 @@ constexpr int radixSortBits = 8;
 //! \brief Number of digit buckets, i.e. `2^radixSortBits`.
 constexpr int radixSortBuckets = 1 << radixSortBits;
 
-//! \brief Number of threads per block, which is also the number of elements
-//! processed by one tile of the kernels.
-constexpr int radixSortTileSize = 256;
+//! \brief Number of threads per block in the radix sort kernels.
+constexpr int radixSortBlockSize = 256;
 
-// The scatter kernel relies on each thread handling exactly one element per
-// tile and one digit in the per-digit phases, which requires the tile size
-// to be equal to the number of digit buckets.
-static_assert( radixSortTileSize == radixSortBuckets, "radixSortTileSize must be equal to radixSortBuckets" );
+//! \brief Number of elements processed by one thread in one tile.
+//!
+//! Processing multiple elements per thread amortizes the shared-memory
+//! zeroing, the per-digit scan and the synchronization over more elements
+//! and provides more independent loads to hide the memory latency.
+constexpr int radixSortItemsPerThread = 8;
+
+//! \brief Number of elements processed by one tile of the kernels.
+constexpr int radixSortTileSize = radixSortBlockSize * radixSortItemsPerThread;
+
+// The per-digit phases of the scatter kernel rely on each thread handling
+// exactly one digit, which requires the block size to be equal to the number
+// of digit buckets.
+static_assert( radixSortBlockSize == radixSortBuckets, "radixSortBlockSize must be equal to radixSortBuckets" );
 
 //! \brief Maximum number of warps per block in the radix sort kernels,
 //! assuming the smallest supported warp size of 32.
-constexpr int radixSortMaxWarps = radixSortTileSize / 32;
+constexpr int radixSortMaxWarps = radixSortBlockSize / 32;
 
 //! \brief Trait telling if the type is a specialization of `std::less`.
 template< typename T >
@@ -227,30 +236,54 @@ radixSortPopcount( RadixSortWarpMask mask )
       return __popcll( mask );
 }
 
+/**
+ * \brief Returns the 1-based index of the lowest set bit in a warp
+ * synchronization mask, following `__ffs`.
+ */
+[[nodiscard]] __device__
+__forceinline__ int
+radixSortFindFirstSet( RadixSortWarpMask mask )
+{
+   if constexpr( sizeof( RadixSortWarpMask ) == 4 )
+      return __ffs( static_cast< unsigned >( mask ) );
+   else
+      return __ffsll( mask );
+}
+
 #endif
 
 /**
  * \brief Kernel scattering elements to their output positions in one pass.
  *
  * The block-to-tiles mapping is identical to \ref radixSortHistogramKernel,
- * which is essential for correctness. The intra-tile rank of an element
- * among the elements with the same digit is computed with the warp match
- * intrinsic, which is O(1) in the tile size instead of a linear scan over
- * the digits. The shared arrays hold the base offsets `s_base` of this
- * block, advanced by the tile totals after each tile so that they track
- * the current position for each digit, and the per-tile counts `s_warpCounts`
- * of the elements with the same digit per warp, scanned into exclusive
- * prefixes over the warps. The launch uses `blockSize.x` equal to both
- * `radixSortTileSize` and `radixSortBuckets`, so each thread handles
- * exactly one element per tile and one digit in the per-digit phases.
- * The position of an element is composed as
+ * which is essential for correctness. Each warp handles a contiguous span
+ * of the tile, split into \ref radixSortItemsPerThread rounds of `warpSize`
+ * elements, so that the loads and stores of each round are coalesced and
+ * the warp-major order of the rank offsets matches the order of the
+ * elements in the tile. The intra-tile rank of an element among the
+ * elements with the same digit is computed with the warp match intrinsic,
+ * which is O(1) in the tile size instead of a linear scan over the digits:
+ * the lowest lane of each group of equal digits atomically adds the group
+ * size to the running per-(warp, digit) offset and the returned value,
+ * broadcast within the group, is the offset of the element's round, so the
+ * ranks of all items of the tile are computed without a barrier per round.
+ * The shared arrays hold the base offsets `s_base` of this block, advanced
+ * by the tile totals after each tile so that they track the current
+ * position for each digit, and the per-warp counts `s_warpOffsets` of the
+ * elements with the same digit, scanned into exclusive prefixes over the
+ * warps. The launch uses `blockSize.x` equal to `radixSortBuckets`, so
+ * each thread handles exactly one digit in the per-digit phases. The
+ * position of an element is composed as
  *
- * \f[ \mathrm{pos} = \mathrm{base}[ d ] + \mathrm{warpPrefix}[ d, w ] + \mathrm{rank}, \f]
+ * \f[ \mathrm{pos} = \mathrm{base}[ d ] + \mathrm{warpPrefix}[ d, w ]
+ * + \mathrm{roundOffset} + \mathrm{rank}, \f]
  *
- * where `d` is the element's digit, `w` is its warp and `rank` is the number
- * of preceding lanes of the warp with the same digit. Since all parts are
- * computed deterministically, the pass is stable, which is required for the
- * correctness of LSD radix sort.
+ * where `d` is the element's digit, `w` is its warp, `roundOffset` is the
+ * number of elements with the digit `d` processed by the warp `w` in the
+ * rounds preceding the element's round, and `rank` is the number of
+ * preceding lanes of the warp with the same digit in the same round. Since
+ * all parts are computed deterministically, the pass is stable, which is
+ * required for the correctness of LSD radix sort.
  *
  * \param input is the view of the array to be sorted.
  * \param output is the view of the auxiliary array for the scattered elements.
@@ -270,13 +303,11 @@ radixSortScatterKernel(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Index s_base[ radixSortBuckets ];
-   __shared__ unsigned char s_warpCounts[ radixSortBuckets * radixSortMaxWarps ];
+   __shared__ int s_warpOffsets[ radixSortMaxWarps * radixSortBuckets ];
 
    // load the scanned base offsets of this block's digit counts; they are
    // advanced by the tile totals below, so they hold the current offsets of
    // the elements with each digit already processed by this block
-   // (the launch uses blockSize.x == radixSortBuckets, so each thread
-   // handles exactly one digit in the per-digit phases below)
    s_base[ threadIdx.x ] = histograms[ threadIdx.x * static_cast< Index >( gridDim.x ) + static_cast< Index >( blockIdx.x ) ];
    __syncthreads();
 
@@ -287,57 +318,92 @@ radixSortScatterKernel(
 
    const int warpId = static_cast< int >( threadIdx.x ) / warpSize;
    const int lane = static_cast< int >( threadIdx.x ) % warpSize;
+   constexpr int itemsPerThread = radixSortItemsPerThread;
+   const RadixSortWarpMask fullMask = Backend::getWarpFullMask();
+   const RadixSortWarpMask laneMaskLt =
+      ( static_cast< RadixSortWarpMask >( 1 ) << lane ) - static_cast< RadixSortWarpMask >( 1 );
 
    for( Index tile = firstTile; tile < lastTile; tile++ ) {
       const Index tileBegin = tile * static_cast< Index >( radixSortTileSize );
       const Index tileEnd = tileBegin + TNL::min( n - tileBegin, static_cast< Index >( radixSortTileSize ) );
       const int tileSize = static_cast< int >( tileEnd - tileBegin );
 
-      // zero the per-(digit, warp) counts of this tile
-      for( int i = threadIdx.x; i < radixSortBuckets * radixSortMaxWarps; i += blockDim.x )
-         s_warpCounts[ i ] = 0;
+      // zero the per-(warp, digit) offsets of this tile
+      for( int i = static_cast< int >( threadIdx.x ); i < radixSortMaxWarps * radixSortBuckets;
+           i += static_cast< int >( blockDim.x ) )
+         s_warpOffsets[ i ] = 0;
       __syncthreads();
 
-      // each thread handles the element of the tile with its index
-      // (the launch uses blockSize.x == radixSortTileSize)
-      const bool active = static_cast< int >( threadIdx.x ) < tileSize;
-      // active threads of a warp form a prefix of the warp, so the mask of
-      // lanes participating in the warp match can be computed directly
-      const int activeInWarp =
-         TNL::max( 0, TNL::min( static_cast< int >( warpSize ), tileSize - warpId * static_cast< int >( warpSize ) ) );
-      const RadixSortWarpMask activeMask =
-         activeInWarp >= static_cast< int >( warpSize )
-            ? Backend::getWarpFullMask()
-            : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
-      Value myValue{};
-      unsigned myDigit = 0;
-      unsigned warpRank = 0;
-      if( active ) {
-         myValue = input[ tileBegin + threadIdx.x ];
-         myDigit = radixSortDigit< Value, descending >( myValue, pass );
-         const RadixSortWarpMask match = __match_any_sync( activeMask, myDigit );
-         const RadixSortWarpMask laneMaskLt =
-            ( static_cast< RadixSortWarpMask >( 1 ) << lane ) - static_cast< RadixSortWarpMask >( 1 );
-         warpRank = radixSortPopcount( match & laneMaskLt );
-         // the first lane of each group of equal digits stores its count
-         if( warpRank == 0 )
-            s_warpCounts[ myDigit * radixSortMaxWarps + warpId ] = radixSortPopcount( match );
+      // load the items of all rounds (to overlap the memory latency);
+      // each warp handles a contiguous span of the tile, split into
+      // consecutive rounds of warpSize elements, so that the loads of each
+      // round are coalesced and the warp-major order of the rank offsets
+      // below matches the order of the elements in the tile
+      Value values[ itemsPerThread ]{};
+      unsigned char digits[ itemsPerThread ]{};
+      #pragma unroll
+      for( int j = 0; j < itemsPerThread; j++ ) {
+         const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+         if( idxInTile < tileSize ) {
+            values[ j ] = input[ tileBegin + idxInTile ];
+            digits[ j ] = static_cast< unsigned char >( radixSortDigit< Value, descending >( values[ j ], pass ) );
+         }
+      }
+
+      // rank the items: the lowest lane of each group of equal digits
+      // atomically adds the group size to the running (warp, digit) offset
+      // and broadcasts the returned value within the group, which gives the
+      // offset of the item's round within the warp
+      int itemOffsets[ itemsPerThread ]{};
+      #pragma unroll
+      for( int j = 0; j < itemsPerThread; j++ ) {
+         // active lanes of the warp form a prefix of the warp, so the mask
+         // of lanes participating in the warp match can be computed directly
+         const int activeInWarp = TNL::max(
+            0,
+            TNL::min(
+               static_cast< int >( warpSize ),
+               tileSize - warpId * ( warpSize * itemsPerThread ) - j * static_cast< int >( warpSize ) ) );
+         const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+         if( activeInWarp > 0 && idxInTile < tileSize ) {
+            const RadixSortWarpMask activeMask =
+               activeInWarp >= static_cast< int >( warpSize )
+                  ? fullMask
+                  : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
+            const RadixSortWarpMask match = __match_any_sync( activeMask, digits[ j ] );
+            const int rank = radixSortPopcount( match & laneMaskLt );
+            const int leaderLane = radixSortFindFirstSet( match ) - 1;
+            int roundOffset = 0;
+            if( lane == leaderLane )
+               roundOffset = atomicAdd( &s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ], radixSortPopcount( match ) );
+            roundOffset = __shfl_sync( activeMask, roundOffset, leaderLane );
+            itemOffsets[ j ] = roundOffset + rank;
+         }
       }
       __syncthreads();
 
-      // exclusive scan of the warp counts of each digit (in place);
+      // exclusive scan of the warp offsets of each digit (in place);
       // the digit total stays in a register for the offset update below
-      unsigned short digitTotal = 0;
+      int digitTotal = 0;
+      #pragma unroll
       for( int w = 0; w < radixSortMaxWarps; w++ ) {
-         const auto count = s_warpCounts[ threadIdx.x * radixSortMaxWarps + w ];
-         s_warpCounts[ threadIdx.x * radixSortMaxWarps + w ] = static_cast< unsigned char >( digitTotal );
+         const int idx = w * radixSortBuckets + static_cast< int >( threadIdx.x );
+         const int count = s_warpOffsets[ idx ];
+         s_warpOffsets[ idx ] = digitTotal;
          digitTotal += count;
       }
       __syncthreads();
 
-      if( active ) {
-         const Index pos = s_base[ myDigit ] + s_warpCounts[ myDigit * radixSortMaxWarps + warpId ] + warpRank;
-         output[ pos ] = myValue;
+   // scatter the items to their output positions
+   #pragma unroll
+      for( int j = 0; j < itemsPerThread; j++ ) {
+         const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+         if( idxInTile < tileSize ) {
+            const Index pos = s_base[ digits[ j ] ]
+                            + static_cast< Index >( s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ] )
+                            + itemOffsets[ j ];
+            output[ pos ] = values[ j ];
+         }
       }
       __syncthreads();
 
@@ -391,7 +457,7 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    auto output = aux.getView();
 
    Backend::LaunchConfiguration launch_config;
-   launch_config.blockSize.x = radixSortTileSize;
+   launch_config.blockSize.x = radixSortBlockSize;
    launch_config.gridSize.x = static_cast< unsigned >( numBlocks );
 
    constexpr auto histogramKernel = radixSortHistogramKernel< Value, Index, descending >;
