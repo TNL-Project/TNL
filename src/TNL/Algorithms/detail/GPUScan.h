@@ -132,20 +132,25 @@ struct GPUScanKernelLauncher
       constexpr int maxElementsInBlock = blockSize * elementsPerThread;
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
 
-      // Reuse a thread-local cache of the lookback states array across calls
-      // to avoid cudaMalloc/cudaFree churn. The cache grows as needed; when
-      // the requested size shrinks we keep the existing (larger) allocation
-      // and only reset the actually used prefix. Resetting is still required
-      // because the kernel reads predecessor statuses during the lookback
-      // walk and they must start as Invalid.
+      // Reuse a cache of the lookback states array across calls to avoid
+      // cudaMalloc/cudaFree churn. The cache grows as needed; when the requested
+      // size shrinks we keep the existing (larger) allocation. Each call uses a
+      // new epoch, so the states written by previous calls are treated as
+      // Invalid by the kernel and the array does not have to be reset. It is
+      // reset only when it is (re)allocated and when the epoch would overflow.
       auto& states = lookbackStatesCache();
+      auto& epoch = lookbackEpoch();
       // the size of the array is never negative, so the comparison can be done in Index
       // (which may be unsigned)
-      if( static_cast< Index >( states.getSize() ) < numberOfBlocks ) {
-         states.setSize( numberOfBlocks );
+      const bool grow = static_cast< Index >( states.getSize() ) < numberOfBlocks;
+      if( grow || epoch == maxLookbackEpoch ) {
+         if( grow )
+            states.setSize( numberOfBlocks );
+         Algorithms::fillAsync< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize() );
+         epoch = 0;
       }
+      epoch++;
 
-      Algorithms::fillAsync< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, numberOfBlocks );
       constexpr auto kernel = GPUScanKernelLookback<
          scanType,
          blockSize,
@@ -169,7 +174,8 @@ struct GPUScanKernelLauncher
          outputBegin,
          reduction,
          identity,
-         states.getData() );
+         states.getData(),
+         epoch );
 
       gridsCount() = 1;
    }
@@ -522,6 +528,14 @@ struct GPUScanKernelLauncher
    {
       static Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
       return states;
+   }
+
+   // Epoch of the last scan which used lookbackStatesCache, see LookbackStatus.
+   static unsigned int&
+   lookbackEpoch()
+   {
+      static unsigned int epoch = 0;
+      return epoch;
    }
 
    static int&
