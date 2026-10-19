@@ -44,6 +44,8 @@ namespace TNL::Algorithms::detail {
  *
  * \tparam blockSize  The CUDA block size to be used for kernel launch.
  * \tparam valuesPerThread  Number of elements processed by each thread sequentially.
+ * \tparam lookbackValuesPerThread  Number of elements processed by each thread
+ *         sequentially in the single-pass lookback kernel.
  */
 template<
    ScanType scanType,
@@ -53,7 +55,12 @@ template<
    // to keep shared memory requirements constant
    int blockSize = 256 * 4 / sizeof( ValueType ),
    // valuesPerThread should be odd to avoid shared memory bank conflicts
-   int valuesPerThread = 7 >
+   int valuesPerThread = 7,
+   // Larger tiles pay off in the lookback kernel, because fewer blocks have to
+   // wait for the prefixes of their predecessors. Measured on RTX 3060 for
+   // value types of 1-16 bytes: 15 is the best (or within noise) for types up
+   // to 8 bytes, 11 is the best for 16-byte types. It should be odd as well.
+   int lookbackValuesPerThread = ( sizeof( ValueType ) > 8 ? 11 : 15 ) >
 struct GPUScanKernelLauncher
 {
    /**
@@ -113,7 +120,7 @@ struct GPUScanKernelLauncher
       Reduction&& reduction,
       typename OutputArray::ValueType identity )
    {
-      performLookbackImpl< valuesPerThread >(
+      performLookbackImpl< lookbackValuesPerThread >(
          input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
    }
 
