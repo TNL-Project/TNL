@@ -1113,13 +1113,13 @@ public:
       benchmark.setOperation( "scalar multiplication" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          const Real alpha = 0.5;
          hostVector *= alpha;
       };
-      benchmark.time< Devices::Host >( reset1, "ET", computeET );
-      verify( "ET", hostVector, 0.5 );
+      benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
+      verify( "TNL", hostVector, 0.5 );
 
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
@@ -1132,12 +1132,12 @@ public:
 #endif
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          deviceVector *= 0.5;
       };
-      benchmark.time< Devices::GPU >( reset1, "ET", computeCudaET );
-      verify( "ET", deviceVector, 0.5 );
+      benchmark.time< Devices::GPU >( reset1, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector, 0.5 );
 
       auto computeCudaCUBLAS = [ & ]()
       {
@@ -1453,13 +1453,13 @@ public:
       benchmark.setOperation( "inclusive scan (inplace)" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::inplaceInclusiveScan( hostVector );
       };
-      benchmark.time< Devices::Host >( reset1, "ET", computeET );
-      verify( "ET", hostVector[ 0 ], 1 );
-      verify( "ET", hostVector[ size - 1 ], size );
+      benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
+      verify( "TNL", hostVector[ 0 ], 1 );
+      verify( "TNL", hostVector[ size - 1 ], size );
 
       auto computeSequential = [ & ]()
       {
@@ -1467,9 +1467,9 @@ public:
          view.bind( hostVector.getData(), hostVector.getSize() );
          Algorithms::inplaceInclusiveScan( view );
       };
-      benchmark.time< Devices::Sequential >( reset1, "ET", computeSequential );
-      verify( "ET", hostVector[ 0 ], 1 );
-      verify( "ET", hostVector[ size - 1 ], size );
+      benchmark.time< Devices::Sequential >( reset1, "TNL", computeSequential );
+      verify( "TNL", hostVector[ 0 ], 1 );
+      verify( "TNL", hostVector[ size - 1 ], size );
 
       auto computeSTL_partial_sum = [ & ]()
       {
@@ -1488,13 +1488,13 @@ public:
       verify( "std::inclusive_scan", hostVector[ size - 1 ], size );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::inplaceInclusiveScan( deviceVector );
       };
-      benchmark.time< Devices::GPU >( reset1, "ET", computeCudaET );
-      verify( "ET", deviceVector.getElement( 0 ), 1 );
-      verify( "ET", deviceVector.getElement( size - 1 ), size );
+      benchmark.time< Devices::GPU >( reset1, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector.getElement( 0 ), 1 );
+      verify( "TNL", deviceVector.getElement( size - 1 ), size );
 #endif
 
 #ifdef HAVE_THRUST
@@ -1545,13 +1545,13 @@ public:
       benchmark.setOperation( "inclusive scan (1 vector)" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::inclusiveScan( hostVector, hostVector2 );
       };
-      benchmark.time< Devices::Host >( resetAll, "ET", computeET );
-      verify( "ET", hostVector2[ 0 ], 1 );
-      verify( "ET", hostVector2[ size - 1 ], size );
+      benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
+      verify( "TNL", hostVector2[ 0 ], 1 );
+      verify( "TNL", hostVector2[ size - 1 ], size );
 
       auto computeSTL_partial_sum = [ & ]()
       {
@@ -1571,13 +1571,13 @@ public:
       verify( "std::inclusive_scan", hostVector2[ size - 1 ], size );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::inclusiveScan( deviceVector, deviceVector2 );
       };
-      benchmark.time< Devices::GPU >( resetAll, "ET", computeCudaET );
-      verify( "ET", deviceVector2.getElement( 0 ), 1 );
-      verify( "ET", deviceVector2.getElement( size - 1 ), size );
+      benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector2.getElement( 0 ), 1 );
+      verify( "TNL", deviceVector2.getElement( size - 1 ), size );
 #endif
 
 #ifdef HAVE_THRUST
@@ -1628,46 +1628,46 @@ public:
       benchmark.setOperation( "inclusive scan (2 vectors)" );
       benchmark.setDatasetSize( 3 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::inclusiveScan( hostVector + hostVector2, hostVector3 );
       };
-      benchmark.time< Devices::Host >( resetAll, "ET", computeET );
-      verify( "ET", hostVector3[ 0 ], 2 );
-      verify( "ET", hostVector3[ size - 1 ], 2 * size );
+      benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
+      verify( "TNL", hostVector3[ 0 ], 2 );
+      verify( "TNL", hostVector3[ size - 1 ], 2 * size );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::inclusiveScan( deviceVector + deviceVector2, deviceVector3 );
       };
-      benchmark.time< Devices::GPU >( resetAll, "ET", computeCudaET );
-      verify( "ET", deviceVector3.getElement( 0 ), 2 );
-      verify( "ET", deviceVector3.getElement( size - 1 ), 2 * size );
+      benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector3.getElement( 0 ), 2 );
+      verify( "TNL", deviceVector3.getElement( size - 1 ), 2 * size );
 #endif
    }
 
    void
    inclusiveScanThreeVectors()
    {
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::inclusiveScan( hostVector + hostVector2 + hostVector3, hostVector4 );
       };
       benchmark.setOperation( "inclusive scan (3 vectors)" );
       benchmark.setDatasetSize( 4 * datasetSize );
-      benchmark.time< Devices::Host >( resetAll, "ET", computeET );
-      verify( "ET", hostVector4[ 0 ], 3 );
-      verify( "ET", hostVector4[ size - 1 ], 3 * size );
+      benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
+      verify( "TNL", hostVector4[ 0 ], 3 );
+      verify( "TNL", hostVector4[ size - 1 ], 3 * size );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::inclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
       };
-      benchmark.time< Devices::GPU >( resetAll, "ET", computeCudaET );
-      verify( "ET", deviceVector4.getElement( 0 ), 3 );
-      verify( "ET", deviceVector4.getElement( size - 1 ), 3 * size );
+      benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector4.getElement( 0 ), 3 );
+      verify( "TNL", deviceVector4.getElement( size - 1 ), 3 * size );
 #endif
    }
 
@@ -1677,13 +1677,13 @@ public:
       benchmark.setOperation( "exclusive scan (inplace)" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::inplaceExclusiveScan( hostVector );
       };
-      benchmark.time< Devices::Host >( reset1, "ET", computeET );
-      verify( "ET", hostVector[ 0 ], 0 );
-      verify( "ET", hostVector[ size - 1 ], size - 1 );
+      benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
+      verify( "TNL", hostVector[ 0 ], 0 );
+      verify( "TNL", hostVector[ size - 1 ], size - 1 );
 
       auto computeSequential = [ & ]()
       {
@@ -1691,9 +1691,9 @@ public:
          view.bind( hostVector.getData(), hostVector.getSize() );
          Algorithms::inplaceExclusiveScan( view );
       };
-      benchmark.time< Devices::Sequential >( reset1, "ET", computeSequential );
-      verify( "ET", hostVector[ 0 ], 0 );
-      verify( "ET", hostVector[ size - 1 ], size - 1 );
+      benchmark.time< Devices::Sequential >( reset1, "TNL", computeSequential );
+      verify( "TNL", hostVector[ 0 ], 0 );
+      verify( "TNL", hostVector[ size - 1 ], size - 1 );
 
       auto computeSTL = [ & ]()
       {
@@ -1706,13 +1706,13 @@ public:
       verify( "std::exclusive_scan", hostVector[ size - 1 ], size - 1 );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::inplaceExclusiveScan( deviceVector );
       };
-      benchmark.time< Devices::GPU >( reset1, "ET", computeCudaET );
-      verify( "ET", deviceVector.getElement( 0 ), 0 );
-      verify( "ET", deviceVector.getElement( size - 1 ), size - 1 );
+      benchmark.time< Devices::GPU >( reset1, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector.getElement( 0 ), 0 );
+      verify( "TNL", deviceVector.getElement( size - 1 ), size - 1 );
 #endif
 
 #ifdef HAVE_THRUST
@@ -1763,13 +1763,13 @@ public:
       benchmark.setOperation( "exclusive scan (1 vector)" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::exclusiveScan( hostVector, hostVector2 );
       };
-      benchmark.time< Devices::Host >( resetAll, "ET", computeET );
-      verify( "ET", hostVector2[ 0 ], 0 );
-      verify( "ET", hostVector2[ size - 1 ], size - 1 );
+      benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
+      verify( "TNL", hostVector2[ 0 ], 0 );
+      verify( "TNL", hostVector2[ size - 1 ], size - 1 );
 
       auto computeSTL = [ & ]()
       {
@@ -1781,13 +1781,13 @@ public:
       verify( "std::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::exclusiveScan( deviceVector, deviceVector2 );
       };
-      benchmark.time< Devices::GPU >( resetAll, "ET", computeCudaET );
-      verify( "ET", deviceVector2.getElement( 0 ), 0 );
-      verify( "ET", deviceVector2.getElement( size - 1 ), size - 1 );
+      benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector2.getElement( 0 ), 0 );
+      verify( "TNL", deviceVector2.getElement( size - 1 ), size - 1 );
 #endif
 
 #ifdef HAVE_THRUST
@@ -1838,22 +1838,22 @@ public:
       benchmark.setOperation( "exclusive scan (2 vectors)" );
       benchmark.setDatasetSize( 3 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::exclusiveScan( hostVector + hostVector2, hostVector3 );
       };
-      benchmark.time< Devices::Host >( resetAll, "ET", computeET );
-      verify( "ET", hostVector3[ 0 ], 0 );
-      verify( "ET", hostVector3[ size - 1 ], 2 * ( size - 1 ) );
+      benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
+      verify( "TNL", hostVector3[ 0 ], 0 );
+      verify( "TNL", hostVector3[ size - 1 ], 2 * ( size - 1 ) );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::exclusiveScan( deviceVector + deviceVector2, deviceVector3 );
       };
-      benchmark.time< Devices::GPU >( resetAll, "ET", computeCudaET );
-      verify( "ET", deviceVector3.getElement( 0 ), 0 );
-      verify( "ET", deviceVector3.getElement( size - 1 ), 2 * ( size - 1 ) );
+      benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector3.getElement( 0 ), 0 );
+      verify( "TNL", deviceVector3.getElement( size - 1 ), 2 * ( size - 1 ) );
 #endif
    }
 
@@ -1863,22 +1863,22 @@ public:
       benchmark.setOperation( "exclusive scan (3 vectors)" );
       benchmark.setDatasetSize( 4 * datasetSize );
 
-      auto computeET = [ & ]()
+      auto computeTNL = [ & ]()
       {
          Algorithms::exclusiveScan( hostVector + hostVector2 + hostVector3, hostVector4 );
       };
-      benchmark.time< Devices::Host >( resetAll, "ET", computeET );
-      verify( "ET", hostVector4[ 0 ], 0 );
-      verify( "ET", hostVector4[ size - 1 ], 3 * ( size - 1 ) );
+      benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
+      verify( "TNL", hostVector4[ 0 ], 0 );
+      verify( "TNL", hostVector4[ size - 1 ], 3 * ( size - 1 ) );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-      auto computeCudaET = [ & ]()
+      auto computeCudaTNL = [ & ]()
       {
          Algorithms::exclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
       };
-      benchmark.time< Devices::GPU >( resetAll, "ET", computeCudaET );
-      verify( "ET", deviceVector4.getElement( 0 ), 0 );
-      verify( "ET", deviceVector4.getElement( size - 1 ), 3 * ( size - 1 ) );
+      benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
+      verify( "TNL", deviceVector4.getElement( 0 ), 0 );
+      verify( "TNL", deviceVector4.getElement( size - 1 ), 3 * ( size - 1 ) );
 #endif
    }
 };
