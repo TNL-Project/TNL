@@ -22,7 +22,9 @@
  *
  * Global memory traffic is n reads and n writes (plus the small LookbackState
  * array). The tile loads and stores are vectorized (16-byte accesses) for
- * arrays whose value type size divides 16.
+ * arrays whose value type size divides 16. The LookbackState array is reused
+ * across the scans without resetting, the states written by a previous scan
+ * are recognized by the epoch stored in the status word.
  *
  * Reference:
  * D. Merrill, M. Garland, "Single-pass Parallel Prefix Sum with Decoupled
@@ -30,6 +32,7 @@
  * https://research.nvidia.com/publication/2016-03_Single-pass-Parallel-Prefix-Sum-Decoupled-Lookback
  */
 
+#include <cstring>  // memcpy
 #include <type_traits>
 
 #include <TNL/Backend.h>
@@ -46,33 +49,48 @@ namespace TNL::Algorithms::detail {
  * followed by its prefix once all predecessor aggregates are known. Other
  * blocks spin on these flags to consume the partial results.
  *
+ * The status word of LookbackState stores the flag in the two lowest bits and
+ * the epoch (the sequence number of the scan which wrote the state) in the
+ * remaining bits, see makeLookbackStatus. A state written by a previous scan
+ * has a different epoch, so it is treated as Invalid and the states array
+ * does not have to be reset before each scan.
+ *
  * It is used in GPUScanKernelLookback function.
  */
-enum class LookbackStatus : int
+enum class LookbackStatus : unsigned int
 {
    Invalid = 0,    // block has not published anything yet
    Aggregate = 1,  // block has published its per-block aggregate only
    Prefix = 2,     // block has published its complete prefix
 };
 
+// The largest epoch which fits into the status word together with the flag.
+constexpr unsigned int maxLookbackEpoch = ~0u >> 2;
+
+__cuda_callable__
+constexpr unsigned int
+makeLookbackStatus( unsigned int epoch, LookbackStatus flag )
+{
+   return ( epoch << 2 ) | static_cast< unsigned int >( flag );
+}
+
 /* Per-block state published in global memory for the decoupled lookback
  * synchronisation. One entry is allocated per CUDA block.
  *
- * The 128-byte alignment matches the GPU cache-line size on recent NVIDIA
- * architectures. It guarantees that no two blocks ever share a cache line,
- * preventing false sharing between concurrent atomicExch/atomicAdd operations
- * issued by independent blocks. Without it, an atomic write from one block
- * would invalidate the cache line also holding another block's state, forcing
- * redundant memory traffic and serialising otherwise independent blocks.
+ * The states of neighbouring blocks are packed densely (16-byte alignment,
+ * i.e. 16 bytes per state for 4-byte value types and 32 bytes for 8-byte
+ * value types), so that the lookback walk over the preceding blocks touches
+ * as few memory sectors as possible. A status word with zero epoch is Invalid
+ * for every scan, so a default-constructed state is a valid initial state.
  *
  * It is used in GPUScanKernelLookback function.
  */
 template< typename ValueType >
-struct alignas( 128 ) LookbackState
+struct alignas( alignof( ValueType ) > 16 ? alignof( ValueType ) : 16 ) LookbackState
 {
-   int status = static_cast< int >( LookbackStatus::Invalid );
-   ValueType aggregate{};  // written once in 5a, never overwritten
-   ValueType prefix{};     // written once in 5c, never overwritten
+   ValueType aggregate{};    // written once per scan in 5a
+   ValueType prefix{};       // written once per scan in 5c
+   unsigned int status = 0;  // makeLookbackStatus( epoch, flag )
 };
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -84,6 +102,59 @@ struct alignas( 16 ) Vec4
 {
    int x, y, z, w;
 };
+
+/* Loads the status word of a lookback state with the acquire semantics: the
+ * loads which follow (of the aggregate or prefix published together with the
+ * status) cannot be performed before this load. Unlike __threadfence(), the
+ * acquire load does not wait for all outstanding memory operations of the
+ * thread, which is significantly faster in the lookback loop.
+ */
+__device__
+inline unsigned int
+loadAcquire( const unsigned int* ptr )
+{
+   #if defined( __HIP__ )
+   return __hip_atomic_load( ptr, __ATOMIC_ACQUIRE, __HIP_MEMORY_SCOPE_AGENT );
+   #elif defined( __CUDA_ARCH__ ) && __CUDA_ARCH__ >= 700
+   unsigned int value;
+   asm volatile( "ld.acquire.gpu.global.u32 %0, [%1];" : "=r"( value ) : "l"( ptr ) : "memory" );
+   return value;
+   #else
+   const unsigned int value = *reinterpret_cast< const volatile unsigned int* >( ptr );
+   __threadfence();
+   return value;
+   #endif
+}
+
+/* Loads a value written by another CUDA block during the same kernel. The L1
+ * cache is not coherent between the multiprocessors, so the load must be
+ * volatile to read the value from the L2 cache. Class types are loaded word by
+ * word and copied bitwise, the same way as the kernel arguments are passed
+ * (the value type does not have to be trivially copyable, but it must be
+ * bitwise copyable).
+ */
+template< typename T >
+__device__
+T
+loadVolatile( const T& ref )
+{
+   if constexpr( std::is_arithmetic_v< T > )
+      return *reinterpret_cast< const volatile T* >( &ref );
+   else {
+      static_assert(
+         sizeof( T ) % sizeof( int ) == 0,
+         "loadVolatile supports only arithmetic types and types whose size is a multiple of sizeof(int)" );
+      constexpr int words = sizeof( T ) / sizeof( int );
+      const volatile int* src = reinterpret_cast< const volatile int* >( &ref );
+      alignas( T ) int buffer[ words ];
+   #pragma unroll
+      for( int i = 0; i < words; i++ )
+         buffer[ i ] = src[ i ];
+      T result;
+      memcpy( static_cast< void* >( &result ), buffer, sizeof( T ) );
+      return result;
+   }
+}
 
 #endif
 
@@ -105,7 +176,8 @@ GPUScanKernelLookback(
    typename OutputView::IndexType outputBegin,
    Reduction reduction,
    ValueType identity,
-   LookbackState< ValueType >* states )
+   LookbackState< ValueType >* states,
+   unsigned int epoch )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using TileScan = GPUTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
@@ -210,28 +282,32 @@ GPUScanKernelLookback(
    // Phase 5: decoupled lookback - performed by thread 0 only.
    if( threadIdx.x == 0 ) {
       ValueType blockAggregate = sharedAggregate;
+      const unsigned int aggregateStatus = makeLookbackStatus( epoch, LookbackStatus::Aggregate );
+      const unsigned int prefixStatus = makeLookbackStatus( epoch, LookbackStatus::Prefix );
 
       // 5a: publish the block aggregate, then flip the status from Invalid to
       // Aggregate so successors can start consuming it.
       states[ blockIdx.x ].aggregate = blockAggregate;
       __threadfence();
-      atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Aggregate ) );
+      atomicExch( &states[ blockIdx.x ].status, aggregateStatus );
 
       // 5b: walk predecessors right-to-left, accumulating their aggregates.
       // Stop as soon as a predecessor advertises Prefix (its prefix field
       // already contains the sum of all blocks up to and including it).
+      // States with a different epoch were written by a previous scan and
+      // are treated as Invalid.
       ValueType prefix = identity;
       for( int pred = blockIdx.x - 1; pred >= 0; pred-- ) {
-         int status;
+         unsigned int status;
          do {
-            status = atomicAdd( &states[ pred ].status, 0 );
-         } while( status == static_cast< int >( LookbackStatus::Invalid ) );
+            status = loadAcquire( &states[ pred ].status );
+         } while( status != aggregateStatus && status != prefixStatus );
 
          ValueType predValue =
-            ( status == static_cast< int >( LookbackStatus::Prefix ) ) ? states[ pred ].prefix : states[ pred ].aggregate;
+            ( status == prefixStatus ) ? loadVolatile( states[ pred ].prefix ) : loadVolatile( states[ pred ].aggregate );
          prefix = reduction( predValue, prefix );
 
-         if( status == static_cast< int >( LookbackStatus::Prefix ) )
+         if( status == prefixStatus )
             break;
       }
 
@@ -240,7 +316,7 @@ GPUScanKernelLookback(
       // (sum of previous blocks only) to avoid double-counting in Phase 6.
       states[ blockIdx.x ].prefix = reduction( prefix, blockAggregate );
       __threadfence();
-      atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Prefix ) );
+      atomicExch( &states[ blockIdx.x ].status, prefixStatus );
 
       sharedPrefix = prefix;
    }
