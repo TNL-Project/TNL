@@ -65,6 +65,7 @@ The benchmark-specific options are:
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--precision <type>` | Precision of the arithmetics (`float`, `double`, or `all`) | `double` |
+| `--device <device>` | Device to run the benchmarks on (`host`, `cuda`, `hip`, or `all`). The `host` value includes the sequential reference implementations | `all` |
 | `--min-size <n>` | Minimum size of arrays/vectors used in the benchmark | `100000` |
 | `--max-size <n>` | Maximum size of arrays/vectors used in the benchmark | `10000000` |
 | `--size-step-factor <n>` | Factor determining the size of arrays/vectors used in the benchmark. First size is `min-size` and each following size is `size-step-factor * previous size`, up to `max-size` | `2` |
@@ -72,6 +73,8 @@ The benchmark-specific options are:
 The value of `--size-step-factor` must be greater than 1. Note that the step factor applies only
 to the vector operations; the array operations and the triad always double the array size between
 two measurements.
+
+For each precision, all host benchmarks are run first, followed by all GPU benchmarks.
 
 In addition, the common benchmark settings (e.g. `--loops`, `--log-file`, `--verbose`) and the
 device settings (`--openmp-enabled`, `--openmp-max-threads` and `--cuda-device` or
