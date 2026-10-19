@@ -29,7 +29,8 @@ The benchmark consists of three parts:
 Depending on the operation, the following implementations are measured:
 
 - TNL legacy static functions (`CommonVectorOperations`, `VectorOperations`),
-- TNL expression templates, labeled `ET`,
+- TNL expression templates, labeled `ET` where they are compared with other TNL implementations,
+  the only TNL implementation of an operation (e.g. scans) is labeled `TNL`,
 - TNL `Algorithms::parallelFor` kernels,
 - TNL `Containers::linearCombination` expressions,
 - C++ standard library algorithms (`std::max_element`, `std::min_element`, `std::reduce`,
