@@ -113,9 +113,6 @@ struct GPUScanKernelLauncher
       Reduction&& reduction,
       typename OutputArray::ValueType identity )
    {
-      using Index = typename InputArray::IndexType;
-      const Index n = end - begin;
-
       performLookbackImpl< valuesPerThread >(
          input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
    }
@@ -142,7 +139,9 @@ struct GPUScanKernelLauncher
       // because the kernel reads predecessor statuses during the lookback
       // walk and they must start as Invalid.
       auto& states = lookbackStatesCache();
-      if( states.getSize() < numberOfBlocks ) {
+      // the size of the array is never negative, so the comparison can be done in Index
+      // (which may be unsigned)
+      if( static_cast< Index >( states.getSize() ) < numberOfBlocks ) {
          states.setSize( numberOfBlocks );
       }
 
