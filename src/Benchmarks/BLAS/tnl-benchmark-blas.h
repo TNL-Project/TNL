@@ -11,6 +11,7 @@
 #include <TNL/Allocators/CudaManaged.h>
 #include <TNL/Allocators/HipHost.h>
 #include <TNL/Allocators/HipManaged.h>
+#include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/GPU.h>
 #include <TNL/Benchmarks/Benchmark.h>
@@ -40,61 +41,63 @@ runBlasBenchmarks( Benchmark& benchmark, const Config::ParameterContainer& param
    const int sizeStepFactor = parameters.getParameter< int >( "size-step-factor" );
    const std::string deviceName = getDeviceName< Device >();
 
-   // Array operations
-   std::cout << "\n== Array operations (" << deviceName << ") ==\n\n";
-   for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns(
-         Benchmark::MetadataColumns(
-            {
-               { "precision", getType< Real >() },
-               { "host allocator", "Host" },
-               { "size", convertToString( size ) },
-            } ) );
-      benchmarkArrayOperations< Device, Real >( benchmark, size );
-   }
+   // Array operations (there are no sequential implementations)
+   if constexpr( ! std::is_same_v< Device, Devices::Sequential > ) {
+      std::cout << "\n== Array operations (" << deviceName << ") ==\n\n";
+      for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "precision", getType< Real >() },
+                  { "host allocator", "Host" },
+                  { "size", convertToString( size ) },
+               } ) );
+         benchmarkArrayOperations< Device, Real >( benchmark, size );
+      }
 #if defined( __CUDACC__ )
-   for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns(
-         Benchmark::MetadataColumns(
-            {
-               { "precision", getType< Real >() },
-               { "host allocator", "CudaHost" },
-               { "size", convertToString( size ) },
-            } ) );
-      benchmarkArrayOperations< Device, Real, int, Allocators::CudaHost >( benchmark, size );
-   }
-   for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns(
-         Benchmark::MetadataColumns(
-            {
-               { "precision", getType< Real >() },
-               { "host allocator", "CudaManaged" },
-               { "size", convertToString( size ) },
-            } ) );
-      benchmarkArrayOperations< Device, Real, int, Allocators::CudaManaged >( benchmark, size );
-   }
+      for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "precision", getType< Real >() },
+                  { "host allocator", "CudaHost" },
+                  { "size", convertToString( size ) },
+               } ) );
+         benchmarkArrayOperations< Device, Real, int, Allocators::CudaHost >( benchmark, size );
+      }
+      for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "precision", getType< Real >() },
+                  { "host allocator", "CudaManaged" },
+                  { "size", convertToString( size ) },
+               } ) );
+         benchmarkArrayOperations< Device, Real, int, Allocators::CudaManaged >( benchmark, size );
+      }
 #elif defined( __HIP__ )
-   for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns(
-         Benchmark::MetadataColumns(
-            {
-               { "precision", getType< Real >() },
-               { "host allocator", "HipHost" },
-               { "size", convertToString( size ) },
-            } ) );
-      benchmarkArrayOperations< Device, Real, int, Allocators::HipHost >( benchmark, size );
-   }
-   for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
-      benchmark.setMetadataColumns(
-         Benchmark::MetadataColumns(
-            {
-               { "precision", getType< Real >() },
-               { "host allocator", "HipManaged" },
-               { "size", convertToString( size ) },
-            } ) );
-      benchmarkArrayOperations< Device, Real, int, Allocators::HipManaged >( benchmark, size );
-   }
+      for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "precision", getType< Real >() },
+                  { "host allocator", "HipHost" },
+                  { "size", convertToString( size ) },
+               } ) );
+         benchmarkArrayOperations< Device, Real, int, Allocators::HipHost >( benchmark, size );
+      }
+      for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
+         benchmark.setMetadataColumns(
+            Benchmark::MetadataColumns(
+               {
+                  { "precision", getType< Real >() },
+                  { "host allocator", "HipManaged" },
+                  { "size", convertToString( size ) },
+               } ) );
+         benchmarkArrayOperations< Device, Real, int, Allocators::HipManaged >( benchmark, size );
+      }
 #endif
+   }
 
    // Vector operations
    std::cout << "\n== Vector operations (" << deviceName << ") ==\n\n";
@@ -131,6 +134,9 @@ resolveDevice( Benchmark& benchmark, const Config::ParameterContainer& parameter
 {
    const auto& device = parameters.getParameter< std::string >( "device" );
 
+   if( device == "sequential" || device == "all" )
+      runBlasBenchmarks< Devices::Sequential, Real >( benchmark, parameters );
+
    if( device == "host" || device == "all" )
       runBlasBenchmarks< Devices::Host, Real >( benchmark, parameters );
 
@@ -161,6 +167,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
    config.addEntry< std::string >( "device", "Device to run benchmarks on.", "all" );
+   config.addEntryEnum( "sequential" );
    config.addEntryEnum( "host" );
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "hip" );

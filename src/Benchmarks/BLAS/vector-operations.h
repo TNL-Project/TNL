@@ -22,6 +22,7 @@
    #else
       #define STDEXEC std::execution::par_unseq,
    #endif
+   #define STDEXEC_PARALLEL
 #else
    #define STDEXEC
 #endif
@@ -56,6 +57,19 @@
 #endif
 
 namespace TNL::Benchmarks {
+
+// Device on which the C++ standard library algorithms called with STDEXEC run.
+#ifdef STDEXEC_PARALLEL
+using StdAlgorithmsDevice = Devices::Host;
+#else
+using StdAlgorithmsDevice = Devices::Sequential;
+#endif
+
+#ifdef HAVE_THRUST
+// Device on which the Thrust algorithms called with thrust::host run. The Thrust host backend
+// is selected by CMake (TBB, OpenMP, or the sequential CPP backend).
+using ThrustHostDevice = std::conditional_t< THRUST_HOST_SYSTEM == THRUST_HOST_SYSTEM_CPP, Devices::Sequential, Devices::Host >;
+#endif
 
 template< typename Real = double >
 struct TwoVectorsCoefficients
@@ -306,24 +320,26 @@ public:
          };
          benchmark.time< Devices::Host >( reset1, "ET", computeET );
          verify( "ET", resultHost, 1.0 );
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             resultHost = *std::max_element( STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::max_element", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::max_element", computeSTL );
          verify( "std::max_element", resultHost, 1.0 );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             resultHost =
                *thrust::max_element( thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::max_element", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::max_element", computeThrust );
          verify( "thrust::max_element", resultHost, 1.0 );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -377,24 +393,26 @@ public:
          };
          benchmark.time< Devices::Host >( reset1, "ET", computeET );
          verify( "ET", resultHost, 1.0 );
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             resultHost = *std::min_element( STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::min_element", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::min_element", computeSTL );
          verify( "std::min_element", resultHost, 1.0 );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             resultHost =
                *thrust::min_element( thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::min_element", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::min_element", computeThrust );
          verify( "thrust::min_element", resultHost, 1.0 );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -458,7 +476,8 @@ public:
          benchmark.time< Devices::Host >( reset1, "BLAS", computeBLAS );
          verify( "BLAS", resultHost, 1.0 );
 #endif
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             resultHost = *std::max_element(
@@ -469,10 +488,11 @@ public:
                   return std::abs( a ) < std::abs( b );
                } );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::max_element", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::max_element", computeSTL );
          verify( "std::max_element", resultHost, 1.0 );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             resultHost = *thrust::max_element(
@@ -484,10 +504,10 @@ public:
                   return std::abs( a ) < std::abs( b );
                } );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::max_element", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::max_element", computeThrust );
          verify( "thrust::max_element", resultHost, 1.0 );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -570,7 +590,8 @@ public:
          verify( "BLAS", resultHost, 1.0 );
    #endif
 #endif
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             resultHost = *std::min_element(
@@ -581,10 +602,11 @@ public:
                   return std::abs( a ) < std::abs( b );
                } );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::min_element", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::min_element", computeSTL );
          verify( "std::min_element", resultHost, 1.0 );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             resultHost = *thrust::min_element(
@@ -596,10 +618,10 @@ public:
                   return std::abs( a ) < std::abs( b );
                } );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::min_element", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::min_element", computeThrust );
          verify( "thrust::min_element", resultHost, 1.0 );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -670,23 +692,25 @@ public:
          };
          benchmark.time< Devices::Host >( reset1, "ET", computeET );
          verify( "ET", resultHost, size );
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             resultHost = std::reduce( STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::reduce", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::reduce", computeSTL );
          verify( "std::reduce", resultHost, size );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             resultHost = thrust::reduce( thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::reduce", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::reduce", computeThrust );
          verify( "thrust::reduce", resultHost, size );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -748,7 +772,8 @@ public:
          benchmark.time< Devices::Host >( reset1, "BLAS", computeBLAS );
          verify( "BLAS", resultHost, size );
 #endif
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             resultHost = std::transform_reduce(
@@ -761,10 +786,11 @@ public:
                   return std::abs( v );
                } );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::transform_reduce", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::transform_reduce", computeSTL );
          verify( "std::transform_reduce", resultHost, size );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             resultHost = thrust::transform_reduce(
@@ -778,10 +804,10 @@ public:
                0,
                std::plus<>{} );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::transform_reduce", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::transform_reduce", computeThrust );
          verify( "thrust::transform_reduce", resultHost, size );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -859,7 +885,8 @@ public:
          benchmark.time< Devices::Host >( reset1, "BLAS", computeBLAS );
          verify( "BLAS", resultHost, std::sqrt( size ) );
 #endif
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             const auto sum = std::transform_reduce(
@@ -873,10 +900,11 @@ public:
                } );
             resultHost = std::sqrt( sum );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::transform_reduce", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::transform_reduce", computeSTL );
          verify( "std::transform_reduce", resultHost, std::sqrt( size ) );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             const auto sum = thrust::transform_reduce(
@@ -891,10 +919,10 @@ public:
                std::plus<>{} );
             resultHost = std::sqrt( sum );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::transform_reduce", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::transform_reduce", computeThrust );
          verify( "thrust::transform_reduce", resultHost, std::sqrt( size ) );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -964,7 +992,8 @@ public:
          };
          benchmark.time< Devices::Host >( reset1, "ET", computeET );
          verify( "ET", resultHost, std::cbrt( size ) );
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             const auto sum = std::transform_reduce(
@@ -978,10 +1007,11 @@ public:
                } );
             resultHost = std::cbrt( sum );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::transform_reduce", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::transform_reduce", computeSTL );
          verify( "std::transform_reduce", resultHost, std::cbrt( size ) );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             const auto sum = thrust::transform_reduce(
@@ -996,10 +1026,10 @@ public:
                std::plus<>{} );
             resultHost = std::cbrt( sum );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::transform_reduce", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::transform_reduce", computeThrust );
          verify( "thrust::transform_reduce", resultHost, std::cbrt( size ) );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -1067,7 +1097,8 @@ public:
          benchmark.time< Devices::Host >( reset1, "BLAS", computeBLAS );
          verify( "BLAS", resultHost, size );
 #endif
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             resultHost = std::transform_reduce(
@@ -1078,10 +1109,11 @@ public:
                std::plus<>{},
                std::multiplies<>{} );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::transform_reduce", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::transform_reduce", computeSTL );
          verify( "std::transform_reduce", resultHost, size );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             resultHost = thrust::inner_product(
@@ -1093,10 +1125,10 @@ public:
                std::plus<>{},
                std::multiplies<>{} );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::inner_product", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::inner_product", computeThrust );
          verify( "thrust::inner_product", resultHost, size );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
@@ -1501,15 +1533,7 @@ public:
       benchmark.setOperation( "inclusive scan (inplace)" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::inplaceInclusiveScan( hostVector );
-         };
-         benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
-         verify( "TNL", hostVector[ 0 ], 1 );
-         verify( "TNL", hostVector[ size - 1 ], size );
-
+      if constexpr( std::is_same_v< Device, Devices::Sequential > ) {
          auto computeSequential = [ & ]()
          {
             SequentialView view;
@@ -1527,27 +1551,38 @@ public:
          benchmark.time< Devices::Sequential >( reset1, "std::partial_sum", computeSTL_partial_sum );
          verify( "std::partial_sum", hostVector[ 0 ], 1 );
          verify( "std::partial_sum", hostVector[ size - 1 ], size );
-
+      }
+      if constexpr( std::is_same_v< Device, Devices::Host > ) {
+         auto computeTNL = [ & ]()
+         {
+            Algorithms::inplaceInclusiveScan( hostVector );
+         };
+         benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
+         verify( "TNL", hostVector[ 0 ], 1 );
+         verify( "TNL", hostVector[ size - 1 ], size );
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             std::inclusive_scan(
                STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::inclusive_scan", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::inclusive_scan", computeSTL );
          verify( "std::inclusive_scan", hostVector[ 0 ], 1 );
          verify( "std::inclusive_scan", hostVector[ size - 1 ], size );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             thrust::inclusive_scan(
                thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::inclusive_scan", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::inclusive_scan", computeThrust );
          verify( "thrust::inclusive_scan", hostVector[ 0 ], 1 );
          verify( "thrust::inclusive_scan", hostVector[ size - 1 ], size );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaTNL = [ & ]()
@@ -1597,6 +1632,15 @@ public:
       benchmark.setOperation( "inclusive scan (1 vector)" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
+      if constexpr( std::is_same_v< Device, Devices::Sequential > ) {
+         auto computeSTL_partial_sum = [ & ]()
+         {
+            std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
+         };
+         benchmark.time< Devices::Sequential >( resetAll, "std::partial_sum", computeSTL_partial_sum );
+         verify( "std::partial_sum", hostVector2[ 0 ], 1 );
+         verify( "std::partial_sum", hostVector2[ size - 1 ], size );
+      }
       if constexpr( std::is_same_v< Device, Devices::Host > ) {
          auto computeTNL = [ & ]()
          {
@@ -1605,35 +1649,29 @@ public:
          benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
          verify( "TNL", hostVector2[ 0 ], 1 );
          verify( "TNL", hostVector2[ size - 1 ], size );
-
-         auto computeSTL_partial_sum = [ & ]()
-         {
-            std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
-         };
-         benchmark.time< Devices::Sequential >( resetAll, "std::partial_sum", computeSTL_partial_sum );
-         verify( "std::partial_sum", hostVector2[ 0 ], 1 );
-         verify( "std::partial_sum", hostVector2[ size - 1 ], size );
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             std::inclusive_scan(
                STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
          };
-         benchmark.time< Devices::Sequential >( resetAll, "std::inclusive_scan", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( resetAll, "std::inclusive_scan", computeSTL );
          verify( "std::inclusive_scan", hostVector2[ 0 ], 1 );
          verify( "std::inclusive_scan", hostVector2[ size - 1 ], size );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             thrust::inclusive_scan(
                thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::inclusive_scan", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::inclusive_scan", computeThrust );
          verify( "thrust::inclusive_scan", hostVector2[ 0 ], 1 );
          verify( "thrust::inclusive_scan", hostVector2[ size - 1 ], size );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaTNL = [ & ]()
@@ -1739,15 +1777,7 @@ public:
       benchmark.setOperation( "exclusive scan (inplace)" );
       benchmark.setDatasetSize( 2 * datasetSize );
 
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::inplaceExclusiveScan( hostVector );
-         };
-         benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
-         verify( "TNL", hostVector[ 0 ], 0 );
-         verify( "TNL", hostVector[ size - 1 ], size - 1 );
-
+      if constexpr( std::is_same_v< Device, Devices::Sequential > ) {
          auto computeSequential = [ & ]()
          {
             SequentialView view;
@@ -1757,28 +1787,39 @@ public:
          benchmark.time< Devices::Sequential >( reset1, "TNL", computeSequential );
          verify( "TNL", hostVector[ 0 ], 0 );
          verify( "TNL", hostVector[ size - 1 ], size - 1 );
-
+      }
+      if constexpr( std::is_same_v< Device, Devices::Host > ) {
+         auto computeTNL = [ & ]()
+         {
+            Algorithms::inplaceExclusiveScan( hostVector );
+         };
+         benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
+         verify( "TNL", hostVector[ 0 ], 0 );
+         verify( "TNL", hostVector[ size - 1 ], size - 1 );
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             std::exclusive_scan(
                STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData(), 0 );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::exclusive_scan", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::exclusive_scan", computeSTL );
          verify( "std::exclusive_scan", hostVector[ 0 ], 0 );
          // NOTE: this fails due to https://stackoverflow.com/q/74932677
          verify( "std::exclusive_scan", hostVector[ size - 1 ], size - 1 );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             thrust::exclusive_scan(
                thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::exclusive_scan", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::exclusive_scan", computeThrust );
          verify( "thrust::exclusive_scan", hostVector[ 0 ], 0 );
          verify( "thrust::exclusive_scan", hostVector[ size - 1 ], size - 1 );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaTNL = [ & ]()
@@ -1836,27 +1877,29 @@ public:
          benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
          verify( "TNL", hostVector2[ 0 ], 0 );
          verify( "TNL", hostVector2[ size - 1 ], size - 1 );
-
+      }
+      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
          auto computeSTL = [ & ]()
          {
             std::exclusive_scan(
                STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData(), 0 );
          };
-         benchmark.time< Devices::Sequential >( reset1, "std::exclusive_scan", computeSTL );
+         benchmark.time< StdAlgorithmsDevice >( reset1, "std::exclusive_scan", computeSTL );
          verify( "std::exclusive_scan", hostVector2[ 0 ], 0 );
          verify( "std::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
-
+      }
 #ifdef HAVE_THRUST
+      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
          auto computeThrust = [ & ]()
          {
             thrust::exclusive_scan(
                thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
          };
-         benchmark.time< Devices::Sequential >( reset1, "thrust::exclusive_scan", computeThrust );
+         benchmark.time< ThrustHostDevice >( reset1, "thrust::exclusive_scan", computeThrust );
          verify( "thrust::exclusive_scan", hostVector2[ 0 ], 0 );
          verify( "thrust::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
-#endif
       }
+#endif
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaTNL = [ & ]()
