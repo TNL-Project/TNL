@@ -6,7 +6,7 @@
 #include <utility>  // std::forward
 
 #include "Scan.h"
-#include "GPUScanKernel.h"
+#include "GPUScan.h"
 
 #include <TNL/Assert.h>
 #include <TNL/Containers/Array.h>
