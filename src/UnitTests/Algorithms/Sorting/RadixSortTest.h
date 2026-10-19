@@ -10,6 +10,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/RadixSort.h>
+#include <TNL/Backend.h>
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -286,6 +287,21 @@ TEST( RadixSortFreeFunctionTest, ascendingAndDescending )
 
    Algorithms::descendingSort( arr, Sorting::RadixSort{} );
    EXPECT_TRUE( Algorithms::isDescending( arr ) );
+}
+
+// The single-pass variant assigns tiles to blocks via a work counter, so
+// that each block may claim multiple tiles. The size is chosen just above
+// the number of blocks launched by the sort (32 per multiprocessor), which
+// pins the tile-reuse path of the binning kernel.
+TEST( RadixSortFreeFunctionTest, multipleTilesPerBlock )
+{
+   const int multiprocessors = Backend::getDeviceMultiprocessors( Backend::getDevice() );
+   const int size = ( 32 * multiprocessors + 3 ) * 2048;
+   std::vector< int > vec = makeRandomVector< int >( size, 456 );
+
+   TNL::Containers::Array< int, TNL::Devices::GPU > arr( vec );
+   Algorithms::ascendingSort( arr, Sorting::RadixSort{} );
+   EXPECT_TRUE( Algorithms::isAscending( arr ) ) << "failed for size " << size;
 }
 
 // 64-bit index tests
