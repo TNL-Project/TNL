@@ -272,11 +272,14 @@ radixSortFindFirstSet( RadixSortWarpMask mask )
  * position for each digit, and the per-warp counts `s_warpOffsets` of the
  * elements with the same digit, scanned into exclusive prefixes over the
  * warps. The launch uses `blockSize.x` equal to `radixSortBuckets`, so
- * each thread handles exactly one digit in the per-digit phases. The
- * position of an element is composed as
+ * each thread handles exactly one digit in the per-digit phases. After
+ * the ranks are computed, the items are staged into a shared-memory tile
+ * grouped by digit, from which they are written out with coalesced global
+ * stores (the positions of a scattered store would span many cache
+ * sectors). The tile-local position of an element is composed as
  *
- * \f[ \mathrm{pos} = \mathrm{base}[ d ] + \mathrm{warpPrefix}[ d, w ]
- * + \mathrm{roundOffset} + \mathrm{rank}, \f]
+ * \f[ \mathrm{pos} = \mathrm{warpPrefix}[ d, w ] + \mathrm{roundOffset}
+ * + \mathrm{rank}, \f]
  *
  * where `d` is the element's digit, `w` is its warp, `roundOffset` is the
  * number of elements with the digit `d` processed by the warp `w` in the
@@ -304,11 +307,14 @@ radixSortScatterKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Index s_base[ radixSortBuckets ];
    __shared__ int s_warpOffsets[ radixSortMaxWarps * radixSortBuckets ];
+   __shared__ Value s_tile[ radixSortTileSize ];
+   __shared__ int s_digitStart[ radixSortBuckets + 1 ];
 
    // load the scanned base offsets of this block's digit counts; they are
    // advanced by the tile totals below, so they hold the current offsets of
    // the elements with each digit already processed by this block
    s_base[ threadIdx.x ] = histograms[ threadIdx.x * static_cast< Index >( gridDim.x ) + static_cast< Index >( blockIdx.x ) ];
+   s_digitStart[ 0 ] = 0;
    __syncthreads();
 
    const Index n = input.getSize();
@@ -382,7 +388,8 @@ radixSortScatterKernel(
       }
       __syncthreads();
 
-      // exclusive scan of the warp offsets of each digit (in place);
+      // exclusive scan of the warp offsets of each digit (in place) and
+      // storage of the digit totals for the tile-local digit starts below;
       // the digit total stays in a register for the offset update below
       int digitTotal = 0;
       #pragma unroll
@@ -392,18 +399,44 @@ radixSortScatterKernel(
          s_warpOffsets[ idx ] = digitTotal;
          digitTotal += count;
       }
+      s_digitStart[ static_cast< int >( threadIdx.x ) + 1 ] = digitTotal;
       __syncthreads();
 
-   // scatter the items to their output positions
-   #pragma unroll
+      // turn the digit totals into the tile-local starts of the digit runs
+      if( threadIdx.x == 0 ) {
+         int running = 0;
+         for( int d = 0; d < radixSortBuckets; d++ ) {
+            running += s_digitStart[ d + 1 ];
+            s_digitStart[ d + 1 ] = running;
+         }
+      }
+      __syncthreads();
+
+      // stage the items into the shared tile, grouped by digit
+      #pragma unroll
       for( int j = 0; j < itemsPerThread; j++ ) {
          const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
-         if( idxInTile < tileSize ) {
-            const Index pos = s_base[ digits[ j ] ]
-                            + static_cast< Index >( s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ] )
-                            + itemOffsets[ j ];
-            output[ pos ] = values[ j ];
+         if( idxInTile < tileSize )
+            s_tile[ s_digitStart[ digits[ j ] ] + s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ] + itemOffsets[ j ] ] =
+               values[ j ];
+      }
+      __syncthreads();
+
+      // write the tile out with coalesced stores: consecutive positions of
+      // the staged tile belong to the same digit run (or to adjacent runs),
+      // so the global stores are consecutive as well; the digit owning each
+      // position is found by a binary search over the digit starts
+      for( int i = static_cast< int >( threadIdx.x ); i < tileSize; i += static_cast< int >( blockDim.x ) ) {
+         int lo = 0;
+         int hi = radixSortBuckets;
+         while( lo + 1 < hi ) {
+            const int mid = ( lo + hi ) / 2;
+            if( s_digitStart[ mid ] <= i )
+               lo = mid;
+            else
+               hi = mid;
          }
+         output[ s_base[ lo ] + ( i - s_digitStart[ lo ] ) ] = s_tile[ i ];
       }
       __syncthreads();
 
