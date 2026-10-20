@@ -162,6 +162,13 @@ public:
       hypre_VectorOwnsData( v ) = 0;
       hypre_VectorData( v ) = data;
       hypre_VectorSize( v ) = size;
+      // hypre_SeqVectorCreate does not set the strides, they are set by
+      // hypre_SeqVectorInitialize, which would allocate the data. The strides
+      // of a single vector must be set explicitly, otherwise they are zero
+      // and the kernels using them (e.g. the internal SpMV kernel on GPUs)
+      // access only the first element.
+      hypre_VectorIndexStride( v ) = 1;
+      hypre_VectorVectorStride( v ) = size;
    }
 
    void
