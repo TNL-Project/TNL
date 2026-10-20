@@ -194,12 +194,8 @@ getMatrixProduct(
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            launch_config.gridSize.y = Backend::getMaxGridYSize();
-            if( gridIdx_x == columnGrids - 1 )
-               launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
-            if( gridIdx_y == rowGrids - 1 )
-               launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
+            launch_config.gridSize.x = Backend::getGridSize( columnTiles, gridIdx_x, Backend::getMaxGridXSize() );
+            launch_config.gridSize.y = Backend::getGridSize( rowTiles, gridIdx_y, Backend::getMaxGridYSize() );
 
             constexpr auto kernel = DenseMatrixProductKernel<
                tileDim,
@@ -335,16 +331,8 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            launch_config.gridSize.y = Backend::getMaxGridYSize();
-            if( gridIdx_x == columnGrids - 1 ) {
-               auto remainder = columnTiles % Backend::getMaxGridXSize();
-               launch_config.gridSize.x = ( remainder == 0 ) ? Backend::getMaxGridXSize() : remainder;
-            }
-            if( gridIdx_y == rowGrids - 1 ) {
-               auto remainder = rowTiles % Backend::getMaxGridYSize();
-               launch_config.gridSize.y = ( remainder == 0 ) ? Backend::getMaxGridYSize() : remainder;
-            }
+            launch_config.gridSize.x = Backend::getGridSize( columnTiles, gridIdx_x, Backend::getMaxGridXSize() );
+            launch_config.gridSize.y = Backend::getGridSize( rowTiles, gridIdx_y, Backend::getMaxGridYSize() );
 
             constexpr auto kernel =
                DenseTranspositionKernel< tileDim, typename ResultMatrix::ViewType, typename Matrix::ConstViewType, Real, Index >;
@@ -474,12 +462,8 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Backend::getMaxGridXSize();
-            launch_config.gridSize.y = Backend::getMaxGridYSize();
-            if( gridIdx_x == columnGrids - 1 )
-               launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
-            if( gridIdx_y == rowGrids - 1 )
-               launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
+            launch_config.gridSize.x = Backend::getGridSize( columnTiles, gridIdx_x, Backend::getMaxGridXSize() );
+            launch_config.gridSize.y = Backend::getGridSize( rowTiles, gridIdx_y, Backend::getMaxGridYSize() );
 
             auto kernel = DenseInPlaceTranspositionKernel< tileDim, decltype( matrix.getView() ), Real, Index >;
             Backend::launchKernelAsync( kernel, launch_config, matrix.getView(), matrixMultiplicator, gridIdx_x, gridIdx_y );

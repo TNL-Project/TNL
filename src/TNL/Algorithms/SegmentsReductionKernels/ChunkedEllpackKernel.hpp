@@ -109,9 +109,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments(
       launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         launch_config.gridSize.x = Backend::getMaxGridXSize();
-         if( gridIdx == cudaGrids - 1 )
-            launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
+         launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel = Segments::detail::
             ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;

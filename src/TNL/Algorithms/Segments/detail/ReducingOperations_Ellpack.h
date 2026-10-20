@@ -48,12 +48,19 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                return;
             const std::size_t threadsCount = static_cast< std::size_t >( end - begin )
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
-            const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            launch_config.gridSize.x = blocksCount;
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            auto launch = [ & ]( auto kernel )
+            {
+               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+                  Backend::launchKernelSync(
+                     kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
+               }
+            };
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                constexpr auto kernel1 = EllpackCudaReductionKernel<
                   1,
@@ -112,28 +119,22 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
 
                switch( launchConfig.getThreadsPerSegmentCount() ) {
                   case 1:
-                     Backend::launchKernelSync(
-                        kernel1, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     launch( kernel1 );
                      break;
                   case 2:
-                     Backend::launchKernelSync(
-                        kernel2, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     launch( kernel2 );
                      break;
                   case 4:
-                     Backend::launchKernelSync(
-                        kernel4, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     launch( kernel4 );
                      break;
                   case 8:
-                     Backend::launchKernelSync(
-                        kernel8, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     launch( kernel8 );
                      break;
                   case 16:
-                     Backend::launchKernelSync(
-                        kernel16, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     launch( kernel16 );
                      break;
                   case 32:
-                     Backend::launchKernelSync(
-                        kernel32, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     launch( kernel32 );
                      break;
                   case 64:
                      if constexpr( Backend::getMaxWarpSize() == 64 ) {
@@ -150,8 +151,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                            std::remove_reference_t< Reduction >,
                            std::remove_reference_t< ResultStorer >,
                            ReturnType >;
-                        Backend::launchKernelSync(
-                           kernel64, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                        launch( kernel64 );
                      }
                      else {
                         throw std::invalid_argument(
@@ -228,12 +228,27 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                return;
             const std::size_t threadsCount = static_cast< std::size_t >( segmentIndexes.getSize() )
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
-            const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            launch_config.gridSize.x = blocksCount;
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            auto launch = [ & ]( auto kernel )
+            {
+               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+                  Backend::launchKernelSync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     segments,
+                     segmentIndexes.getConstView(),
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
+               }
+            };
             constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexes<
                1,
                ConstViewType,
@@ -284,28 +299,22 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
-                  Backend::launchKernelSync(
-                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel1 );
                   break;
                case 2:
-                  Backend::launchKernelSync(
-                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel2 );
                   break;
                case 4:
-                  Backend::launchKernelSync(
-                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel4 );
                   break;
                case 8:
-                  Backend::launchKernelSync(
-                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel8 );
                   break;
                case 16:
-                  Backend::launchKernelSync(
-                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel16 );
                   break;
                case 32:
-                  Backend::launchKernelSync(
-                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel32 );
                   break;
                case 64:
                   if constexpr( Backend::getMaxWarpSize() == 64 ) {
@@ -321,8 +330,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         std::remove_reference_t< Reduction >,
                         std::remove_reference_t< ResultStorer >,
                         ReturnType >;
-                     Backend::launchKernelSync(
-                        kernel64, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                     launch( kernel64 );
                   }
                   else {
                      throw std::invalid_argument(
@@ -400,12 +408,19 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                return;
             const std::size_t threadsCount = static_cast< std::size_t >( end - begin )
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
-            const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            launch_config.gridSize.x = blocksCount;
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            auto launch = [ & ]( auto kernel )
+            {
+               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+                  Backend::launchKernelSync(
+                     kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
+               }
+            };
             constexpr auto kernel1 = EllpackCudaReductionKernelWithArgument<
                1,
                ConstViewType,
@@ -462,24 +477,22 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
-                  Backend::launchKernelSync( kernel1, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  launch( kernel1 );
                   break;
                case 2:
-                  Backend::launchKernelSync( kernel2, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  launch( kernel2 );
                   break;
                case 4:
-                  Backend::launchKernelSync( kernel4, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  launch( kernel4 );
                   break;
                case 8:
-                  Backend::launchKernelSync( kernel8, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  launch( kernel8 );
                   break;
                case 16:
-                  Backend::launchKernelSync(
-                     kernel16, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  launch( kernel16 );
                   break;
                case 32:
-                  Backend::launchKernelSync(
-                     kernel32, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                  launch( kernel32 );
                   break;
                case 64:
                   if constexpr( Backend::getMaxWarpSize() == 64 ) {
@@ -496,8 +509,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         std::remove_reference_t< Reduction >,
                         std::remove_reference_t< ResultStorer >,
                         ReturnType >;
-                     Backend::launchKernelSync(
-                        kernel64, launch_config, segments, begin, end, fetch, reduction, storer, identity );
+                     launch( kernel64 );
                   }
                   else {
                      throw std::invalid_argument(
@@ -581,12 +593,27 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                return;
             const std::size_t threadsCount = static_cast< std::size_t >( segmentIndexes.getSize() )
                                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            if( threadsCount > std::numeric_limits< IndexType >::max() )
-               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
-            const std::size_t blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            launch_config.gridSize.x = blocksCount;
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            auto launch = [ & ]( auto kernel )
+            {
+               for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+                  Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+                  Backend::launchKernelSync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     segments,
+                     segmentIndexes.getConstView(),
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
+               }
+            };
             constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
                1,
                ConstViewType,
@@ -637,28 +664,22 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
-                  Backend::launchKernelSync(
-                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel1 );
                   break;
                case 2:
-                  Backend::launchKernelSync(
-                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel2 );
                   break;
                case 4:
-                  Backend::launchKernelSync(
-                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel4 );
                   break;
                case 8:
-                  Backend::launchKernelSync(
-                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel8 );
                   break;
                case 16:
-                  Backend::launchKernelSync(
-                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel16 );
                   break;
                case 32:
-                  Backend::launchKernelSync(
-                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                  launch( kernel32 );
                   break;
                case 64:
                   if constexpr( Backend::getMaxWarpSize() == 64 ) {
@@ -674,8 +695,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         std::remove_reference_t< Reduction >,
                         std::remove_reference_t< ResultStorer >,
                         ReturnType >;
-                     Backend::launchKernelSync(
-                        kernel64, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
+                     launch( kernel64 );
                   }
                   else {
                      throw std::invalid_argument(

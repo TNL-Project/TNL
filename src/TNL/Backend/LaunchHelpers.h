@@ -10,6 +10,7 @@
 
 #include "Types.h"
 #include "Functions.h"
+#include <TNL/Assert.h>
 #include <TNL/DiscreteMath.h>
 #include <TNL/Math.h>
 
@@ -335,23 +336,51 @@ setupThreads(
       blocksCount.z / getMaxGridZSize() + static_cast< unsigned long int >( blocksCount.z % getMaxGridZSize() != 0 );
 }
 
-inline void
-setupGrid( const dim3& blocksCount, const dim3& gridsCount, const dim3& gridIdx, dim3& gridSize )
+/**
+ * \brief Returns the number of blocks of the grid with index `gridIdx` when
+ * `totalBlocksCount` blocks are split into grids of at most `maxGridSize` blocks.
+ *
+ * All grids except the last one have `maxGridSize` blocks, the last one has
+ * the remaining blocks (which is `maxGridSize` when `totalBlocksCount` is its
+ * multiple).
+ *
+ * `gridIdx` must be smaller than the number of grids, i.e.
+ * `getNumberOfGrids( totalBlocksCount, maxGridSize )`.
+ */
+inline unsigned int
+getGridSize( std::size_t totalBlocksCount, std::size_t gridIdx, std::size_t maxGridSize )
 {
-   if( gridIdx.x < gridsCount.x - 1 )
-      gridSize.x = getMaxGridXSize();
-   else
-      gridSize.x = blocksCount.x % getMaxGridXSize();
+   TNL_ASSERT_LT( gridIdx * maxGridSize, totalBlocksCount, "The grid index exceeds the number of grids." );
+   const std::size_t remainingBlocks = totalBlocksCount - gridIdx * maxGridSize;
+   return static_cast< unsigned int >( remainingBlocks < maxGridSize ? remainingBlocks : maxGridSize );
+}
 
-   if( gridIdx.y < gridsCount.y - 1 )
-      gridSize.y = getMaxGridYSize();
-   else
-      gridSize.y = blocksCount.y % getMaxGridYSize();
+/**
+ * \brief Sets the size of the grid with index `gridIdx` when `blocksCount`
+ * blocks are split into grids of at most `getMaxGrid{X,Y,Z}Size()` blocks.
+ *
+ * Each component of `gridIdx` must be smaller than the number of grids in the
+ * same dimension.
+ */
+inline void
+setupGrid( const dim3& blocksCount, const dim3& /* gridsCount */, const dim3& gridIdx, dim3& gridSize )
+{
+   gridSize.x = getGridSize( blocksCount.x, gridIdx.x, getMaxGridXSize() );
+   gridSize.y = getGridSize( blocksCount.y, gridIdx.y, getMaxGridYSize() );
+   gridSize.z = getGridSize( blocksCount.z, gridIdx.z, getMaxGridZSize() );
+}
 
-   if( gridIdx.z < gridsCount.z - 1 )
-      gridSize.z = getMaxGridZSize();
-   else
-      gridSize.z = blocksCount.z % getMaxGridZSize();
+/**
+ * \brief Sets the size of the grid with index `gridIdx` in the x-dimension.
+ *
+ * This overload is selected when `gridIdx` is a scalar. Without it, the scalar
+ * would be converted to `dim3( gridIdx )`, whose y and z components are 1 and
+ * thus refer to a nonexistent second grid in these dimensions.
+ */
+inline void
+setupGrid( const dim3& blocksCount, const dim3& gridsCount, std::size_t gridIdx, dim3& gridSize )
+{
+   setupGrid( blocksCount, gridsCount, dim3( gridIdx, 0, 0 ), gridSize );
 }
 
 inline std::ostream&
