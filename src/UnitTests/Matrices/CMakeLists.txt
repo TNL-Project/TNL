@@ -36,6 +36,7 @@ set(COMMON_TESTS
     SymmetricSparseMatrixTest_CSR
     LambdaMatrixTest
     MatrixOperationsTest
+    MatrixWriterTest
     MatrixWrappingTest
     DenseMatrixMultiplicationTest
     DenseMatrixTranspositionTest
