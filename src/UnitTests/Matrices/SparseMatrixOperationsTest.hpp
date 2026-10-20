@@ -509,6 +509,106 @@ copySparseToSparseMatrixWithDifferentDevice_test()
    }
 }
 
+template< typename Matrix, typename SymmetricMatrix >
+void
+assignmentOperator_test()
+{
+   // /  1  2  3 |
+   // |  2  5  0 |
+   // \  3  0  9 /
+   SymmetricMatrix symmetric( 3, 3 );
+   symmetric.setElements(
+      { { 0, 0, 1 }, { 1, 0, 2 }, { 1, 1, 5 }, { 2, 0, 3 }, { 2, 2, 9 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+
+   // Assignment of a symmetric sparse matrix to a general sparse matrix
+   // expands the upper part from the lower part.
+   Matrix general( 3, 3 );
+   general = symmetric;
+
+   EXPECT_EQ( general.getElement( 0, 0 ), 1.0 );
+   EXPECT_EQ( general.getElement( 0, 1 ), 2.0 );
+   EXPECT_EQ( general.getElement( 0, 2 ), 3.0 );
+   EXPECT_EQ( general.getElement( 1, 0 ), 2.0 );
+   EXPECT_EQ( general.getElement( 1, 1 ), 5.0 );
+   EXPECT_EQ( general.getElement( 1, 2 ), 0.0 );
+   EXPECT_EQ( general.getElement( 2, 0 ), 3.0 );
+   EXPECT_EQ( general.getElement( 2, 1 ), 0.0 );
+   EXPECT_EQ( general.getElement( 2, 2 ), 9.0 );
+
+   // Assignment of a general sparse matrix to a symmetric sparse matrix
+   // copies only the lower part, i.e. the source matrix is assumed to be
+   // symmetric.
+   // clang-format off
+   Matrix general2( 3, 3,
+   { { 0, 0, 1 }, { 0, 1, 2 }, { 0, 2, 3 },
+     { 1, 0, 2 }, { 1, 1, 5 },
+     { 2, 0, 3 },               { 2, 2, 9 } } );
+   // clang-format on
+   SymmetricMatrix symmetric2( 3, 3 );
+   symmetric2 = general2;
+
+   EXPECT_EQ( symmetric2.getElement( 0, 0 ), 1.0 );
+   EXPECT_EQ( symmetric2.getElement( 0, 1 ), 2.0 );
+   EXPECT_EQ( symmetric2.getElement( 0, 2 ), 3.0 );
+   EXPECT_EQ( symmetric2.getElement( 1, 0 ), 2.0 );
+   EXPECT_EQ( symmetric2.getElement( 1, 1 ), 5.0 );
+   EXPECT_EQ( symmetric2.getElement( 1, 2 ), 0.0 );
+   EXPECT_EQ( symmetric2.getElement( 2, 0 ), 3.0 );
+   EXPECT_EQ( symmetric2.getElement( 2, 1 ), 0.0 );
+   EXPECT_EQ( symmetric2.getElement( 2, 2 ), 9.0 );
+}
+
+template< typename SourceMatrix, typename TargetMatrix, typename SourceSymmetricMatrix, typename TargetSymmetricMatrix >
+void
+assignmentOperatorWithDifferentDevice_test()
+{
+   // /  1  2  3 |
+   // |  2  5  0 |
+   // \  3  0  9 /
+   SourceSymmetricMatrix symmetricSource( 3, 3 );
+   symmetricSource.setElements(
+      { { 0, 0, 1 }, { 1, 0, 2 }, { 1, 1, 5 }, { 2, 0, 3 }, { 2, 2, 9 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+
+   // Assignment of a symmetric sparse matrix to a general sparse matrix
+   // expands the upper part from the lower part.
+   TargetMatrix generalTarget( 3, 3 );
+   generalTarget = symmetricSource;
+
+   EXPECT_EQ( generalTarget.getElement( 0, 0 ), 1.0 );
+   EXPECT_EQ( generalTarget.getElement( 0, 1 ), 2.0 );
+   EXPECT_EQ( generalTarget.getElement( 0, 2 ), 3.0 );
+   EXPECT_EQ( generalTarget.getElement( 1, 0 ), 2.0 );
+   EXPECT_EQ( generalTarget.getElement( 1, 1 ), 5.0 );
+   EXPECT_EQ( generalTarget.getElement( 1, 2 ), 0.0 );
+   EXPECT_EQ( generalTarget.getElement( 2, 0 ), 3.0 );
+   EXPECT_EQ( generalTarget.getElement( 2, 1 ), 0.0 );
+   EXPECT_EQ( generalTarget.getElement( 2, 2 ), 9.0 );
+
+   // Assignment of a general sparse matrix to a symmetric sparse matrix
+   // copies only the lower part, i.e. the source matrix is assumed to be
+   // symmetric.
+   // clang-format off
+   SourceMatrix generalSource( 3, 3,
+   { { 0, 0, 1 }, { 0, 1, 2 }, { 0, 2, 3 },
+     { 1, 0, 2 }, { 1, 1, 5 },
+     { 2, 0, 3 },               { 2, 2, 9 } } );
+   // clang-format on
+   TargetSymmetricMatrix symmetricTarget( 3, 3 );
+   symmetricTarget = generalSource;
+
+   EXPECT_EQ( symmetricTarget.getElement( 0, 0 ), 1.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 0, 1 ), 2.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 0, 2 ), 3.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 1, 0 ), 2.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 1, 1 ), 5.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 1, 2 ), 0.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 2, 0 ), 3.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 2, 1 ), 0.0 );
+   EXPECT_EQ( symmetricTarget.getElement( 2, 2 ), 9.0 );
+}
+
 template< typename Matrix >
 void
 compressSparseMatrix_test()

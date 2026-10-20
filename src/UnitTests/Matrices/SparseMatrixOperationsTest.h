@@ -53,6 +53,44 @@ TYPED_TEST( SparseMatrixOperationsTest, copySparseToSparseMatrixWithDifferentDev
    }
 }
 
+TYPED_TEST( SparseMatrixOperationsTest, assignmentOperator )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+   using SymmetricMatrixType = typename TestFixture::SymmetricMatrixType;
+
+   if constexpr( ! std::is_same_v< typename MatrixType::RealType, long > ) {
+      assignmentOperator_test< MatrixType, SymmetricMatrixType >();
+   }
+}
+
+TYPED_TEST( SparseMatrixOperationsTest, assignmentOperatorWithDifferentDevice )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+   using SymmetricMatrixType = typename TestFixture::SymmetricMatrixType;
+   using DeviceType = typename MatrixType::DeviceType;
+
+   using HostMatrixType = typename MatrixType::template Self< typename MatrixType::RealType, TNL::Devices::Host >;
+   using HostSymmetricMatrixType =
+      typename SymmetricMatrixType::template Self< typename SymmetricMatrixType::RealType, TNL::Devices::Host >;
+
+   if constexpr( ! std::is_same_v< DeviceType, TNL::Devices::Host >
+                 && ! std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+   {
+      if constexpr( ! std::is_same_v< typename MatrixType::RealType, long > ) {
+         assignmentOperatorWithDifferentDevice_test<
+            HostMatrixType,
+            MatrixType,
+            HostSymmetricMatrixType,
+            SymmetricMatrixType >();
+         assignmentOperatorWithDifferentDevice_test<
+            MatrixType,
+            HostMatrixType,
+            SymmetricMatrixType,
+            HostSymmetricMatrixType >();
+      }
+   }
+}
+
 TYPED_TEST( SparseMatrixOperationsTest, compressSparseMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;

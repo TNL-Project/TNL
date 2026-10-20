@@ -533,10 +533,11 @@ public:
    operator=( const DenseMatrix< Real_, Device_, Index_, Organization, RealAllocator_ >& matrix );
 
    /**
-    * \brief Assignment of any matrix type other then this and dense.
+    * \brief Assignment of any matrix type other than this and dense.
     *
-    * **Warning: Assignment of symmetric sparse matrix to general sparse matrix does not give correct result, currently. Only
-    * the diagonal and the lower part of the matrix is assigned.**
+    * If the source matrix is a symmetric sparse matrix, it is expanded, i.e. the upper part is reconstructed from the lower
+    * part. On the other hand, if this matrix is symmetric and the source matrix is general, only the lower part of the source
+    * matrix is assigned, i.e. the source matrix is assumed to be symmetric.
     *
     * \param matrix is input matrix for the assignment.
     * \return reference to this matrix.
