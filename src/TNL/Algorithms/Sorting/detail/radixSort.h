@@ -520,7 +520,7 @@ radixSortOnesweepKernel(
          for( int k = 0; k < digitsPerThread; k++ )
             if( counts[ k ] == tileSize )
                single = lane * digitsPerThread + k;
-         const unsigned ballot = __ballot_sync( fullMask, single >= 0 );
+         const RadixSortWarpMask ballot = __ballot_sync( fullMask, single >= 0 );
          if( single >= 0 )
             s_singleDigit = single;
          else if( lane == 0 && ballot == 0 )
