@@ -191,6 +191,27 @@ radixSortFindFirstSet( RadixSortWarpMask mask )
 
 #endif
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
+/**
+ * \brief Shared-memory union of the rank offsets and the staging tile of
+ * \ref radixSortOnesweepKernel.
+ *
+ * The per-(warp, digit) rank offsets are consumed by the computation of the
+ * staged positions of the items into registers before the staging tile is
+ * written, so the two arrays can share the same storage, which reduces the
+ * shared-memory footprint of the kernel and increases the number of thread
+ * blocks resident on a streaming multiprocessor.
+ */
+template< typename Value >
+union RadixSortRankTileUnion
+{
+   int warpOffsets[ radixSortMaxWarps * radixSortBuckets ];
+   Value tile[ radixSortTileSize ];
+};
+
+#endif
+
 /**
  * \brief Atomically adds the value to the counter of any index type.
  *
@@ -355,11 +376,10 @@ radixSortOnesweepKernel(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Index s_base[ radixSortBuckets ];
-   __shared__ int s_warpOffsets[ radixSortMaxWarps * radixSortBuckets ];
-   __shared__ Value s_tile[ radixSortTileSize ];
    __shared__ int s_digitStart[ radixSortBuckets + 1 ];
    __shared__ int s_singleDigit;
    __shared__ Index s_claimedTile;
+   __shared__ RadixSortRankTileUnion< Value > s_rankTile;
 
    // the launch uses blockSize.x == radixSortBuckets, so each thread handles
    // exactly one digit in the per-digit phases below
@@ -391,7 +411,7 @@ radixSortOnesweepKernel(
 
       // zero the per-(warp, digit) offsets of this tile
       for( int i = digit; i < radixSortMaxWarps * radixSortBuckets; i += static_cast< int >( blockDim.x ) )
-         s_warpOffsets[ i ] = 0;
+         s_rankTile.warpOffsets[ i ] = 0;
       __syncthreads();
 
       // load the items of all rounds (to overlap the memory latency);
@@ -435,7 +455,8 @@ radixSortOnesweepKernel(
             const int leaderLane = radixSortFindFirstSet( match ) - 1;
             int roundOffset = 0;
             if( lane == leaderLane )
-               roundOffset = atomicAdd( &s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ], radixSortPopcount( match ) );
+               roundOffset =
+                  atomicAdd( &s_rankTile.warpOffsets[ warpId * radixSortBuckets + digits[ j ] ], radixSortPopcount( match ) );
             roundOffset = __shfl_sync( activeMask, roundOffset, leaderLane );
             itemOffsets[ j ] = roundOffset + rank;
          }
@@ -449,8 +470,8 @@ radixSortOnesweepKernel(
       #pragma unroll
       for( int w = 0; w < radixSortMaxWarps; w++ ) {
          const int idx = w * radixSortBuckets + digit;
-         const int count = s_warpOffsets[ idx ];
-         s_warpOffsets[ idx ] = digitCount;
+         const int count = s_rankTile.warpOffsets[ idx ];
+         s_rankTile.warpOffsets[ idx ] = digitCount;
          digitCount += count;
       }
       s_digitStart[ digit + 1 ] = digitCount;
@@ -507,15 +528,30 @@ radixSortOnesweepKernel(
       }
       __syncthreads();
 
+      // fold the digit start and the warp offset of each item into its rank
+      // offset, which turns it into the tile-relative staged position; this
+      // is the last use of the rank offsets, so the staging tile written
+      // below can alias them in shared memory (see RadixSortRankTileUnion)
+      if( s_singleDigit < 0 ) {
+         #pragma unroll
+         for( int j = 0; j < itemsPerThread; j++ ) {
+            const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+            if( idxInTile < tileSize )
+               itemOffsets[ j ] +=
+                  s_digitStart[ digits[ j ] ] + s_rankTile.warpOffsets[ warpId * radixSortBuckets + digits[ j ] ];
+         }
+      }
+      // no thread may read the rank offsets after this barrier, so the
+      // staging tile may clobber them
+      __syncthreads();
+
       // stage the items into the shared tile, grouped by digit
       if( s_singleDigit < 0 ) {
          #pragma unroll
          for( int j = 0; j < itemsPerThread; j++ ) {
             const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
             if( idxInTile < tileSize )
-               s_tile
-                  [ s_digitStart[ digits[ j ] ] + s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ]
-                    + itemOffsets[ j ] ] = values[ j ];
+               s_rankTile.tile[ itemOffsets[ j ] ] = values[ j ];
          }
       }
       __syncthreads();
@@ -587,7 +623,7 @@ radixSortOnesweepKernel(
                else
                   hi = mid;
             }
-            output[ s_base[ lo ] + ( i - s_digitStart[ lo ] ) ] = s_tile[ i ];
+            output[ s_base[ lo ] + ( i - s_digitStart[ lo ] ) ] = s_rankTile.tile[ i ];
          }
       }
       __syncthreads();
