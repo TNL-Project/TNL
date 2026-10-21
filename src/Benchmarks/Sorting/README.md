@@ -90,7 +90,7 @@ Both CPU-only and CUDA executables support the following options:
 | `--verbose <n>` | Verbose mode (0-1) | `1` |
 | `--size <n>` | Array size | `1048576` (2^20) |
 | `--device <device>` | Device to use (`host`, `cuda`, `all`) | `host` |
-| `--value-type <type>` | Value type (`int`, `uint`, `double`, `all`) | `int` |
+| `--value-type <type>` | Value type (`int`, `uint`, `float`, `double`, `all`) | `int` |
 
 Alternatively, you can execute the `run-tnl-benchmark-sort` script which automates running benchmarks across multiple array sizes, value types, and devices:
 

@@ -46,6 +46,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "int" );
    config.addEntryEnum( "uint" );
    config.addEntryEnum( "double" );
+   config.addEntryEnum( "float" );
    config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
@@ -244,6 +245,8 @@ resolveValueType( Benchmark& benchmark, const Config::ParameterContainer& parame
       run_benchmark< unsigned int >( benchmark, parameters );
    if( valueType == "all" || valueType == "double" )
       run_benchmark< double >( benchmark, parameters );
+   if( valueType == "all" || valueType == "float" )
+      run_benchmark< float >( benchmark, parameters );
 }
 
 int
