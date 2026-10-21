@@ -10,7 +10,6 @@
 
 #include <TNL/Backend.h>
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/scan.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL::Algorithms::Sorting::detail {
@@ -683,6 +682,13 @@ radixSortAdvanceBaseKernel(
  * the lookback values to 30 bits; the base offsets of the digit runs are
  * advanced between the strips (see \ref radixSortAdvanceBaseKernel).
  *
+ * A pass whose histogram consists of a single non-zero bucket maps all
+ * elements to the same digit, so its stable partition is the identity
+ * permutation: such passes are detected from the upfront histogram on the
+ * host and their sweeps are skipped in all strips. The digit counts are
+ * permutation-invariant, so the histograms of the later passes stay valid
+ * regardless of which earlier passes are skipped.
+ *
  * \param view is the view of the array to be sorted in place.
  * \tparam descending tells whether to sort in descending order.
  */
@@ -727,13 +733,34 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    constexpr auto totalHistogramKernel = radixSortTotalHistogramKernel< Value, Index, descending >;
    Backend::launchKernelAsync( totalHistogramKernel, launch_config, input, digitBase.getView() );
 
-   for( int p = 0; p < passes; p++ )
-      Algorithms::inplaceExclusiveScan(
-         digitBase,
-         static_cast< Index >( p ) * radixSortBuckets,
-         static_cast< Index >( p + 1 ) * radixSortBuckets,
-         std::plus<>{},
-         static_cast< Index >( 0 ) );
+   // copy the digit counts to the host (the synchronous copy also orders the
+   // rest of the computation after the histogram kernel): the exclusive
+   // scans of the 256-counter histograms are cheaper on the host than in
+   // per-pass kernel launches with host synchronization, and the raw counts
+   // additionally allow the skippable passes to be detected - a pass whose
+   // histogram has a single non-zero bucket maps all elements to the same
+   // digit, so its stable partition is the identity permutation and its
+   // sweeps can be skipped in all strips
+   Index hostCounts[ passes * radixSortBuckets ];
+   Backend::memcpy( hostCounts, digitBase.getData(), sizeof( hostCounts ), Backend::MemcpyDeviceToHost );
+   unsigned int skippedPasses = 0;
+   for( int p = 0; p < passes; p++ ) {
+      int nonZeroBuckets = 0;
+      Index total = 0;
+      for( int d = 0; d < radixSortBuckets; d++ ) {
+         const Index count = hostCounts[ p * radixSortBuckets + d ];
+         nonZeroBuckets += count != 0;
+         hostCounts[ p * radixSortBuckets + d ] = total;
+         total += count;
+      }
+      if( nonZeroBuckets == 1 )
+         skippedPasses |= 1u << p;
+   }
+
+   // upload the base offsets of the digit runs (the entries of the skipped
+   // passes are only ever consumed by their own sweeps, so their content
+   // does not matter)
+   Backend::memcpy( digitBase.getData(), hostCounts, sizeof( hostCounts ), Backend::MemcpyHostToDevice );
 
    // the input is processed in strips of up to 2^28 elements: the values
    // exchanged by the decoupled lookback must fit into 30 bits, and the
@@ -750,9 +777,14 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    constexpr auto advanceBaseKernel = radixSortAdvanceBaseKernel< Index >;
 
    // all kernels are launched on the same stream, so their execution is
-   // ordered by the stream (the generic scan host-synchronizes internally,
-   // so the passes do not actually overlap)
+   // ordered by the stream
+   int executedPasses = 0;
    for( int pass = 0; pass < passes; pass++ ) {
+      // the sweeps of a skipped pass are the identity permutation, so they
+      // are omitted in every strip, along with the advance of the pass's
+      // base offsets (which only its own sweeps would consume)
+      if( skippedPasses & ( 1u << pass ) )
+         continue;
       for( Index strip = 0; strip < numStrips; strip++ ) {
          const Index stripBegin = strip * onesweepStripSize;
          const Index stripEnd = TNL::min( n, stripBegin + onesweepStripSize );
@@ -784,11 +816,14 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
          }
       }
       input.swap( output );
+      executedPasses++;
    }
    Backend::streamSynchronize( launch_config.stream );
 
-   // for an odd number of passes the sorted data ends up in the auxiliary array
-   if( passes % 2 == 1 )
+   // for an odd number of executed passes the sorted data ends up in the
+   // auxiliary array; zero executed passes means that all elements share
+   // every digit, i.e. the input is already sorted in place
+   if( executedPasses % 2 == 1 )
       view = input;
 #else
    throw Exceptions::NotImplementedError( "RadixSort is supported only when CUDA or HIP is enabled." );
