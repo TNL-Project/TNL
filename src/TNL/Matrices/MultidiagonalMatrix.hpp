@@ -260,11 +260,12 @@ MultidiagonalMatrixTranspositionCudaKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix.getRows() ) {
-      if( rowIdx > 0 )
-         outMatrix.setElementFast( rowIdx - 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx - 1 ) );
-      outMatrix.setElementFast( rowIdx, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx ) );
-      if( rowIdx < inMatrix.getRows() - 1 )
-         outMatrix.setElementFast( rowIdx + 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx + 1 ) );
+      const auto offsets = inMatrix.getDiagonalOffsets();
+      for( Index k = 0; k < offsets.getSize(); k++ ) {
+         const Index columnIdx = rowIdx + offsets.getElement( k );
+         if( columnIdx >= 0 && columnIdx < inMatrix.getColumns() )
+            outMatrix.setElement( columnIdx, rowIdx, matrixMultiplicator * inMatrix.getElement( rowIdx, columnIdx ) );
+      }
    }
 #endif
 }
@@ -282,16 +283,25 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
    const MultidiagonalMatrix< Real2, Device, Index2 >& matrix,
    const Real& matrixMultiplicator )
 {
-   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "The matrices must have the same number of rows." );
+   TNL_ASSERT_EQ(
+      this->getRows(),
+      matrix.getColumns(),
+      "The transposed matrix must have as many rows as the number of columns of the input matrix." );
+   TNL_ASSERT_EQ(
+      this->getColumns(),
+      matrix.getRows(),
+      "The transposed matrix must have as many columns as the number of rows of the input matrix." );
 
    if constexpr( std::is_same_v< Device, Devices::Host > ) {
       const Index rows = matrix.getRows();
-      for( Index i = 1; i < rows; i++ ) {
-         Real aux = matrix.getElement( i, i - 1 );
-         this->setElement( i, i - 1, matrix.getElement( i - 1, i ) );
-         this->setElement( i, i, matrix.getElement( i, i ) );
-         this->setElement( i - 1, i, aux );
-      }
+      const Index columns = matrix.getColumns();
+      const auto offsets = matrix.getDiagonalOffsets();
+      for( Index row = 0; row < rows; row++ )
+         for( Index k = 0; k < offsets.getSize(); k++ ) {
+            const Index column = row + offsets.getElement( k );
+            if( column >= 0 && column < columns )
+               this->setElement( column, row, matrixMultiplicator * matrix.getElement( row, column ) );
+         }
    }
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       Backend::LaunchConfiguration launch_config;

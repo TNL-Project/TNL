@@ -1208,12 +1208,13 @@ test_GetTransposition()
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
+
    /*
     * Sets up the following 3x2 matrix:
     *
     *    /  1  2 \
     *    |  3  4 |
-    *    \  5  6 /
+    *    \  0  5 /
     */
    const IndexType rows = 3;
    const IndexType cols = 2;
@@ -1222,45 +1223,68 @@ test_GetTransposition()
    m.reset();
    m.setDimensions( rows, cols );
 
-   RealType value = 1;
-   for( IndexType i = 0; i < rows; i++ )
-      for( IndexType j = 0; j < cols; j++ )
-         m.setElement( i, j, value++ );
+   m.setElement( 0, 0, 1 );
+   m.setElement( 0, 1, 2 );
+   m.setElement( 1, 0, 3 );
+   m.setElement( 1, 1, 4 );
+   m.setElement( 2, 1, 5 );
 
    m.print( std::cout );
 
    /*
-    * Sets up the following 2x3 matrix:
+    * The transposed matrix scaled by a factor of 2 is the following 2x3 matrix:
     *
-    *    /  0  0  0 \
-    *    \  0  0  0 /
+    *    /  2  6   0 \
+    *    \  4  8  10 /
     */
    Matrix mTransposed;
    mTransposed.reset();
    mTransposed.setDimensions( cols, rows );
 
-   mTransposed.print( std::cout );
-
-   RealType matrixMultiplicator = 1;
+   const RealType matrixMultiplicator = 2;
 
    mTransposed.getTransposition( m, matrixMultiplicator );
 
    mTransposed.print( std::cout );
 
+   EXPECT_EQ( mTransposed.getElement( 0, 0 ), 2 );
+   EXPECT_EQ( mTransposed.getElement( 0, 1 ), 6 );
+
+   EXPECT_EQ( mTransposed.getElement( 1, 0 ), 4 );
+   EXPECT_EQ( mTransposed.getElement( 1, 1 ), 8 );
+   EXPECT_EQ( mTransposed.getElement( 1, 2 ), 10 );
+
    /*
-    * Should result in the following 2x3 matrix:
+    * Sets up the following 2x2 matrix:
     *
-    *    /  1  3  5 \
-    *    \  2  4  6 /
+    *    /  1  2 \
+    *    \  3  4 /
     */
+   Matrix squareMatrix;
+   squareMatrix.reset();
+   squareMatrix.setDimensions( 2, 2 );
 
-   EXPECT_EQ( mTransposed.getElement( 0, 0 ), 1 );
-   EXPECT_EQ( mTransposed.getElement( 0, 1 ), 3 );
-   EXPECT_EQ( mTransposed.getElement( 0, 2 ), 5 );
+   squareMatrix.setElement( 0, 0, 1 );
+   squareMatrix.setElement( 0, 1, 2 );
+   squareMatrix.setElement( 1, 0, 3 );
+   squareMatrix.setElement( 1, 1, 4 );
 
-   EXPECT_EQ( mTransposed.getElement( 1, 0 ), 2 );
-   EXPECT_EQ( mTransposed.getElement( 1, 1 ), 4 );
-   EXPECT_EQ( mTransposed.getElement( 1, 2 ), 6 );
+   /*
+    * The transposition computed with the default multiplicator is the following 2x2 matrix:
+    *
+    *    /  1  3 \
+    *    \  2  4 /
+    */
+   Matrix squareTransposed;
+   squareTransposed.reset();
+   squareTransposed.setDimensions( 2, 2 );
+
+   squareTransposed.getTransposition( squareMatrix );
+
+   EXPECT_EQ( squareTransposed.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( squareTransposed.getElement( 0, 1 ), 3 );
+   EXPECT_EQ( squareTransposed.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( squareTransposed.getElement( 1, 1 ), 4 );
 }
 
 template< typename Matrix >
@@ -1676,6 +1700,13 @@ TYPED_TEST( MatrixTest, shapesTest_differentOrdering )
       RealAllocatorType >;
 
    test_Shapes< MatrixType, MatrixType2 >();
+}
+
+TYPED_TEST( MatrixTest, getTranspositionTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_GetTransposition< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, assignmentOperatorTest )

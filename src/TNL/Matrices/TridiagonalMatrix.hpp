@@ -131,11 +131,9 @@ TridiagonalMatrixTranspositionCudaKernel(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix.getRows() ) {
-      if( rowIdx > 0 )
-         outMatrix.setElementFast( rowIdx - 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx - 1 ) );
-      outMatrix.setElementFast( rowIdx, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx ) );
-      if( rowIdx < inMatrix.getRows() - 1 )
-         outMatrix.setElementFast( rowIdx + 1, rowIdx, matrixMultiplicator * inMatrix.getElementFast( rowIdx, rowIdx + 1 ) );
+      for( Index columnIdx = rowIdx - 1; columnIdx <= rowIdx + 1; columnIdx++ )
+         if( columnIdx >= 0 && columnIdx < inMatrix.getColumns() )
+            outMatrix.setElement( columnIdx, rowIdx, matrixMultiplicator * inMatrix.getElement( rowIdx, columnIdx ) );
    }
 #endif
 }
@@ -147,16 +145,22 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
    const TridiagonalMatrix< Real2, Device, Index2 >& matrix,
    const Real& matrixMultiplicator )
 {
-   TNL_ASSERT_EQ( this->getRows(), matrix.getRows(), "The matrices must have the same number of rows." );
+   TNL_ASSERT_EQ(
+      this->getRows(),
+      matrix.getColumns(),
+      "The transposed matrix must have as many rows as the number of columns of the input matrix." );
+   TNL_ASSERT_EQ(
+      this->getColumns(),
+      matrix.getRows(),
+      "The transposed matrix must have as many columns as the number of rows of the input matrix." );
 
    if constexpr( std::is_same_v< Device, Devices::Host > ) {
-      const Index& rows = matrix.getRows();
-      for( Index i = 1; i < rows; i++ ) {
-         Real aux = matrix.getElement( i, i - 1 );
-         this->setElement( i, i - 1, matrix.getElement( i - 1, i ) );
-         this->setElement( i, i, matrix.getElement( i, i ) );
-         this->setElement( i - 1, i, aux );
-      }
+      const Index rows = matrix.getRows();
+      const Index columns = matrix.getColumns();
+      for( Index row = 0; row < rows; row++ )
+         for( Index column = row - 1; column <= row + 1; column++ )
+            if( column >= 0 && column < columns )
+               this->setElement( column, row, matrixMultiplicator * matrix.getElement( row, column ) );
    }
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       Backend::LaunchConfiguration launch_config;
