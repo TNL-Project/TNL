@@ -312,6 +312,18 @@ constexpr unsigned int radixSortTileAggregate = 1u << 30;
 constexpr unsigned int radixSortTilePrefix = 1u << 31;
 constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
 
+// the launch bounds keep the occupancy of the binning kernel from
+// silently dropping when a change grows the register count: with 256
+// threads per block, at most 64 registers are available per thread when
+// 4 blocks should stay resident on a multiprocessor (8-byte values need
+// more registers, so only 2 blocks are requested for them); HIP is not
+// guarded because the attribute was not verified there
+#if defined( __CUDACC__ )
+   #define RADIX_SORT_LAUNCH_BOUNDS __launch_bounds__( radixSortBlockSize, sizeof( Value ) <= 4 ? 4 : 2 )
+#else
+   #define RADIX_SORT_LAUNCH_BOUNDS
+#endif
+
 /**
  * \brief Kernel performing one digit-binning pass of the single-pass variant.
  *
@@ -364,7 +376,7 @@ constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
  */
 template< typename Value, typename Index, bool descending >
 __global__
-void
+void RADIX_SORT_LAUNCH_BOUNDS
 radixSortOnesweepKernel(
    const Containers::ArrayView< Value, Devices::GPU, Index > input,
    Containers::ArrayView< Value, Devices::GPU, Index > output,
@@ -629,6 +641,8 @@ radixSortOnesweepKernel(
    }
 #endif
 }
+
+#undef RADIX_SORT_LAUNCH_BOUNDS
 
 /**
  * \brief Kernel advancing the base offsets of the digit runs after a strip.
