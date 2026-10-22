@@ -1,5 +1,8 @@
 #pragma once
 
+#include <thread>
+#include <vector>
+
 #include <gtest/gtest.h>
 
 #include <TNL/Arithmetics/experimental/Quad.h>
@@ -1021,6 +1024,55 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_view )
          EXPECT_EQ( this->array_host[ inputOffset + i ], ( i * ( i + 1 ) ) / 2 )
             << "inclusive in-place unaligned view mismatch at i=" << i;
    }
+}
+
+// Test that the scans performed concurrently by several host threads do not
+// interfere. The lookback kernel shares the array of its states among the
+// scans, so they must be serialized. Each thread scans its own array with a
+// different value, so mixing the states of different scans would change the
+// results.
+TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using ValueType = typename TestFixture::ValueType;
+   using IndexType = typename TestFixture::IndexType;
+   using DeviceType = typename TestFixture::DeviceType;
+   using HostArrayType = typename TestFixture::HostArrayType;
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+   }
+
+   const IndexType size = 9377;
+   const int threadsCount = 4;
+   const int iterations = 50;
+   std::vector< int > errors( threadsCount, 0 );
+
+   auto work = [ & ]( int t )
+   {
+      ArrayType input( size );
+      ArrayType output( size );
+      HostArrayType result;
+      input.setValue( ValueType( t + 1 ) );
+      for( int iter = 0; iter < iterations; iter++ ) {
+         output.setValue( ValueType( 0 ) );
+         inclusiveScan( input, output, 0, size, 0, std::plus<>{}, (ValueType) 0 );
+         result = output;
+         for( IndexType i = 0; i < size; i++ )
+            if( result[ i ] != ValueType( ( i + 1 ) * ( t + 1 ) ) )
+               errors[ t ]++;
+      }
+   };
+
+   std::vector< std::thread > threads;
+   for( int t = 0; t < threadsCount; t++ )
+      threads.emplace_back( work, t );
+   for( auto& thread : threads )
+      thread.join();
+
+   for( int t = 0; t < threadsCount; t++ )
+      EXPECT_EQ( errors[ t ], 0 ) << "wrong results in thread " << t;
 }
 
 #include "../main.h"
