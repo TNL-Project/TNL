@@ -70,7 +70,6 @@ parallelSingleSourceShortestPath(
    y = distances;
    auto yView = y.getView();
    auto predecessorsView = predecessors.getView();
-   auto marksView = marks.getView();
 
    marks = 0;
    marks.setElement( start, 1 );
@@ -82,6 +81,9 @@ parallelSingleSourceShortestPath(
    if constexpr( std::is_same_v< DeviceType, Devices::Host > )
       hostAtomicY.setSize( n );
 
+   // The bitmap mode does not build the compact frontier, so it has to be built from the
+   // marks before the next iteration in the frontier mode.
+   bool previousWasBitmap = false;
    for( IndexType i = 0; i < n; i++ ) {
       const double frontierFraction = static_cast< double >( frontierSize ) / static_cast< double >( n );
       const bool useTopDownBitmap = bitmapThreshold > 0.0 && frontierFraction < bitmapThreshold;
@@ -138,9 +140,17 @@ parallelSingleSourceShortestPath(
             frontierSize = sum( nextMarks );
             marks.swap( nextMarks );
             nextMarks = 0;
+            previousWasBitmap = true;
          }
          else {
+            if( previousWasBitmap ) {
+               frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+               previousWasBitmap = false;
+            }
+
             marks = 0;
+            // marks may have been swapped with nextMarks, so the view must be taken here
+            auto marksView = marks.getView();
 
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
@@ -226,9 +236,17 @@ parallelSingleSourceShortestPath(
             frontierSize = sum( nextMarks );
             marks.swap( nextMarks );
             nextMarks = 0;
+            previousWasBitmap = true;
          }
          else {
+            if( previousWasBitmap ) {
+               frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+               previousWasBitmap = false;
+            }
+
             marks = 0;
+            // marks may have been swapped with nextMarks, so the view must be taken here
+            auto marksView = marks.getView();
 
             forEdges(
                graph,
