@@ -460,7 +460,7 @@ forElementsIfBlockMergeKernel_SlicedEllpack(
    __syncthreads();
 
    const Index v1 = InclusiveGPUScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
-   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
+   if( threadIdx.x < SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    __syncthreads();
 
