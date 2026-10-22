@@ -11,6 +11,8 @@
 #include <TNL/Backend.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Exceptions/NotImplementedError.h>
+#include <TNL/Algorithms/fill.h>
+#include <TNL/Algorithms/scan.h>
 
 namespace TNL::Algorithms::Sorting::detail {
 
@@ -299,6 +301,81 @@ radixSortTotalHistogramKernel(
 }
 
 /**
+ * \brief Kernel deriving the skippable passes and the sweep buffers from the
+ * digit histograms.
+ *
+ * A pass whose histogram consists of a single non-zero bucket maps all
+ * elements to the same digit, so the stable partition of its sweep is the
+ * identity permutation and the sweep can be skipped. The flags are computed
+ * on the device so that the driver does not have to synchronize the host to
+ * learn them: the host launches the sweeps of all passes and each sweep
+ * adjusts itself (see \ref radixSortOnesweepKernel).
+ *
+ * The kernel is launched with a single block of \ref radixSortBuckets
+ * threads: the histograms are tiny (`passes` x `radixSortBuckets` counters,
+ * at most 8 passes) and the running parity of the executed passes is a short
+ * sequential prefix, so the cost of the kernel is a few dozen cycles on top
+ * of the loads:
+ *
+ * - each thread detects the non-zero buckets of its digit across the passes,
+ *   with the counts accumulated in shared memory,
+ * - thread 0 computes the skip flag of each pass, the running parity of the
+ *   executed passes before each pass, and the parity of the total number of
+ *   executed passes.
+ *
+ * \param counts is the view of the digit histograms filled by
+ *               \ref radixSortTotalHistogramKernel, with the entry for the
+ *               pass `p` and digit `d` stored at
+ *               `counts[ p * radixSortBuckets + d ]`. The kernel must be
+ *               launched before the histograms are exclusive-scanned in
+ *               place, which the driver guarantees by the stream order of
+ *               the launches.
+ * \param flags is the view of `2 * passes + 1` integers to be written:
+ *              `flags[ p ]` tells whether the pass `p` is skipped,
+ *              `flags[ passes + p ]` is the parity of the number of passes
+ *              executed before the pass `p`, and `flags[ 2 * passes ]` is
+ *              the parity of the total number of executed passes.
+ */
+template< typename Value, typename Index >
+__global__
+void
+radixSortDetectSkipFlagsKernel(
+   const Containers::ArrayView< Index, Devices::GPU, Index > counts,
+   Containers::ArrayView< int, Devices::GPU, Index > flags )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   constexpr int passes = static_cast< int >( sizeof( Value ) );
+   __shared__ int s_nonZeroBuckets[ passes ];
+   if( static_cast< int >( threadIdx.x ) < passes )
+      s_nonZeroBuckets[ threadIdx.x ] = 0;
+   __syncthreads();
+
+   // the launch uses blockDim.x == radixSortBuckets, so each thread counts
+   // the non-zero buckets of its digit across the passes
+   const int digit = static_cast< int >( threadIdx.x );
+   #pragma unroll
+   for( int p = 0; p < passes; p++ )
+      if( counts[ static_cast< Index >( p ) * radixSortBuckets + digit ] != 0 )
+         atomicAdd( &s_nonZeroBuckets[ p ], 1 );
+   __syncthreads();
+
+   // the parity prefix is sequential over the (at most 8) passes, so it is
+   // computed by a single thread
+   if( threadIdx.x == 0 ) {
+      int parity = 0;
+      #pragma unroll
+      for( int p = 0; p < passes; p++ ) {
+         const int skip = static_cast< int >( s_nonZeroBuckets[ p ] == 1 );
+         flags[ p ] = skip;
+         flags[ passes + p ] = parity;
+         parity ^= 1 - skip;
+      }
+      flags[ 2 * passes ] = parity;
+   }
+#endif
+}
+
+/**
  * \brief Status flags of the tile counters used by
  * \ref radixSortOnesweepKernel.
  *
@@ -362,15 +439,33 @@ constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
  * strip's inclusive prefix in its tile counter, from which the driver
  * advances \p digitBase for the next strip.
  *
- * \param input is the view of the strip of the array to be sorted.
- * \param output is the view of the auxiliary array for the scattered
- *               elements (indexed globally, i.e. it spans the whole array).
+ * The sweeps of the executed passes alternate between the input array
+ * \p arrA and the auxiliary array \p arrB. The host does not know which
+ * passes are skipped (see \ref radixSortDetectSkipFlagsKernel), so it
+ * launches the sweeps of all passes and each sweep selects its source and
+ * target buffer itself: a skipped pass exits immediately, an executed pass
+ * `p` reads the strip of \p arrB when the parity of the passes executed
+ * before it is odd (of \p arrA otherwise) and writes the scattered elements
+ * to the other buffer.
+ *
+ * \param arrA is the view of the whole array being sorted; it is one of the
+ *             two ping-pong buffers.
+ * \param arrB is the view of the whole auxiliary array; it is the other
+ *             ping-pong buffer.
  * \param digitBase is the view of the base offsets of the digit runs, with
  *                  the entry for the pass `p` and digit `d` stored at
  *                  `digitBase[ p * radixSortBuckets + d ]`.
  * \param tileStatus is the view of the tile status counters, with one counter
  *                   per (tile, digit) plus one work counter at the end. It
  *                   must be zeroed.
+ * \param flags are the pass flags computed by \ref radixSortDetectSkipFlagsKernel:
+ *              `flags[ pass ]` tells whether this pass is skipped and
+ *              `flags[ passes + pass ]` tells whether this pass reads the
+ *              strip of \p arrB (otherwise the strip of \p arrA) and writes
+ *              to the other buffer.
+ * \param stripBegin is the index of the first element of the strip in the
+ *                   buffers.
+ * \param stripEnd is the index one past the last element of the strip.
  * \param numTiles is the number of tiles of the strip.
  * \param pass is the index of the radix sort pass.
  */
@@ -378,14 +473,32 @@ template< typename Value, typename Index, bool descending >
 __global__
 void RADIX_SORT_LAUNCH_BOUNDS
 radixSortOnesweepKernel(
-   const Containers::ArrayView< Value, Devices::GPU, Index > input,
-   Containers::ArrayView< Value, Devices::GPU, Index > output,
+   Containers::ArrayView< Value, Devices::GPU, Index > arrA,
+   Containers::ArrayView< Value, Devices::GPU, Index > arrB,
    const Containers::ArrayView< Index, Devices::GPU, Index > digitBase,
    Containers::ArrayView< unsigned int, Devices::GPU, Index > tileStatus,
+   const Containers::ArrayView< const int, Devices::GPU, Index > flags,
+   Index stripBegin,
+   Index stripEnd,
    Index numTiles,
    int pass )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   constexpr int passes = static_cast< int >( sizeof( Value ) );
+
+   // a skipped pass maps all elements to the same digit, so its sweep is the
+   // identity permutation and is skipped; the tile status counters stay
+   // zeroed, so the following advance of the base offsets is a no-op
+   if( flags[ pass ] )
+      return;
+
+   // the host launches the sweeps of all passes without knowing which of
+   // them are skipped: the sweep selects its source and target buffer from
+   // the parity of the passes executed before it
+   const bool srcIsB = flags[ passes + pass ] != 0;
+   const auto input = ( srcIsB ? arrB : arrA ).getView( stripBegin, stripEnd );
+   auto output = srcIsB ? arrA : arrB;
+
    __shared__ Index s_base[ radixSortBuckets ];
    __shared__ int s_digitStart[ radixSortBuckets + 1 ];
    __shared__ int s_singleDigit;
@@ -653,6 +766,10 @@ radixSortOnesweepKernel(
  * offsets of the given pass, so that the following strip scatters its
  * elements after the elements of the preceding strips.
  *
+ * For a skipped pass the tile counters are still zero, so the advance adds
+ * zeros to the (never used) base offsets of the pass and the kernel is a
+ * no-op.
+ *
  * \param digitBase is the view of the base offsets of the digit runs, with
  *                  the entry for the pass `p` and digit `d` stored at
  *                  `digitBase[ p * radixSortBuckets + d ]`.
@@ -678,6 +795,47 @@ radixSortAdvanceBaseKernel(
 }
 
 /**
+ * \brief Kernel copying the sorted data back from the auxiliary array.
+ *
+ * The sweeps of the executed passes alternate between the array being
+ * sorted and the auxiliary array, so the sorted data ends up in the
+ * auxiliary array when the number of executed passes is odd. The driver
+ * does not learn the parity on the host, so the copy is launched
+ * unconditionally and the kernel exits immediately when the parity flag is
+ * even - including the case of zero executed passes, i.e. when the input is
+ * already sorted.
+ *
+ * \param view is the view of the whole array being sorted (the destination).
+ * \param aux is the view of the whole auxiliary array (the source).
+ * \param flags are the pass flags computed by \ref radixSortDetectSkipFlagsKernel;
+ *              the copy is performed only when `flags[ 2 * passes ]` is odd.
+ */
+template< typename Value, typename Index >
+__global__
+void
+radixSortCopyBackKernel(
+   Containers::ArrayView< Value, Devices::GPU, Index > view,
+   const Containers::ArrayView< Value, Devices::GPU, Index > aux,
+   const Containers::ArrayView< const int, Devices::GPU, Index > flags )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   constexpr int passes = static_cast< int >( sizeof( Value ) );
+   if( flags[ 2 * passes ] == 0 )
+      return;
+   const Index n = view.getSize();
+   const Index stride = static_cast< Index >( gridDim.x ) * blockDim.x;
+   const Index first = static_cast< Index >( blockIdx.x ) * blockDim.x + threadIdx.x;
+   if( first >= n )
+      return;
+   // computed without accumulation to avoid overflow of the index type when
+   // n is close to its maximum (first + steps * stride can exceed it)
+   const Index steps = ( n - first ) / stride + static_cast< Index >( ( n - first ) % stride != 0 );
+   for( Index k = 0; k < steps; k++ )
+      view[ first + k * stride ] = aux[ first + k * stride ];
+#endif
+}
+
+/**
  * \brief Sorts the given view using LSD radix sort.
  *
  * The algorithm processes the bytes of the order-preserving sort key
@@ -698,10 +856,14 @@ radixSortAdvanceBaseKernel(
  *
  * A pass whose histogram consists of a single non-zero bucket maps all
  * elements to the same digit, so its stable partition is the identity
- * permutation: such passes are detected from the upfront histogram on the
- * host and their sweeps are skipped in all strips. The digit counts are
- * permutation-invariant, so the histograms of the later passes stay valid
- * regardless of which earlier passes are skipped.
+ * permutation and its sweeps can be skipped in all strips; the digit counts
+ * are permutation-invariant, so the histograms of the later passes stay
+ * valid regardless of which earlier passes are skipped. The skippable
+ * passes are detected on the device (see \ref radixSortDetectSkipFlagsKernel),
+ * together with the parity of the executed passes, which selects the source
+ * and target buffer of each sweep, so the host never learns which passes
+ * are going to run: all kernels are launched asynchronously on the same
+ * stream and the host synchronizes only once, at the very end.
  *
  * \param view is the view of the array to be sorted in place.
  * \tparam descending tells whether to sort in descending order.
@@ -728,10 +890,8 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    const int multiprocessors = Backend::getDeviceMultiprocessors( Backend::getDevice() );
    const Index maxBlocks = static_cast< Index >( multiprocessors ) * 32;
 
+   // the sweeps of the executed passes alternate between view and aux
    Containers::Array< Value, Device, Index > aux( n );
-
-   auto input = view;
-   auto output = aux.getView();
 
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = radixSortBlockSize;
@@ -740,41 +900,37 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    // the digit counts are independent of the order of the elements, which
    // changes between the passes, so the histograms of all passes are
    // computed upfront; the exclusive scan of each histogram then gives the
-   // global base offsets of the digit runs
+   // global base offsets of the digit runs. Everything up to the final
+   // streamSynchronize is launched asynchronously on the same stream, so
+   // the host never blocks.
    Containers::Array< Index, Device, Index > digitBase( passes * radixSortBuckets );
-   digitBase.setValue( 0 );
+   Devices::GPU::LaunchConfiguration fillConfig;
+   fillConfig.blockHostUntilFinished = false;
+   Algorithms::fill< Devices::GPU >( digitBase.getData(), Index( 0 ), digitBase.getSize(), fillConfig );
 
    constexpr auto totalHistogramKernel = radixSortTotalHistogramKernel< Value, Index, descending >;
-   Backend::launchKernelAsync( totalHistogramKernel, launch_config, input, digitBase.getView() );
+   Backend::launchKernelAsync( totalHistogramKernel, launch_config, view, digitBase.getView() );
 
-   // copy the digit counts to the host (the synchronous copy also orders the
-   // rest of the computation after the histogram kernel): the exclusive
-   // scans of the 256-counter histograms are cheaper on the host than in
-   // per-pass kernel launches with host synchronization, and the raw counts
-   // additionally allow the skippable passes to be detected - a pass whose
-   // histogram has a single non-zero bucket maps all elements to the same
-   // digit, so its stable partition is the identity permutation and its
-   // sweeps can be skipped in all strips
-   Index hostCounts[ passes * radixSortBuckets ];
-   Backend::memcpy( hostCounts, digitBase.getData(), sizeof( hostCounts ), Backend::MemcpyDeviceToHost );
-   unsigned int skippedPasses = 0;
-   for( int p = 0; p < passes; p++ ) {
-      int nonZeroBuckets = 0;
-      Index total = 0;
-      for( int d = 0; d < radixSortBuckets; d++ ) {
-         const Index count = hostCounts[ p * radixSortBuckets + d ];
-         nonZeroBuckets += count != 0;
-         hostCounts[ p * radixSortBuckets + d ] = total;
-         total += count;
-      }
-      if( nonZeroBuckets == 1 )
-         skippedPasses |= 1u << p;
-   }
+   // detect the skippable passes and the source/target buffer parity of
+   // each sweep on the device, so that the host can launch the sweeps of
+   // all passes without knowing which of them are going to run; the kernel
+   // reads the raw histograms, which the exclusive scans below overwrite in
+   // place, the stream order of the launches guaranteeing the read comes
+   // first
+   constexpr auto detectSkipFlagsKernel = radixSortDetectSkipFlagsKernel< Value, Index >;
+   Containers::Array< int, Device, Index > passFlags( 2 * passes + 1 );
+   Backend::launchKernelAsync(
+      detectSkipFlagsKernel, Backend::LaunchConfiguration( 1, radixSortBuckets ), digitBase.getView(), passFlags.getView() );
 
-   // upload the base offsets of the digit runs (the entries of the skipped
-   // passes are only ever consumed by their own sweeps, so their content
-   // does not matter)
-   Backend::memcpy( digitBase.getData(), hostCounts, sizeof( hostCounts ), Backend::MemcpyHostToDevice );
+   // exclusive-scan the histograms of all passes on the device
+   for( int p = 0; p < passes; p++ )
+      Algorithms::inplaceExclusiveScan(
+         digitBase,
+         static_cast< Index >( p ) * radixSortBuckets,
+         static_cast< Index >( p + 1 ) * radixSortBuckets,
+         std::plus<>{},
+         Index( 0 ),
+         fillConfig );
 
    // the input is processed in strips of up to 2^28 elements: the values
    // exchanged by the decoupled lookback must fit into 30 bits, and the
@@ -790,19 +946,16 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    constexpr auto onesweepKernel = radixSortOnesweepKernel< Value, Index, descending >;
    constexpr auto advanceBaseKernel = radixSortAdvanceBaseKernel< Index >;
 
-   // all kernels are launched on the same stream, so their execution is
-   // ordered by the stream
-   int executedPasses = 0;
+   // the host launches the sweeps of all passes: the sweeps of a skipped
+   // pass exit immediately, so they permute the array by the identity
+   // permutation, and the advance of the pass's base offsets by the still
+   // zeroed tile counters is a no-op (see radixSortAdvanceBaseKernel)
    for( int pass = 0; pass < passes; pass++ ) {
-      // the sweeps of a skipped pass are the identity permutation, so they
-      // are omitted in every strip, along with the advance of the pass's
-      // base offsets (which only its own sweeps would consume)
-      if( skippedPasses & ( 1u << pass ) )
-         continue;
       for( Index strip = 0; strip < numStrips; strip++ ) {
          const Index stripBegin = strip * onesweepStripSize;
-         // the strip size is computed first to avoid overflow of the strip end
-         // when the strip size does not fit into the index type
+         // computed from the strip size to avoid overflow of the index type
+         // when n is close to its maximum (stripBegin + onesweepStripSize
+         // can overflow a signed index type)
          const Index stripSize = TNL::min( n - stripBegin, onesweepStripSize );
          const Index stripEnd = stripBegin + stripSize;
          // computed without rounding up to avoid overflow of the index type
@@ -810,15 +963,18 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
          const Index stripNumTiles = stripSize / radixSortTileSize + static_cast< Index >( stripSize % radixSortTileSize != 0 );
 
          // zeroing the status also resets the work counter
-         tileStatus.setValue( 0 );
+         Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, tileStatus.getSize(), fillConfig );
          launch_config.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
          Backend::launchKernelAsync(
             onesweepKernel,
             launch_config,
-            input.getView( stripBegin, stripEnd ),
-            output,
+            view,
+            aux.getView(),
             digitBase.getView(),
             tileStatus.getView(),
+            passFlags.getConstView(),
+            stripBegin,
+            stripEnd,
             stripNumTiles,
             pass );
 
@@ -831,16 +987,16 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
                advanceBaseKernel, launch_config, digitBase.getView(), tileStatus.getView(), stripNumTiles, pass );
          }
       }
-      input.swap( output );
-      executedPasses++;
    }
-   Backend::streamSynchronize( launch_config.stream );
 
    // for an odd number of executed passes the sorted data ends up in the
-   // auxiliary array; zero executed passes means that all elements share
-   // every digit, i.e. the input is already sorted in place
-   if( executedPasses % 2 == 1 )
-      view = input;
+   // auxiliary array and is copied back by the kernel; zero executed passes
+   // means that all elements share every digit, i.e. the input is already
+   // sorted in place (even parity, no copy)
+   constexpr auto copyBackKernel = radixSortCopyBackKernel< Value, Index >;
+   launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
+   Backend::launchKernelAsync( copyBackKernel, launch_config, view, aux.getView(), passFlags.getConstView() );
+   Backend::streamSynchronize( launch_config.stream );
 #else
    throw Exceptions::NotImplementedError( "RadixSort is supported only when CUDA or HIP is enabled." );
 #endif
