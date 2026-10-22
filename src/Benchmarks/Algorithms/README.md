@@ -15,6 +15,8 @@ array of ones is measured with:
 |-----------|-------------|--------------|---------------------|
 | `TNL` | The public API (`Algorithms::inplaceInclusiveScan` or `inplaceExclusiveScan`) with the default configuration | `default` | `default` |
 | `CUB` | `cub::DeviceScan::InclusiveSum` or `ExclusiveSum` (CUDA builds, arithmetic value types only) | `-` | `-` |
+| `hipCUB` | `hipcub::DeviceScan::InclusiveSum` or `ExclusiveSum` (HIP builds, arithmetic value types only) | `-` | `-` |
+| `rocPRIM` | `rocprim::inclusive_scan` or `exclusive_scan` with the default configuration (HIP builds, arithmetic value types only) | `-` | `-` |
 | `TNL lookback` | `GPUScanKernelLauncher::performLookback` with the given configuration | number | number |
 
 The result of each measurement is compared with the result of the public API, and a mismatch
@@ -36,7 +38,7 @@ value types up to 8 bytes, 11 for larger types.
 | Executable | Description |
 |------------|-------------|
 | `tnl-benchmark-scan-cuda` | CUDA build, compared with CUB |
-| `tnl-benchmark-scan-hip` | HIP build |
+| `tnl-benchmark-scan-hip` | HIP build, compared with hipCUB and rocPRIM |
 
 There is no host-only executable, since the benchmark tunes a GPU kernel.
 
