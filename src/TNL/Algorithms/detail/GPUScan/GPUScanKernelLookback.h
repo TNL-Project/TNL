@@ -32,6 +32,7 @@
  * https://research.nvidia.com/publication/2016-03_Single-pass-Parallel-Prefix-Sum-Decoupled-Lookback
  */
 
+#include <cstdint>  // std::uintptr_t
 #include <cstring>  // memcpy
 #include <type_traits>
 
@@ -102,6 +103,27 @@ struct alignas( 16 ) Vec4
 {
    int x, y, z, w;
 };
+
+/* Returns the number of elements at the beginning of a tile which must be
+ * accessed scalarly, so that the following elements start at a 16-byte
+ * boundary and can be accessed via Vec4. The alignment is determined from the
+ * address, since the data of a view do not have to start at a 16-byte
+ * boundary. If no element starts at a 16-byte boundary (e.g. 16-byte types
+ * with 8-byte alignment), the whole tile is accessed scalarly.
+ */
+template< typename ValueType >
+__device__
+int
+getVec4FrontPeel( const ValueType* tile, int elementsInTile )
+{
+   const int misalignment = reinterpret_cast< std::uintptr_t >( tile ) % 16;
+   if( misalignment == 0 )
+      return 0;
+   const int peelBytes = 16 - misalignment;
+   if( peelBytes % sizeof( ValueType ) != 0 )
+      return elementsInTile;
+   return TNL::min( static_cast< int >( peelBytes / sizeof( ValueType ) ), elementsInTile );
+}
 
 /* Loads the status word of a lookback state with the acquire semantics: the
  * loads which follow (of the aggregate or prefix published together with the
@@ -187,13 +209,18 @@ GPUScanKernelLookback(
    __shared__ Backend::Uninitialized< ValueType > sharedAggregateStorage;
    __shared__ Backend::Uninitialized< ValueType > sharedPrefixStorage;
 
-   constexpr int maxElementsInBlock = blockSize * valuesPerThread;
-   const int remainingElements = end - begin - blockIdx.x * maxElementsInBlock;
-   const int elementsInBlock = TNL::min( remainingElements, maxElementsInBlock );
+   using InputIndex = typename InputView::IndexType;
+   using OutputIndex = typename OutputView::IndexType;
 
-   const int threadOffset = blockIdx.x * maxElementsInBlock + threadIdx.x;
-   begin += threadOffset;
-   outputBegin += threadOffset;
+   // the offsets are computed in the index types, since one grid may cover
+   // more elements than int can represent
+   constexpr int maxElementsInBlock = blockSize * valuesPerThread;
+   const InputIndex blockOffset = static_cast< InputIndex >( blockIdx.x ) * maxElementsInBlock;
+   const int elementsInBlock =
+      static_cast< int >( TNL::min( end - begin - blockOffset, static_cast< InputIndex >( maxElementsInBlock ) ) );
+
+   begin += blockOffset + threadIdx.x;
+   outputBegin += blockOffset + threadIdx.x;
 
    auto& storage = tileStorage.get();
    auto& sharedAggregate = sharedAggregateStorage.get();
@@ -202,22 +229,20 @@ GPUScanKernelLookback(
    // Phase 1: strided load of the block tile into shared memory; pad the
    // remainder with identity so the last block runs the same code path.
    // Vectorized int4 loads (16 bytes) cut load instructions for contiguous
-   // arrays whose value type size divides 16. When the tile origin is not
-   // 16-byte aligned (e.g. scan of a sub-array with an unaligned begin), the
-   // unaligned prefix and suffix are loaded scalarly and only the aligned
-   // middle uses Vec4 loads (with scalar shared stores, since the middle does
-   // not start at a 16B boundary in shared memory). Expression templates fall
-   // back to the fully scalar path (no getData()). frontPeel is uniform across
-   // the block, so no warp divergence.
+   // arrays whose value type size divides 16. When the address of the tile
+   // origin is not 16-byte aligned (e.g. scan of a sub-array with an unaligned
+   // begin or of a view whose data are not aligned), the unaligned prefix and
+   // suffix are loaded scalarly and only the aligned middle uses Vec4 loads
+   // (with scalar shared stores, since the middle does not start at a 16B
+   // boundary in shared memory). Expression templates fall back to the fully
+   // scalar path (no getData()). The front peel is uniform across the block,
+   // so no warp divergence.
    {
-      constexpr bool canVectorize = ( sizeof( ValueType ) == 1 || sizeof( ValueType ) == 2 || sizeof( ValueType ) == 4
-                                      || sizeof( ValueType ) == 8 || sizeof( ValueType ) == 16 )
-                                 && 16 % sizeof( ValueType ) == 0 && IsArrayType< InputView >::value;
+      constexpr bool canVectorize = 16 % sizeof( ValueType ) == 0 && IsArrayType< InputView >::value;
       if constexpr( canVectorize ) {
          constexpr int vecWidth = 16 / sizeof( ValueType );
-         const int tileOrigin = begin - threadIdx.x;
-         const int frontPeel = ( vecWidth - ( tileOrigin % vecWidth ) ) % vecWidth;
-         const int actualFrontPeel = frontPeel < elementsInBlock ? frontPeel : elementsInBlock;
+         const InputIndex tileOrigin = begin - threadIdx.x;
+         const int actualFrontPeel = getVec4FrontPeel( input.getData() + tileOrigin, elementsInBlock );
          const int alignedVecs = ( elementsInBlock - actualFrontPeel ) / vecWidth;
          const int alignedEnd = actualFrontPeel + alignedVecs * vecWidth;
 
@@ -341,14 +366,11 @@ GPUScanKernelLookback(
    // aligned middle (with scalar shared reads, since the middle does not
    // start at a 16B boundary in shared memory).
    {
-      constexpr bool canVectorize = ( sizeof( ValueType ) == 1 || sizeof( ValueType ) == 2 || sizeof( ValueType ) == 4
-                                      || sizeof( ValueType ) == 8 || sizeof( ValueType ) == 16 )
-                                 && 16 % sizeof( ValueType ) == 0 && IsArrayType< OutputView >::value;
+      constexpr bool canVectorize = 16 % sizeof( ValueType ) == 0 && IsArrayType< OutputView >::value;
       if constexpr( canVectorize ) {
          constexpr int vecWidth = 16 / sizeof( ValueType );
-         const int outputTileOrigin = outputBegin - threadIdx.x;
-         const int frontPeel = ( vecWidth - ( outputTileOrigin % vecWidth ) ) % vecWidth;
-         const int actualFrontPeel = frontPeel < elementsInBlock ? frontPeel : elementsInBlock;
+         const OutputIndex outputTileOrigin = outputBegin - threadIdx.x;
+         const int actualFrontPeel = getVec4FrontPeel( output.getData() + outputTileOrigin, elementsInBlock );
          const int alignedVecs = ( elementsInBlock - actualFrontPeel ) / vecWidth;
          const int alignedEnd = actualFrontPeel + alignedVecs * vecWidth;
 
