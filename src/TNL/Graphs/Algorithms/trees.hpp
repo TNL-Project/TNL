@@ -209,17 +209,21 @@ isTree_impl(
    const IndexType n = graph.getVertexCount();
    const auto graphView = graph.getConstView();
 
-   if( treeType == TreeType::Tree ) {
-      // A tree on n vertices has exactly n-1 edges.  Guard against the
-      // unsigned underflow when nActive == 0 (an empty graph is trivially
-      // a tree — zero vertices, zero edges).
-      const IndexType nActive = detail::countActiveVertices( graph, launchConfig );
-      if( nActive == 0 )
-         return true;
-      const IndexType activeEdgeCount = detail::countActiveEdges( graph, launchConfig );
-      if( activeEdgeCount != nActive - 1 )
-         return false;
-   }
+   // A forest on n vertices with c trees has exactly n-c edges, a tree has n-1 edges.
+   // The number of edges is checked for both tree types, because the parallel BFS below
+   // does not detect cycles closed by an edge between vertices reached in the same round.
+   // Guard against the unsigned underflow when nActive == 0 (an empty graph is trivially
+   // a tree and a forest — zero vertices, zero edges).
+   const IndexType nActive = detail::countActiveVertices( graph, launchConfig );
+   if( nActive == 0 )
+      return true;
+   const IndexType activeEdgeCount = detail::countActiveEdges( graph, launchConfig );
+   if( treeType == TreeType::Tree && activeEdgeCount != nActive - 1 )
+      return false;
+   if( activeEdgeCount > nActive - 1 )
+      return false;
+   // number of the trees found by the BFS, i.e. of the BFS starts from unvisited vertices
+   IndexType treesCount = 0;
 
    IndexVectorType visited( n, 0 );
    IndexVectorType visited_old( n, -1 );
@@ -257,6 +261,8 @@ isTree_impl(
          true );
       if( ! startActive )
          return false;
+      if( visited.getElement( start ) == 0 )
+         treesCount++;
       visited.setElement( start, 1 );
       parents.setElement( start, start );
       if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -377,7 +383,7 @@ isTree_impl(
                TNL::LogicalAnd{},
                true );
             if( allVisited )
-               return true;
+               return activeEdgeCount == nActive - treesCount;
          }
       }
       auto visitedViewOuter = visited.getConstView();
@@ -391,7 +397,7 @@ isTree_impl(
          TNL::LogicalAnd{},
          true );
       if( allVisitedSeq )
-         return true;
+         return activeEdgeCount == nActive - treesCount;
       if( treeType == TreeType::Tree )
          return false;
       if( ! roots.empty() ) {
@@ -412,7 +418,7 @@ isTree_impl(
             TNL::Min{},
             std::numeric_limits< IndexType >::max() );
          if( start == std::numeric_limits< IndexType >::max() )
-            return true;
+            return activeEdgeCount == nActive - treesCount;
       }
    }
 }
