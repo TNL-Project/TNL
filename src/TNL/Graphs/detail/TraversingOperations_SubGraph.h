@@ -16,7 +16,9 @@ namespace TNL::Graphs::detail {
  * vertices) and the edge filter (skip filtered edges) transparently during
  * traversal, so that \ref forAllEdges, \ref forEdges, \ref forEdgesIf, etc.
  * work with SubGraph the same way they work with Graph — no algorithm-level
- * branching needed.
+ * branching needed. The padding elements of the adjacency matrix are not
+ * edges, so they are skipped before the filters are evaluated and the
+ * traversal visits the same edges as the reduction over the subgraph.
  *
  * SubGraph IS its own ViewType / ConstViewType (see SubGraph.h), so
  * traverse.hpp dispatches here when the graph parameter is a SubGraph.
@@ -53,6 +55,8 @@ struct TraversingOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrapped =
          [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType column, const ValueType& value ) mutable
       {
+         if( column == Matrices::paddingIndex< IndexType > )
+            return;
          if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             function( row, localIdx, column, value );
       };
@@ -78,6 +82,8 @@ struct TraversingOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrapped =
          [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType column, const ValueType& value ) mutable
       {
+         if( column == Matrices::paddingIndex< IndexType > )
+            return;
          if( vertexFilter( row ) && vertexFilter( column ) && edgeFilter( row, column, value ) )
             function( row, localIdx, column, value );
       };
@@ -107,6 +113,8 @@ struct TraversingOperations< SubGraph< Graph_, VertexFilter, EdgeFilter > >
       auto wrapped =
          [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType column, const ValueType& value ) mutable
       {
+         if( column == Matrices::paddingIndex< IndexType > )
+            return;
          if( vertexFilter( column ) && edgeFilter( row, column, value ) )
             function( row, localIdx, column, value );
       };
