@@ -168,6 +168,10 @@ struct GPUScanKernelLauncher
          epoch = 0;
       }
       epoch++;
+      if( cache.tileCounter.getSize() == 0 ) {
+         cache.tileCounter.setSize( 1 );
+         cache.tileCounter.setValue( 0 );
+      }
 
       constexpr auto kernel = GPUScanKernelLookback<
          scanType,
@@ -193,7 +197,10 @@ struct GPUScanKernelLauncher
          reduction,
          identity,
          states.getData(),
-         epoch );
+         epoch,
+         cache.tileCounter.getData(),
+         cache.tileCounterBase );
+      cache.tileCounterBase += numberOfBlocks;
 
       gridsCount() = 1;
    }
@@ -524,6 +531,10 @@ struct GPUScanKernelLauncher
       Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
       // epoch of the last scan which used the states, see LookbackStatus
       unsigned int epoch = 0;
+      // counter used by the kernel to assign the tiles to the blocks; it is
+      // never reset, each scan uses the values starting at tileCounterBase
+      Containers::Array< unsigned long long, Devices::Cuda > tileCounter;
+      unsigned long long tileCounterBase = 0;
    };
 
    // Returns the per-instantiation cache for the active device. The caches are

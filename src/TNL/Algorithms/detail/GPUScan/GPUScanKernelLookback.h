@@ -13,7 +13,9 @@
  * complete prefix. The block publishes its own prefix, so that the succeeding
  * blocks can stop their walk early, and finally scans the tile with the prefix
  * as the initial value and writes the result to the output. The whole scan is
- * done by one kernel launch.
+ * done by one kernel launch. The tiles are assigned to the blocks dynamically
+ * via an atomic counter in the order in which the blocks start, so that the
+ * lookback does not depend on the order in which the blocks are scheduled.
  *
  * Usage (see GPUScanKernelLauncher in GPUScan.h): the complete scan in
  * GPUScanKernelLauncher::perform when the input is larger than one tile and
@@ -199,7 +201,9 @@ GPUScanKernelLookback(
    Reduction reduction,
    ValueType identity,
    LookbackState< ValueType >* states,
-   unsigned int epoch )
+   unsigned int epoch,
+   unsigned long long* tileCounter,
+   unsigned long long tileCounterBase )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using TileScan = GPUTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
@@ -208,6 +212,18 @@ GPUScanKernelLookback(
    __shared__ Backend::Uninitialized< typename TileScan::Storage > tileStorage;
    __shared__ Backend::Uninitialized< ValueType > sharedAggregateStorage;
    __shared__ Backend::Uninitialized< ValueType > sharedPrefixStorage;
+   __shared__ unsigned int sharedTileIdx;
+
+   // The tiles are assigned to the blocks in the order in which the blocks
+   // start, not by blockIdx.x. A block waits for the states of the preceding
+   // tiles in the lookback, so the preceding tiles must be assigned to blocks
+   // which already run. Otherwise the kernel could deadlock when the blocks
+   // with lower blockIdx.x are not scheduled first, which is not guaranteed
+   // (e.g. on AMD GPUs).
+   if( threadIdx.x == 0 )
+      sharedTileIdx = static_cast< unsigned int >( atomicAdd( tileCounter, 1ull ) - tileCounterBase );
+   __syncthreads();
+   const unsigned int tileIdx = sharedTileIdx;
 
    using InputIndex = typename InputView::IndexType;
    using OutputIndex = typename OutputView::IndexType;
@@ -215,7 +231,7 @@ GPUScanKernelLookback(
    // the offsets are computed in the index types, since one grid may cover
    // more elements than int can represent
    constexpr int maxElementsInBlock = blockSize * valuesPerThread;
-   const InputIndex blockOffset = static_cast< InputIndex >( blockIdx.x ) * maxElementsInBlock;
+   const InputIndex blockOffset = static_cast< InputIndex >( tileIdx ) * maxElementsInBlock;
    const int elementsInBlock =
       static_cast< int >( TNL::min( end - begin - blockOffset, static_cast< InputIndex >( maxElementsInBlock ) ) );
 
@@ -312,9 +328,9 @@ GPUScanKernelLookback(
 
       // 5a: publish the block aggregate, then flip the status from Invalid to
       // Aggregate so successors can start consuming it.
-      states[ blockIdx.x ].aggregate = blockAggregate;
+      states[ tileIdx ].aggregate = blockAggregate;
       __threadfence();
-      atomicExch( &states[ blockIdx.x ].status, aggregateStatus );
+      atomicExch( &states[ tileIdx ].status, aggregateStatus );
 
       // 5b: walk predecessors right-to-left, accumulating their aggregates.
       // Stop as soon as a predecessor advertises Prefix (its prefix field
@@ -322,7 +338,7 @@ GPUScanKernelLookback(
       // States with a different epoch were written by a previous scan and
       // are treated as Invalid.
       ValueType prefix = identity;
-      for( int pred = blockIdx.x - 1; pred >= 0; pred-- ) {
+      for( int pred = static_cast< int >( tileIdx ) - 1; pred >= 0; pred-- ) {
          unsigned int status;
          do {
             status = loadAcquire( &states[ pred ].status );
@@ -339,9 +355,9 @@ GPUScanKernelLookback(
       // 5c: publish the inclusive prefix (sum up to and including this block)
       // so successors can stop their walk early. sharedPrefix stays exclusive
       // (sum of previous blocks only) to avoid double-counting in Phase 6.
-      states[ blockIdx.x ].prefix = reduction( prefix, blockAggregate );
+      states[ tileIdx ].prefix = reduction( prefix, blockAggregate );
       __threadfence();
-      atomicExch( &states[ blockIdx.x ].status, prefixStatus );
+      atomicExch( &states[ tileIdx ].status, prefixStatus );
 
       sharedPrefix = prefix;
    }
