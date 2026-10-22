@@ -26,10 +26,11 @@ namespace TNL::Algorithms::Sorting {
  *
  * \par Space requirements
  *
- * The implementation requires an auxiliary array of the same size
- * (\f$N\f$) as the input array and an array of per-block histograms, which
- * is small (at most 32 blocks per multiprocessor times 256 counters).
- * The total memory overhead is approximately \f$N\f$.
+ * The sort requires an auxiliary array of the same size (\f$N\f$) as the
+ * input array, which serves as the ping-pong buffer of the passes, and an
+ * array of tile status counters of the decoupled lookback, which is at most
+ * \f$2^{17}\f$ tiles times 256 counters (about 128 MiB). When a workspace
+ * is reused across sorts, both buffers are persistent and only grow.
  *
  * \par Example
  *
@@ -44,6 +45,28 @@ namespace TNL::Algorithms::Sorting {
  */
 struct RadixSort
 {
+   /**
+    * \brief Workspace of the temporary device buffers of the radix sort.
+    *
+    * Repeated sorts of arrays of a similar size should reuse one workspace
+    * (see detail::RadixSortWorkspace) to remove the per-sort device memory
+    * allocations: the buffers are grown on demand by the `sort` overloads
+    * taking the workspace and are never shrunk, so no device memory is
+    * allocated once the buffers fit the sorted array. The dominant buffer
+    * is the auxiliary (ping-pong) array with one value per element of the
+    * sorted array.
+    *
+    * \note The sorts sharing one workspace must not overlap: the workspace
+    * carries state between asynchronous kernel launches, so the sorts must
+    * be ordered on the same stream.
+    *
+    * \tparam Value is the value type of the arrays to be sorted.
+    * \tparam Device is the device type, only \ref Devices::GPU is implemented.
+    * \tparam Index is the index type of the arrays to be sorted.
+    */
+   template< typename Value, typename Device, typename Index >
+   using Workspace = detail::RadixSortWorkspace< Value, Device, Index >;
+
    /**
     * \brief Sorts `array` in ascending order.
     *
@@ -86,6 +109,61 @@ struct RadixSort
       else
          detail::radixSort< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType, false >(
             array.getView() );
+   }
+
+   /**
+    * \brief Sorts `array` in ascending order, reusing the given workspace
+    * of temporary device buffers.
+    *
+    * See the overload taking also the comparison functor for details.
+    *
+    * \tparam Array is the type of container to be sorted (see \ref sort(Array&)).
+    * \param array is an instance of the container to be sorted in place.
+    * \param workspace is the scratch space reusable across sorts; it must
+    * have the same value, device and index types as `array`.
+    */
+   template< typename Array >
+   void static sort(
+      Array& array,
+      Workspace< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType >& workspace )
+   {
+      sort( array, workspace, std::less{} );
+   }
+
+   /**
+    * \brief Sorts `array` in ascending or descending order, reusing the
+    * given workspace of temporary device buffers.
+    *
+    * Behaves like \ref sort(Array&, const Compare&), but takes the
+    * temporary device buffers from \p workspace instead of allocating them
+    * per call. The workspace is grown to fit `array` and keeps its
+    * capacity for the next call, so a workspace reused across sorts of
+    * arrays no larger than the largest one sorted so far performs no
+    * device memory allocation at all.
+    *
+    * \tparam Array is the type of container to be sorted (see \ref sort(Array&)).
+    * \tparam Compare is the comparison functor, only `std::less` (or
+    * `std::less<>`) and `std::greater` (or `std::greater<>`) are supported.
+    * \param array is an instance of the container to be sorted in place.
+    * \param workspace is the scratch space reusable across sorts; it must
+    * have the same value, device and index types as `array`.
+    * \param compare is an instance of the comparison functor selecting the order.
+    */
+   template< typename Array, typename Compare >
+   void static sort(
+      Array& array,
+      Workspace< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType >& workspace,
+      [[maybe_unused]] const Compare& compare )
+   {
+      static_assert(
+         detail::is_std_less_v< Compare > || detail::is_std_greater_v< Compare >,
+         "RadixSort supports only the std::less and std::greater comparison functors" );
+      if constexpr( detail::is_std_greater_v< Compare > )
+         detail::radixSort< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType, true >(
+            array.getView(), workspace );
+      else
+         detail::radixSort< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType, false >(
+            array.getView(), workspace );
    }
 };
 

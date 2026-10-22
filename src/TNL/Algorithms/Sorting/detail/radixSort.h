@@ -301,35 +301,33 @@ radixSortTotalHistogramKernel(
 }
 
 /**
- * \brief Kernel deriving the skippable passes and the sweep buffers from the
- * digit histograms.
+ * \brief Kernel scanning the digit histograms and deriving the skippable
+ * passes and the sweep buffers from them.
+ *
+ * The global base offsets of the digit runs are the exclusive scans of the
+ * per-pass histograms; the kernel computes the scans of all (at most 8)
+ * passes, replacing the per-pass scan launches of the driver. The launch
+ * uses a single block of \ref radixSortBuckets threads, so the raw counters
+ * of one pass are held one per thread and the block-wide exclusive scan
+ * written back in place scans one pass per iteration of the main loop.
  *
  * A pass whose histogram consists of a single non-zero bucket maps all
  * elements to the same digit, so the stable partition of its sweep is the
  * identity permutation and the sweep can be skipped. The flags are computed
  * on the device so that the driver does not have to synchronize the host to
  * learn them: the host launches the sweeps of all passes and each sweep
- * adjusts itself (see \ref radixSortOnesweepKernel).
- *
- * The kernel is launched with a single block of \ref radixSortBuckets
- * threads: the histograms are tiny (`passes` x `radixSortBuckets` counters,
- * at most 8 passes) and the running parity of the executed passes is a short
- * sequential prefix, so the cost of the kernel is a few dozen cycles on top
- * of the loads:
- *
- * - each thread detects the non-zero buckets of its digit across the passes,
- *   with the counts accumulated in shared memory,
- * - thread 0 computes the skip flag of each pass, the running parity of the
- *   executed passes before each pass, and the parity of the total number of
- *   executed passes.
+ * adjusts itself (see \ref radixSortOnesweepKernel). The non-zero buckets
+ * of each pass are counted with warp ballots over the raw counters before
+ * the scanned bases overwrite them; thread 0 then computes the skip flag of
+ * each pass, the running parity of the executed passes before each pass,
+ * and the parity of the total number of executed passes, which is a short
+ * sequential prefix.
  *
  * \param counts is the view of the digit histograms filled by
  *               \ref radixSortTotalHistogramKernel, with the entry for the
  *               pass `p` and digit `d` stored at
- *               `counts[ p * radixSortBuckets + d ]`. The kernel must be
- *               launched before the histograms are exclusive-scanned in
- *               place, which the driver guarantees by the stream order of
- *               the launches.
+ *               `counts[ p * radixSortBuckets + d ]`; the raw counts are
+ *               replaced by their exclusive scans in place.
  * \param flags is the view of `2 * passes + 1` integers to be written:
  *              `flags[ p ]` tells whether the pass `p` is skipped,
  *              `flags[ passes + p ]` is the parity of the number of passes
@@ -836,7 +834,94 @@ radixSortCopyBackKernel(
 }
 
 /**
- * \brief Sorts the given view using LSD radix sort.
+ * \brief Workspace of the temporary buffers of the radix sort driver.
+ *
+ * The radix sort driver needs an auxiliary array of the size of the input
+ * (the ping-pong buffer of the sweeps), the digit histograms of the passes,
+ * the tile status counters of the decoupled lookback and the pass flags.
+ * A default-constructed workspace owns no memory; \ref setSize grows the
+ * buffers to the requested size and they are never shrunk, so a workspace
+ * reused across sorts performs no device memory allocation at all once the
+ * buffers fit the input. The auxiliary array is the dominant buffer (one
+ * value per element) and its allocation costs several microseconds per
+ * sort even when the memory is cached by the GPU driver.
+ *
+ * The value, device and index types of the buffers must match the sorted
+ * array, which is enforced by the `sort` overloads of \ref RadixSort
+ * taking the workspace.
+ *
+ * \note Like the lookback states cache of the GPU scan (see
+ * \ref TNL::Algorithms::detail::lookbackStatesCache), the workspace carries
+ * state between asynchronous kernel launches, so the sorts sharing one
+ * workspace must be ordered on the same stream and must not overlap.
+ *
+ * \tparam Value is the value type of the arrays to be sorted.
+ * \tparam Device is the device type, only \ref Devices::GPU is implemented.
+ * \tparam Index is the index type of the arrays to be sorted.
+ */
+template< typename Value, typename Device, typename Index >
+struct RadixSortWorkspace
+{
+   static_assert( std::is_same_v< Device, Devices::GPU >, "RadixSort is implemented only for the GPU device" );
+   static_assert( std::is_arithmetic_v< Value >, "RadixSort supports only arithmetic value types" );
+   static_assert( sizeof( Value ) <= 8, "RadixSort supports value types with at most 8 bytes" );
+
+   /**
+    * \brief Grows the buffers so that an array of `size` elements can be
+    * sorted.
+    *
+    * The buffers keep their capacity when `size` shrinks - only the
+    * buffers which cannot hold a `size`-element array are reallocated.
+    */
+   void
+   setSize( const Index size )
+   {
+      // the sweeps ping-pong the whole array, so the auxiliary array must
+      // hold the whole input; it is by far the largest buffer
+      if( aux.getSize() < size )
+         aux.setSize( size );
+
+      // the sizes of the histogram and flag buffers depend only on the
+      // value type, so they are allocated on the first call
+      constexpr int passes = static_cast< int >( sizeof( Value ) );
+      if( digitBase.getSize() == 0 )
+         digitBase.setSize( passes * radixSortBuckets );
+      if( passFlags.getSize() == 0 )
+         passFlags.setSize( 2 * passes + 1 );
+
+      // one status counter per (tile, digit) plus the work counter; the
+      // number of tiles of a strip is capped by the maximum strip size of
+      // 2^28 elements, so the buffer stops growing once it can hold the
+      // counters of a full strip
+      if( size > 0 ) {
+         // computed without rounding up to avoid overflow of the index
+         // type when the size is close to its maximum
+         const Index numTiles =
+            size / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( size % radixSortTileSize != 0 );
+         const Index maxStripTiles =
+            TNL::min( numTiles, ( static_cast< Index >( 1 ) << 28 ) / static_cast< Index >( radixSortTileSize ) );
+         const Index requiredSize = maxStripTiles * radixSortBuckets + 1;
+         if( tileStatus.getSize() < requiredSize )
+            tileStatus.setSize( requiredSize );
+      }
+   }
+
+   //! \brief Auxiliary (ping-pong) array of at least the sorted size.
+   Containers::Array< Value, Device, Index > aux;
+
+   //! \brief Base offsets of the digit runs: `passes` x `radixSortBuckets` entries.
+   Containers::Array< Index, Device, Index > digitBase;
+
+   //! \brief Status counters of the lookback tiles plus the work counter.
+   Containers::Array< unsigned int, Device, Index > tileStatus;
+
+   //! \brief Skip flags and buffer-parity flags of the passes: `2 * passes + 1` entries.
+   Containers::Array< int, Device, Index > passFlags;
+};
+
+/**
+ * \brief Sorts the given view using LSD radix sort, reusing the given
+ * workspace of temporary buffers.
  *
  * The algorithm processes the bytes of the order-preserving sort key
  * (see \ref valueToRadixSortKey) from the least significant to the most
@@ -865,12 +950,18 @@ radixSortCopyBackKernel(
  * are going to run: all kernels are launched asynchronously on the same
  * stream and the host synchronizes only once, at the very end.
  *
+ * The temporary buffers are taken from \p workspace (see
+ * \ref RadixSortWorkspace), which the caller can reuse across sorts to
+ * avoid the per-call device memory allocations.
+ *
  * \param view is the view of the array to be sorted in place.
+ * \param workspace is the scratch space whose buffers are grown to fit
+ *                  `view` (they keep their capacity for the next call).
  * \tparam descending tells whether to sort in descending order.
  */
 template< typename Value, typename Device, typename Index, bool descending >
 void
-radixSort( Containers::ArrayView< Value, Device, Index > view )
+radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspace< Value, Device, Index >& workspace )
 {
    static_assert( std::is_same_v< Device, Devices::GPU >, "RadixSort is implemented only for the GPU device" );
    static_assert( std::is_arithmetic_v< Value >, "RadixSort supports only arithmetic value types" );
@@ -884,14 +975,19 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    const Index n = view.getSize();
    constexpr int passes = static_cast< int >( sizeof( Value ) );
 
+   // grow the reused buffers to fit the input; the buffers keep their
+   // capacity when the input shrinks, so repeated sorts do not allocate
+   workspace.setSize( n );
+
    // computed without rounding up to avoid overflow of n + radixSortTileSize
    // when the index type is signed and n is close to its maximum
    const Index numTiles = n / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( n % radixSortTileSize != 0 );
    const int multiprocessors = Backend::getDeviceMultiprocessors( Backend::getDevice() );
    const Index maxBlocks = static_cast< Index >( multiprocessors ) * 32;
 
-   // the sweeps of the executed passes alternate between view and aux
-   Containers::Array< Value, Device, Index > aux( n );
+   // the sweeps of the executed passes alternate between view and the
+   // auxiliary array of the workspace
+   auto aux = workspace.aux.getView( 0, n );
 
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = radixSortBlockSize;
@@ -903,7 +999,7 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    // global base offsets of the digit runs. Everything up to the final
    // streamSynchronize is launched asynchronously on the same stream, so
    // the host never blocks.
-   Containers::Array< Index, Device, Index > digitBase( passes * radixSortBuckets );
+   auto& digitBase = workspace.digitBase;
    Devices::GPU::LaunchConfiguration fillConfig;
    fillConfig.blockHostUntilFinished = false;
    Algorithms::fill< Devices::GPU >( digitBase.getData(), Index( 0 ), digitBase.getSize(), fillConfig );
@@ -918,7 +1014,7 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    // place, the stream order of the launches guaranteeing the read comes
    // first
    constexpr auto detectSkipFlagsKernel = radixSortDetectSkipFlagsKernel< Value, Index >;
-   Containers::Array< int, Device, Index > passFlags( 2 * passes + 1 );
+   auto& passFlags = workspace.passFlags;
    Backend::launchKernelAsync(
       detectSkipFlagsKernel, Backend::LaunchConfiguration( 1, radixSortBuckets ), digitBase.getView(), passFlags.getView() );
 
@@ -940,8 +1036,11 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    const Index numStrips = n / onesweepStripSize + static_cast< Index >( n % onesweepStripSize != 0 );
    const Index maxStripTiles = TNL::min( numTiles, onesweepStripSize / radixSortTileSize );
 
-   // one status counter per (tile, digit), plus the work counter
-   Containers::Array< unsigned int, Device, Index > tileStatus( maxStripTiles * radixSortBuckets + 1 );
+   // one status counter per (tile, digit), plus the work counter; the
+   // buffer is reused, so it may be larger than needed, but the kernels of
+   // this call touch only the prefix of `tileStatusSize` counters
+   auto& tileStatus = workspace.tileStatus;
+   const Index tileStatusSize = maxStripTiles * radixSortBuckets + 1;
 
    constexpr auto onesweepKernel = radixSortOnesweepKernel< Value, Index, descending >;
    constexpr auto advanceBaseKernel = radixSortAdvanceBaseKernel< Index >;
@@ -963,13 +1062,13 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
          const Index stripNumTiles = stripSize / radixSortTileSize + static_cast< Index >( stripSize % radixSortTileSize != 0 );
 
          // zeroing the status also resets the work counter
-         Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, tileStatus.getSize(), fillConfig );
+         Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, tileStatusSize, fillConfig );
          launch_config.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
          Backend::launchKernelAsync(
             onesweepKernel,
             launch_config,
             view,
-            aux.getView(),
+            aux,
             digitBase.getView(),
             tileStatus.getView(),
             passFlags.getConstView(),
@@ -995,11 +1094,26 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
    // sorted in place (even parity, no copy)
    constexpr auto copyBackKernel = radixSortCopyBackKernel< Value, Index >;
    launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
-   Backend::launchKernelAsync( copyBackKernel, launch_config, view, aux.getView(), passFlags.getConstView() );
+   Backend::launchKernelAsync( copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
    Backend::streamSynchronize( launch_config.stream );
 #else
    throw Exceptions::NotImplementedError( "RadixSort is supported only when CUDA or HIP is enabled." );
 #endif
+}
+
+/**
+ * \brief One-shot overload of \ref radixSort which allocates a fresh
+ * workspace per call.
+ *
+ * Repeated sorts should prefer the overload taking \ref RadixSortWorkspace,
+ * which removes the per-call device memory allocations.
+ */
+template< typename Value, typename Device, typename Index, bool descending >
+void
+radixSort( Containers::ArrayView< Value, Device, Index > view )
+{
+   RadixSortWorkspace< Value, Device, Index > workspace;
+   radixSort< Value, Device, Index, descending >( view, workspace );
 }
 
 }  // namespace TNL::Algorithms::Sorting::detail
