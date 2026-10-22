@@ -79,6 +79,8 @@ stronglyConnectedComponents_impl(
       graph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType tgt, const ValueType& ) mutable
       {
+         if( tgt == Matrices::paddingIndex< IndexType > )
+            return;
          TNL::Algorithms::AtomicOperations< DeviceType >::add( revCapView[ tgt ], 1 );
       },
       launchConfig );
@@ -93,6 +95,8 @@ stronglyConnectedComponents_impl(
       graph,
       [ = ] __cuda_callable__( IndexType src, IndexType, IndexType tgt, const ValueType& w ) mutable
       {
+         if( tgt == Matrices::paddingIndex< IndexType > )
+            return;
          auto row = revMatrixView.getRow( tgt );
          const IndexType idx = TNL::Algorithms::AtomicOperations< DeviceType >::add( slotView[ tgt ], 1 );
          row.setElement( idx, src, w );
