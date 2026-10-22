@@ -5,6 +5,7 @@
 
 #include "SubGraphTestBase.h"
 #include <TNL/Graphs/SubGraph.h>
+#include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/AtomicOperations.h>
@@ -568,6 +569,27 @@ test_materialize_masked()
 TYPED_TEST( SubGraphTest, materialize_masked )
 {
    test_materialize_masked< typename TestFixture::GraphType >();
+}
+
+// With Ellpack segments, the rows of the vertices 1, 2, 3 and 4 of the test graph are
+// padded (their out-degrees are 1, 1, 1 and 0 while the maximal one is 2). The padding
+// elements must not be treated as edges.
+template< typename GraphType >
+using EllpackGraph = TNL::Graphs::Graph<
+   typename GraphType::ValueType,
+   typename GraphType::DeviceType,
+   typename GraphType::IndexType,
+   TNL::Graphs::DirectedGraph,
+   TNL::Algorithms::Segments::Ellpack >;
+
+TYPED_TEST( SubGraphTest, materialize_padded_no_filter )
+{
+   test_materialize_no_filter< EllpackGraph< typename TestFixture::GraphType > >();
+}
+
+TYPED_TEST( SubGraphTest, materialize_padded_masked )
+{
+   test_materialize_masked< EllpackGraph< typename TestFixture::GraphType > >();
 }
 
 template< typename GraphType >
