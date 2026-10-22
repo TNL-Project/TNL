@@ -850,7 +850,7 @@ TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
    }
 
    // Choose size large enough to span multiple blocks with the default
-   // maxElementsInBlock (= blockSize * 9 for the lookback dispatch). A prime
+   // maxElementsInBlock (= blockSize * lookbackValuesPerThread). A prime
    // size ensures the last block is partial, exercising the identity-padding
    // path in Phase 1.
    const IndexType lookbackSize = 9377;
@@ -961,6 +961,65 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_begin )
       for( IndexType i = 0; i < scanSize; i++ )
          EXPECT_EQ( this->array_host[ begin + i ], this->expected_host[ begin + i ] )
             << "inclusive in-place unaligned begin mismatch at i=" << i;
+   }
+}
+
+// Test that the lookback kernel handles views whose data do not start at a
+// 16-byte boundary. Unlike lookback_kernel_unaligned_begin, the scan starts
+// at index 0 of the view, so the alignment must be determined from the
+// address and not from the index. The input and output views have different
+// misalignments.
+TYPED_TEST( ScanTest, lookback_kernel_unaligned_view )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using IndexType = typename TestFixture::IndexType;
+   using DeviceType = typename TestFixture::DeviceType;
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+   }
+
+   const IndexType size = 9377;
+   const IndexType inputOffset = 1;
+   const IndexType outputOffset = 2;
+   const IndexType scanSize = size - outputOffset;
+
+   this->input_host.setSize( size );
+   this->input_host.setValue( 0 );
+   for( IndexType i = 0; i < scanSize; i++ )
+      this->input_host[ inputOffset + i ] = i;
+
+   this->a.setSize( size );
+   this->b.setSize( size );
+   this->a = this->input_host;
+   this->b.setValue( 0 );
+
+   auto inputView = this->a.getView( inputOffset, inputOffset + scanSize );
+   auto outputView = this->b.getView( outputOffset, outputOffset + scanSize );
+
+   inclusiveScan( inputView, outputView, 0, scanSize, 0, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->b;
+      for( IndexType i = 0; i < scanSize; i++ )
+         EXPECT_EQ( this->array_host[ outputOffset + i ], ( i * ( i + 1 ) ) / 2 ) << "inclusive unaligned view mismatch at i=" << i;
+   }
+
+   exclusiveScan( inputView, outputView, 0, scanSize, 0, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->b;
+      for( IndexType i = 0; i < scanSize; i++ )
+         EXPECT_EQ( this->array_host[ outputOffset + i ], ( i * ( i - 1 ) ) / 2 ) << "exclusive unaligned view mismatch at i=" << i;
+   }
+
+   inplaceInclusiveScan( inputView, 0, scanSize, std::plus<>{}, (ValueType) 0 );
+   {
+      this->array_host = this->a;
+      for( IndexType i = 0; i < scanSize; i++ )
+         EXPECT_EQ( this->array_host[ inputOffset + i ], ( i * ( i + 1 ) ) / 2 )
+            << "inclusive in-place unaligned view mismatch at i=" << i;
    }
 }
 
