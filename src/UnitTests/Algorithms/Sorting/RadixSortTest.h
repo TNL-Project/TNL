@@ -274,6 +274,100 @@ TYPED_TEST( RadixSortTest, descendingOrder )
    EXPECT_TRUE( Algorithms::isDescending( view ) );
 }
 
+// Workspace tests (reuse of the temporary buffers across sorts)
+
+TYPED_TEST( RadixSortTest, workspace_growingSizes )
+{
+   using Workspace = Sorting::RadixSort::Workspace< TypeParam, TNL::Devices::GPU, int >;
+   Workspace workspace;
+   std::mt19937 rng( 7001 );
+   // the sizes grow, so the buffers of the workspace are reallocated on
+   // each sort; the last sort is too large to allocate per call, so an
+   // exhausted buffer pool would corrupt the result
+   for( const int size : { 2, 17, 1024, ( 1 << 16 ) + 3 } ) {
+      std::vector< TypeParam > vec = makeRandomVector< TypeParam >( size, rng() );
+
+      TNL::Containers::Array< TypeParam, TNL::Devices::GPU > arr( vec );
+      auto view = arr.getView();
+      Sorting::RadixSort::sort( view, workspace );
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for size " << size;
+   }
+}
+
+TYPED_TEST( RadixSortTest, workspace_neverShrinks )
+{
+   using Workspace = Sorting::RadixSort::Workspace< TypeParam, TNL::Devices::GPU, int >;
+   constexpr int passes = static_cast< int >( sizeof( TypeParam ) );
+   Workspace workspace;
+
+   // grow the buffers by a large sort
+   const int bigSize = 1 << 16;
+   std::vector< TypeParam > vec = makeRandomVector< TypeParam >( bigSize, 517 );
+   TNL::Containers::Array< TypeParam, TNL::Devices::GPU > arr( vec );
+   Sorting::RadixSort::sort( arr, workspace );
+   const int grownAuxSize = workspace.aux.getSize();
+   EXPECT_GE( grownAuxSize, bigSize );
+   EXPECT_EQ( workspace.digitBase.getSize(), passes * 256 );
+   EXPECT_EQ( workspace.passFlags.getSize(), 2 * passes + 1 );
+
+   // a smaller sort keeps the grown buffers
+   vec = makeRandomVector< TypeParam >( 100, 518 );
+   arr = vec;
+   Sorting::RadixSort::sort( arr, workspace );
+   EXPECT_TRUE( Algorithms::isAscending( arr ) );
+   EXPECT_EQ( workspace.aux.getSize(), grownAuxSize );
+}
+
+TYPED_TEST( RadixSortTest, workspace_zeroEntropyAndEqualElements )
+{
+   using Workspace = Sorting::RadixSort::Workspace< TypeParam, TNL::Devices::GPU, int >;
+   Workspace workspace;
+   const int size = 1 << 16;
+
+   // zero-entropy input: the histogram of every pass owns a single non-zero
+   // bucket, so all passes are skipped and no sweep runs
+   std::vector< TypeParam > vec( size, static_cast< TypeParam >( 7 ) );
+   TNL::Containers::Array< TypeParam, TNL::Devices::GPU > arr( vec );
+   auto view = arr.getView();
+   Sorting::RadixSort::sort( view, workspace );
+   EXPECT_TRUE( Algorithms::isAscending( view ) );
+
+   // a few distinct values on a small alphabet: most passes execute after
+   // the skipped ones, reusing the buffers of the skipped sort
+   std::mt19937 rng( 910 );
+   for( auto& value : vec )
+      value = static_cast< TypeParam >( static_cast< int >( rng() % 4 ) );
+   arr = vec;
+   Sorting::RadixSort::sort( view, workspace );
+   std::sort( vec.begin(), vec.end() );
+   TNL::Containers::Array< TypeParam, TNL::Devices::GPU > sortedArr( vec );
+   EXPECT_TRUE( view == sortedArr.getView() );
+
+   // a random sort must not observe any state of the two orders above
+   vec = makeRandomVector< TypeParam >( size, 911 );
+   arr = vec;
+   Sorting::RadixSort::sort( view, workspace );
+   EXPECT_TRUE( Algorithms::isAscending( view ) );
+}
+
+TYPED_TEST( RadixSortTest, workspace_descendingOrder )
+{
+   using Workspace = Sorting::RadixSort::Workspace< TypeParam, TNL::Devices::GPU, int >;
+   Workspace workspace;
+
+   // ascending and descending sorts alternate on one workspace
+   const int size = 1 << 14;
+   std::vector< TypeParam > vec = makeRandomVector< TypeParam >( size, 4242 );
+
+   TNL::Containers::Array< TypeParam, TNL::Devices::GPU > arr( vec );
+   auto view = arr.getView();
+   Sorting::RadixSort::sort( view, workspace );
+   EXPECT_TRUE( Algorithms::isAscending( view ) );
+
+   Sorting::RadixSort::sort( view, workspace, std::greater{} );
+   EXPECT_TRUE( Algorithms::isDescending( view ) );
+}
+
 // Integration with free sorting functions
 
 TEST( RadixSortFreeFunctionTest, ascendingAndDescending )
