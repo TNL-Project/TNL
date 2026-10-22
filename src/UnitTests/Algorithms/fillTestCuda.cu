@@ -45,7 +45,7 @@ TYPED_TEST( FillTest, fill_cuda )
    cudaAllocator.deallocate( deviceData, ARRAY_TEST_SIZE );
 }
 
-TYPED_TEST( FillTest, fillAsync_cuda )
+TYPED_TEST( FillTest, fill_cuda_nonblocking )
 {
    using ValueType = typename TestFixture::ValueType;
    using HostAllocator = Allocators::Host< ValueType >;
@@ -56,8 +56,10 @@ TYPED_TEST( FillTest, fillAsync_cuda )
    ValueType* hostData = hostAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData = cudaAllocator.allocate( ARRAY_TEST_SIZE );
    fill< Devices::Host >( hostData, (ValueType) 0, ARRAY_TEST_SIZE );
-   fillAsync< Devices::Cuda >( deviceData, (ValueType) 13, ARRAY_TEST_SIZE );
-   // fillAsync does not block the host, so we must synchronize before reading the result
+   Devices::Cuda::LaunchConfiguration launch_config;
+   launch_config.blockHostUntilFinished = false;
+   fill< Devices::Cuda >( deviceData, (ValueType) 13, ARRAY_TEST_SIZE, launch_config );
+   // the fill does not block the host, so we must synchronize before reading the result
    Backend::deviceSynchronize();
    copy< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
