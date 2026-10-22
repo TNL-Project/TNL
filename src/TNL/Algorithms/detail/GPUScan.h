@@ -90,7 +90,9 @@ struct GPUScanKernelLauncher
       typename OutputArray::ValueType identity )
    {
       if( end - begin <= blockSize * valuesPerThread ) {
-         const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
+         // the result of the block is not needed, so blockResults are not allocated
+         performSingleBlock( input, output, begin, end, outputBegin, reduction, identity, nullptr );
+         gridsCount() = 1;
          return;
       }
 
@@ -187,6 +189,65 @@ struct GPUScanKernelLauncher
       gridsCount() = 1;
    }
 
+   /* Scans the input which fits into one tile using one CUDA block. The number
+    * of values per thread is chosen according to the size of the input. If
+    * blockResults is not null, the result of the block is stored in
+    * blockResults[ 0 ].
+    */
+   template< typename InputArray, typename OutputArray, typename Reduction >
+   static void
+   performSingleBlock(
+      const InputArray& input,
+      OutputArray& output,
+      typename InputArray::IndexType begin,
+      typename InputArray::IndexType end,
+      typename OutputArray::IndexType outputBegin,
+      Reduction&& reduction,
+      typename OutputArray::ValueType identity,
+      typename OutputArray::ValueType* blockResults )
+   {
+      if( end - begin <= blockSize )
+         performSingleBlockImpl< 1 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+      else if( end - begin <= blockSize * 3 )
+         performSingleBlockImpl< 3 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+      else if( end - begin <= blockSize * 5 )
+         performSingleBlockImpl< 5 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+      else
+         performSingleBlockImpl< valuesPerThread >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+   }
+
+   template< int elementsPerThread, typename InputArray, typename OutputArray, typename Reduction >
+   static void
+   performSingleBlockImpl(
+      const InputArray& input,
+      OutputArray& output,
+      typename InputArray::IndexType begin,
+      typename InputArray::IndexType end,
+      typename OutputArray::IndexType outputBegin,
+      Reduction&& reduction,
+      typename OutputArray::ValueType identity,
+      typename OutputArray::ValueType* blockResults )
+   {
+      constexpr auto kernel = GPUScanKernelParallel<
+         scanType,
+         blockSize,
+         elementsPerThread,
+         typename InputArray::ConstViewType,
+         typename OutputArray::ViewType,
+         std::decay_t< Reduction > >;
+      Backend::launchKernelSync(
+         kernel,
+         Backend::LaunchConfiguration( 1, blockSize ),
+         input.getConstView(),
+         output.getView(),
+         begin,
+         end,
+         outputBegin,
+         reduction,
+         identity,
+         blockResults );
+   }
+
    /**
     * \brief Performs the first phase of prefix sum.
     *
@@ -223,90 +284,8 @@ struct GPUScanKernelLauncher
          blockResults.setElement( 0, identity );
 
          // run the kernel with just 1 block
-         if( end - begin <= blockSize ) {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               1,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
-         else if( end - begin <= blockSize * 3 ) {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               3,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
-         else if( end - begin <= blockSize * 5 ) {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               5,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
-         else {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               valuesPerThread,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
+         // blockResults are shifted by 1, because the 0-th element should stay identity
+         performSingleBlock( input, output, begin, end, outputBegin, reduction, identity, &blockResults.getData()[ 1 ] );
 
          // Store the number of CUDA grids for the purpose of unit testing, i.e.
          // to check if we test the algorithm with more than one CUDA grid.
