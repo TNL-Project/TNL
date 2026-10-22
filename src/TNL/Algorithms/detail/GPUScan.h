@@ -380,7 +380,11 @@ struct GPUScanKernelLauncher
             }
          }
 
-         // No sync needed: null-stream kernel launches are implicitly ordered.
+         // synchronize the null-stream after all grids
+         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
+
+         // blockResults now contains scan results for each block. The first phase
+         // ends by computing an exclusive scan of this array.
          GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::perform(
             blockResults, blockResults, 0, blockResults.getSize(), 0, reduction, identity );
 
