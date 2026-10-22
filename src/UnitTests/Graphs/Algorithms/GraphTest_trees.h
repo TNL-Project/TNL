@@ -165,6 +165,39 @@ TYPED_TEST( GraphTest, test_small_forest )
    ASSERT_TRUE( TNL::Graphs::Algorithms::isForestWithRoots( graph, roots ) );
 }
 
+TYPED_TEST( GraphTest, test_isForest_cycle )
+{
+   using GraphType = typename TestFixture::GraphType;
+
+   // clang-format off
+   // Triangle: both vertices 1 and 2 are reached from vertex 0 in the same round.
+   //
+   //   0
+   //  / \.
+   // 1 - 2
+   // clang-format on
+   GraphType triangle(
+      3, { { 0, 1, 1.0 }, { 0, 2, 1.0 }, { 1, 2, 1.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   EXPECT_FALSE( TNL::Graphs::Algorithms::isTree( triangle ) );
+   EXPECT_FALSE( TNL::Graphs::Algorithms::isForest( triangle ) );
+
+   // clang-format off
+   // Square with an isolated vertex: the number of edges is n - 1 as for a tree.
+   //
+   //   0 - 1     4
+   //   |   |
+   //   3 - 2
+   // clang-format on
+   GraphType square(
+      5,
+      { { 0, 1, 1.0 }, { 1, 2, 1.0 }, { 2, 3, 1.0 }, { 3, 0, 1.0 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   EXPECT_FALSE( TNL::Graphs::Algorithms::isTree( square ) );
+   EXPECT_FALSE( TNL::Graphs::Algorithms::isForest( square ) );
+}
+
 // Subgraph tests for isTree
 
 template< typename GraphType >
