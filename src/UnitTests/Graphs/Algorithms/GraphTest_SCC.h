@@ -1,5 +1,6 @@
 #pragma once
 
+#include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Graphs/Algorithms/stronglyConnectedComponents.h>
 #include <TNL/Graphs/Graph.h>
@@ -903,6 +904,50 @@ test_SCC_subgraph_edge_removal_withVertexIndexes_impl()
 TYPED_TEST( GraphTest, test_SCC_subgraph_edge_removal_withVertexIndexes )
 {
    test_SCC_subgraph_edge_removal_withVertexIndexes_impl< typename TestFixture::GraphType >();
+}
+
+// With Ellpack segments, the rows of vertices with fewer out-edges than the maximal
+// out-degree are padded. The padding elements must not be treated as edges.
+template< typename GraphType >
+void
+test_SCC_padded_adjacency_matrix_impl()
+{
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using EllpackGraphType = TNL::Graphs::Graph<
+      typename GraphType::ValueType,
+      DeviceType,
+      IndexType,
+      TNL::Graphs::DirectedGraph,
+      TNL::Algorithms::Segments::Ellpack >;
+
+   // The same graph as in test_SCC_small: the out-degrees are 0 to 4.
+   // clang-format off
+   const std::initializer_list< std::tuple< IndexType, IndexType, typename GraphType::ValueType > > edges = {
+      { 1, 5, 1.0 },
+      { 2, 0, 1.0 }, { 2, 3, 1.0 }, { 2, 5, 1.0 },
+      { 3, 0, 1.0 }, { 3, 1, 1.0 }, { 3, 5, 1.0 }, { 3, 7, 1.0 },
+      { 5, 2, 1.0 }, { 5, 7, 1.0 },
+      { 6, 1, 1.0 },
+      { 7, 6, 1.0 },
+      { 8, 3, 1.0 },
+      { 9, 6, 1.0 }, { 9, 8, 1.0 },
+   };
+   // clang-format on
+   const EllpackGraphType graph( 10, edges );
+
+   ComponentsType components( graph.getVertexCount(), 0 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, components );
+
+   // Expected SCC IDs: {0}=5, {1,2,3,5,6,7}=3, {4}=4, {8}=2, {9}=1
+   const ComponentsType expected( { 5, 3, 3, 3, 4, 3, 3, 3, 2, 1 } );
+   EXPECT_EQ( components, expected );
+}
+
+TYPED_TEST( GraphTest, test_SCC_padded_adjacency_matrix )
+{
+   test_SCC_padded_adjacency_matrix_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"
