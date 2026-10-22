@@ -121,27 +121,12 @@ struct GPUScanKernelLauncher
       OutputArray& output,
       typename InputArray::IndexType begin,
       typename InputArray::IndexType end,
-      typename InputArray::IndexType outputBegin,
-      Reduction&& reduction,
-      typename OutputArray::ValueType identity )
-   {
-      performLookbackImpl< lookbackValuesPerThread >(
-         input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
-   }
-
-   template< int elementsPerThread, typename InputArray, typename OutputArray, typename Reduction >
-   static void
-   performLookbackImpl(
-      const InputArray& input,
-      OutputArray& output,
-      typename InputArray::IndexType begin,
-      typename InputArray::IndexType end,
-      typename InputArray::IndexType outputBegin,
+      typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
       typename OutputArray::ValueType identity )
    {
       using Index = typename InputArray::IndexType;
-      constexpr int maxElementsInBlock = blockSize * elementsPerThread;
+      constexpr int maxElementsInBlock = blockSize * lookbackValuesPerThread;
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
 
       // Reuse a cache of the lookback states array across calls to avoid
@@ -178,7 +163,7 @@ struct GPUScanKernelLauncher
       constexpr auto kernel = GPUScanKernelLookback<
          scanType,
          blockSize,
-         elementsPerThread,
+         lookbackValuesPerThread,
          typename InputArray::ConstViewType,
          typename OutputArray::ViewType,
          std::decay_t< Reduction >,
@@ -530,7 +515,7 @@ struct GPUScanKernelLauncher
    }
 
    // Cache of the lookback states array, reused across calls to
-   // performLookbackImpl to avoid cudaMalloc/cudaFree churn.
+   // performLookback to avoid cudaMalloc/cudaFree churn.
    struct LookbackCache
    {
       std::mutex mutex;
