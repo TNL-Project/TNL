@@ -17,8 +17,8 @@ The benchmark consists of three parts:
    including host-to-device and device-to-host copies.
 2. **Vector operations** measure reductions and in-place operations on
    `TNL::Containers::Vector`: `max`, `min`, `absMax`, `absMin`, `sum`, l1, l2, and l3 norms,
-   scalar product, scalar multiplication, addition of one, two, or three vectors, and inclusive
-   and exclusive scans (in-place and with one, two, or three input vectors).
+   scalar product, scalar multiplication, and addition of one, two, or three vectors. The scans
+   (prefix sums) are measured by the separate scan benchmark (`src/Benchmarks/Algorithms`).
 3. **Triad** (GPU builds only) measures the STREAM-triad operation `a[i] = b[i] + scalar * c[i]`
    combined with copying the input data from the host memory to the device and the result back.
    The variants differ in the memory allocation used: pageable, pinned, zero-copy, and unified
@@ -30,17 +30,15 @@ Depending on the operation, the following implementations are measured:
 
 - TNL legacy static functions (`CommonVectorOperations`, `VectorOperations`),
 - TNL expression templates, labeled `ET` where they are compared with other TNL implementations,
-  the only TNL implementation of an operation (e.g. scans) is labeled `TNL`,
 - TNL `Algorithms::parallelFor` kernels,
 - TNL `Containers::linearCombination` expressions,
 - C++ standard library algorithms (`std::max_element`, `std::min_element`, `std::reduce`,
-  `std::transform_reduce`, `std::partial_sum`, `std::inclusive_scan`, `std::exclusive_scan`),
+  `std::transform_reduce`),
   executed with parallel execution policies when TBB is available (they are then reported on the
   `host` device, otherwise on the `sequential` device),
 - reference BLAS routines via the CBLAS interface on the host, when a BLAS library with the CBLAS
   interface is found at build time,
 - cuBLAS on CUDA GPUs or hipBLAS on AMD GPUs,
-- CUB (`cub::DeviceScan`) for scans on CUDA GPUs,
 - Thrust host and device algorithms, when Thrust is available at build time. The host algorithms
   are reported on the `host` device when the Thrust host backend is parallel (TBB or OpenMP),
   otherwise on the `sequential` device.
