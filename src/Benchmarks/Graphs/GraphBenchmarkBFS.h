@@ -278,11 +278,9 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          benchmark.setMetadataElement( { "problem", "BFS dir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
 
-         for( const auto& launchEntry :
+         for( const auto& [ launchConfig, tag ] :
               Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
          {
-            const auto& launchConfig = launchEntry.first;
-            const auto& tag = launchEntry.second;
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runBFS( digraph, bfsDistances, bfsPredecessors, launchConfig, "top-down compact", 0.0, 0.0 );
@@ -313,11 +311,9 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          benchmark.setMetadataElement( { "problem", "BFS undir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
 
-         for( const auto& launchEntry :
+         for( const auto& [ launchConfig, tag ] :
               Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
          {
-            const auto& launchConfig = launchEntry.first;
-            const auto& tag = launchEntry.second;
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runBFS( graph, bfsDistances, bfsPredecessors, launchConfig, "top-down compact", 0.0, 0.0 );
