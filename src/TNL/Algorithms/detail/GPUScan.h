@@ -26,6 +26,9 @@
  * details and references.
  */
 
+#include <map>
+#include <mutex>
+
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/Array.h>
@@ -147,8 +150,14 @@ struct GPUScanKernelLauncher
       // new epoch, so the states written by previous calls are treated as
       // Invalid by the kernel and the array does not have to be reset. It is
       // reset only when it is (re)allocated and when the epoch would overflow.
-      auto& states = lookbackStatesCache();
-      auto& epoch = lookbackEpoch();
+      // The cache is per device and the scans which use it are serialized by
+      // its mutex, which is held until the kernel finishes (it is launched
+      // synchronously), so the array cannot be reallocated or its epoch
+      // changed by another host thread while the kernel uses it.
+      auto& cache = lookbackCache();
+      std::lock_guard< std::mutex > lock( cache.mutex );
+      auto& states = cache.states;
+      auto& epoch = cache.epoch;
       // the size of the array is never negative, so the comparison can be done in Index
       // (which may be unsigned)
       const bool grow = static_cast< Index >( states.getSize() ) < numberOfBlocks;
@@ -507,21 +516,30 @@ struct GPUScanKernelLauncher
       gridsCount() = -1;
    }
 
-   // Per-instantiation cache of the lookback states array, reused across
-   // calls to performLookbackImpl to avoid cudaMalloc/cudaFree churn.
-   static Containers::Array< LookbackState< ValueType >, Devices::Cuda >&
-   lookbackStatesCache()
+   // Cache of the lookback states array, reused across calls to
+   // performLookbackImpl to avoid cudaMalloc/cudaFree churn.
+   struct LookbackCache
    {
-      static Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
-      return states;
-   }
+      std::mutex mutex;
+      Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
+      // epoch of the last scan which used the states, see LookbackStatus
+      unsigned int epoch = 0;
+   };
 
-   // Epoch of the last scan which used lookbackStatesCache, see LookbackStatus.
-   static unsigned int&
-   lookbackEpoch()
+   // Returns the per-instantiation cache for the active device. The caches are
+   // intentionally never destroyed: the destructor of the array would free the
+   // device memory at exit, when the GPU runtime may be already shut down (e.g.
+   // after cudaDeviceReset) and the resulting exception would terminate the
+   // program.
+   static LookbackCache&
+   lookbackCache()
    {
-      static unsigned int epoch = 0;
-      return epoch;
+      static std::mutex mutex;
+      static auto* caches = new std::map< int, LookbackCache >;
+      const int device = Backend::getDevice();
+      std::lock_guard< std::mutex > lock( mutex );
+      // std::map does not invalidate references to its elements on insertion
+      return ( *caches )[ device ];
    }
 
    static int&
