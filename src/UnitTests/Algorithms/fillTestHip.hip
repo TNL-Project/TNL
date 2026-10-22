@@ -45,7 +45,7 @@ TYPED_TEST( FillTest, fill_hip )
    hipAllocator.deallocate( deviceData, ARRAY_TEST_SIZE );
 }
 
-TYPED_TEST( FillTest, fillAsync_hip )
+TYPED_TEST( FillTest, fill_hip_nonblocking )
 {
    using ValueType = typename TestFixture::ValueType;
    using HostAllocator = Allocators::Host< ValueType >;
@@ -56,8 +56,10 @@ TYPED_TEST( FillTest, fillAsync_hip )
    ValueType* hostData = hostAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData = hipAllocator.allocate( ARRAY_TEST_SIZE );
    fill< Devices::Host >( hostData, (ValueType) 0, ARRAY_TEST_SIZE );
-   fillAsync< Devices::Hip >( deviceData, (ValueType) 13, ARRAY_TEST_SIZE );
-   // fillAsync does not block the host, so we must synchronize before reading the result
+   Devices::Hip::LaunchConfiguration launch_config;
+   launch_config.blockHostUntilFinished = false;
+   fill< Devices::Hip >( deviceData, (ValueType) 13, ARRAY_TEST_SIZE, launch_config );
+   // the fill does not block the host, so we must synchronize before reading the result
    Backend::deviceSynchronize();
    copy< Devices::Host, Devices::Hip >( hostData, deviceData, ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
