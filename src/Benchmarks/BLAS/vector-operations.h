@@ -6,34 +6,16 @@
 #include <cstdlib>      // srand48
 #include <type_traits>  // std::is_same_v
 #include <algorithm>    // std::max_element, std::min_element, std::transform, etc.
-#include <numeric>      // std::reduce, std::transform_reduce, std::partial_sum, std::inclusive_scan, std::exclusive_scan
+#include <numeric>      // std::reduce, std::transform_reduce
 #include <functional>   // std::function
-
-#if __CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4 && __CUDACC_VER_MINOR__ <= 6
-   // nvcc 12.4 fails when used with GCC 13 and the `execution` header is included
-   // https://gitlab.com/-/snippets/3684272
-   #define STDEXEC
-#elif defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
-   #include <execution>  // std::execution policies
-
-   #if defined( __NVCOMPILER )
-      // nvc++ does not support par_unseq for std::max_element: https://gitlab.com/-/snippets/2576260
-      #define STDEXEC std::execution::par,
-   #else
-      #define STDEXEC std::execution::par_unseq,
-   #endif
-   #define STDEXEC_PARALLEL
-#else
-   #define STDEXEC
-#endif
 
 #include <TNL/Benchmarks/Benchmark.h>
 
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/scan.h>
 #include <TNL/Containers/LinearCombination.h>
 #include "CommonVectorOperations.h"
 #include "VectorOperations.h"
+#include "../ExecutionPolicies.h"
 
 #ifdef HAVE_BLAS
    #include "blasWrappers.h"
@@ -41,7 +23,6 @@
 
 #if defined( __CUDACC__ )
    #include "cublasWrappers.h"
-   #include <cub/cub.cuh>
 #elif defined( __HIP__ )
    #include "hipblasWrappers.h"
 #endif
@@ -50,26 +31,12 @@
    #include <thrust/reduce.h>
    #include <thrust/transform_reduce.h>
    #include <thrust/inner_product.h>
-   #include <thrust/scan.h>
    #include <thrust/extrema.h>
    #include <thrust/execution_policy.h>
    #include <thrust/device_ptr.h>
 #endif
 
 namespace TNL::Benchmarks {
-
-// Device on which the C++ standard library algorithms called with STDEXEC run.
-#ifdef STDEXEC_PARALLEL
-using StdAlgorithmsDevice = Devices::Host;
-#else
-using StdAlgorithmsDevice = Devices::Sequential;
-#endif
-
-#ifdef HAVE_THRUST
-// Device on which the Thrust algorithms called with thrust::host run. The Thrust host backend
-// is selected by CMake (TBB, OpenMP, or the sequential CPP backend).
-using ThrustHostDevice = std::conditional_t< THRUST_HOST_SYSTEM == THRUST_HOST_SYSTEM_CPP, Devices::Sequential, Devices::Host >;
-#endif
 
 template< typename Real = double >
 struct TwoVectorsCoefficients
@@ -149,21 +116,6 @@ class VectorOperationsBenchmark
 #if defined( __CUDACC__ )
    cublasHandle_t cublasHandle;
    const char* gpuBlasName = "cuBLAS";
-
-   // CUB DeviceScan temporary storage (allocated once, reused across benchmark calls)
-   void* cubTempStorage = nullptr;
-   size_t cubTempStorageBytes = 0;
-
-   void
-   ensureCubTempStorage( size_t required )
-   {
-      if( required > cubTempStorageBytes ) {
-         if( cubTempStorage )
-            cudaFree( cubTempStorage );
-         cubTempStorageBytes = required;
-         cudaMalloc( &cubTempStorage, cubTempStorageBytes );
-      }
-   }
 #elif defined( __HIP__ )
    hipblasHandle_t hipblasHandle;
    const char* gpuBlasName = "hipBLAS";
@@ -260,8 +212,6 @@ public:
 #if defined( __CUDACC__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > )
          cublasDestroy( cublasHandle );
-      if( cubTempStorage )
-         cudaFree( cubTempStorage );
 #elif defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > )
          hipblasDestroy( hipblasHandle );
@@ -1526,478 +1476,6 @@ public:
       }
 #endif
    }
-
-   void
-   inclusiveScanInplace()
-   {
-      benchmark.setOperation( "inclusive scan (inplace)" );
-      benchmark.setDatasetSize( 2 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Sequential > ) {
-         auto computeSequential = [ & ]()
-         {
-            SequentialView view;
-            view.bind( hostVector.getData(), hostVector.getSize() );
-            Algorithms::inplaceInclusiveScan( view );
-         };
-         benchmark.time< Devices::Sequential >( reset1, "TNL", computeSequential );
-         verify( "TNL", hostVector[ 0 ], 1 );
-         verify( "TNL", hostVector[ size - 1 ], size );
-
-         auto computeSTL_partial_sum = [ & ]()
-         {
-            std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
-         };
-         benchmark.time< Devices::Sequential >( reset1, "std::partial_sum", computeSTL_partial_sum );
-         verify( "std::partial_sum", hostVector[ 0 ], 1 );
-         verify( "std::partial_sum", hostVector[ size - 1 ], size );
-      }
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::inplaceInclusiveScan( hostVector );
-         };
-         benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
-         verify( "TNL", hostVector[ 0 ], 1 );
-         verify( "TNL", hostVector[ size - 1 ], size );
-      }
-      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
-         auto computeSTL = [ & ]()
-         {
-            std::inclusive_scan(
-               STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
-         };
-         benchmark.time< StdAlgorithmsDevice >( reset1, "std::inclusive_scan", computeSTL );
-         verify( "std::inclusive_scan", hostVector[ 0 ], 1 );
-         verify( "std::inclusive_scan", hostVector[ size - 1 ], size );
-      }
-#ifdef HAVE_THRUST
-      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
-         auto computeThrust = [ & ]()
-         {
-            thrust::inclusive_scan(
-               thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
-         };
-         benchmark.time< ThrustHostDevice >( reset1, "thrust::inclusive_scan", computeThrust );
-         verify( "thrust::inclusive_scan", hostVector[ 0 ], 1 );
-         verify( "thrust::inclusive_scan", hostVector[ size - 1 ], size );
-      }
-#endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::inplaceInclusiveScan( deviceVector );
-         };
-         benchmark.time< Devices::GPU >( reset1, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector.getElement( 0 ), 1 );
-         verify( "TNL", deviceVector.getElement( size - 1 ), size );
-
-   #ifdef HAVE_THRUST
-         auto computeThrustDevice = [ & ]()
-         {
-            thrust::inclusive_scan(
-               thrust::device,
-               thrust::device_pointer_cast( deviceVector.getData() ),
-               thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-               thrust::device_pointer_cast( deviceVector.getData() ) );
-         };
-         benchmark.time< Devices::GPU >( reset1, "thrust::inclusive_scan", computeThrustDevice );
-         verify( "thrust::inclusive_scan", deviceVector.getElement( 0 ), 1 );
-         verify( "thrust::inclusive_scan", deviceVector.getElement( size - 1 ), size );
-   #endif
-
-   #if defined( __CUDACC__ )
-         {
-            size_t cubTempBytes = 0;
-            cub::DeviceScan::InclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector.getData(), size );
-            ensureCubTempStorage( cubTempBytes );
-            auto computeCudaCUB = [ & ]()
-            {
-               cub::DeviceScan::InclusiveSum(
-                  cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector.getData(), size );
-            };
-            benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
-            verify( "cub::DeviceScan", deviceVector.getElement( 0 ), 1 );
-            verify( "cub::DeviceScan", deviceVector.getElement( size - 1 ), size );
-         }
-   #endif
-      }
-#endif
-   }
-
-   void
-   inclusiveScanOneVector()
-   {
-      benchmark.setOperation( "inclusive scan (1 vector)" );
-      benchmark.setDatasetSize( 2 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Sequential > ) {
-         auto computeSTL_partial_sum = [ & ]()
-         {
-            std::partial_sum( hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
-         };
-         benchmark.time< Devices::Sequential >( resetAll, "std::partial_sum", computeSTL_partial_sum );
-         verify( "std::partial_sum", hostVector2[ 0 ], 1 );
-         verify( "std::partial_sum", hostVector2[ size - 1 ], size );
-      }
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::inclusiveScan( hostVector, hostVector2 );
-         };
-         benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
-         verify( "TNL", hostVector2[ 0 ], 1 );
-         verify( "TNL", hostVector2[ size - 1 ], size );
-      }
-      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
-         auto computeSTL = [ & ]()
-         {
-            std::inclusive_scan(
-               STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
-         };
-         benchmark.time< StdAlgorithmsDevice >( resetAll, "std::inclusive_scan", computeSTL );
-         verify( "std::inclusive_scan", hostVector2[ 0 ], 1 );
-         verify( "std::inclusive_scan", hostVector2[ size - 1 ], size );
-      }
-#ifdef HAVE_THRUST
-      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
-         auto computeThrust = [ & ]()
-         {
-            thrust::inclusive_scan(
-               thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
-         };
-         benchmark.time< ThrustHostDevice >( reset1, "thrust::inclusive_scan", computeThrust );
-         verify( "thrust::inclusive_scan", hostVector2[ 0 ], 1 );
-         verify( "thrust::inclusive_scan", hostVector2[ size - 1 ], size );
-      }
-#endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::inclusiveScan( deviceVector, deviceVector2 );
-         };
-         benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector2.getElement( 0 ), 1 );
-         verify( "TNL", deviceVector2.getElement( size - 1 ), size );
-
-   #ifdef HAVE_THRUST
-         auto computeThrustDevice = [ & ]()
-         {
-            thrust::inclusive_scan(
-               thrust::device,
-               thrust::device_pointer_cast( deviceVector.getData() ),
-               thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-               thrust::device_pointer_cast( deviceVector2.getData() ) );
-         };
-         benchmark.time< Devices::GPU >( reset1, "thrust::inclusive_scan", computeThrustDevice );
-         verify( "thrust::inclusive_scan", deviceVector2.getElement( 0 ), 1 );
-         verify( "thrust::inclusive_scan", deviceVector2.getElement( size - 1 ), size );
-   #endif
-
-   #if defined( __CUDACC__ )
-         {
-            size_t cubTempBytes = 0;
-            cub::DeviceScan::InclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector2.getData(), size );
-            ensureCubTempStorage( cubTempBytes );
-            auto computeCudaCUB = [ & ]()
-            {
-               cub::DeviceScan::InclusiveSum(
-                  cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector2.getData(), size );
-            };
-            benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
-            verify( "cub::DeviceScan", deviceVector2.getElement( 0 ), 1 );
-            verify( "cub::DeviceScan", deviceVector2.getElement( size - 1 ), size );
-         }
-   #endif
-      }
-#endif
-   }
-
-   void
-   inclusiveScanTwoVectors()
-   {
-      benchmark.setOperation( "inclusive scan (2 vectors)" );
-      benchmark.setDatasetSize( 3 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::inclusiveScan( hostVector + hostVector2, hostVector3 );
-         };
-         benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
-         verify( "TNL", hostVector3[ 0 ], 2 );
-         verify( "TNL", hostVector3[ size - 1 ], 2 * size );
-      }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::inclusiveScan( deviceVector + deviceVector2, deviceVector3 );
-         };
-         benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector3.getElement( 0 ), 2 );
-         verify( "TNL", deviceVector3.getElement( size - 1 ), 2 * size );
-      }
-#endif
-   }
-
-   void
-   inclusiveScanThreeVectors()
-   {
-      benchmark.setOperation( "inclusive scan (3 vectors)" );
-      benchmark.setDatasetSize( 4 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::inclusiveScan( hostVector + hostVector2 + hostVector3, hostVector4 );
-         };
-         benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
-         verify( "TNL", hostVector4[ 0 ], 3 );
-         verify( "TNL", hostVector4[ size - 1 ], 3 * size );
-      }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::inclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
-         };
-         benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector4.getElement( 0 ), 3 );
-         verify( "TNL", deviceVector4.getElement( size - 1 ), 3 * size );
-      }
-#endif
-   }
-
-   void
-   exclusiveScanInplace()
-   {
-      benchmark.setOperation( "exclusive scan (inplace)" );
-      benchmark.setDatasetSize( 2 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Sequential > ) {
-         auto computeSequential = [ & ]()
-         {
-            SequentialView view;
-            view.bind( hostVector.getData(), hostVector.getSize() );
-            Algorithms::inplaceExclusiveScan( view );
-         };
-         benchmark.time< Devices::Sequential >( reset1, "TNL", computeSequential );
-         verify( "TNL", hostVector[ 0 ], 0 );
-         verify( "TNL", hostVector[ size - 1 ], size - 1 );
-      }
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::inplaceExclusiveScan( hostVector );
-         };
-         benchmark.time< Devices::Host >( reset1, "TNL", computeTNL );
-         verify( "TNL", hostVector[ 0 ], 0 );
-         verify( "TNL", hostVector[ size - 1 ], size - 1 );
-      }
-      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
-         auto computeSTL = [ & ]()
-         {
-            std::exclusive_scan(
-               STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData(), 0 );
-         };
-         benchmark.time< StdAlgorithmsDevice >( reset1, "std::exclusive_scan", computeSTL );
-         verify( "std::exclusive_scan", hostVector[ 0 ], 0 );
-         // NOTE: this fails due to https://stackoverflow.com/q/74932677
-         verify( "std::exclusive_scan", hostVector[ size - 1 ], size - 1 );
-      }
-#ifdef HAVE_THRUST
-      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
-         auto computeThrust = [ & ]()
-         {
-            thrust::exclusive_scan(
-               thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector.getData() );
-         };
-         benchmark.time< ThrustHostDevice >( reset1, "thrust::exclusive_scan", computeThrust );
-         verify( "thrust::exclusive_scan", hostVector[ 0 ], 0 );
-         verify( "thrust::exclusive_scan", hostVector[ size - 1 ], size - 1 );
-      }
-#endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::inplaceExclusiveScan( deviceVector );
-         };
-         benchmark.time< Devices::GPU >( reset1, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector.getElement( 0 ), 0 );
-         verify( "TNL", deviceVector.getElement( size - 1 ), size - 1 );
-
-   #ifdef HAVE_THRUST
-         auto computeThrustDevice = [ & ]()
-         {
-            thrust::exclusive_scan(
-               thrust::device,
-               thrust::device_pointer_cast( deviceVector.getData() ),
-               thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-               thrust::device_pointer_cast( deviceVector.getData() ) );
-         };
-         benchmark.time< Devices::GPU >( reset1, "thrust::exclusive_scan", computeThrustDevice );
-         verify( "thrust::exclusive_scan", deviceVector.getElement( 0 ), 0 );
-         verify( "thrust::exclusive_scan", deviceVector.getElement( size - 1 ), size - 1 );
-   #endif
-
-   #if defined( __CUDACC__ )
-         {
-            size_t cubTempBytes = 0;
-            cub::DeviceScan::ExclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector.getData(), size );
-            ensureCubTempStorage( cubTempBytes );
-            auto computeCudaCUB = [ & ]()
-            {
-               cub::DeviceScan::ExclusiveSum(
-                  cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector.getData(), size );
-            };
-            benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
-            verify( "cub::DeviceScan", deviceVector.getElement( 0 ), 0 );
-            verify( "cub::DeviceScan", deviceVector.getElement( size - 1 ), size - 1 );
-         }
-   #endif
-      }
-#endif
-   }
-
-   void
-   exclusiveScanOneVector()
-   {
-      benchmark.setOperation( "exclusive scan (1 vector)" );
-      benchmark.setDatasetSize( 2 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::exclusiveScan( hostVector, hostVector2 );
-         };
-         benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
-         verify( "TNL", hostVector2[ 0 ], 0 );
-         verify( "TNL", hostVector2[ size - 1 ], size - 1 );
-      }
-      if constexpr( std::is_same_v< Device, StdAlgorithmsDevice > ) {
-         auto computeSTL = [ & ]()
-         {
-            std::exclusive_scan(
-               STDEXEC hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData(), 0 );
-         };
-         benchmark.time< StdAlgorithmsDevice >( reset1, "std::exclusive_scan", computeSTL );
-         verify( "std::exclusive_scan", hostVector2[ 0 ], 0 );
-         verify( "std::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
-      }
-#ifdef HAVE_THRUST
-      if constexpr( std::is_same_v< Device, ThrustHostDevice > ) {
-         auto computeThrust = [ & ]()
-         {
-            thrust::exclusive_scan(
-               thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize(), hostVector2.getData() );
-         };
-         benchmark.time< ThrustHostDevice >( reset1, "thrust::exclusive_scan", computeThrust );
-         verify( "thrust::exclusive_scan", hostVector2[ 0 ], 0 );
-         verify( "thrust::exclusive_scan", hostVector2[ size - 1 ], size - 1 );
-      }
-#endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::exclusiveScan( deviceVector, deviceVector2 );
-         };
-         benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector2.getElement( 0 ), 0 );
-         verify( "TNL", deviceVector2.getElement( size - 1 ), size - 1 );
-
-   #ifdef HAVE_THRUST
-         auto computeThrustDevice = [ & ]()
-         {
-            thrust::exclusive_scan(
-               thrust::device,
-               thrust::device_pointer_cast( deviceVector.getData() ),
-               thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-               thrust::device_pointer_cast( deviceVector2.getData() ) );
-         };
-         benchmark.time< Devices::GPU >( reset1, "thrust::exclusive_scan", computeThrustDevice );
-         verify( "thrust::exclusive_scan", deviceVector2.getElement( 0 ), 0 );
-         verify( "thrust::exclusive_scan", deviceVector2.getElement( size - 1 ), size - 1 );
-   #endif
-
-   #if defined( __CUDACC__ )
-         {
-            size_t cubTempBytes = 0;
-            cub::DeviceScan::ExclusiveSum( nullptr, cubTempBytes, deviceVector.getData(), deviceVector2.getData(), size );
-            ensureCubTempStorage( cubTempBytes );
-            auto computeCudaCUB = [ & ]()
-            {
-               cub::DeviceScan::ExclusiveSum(
-                  cubTempStorage, cubTempStorageBytes, deviceVector.getData(), deviceVector2.getData(), size );
-            };
-            benchmark.time< Devices::GPU >( reset1, "cub::DeviceScan", computeCudaCUB );
-            verify( "cub::DeviceScan", deviceVector2.getElement( 0 ), 0 );
-            verify( "cub::DeviceScan", deviceVector2.getElement( size - 1 ), size - 1 );
-         }
-   #endif
-      }
-#endif
-   }
-
-   void
-   exclusiveScanTwoVectors()
-   {
-      benchmark.setOperation( "exclusive scan (2 vectors)" );
-      benchmark.setDatasetSize( 3 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::exclusiveScan( hostVector + hostVector2, hostVector3 );
-         };
-         benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
-         verify( "TNL", hostVector3[ 0 ], 0 );
-         verify( "TNL", hostVector3[ size - 1 ], 2 * ( size - 1 ) );
-      }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::exclusiveScan( deviceVector + deviceVector2, deviceVector3 );
-         };
-         benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector3.getElement( 0 ), 0 );
-         verify( "TNL", deviceVector3.getElement( size - 1 ), 2 * ( size - 1 ) );
-      }
-#endif
-   }
-
-   void
-   exclusiveScanThreeVectors()
-   {
-      benchmark.setOperation( "exclusive scan (3 vectors)" );
-      benchmark.setDatasetSize( 4 * datasetSize );
-
-      if constexpr( std::is_same_v< Device, Devices::Host > ) {
-         auto computeTNL = [ & ]()
-         {
-            Algorithms::exclusiveScan( hostVector + hostVector2 + hostVector3, hostVector4 );
-         };
-         benchmark.time< Devices::Host >( resetAll, "TNL", computeTNL );
-         verify( "TNL", hostVector4[ 0 ], 0 );
-         verify( "TNL", hostVector4[ size - 1 ], 3 * ( size - 1 ) );
-      }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         auto computeCudaTNL = [ & ]()
-         {
-            Algorithms::exclusiveScan( deviceVector + deviceVector2 + deviceVector3, deviceVector4 );
-         };
-         benchmark.time< Devices::GPU >( resetAll, "TNL", computeCudaTNL );
-         verify( "TNL", deviceVector4.getElement( 0 ), 0 );
-         verify( "TNL", deviceVector4.getElement( size - 1 ), 3 * ( size - 1 ) );
-      }
-#endif
-   }
 };
 
 template< typename Device, typename Real = double, typename Index = int >
@@ -2018,14 +1496,6 @@ benchmarkVectorOperations( Benchmark& benchmark, const long& size )
    ops.vectorAddition();
    ops.twoVectorsAddition();
    ops.threeVectorsAddition();
-   ops.inclusiveScanInplace();
-   ops.inclusiveScanOneVector();
-   ops.inclusiveScanTwoVectors();
-   ops.inclusiveScanThreeVectors();
-   ops.exclusiveScanInplace();
-   ops.exclusiveScanOneVector();
-   ops.exclusiveScanTwoVectors();
-   ops.exclusiveScanThreeVectors();
 }
 
 }  // namespace TNL::Benchmarks
