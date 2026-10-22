@@ -801,8 +801,10 @@ radixSort( Containers::ArrayView< Value, Device, Index > view )
          continue;
       for( Index strip = 0; strip < numStrips; strip++ ) {
          const Index stripBegin = strip * onesweepStripSize;
-         const Index stripEnd = TNL::min( n, stripBegin + onesweepStripSize );
-         const Index stripSize = stripEnd - stripBegin;
+         // the strip size is computed first to avoid overflow of the strip end
+         // when the strip size does not fit into the index type
+         const Index stripSize = TNL::min( n - stripBegin, onesweepStripSize );
+         const Index stripEnd = stripBegin + stripSize;
          // computed without rounding up to avoid overflow of the index type
          // when the strip size is close to its maximum
          const Index stripNumTiles = stripSize / radixSortTileSize + static_cast< Index >( stripSize % radixSortTileSize != 0 );
