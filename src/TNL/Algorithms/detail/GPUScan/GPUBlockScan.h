@@ -227,6 +227,31 @@ struct GPUBlockScanShfl
    }
 };
 
+// the values of the types smaller than 4 bytes are shuffled as 4-byte words,
+// see Backend::warp_shuffle_up
+template< ScanType scanType, int blockSize, typename Reduction >
+struct GPUBlockScan< scanType, blockSize, Reduction, char > : public GPUBlockScanShfl< scanType, blockSize, Reduction, char >
+{};
+
+template< ScanType scanType, int blockSize, typename Reduction >
+struct GPUBlockScan< scanType, blockSize, Reduction, signed char >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, signed char >
+{};
+
+template< ScanType scanType, int blockSize, typename Reduction >
+struct GPUBlockScan< scanType, blockSize, Reduction, unsigned char >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, unsigned char >
+{};
+
+template< ScanType scanType, int blockSize, typename Reduction >
+struct GPUBlockScan< scanType, blockSize, Reduction, short > : public GPUBlockScanShfl< scanType, blockSize, Reduction, short >
+{};
+
+template< ScanType scanType, int blockSize, typename Reduction >
+struct GPUBlockScan< scanType, blockSize, Reduction, unsigned short >
+: public GPUBlockScanShfl< scanType, blockSize, Reduction, unsigned short >
+{};
+
 template< ScanType scanType, int blockSize, typename Reduction >
 struct GPUBlockScan< scanType, blockSize, Reduction, int > : public GPUBlockScanShfl< scanType, blockSize, Reduction, int >
 {};
