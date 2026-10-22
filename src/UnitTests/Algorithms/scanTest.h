@@ -1077,6 +1077,63 @@ TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
 }
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+// Test of the GPU scan with value types smaller than 4 bytes, which are
+// shuffled as 4-byte words in the block scan. The results (with the overflows
+// of the value type) are compared with the sequential scan on the host. The
+// sizes cover the single-block kernel and the lookback kernel.
+template< typename ValueType >
+void
+testSmallValueTypeScan()
+{
+   using DeviceType = Devices::GPU;
+   using IndexType = int;
+   using HostArrayType = Array< ValueType, Devices::Sequential, IndexType >;
+
+   for( const IndexType size : { 100, 1000, 100003 } ) {
+      HostArrayType input_host( size );
+      for( IndexType i = 0; i < size; i++ )
+         input_host[ i ] = ValueType( i % 7 );
+      HostArrayType inclusive_host;
+      HostArrayType exclusive_host;
+      inclusive_host = exclusive_host = input_host;
+      inplaceInclusiveScan( inclusive_host, 0, size, std::plus<>{}, ValueType( 0 ) );
+      inplaceExclusiveScan( exclusive_host, 0, size, std::plus<>{}, ValueType( 0 ) );
+
+      Array< ValueType, DeviceType, IndexType > input;
+      Array< ValueType, DeviceType, IndexType > output( size );
+      input = input_host;
+      HostArrayType result;
+
+      inclusiveScan( input, output, 0, size, 0, std::plus<>{}, ValueType( 0 ) );
+      result = output;
+      EXPECT_EQ( result, inclusive_host ) << "inclusive scan with size " << size;
+
+      exclusiveScan( input, output, 0, size, 0, std::plus<>{}, ValueType( 0 ) );
+      result = output;
+      EXPECT_EQ( result, exclusive_host ) << "exclusive scan with size " << size;
+   }
+}
+
+TEST( ScanSmallValueTypeTest, char )
+{
+   testSmallValueTypeScan< char >();
+}
+
+TEST( ScanSmallValueTypeTest, unsigned_char )
+{
+   testSmallValueTypeScan< unsigned char >();
+}
+
+TEST( ScanSmallValueTypeTest, short )
+{
+   testSmallValueTypeScan< short >();
+}
+
+TEST( ScanSmallValueTypeTest, unsigned_short )
+{
+   testSmallValueTypeScan< unsigned short >();
+}
+
 // Test of the lookback kernel with a 16-byte value type with 8-byte alignment,
 // which uses the generic block scan (without the warp shuffle instructions).
 // With an 8-byte offset of the data, no element starts at a 16-byte boundary,
