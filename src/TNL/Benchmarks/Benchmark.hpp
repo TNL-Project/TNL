@@ -16,7 +16,7 @@
 
 namespace TNL::Benchmarks {
 
-void
+inline void
 Benchmark::configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General benchmark settings:" );
@@ -32,7 +32,7 @@ Benchmark::configSetup( Config::ConfigDescription& config )
    config.addEntry< bool >( "catch-exceptions", "Catch exceptions during timing.", true );
 }
 
-void
+inline void
 Benchmark::setup( const Config::ParameterContainer& parameters, const std::string& programName )
 {
    this->loops = parameters.getParameter< int >( "loops" );
@@ -68,57 +68,57 @@ Benchmark::setup( const Config::ParameterContainer& parameters, const std::strin
    addLogger( std::make_unique< TerminalLogger >( std::cout, verbose ) );
 }
 
-void
+inline void
 Benchmark::setLoops( std::size_t loops )
 {
    this->loops = loops;
 }
 
-void
+inline void
 Benchmark::setMinTime( double minTime )
 {
    this->minTime = minTime;
 }
 
-void
+inline void
 Benchmark::setWarmupLoops( std::size_t warmupLoops )
 {
    this->warmupLoops = warmupLoops;
 }
 
-void
+inline void
 Benchmark::setWarmupMinTime( double warmupMinTime )
 {
    this->warmupMinTime = warmupMinTime;
 }
 
-void
+inline void
 Benchmark::setMetadataColumns( const MetadataColumns& metadata )
 {
    for( auto& logger : loggers )
       logger->setMetadataColumns( metadata );
 }
 
-void
+inline void
 Benchmark::setMetadataElement( const typename MetadataColumns::value_type& element )
 {
    for( auto& logger : loggers )
       logger->setMetadataElement( element );
 }
 
-void
+inline void
 Benchmark::setDatasetSize( std::size_t datasetSize )
 {
    this->datasetSize = datasetSize;
 }
 
-void
+inline void
 Benchmark::setOperationsPerLoop( std::size_t operationsPerLoop )
 {
    this->operations_per_loop = operationsPerLoop;
 }
 
-void
+inline void
 Benchmark::setOperation( const std::string& operation )
 {
    monitor.setStage( operation );
@@ -184,13 +184,13 @@ Benchmark::time( const std::string& performer, ComputeFunction& compute )
    return result;
 }
 
-void
+inline void
 Benchmark::addLogger( std::unique_ptr< Logging > logger )
 {
    loggers.push_back( std::move( logger ) );
 }
 
-void
+inline void
 Benchmark::addErrorMessage( const std::string& message )
 {
    for( auto& logger : loggers )
@@ -198,19 +198,19 @@ Benchmark::addErrorMessage( const std::string& message )
    std::cerr << message << '\n';
 }
 
-auto
+inline auto
 Benchmark::getMonitor() -> SolverMonitorType&
 {
    return monitor;
 }
 
-void
+inline void
 Benchmark::setCatchExceptions( bool catchExceptions )
 {
    this->catchExceptions = catchExceptions;
 }
 
-[[nodiscard]] bool
+[[nodiscard]] inline bool
 Benchmark::getCatchExceptions() const
 {
    return catchExceptions;
