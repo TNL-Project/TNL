@@ -379,7 +379,7 @@ def main() -> None:
         action="append",
         default=[],
         help="process only operations containing this substring "
-        "(can be given multiple times, e.g. -f scan)",
+        "(can be given multiple times, e.g. -f norm)",
     )
     parser.add_argument(
         "--time-column",

@@ -17,52 +17,30 @@
 #include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
 
-#include "scan-tuning.h"
+#include "scan-common.h"
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
 using namespace TNL::Benchmarks::Scan;
-
-template< typename Value, ScanType Type >
-void
-resolveDevice( Benchmark& benchmark, const Config::ParameterContainer& parameters )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   const auto& device = parameters.getParameter< std::string >( "device" );
-   if( device == "cuda" || device == "hip" || device == "all" )
-      runScanBenchmark< Value, Type >( benchmark, parameters );
-#endif
-}
-
-template< typename Value >
-void
-resolveScanType( Benchmark& benchmark, const Config::ParameterContainer& parameters )
-{
-   const auto& scanType = parameters.getParameter< std::string >( "scan-type" );
-   if( scanType == "all" || scanType == "inclusive" )
-      resolveDevice< Value, ScanType::Inclusive >( benchmark, parameters );
-   if( scanType == "all" || scanType == "exclusive" )
-      resolveDevice< Value, ScanType::Exclusive >( benchmark, parameters );
-}
 
 void
 resolveValueType( Benchmark& benchmark, const Config::ParameterContainer& parameters )
 {
    const auto& valueType = parameters.getParameter< std::string >( "value-type" );
    if( valueType == "all" || valueType == "char" )
-      resolveScanType< char >( benchmark, parameters );
+      runScanBenchmark< char >( benchmark, parameters );
    if( valueType == "all" || valueType == "short" )
-      resolveScanType< short >( benchmark, parameters );
+      runScanBenchmark< short >( benchmark, parameters );
    if( valueType == "all" || valueType == "int" )
-      resolveScanType< int >( benchmark, parameters );
+      runScanBenchmark< int >( benchmark, parameters );
    if( valueType == "all" || valueType == "long" )
-      resolveScanType< long >( benchmark, parameters );
+      runScanBenchmark< long >( benchmark, parameters );
    if( valueType == "all" || valueType == "float" )
-      resolveScanType< float >( benchmark, parameters );
+      runScanBenchmark< float >( benchmark, parameters );
    if( valueType == "all" || valueType == "double" )
-      resolveScanType< double >( benchmark, parameters );
+      runScanBenchmark< double >( benchmark, parameters );
    if( valueType == "all" || valueType == "double2" )
-      resolveScanType< Containers::StaticVector< 2, double > >( benchmark, parameters );
+      runScanBenchmark< Containers::StaticVector< 2, double > >( benchmark, parameters );
 }
 
 // checks that all values of a list parameter are compiled into the benchmark
@@ -87,7 +65,16 @@ configSetup( Config::ConfigDescription& config )
    Benchmark::configSetup( config );
 
    config.addDelimiter( "Scan benchmark settings:" );
-   config.addEntry< std::string >( "value-type", "Value type of the scanned array.", "all" );
+   config.addEntry< std::string >( "device", "Device to run the benchmarks on.", "all" );
+   config.addEntryEnum( "sequential" );
+   config.addEntryEnum( "host" );
+#if defined( __CUDACC__ )
+   config.addEntryEnum( "cuda" );
+#elif defined( __HIP__ )
+   config.addEntryEnum( "hip" );
+#endif
+   config.addEntryEnum( "all" );
+   config.addEntry< std::string >( "value-type", "Value type of the scanned arrays.", "all" );
    config.addEntryEnum( "char" );
    config.addEntryEnum( "short" );
    config.addEntryEnum( "int" );
@@ -100,6 +87,31 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "inclusive" );
    config.addEntryEnum( "exclusive" );
    config.addEntryEnum( "all" );
+   config.addList< std::string >( "variants", "Variants of the scan to be measured.", { "all" } );
+   config.addEntryEnum( "inplace" );
+   config.addEntryEnum( "1-vector" );
+   config.addEntryEnum( "2-vectors" );
+   config.addEntryEnum( "3-vectors" );
+   config.addEntryEnum( "all" );
+   config.addList< std::string >( "libraries", "Libraries whose scans are measured (if they are available).", { "all" } );
+   config.addEntryEnum( "tnl" );
+   config.addEntryEnum( "std" );
+   config.addEntryEnum( "thrust" );
+   config.addEntryEnum( "cub" );
+   config.addEntryEnum( "rocprim" );
+   config.addEntryEnum( "all" );
+   config.addList< std::string >(
+      "gpu-kernels",
+      "TNL scan kernels measured on the GPU: the public API with the default kernel selection ('default'), or the "
+      "in-place scan with an explicitly selected kernel.",
+      { "default" } );
+   config.addEntryEnum( "default" );
+   config.addEntryEnum( "lookback" );
+   config.addEntryEnum( "scan-then-propagate" );
+   config.addEntryEnum( "reduce-then-scan" );
+   config.addEntryEnum( "all" );
+   config.addList< int >(
+      "values-per-thread", "Values per thread of the explicitly selected GPU kernels.", toVector( ValuesPerThreadList{} ) );
    config.addEntry< int >( "min-size", "Minimum size of the scanned arrays.", 100000 );
    config.addEntry< int >( "max-size", "Maximum size of the scanned arrays.", 25600000 );
    config.addEntry< int >(
@@ -107,16 +119,6 @@ configSetup( Config::ConfigDescription& config )
       "Factor determining the sizes of the scanned arrays. First size is min-size and each following size is "
       "stepFactor*previousSize, up to max-size.",
       4 );
-   config.addList< int >(
-      "block-size-factors",
-      "Block sizes of the lookback kernel as multiples of the default block size "
-      "256 * 4 / sizeof(value type). Block sizes larger than 1024 are skipped.",
-      toVector( BlockSizeFactors{} ) );
-   config.addList< int >( "values-per-thread", "Values per thread of the lookback kernel.", toVector( ValuesPerThreadList{} ) );
-   config.addEntry< std::string >( "device", "Device to run benchmarks on.", "cuda" );
-   config.addEntryEnum( "cuda" );
-   config.addEntryEnum( "hip" );
-   config.addEntryEnum( "all" );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
@@ -138,8 +140,7 @@ main( int argc, char* argv[] )
       std::cerr << "The value of --size-step-factor must be greater than 1.\n";
       return EXIT_FAILURE;
    }
-   if( ! checkCompiledValues( parameters, "block-size-factors", toVector( BlockSizeFactors{} ) )
-       || ! checkCompiledValues( parameters, "values-per-thread", toVector( ValuesPerThreadList{} ) ) )
+   if( ! checkCompiledValues( parameters, "values-per-thread", toVector( ValuesPerThreadList{} ) ) )
       return EXIT_FAILURE;
 
    if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )
