@@ -121,8 +121,10 @@ breadthFirstSearchParallel(
          if( useBottomUp ) {
             auto marksView_bitmap = marks.getView();
             auto nextMarksView = nextMarks.getView();
-            auto distancesView_bu = distances.getView();
 
+            // The distances and the deterministic predecessors are kept in the atomic
+            // vectors during the traversal, as in the top-down modes, and copied back
+            // after the last iteration. Each vertex is updated only by its own thread.
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
@@ -132,10 +134,11 @@ breadthFirstSearchParallel(
                   // in extended lambdas.  These (void) casts force early capture.
                   (void) deterministic;
                   (void) predecessorsView;
+                  (void) atomicPredView;
 
                   if( ! graphView.vertexExists( v ) )
                      return;
-                  if( distancesView_bu[ v ] != -1 )
+                  if( atomicDistancesView[ v ].load() != -1 )
                      return;
 
                   auto row = adjacencyMatrixView.getRow( v );
@@ -149,7 +152,7 @@ breadthFirstSearchParallel(
                         if( ! graphView.edgeExists( u, v, w ) )
                            continue;
                         if( marksView_bitmap[ u ] == 1 ) {
-                           distancesView_bu[ v ] = i + 1;
+                           atomicDistancesView[ v ].store( i + 1 );
                            nextMarksView[ v ] = 1;
                            visitor( v, i + 1 );
                            if constexpr( WithPredecessors )
@@ -176,11 +179,11 @@ breadthFirstSearchParallel(
                         }
                      }
                      if( found ) {
-                        distancesView_bu[ v ] = i + 1;
+                        atomicDistancesView[ v ].store( i + 1 );
                         nextMarksView[ v ] = 1;
                         visitor( v, i + 1 );
                         if constexpr( WithPredecessors )
-                           predecessorsView[ v ] = best;
+                           atomicPredView[ v ].store( best );
                      }
                   }
                } );

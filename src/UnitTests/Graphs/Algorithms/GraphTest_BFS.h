@@ -1213,8 +1213,10 @@ TYPED_TEST( GraphTestUndirected, test_BFS_undirected_small )
    test_BFS_undirected_small_impl< typename TestFixture::GraphType >();
 }
 
-// Force bottom-up mode (threshold = 1.0 → every iteration uses bottom-up) and
-// verify that distances match the compact-mode reference for all start vertices.
+// Force bottom-up mode and verify that distances match the compact-mode reference for
+// all start vertices. Bottom-up mode is used when the frontier contains more than
+// bottomUpThreshold of all vertices, so with a threshold close to zero, every iteration
+// uses the bottom-up mode.
 template< typename GraphType >
 void
 test_BFS_bottomup_distances_impl()
@@ -1240,7 +1242,7 @@ test_BFS_bottomup_distances_impl()
    for( IndexType start = 0; start < graph.getVertexCount(); ++start ) {
       VectorType distCompact, distBottomUp;
       TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distCompact );
-      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBottomUp, 0.0, 1.0 );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distBottomUp, 0.0, 1.0e-6 );
       ASSERT_EQ( distBottomUp, distCompact ) << "start=" << start;
    }
 }
@@ -1287,7 +1289,7 @@ test_BFS_bottomup_predecessors_deterministic_impl()
 
    VectorType distances, predecessors;
    TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
-      graph, 0, visitor, distances, predecessors, true, 0.0, 1.0 );
+      graph, 0, visitor, distances, predecessors, true, 0.0, 1.0e-6 );
 
    ASSERT_EQ( distances, expectedDistances );
    ASSERT_EQ( predecessors, expectedPredecessors );
@@ -1328,7 +1330,7 @@ test_BFS_bottomup_visitor_called_once_impl()
    };
 
    VectorType distances;
-   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, 0.0, 1.0 );
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, 0.0, 1.0e-6 );
 
    EXPECT_EQ( visitCount.getElement( 0 ), 0 );
    EXPECT_EQ( visitCount.getElement( 1 ), 1 );
@@ -1339,6 +1341,72 @@ test_BFS_bottomup_visitor_called_once_impl()
 TYPED_TEST( GraphTestUndirected, test_BFS_bottomup_visitor_called_once )
 {
    test_BFS_bottomup_visitor_called_once_impl< typename TestFixture::GraphType >();
+}
+
+// Top-down iterations followed by a bottom-up iteration. With bottomUpThreshold = 0.3,
+// the frontiers {0} and {1} (10 % of the vertices) are processed top-down and the
+// frontier {2, ..., 8} (70 %) bottom-up, which must see the vertices discovered top-down.
+//
+//            2
+//           /|
+//   0 --- 1 -+ ...      (vertex 1 is connected to each of the vertices 2, ..., 8)
+//           \|
+//            8 --- 9
+//
+// Distances from vertex 0: {0, 1, 2, 2, 2, 2, 2, 2, 2, 3}
+template< typename GraphType >
+void
+test_BFS_topdown_then_bottomup_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+
+   // clang-format off
+   GraphType graph(
+      10,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 }, { 1, 3, 1.0 }, { 1, 4, 1.0 }, { 1, 5, 1.0 }, { 1, 6, 1.0 }, { 1, 7, 1.0 }, { 1, 8, 1.0 },
+         { 8, 9, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0, 1, 2, 2, 2, 2, 2, 2, 2, 3 } );
+
+   VectorType distances;
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, distances, 0.0, 0.3 );
+   EXPECT_EQ( distances, expectedDistances );
+
+   // the bitmap top-down mode for small frontiers combined with the bottom-up mode
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, distances, 0.2, 0.3 );
+   EXPECT_EQ( distances, expectedDistances );
+
+   // each vertex except the start must be visited exactly once
+   VectorType visitCount( graph.getVertexCount(), 0 );
+   auto visitCountView = visitCount.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      (void) distance;
+      visitCountView[ vertex ] += 1;
+   };
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor( graph, 0, visitor, distances, 0.0, 0.3 );
+   EXPECT_EQ( distances, expectedDistances );
+   const VectorType expectedVisitCount( { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 } );
+   EXPECT_EQ( visitCount, expectedVisitCount );
+
+   // each vertex has a unique parent in the BFS tree
+   const VectorType expectedPredecessors( { -1, 0, 1, 1, 1, 1, 1, 1, 1, 8 } );
+   for( bool deterministic : { false, true } ) {
+      VectorType predecessors;
+      TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, 0, distances, predecessors, deterministic, 0.0, 0.3 );
+      EXPECT_EQ( distances, expectedDistances ) << "deterministic=" << deterministic;
+      EXPECT_EQ( predecessors, expectedPredecessors ) << "deterministic=" << deterministic;
+   }
+}
+
+TYPED_TEST( GraphTestUndirected, test_BFS_topdown_then_bottomup )
+{
+   test_BFS_topdown_then_bottomup_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"
