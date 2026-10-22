@@ -1,46 +1,61 @@
-# Scan Tuning Benchmark
+# Scan Benchmark
 
-This benchmark measures the GPU scan (prefix sum) and allows tuning the configuration of the
-single-pass lookback kernel (`GPUScanKernelLookback`, see
-`src/TNL/Algorithms/detail/GPUScan/GPUScanKernelLookback.h`) on different GPUs. The kernel is
-used by `TNL::Algorithms::inclusiveScan`, `exclusiveScan`, and their in-place variants for
-arrays that are larger than one tile and fit into one CUDA grid.
+This benchmark measures the scan (prefix sum) in TNL and compares it with the implementations
+from other libraries. On the GPU, it also allows measuring the individual TNL scan kernels with
+an explicitly selected number of values per thread, which is useful for tuning the defaults of
+`GPUScanKernelLauncher` (see `src/TNL/Algorithms/detail/GPUScan.h`) on different GPUs.
 
 ## What is measured
 
-For each value type, scan type (inclusive or exclusive), and array size, the in-place scan of an
-array of ones is measured with:
+For each device, value type, scan type (inclusive or exclusive), and array size, the scan of an
+array of ones is measured in these variants:
 
-| Performer | Description | `block size` | `values per thread` |
-|-----------|-------------|--------------|---------------------|
-| `TNL` | The public API (`Algorithms::inplaceInclusiveScan` or `inplaceExclusiveScan`) with the default configuration | `default` | `default` |
-| `CUB` | `cub::DeviceScan::InclusiveSum` or `ExclusiveSum` (CUDA builds, arithmetic value types only) | `-` | `-` |
-| `hipCUB` | `hipcub::DeviceScan::InclusiveSum` or `ExclusiveSum` (HIP builds, arithmetic value types only) | `-` | `-` |
-| `rocPRIM` | `rocprim::inclusive_scan` or `exclusive_scan` with the default configuration (HIP builds, arithmetic value types only) | `-` | `-` |
-| `TNL lookback` | `GPUScanKernelLauncher::performLookback` with the given configuration | number | number |
+| Variant | Operation | Description |
+|---------|-----------|-------------|
+| `inplace` | `inclusive scan (inplace)` | The scan of an array in place |
+| `1-vector` | `inclusive scan (1 vector)` | The scan of one array to another array |
+| `2-vectors` | `inclusive scan (2 vectors)` | The scan of the expression `a + b` to another array (TNL only) |
+| `3-vectors` | `inclusive scan (3 vectors)` | The scan of the expression `a + b + c` to another array (TNL only) |
 
-The result of each measurement is compared with the result of the public API, and a mismatch
-is reported on the standard error output. For floating-point types, the comparison is skipped
-for sizes where the partial sums of ones are not exact.
+The following implementations (performers) are measured:
 
-The configurations of the lookback kernel are template parameters, so the benchmark contains a
-fixed set of them (see `BlockSizeFactors` and `ValuesPerThreadList` in `scan-tuning.h`):
+| Performer | Description | Devices | `values per thread` |
+|-----------|-------------|---------|---------------------|
+| `TNL` | The public API (`Algorithms::inplaceInclusiveScan`, `inclusiveScan`, etc.) | all | `default` |
+| `TNL lookback` | The single-pass kernel with decoupled lookback (`GPUScanKernelLookback`) | GPU, `inplace` only | number |
+| `TNL scan-then-propagate` | The two-phase scan with `ScanPhaseType::WriteInFirstPhase` (`GPUScanKernelParallel` and `GPUScanKernelUniformShift`) | GPU, `inplace` only | number |
+| `TNL reduce-then-scan` | The two-phase scan with `ScanPhaseType::WriteInSecondPhase` (`GPUScanKernelUpsweep` and `GPUScanKernelDownsweep`) | GPU, `inplace` only | number |
+| `std::partial_sum` | C++ standard library, inclusive scan only | sequential | `-` |
+| `std::inclusive_scan`, `std::exclusive_scan` | C++ standard library with a parallel execution policy when TBB is available (reported on the `host` device, otherwise on the `sequential` device) | sequential or host | `-` |
+| `thrust::inclusive_scan`, `thrust::exclusive_scan` | Thrust (rocThrust in the HIP build) with `thrust::host` and `thrust::device`, when available at build time | sequential or host, GPU | `-` |
+| `CUB` | `cub::DeviceScan::InclusiveSum` or `ExclusiveSum` | CUDA | `-` |
+| `hipCUB` | `hipcub::DeviceScan::InclusiveSum` or `ExclusiveSum` | HIP | `-` |
+| `rocPRIM` | `rocprim::inclusive_scan` or `exclusive_scan` with the default configuration | HIP | `-` |
 
-- block size: 1x and 2x the default block size of the launcher, which is
-  `256 * 4 / sizeof(value type)` (block sizes larger than 1024 are skipped),
-- values per thread: 7, 9, 11, 13, 15, 17, 19 (odd numbers avoid shared memory bank conflicts).
+The other libraries are measured only for the arithmetic value types and only in the `inplace`
+and `1-vector` variants. The Thrust host algorithms are reported on the `host` device when the
+Thrust host backend is parallel (TBB or OpenMP), otherwise on the `sequential` device.
 
-The current default of the launcher is the default block size and 15 values per thread for
-value types up to 8 bytes, 11 for larger types.
+The explicitly selected GPU kernels use the default block size of the launcher, which is
+`256 * 4 / sizeof(value type)` (i.e. 1 kB of values per value of each thread), and the given
+number of values per thread. The number of values per thread is a template parameter, so the
+benchmark contains a fixed set of values: 7, 9, 11, 13, 15, 17, 19 (see `ValuesPerThreadList` in
+`scan-common.h`; the values must be odd to avoid shared memory bank conflicts). The two-phase
+kernels are measured even for the sizes where the launcher would select the lookback kernel.
+
+The result of each measurement is compared with a reference computed sequentially on the host,
+and a mismatch is reported on the standard error output. For floating-point types, the
+comparison is skipped for sizes where the partial sums are not exact.
 
 ## Executables
 
 | Executable | Description |
 |------------|-------------|
-| `tnl-benchmark-scan-cuda` | CUDA build, compared with CUB |
-| `tnl-benchmark-scan-hip` | HIP build, compared with hipCUB and rocPRIM |
+| `tnl-benchmark-scan` | Host (CPU) build |
+| `tnl-benchmark-scan-cuda` | CUDA build, compared with CUB and Thrust |
+| `tnl-benchmark-scan-hip` | HIP build, compared with hipCUB, rocPRIM, and rocThrust |
 
-There is no host-only executable, since the benchmark tunes a GPU kernel.
+The CUDA and HIP executables run both the host and the GPU implementations.
 
 ## Command-line options
 
@@ -48,33 +63,39 @@ The benchmark-specific options are:
 
 | Option | Description | Default |
 |--------|-------------|---------|
+| `--device <device>` | `sequential`, `host`, `cuda` (CUDA build), `hip` (HIP build), or `all` | `all` |
 | `--value-type <type>` | `char`, `short`, `int`, `long`, `float`, `double`, `double2` (`StaticVector<2, double>`), or `all` | `all` |
 | `--scan-type <type>` | `inclusive`, `exclusive`, or `all` | `all` |
+| `--variants <list>` | `inplace`, `1-vector`, `2-vectors`, `3-vectors`, or `all` | `all` |
+| `--libraries <list>` | `tnl`, `std`, `thrust`, `cub` (CUB or hipCUB), `rocprim`, or `all` | `all` |
+| `--gpu-kernels <list>` | `default` (the public API), `lookback`, `scan-then-propagate`, `reduce-then-scan`, or `all` | `default` |
+| `--values-per-thread <list>` | Values per thread of the explicitly selected GPU kernels | `7 9 11 13 15 17 19` |
 | `--min-size <n>` | Minimum size of the scanned arrays | `100000` |
 | `--max-size <n>` | Maximum size of the scanned arrays | `25600000` |
 | `--size-step-factor <n>` | Each following size is `size-step-factor * previous size` | `4` |
-| `--block-size-factors <list>` | Block sizes of the lookback kernel as multiples of the default block size | `1 2` |
-| `--values-per-thread <list>` | Values per thread of the lookback kernel | `7 9 11 13 15 17 19` |
-| `--device <device>` | `cuda`, `hip`, or `all` | `cuda` |
 
-The values of the list options must be among the compiled configurations listed above. In
-addition, the common benchmark settings (e.g. `--loops`, `--log-file`, `--verbose`) and the
-device settings (`--cuda-device` or `--hip-device`) are available.
+The values of `--values-per-thread` must be among the compiled values listed above. In addition,
+the common benchmark settings (e.g. `--loops`, `--log-file`, `--verbose`) and the device settings
+(`--openmp-enabled`, `--openmp-max-threads` and `--cuda-device` or `--hip-device`) are
+available. The number of threads of the host scan is set by `--openmp-max-threads`.
 
 ## Usage
 
 ```bash
 just build tnl-benchmark-scan-cuda
 
-# all value types, scan types, and configurations
+# comparison with the other libraries on all devices
 ./build/bin/tnl-benchmark-scan-cuda --log-file scan-$(hostname).log
 
-# only double, inclusive scan, and selected configurations
-./build/bin/tnl-benchmark-scan-cuda --value-type double --scan-type inclusive \
-    --block-size-factors 1 --values-per-thread 11 13 15
+# tuning of the GPU kernels: only the in-place scan on the GPU, all kernels and values per thread
+./build/bin/tnl-benchmark-scan-cuda --device cuda --variants inplace --gpu-kernels all \
+    --log-file scan-tuning-$(hostname).log
+
+# only the lookback kernel with selected values per thread for double
+./build/bin/tnl-benchmark-scan-cuda --device cuda --value-type double --scan-type inclusive \
+    --variants inplace --libraries tnl --gpu-kernels lookback --values-per-thread 11 13 15
 ```
 
 The benchmark writes the measurements in the JSONL format to the log file (`<program>.log` by
-default), together with the metadata of the GPU in `<program>.metadata.json`, so the results
-from different GPUs can be compared. Building the benchmark takes a while, because each
-configuration instantiates the lookback kernel for all value types and scan types.
+default), together with the metadata of the devices in `<program>.metadata.json`, so the results
+from different GPUs can be compared.
