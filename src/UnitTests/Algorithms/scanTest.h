@@ -7,6 +7,7 @@
 
 #include <TNL/Arithmetics/experimental/Quad.h>
 #include <TNL/Containers/Array.h>
+#include <TNL/Containers/StaticVector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/scan.h>
 #include "../CustomScalar.h"
@@ -1074,5 +1075,54 @@ TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
    for( int t = 0; t < threadsCount; t++ )
       EXPECT_EQ( errors[ t ], 0 ) << "wrong results in thread " << t;
 }
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+// Test of the lookback kernel with a 16-byte value type with 8-byte alignment,
+// which uses the generic block scan (without the warp shuffle instructions).
+// With an 8-byte offset of the data, no element starts at a 16-byte boundary,
+// so the tiles must be accessed scalarly instead of via Vec4. The views are
+// created over arrays of doubles, since the data of an array of the value type
+// are always 16-byte aligned.
+TEST( ScanStaticVectorTest, lookback_kernel_16_byte_value_type )
+{
+   using ValueType = StaticVector< 2, double >;
+   using DeviceType = Devices::GPU;
+   using IndexType = int;
+   using ViewType = ArrayView< ValueType, DeviceType, IndexType >;
+   using HostArrayType = Array< ValueType, Devices::Sequential, IndexType >;
+
+   const IndexType size = 9377;
+   Array< double, DeviceType, IndexType > inputStorage( 2 * size + 1 );
+   Array< double, DeviceType, IndexType > outputStorage( 2 * size + 1 );
+
+   HostArrayType input_host( size );
+   HostArrayType inclusive_host( size );
+   HostArrayType exclusive_host( size );
+   for( IndexType i = 0; i < size; i++ ) {
+      input_host[ i ] = ValueType{ double( i ), -double( i ) };
+      inclusive_host[ i ] = ValueType{ i * ( i + 1 ) / 2.0, -i * ( i + 1 ) / 2.0 };
+      exclusive_host[ i ] = ValueType{ i * ( i - 1 ) / 2.0, -i * ( i - 1 ) / 2.0 };
+   }
+   HostArrayType result;
+
+   for( const IndexType offset : { 0, 1 } ) {
+      ViewType input( reinterpret_cast< ValueType* >( inputStorage.getData() + offset ), size );
+      ViewType output( reinterpret_cast< ValueType* >( outputStorage.getData() + offset ), size );
+
+      input = input_host;
+      inclusiveScan( input, output, 0, size, 0, std::plus<>{}, ValueType( 0 ) );
+      result = output;
+      EXPECT_EQ( result, inclusive_host ) << "inclusive scan with offset " << offset;
+
+      exclusiveScan( input, output, 0, size, 0, std::plus<>{}, ValueType( 0 ) );
+      result = output;
+      EXPECT_EQ( result, exclusive_host ) << "exclusive scan with offset " << offset;
+
+      inplaceInclusiveScan( input, 0, size, std::plus<>{}, ValueType( 0 ) );
+      result = input;
+      EXPECT_EQ( result, inclusive_host ) << "in-place inclusive scan with offset " << offset;
+   }
+}
+#endif
 
 #include "../main.h"
