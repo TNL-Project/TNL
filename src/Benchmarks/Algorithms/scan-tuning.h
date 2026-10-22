@@ -14,6 +14,7 @@
 
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/detail/GPUScan.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Containers/Vector.h>
@@ -23,6 +24,9 @@
 
 #if defined( __CUDACC__ )
    #include <cub/device/device_scan.cuh>
+#elif defined( __HIPCC__ )
+   #include <hipcub/device/device_scan.hpp>
+   #include <rocprim/device/device_scan.hpp>
 #endif
 
 namespace TNL::Benchmarks::Scan {
@@ -30,6 +34,13 @@ namespace TNL::Benchmarks::Scan {
 using Algorithms::detail::GPUScanKernelLauncher;
 using Algorithms::detail::ScanPhaseType;
 using Algorithms::detail::ScanType;
+
+#if defined( __HIPCC__ ) && ! defined( __CUDACC__ )
+namespace cub = hipcub;
+constexpr const char* cubPerformer = "hipCUB";
+#else
+constexpr const char* cubPerformer = "CUB";
+#endif
 
 // Configurations of the lookback kernel compiled into the benchmark. The block
 // size is given as a multiple of the default block size of the launcher, which
@@ -60,6 +71,8 @@ scanTypeName()
  * For each array size, it measures:
  * - the scan via the public API (performer "TNL", default configuration),
  * - cub::DeviceScan for arithmetic value types in CUDA builds (performer "CUB"),
+ * - hipcub::DeviceScan and rocprim::inclusive_scan or exclusive_scan for
+ *   arithmetic value types in HIP builds (performers "hipCUB" and "rocPRIM"),
  * - the lookback kernel for all selected configurations of the block size and
  *   values per thread (performer "TNL lookback").
  *
@@ -108,19 +121,23 @@ public:
       benchmark.time< Devices::GPU >( reset, "TNL", computePublic );
       verify( "TNL", "default", "default" );
 
-#if defined( __CUDACC__ )
-      if constexpr( std::is_arithmetic_v< Value > ) {
-         std::size_t tempBytes = 0;
-         cubScan( nullptr, tempBytes );
-         Containers::Array< char, Devices::GPU, std::size_t > temp( tempBytes );
-         setMetadata( "-", "-" );
-         auto computeCUB = [ & ]()
-         {
-            cubScan( temp.getData(), tempBytes );
-         };
-         benchmark.time< Devices::GPU >( reset, "CUB", computeCUB );
-         verify( "CUB", "-", "-" );
-      }
+#if defined( __CUDACC__ ) || defined( __HIPCC__ )
+      if constexpr( std::is_arithmetic_v< Value > )
+         benchmarkLibraryScan(
+            cubPerformer,
+            [ this ]( void* temp, std::size_t& tempBytes )
+            {
+               cubScan( temp, tempBytes );
+            } );
+#endif
+#if defined( __HIPCC__ ) && ! defined( __CUDACC__ )
+      if constexpr( std::is_arithmetic_v< Value > )
+         benchmarkLibraryScan(
+            "rocPRIM",
+            [ this ]( void* temp, std::size_t& tempBytes )
+            {
+               rocprimScan( temp, tempBytes );
+            } );
 #endif
 
       // the lookback kernel with all selected configurations
@@ -137,14 +154,46 @@ protected:
          Algorithms::inplaceExclusiveScan( v, 0, v.getSize(), TNL::Plus{}, Value( 0 ) );
    }
 
-#if defined( __CUDACC__ )
+#if defined( __CUDACC__ ) || defined( __HIPCC__ )
+   // benchmark a library scan which queries the size of its temporary storage
+   // when called with nullptr, the storage is allocated outside of the timing
+   template< typename Scan >
+   void
+   benchmarkLibraryScan( const std::string& performer, Scan&& scan )
+   {
+      std::size_t tempBytes = 0;
+      scan( nullptr, tempBytes );
+      Containers::Array< char, Devices::GPU, std::size_t > temp( tempBytes );
+      setMetadata( "-", "-" );
+      auto compute = [ & ]()
+      {
+         scan( temp.getData(), tempBytes );
+      };
+      benchmark.time< Devices::GPU >( reset, performer, compute );
+      verify( performer, "-", "-" );
+   }
+
    void
    cubScan( void* temp, std::size_t& tempBytes )
    {
       if constexpr( Type == ScanType::Inclusive )
-         cub::DeviceScan::InclusiveSum( temp, tempBytes, data.getData(), data.getData(), size );
+         TNL_BACKEND_SAFE_CALL( cub::DeviceScan::InclusiveSum( temp, tempBytes, data.getData(), data.getData(), size ) );
       else
-         cub::DeviceScan::ExclusiveSum( temp, tempBytes, data.getData(), data.getData(), size );
+         TNL_BACKEND_SAFE_CALL( cub::DeviceScan::ExclusiveSum( temp, tempBytes, data.getData(), data.getData(), size ) );
+   }
+#endif
+
+#if defined( __HIPCC__ ) && ! defined( __CUDACC__ )
+   void
+   rocprimScan( void* temp, std::size_t& tempBytes )
+   {
+      if constexpr( Type == ScanType::Inclusive )
+         TNL_BACKEND_SAFE_CALL(
+            rocprim::inclusive_scan( temp, tempBytes, data.getData(), data.getData(), size, rocprim::plus< Value >{} ) );
+      else
+         TNL_BACKEND_SAFE_CALL(
+            rocprim::exclusive_scan(
+               temp, tempBytes, data.getData(), data.getData(), Value( 0 ), size, rocprim::plus< Value >{} ) );
    }
 #endif
 
