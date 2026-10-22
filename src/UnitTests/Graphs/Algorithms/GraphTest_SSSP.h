@@ -695,4 +695,51 @@ TYPED_TEST( GraphTest, test_SSSP_multi_relaxation )
       ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) ) << "vertex " << i;
 }
 
+// The top-down bitmap mode is used when the frontier contains less than bitmapThreshold
+// of all vertices. With bitmapThreshold = 0.3, the frontier {0} (10 % of the vertices) is
+// processed in the bitmap mode and the frontier {1, 2, 3, 4} (40 %) in the frontier mode,
+// which must traverse the frontier found by the bitmap mode.
+//
+//        +--> 1 --> 5
+//        +--> 2 --> 6
+//   0 ---+--> 3 --> 7
+//        +--> 4 --> 8 --> 9
+//
+// Distances from vertex 0: {0, 1, 1, 1, 1, 2, 2, 2, 2, 3}
+template< typename GraphType >
+void
+test_SSSP_bitmap_then_frontier_impl()
+{
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   // clang-format off
+   const GraphType graph(
+      10,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 }, { 0, 3, 1.0 }, { 0, 4, 1.0 },
+         { 1, 5, 1.0 },
+         { 2, 6, 1.0 },
+         { 3, 7, 1.0 },
+         { 4, 8, 1.0 },
+         { 8, 9, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0 } );
+   VectorType distances( graph.getVertexCount() );
+
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, distances, 0.3 );
+
+   for( IndexType i = 0; i < graph.getVertexCount(); i++ )
+      EXPECT_FLOAT_EQ( distances.getElement( i ), expectedDistances.getElement( i ) ) << "vertex " << i;
+}
+
+TYPED_TEST( GraphTest, test_SSSP_bitmap_then_frontier )
+{
+   test_SSSP_bitmap_then_frontier_impl< typename TestFixture::GraphType >();
+}
+
 #include "../../main.h"
