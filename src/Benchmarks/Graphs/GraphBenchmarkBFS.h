@@ -270,6 +270,18 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          benchmark.time< Device >( "TNL", bfs_lambda );
       };
 
+      // The other traversal modes must give the same distances as the top-down compact mode,
+      // which is compared with Boost and Gunrock.
+      const auto checkMode =
+         [ & ]( const IndexVector& dist, const IndexVector& compactDist, const char* graphTag, const char* modeTag )
+      {
+         if( dist != compactDist ) {
+            std::cout << "BFS distances of " << graphTag << " graph from TNL " << modeTag
+                      << " and TNL top-down compact are not equal!\n";
+            this->errors++;
+         }
+      };
+
       // Benchmarking BFS with directed graph
       {
          IndexVector bfsDistances( digraph.getVertexCount() );
@@ -284,6 +296,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runBFS( digraph, bfsDistances, bfsPredecessors, launchConfig, "top-down compact", 0.0, 0.0 );
+            const IndexVector compactDistances( bfsDistances );
 
 #ifdef HAVE_BOOST
             if( withBoost && bfsDistances != this->boostBfsDistancesDirected ) {
@@ -298,8 +311,10 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             }
 #endif
 
-            if( bitmapThreshold > 0.0 )
+            if( bitmapThreshold > 0.0 ) {
                runBFS( digraph, bfsDistances, bfsPredecessors, launchConfig, "top-down bitmap", bitmapThreshold, 0.0 );
+               checkMode( bfsDistances, compactDistances, "directed", "top-down bitmap" );
+            }
          }
       }
 
@@ -317,6 +332,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runBFS( graph, bfsDistances, bfsPredecessors, launchConfig, "top-down compact", 0.0, 0.0 );
+            const IndexVector compactDistances( bfsDistances );
 
 #ifdef HAVE_BOOST
             if( withBoost && bfsDistances != this->boostBfsDistancesUndirected ) {
@@ -331,14 +347,20 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             }
 #endif
 
-            if( bitmapThreshold > 0.0 )
+            if( bitmapThreshold > 0.0 ) {
                runBFS( graph, bfsDistances, bfsPredecessors, launchConfig, "top-down bitmap", bitmapThreshold, 0.0 );
+               checkMode( bfsDistances, compactDistances, "undirected", "top-down bitmap" );
+            }
 
-            if( bottomUpThreshold > 0.0 )
+            if( bottomUpThreshold > 0.0 ) {
                runBFS( graph, bfsDistances, bfsPredecessors, launchConfig, "bottom-up", 0.0, bottomUpThreshold );
+               checkMode( bfsDistances, compactDistances, "undirected", "bottom-up" );
+            }
 
-            if( bitmapThreshold > 0.0 && bottomUpThreshold > 0.0 )
+            if( bitmapThreshold > 0.0 && bottomUpThreshold > 0.0 ) {
                runBFS( graph, bfsDistances, bfsPredecessors, launchConfig, "hybrid", bitmapThreshold, bottomUpThreshold );
+               checkMode( bfsDistances, compactDistances, "undirected", "hybrid" );
+            }
          }
       }
 

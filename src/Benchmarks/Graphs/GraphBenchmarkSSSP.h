@@ -241,6 +241,18 @@ public:
             benchmark.time< Device >( "TNL", sssp_lambda );
       };
 
+      // The top-down bitmap mode must give the same distances as the top-down compact mode,
+      // which is compared with Boost and Gunrock.
+      const auto checkMode =
+         [ & ]( const RealVector& dist, const RealVector& compactDist, const char* graphTag, const char* modeTag )
+      {
+         if( dist != compactDist ) {
+            std::cout << "SSSP distances of " << graphTag << " graph from TNL " << modeTag
+                      << " and TNL top-down compact are not equal!\n";
+            this->errors++;
+         }
+      };
+
       // Benchmarking SSSP with directed graph
       {
          RealVector ssspDistances( digraph.getVertexCount(), 0 );
@@ -255,6 +267,7 @@ public:
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runSSSP( digraph, ssspDistances, launchConfig, "top-down compact", 0.0 );
+            const RealVector compactDistances( ssspDistances );
 
 #ifdef HAVE_BOOST
             if( withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
@@ -269,8 +282,10 @@ public:
             }
 #endif
 
-            if( bitmapThreshold > 0.0 )
+            if( bitmapThreshold > 0.0 ) {
                runSSSP( digraph, ssspDistances, launchConfig, "top-down bitmap", bitmapThreshold );
+               checkMode( ssspDistances, compactDistances, "directed", "top-down bitmap" );
+            }
          }
       }
 
@@ -288,6 +303,7 @@ public:
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runSSSP( graph, ssspDistances, launchConfig, "top-down compact", 0.0 );
+            const RealVector compactDistances( ssspDistances );
 
 #ifdef HAVE_BOOST
             if( withBoost && ssspDistances != this->boostSSSPDistancesUndirected ) {
@@ -302,8 +318,10 @@ public:
             }
 #endif
 
-            if( bitmapThreshold > 0.0 )
+            if( bitmapThreshold > 0.0 ) {
                runSSSP( graph, ssspDistances, launchConfig, "top-down bitmap", bitmapThreshold );
+               checkMode( ssspDistances, compactDistances, "undirected", "top-down bitmap" );
+            }
          }
       }
 
