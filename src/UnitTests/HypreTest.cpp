@@ -43,6 +43,16 @@ TEST( HypreTest, Vector )
    EXPECT_EQ( a.getData(), v.getData() );
    EXPECT_EQ( a.getSize(), v.getSize() );
 
+   // the strides of a bound vector must be the same as of a vector initialized by Hypre
+   Containers::HypreVector d;
+   d.setSize( size );
+   EXPECT_EQ(
+      hypre_VectorIndexStride( static_cast< hypre_Vector* >( a ) ),
+      hypre_VectorIndexStride( static_cast< hypre_Vector* >( d ) ) );
+   EXPECT_EQ(
+      hypre_VectorVectorStride( static_cast< hypre_Vector* >( a ) ),
+      hypre_VectorVectorStride( static_cast< hypre_Vector* >( d ) ) );
+
    // test move-constructor and move-assignment
    Containers::HypreVector c = std::move( b );
    b = std::move( c );
@@ -209,6 +219,28 @@ TEST( HypreTest, CSRMatrix )
    EXPECT_EQ( b.getColumns(), size );
    EXPECT_EQ( b.getConstView(), matrix );
    EXPECT_EQ( b.getView(), matrix );
+
+   // test the matrix-vector product with Hypre vectors bound to TNL vectors
+   using Vector = Containers::Vector< double, HYPRE_Device >;
+   Vector x( size );
+   for( int i = 0; i < size; i++ )
+      x.setElement( i, i + 1 );
+   Vector expected( size );
+   matrix.vectorProduct( x, expected );
+   Vector y( size, 0 );
+   Containers::HypreVector hypre_x;
+   hypre_x.bind( x );
+   Containers::HypreVector hypre_y;
+   hypre_y.bind( y );
+   // y = 1.0 * B * x + 0.0 * y
+   const auto err = hypre_CSRMatrixMatvec(
+      1.0,
+      static_cast< hypre_CSRMatrix* >( b ),
+      static_cast< hypre_Vector* >( hypre_x ),
+      0.0,
+      static_cast< hypre_Vector* >( hypre_y ) );
+   EXPECT_EQ( err, 0 );
+   EXPECT_EQ( y, expected );
 
    // test move-constructor and move-assignment
    Matrices::HypreCSRMatrix c = std::move( b );
