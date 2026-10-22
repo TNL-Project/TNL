@@ -249,11 +249,9 @@ public:
          benchmark.setMetadataElement( { "problem", "SSSP dir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
 
-         for( const auto& launchEntry :
+         for( const auto& [ launchConfig, tag ] :
               Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
          {
-            const auto& launchConfig = launchEntry.first;
-            const auto& tag = launchEntry.second;
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runSSSP( digraph, ssspDistances, launchConfig, "top-down compact", 0.0 );
@@ -284,11 +282,9 @@ public:
          benchmark.setMetadataElement( { "problem", "SSSP undir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
 
-         for( const auto& launchEntry :
+         for( const auto& [ launchConfig, tag ] :
               Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
          {
-            const auto& launchConfig = launchEntry.first;
-            const auto& tag = launchEntry.second;
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
             runSSSP( graph, ssspDistances, launchConfig, "top-down compact", 0.0 );
