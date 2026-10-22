@@ -164,7 +164,9 @@ struct GPUScanKernelLauncher
       if( grow || epoch == maxLookbackEpoch ) {
          if( grow )
             states.setSize( numberOfBlocks );
-         Algorithms::fillAsync< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize() );
+         Devices::GPU::LaunchConfiguration fillConfig;
+         fillConfig.blockHostUntilFinished = false;
+         Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize(), fillConfig );
          epoch = 0;
       }
       epoch++;
