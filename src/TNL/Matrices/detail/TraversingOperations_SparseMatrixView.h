@@ -64,6 +64,8 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          [ columns_view, values_view, columns, function ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
+            // values_view is used only in the non-binary branch of the constexpr below
+            (void) values_view;
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
@@ -93,6 +95,8 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          [ columns_view, values_view, columns, function ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
+            // values_view is used only in the non-binary branch of the constexpr below
+            (void) values_view;
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
@@ -127,6 +131,8 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          [ columns_view, values_view, columns, function ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
+            // values_view is used only in the non-binary branch of the constexpr below
+            (void) values_view;
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
@@ -161,6 +167,8 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          [ function, values_view, columns_view, columns ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
+            // values_view is used only in the non-binary branch of the constexpr below
+            (void) values_view;
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
@@ -193,6 +201,8 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          [ function, values_view, columns_view, columns ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
+            // values_view is used only in the non-binary branch of the constexpr below
+            (void) values_view;
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
@@ -224,6 +234,8 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          [ function, values_view, columns_view, columns ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
+            // values_view is used only in the non-binary branch of the constexpr below
+            (void) values_view;
             if( localIdx < columns ) {
                if constexpr( MatrixView::isBinary() )
                   function( segmentIdx, localIdx, columns_view[ globalIdx ], static_cast< ValueType >( 1.0 ) );
