@@ -23,7 +23,7 @@ The following implementations (performers) are measured:
 |-----------|-------------|---------|---------------------|
 | `TNL` | The public API (`Algorithms::inplaceInclusiveScan`, `inclusiveScan`, etc.) | all | `default` |
 | `TNL lookback` | The single-pass kernel with decoupled lookback (`GPUScanKernelLookback`) | GPU, `inplace` only | number |
-| `TNL scan-then-propagate` | The two-phase scan with `ScanPhaseType::WriteInFirstPhase` (`GPUScanKernelParallel` and `GPUScanKernelUniformShift`) | GPU, `inplace` only | number |
+| `TNL scan-then-propagate` | The two-phase scan with `ScanPhaseType::WriteInFirstPhase` (`GPUScanKernelIndependentTiles` and `GPUScanKernelUniformShift`) | GPU, `inplace` only | number |
 | `TNL reduce-then-scan` | The two-phase scan with `ScanPhaseType::WriteInSecondPhase` (`GPUScanKernelUpsweep` and `GPUScanKernelDownsweep`) | GPU, `inplace` only | number |
 | `std::partial_sum` | C++ standard library, inclusive scan only | sequential | `-` |
 | `std::inclusive_scan`, `std::exclusive_scan` | C++ standard library with a parallel execution policy when TBB is available (reported on the `host` device, otherwise on the `sequential` device) | sequential or host | `-` |

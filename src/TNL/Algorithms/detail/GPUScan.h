@@ -5,22 +5,69 @@
 
 /* Scan (prefix sum) on GPUs.
  *
- * GPUScanKernelLauncher selects one of the scan kernels from the GPUScan
- * subdirectory, depending on the input size n, the tile size
- * blockSize * valuesPerThread, and ScanPhaseType:
+ * The input is split into tiles of blockSize * valuesPerThread elements and
+ * each tile is scanned by one CUDA block (GPUTileScan, built on GPUBlockScan).
+ * Scanning a tile is the easy part. The hard part is that each block also
+ * needs the reduction of all preceding tiles (the prefix of its tile). The
+ * strategies below differ only in how the blocks obtain their prefixes.
  *
- * - n fits into one tile: GPUScanKernelParallel with a single CUDA block,
- * - n fits into one CUDA grid: GPUScanKernelLookback (single pass),
- * - otherwise a two-phase scan where the block results of the first phase are
- *   scanned recursively:
- *   - ScanPhaseType::WriteInFirstPhase: GPUScanKernelParallel followed by
- *     GPUScanKernelUniformShift ("scan-then-propagate"),
- *   - ScanPhaseType::WriteInSecondPhase: GPUScanKernelUpsweep followed by
- *     GPUScanKernelDownsweep ("reduce-then-scan").
+ * 1. Single tile: GPUScanKernelIndependentTiles with one block.
+ *    The whole input fits into one tile, so there is no prefix.
  *
- * The two phases can also be called separately via performFirstPhase and
- * performSecondPhase, which is used by the distributed scan; the lookback
- * kernel is never used in this case.
+ * 2. Decoupled lookback: GPUScanKernelLookback, one kernel launch.
+ *    Each block publishes the reduction of its tile in global memory and
+ *    reads the values published by the preceding blocks. The input is read
+ *    once and the output is written once (n reads, n writes).
+ *
+ * 3. Scan-then-propagate (ScanPhaseType::WriteInFirstPhase):
+ *    GPUScanKernelIndependentTiles, then GPUScanKernelUniformShift.
+ *    The first phase scans each tile without its prefix, writes it to the
+ *    output, and stores the reduction of the tile. The second phase adds the
+ *    prefix to all elements of the output (2n reads, 2n writes).
+ *
+ * 4. Reduce-then-scan (ScanPhaseType::WriteInSecondPhase):
+ *    GPUScanKernelUpsweep, then GPUScanKernelDownsweep.
+ *    The first phase only reduces each tile. The second phase reads the input
+ *    again and scans each tile with its prefix (2n reads, n writes).
+ *
+ * In the two-phase strategies, the tile reductions are scanned between the
+ * phases (by a recursive call of the launcher), which gives the prefixes.
+ *
+ * GPUScanKernelLauncher::perform selects the strategy by the input size:
+ *
+ *    input fits into one tile        ->  1. single tile
+ *    input fits into one CUDA grid   ->  2. decoupled lookback
+ *    otherwise                       ->  3. or 4., selected by ScanPhaseType
+ *
+ * One CUDA grid has up to 2^31 - 1 blocks, so in practice the lookback is
+ * used for all local scans larger than one tile, including the scans of
+ * expressions. The two-phase strategies are kept for the distributed scan
+ * (DistributedScan.h), which calls the phases separately via
+ * performFirstPhase and performSecondPhase and adds the prefix of the
+ * preceding MPI ranks in between. The lookback cannot be split this way.
+ *
+ * ScanPhaseType selects between the two-phase strategies:
+ * - scan.h: reduce-then-scan for arrays (reading an array twice is cheaper
+ *   than writing the output twice), scan-then-propagate for expressions such
+ *   as a + b (evaluating them twice would be expensive). The in-place scans
+ *   always use reduce-then-scan. On the GPU, this matters only for inputs
+ *   larger than one grid, but the same ScanPhaseType selects the strategy of
+ *   the host (OpenMP) scan in Scan.hpp, which has no lookback.
+ * - distributedScan.h: the distributed scans from one array to another always
+ *   use scan-then-propagate, even for arrays (see the TODO there), the
+ *   in-place distributed scans use reduce-then-scan.
+ *
+ * Possible simplification: the first phase of the distributed scan on the
+ * GPU could perform the complete local scan with the lookback and return the
+ * reduction of the local range, and the second phase would only add the
+ * prefix of the preceding ranks with GPUScanKernelUniformShift. The global
+ * memory traffic would be the same, but the scan of the tile reductions and
+ * one kernel launch would be saved, and the multi-block two-phase strategies
+ * would be needed only for inputs larger than one grid.
+ *
+ * The lookback kernel uses larger tiles (lookbackValuesPerThread instead of
+ * valuesPerThread, see the template parameters of GPUScanKernelLauncher), and
+ * the single tile uses fewer values per thread for small inputs.
  *
  * See the description at the beginning of each kernel's header file for
  * details and references.
@@ -36,7 +83,7 @@
 #include <TNL/Algorithms/detail/ScanType.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelDownsweep.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelLookback.h>
-#include <TNL/Algorithms/detail/GPUScan/GPUScanKernelParallel.h>
+#include <TNL/Algorithms/detail/GPUScan/GPUScanKernelIndependentTiles.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelUniformShift.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelUpsweep.h>
 
@@ -231,7 +278,7 @@ struct GPUScanKernelLauncher
       typename OutputArray::ValueType identity,
       typename OutputArray::ValueType* blockResults )
    {
-      constexpr auto kernel = GPUScanKernelParallel<
+      constexpr auto kernel = GPUScanKernelIndependentTiles<
          scanType,
          blockSize,
          elementsPerThread,
@@ -322,7 +369,7 @@ struct GPUScanKernelLauncher
             switch( phaseType ) {
                case ScanPhaseType::WriteInFirstPhase:
                   {
-                     constexpr auto kernel = GPUScanKernelParallel<
+                     constexpr auto kernel = GPUScanKernelIndependentTiles<
                         scanType,
                         blockSize,
                         valuesPerThread,
