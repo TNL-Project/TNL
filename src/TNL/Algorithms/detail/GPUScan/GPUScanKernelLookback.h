@@ -41,6 +41,7 @@
  * https://research.nvidia.com/publication/2016-03_Single-pass-Parallel-Prefix-Sum-Decoupled-Lookback
  */
 
+#include <cstdint>
 #include <cstring>  // memcpy
 #include <type_traits>
 
@@ -65,7 +66,7 @@ namespace TNL::Algorithms::detail {
  *
  * It is used in GPUScanKernelLookback function.
  */
-enum class LookbackStatus : unsigned int
+enum class LookbackStatus : std::uint8_t
 {
    Invalid = 0,    // block has not published anything yet
    Aggregate = 1,  // block has published its per-block aggregate only
@@ -147,7 +148,7 @@ loadVolatile( const T& ref )
       constexpr int words = sizeof( T ) / sizeof( int );
       const volatile int* src = reinterpret_cast< const volatile int* >( &ref );
       alignas( T ) int buffer[ words ];
-   #pragma unroll
+      #pragma unroll
       for( int i = 0; i < words; i++ )
          buffer[ i ] = src[ i ];
       T result;
