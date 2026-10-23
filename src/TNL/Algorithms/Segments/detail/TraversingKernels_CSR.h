@@ -444,7 +444,7 @@ forElementsIfBlockMergeKernel_CSR(
    }
    __syncthreads();
 
-   Index segmentSize = shared_offsets[ threadIdx.x ];
+   const Index segmentSize = shared_offsets[ threadIdx.x ];
    const Index v2 = ExclusiveGPUScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
