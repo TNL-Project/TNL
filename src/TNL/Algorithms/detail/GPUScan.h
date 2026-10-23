@@ -189,7 +189,7 @@ struct GPUScanKernelLauncher
       // synchronously), so the array cannot be reallocated or its epoch
       // changed by another host thread while the kernel uses it.
       auto& cache = lookbackCache();
-      std::lock_guard< std::mutex > lock( cache.mutex );
+      std::scoped_lock lock( cache.mutex );
       auto& states = cache.states;
       auto& epoch = cache.epoch;
       // the size of the array is never negative, so the comparison can be done in Index
@@ -599,7 +599,7 @@ struct GPUScanKernelLauncher
       static std::mutex mutex;
       static auto* caches = new std::map< int, LookbackCache >;
       const int device = Backend::getDevice();
-      std::lock_guard< std::mutex > lock( mutex );
+      std::scoped_lock lock( mutex );
       // std::map does not invalidate references to its elements on insertion
       return ( *caches )[ device ];
    }
