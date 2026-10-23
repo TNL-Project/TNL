@@ -88,8 +88,8 @@ protected:
          if( array.getSize() > 256 ) {
             // we don't care which kernel launcher was actually used
             const auto gridsCount = TNL::max(
-               GPUScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-               GPUScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+               GPUScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount().load(),
+               GPUScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount().load() );
             EXPECT_GT( gridsCount, 1 );
          }
       }
@@ -908,8 +908,8 @@ TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
    // Verify that the lookback kernel was actually used (gridsCount == 1)
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
       const auto gridsCount = TNL::max(
-         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount().load(),
+         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount().load() );
       EXPECT_EQ( gridsCount, 1 );
    }
 }
@@ -1028,10 +1028,12 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_view )
 }
 
 // Test that the scans performed concurrently by several host threads do not
-// interfere. The lookback kernel shares the array of its states among the
-// scans, so they must be serialized. Each thread scans its own array with a
-// different value, so mixing the states of different scans would change the
-// results.
+// interfere. The lookback kernel stores the states of the tiles in an array
+// which is cached by GPUScanKernelLauncher and reused by all scans (of the same
+// launcher instantiation on the same device), so the launcher serializes these
+// scans with a mutex. Each thread scans its own array with a different value,
+// so mixing the states of different scans would change the results (or the
+// kernel would wait forever for a state of another scan).
 TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
 {
    using ArrayType = typename TestFixture::ArrayType;
