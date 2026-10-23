@@ -73,6 +73,7 @@
  * details and references.
  */
 
+#include <atomic>
 #include <map>
 #include <mutex>
 
@@ -591,10 +592,12 @@ struct GPUScanKernelLauncher
       return ( *caches )[ device ];
    }
 
-   static int&
+   // number of grids used by the last scan (for the unit tests); it is atomic,
+   // since the scans may be performed concurrently by several host threads
+   static std::atomic< int >&
    gridsCount()
    {
-      static int gridsCount = -1;
+      static std::atomic< int > gridsCount = -1;
       return gridsCount;
    }
 };
