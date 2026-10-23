@@ -434,6 +434,29 @@ TEST( HypreTest, CSRMatrix )
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, CSRMatrixMoveAssignment )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   Matrices::HypreCSRMatrix a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   Matrices::HypreCSRMatrix b = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   const auto nonzeros = a.getValues().getSize();
+
+   // move-assignment must release the handle currently held by the target
+   a = std::move( b );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getColumns(), size );
+   EXPECT_EQ( a.getValues().getSize(), nonzeros );
+
+   Matrices::HypreCSRMatrix& self = a;
+   a = std::move( self );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getValues().getSize(), nonzeros );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST( HypreTest, ParCSRMatrix_wrapCSRMatrix )
 {
    TNL::Hypre hypre;
@@ -472,6 +495,42 @@ TEST( HypreTest, ParCSRMatrix_wrapCSRMatrix )
    // test move-constructor and move-assignment
    Matrices::HypreParCSRMatrix c = std::move( a );
    a = std::move( c );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, ParCSRMatrixMoveAssignment )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   // self-move-assignment must leave the matrix intact
+   {
+      Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
+      Matrices::HypreParCSRMatrix& self = a;
+      a = std::move( self );
+      EXPECT_EQ( a.getRows(), size );
+      EXPECT_EQ( a.getColumns(), size );
+   }
+
+   // move construction must transfer the ownership of the borrowed blocks
+   {
+      Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreParCSRMatrix source = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
+      Matrices::HypreParCSRMatrix target( std::move( source ) );
+      EXPECT_EQ( target.getRows(), size );
+   }
+
+   // move-assignment must transfer the ownership and release the old target handle
+   {
+      Matrices::HypreCSRMatrix matrix1 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreCSRMatrix matrix2 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix1 );
+      Matrices::HypreParCSRMatrix b = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix2 );
+      a = std::move( b );
+      EXPECT_EQ( a.getRows(), size );
+   }
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)

@@ -61,9 +61,12 @@ public:
    HypreCSRMatrix&
    operator=( HypreCSRMatrix&& other ) noexcept
    {
-      m = other.m;
-      other.m = nullptr;
-      owns_handle = other.owns_handle;
+      if( this != &other ) {
+         reset();
+         m = other.m;
+         other.m = nullptr;
+         owns_handle = other.owns_handle;
+      }
       return *this;
    }
 
@@ -83,11 +86,11 @@ public:
    }
 
    /**
-    * \brief Convert Hypre's format to \e HypreCSRMatrix
+    * \brief Convert Hypre's format to `HypreCSRMatrix`
     *
-    * \param handle is the Hypre vector handle.
+    * \param handle is the Hypre matrix handle.
     * \param take_ownership indicates if the matrix should take ownership of
-    * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
+    * the handle, i.e. whether to call `hypre_CSRMatrixDestroy` when it does
     * not need it anymore.
     */
    explicit HypreCSRMatrix( hypre_CSRMatrix* handle, bool take_ownership = true )
@@ -284,11 +287,11 @@ public:
    }
 
    /**
-    * \brief Convert Hypre's format to \e HypreCSRMatrix
+    * \brief Convert Hypre's format to `HypreCSRMatrix`
     *
-    * \param handle is the Hypre vector handle.
+    * \param handle is the Hypre matrix handle.
     * \param take_ownership indicates if the matrix should take ownership of
-    * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
+    * the handle, i.e. whether to call `hypre_CSRMatrixDestroy` when it does
     * not need it anymore.
     */
    void
