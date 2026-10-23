@@ -182,7 +182,8 @@ struct GPUScanKernelLauncher
       // size shrinks we keep the existing (larger) allocation. Each call uses a
       // new epoch, so the states written by previous calls are treated as
       // Invalid by the kernel and the array does not have to be reset. It is
-      // reset only when it is (re)allocated and when the epoch would overflow.
+      // reset (together with the tile counter) only when it is (re)allocated,
+      // when the epoch would overflow, and after a failed kernel launch.
       // The cache is per device and the scans which use it are serialized by
       // its mutex, which is held until the kernel finishes (it is launched
       // synchronously), so the array cannot be reallocated or its epoch
@@ -201,12 +202,11 @@ struct GPUScanKernelLauncher
          fillConfig.blockHostUntilFinished = false;
          Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize(), fillConfig );
          epoch = 0;
-      }
-      epoch++;
-      if( cache.tileCounter.getSize() == 0 ) {
          cache.tileCounter.setSize( 1 );
          cache.tileCounter.setValue( 0 );
+         cache.tileCounterBase = 0;
       }
+      epoch++;
 
       constexpr auto kernel = GPUScanKernelLookback<
          scanType,
@@ -221,20 +221,31 @@ struct GPUScanKernelLauncher
       launch_config.blockSize.x = blockSize;
       launch_config.gridSize.x = numberOfBlocks;
 
-      Backend::launchKernelSync(
-         kernel,
-         launch_config,
-         input.getConstView(),
-         output.getView(),
-         begin,
-         end,
-         outputBegin,
-         reduction,
-         identity,
-         states.getData(),
-         epoch,
-         cache.tileCounter.getData(),
-         cache.tileCounterBase );
+      try {
+         Backend::launchKernelSync(
+            kernel,
+            launch_config,
+            input.getConstView(),
+            output.getView(),
+            begin,
+            end,
+            outputBegin,
+            reduction,
+            identity,
+            states.getData(),
+            epoch,
+            cache.tileCounter.getData(),
+            cache.tileCounterBase );
+      }
+      catch( ... ) {
+         // It is not known how many tiles the kernel took from the counter (an
+         // error reported by the launch may come from an earlier operation),
+         // so the counter and tileCounterBase might not match. The next scan
+         // resets the states and the counter (no GPU call is made here, since
+         // the GPU may be in an error state).
+         epoch = maxLookbackEpoch;
+         throw;
+      }
       cache.tileCounterBase += numberOfBlocks;
 
       gridsCount() = 1;
@@ -571,7 +582,8 @@ struct GPUScanKernelLauncher
       // epoch of the last scan which used the states, see LookbackStatus
       unsigned int epoch = 0;
       // counter used by the kernel to assign the tiles to the blocks; it is
-      // never reset, each scan uses the values starting at tileCounterBase
+      // reset only together with the states, each scan uses the values
+      // starting at tileCounterBase
       Containers::Array< unsigned long long, Devices::Cuda > tileCounter;
       unsigned long long tileCounterBase = 0;
    };
