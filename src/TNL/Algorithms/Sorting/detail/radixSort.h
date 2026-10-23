@@ -749,18 +749,11 @@ radixSortOnesweepKernel(
          // write the tile out with coalesced stores: consecutive positions of
          // the staged tile belong to the same digit run (or to adjacent runs),
          // so the global stores are consecutive as well; the digit owning each
-         // position is found by a binary search over the digit starts
+         // position is recomputed from the staged value instead of searching
+         // the digit starts - it is a pure function of the value and the pass
          for( int i = digit; i < tileSize; i += static_cast< int >( blockDim.x ) ) {
-            int lo = 0;
-            int hi = radixSortBuckets;
-            while( lo + 1 < hi ) {
-               const int mid = ( lo + hi ) / 2;
-               if( s_digitStart[ mid ] <= i )
-                  lo = mid;
-               else
-                  hi = mid;
-            }
-            output[ s_base[ lo ] + ( i - s_digitStart[ lo ] ) ] = s_rankTile.tile[ i ];
+            const int dig = radixSortDigit< Value, descending >( s_rankTile.tile[ i ], pass );
+            output[ s_base[ dig ] + ( i - s_digitStart[ dig ] ) ] = s_rankTile.tile[ i ];
          }
       }
       __syncthreads();
