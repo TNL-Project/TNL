@@ -12,17 +12,17 @@
  *
  * Usage (see GPUScanKernelLauncher in GPUScan.h):
  * - the second phase of the ScanPhaseType::WriteInFirstPhase variant, after
- *   GPUScanKernelParallel and the scan of the block results,
+ *   GPUScanKernelIndependentTiles and the scan of the block results,
  * - the second phase with a single block when the input fits into one tile
  *   and the scan is performed in two phases explicitly (e.g. the distributed
  *   scan applies the shift of the preceding ranks this way).
  *
  * \param blockResults  An array of per-block shifts coming from the first phase
- *                      (computed by GPUScanKernelParallel)
+ *                      (computed by GPUScanKernelIndependentTiles)
  * \param shift         A global shift to be applied to all elements of the
  *                      output array.
  *
- * References: see GPUScanKernelParallel.h.
+ * References: see GPUScanKernelIndependentTiles.h.
  */
 
 #include <TNL/Assert.h>
