@@ -56,6 +56,10 @@ struct RadixSort
     * is the auxiliary (ping-pong) array with one value per element of the
     * sorted array.
     *
+    * Arrays of at most one tile (2048 elements) are sorted by a single
+    * kernel launch without any temporary buffers, so the workspace is not
+    * touched at all at these sizes.
+    *
     * \note The sorts sharing one workspace must not overlap: the workspace
     * carries state between asynchronous kernel launches, so the sorts must
     * be ordered on the same stream.
