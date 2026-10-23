@@ -7,9 +7,11 @@
  * (the second phase of the "reduce-then-scan" strategy).
  *
  * Each CUDA block reads its tile of the input, scans it with GPUTileScan using
- * the scanned block result reductionResults[blockIdx.x] (combined with the
+ * the prefix of the tile reductionResults[blockIdx.x] (combined with the
  * global shift) as the initial value, and writes the final result to the
- * output.
+ * output. The block results of GPUScanKernelUpsweep are scanned exclusively
+ * between the phases, so reductionResults[i] is the reduction of all tiles
+ * preceding the tile i.
  *
  * Usage (see GPUScanKernelLauncher in GPUScan.h): the second phase of the
  * ScanPhaseType::WriteInSecondPhase variant, after GPUScanKernelUpsweep and
