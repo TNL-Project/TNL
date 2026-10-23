@@ -2,6 +2,7 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
+#include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
@@ -222,6 +223,62 @@ test_forElements()
             for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
                EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx ) << "segmentIdx = " << segmentIdx
                   << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+         }
+      }
+   }
+}
+
+// Segments longer than the block size (256 threads), longer than the warp size and
+// shorter than the warp size are traversed differently by some launch configurations,
+// e.g. the dynamic grouping of CSR. Each element must be visited exactly once, with the
+// index of its own segment and its local index.
+template< typename Segments >
+void
+test_forElements_LongSegments()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
+
+   const IndexType segmentsCount = 300;
+   const HostVectorType sizesPattern{ 600, 7, 100, 0, 300, 33, 257, 32 };
+   HostVectorType hostSegmentsSizes( segmentsCount );
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
+      hostSegmentsSizes[ segmentIdx ] = sizesPattern[ segmentIdx % sizesPattern.getSize() ];
+   const VectorType segmentsSizes( hostSegmentsSizes );
+
+   Segments segments( segmentsSizes );
+
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
+   {
+      SCOPED_TRACE( tag );
+
+      VectorType visits_v( segments.getStorageSize(), 0 );
+      VectorType segmentIdx_v( segments.getStorageSize(), -1 );
+      VectorType localIdx_v( segments.getStorageSize(), -1 );
+      auto visits_view = visits_v.getView();
+      auto segmentIdx_view = segmentIdx_v.getView();
+      auto localIdx_view = localIdx_v.getView();
+      TNL::Algorithms::Segments::forAllElements(
+         segments,
+         [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+         {
+            TNL::Algorithms::AtomicOperations< DeviceType >::add( visits_view[ globalIdx ], IndexType( 1 ) );
+            segmentIdx_view[ globalIdx ] = segmentIdx;
+            localIdx_view[ globalIdx ] = localIdx;
+         },
+         launch_config );
+
+      const HostVectorType host_visits_v( visits_v );
+      const HostVectorType host_segmentIdx_v( segmentIdx_v );
+      const HostVectorType host_localIdx_v( localIdx_v );
+      for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
+            const IndexType globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
+            ASSERT_EQ( host_visits_v[ globalIdx ], 1 ) << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
+            ASSERT_EQ( host_segmentIdx_v[ globalIdx ], segmentIdx ) << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
+            ASSERT_EQ( host_localIdx_v[ globalIdx ], localIdx ) << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
          }
       }
    }

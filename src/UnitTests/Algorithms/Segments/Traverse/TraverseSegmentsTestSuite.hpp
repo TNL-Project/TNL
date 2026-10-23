@@ -20,6 +20,11 @@ TYPED_TEST_P( TraverseSegmentsTest, forElements )
    test_forElements< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST_P( TraverseSegmentsTest, forElements_LongSegments )
+{
+   test_forElements_LongSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST_P( TraverseSegmentsTest, forElementsIf )
 {
    test_forElementsIf< typename TestFixture::SegmentsType >();
@@ -61,6 +66,7 @@ REGISTER_TYPED_TEST_SUITE_P(
    forElements_EmptySegments,
    forElements_EqualSizes,
    forElements,
+   forElements_LongSegments,
    forElementsIf,
    forElementsWithSegmentIndexes_EmptySegments,
    forElementsWithSegmentIndexes,
