@@ -15,7 +15,7 @@
  * The tile loads and stores are vectorized (16-byte accesses) for arrays
  * whose value type size divides 16.
  *
- * GPUTileScan::scan is used by GPUScanKernelParallel and
+ * GPUTileScan::scan is used by GPUScanKernelIndependentTiles and
  * GPUScanKernelDownsweep; GPUScanKernelLookback uses the individual steps
  * (loadTile, reduceChunk, scanChunk, storeTile), since it determines the
  * prefix of the tile between them.
