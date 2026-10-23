@@ -99,3 +99,20 @@ just build tnl-benchmark-scan-cuda
 The benchmark writes the measurements in the JSONL format to the log file (`<program>.log` by
 default), together with the metadata of the devices in `<program>.metadata.json`, so the results
 from different GPUs can be compared.
+
+## Processing the results
+
+The script `tnl-benchmark-scan-html-table-generator.py` (requires `pandas` and the TNL Python
+module `TNL.BenchmarkLogs`) generates HTML tables from one or more logs:
+
+```bash
+src/Benchmarks/Algorithms/tnl-benchmark-scan-html-table-generator.py scan-$(hostname).log
+```
+
+For each operation, it produces the tables of times and bandwidths of all devices and performers,
+the speedups of the GPU against the CPU, and the speedups of TNL against the other libraries.
+When the log contains the explicitly selected GPU kernels, it also produces the tuning tables for
+each operation and GPU: the times of all kernels and values per thread, the best number of values
+per thread for each value type and size, and the recommended number of values per thread for each
+value type (the one with the smallest geometric mean of the slowdown against the best one over all
+sizes). The operations and value types can be selected with `-f` and `-t`, see `--help`.
