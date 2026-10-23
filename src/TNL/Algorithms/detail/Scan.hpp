@@ -38,7 +38,9 @@ Scan< Devices::Sequential, Type, PhaseType >::perform(
    else  // Exclusive scan
    {
       for( ; begin < end; begin++, outputBegin++ ) {
-         const ValueType x = input[ begin ];
+         // the copy is necessary for the in-place scan, where writing the
+         // output overwrites the input
+         const ValueType x = input[ begin ];  // NOLINT(performance-unnecessary-copy-initialization)
          output[ outputBegin ] = aux;
          aux = reduction( aux, x );
       }
