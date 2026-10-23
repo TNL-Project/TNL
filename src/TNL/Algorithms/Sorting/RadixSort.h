@@ -28,9 +28,11 @@ namespace TNL::Algorithms::Sorting {
  *
  * The sort requires an auxiliary array of the same size (\f$N\f$) as the
  * input array, which serves as the ping-pong buffer of the passes, and an
- * array of tile status counters of the decoupled lookback, which is at most
- * \f$2^{17}\f$ tiles times 256 counters (about 128 MiB). When a workspace
- * is reused across sorts, both buffers are persistent and only grow.
+ * array of tile status counters of the decoupled lookback with one region
+ * per radix pass, which is at most \f$2^{17}\f$ tiles times 256 counters
+ * per region (about 128 MiB times the number of passes, i.e. the value size
+ * in bytes). When a workspace is reused across sorts, both buffers are
+ * persistent and only grow.
  *
  * \par Example
  *
