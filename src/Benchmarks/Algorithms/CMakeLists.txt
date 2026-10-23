@@ -80,16 +80,22 @@ if(TNL_BUILD_CUDA)
 endif()
 
 if(TNL_BUILD_HIP)
-    tnl_add_scan_benchmark(tnl-benchmark-scan-hip hip)
-    list(APPEND BENCHMARKS tnl-benchmark-scan-hip)
-    find_package(rocprim REQUIRED)
-    find_package(hipcub REQUIRED)
-    target_link_libraries(tnl-benchmark-scan-hip PUBLIC roc::rocprim hip::hipcub)
-    # rocThrust provides Thrust for HIP
-    find_package(rocthrust)
-    if(rocthrust_FOUND)
-        target_compile_definitions(tnl-benchmark-scan-hip PUBLIC -DHAVE_THRUST)
-        target_link_libraries(tnl-benchmark-scan-hip PUBLIC roc::rocthrust)
+    # the HIP benchmark compares TNL with hipCUB and rocPRIM, so it is skipped
+    # (instead of failing the configuration) when they are not installed
+    find_package(rocprim)
+    find_package(hipcub)
+    if(rocprim_FOUND AND hipcub_FOUND)
+        tnl_add_scan_benchmark(tnl-benchmark-scan-hip hip)
+        list(APPEND BENCHMARKS tnl-benchmark-scan-hip)
+        target_link_libraries(tnl-benchmark-scan-hip PUBLIC roc::rocprim hip::hipcub)
+        # rocThrust provides Thrust for HIP
+        find_package(rocthrust)
+        if(rocthrust_FOUND)
+            target_compile_definitions(tnl-benchmark-scan-hip PUBLIC -DHAVE_THRUST)
+            target_link_libraries(tnl-benchmark-scan-hip PUBLIC roc::rocthrust)
+        endif()
+    else()
+        message(STATUS "rocPRIM or hipCUB not found, tnl-benchmark-scan-hip will not be built")
     endif()
 endif()
 
