@@ -232,6 +232,8 @@ public:
    void
    bind( HypreParVector& vector )
    {
+      if( &vector == this )
+         return;
       bind(
          vector.getLocalRange(),
          vector.getGhosts(),
@@ -247,12 +249,36 @@ public:
     * \param take_ownership indicates if the vector should take ownership of
     * the handle, i.e. whether to call `hypre_ParVectorDestroy` when it does
     * not need it anymore.
+    *
+    * \note If `handle` is already bound to this object, only the ownership is
+    * updated according to `take_ownership` and the ownership of the local
+    * vector is transferred accordingly, the handle is not modified otherwise.
     */
    void
    bind( hypre_ParVector* handle, bool take_ownership = true )
    {
       if( handle == nullptr )
          throw std::invalid_argument( "bind: the Hypre vector handle must not be null" );
+
+      if( handle == v ) {
+         // self-binding only updates the ownership and transfers the local vector accordingly
+         if( owns_handle != take_ownership ) {
+            if( take_ownership ) {
+               // borrowed -> owned: mirror the tail of the normal bind
+               localData.bind( hypre_ParVectorLocalVector( v ), true );
+               hypre_ParVectorOwnsData( v ) = 0;
+               hypre_ParVectorLocalVector( v ) = this->localData;
+               hypre_ParVectorActualLocalSize( v ) = this->localData.getSize();
+            }
+            else {
+               // owned -> borrowed: hand the ownership of the local vector back to Hypre
+               hypre_ParVectorOwnsData( v ) = 1;
+               localData.bind( hypre_ParVectorLocalVector( v ), false );
+            }
+            owns_handle = take_ownership;
+         }
+         return;
+      }
 
       hypre_Vector* local_vector = hypre_ParVectorLocalVector( handle );
       const HYPRE_Int local_size = hypre_ParVectorPartitioning( handle )[ 1 ] - hypre_ParVectorPartitioning( handle )[ 0 ];

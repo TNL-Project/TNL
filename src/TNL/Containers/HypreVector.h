@@ -191,6 +191,8 @@ public:
    void
    bind( HypreVector& vector )
    {
+      if( &vector == this )
+         return;
       bind( vector.getData(), vector.getSize() );
    }
 
@@ -201,12 +203,22 @@ public:
     * \param take_ownership indicates if the vector should take ownership of
     * the handle, i.e. whether to call `hypre_SeqVectorDestroy` when it does
     * not need it anymore.
+    *
+    * \note If `handle` is already bound to this object, only the ownership
+    * flag is updated according to `take_ownership`, the handle is not
+    * modified.
     */
    void
    bind( hypre_Vector* handle, bool take_ownership = true )
    {
       if( handle == nullptr )
          throw std::invalid_argument( "bind: the Hypre vector handle must not be null" );
+
+      if( handle == v ) {
+         // self-binding only updates the ownership flag
+         owns_handle = take_ownership;
+         return;
+      }
 
       // drop/deallocate the current data
       reset();

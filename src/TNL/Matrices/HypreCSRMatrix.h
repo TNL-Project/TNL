@@ -283,6 +283,8 @@ public:
    void
    bind( HypreCSRMatrix& matrix )
    {
+      if( &matrix == this )
+         return;
       bind( matrix.getRows(), matrix.getColumns(), matrix.getValues(), matrix.getColumnIndexes(), matrix.getRowOffsets() );
    }
 
@@ -293,12 +295,22 @@ public:
     * \param take_ownership indicates if the matrix should take ownership of
     * the handle, i.e. whether to call `hypre_CSRMatrixDestroy` when it does
     * not need it anymore.
+    *
+    * \note If `handle` is already bound to this object, only the ownership
+    * flag is updated according to `take_ownership`, the handle is not
+    * modified.
     */
    void
    bind( hypre_CSRMatrix* handle, bool take_ownership = true )
    {
       if( handle == nullptr )
          throw std::invalid_argument( "bind: the Hypre matrix handle must not be null" );
+
+      if( handle == m ) {
+         // self-binding only updates the ownership flag
+         owns_handle = take_ownership;
+         return;
+      }
 
       // drop/deallocate the current data
       reset();
