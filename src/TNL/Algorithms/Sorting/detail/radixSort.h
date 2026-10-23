@@ -842,6 +842,196 @@ radixSortCopyBackKernel(
 }
 
 /**
+ * \brief Kernel sorting a single tile of at most \ref radixSortTileSize
+ * elements in shared memory.
+ *
+ * Arrays of at most one tile do not benefit from the multi-tile machinery
+ * of the general driver: the histograms, the decoupled lookback and the
+ * ping-pong buffers are pure overhead at this size. A single thread block
+ * loads the whole array into shared memory, performs all digit-binning
+ * passes there, and writes the sorted data back, so the sort costs a single
+ * kernel launch and needs no temporary buffers at all. The stable ranking
+ * of the items is identical to \ref radixSortOnesweepKernel (warp match +
+ * raking scan), and the permutations of the passes ping-pong between two
+ * shared-memory tiles. A pass mapping all elements to the same digit is the
+ * identity permutation, so its permute is skipped and the tiles are not
+ * swapped.
+ *
+ * \param view is the view of the array to be sorted in place; its size must
+ *              be at most \ref radixSortTileSize.
+ */
+template< typename Value, typename Index, bool descending >
+__global__
+void
+radixSortSingleTileKernel( Containers::ArrayView< Value, Devices::GPU, Index > view )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   constexpr int passes = static_cast< int >( sizeof( Value ) );
+   __shared__ Value s_tiles[ 2 ][ radixSortTileSize ];
+   __shared__ int s_warpOffsets[ radixSortMaxWarps * radixSortBuckets ];
+   __shared__ int s_digitStart[ radixSortBuckets + 1 ];
+   __shared__ int s_singleDigit;
+
+   // the whole array fits into one tile, so the tile size is the array size
+   const int n = static_cast< int >( view.getSize() );
+   const int digit = static_cast< int >( threadIdx.x );
+   const int warpId = static_cast< int >( threadIdx.x ) / warpSize;
+   const int lane = static_cast< int >( threadIdx.x ) % warpSize;
+   constexpr int itemsPerThread = radixSortItemsPerThread;
+   const RadixSortWarpMask fullMask = Backend::getWarpFullMask();
+   const RadixSortWarpMask laneMaskLt =
+      ( static_cast< RadixSortWarpMask >( 1 ) << lane ) - static_cast< RadixSortWarpMask >( 1 );
+
+   // load the input into the first shared tile with coalesced loads
+   for( int i = digit; i < n; i += static_cast< int >( blockDim.x ) )
+      s_tiles[ 0 ][ i ] = view[ i ];
+   s_digitStart[ 0 ] = 0;
+   __syncthreads();
+
+   // the permutations of the passes ping-pong between the two shared tiles
+   int cur = 0;
+   for( int pass = 0; pass < passes; pass++ ) {
+      // zero the per-(warp, digit) offsets of this pass
+      for( int i = digit; i < radixSortMaxWarps * radixSortBuckets; i += static_cast< int >( blockDim.x ) )
+         s_warpOffsets[ i ] = 0;
+      __syncthreads();
+
+      // load the items of the current tile into registers in the warp-major
+      // geometry of radixSortOnesweepKernel: each warp handles a contiguous
+      // span of the tile, split into consecutive rounds of warpSize elements
+      Value values[ itemsPerThread ]{};
+      unsigned char digits[ itemsPerThread ]{};
+      #pragma unroll
+      for( int j = 0; j < itemsPerThread; j++ ) {
+         const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+         if( idxInTile < n ) {
+            values[ j ] = s_tiles[ cur ][ idxInTile ];
+            digits[ j ] = static_cast< unsigned char >( radixSortDigit< Value, descending >( values[ j ], pass ) );
+         }
+      }
+
+      // rank the items (identical to radixSortOnesweepKernel): the lowest
+      // lane of each group of equal digits atomically adds the group size to
+      // the running (warp, digit) offset and broadcasts the returned value
+      // within the group, which gives the offset of the item's round within
+      // the warp
+      int itemOffsets[ itemsPerThread ]{};
+      #pragma unroll
+      for( int j = 0; j < itemsPerThread; j++ ) {
+         // active lanes of the warp form a prefix of the warp, so the mask
+         // of lanes participating in the warp match can be computed directly
+         const int activeInWarp = TNL::max(
+            0,
+            TNL::min(
+               static_cast< int >( warpSize ),
+               n - warpId * ( warpSize * itemsPerThread ) - j * static_cast< int >( warpSize ) ) );
+         const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+         if( activeInWarp > 0 && idxInTile < n ) {
+            const RadixSortWarpMask activeMask =
+               activeInWarp >= static_cast< int >( warpSize )
+                  ? fullMask
+                  : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
+            const RadixSortWarpMask match = __match_any_sync( activeMask, static_cast< int >( digits[ j ] ) );
+            const int rank = radixSortPopcount( match & laneMaskLt );
+            const int leaderLane = radixSortFindFirstSet( match ) - 1;
+            int roundOffset = 0;
+            if( lane == leaderLane )
+               roundOffset = atomicAdd( &s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ], radixSortPopcount( match ) );
+            roundOffset = __shfl_sync( activeMask, roundOffset, leaderLane );
+            itemOffsets[ j ] = roundOffset + rank;
+         }
+      }
+      __syncthreads();
+
+      // exclusive scan of the warp offsets of each digit (in place), with
+      // one thread per digit, and the per-digit counts into s_digitStart
+      int digitCount = 0;
+      #pragma unroll
+      for( int w = 0; w < radixSortMaxWarps; w++ ) {
+         const int idx = w * radixSortBuckets + digit;
+         const int count = s_warpOffsets[ idx ];
+         s_warpOffsets[ idx ] = digitCount;
+         digitCount += count;
+      }
+      s_digitStart[ digit + 1 ] = digitCount;
+      __syncthreads();
+
+      // turn the digit counts into the tile-local starts of the digit runs
+      // by a raking scan of the first warp (identical to
+      // radixSortOnesweepKernel), and detect the single-digit case
+      if( warpId == 0 ) {
+         constexpr int digitsPerThread = radixSortBuckets / Backend::getWarpSize();
+         int counts[ digitsPerThread ];
+         int sum = 0;
+         #pragma unroll
+         for( int k = 0; k < digitsPerThread; k++ ) {
+            counts[ k ] = s_digitStart[ lane * digitsPerThread + k + 1 ];
+            sum += counts[ k ];
+         }
+         int inclusive = sum;
+         #pragma unroll
+         for( int off = 1; off < warpSize; off <<= 1 ) {
+            const int v = __shfl_up_sync( fullMask, inclusive, off );
+            if( lane >= off )
+               inclusive += v;
+         }
+         int running = inclusive - sum;
+         #pragma unroll
+         for( int k = 0; k < digitsPerThread; k++ ) {
+            running += counts[ k ];
+            s_digitStart[ lane * digitsPerThread + k + 1 ] = running;
+         }
+
+         // if all items fall into the same digit bin, the bin is recorded so
+         // that the permute (an identity permutation) can be skipped;
+         // at most one bin can own all items, since the counts sum to the
+         // tile size, so the write below has a single writer
+         int single = -1;
+         #pragma unroll
+         for( int k = 0; k < digitsPerThread; k++ )
+            if( counts[ k ] == n )
+               single = lane * digitsPerThread + k;
+         const RadixSortWarpMask ballot = __ballot_sync( fullMask, single >= 0 );
+         if( single >= 0 )
+            s_singleDigit = single;
+         else if( lane == 0 && ballot == 0 )
+            s_singleDigit = -1;
+      }
+      __syncthreads();
+
+      // a single-digit pass is the identity permutation: skip the permute
+      // and keep the current tile (the flip is uniform across the block)
+      if( s_singleDigit < 0 ) {
+         // fold the digit start and the warp offset of each item into its
+         // rank offset, which turns it into the position in the other tile
+         #pragma unroll
+         for( int j = 0; j < itemsPerThread; j++ ) {
+            const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+            if( idxInTile < n )
+               itemOffsets[ j ] += s_digitStart[ digits[ j ] ] + s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ];
+         }
+
+         // stage the items into the other tile, grouped by digit
+         #pragma unroll
+         for( int j = 0; j < itemsPerThread; j++ ) {
+            const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+            if( idxInTile < n )
+               s_tiles[ cur ^ 1 ][ itemOffsets[ j ] ] = values[ j ];
+         }
+
+         // flip the tiles for the next pass (uniform across the block)
+         cur ^= 1;
+      }
+      __syncthreads();
+   }
+
+   // write the final tile back with coalesced stores
+   for( int i = digit; i < n; i += static_cast< int >( blockDim.x ) )
+      view[ i ] = s_tiles[ cur ][ i ];
+#endif
+}
+
+/**
  * \brief Workspace of the temporary buffers of the radix sort driver.
  *
  * The radix sort driver needs an auxiliary array of the size of the input
@@ -947,6 +1137,11 @@ struct RadixSortWorkspace
  * the lookback values to 30 bits; the base offsets of the digit runs are
  * advanced between the strips (see \ref radixSortAdvanceBaseKernel).
  *
+ * Arrays of at most one tile (\ref radixSortTileSize elements) take a
+ * separate fast path (see \ref radixSortSingleTileKernel): the whole array
+ * is sorted by one block in shared memory with a single kernel launch and
+ * the workspace is not touched at all.
+ *
  * A pass whose histogram consists of a single non-zero bucket maps all
  * elements to the same digit, so its stable partition is the identity
  * permutation and its sweeps can be skipped in all strips; the digit counts
@@ -982,6 +1177,18 @@ radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspac
 
    const Index n = view.getSize();
    constexpr int passes = static_cast< int >( sizeof( Value ) );
+
+   // an array of at most one tile is sorted by a single block in shared
+   // memory, which replaces the whole machinery below with one kernel
+   // launch and needs no temporary buffers, so the workspace is left
+   // untouched (see radixSortSingleTileKernel)
+   if( n <= radixSortTileSize ) {
+      constexpr auto singleTileKernel = radixSortSingleTileKernel< Value, Index, descending >;
+      Backend::LaunchConfiguration launch_config( 1, radixSortBlockSize );
+      Backend::launchKernelAsync( singleTileKernel, launch_config, view );
+      Backend::streamSynchronize( launch_config.stream );
+      return;
+   }
 
    // grow the reused buffers to fit the input; the buffers keep their
    // capacity when the input shrinks, so repeated sorts do not allocate

@@ -368,6 +368,63 @@ TYPED_TEST( RadixSortTest, workspace_descendingOrder )
    EXPECT_TRUE( Algorithms::isDescending( view ) );
 }
 
+// Single-tile threshold tests (both sides of the single-tile dispatch)
+
+/**
+ * \brief Checks the sort of a `size`-element random vector of the given
+ * value type with both the plain and the workspace overload, ascending and
+ * descending.
+ */
+template< typename Value >
+void
+checkSortAroundSingleTileThreshold( int size )
+{
+   using Workspace = Sorting::RadixSort::Workspace< Value, TNL::Devices::GPU, int >;
+   std::vector< Value > vec = makeRandomVector< Value >( size, 4210 + size );
+   std::vector< Value > expected( vec );
+   TNL::Containers::Array< Value, TNL::Devices::GPU, int > arr( vec );
+   auto view = arr.getView();
+   TNL::Containers::Array< Value, TNL::Devices::GPU, int > expectedArr;
+
+   // plain overloads
+   Sorting::RadixSort::sort( view );
+   std::sort( expected.begin(), expected.end() );
+   expectedArr = expected;
+   EXPECT_TRUE( view == expectedArr.getView() ) << "ascending (plain) failed for size " << size;
+
+   arr = vec;
+   Sorting::RadixSort::sort( view, std::greater{} );
+   std::sort( expected.begin(), expected.end(), std::greater<>{} );
+   expectedArr = expected;
+   EXPECT_TRUE( view == expectedArr.getView() ) << "descending (plain) failed for size " << size;
+
+   // workspace overloads (the workspace must stay empty on the single-tile
+   // path and grow only above the threshold)
+   Sorting::RadixSort::Workspace< Value, TNL::Devices::GPU, int > workspace;
+   arr = vec;
+   Sorting::RadixSort::sort( view, workspace );
+   std::sort( expected.begin(), expected.end() );
+   expectedArr = expected;
+   EXPECT_TRUE( view == expectedArr.getView() ) << "ascending (workspace) failed for size " << size;
+   EXPECT_EQ( workspace.aux.getSize(), size <= 2048 ? 0 : size );
+
+   arr = vec;
+   Sorting::RadixSort::sort( view, workspace, std::greater{} );
+   std::sort( expected.begin(), expected.end(), std::greater<>{} );
+   expectedArr = expected;
+   EXPECT_TRUE( view == expectedArr.getView() ) << "descending (workspace) failed for size " << size;
+}
+
+TEST( RadixSortSingleTileTest, thresholdBoundary )
+{
+   // the single-tile fast path handles at most one tile (2048 elements), so
+   // test one element below, at, and one element above the threshold
+   for( const int size : { 2047, 2048, 2049 } ) {
+      checkSortAroundSingleTileThreshold< int >( size );
+      checkSortAroundSingleTileThreshold< float >( size );
+   }
+}
+
 // Integration with free sorting functions
 
 TEST( RadixSortFreeFunctionTest, ascendingAndDescending )
