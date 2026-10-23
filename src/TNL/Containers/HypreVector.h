@@ -52,9 +52,12 @@ public:
    HypreVector&
    operator=( HypreVector&& other ) noexcept
    {
-      v = other.v;
-      other.v = nullptr;
-      owns_handle = other.owns_handle;
+      if( this != &other ) {
+         reset();
+         v = other.v;
+         other.v = nullptr;
+         owns_handle = other.owns_handle;
+      }
       return *this;
    }
 
@@ -73,7 +76,7 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
+    * the handle, i.e. whether to call `hypre_SeqVectorDestroy` when it does
     * not need it anymore.
     */
    explicit HypreVector( hypre_Vector* handle, bool take_ownership = true )
@@ -194,7 +197,7 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
+    * the handle, i.e. whether to call `hypre_SeqVectorDestroy` when it does
     * not need it anymore.
     */
    void
@@ -212,20 +215,17 @@ public:
    void
    reset()
    {
-      if( owns_handle && v != nullptr ) {
+      if( owns_handle && v != nullptr )
          hypre_SeqVectorDestroy( v );
-         v = nullptr;
-      }
-      else {
-         v = nullptr;
-      }
+      v = nullptr;
       owns_handle = true;
    }
 
    /**
     * \brief Set the new vector size.
     *
-    * - if the vector previously owned data, they are deallocated
+    * - if the vector owns the handle, the handle is destroyed
+    *   (its data are freed only if the handle owns them)
     * - new size is set
     * - the vector is initialized with `hypre_SeqVectorInitialize`
     *   (i.e., data are allocated)
@@ -233,7 +233,7 @@ public:
    void
    setSize( IndexType size )
    {
-      hypre_SeqVectorDestroy( v );
+      reset();
       v = hypre_SeqVectorCreate( size );
       hypre_VectorMemoryLocation( v ) = getHypreMemoryLocation();
       hypre_SeqVectorInitialize( v );
