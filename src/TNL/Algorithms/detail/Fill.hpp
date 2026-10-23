@@ -17,7 +17,7 @@ Fill< Devices::Sequential >::fill(
    Element* data,
    const Element& value,
    Index size,
-   Devices::Sequential::LaunchConfiguration launch_config )
+   [[maybe_unused]] Devices::Sequential::LaunchConfiguration launch_config )
 {
    if( size == 0 )
       return;
