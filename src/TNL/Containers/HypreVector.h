@@ -5,6 +5,8 @@
 
 #ifdef HAVE_HYPRE
 
+   #include <stdexcept>
+
    #include <TNL/Hypre.h>
 
    #include <TNL/Containers/Vector.h>
@@ -203,6 +205,9 @@ public:
    void
    bind( hypre_Vector* handle, bool take_ownership = true )
    {
+      if( handle == nullptr )
+         throw std::invalid_argument( "bind: the Hypre vector handle must not be null" );
+
       // drop/deallocate the current data
       reset();
 

@@ -424,6 +424,9 @@ public:
    void
    bind( hypre_ParCSRMatrix* handle, bool take_ownership = true )
    {
+      if( handle == nullptr )
+         throw std::invalid_argument( "bind: the Hypre matrix handle must not be null" );
+
       // drop/deallocate the current data
       reset();
 

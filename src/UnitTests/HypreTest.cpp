@@ -295,6 +295,24 @@ TEST( HypreTest, ParVectorMoveAssignment )
    }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, InvalidHandles )
+{
+   TNL::Hypre hypre;
+
+   Containers::HypreVector v;
+   EXPECT_THROW( v.bind( static_cast< hypre_Vector* >( nullptr ) ), std::invalid_argument );
+
+   Containers::HypreParVector par_vector;
+   EXPECT_THROW( par_vector.bind( static_cast< hypre_ParVector* >( nullptr ) ), std::invalid_argument );
+
+   Matrices::HypreCSRMatrix matrix;
+   EXPECT_THROW( matrix.bind( static_cast< hypre_CSRMatrix* >( nullptr ) ), std::invalid_argument );
+
+   Matrices::HypreParCSRMatrix par_matrix;
+   EXPECT_THROW( par_matrix.bind( static_cast< hypre_ParCSRMatrix* >( nullptr ) ), std::invalid_argument );
+}
+
 /***
  * Creates the following matrix (dots represent zero matrix elements):
  *
