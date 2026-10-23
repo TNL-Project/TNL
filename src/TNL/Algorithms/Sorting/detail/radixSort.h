@@ -35,6 +35,16 @@ constexpr int radixSortItemsPerThread = 8;
 //! \brief Number of elements processed by one tile of the kernels.
 constexpr int radixSortTileSize = radixSortBlockSize * radixSortItemsPerThread;
 
+//! \brief Array size threshold below which the tile status regions of all
+//! passes are zeroed by a single upfront fill.
+//!
+//! The aggregated fill replaces one fill launch per pass, but it pays off
+//! only while the sweeps' streaming traffic between the fill and the last
+//! pass stays small enough for the zeroed regions to stay cache-hot (at
+//! about 2^22 elements on the current GPUs); larger sorts share the first
+//! region and zero it right before each sweep (see \ref radixSort).
+constexpr int radixSortAggregatedFillLimit = 1 << 22;
+
 // The per-digit phases of the scatter kernel rely on each thread handling
 // exactly one digit, which requires the block size to be equal to the number
 // of digit buckets.
@@ -1087,10 +1097,10 @@ struct RadixSortWorkspace
       if( passFlags.getSize() == 0 )
          passFlags.setSize( 2 * passes + 1 );
 
-      // one status counter per (tile, digit) plus the work counter; the
-      // number of tiles of a strip is capped by the maximum strip size of
-      // 2^28 elements, so the buffer stops growing once it can hold the
-      // counters of a full strip
+      // one status counter per (tile, digit) plus the work counter, with
+      // one such region per radix pass; the number of tiles of a strip is
+      // capped by the maximum strip size of 2^28 elements, so the buffer
+      // stops growing once it can hold the counters of a full strip
       if( size > 0 ) {
          // computed without rounding up to avoid overflow of the index
          // type when the size is close to its maximum
@@ -1098,7 +1108,9 @@ struct RadixSortWorkspace
             size / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( size % radixSortTileSize != 0 );
          const Index maxStripTiles =
             TNL::min( numTiles, ( static_cast< Index >( 1 ) << 28 ) / static_cast< Index >( radixSortTileSize ) );
-         const Index requiredSize = maxStripTiles * radixSortBuckets + 1;
+         // padded to a multiple of the bucket count so that every region
+         // starts 1 KiB-aligned (keep in sync with the driver in radixSort)
+         const Index requiredSize = static_cast< Index >( passes ) * ( ( maxStripTiles + 1 ) * radixSortBuckets );
          if( tileStatus.getSize() < requiredSize )
             tileStatus.setSize( requiredSize );
       }
@@ -1110,7 +1122,8 @@ struct RadixSortWorkspace
    //! \brief Base offsets of the digit runs: `passes` x `radixSortBuckets` entries.
    Containers::Array< Index, Device, Index > digitBase;
 
-   //! \brief Status counters of the lookback tiles plus the work counter.
+   //! \brief Status counters of the lookback tiles plus the work counter,
+   //! with one region per radix pass (see \ref radixSort).
    Containers::Array< unsigned int, Device, Index > tileStatus;
 
    //! \brief Skip flags and buffer-parity flags of the passes: `2 * passes + 1` entries.
@@ -1135,7 +1148,12 @@ struct RadixSortWorkspace
  *
  * The input is processed in strips of at most `2^28` elements, which bounds
  * the lookback values to 30 bits; the base offsets of the digit runs are
- * advanced between the strips (see \ref radixSortAdvanceBaseKernel).
+ * advanced between the strips (see \ref radixSortAdvanceBaseKernel). The
+ * tile status counters of the lookback are laid out in the workspace as one
+ * region per pass, so that a single fill can zero the counters of all
+ * passes; the aggregated fill is used for arrays of at most
+ * \ref radixSortAggregatedFillLimit elements, larger sorts share the first
+ * region and zero it right before each sweep.
  *
  * Arrays of at most one tile (\ref radixSortTileSize elements) take a
  * separate fast path (see \ref radixSortSingleTileKernel): the whole array
@@ -1241,14 +1259,30 @@ radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspac
    const Index numStrips = n / onesweepStripSize + static_cast< Index >( n % onesweepStripSize != 0 );
    const Index maxStripTiles = TNL::min( numTiles, onesweepStripSize / radixSortTileSize );
 
-   // one status counter per (tile, digit), plus the work counter; the
-   // buffer is reused, so it may be larger than needed, but the kernels of
-   // this call touch only the prefix of `tileStatusSize` counters
+   // each pass owns one region of the tile status buffer, holding one
+   // status counter per (tile, digit) of a strip plus the work counter;
+   // the region size is padded to a multiple of the bucket count, so every
+   // region starts on the same 1 KiB alignment as the single-region layout
+   // and the per-tile counter bursts stay line-aligned in all passes;
+   // the buffer is reused, so it may be larger than needed, but the kernels
+   // of this call touch only the used prefix of the buffer
    auto& tileStatus = workspace.tileStatus;
-   const Index tileStatusSize = maxStripTiles * radixSortBuckets + 1;
+   const Index tileStatusSize = ( maxStripTiles + 1 ) * radixSortBuckets;
 
    constexpr auto onesweepKernel = radixSortOnesweepKernel< Value, Index, descending >;
    constexpr auto advanceBaseKernel = radixSortAdvanceBaseKernel< Index >;
+
+   // zero the tile status counters of all passes with a single fill when
+   // the sort is small enough that the zeroed regions stay cache-hot until
+   // their sweeps (see radixSortAggregatedFillLimit); each sweep
+   // exclusively owns its pass's region of the buffer - the lookback of a
+   // sweep reads only the counters published by the sweeps of the same
+   // pass - so zeroing the regions of the later passes upfront is safe (the
+   // fill is ordered before all sweeps on the stream); zeroing the status
+   // also resets the work counter of each region
+   const bool aggregateFill = n <= static_cast< Index >( radixSortAggregatedFillLimit );
+   if( aggregateFill )
+      Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, static_cast< Index >( passes ) * tileStatusSize, fillConfig );
 
    // the host launches the sweeps of all passes: the sweeps of a skipped
    // pass exit immediately, so they permute the array by the identity
@@ -1266,8 +1300,16 @@ radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspac
          // when the strip size is close to its maximum
          const Index stripNumTiles = stripSize / radixSortTileSize + static_cast< Index >( stripSize % radixSortTileSize != 0 );
 
-         // zeroing the status also resets the work counter
-         Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, tileStatusSize, fillConfig );
+         // with the aggregated fill the sweep uses its pass's region;
+         // without it the sweeps share the first region (zeroed right
+         // before each sweep, so that it is still cache-hot when the sweep
+         // runs), which keeps the counter addressing identical to the
+         // single-region layout; the strips after the first one always
+         // re-zero the region (also resetting the work counter)
+         const Index regionBegin = aggregateFill ? pass * tileStatusSize : 0;
+         auto tileStatusRegion = tileStatus.getView( regionBegin, regionBegin + tileStatusSize );
+         if( ! aggregateFill || strip > 0 )
+            Algorithms::fill< Devices::GPU >( tileStatus.getData() + regionBegin, 0u, tileStatusSize, fillConfig );
          launch_config.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
          Backend::launchKernelAsync(
             onesweepKernel,
@@ -1275,7 +1317,7 @@ radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspac
             view,
             aux,
             digitBase.getView(),
-            tileStatus.getView(),
+            tileStatusRegion,
             passFlags.getConstView(),
             stripBegin,
             stripEnd,
@@ -1288,7 +1330,7 @@ radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspac
          if( strip + 1 < numStrips ) {
             launch_config.gridSize.x = 1;
             Backend::launchKernelAsync(
-               advanceBaseKernel, launch_config, digitBase.getView(), tileStatus.getView(), stripNumTiles, pass );
+               advanceBaseKernel, launch_config, digitBase.getView(), tileStatusRegion, stripNumTiles, pass );
          }
       }
    }
