@@ -69,14 +69,16 @@ GPUScanKernelUpsweep(
    };
    __shared__ Shared storage;
 
-   // calculate indices
+   // calculate indices (the offset is computed in the index type, since one
+   // grid may cover more elements than int can represent)
+   using InputIndex = typename InputView::IndexType;
    constexpr int maxElementsInBlock = blockSize * valuesPerThread;
-   const int remainingElements = end - begin - blockIdx.x * maxElementsInBlock;
-   const int elementsInBlock = TNL::min( remainingElements, maxElementsInBlock );
+   const InputIndex blockOffset = static_cast< InputIndex >( blockIdx.x ) * maxElementsInBlock;
+   const int elementsInBlock =
+      static_cast< int >( TNL::min( end - begin - blockOffset, static_cast< InputIndex >( maxElementsInBlock ) ) );
 
    // update global array offset for the thread
-   const int threadOffset = blockIdx.x * maxElementsInBlock + threadIdx.x;
-   begin += threadOffset;
+   begin += blockOffset + threadIdx.x;
 
    // Load data into the shared memory.
    {
