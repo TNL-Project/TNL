@@ -86,7 +86,7 @@ struct GPUBlockScan
       const int lane_id = tid % Backend::getWarpSize();
       const int warp_id = tid / Backend::getWarpSize();
       auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
-   #pragma unroll
+      #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          ValueType result;
          if( lane_id >= stride )
@@ -107,7 +107,7 @@ struct GPUBlockScan
 
       // perform the scan of warpResults using one warp
       if( warp_id == 0 ) {
-   #pragma unroll
+         #pragma unroll
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             ValueType result;
             if( lane_id >= stride )
@@ -205,8 +205,8 @@ struct GPUBlockScanShfl
    static ValueType
    warpScan( const Reduction& reduction, ValueType identity, ValueType threadValue, int lane_id, ValueType& total )
    {
-   // perform an inclusive scan
-   #pragma unroll
+      // perform an inclusive scan
+      #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          const ValueType otherValue = Backend::warp_shuffle_up( threadValue, stride );
          if( lane_id >= stride )

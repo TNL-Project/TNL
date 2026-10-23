@@ -14,7 +14,7 @@ namespace TNL::Algorithms {
  *
  * On the GPU, the fill does not block the host when
  * `launch_config.blockHostUntilFinished` is false. The caller is then
- * responsible for synchronizing (e.g. via \ref TNL::Backend::streamSynchronize)
+ * responsible for synchronizing (e.g. via `TNL::Backend::streamSynchronize`)
  * before reading the filled memory on the host.
  *
  * \tparam Device is the device where the `data` is allocated.
