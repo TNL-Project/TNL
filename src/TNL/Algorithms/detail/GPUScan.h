@@ -73,6 +73,7 @@
  * details and references.
  */
 
+#include <atomic>
 #include <map>
 #include <mutex>
 
@@ -580,10 +581,12 @@ struct GPUScanKernelLauncher
    // The number of grids used by the last launch, which serves for checking
    // in unit tests that the scan in CUDA runs with more than one grid. The
    // maximal grid size can be made smaller by Backend::detail::MaxGridXSizeOverride.
-   static int&
+   // It is atomic, since the scans may be performed concurrently by several
+   // host threads.
+   static std::atomic< int >&
    gridsCount()
    {
-      static int gridsCount = -1;
+      static std::atomic< int > gridsCount = -1;
       return gridsCount;
    }
 };
