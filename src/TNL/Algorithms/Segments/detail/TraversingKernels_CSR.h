@@ -42,7 +42,7 @@ dynamicGroupingTraversingKernel_CSR(
       if( scheduled_segment[ 0 ] == none_scheduled )
          break;
 
-      Index globalIdx = offsets[ scheduled_segment[ 0 ] ];
+      Index globalIdx = offsets[ scheduled_segment[ 0 ] ] + threadIdx.x;
       const Index endIdx = offsets[ scheduled_segment[ 0 ] + 1 ];
 
       if constexpr( callableArgumentCount< Function >() == 3 ) {
@@ -58,6 +58,10 @@ dynamicGroupingTraversingKernel_CSR(
             function( scheduled_segment[ 0 ], globalIdx );
             globalIdx += BlockSize;
          }
+      // All threads must finish reading scheduled_segment before it is reset
+      __syncthreads();
+
+      // Mark segment as processed
       if( segmentIdx == scheduled_segment[ 0 ] ) {
          traverse_segment = false;
          scheduled_segment[ 0 ] = none_scheduled;
@@ -72,8 +76,10 @@ dynamicGroupingTraversingKernel_CSR(
    __syncthreads();
 
    // Each thread owning segment with size larger than warpSize registers for scheduling
-   if( traverse_segment && segment_size > warpSize )
+   if( traverse_segment && segment_size > warpSize ) {
       warps_scheduler[ AtomicOperations< Devices::GPU >::add( active_warps[ 0 ], 1 ) ] = segmentIdx;
+      traverse_segment = false;
+   }
    __syncthreads();
 
    // Now traverse scheduled segments in warps
@@ -93,9 +99,6 @@ dynamicGroupingTraversingKernel_CSR(
          for( ; globalIdx < endIdx; globalIdx += warpSize ) {
             function( scheduled_segment, globalIdx );
          }
-      }
-      if( segmentIdx == scheduled_segment ) {
-         traverse_segment = false;
       }
       warp_idx += warpsPerBlock;
    }

@@ -313,7 +313,8 @@ reduceSegmentsCSRDynamicGroupingKernel(
             result = reduce( result, fetch( globalIdx ) );
          }
       }
-      __syncthreads();
+      // No __syncthreads() here: the number of iterations of this loop differs between
+      // the warps of the block and the warp reduction uses only warp shuffles.
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       result = BlockReduce::warpReduce( reduce, result );
@@ -599,10 +600,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
       if( scheduled_segment_idx[ 0 ] == none_scheduled )
          break;
 
+      result = identity;
       TNL_ASSERT_LT( scheduled_segment_idx[ 0 ], segmentIndexes.getSize(), "" );
       Index scheduled_segment = segmentIndexes[ scheduled_segment_idx[ 0 ] ];
 
-      Index globalIdx = offsets[ scheduled_segment ];
+      Index globalIdx = offsets[ scheduled_segment ] + threadIdx.x;
       const Index endIdx = offsets[ scheduled_segment + 1 ];
 
       if constexpr( callableArgumentCount< Fetch >() == 3 ) {
@@ -618,12 +620,6 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
             result = reduce( result, fetch( globalIdx ) );
             globalIdx += BlockSize;
          }
-      if( segmentIdx_idx == scheduled_segment_idx[ 0 ] ) {
-         reduce_segment = false;
-         scheduled_segment_idx[ 0 ] = none_scheduled;
-      }
-      __syncthreads();
-
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
@@ -634,6 +630,14 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
       // Write the result
       if( threadIdx.x == 0 )
          store( scheduled_segment_idx[ 0 ], scheduled_segment, result );
+      __syncthreads();
+
+      // Mark segment as processed
+      if( segmentIdx_idx == scheduled_segment_idx[ 0 ] ) {
+         reduce_segment = false;
+         scheduled_segment_idx[ 0 ] = none_scheduled;
+      }
+      __syncthreads();
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -670,7 +674,8 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
             result = reduce( result, fetch( globalIdx ) );
          }
       }
-      __syncthreads();
+      // No __syncthreads() here: the number of iterations of this loop differs between
+      // the warps of the block and the warp reduction uses only warp shuffles.
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       result = BlockReduce::warpReduce( reduce, result );
@@ -961,7 +966,9 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
       if( scheduled_segment[ 0 ] == none_scheduled )
          break;
 
-      Index globalIdx = offsets[ scheduled_segment[ 0 ] ];
+      result = identity;
+      argument = 0;
+      Index globalIdx = offsets[ scheduled_segment[ 0 ] ] + threadIdx.x;
       const Index endIdx = offsets[ scheduled_segment[ 0 ] + 1 ];
 
       Index localIdx = threadIdx.x;
@@ -974,12 +981,6 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
          localIdx += BlockSize;
          globalIdx += BlockSize;
       }
-      if( segmentIdx == scheduled_segment[ 0 ] ) {
-         reduce_segment = false;
-         scheduled_segment[ 0 ] = none_scheduled;
-      }
-      __syncthreads();
-
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
       // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
@@ -994,6 +995,14 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
          bool emptySegment = ( offsets[ scheduled_segment[ 0 ] ] == offsets[ scheduled_segment[ 0 ] + 1 ] );
          store( scheduled_segment[ 0 ], argument_, result_, emptySegment );
       }
+      __syncthreads();
+
+      // Mark segment as processed
+      if( segmentIdx == scheduled_segment[ 0 ] ) {
+         reduce_segment = false;
+         scheduled_segment[ 0 ] = none_scheduled;
+      }
+      __syncthreads();
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -1028,7 +1037,8 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
             localIdx );
          localIdx += warpSize;
       }
-      __syncthreads();
+      // No __syncthreads() here: the number of iterations of this loop differs between
+      // the warps of the block and the warp reduction uses only warp shuffles.
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
@@ -1335,9 +1345,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
       if( scheduled_segment_idx[ 0 ] == none_scheduled )
          break;
 
+      result = identity;
+      argument = 0;
       TNL_ASSERT_LT( scheduled_segment_idx[ 0 ], segmentIndexes.getSize(), "" );
       Index scheduled_segment = segmentIndexes[ scheduled_segment_idx[ 0 ] ];
-      Index globalIdx = offsets[ scheduled_segment ];
+      Index globalIdx = offsets[ scheduled_segment ] + threadIdx.x;
       const Index endIdx = offsets[ scheduled_segment + 1 ];
 
       Index localIdx = threadIdx.x;
@@ -1350,12 +1362,6 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
          localIdx += BlockSize;
          globalIdx += BlockSize;
       }
-      if( segmentIdx_idx == scheduled_segment_idx[ 0 ] ) {
-         reduce_segment = false;
-         scheduled_segment_idx[ 0 ] = none_scheduled;
-      }
-      __syncthreads();
-
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
       // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
@@ -1370,6 +1376,14 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
          bool emptySegment = ( offsets[ scheduled_segment ] == offsets[ scheduled_segment + 1 ] );
          store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_, emptySegment );
       }
+      __syncthreads();
+
+      // Mark segment as processed
+      if( segmentIdx_idx == scheduled_segment_idx[ 0 ] ) {
+         reduce_segment = false;
+         scheduled_segment_idx[ 0 ] = none_scheduled;
+      }
+      __syncthreads();
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -1406,7 +1420,8 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
             localIdx );
          localIdx += warpSize;
       }
-      __syncthreads();
+      // No __syncthreads() here: the number of iterations of this loop differs between
+      // the warps of the block and the warp reduction uses only warp shuffles.
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;

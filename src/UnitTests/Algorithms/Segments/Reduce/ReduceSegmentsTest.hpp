@@ -80,6 +80,141 @@ test_reduceSegments_MaximumInSegments()
    }
 }
 
+// Segments longer than the block size (256 threads), longer than the warp size and
+// shorter than the warp size are reduced differently by some launch configurations,
+// e.g. the dynamic grouping of CSR, where the warps of a block also process different
+// numbers of segments. The element with the local index j has the value j + 1, so the
+// maximum of a segment is its size and the argument of the maximum is the size - 1.
+template< typename Segments >
+void
+test_reduceSegments_LongSegments()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
+
+   const IndexType segmentsCount = 300;
+   const HostVectorType sizesPattern{ 600, 7, 100, 0, 300, 33, 257, 32 };
+   HostVectorType hostSegmentsSizes( segmentsCount );
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
+      hostSegmentsSizes[ segmentIdx ] = sizesPattern[ segmentIdx % sizesPattern.getSize() ];
+   const VectorType segmentsSizes( hostSegmentsSizes );
+
+   Segments segments( segmentsSizes );
+
+   VectorType segmentIndexes( segmentsCount );
+   segmentIndexes.forAllElements(
+      [] __cuda_callable__( IndexType idx, IndexType& value )
+      {
+         value = idx;
+      } );
+
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      // padding elements, if any, keep the value -1
+      VectorType v( segments.getStorageSize(), -1 );
+      auto view = v.getView();
+      const auto sizesView = segmentsSizes.getConstView();
+      TNL::Algorithms::Segments::forAllElements(
+         segments,
+         [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+         {
+            if( localIdx < sizesView[ segmentIdx ] )
+               view[ globalIdx ] = localIdx + 1;
+         } );
+
+      const auto v_view = v.getConstView();
+      auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+      {
+         return TNL::max( v_view[ globalIdx ], 0 );
+      };
+
+      VectorType result( segmentsCount, -1 );
+      VectorType args( segmentsCount, -1 );
+      VectorType positions( segmentsCount, -1 );
+      auto result_view = result.getView();
+      auto args_view = args.getView();
+      auto positions_view = positions.getView();
+
+      auto check = [ & ]( bool withArgument, bool withPositions )
+      {
+         const HostVectorType hostResult( result );
+         const HostVectorType hostArgs( args );
+         const HostVectorType hostPositions( positions );
+         for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+            const IndexType size = hostSegmentsSizes[ segmentIdx ];
+            if( size == 0 )
+               continue;
+            EXPECT_EQ( hostResult[ segmentIdx ], size ) << "segmentIdx = " << segmentIdx;
+            if( withArgument ) {
+               EXPECT_EQ( hostArgs[ segmentIdx ], size - 1 ) << "segmentIdx = " << segmentIdx;
+            }
+            if( withPositions ) {
+               EXPECT_EQ( hostPositions[ segmentIdx ], segmentIdx ) << "segmentIdx = " << segmentIdx;
+            }
+         }
+         result = -1;
+         args = -1;
+         positions = -1;
+      };
+
+      TNL::Algorithms::Segments::reduceAllSegments(
+         segments,
+         fetch,
+         TNL::Max{},
+         [ = ] __cuda_callable__( IndexType segmentIdx, IndexType res ) mutable
+         {
+            result_view[ segmentIdx ] = res;
+         },
+         launch_config );
+      check( false, false );
+
+      TNL::Algorithms::Segments::reduceAllSegmentsWithArgument(
+         segments,
+         fetch,
+         TNL::MaxWithArg{},
+         [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType res, bool emptySegment ) mutable
+         {
+            result_view[ segmentIdx ] = res;
+            if( ! emptySegment )
+               args_view[ segmentIdx ] = localIdx;
+         },
+         launch_config );
+      check( true, false );
+
+      TNL::Algorithms::Segments::reduceSegments(
+         segments,
+         segmentIndexes,
+         fetch,
+         TNL::Max{},
+         [ = ] __cuda_callable__( IndexType indexOfSegmentIdx, IndexType segmentIdx, IndexType res ) mutable
+         {
+            result_view[ segmentIdx ] = res;
+            positions_view[ segmentIdx ] = indexOfSegmentIdx;
+         },
+         launch_config );
+      check( false, true );
+
+      TNL::Algorithms::Segments::reduceSegmentsWithArgument(
+         segments,
+         segmentIndexes,
+         fetch,
+         TNL::MaxWithArg{},
+         [ = ] __cuda_callable__(
+            IndexType indexOfSegmentIdx, IndexType segmentIdx, IndexType localIdx, IndexType res, bool emptySegment ) mutable
+         {
+            result_view[ segmentIdx ] = res;
+            if( ! emptySegment )
+               args_view[ segmentIdx ] = localIdx;
+            positions_view[ segmentIdx ] = indexOfSegmentIdx;
+         },
+         launch_config );
+      check( true, true );
+   }
+}
+
 template< typename Segments >
 void
 test_reduceSegments_MaximumInTriangularSegments()

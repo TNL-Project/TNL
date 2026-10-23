@@ -10,6 +10,11 @@ TYPED_TEST_P( ReduceSegmentsTest, reduceSegments_MaximumInSegments )
    test_reduceSegments_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST_P( ReduceSegmentsTest, reduceSegments_LongSegments )
+{
+   test_reduceSegments_LongSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST_P( ReduceSegmentsTest, reduceSegments_MaximumInTriangularSegments )
 {
    test_reduceSegments_MaximumInTriangularSegments< typename TestFixture::SegmentsType >();
@@ -49,6 +54,7 @@ TYPED_TEST_P( ReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments
 REGISTER_TYPED_TEST_SUITE_P(
    ReduceSegmentsTest,
    reduceSegments_MaximumInSegments,
+   reduceSegments_LongSegments,
    reduceSegments_MaximumInTriangularSegments,
    reduceSegments_MaximumInSegments_short_fetch,
    reduceSegmentsWithArgument_MaximumInSegments,
