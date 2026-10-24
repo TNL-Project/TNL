@@ -17,12 +17,12 @@
 namespace TNL::Matrices {
 
 /**
- * \brief Wrapper for Hypre's sequential CSR matrix.
+ * \brief Wrapper for Hypre's parallel CSR matrix.
  *
  * Links to upstream sources:
- * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/csr_matrix.h
- * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/csr_matrix.c
- * - https://github.com/hypre-space/hypre/blob/master/src/seq_mv/seq_mv.h (catch-all interface)
+ * - https://github.com/hypre-space/hypre/blob/master/src/parcsr_mv/par_csr_matrix.h
+ * - https://github.com/hypre-space/hypre/blob/master/src/parcsr_mv/par_csr_matrix.c
+ * - https://github.com/hypre-space/hypre/blob/master/src/parcsr_mv/_hypre_parcsr_mv.h (catch-all interface)
  *
  * \ingroup Hypre
  */
@@ -51,7 +51,11 @@ public:
    HypreParCSRMatrix( const HypreParCSRMatrix& other ) = delete;
 
    HypreParCSRMatrix( HypreParCSRMatrix&& other ) noexcept
-   : m( other.m )
+   : m( other.m ),
+     owns_handle( other.owns_handle ),
+     owns_diag( other.owns_diag ),
+     owns_offd( other.owns_offd ),
+     owns_col_map_offd( other.owns_col_map_offd )
    {
       other.m = nullptr;
    }
@@ -63,17 +67,24 @@ public:
    HypreParCSRMatrix&
    operator=( HypreParCSRMatrix&& other ) noexcept
    {
-      m = other.m;
-      other.m = nullptr;
+      if( this != &other ) {
+         reset();
+         m = other.m;
+         other.m = nullptr;
+         owns_handle = other.owns_handle;
+         owns_diag = other.owns_diag;
+         owns_offd = other.owns_offd;
+         owns_col_map_offd = other.owns_col_map_offd;
+      }
       return *this;
    }
 
    /**
-    * \brief Convert Hypre's format to \e HypreParCSRMatrix
+    * \brief Convert Hypre's format to `HypreParCSRMatrix`
     *
-    * \param handle is the Hypre vector handle.
+    * \param handle is the Hypre matrix handle.
     * \param take_ownership indicates if the matrix should take ownership of
-    * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
+    * the handle, i.e. whether to call `hypre_ParCSRMatrixDestroy` when it does
     * not need it anymore.
     */
    explicit HypreParCSRMatrix( hypre_ParCSRMatrix* handle, bool take_ownership = true )
@@ -82,11 +93,11 @@ public:
    }
 
    /**
-    * \brief Wrap a global \e hypre_CSRMatrix into \e HypreParCSRMatrix
+    * \brief Wrap a global \e hypre_CSRMatrix into `HypreParCSRMatrix`
     *
-    * Each rank will get its own independent \e HypreParCSRMatrix with the
+    * Each rank will get its own independent `HypreParCSRMatrix` with the
     * `MPI_COMM_SELF` communicator. The data is not copied, but
-    * \e HypreParCSRMatrix keeps a non-owning reference.
+    * `HypreParCSRMatrix` keeps a non-owning reference.
     */
    [[nodiscard]] static HypreParCSRMatrix
    wrapCSRMatrix( hypre_CSRMatrix* matrix )
@@ -403,16 +414,29 @@ public:
    }
 
    /**
-    * \brief Convert Hypre's format to \e HypreParCSRMatrix
+    * \brief Convert Hypre's format to `HypreParCSRMatrix`
     *
-    * \param handle is the Hypre vector handle.
+    * \param handle is the Hypre matrix handle.
     * \param take_ownership indicates if the matrix should take ownership of
-    * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
+    * the handle, i.e. whether to call `hypre_ParCSRMatrixDestroy` when it does
     * not need it anymore.
+    *
+    * \note If `handle` is already bound to this object, only the ownership
+    * flag is updated according to `take_ownership`, the handle is not
+    * modified.
     */
    void
    bind( hypre_ParCSRMatrix* handle, bool take_ownership = true )
    {
+      if( handle == nullptr )
+         throw std::invalid_argument( "bind: the Hypre matrix handle must not be null" );
+
+      if( handle == m ) {
+         // self-binding only updates the ownership flag
+         owns_handle = take_ownership;
+         return;
+      }
+
       // drop/deallocate the current data
       reset();
 

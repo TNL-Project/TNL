@@ -63,13 +63,16 @@ public:
    HypreParVector&
    operator=( HypreParVector&& other ) noexcept
    {
-      v = other.v;
-      other.v = nullptr;
-      owns_handle = other.owns_handle;
-      localData = std::move( other.localData );
-      ghosts = other.ghosts;
-      synchronizer = std::move( other.synchronizer );
-      valuesPerElement = other.valuesPerElement;
+      if( this != &other ) {
+         reset();
+         v = other.v;
+         other.v = nullptr;
+         owns_handle = other.owns_handle;
+         localData = std::move( other.localData );
+         ghosts = other.ghosts;
+         synchronizer = std::move( other.synchronizer );
+         valuesPerElement = other.valuesPerElement;
+      }
       return *this;
    }
 
@@ -89,7 +92,7 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
+    * the handle, i.e. whether to call `hypre_ParVectorDestroy` when it does
     * not need it anymore.
     */
    explicit HypreParVector( hypre_ParVector* handle, bool take_ownership = true )
@@ -201,12 +204,13 @@ public:
       partitioning[ 0 ] = localRange.getBegin();
       partitioning[ 1 ] = localRange.getEnd();
       v = hypre_ParVectorCreate( communicator, globalSize, partitioning );
-      // hypre_ParVectorMemoryLocation is read-only
-      hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( v ) ) = getHypreMemoryLocation();
+      // the local vector from Hypre is replaced by a view below, so destroy it
+      hypre_SeqVectorDestroy( hypre_ParVectorLocalVector( v ) );
+      hypre_ParVectorLocalVector( v ) = nullptr;
+      hypre_ParVectorOwnsData( v ) = 0;
 
       // set view data
       this->localData.bind( localData );
-      hypre_ParVectorOwnsData( v ) = 0;
       hypre_ParVectorLocalVector( v ) = this->localData;
       hypre_ParVectorActualLocalSize( v ) = this->localData.getSize();
 
@@ -228,6 +232,8 @@ public:
    void
    bind( HypreParVector& vector )
    {
+      if( &vector == this )
+         return;
       bind(
          vector.getLocalRange(),
          vector.getGhosts(),
@@ -241,28 +247,65 @@ public:
     *
     * \param handle is the Hypre vector handle.
     * \param take_ownership indicates if the vector should take ownership of
-    * the handle, i.e. whether to call `hypre_VectorDestroy` when it does
+    * the handle, i.e. whether to call `hypre_ParVectorDestroy` when it does
     * not need it anymore.
+    *
+    * \note If `handle` is already bound to this object, only the ownership is
+    * updated according to `take_ownership` and the ownership of the local
+    * vector is transferred accordingly, the handle is not modified otherwise.
     */
    void
    bind( hypre_ParVector* handle, bool take_ownership = true )
    {
-      // drop/deallocate the current data
-      if( v != nullptr )
-         hypre_ParVectorDestroy( v );
+      if( handle == nullptr )
+         throw std::invalid_argument( "bind: the Hypre vector handle must not be null" );
+
+      if( handle == v ) {
+         // self-binding only updates the ownership and transfers the local vector accordingly
+         if( owns_handle != take_ownership ) {
+            if( take_ownership ) {
+               // borrowed -> owned: mirror the tail of the normal bind
+               localData.bind( hypre_ParVectorLocalVector( v ), true );
+               hypre_ParVectorOwnsData( v ) = 0;
+               hypre_ParVectorLocalVector( v ) = this->localData;
+               hypre_ParVectorActualLocalSize( v ) = this->localData.getSize();
+            }
+            else {
+               // owned -> borrowed: hand the ownership of the local vector back to Hypre
+               hypre_ParVectorOwnsData( v ) = 1;
+               localData.bind( hypre_ParVectorLocalVector( v ), false );
+            }
+            owns_handle = take_ownership;
+         }
+         return;
+      }
+
+      hypre_Vector* local_vector = hypre_ParVectorLocalVector( handle );
+      const HYPRE_Int local_size = hypre_ParVectorPartitioning( handle )[ 1 ] - hypre_ParVectorPartitioning( handle )[ 0 ];
+      HYPRE_Int actual_size = hypre_ParVectorActualLocalSize( handle );
+      if( actual_size < local_size ) {
+         // Hypre's clone functions do not update ActualLocalSize
+         if( hypre_VectorData( local_vector ) == nullptr )
+            throw std::invalid_argument( "bind: the Hypre vector handle is not initialized" );
+         actual_size = hypre_VectorSize( local_vector );
+      }
+
+      // drop the current handle only if this object owns it
+      reset();
 
       // set the handle and ownership flag
       v = handle;
       owns_handle = take_ownership;
 
-      // set view data
-      localData.bind( hypre_ParVectorLocalVector( v ) );
-      hypre_ParVectorOwnsData( v ) = 0;
-      hypre_ParVectorLocalVector( v ) = this->localData;
-      hypre_ParVectorActualLocalSize( v ) = this->localData.getSize();
+      // bind the local vector with the same ownership semantics
+      localData.bind( hypre_ParVectorLocalVector( v ), take_ownership );
+      if( take_ownership ) {
+         // the local vector is owned by localData, so the Hypre handle must not destroy it
+         hypre_ParVectorOwnsData( v ) = 0;
+         hypre_ParVectorLocalVector( v ) = this->localData;
+         hypre_ParVectorActualLocalSize( v ) = this->localData.getSize();
+      }
 
-      const HYPRE_Int actual_size = hypre_ParVectorActualLocalSize( v );
-      const HYPRE_Int local_size = hypre_ParVectorPartitioning( v )[ 1 ] - hypre_ParVectorPartitioning( v )[ 0 ];
       this->ghosts = actual_size - local_size;
    }
 
@@ -271,13 +314,9 @@ public:
    reset()
    {
       // drop/deallocate the current data
-      if( owns_handle && v != nullptr ) {
+      if( owns_handle && v != nullptr )
          hypre_ParVectorDestroy( v );
-         v = nullptr;
-      }
-      else {
-         v = nullptr;
-      }
+      v = nullptr;
       owns_handle = true;
 
       localData.reset();
@@ -300,12 +339,13 @@ public:
       partitioning[ 0 ] = localRange.getBegin();
       partitioning[ 1 ] = localRange.getEnd();
       v = hypre_ParVectorCreate( communicator, globalSize, partitioning );
-      // hypre_ParVectorMemoryLocation is read-only
-      hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( v ) ) = getHypreMemoryLocation();
+      // the local vector from Hypre is replaced by a view below, so destroy it
+      hypre_SeqVectorDestroy( hypre_ParVectorLocalVector( v ) );
+      hypre_ParVectorLocalVector( v ) = nullptr;
+      hypre_ParVectorOwnsData( v ) = 0;
 
       // set view data
       this->localData.setSize( localRange.getSize() + ghosts );
-      hypre_ParVectorOwnsData( v ) = 0;
       hypre_ParVectorLocalVector( v ) = this->localData;
       hypre_ParVectorActualLocalSize( v ) = this->localData.getSize();
 

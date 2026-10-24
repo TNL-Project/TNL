@@ -61,9 +61,12 @@ public:
    HypreCSRMatrix&
    operator=( HypreCSRMatrix&& other ) noexcept
    {
-      m = other.m;
-      other.m = nullptr;
-      owns_handle = other.owns_handle;
+      if( this != &other ) {
+         reset();
+         m = other.m;
+         other.m = nullptr;
+         owns_handle = other.owns_handle;
+      }
       return *this;
    }
 
@@ -83,11 +86,11 @@ public:
    }
 
    /**
-    * \brief Convert Hypre's format to \e HypreCSRMatrix
+    * \brief Convert Hypre's format to `HypreCSRMatrix`
     *
-    * \param handle is the Hypre vector handle.
+    * \param handle is the Hypre matrix handle.
     * \param take_ownership indicates if the matrix should take ownership of
-    * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
+    * the handle, i.e. whether to call `hypre_CSRMatrixDestroy` when it does
     * not need it anymore.
     */
    explicit HypreCSRMatrix( hypre_CSRMatrix* handle, bool take_ownership = true )
@@ -280,20 +283,35 @@ public:
    void
    bind( HypreCSRMatrix& matrix )
    {
+      if( &matrix == this )
+         return;
       bind( matrix.getRows(), matrix.getColumns(), matrix.getValues(), matrix.getColumnIndexes(), matrix.getRowOffsets() );
    }
 
    /**
-    * \brief Convert Hypre's format to \e HypreCSRMatrix
+    * \brief Convert Hypre's format to `HypreCSRMatrix`
     *
-    * \param handle is the Hypre vector handle.
+    * \param handle is the Hypre matrix handle.
     * \param take_ownership indicates if the matrix should take ownership of
-    * the handle, i.e. whether to call \e hypre_CSRMatrixDestroy when it does
+    * the handle, i.e. whether to call `hypre_CSRMatrixDestroy` when it does
     * not need it anymore.
+    *
+    * \note If `handle` is already bound to this object, only the ownership
+    * flag is updated according to `take_ownership`, the handle is not
+    * modified.
     */
    void
    bind( hypre_CSRMatrix* handle, bool take_ownership = true )
    {
+      if( handle == nullptr )
+         throw std::invalid_argument( "bind: the Hypre matrix handle must not be null" );
+
+      if( handle == m ) {
+         // self-binding only updates the ownership flag
+         owns_handle = take_ownership;
+         return;
+      }
+
       // drop/deallocate the current data
       reset();
 

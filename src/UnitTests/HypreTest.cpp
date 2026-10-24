@@ -58,6 +58,133 @@ TEST( HypreTest, Vector )
    b = std::move( c );
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, VectorOwnership )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   using Vector = Containers::Vector< double, HYPRE_Device >;
+
+   // A vector bound to a handle that it does not own must not destroy the
+   // handle when it is resized.
+   hypre_Vector* handle = hypre_SeqVectorCreate( size );
+   hypre_VectorMemoryLocation( handle ) = HYPRE_MEMORY_HOST;
+   hypre_SeqVectorInitialize( handle );
+   {
+      Containers::HypreVector v;
+      v.bind( handle, /* take_ownership = */ false );
+      EXPECT_EQ( v.getSize(), size );
+      v.setSize( 2 * size );
+      EXPECT_EQ( v.getSize(), 2 * size );
+   }
+   // the borrowed handle must still be valid
+   hypre_SeqVectorSetConstantValues( handle, 3.0 );
+   EXPECT_EQ( hypre_VectorSize( handle ), size );
+   EXPECT_EQ( hypre_VectorData( handle )[ size - 1 ], 3.0 );
+   hypre_SeqVectorDestroy( handle );
+
+   // A vector bound to a view owns the handle but not the data, so setSize must
+   // not free the data.
+   Vector data( size, 5.0 );
+   {
+      Containers::HypreVector v;
+      v.bind( data.getView() );
+      v.setSize( 2 * size );
+   }
+   EXPECT_EQ( data, Vector( size, 5.0 ) );
+
+   // a zero-sized vector must be supported
+   Containers::HypreVector empty;
+   empty.setSize( 0 );
+   EXPECT_EQ( empty.getSize(), 0 );
+
+   // a handle passed with take_ownership = true must be destroyed by the wrapper
+   hypre_Vector* owned = hypre_SeqVectorCreate( size );
+   hypre_VectorMemoryLocation( owned ) = HYPRE_MEMORY_HOST;
+   hypre_SeqVectorInitialize( owned );
+   {
+      Containers::HypreVector v( owned, /* take_ownership = */ true );
+      EXPECT_EQ( v.getSize(), size );
+   }
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, VectorMoveAssignment )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   using Vector = Containers::Vector< double, HYPRE_Device >;
+
+   // Move-assignment must release the handle currently held by the target and
+   // must leave the target intact on self-assignment.
+   Containers::HypreVector a;
+   a.setSize( size );
+   a.setValue( 2.0 );
+   Containers::HypreVector b;
+   b.setSize( 2 * size );
+   b.setValue( 3.0 );
+   a = std::move( b );
+   EXPECT_EQ( a.getSize(), 2 * size );
+   EXPECT_EQ( a.getConstView(), Vector( 2 * size, 3.0 ) );
+
+   Containers::HypreVector& self = a;
+   a = std::move( self );
+   EXPECT_EQ( a.getSize(), 2 * size );
+   EXPECT_EQ( a.getConstView(), Vector( 2 * size, 3.0 ) );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, VectorSelfBind )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   // self-binding the object is a no-op
+   {
+      hypre_Vector* handle = hypre_SeqVectorCreate( size );
+      hypre_VectorMemoryLocation( handle ) = HYPRE_MEMORY_HOST;
+      hypre_SeqVectorInitialize( handle );
+      hypre_SeqVectorSetConstantValues( handle, 4.0 );
+
+      Containers::HypreVector v( handle );
+      v.bind( v );
+      EXPECT_EQ( v.getSize(), size );
+      for( int i = 0; i < size; i++ )
+         EXPECT_EQ( v.getData()[ i ], 4.0 );
+   }
+
+   // self-binding the handle with take_ownership = false releases the handle
+   hypre_Vector* released = hypre_SeqVectorCreate( size );
+   hypre_VectorMemoryLocation( released ) = HYPRE_MEMORY_HOST;
+   hypre_SeqVectorInitialize( released );
+   hypre_SeqVectorSetConstantValues( released, 5.0 );
+   {
+      Containers::HypreVector v( released );
+      v.bind( static_cast< hypre_Vector* >( v ), /* take_ownership = */ false );
+      EXPECT_EQ( v.getSize(), size );
+   }
+   // the handle must still be valid and usable
+   hypre_SeqVectorSetConstantValues( released, 6.0 );
+   EXPECT_EQ( hypre_VectorData( released )[ size - 1 ], 6.0 );
+   hypre_SeqVectorDestroy( released );
+
+   // self-binding a borrowed handle with take_ownership = true takes it over
+   hypre_Vector* taken = hypre_SeqVectorCreate( size );
+   hypre_VectorMemoryLocation( taken ) = HYPRE_MEMORY_HOST;
+   hypre_SeqVectorInitialize( taken );
+   {
+      Containers::HypreVector v( taken, /* take_ownership = */ false );
+      v.bind( static_cast< hypre_Vector* >( v ), /* take_ownership = */ true );
+      EXPECT_EQ( v.getSize(), size );
+   }
+   // the vector has destroyed the handle
+}
+
 template< typename DistributedArray >
 auto
 getDistributedArray(
@@ -107,6 +234,182 @@ TEST( HypreTest, ParVector )
    // test move-constructor and move-assignment
    Containers::HypreParVector c = std::move( b );
    b = std::move( c );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, ParVectorOwnership )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+   HYPRE_BigInt partitioning[ 2 ] = { 0, size };
+
+   // Binding a handle that is not owned must not steal its local vector.
+   hypre_ParVector* handle = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( handle ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( handle );
+   {
+      Containers::HypreParVector v( handle, /* take_ownership = */ false );
+      EXPECT_EQ( v.getSize(), size );
+      EXPECT_EQ( v.getLocalView().getData(), hypre_VectorData( hypre_ParVectorLocalVector( handle ) ) );
+      EXPECT_EQ( hypre_ParVectorOwnsData( handle ), 1 );
+   }
+   // the borrowed handle must still be valid and usable
+   EXPECT_EQ( hypre_ParVectorOwnsData( handle ), 1 );
+   hypre_ParVectorSetConstantValues( handle, 4.0 );
+   EXPECT_EQ( hypre_VectorSize( hypre_ParVectorLocalVector( handle ) ), size );
+   EXPECT_EQ( hypre_VectorData( hypre_ParVectorLocalVector( handle ) )[ size - 1 ], 4.0 );
+   hypre_ParVectorDestroy( handle );
+
+   // Re-binding must not destroy the previous handle if it is not owned.
+   hypre_ParVector* first = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( first ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( first );
+   hypre_ParVector* second = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( second ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( second );
+   {
+      Containers::HypreParVector v( first, /* take_ownership = */ false );
+      v.bind( second );
+      EXPECT_EQ( v.getSize(), size );
+   }
+   hypre_ParVectorDestroy( first );
+
+   // invalid handles must be rejected without modifying a bound wrapper
+   hypre_ParVector* valid = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( valid ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( valid );
+   {
+      Containers::HypreParVector v( valid, /* take_ownership = */ true );
+      EXPECT_THROW( v.bind( static_cast< hypre_ParVector* >( nullptr ), false ), std::invalid_argument );
+      hypre_ParVector* uninitialized = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+      EXPECT_THROW( v.bind( uninitialized, false ), std::invalid_argument );
+      EXPECT_EQ( v.getSize(), size );
+      EXPECT_EQ( v.getLocalView().getData(), hypre_VectorData( hypre_ParVectorLocalVector( valid ) ) );
+      hypre_ParVectorDestroy( uninitialized );
+   }
+
+   // Hypre's clone functions leave ActualLocalSize at zero, such handles must still be accepted
+   hypre_ParVector* source = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( source ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( source );
+   {
+      hypre_ParVector* clone = hypre_ParVectorCloneShallow( source );
+      Containers::HypreParVector v( clone, /* take_ownership = */ true );
+      EXPECT_EQ( v.getSize(), size );
+      EXPECT_EQ( v.getGhosts(), 0 );
+      EXPECT_EQ( v.getLocalView().getData(), hypre_VectorData( hypre_ParVectorLocalVector( source ) ) );
+   }
+   hypre_ParVectorDestroy( source );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, ParVectorMoveAssignment )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+   HYPRE_BigInt partitioning[ 2 ] = { 0, size };
+
+   using Vector = Containers::Vector< double, HYPRE_Device >;
+
+   // Move-assignment must release the handle currently held by the target and
+   // must leave the target intact on self-assignment.
+   // p and q share the same backing data to verify that moving does not free it.
+   Vector data( size, 1.0 );
+   Containers::HypreParVector p;
+   p.bind( { 0, size }, 0, size, MPI_COMM_SELF, data.getView() );
+   p.setValue( 2.0 );
+   Containers::HypreParVector q;
+   q.bind( { 0, size }, 0, size, MPI_COMM_SELF, data.getView() );
+   q.setValue( 3.0 );
+   p = std::move( q );
+   EXPECT_EQ( p.getSize(), size );
+   EXPECT_EQ( p.getConstLocalViewWithGhosts(), Vector( size, 3.0 ) );
+
+   Containers::HypreParVector& self = p;
+   p = std::move( self );
+   EXPECT_EQ( p.getSize(), size );
+   EXPECT_EQ( p.getConstLocalViewWithGhosts(), Vector( size, 3.0 ) );
+
+   // Move-assignment must also release a Hypre-owned handle held by the target.
+   hypre_ParVector* owned = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( owned ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( owned );
+   {
+      Containers::HypreParVector target( owned, /* take_ownership = */ true );
+      target = std::move( p );
+      EXPECT_EQ( target.getSize(), size );
+   }
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, ParVectorSelfBind )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+   HYPRE_BigInt partitioning[ 2 ] = { 0, size };
+
+   // self-binding the object is a no-op
+   {
+      hypre_ParVector* handle = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+      hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( handle ) ) = HYPRE_MEMORY_HOST;
+      hypre_ParVectorInitialize( handle );
+      hypre_ParVectorSetConstantValues( handle, 5.0 );
+
+      Containers::HypreParVector v( handle );
+      v.bind( v );
+      EXPECT_EQ( v.getSize(), size );
+      for( int i = 0; i < size; i++ )
+         EXPECT_EQ( v.getLocalView()[ i ], 5.0 );
+   }
+
+   // self-binding the handle with take_ownership = false hands the local vector
+   // back to Hypre
+   hypre_ParVector* released = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( released ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( released );
+   hypre_ParVectorSetConstantValues( released, 6.0 );
+   {
+      Containers::HypreParVector v( released );
+      v.bind( static_cast< hypre_ParVector* >( v ), /* take_ownership = */ false );
+      EXPECT_EQ( hypre_ParVectorOwnsData( released ), 1 );
+   }
+   // the handle and its local vector must still be valid and usable
+   EXPECT_EQ( hypre_VectorSize( hypre_ParVectorLocalVector( released ) ), size );
+   hypre_ParVectorSetConstantValues( released, 7.0 );
+   EXPECT_EQ( hypre_VectorData( hypre_ParVectorLocalVector( released ) )[ size - 1 ], 7.0 );
+   hypre_ParVectorDestroy( released );
+
+   // self-binding a borrowed handle with take_ownership = true takes it over
+   hypre_ParVector* taken = hypre_ParVectorCreate( MPI_COMM_SELF, size, partitioning );
+   hypre_VectorMemoryLocation( hypre_ParVectorLocalVector( taken ) ) = HYPRE_MEMORY_HOST;
+   hypre_ParVectorInitialize( taken );
+   {
+      Containers::HypreParVector v( taken, /* take_ownership = */ false );
+      v.bind( static_cast< hypre_ParVector* >( v ), /* take_ownership = */ true );
+      EXPECT_EQ( hypre_ParVectorOwnsData( taken ), 0 );
+      EXPECT_EQ( v.getLocalView().getData(), hypre_VectorData( hypre_ParVectorLocalVector( taken ) ) );
+   }
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, InvalidHandles )
+{
+   TNL::Hypre hypre;
+
+   Containers::HypreVector v;
+   EXPECT_THROW( v.bind( static_cast< hypre_Vector* >( nullptr ) ), std::invalid_argument );
+
+   Containers::HypreParVector par_vector;
+   EXPECT_THROW( par_vector.bind( static_cast< hypre_ParVector* >( nullptr ) ), std::invalid_argument );
+
+   Matrices::HypreCSRMatrix matrix;
+   EXPECT_THROW( matrix.bind( static_cast< hypre_CSRMatrix* >( nullptr ) ), std::invalid_argument );
+
+   Matrices::HypreParCSRMatrix par_matrix;
+   EXPECT_THROW( par_matrix.bind( static_cast< hypre_ParCSRMatrix* >( nullptr ) ), std::invalid_argument );
 }
 
 /***
@@ -248,6 +551,57 @@ TEST( HypreTest, CSRMatrix )
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, CSRMatrixMoveAssignment )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   Matrices::HypreCSRMatrix a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   Matrices::HypreCSRMatrix b = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   const auto nonzeros = a.getValues().getSize();
+
+   // move-assignment must release the handle currently held by the target
+   a = std::move( b );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getColumns(), size );
+   EXPECT_EQ( a.getValues().getSize(), nonzeros );
+
+   Matrices::HypreCSRMatrix& self = a;
+   a = std::move( self );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getValues().getSize(), nonzeros );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, CSRMatrixSelfBind )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   Matrices::HypreCSRMatrix a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   const auto nonzeros = a.getValues().getSize();
+   hypre_CSRMatrix* handle = static_cast< hypre_CSRMatrix* >( a );
+
+   // self-binding the object is a no-op
+   a.bind( a );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getColumns(), size );
+   EXPECT_EQ( a.getValues().getSize(), nonzeros );
+
+   // self-binding the handle with take_ownership = false releases the handle
+   a.bind( handle, /* take_ownership = */ false );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getValues().getSize(), nonzeros );
+
+   // self-binding the handle with take_ownership = true takes it back
+   a.bind( handle, /* take_ownership = */ true );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getValues().getSize(), nonzeros );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST( HypreTest, ParCSRMatrix_wrapCSRMatrix )
 {
    TNL::Hypre hypre;
@@ -286,6 +640,66 @@ TEST( HypreTest, ParCSRMatrix_wrapCSRMatrix )
    // test move-constructor and move-assignment
    Matrices::HypreParCSRMatrix c = std::move( a );
    a = std::move( c );
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, ParCSRMatrixMoveAssignment )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   // self-move-assignment must leave the matrix intact
+   {
+      Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
+      Matrices::HypreParCSRMatrix& self = a;
+      a = std::move( self );
+      EXPECT_EQ( a.getRows(), size );
+      EXPECT_EQ( a.getColumns(), size );
+   }
+
+   // move construction must transfer the ownership of the borrowed blocks
+   {
+      Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreParCSRMatrix source = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
+      Matrices::HypreParCSRMatrix target( std::move( source ) );
+      EXPECT_EQ( target.getRows(), size );
+   }
+
+   // move-assignment must transfer the ownership and release the old target handle
+   {
+      Matrices::HypreCSRMatrix matrix1 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreCSRMatrix matrix2 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix1 );
+      Matrices::HypreParCSRMatrix b = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix2 );
+      a = std::move( b );
+      EXPECT_EQ( a.getRows(), size );
+   }
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST( HypreTest, ParCSRMatrixSelfBind )
+{
+   TNL::Hypre hypre;
+
+   constexpr int size = 10;
+
+   Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
+   hypre_ParCSRMatrix* handle = static_cast< hypre_ParCSRMatrix* >( a );
+   const auto nonzeros = a.getNonzeroElementsCount();
+
+   // self-binding the handle with take_ownership = false releases the handle
+   a.bind( handle, /* take_ownership = */ false );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getColumns(), size );
+   EXPECT_EQ( a.getNonzeroElementsCount(), nonzeros );
+
+   // self-binding the handle with take_ownership = true takes it back
+   a.bind( handle, /* take_ownership = */ true );
+   EXPECT_EQ( a.getRows(), size );
+   EXPECT_EQ( a.getNonzeroElementsCount(), nonzeros );
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
