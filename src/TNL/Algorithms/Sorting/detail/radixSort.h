@@ -186,20 +186,6 @@ radixSortPopcount( RadixSortWarpMask mask )
       return __popcll( mask );
 }
 
-/**
- * \brief Returns the 1-based index of the lowest set bit in a warp
- * synchronization mask, following `__ffs`.
- */
-[[nodiscard]] __device__
-__forceinline__ int
-radixSortFindFirstSet( RadixSortWarpMask mask )
-{
-   if constexpr( sizeof( RadixSortWarpMask ) == 4 )
-      return __ffs( static_cast< unsigned >( mask ) );
-   else
-      return __ffsll( mask );
-}
-
 #endif
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -556,31 +542,41 @@ radixSortOnesweepKernel(
       const Index tileEnd = tileBegin + TNL::min( n - tileBegin, static_cast< Index >( radixSortTileSize ) );
       const int tileSize = static_cast< int >( tileEnd - tileBegin );
 
+      // the loads and stores of the tile are addressed with 32-bit
+      // tile-relative indices from the base pointer of the tile
+      const Value* const tileInput = input.getData() + tileBegin;
+
       // zero the per-(warp, digit) offsets of this tile
       for( int i = digit; i < radixSortMaxWarps * radixSortBuckets; i += static_cast< int >( blockDim.x ) )
          s_rankTile.warpOffsets[ i ] = 0;
       __syncthreads();
 
-      // load the items of all rounds (to overlap the memory latency);
+      // the entries of values and digits of the rounds beyond the tail of
+      // a partial tile stay uninitialized; the guarded loops below never
+      // read them (their lanes do not participate in the warp matches);
       // each warp handles a contiguous span of the tile, split into
       // consecutive rounds of warpSize elements, so that the loads of each
       // round are coalesced and the warp-major order of the rank offsets
       // below matches the order of the elements in the tile
-      Value values[ itemsPerThread ]{};
-      unsigned char digits[ itemsPerThread ]{};
+      Value values[ itemsPerThread ];
+      unsigned char digits[ itemsPerThread ];
       #pragma unroll
       for( int j = 0; j < itemsPerThread; j++ ) {
          const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
          if( idxInTile < tileSize ) {
-            values[ j ] = input[ tileBegin + idxInTile ];
+            values[ j ] = tileInput[ idxInTile ];
             digits[ j ] = static_cast< unsigned char >( radixSortDigit< Value, descending >( values[ j ], pass ) );
          }
       }
 
-      // rank the items: the lowest lane of each group of equal digits
-      // atomically adds the group size to the running (warp, digit) offset
-      // and broadcasts the returned value within the group, which gives the
-      // offset of the item's round within the warp
+      // rank the items: every lane reads the running (warp, digit) offset of
+      // its digit with a plain shared load and the lowest lane of each group
+      // of equal digits (the lane with no lower-lane peer) stores the offset
+      // advanced by the group size, which gives the offset of the item's
+      // round within the warp; the warp synchronizations order the reads of
+      // a round before its stores, so the lanes of a group share the same
+      // base and no atomics are needed - each round touches every
+      // (warp, digit) counter with a single store
       int itemOffsets[ itemsPerThread ]{};
       #pragma unroll
       for( int j = 0; j < itemsPerThread; j++ ) {
@@ -599,12 +595,12 @@ radixSortOnesweepKernel(
                   : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
             const RadixSortWarpMask match = __match_any_sync( activeMask, static_cast< int >( digits[ j ] ) );
             const int rank = radixSortPopcount( match & laneMaskLt );
-            const int leaderLane = radixSortFindFirstSet( match ) - 1;
-            int roundOffset = 0;
-            if( lane == leaderLane )
-               roundOffset =
-                  atomicAdd( &s_rankTile.warpOffsets[ warpId * radixSortBuckets + digits[ j ] ], radixSortPopcount( match ) );
-            roundOffset = __shfl_sync( activeMask, roundOffset, leaderLane );
+            volatile int* counter = &s_rankTile.warpOffsets[ warpId * radixSortBuckets + digits[ j ] ];
+            const int roundOffset = *counter;
+            __syncwarp( activeMask );
+            if( rank == 0 )
+               *counter = roundOffset + radixSortPopcount( match );
+            __syncwarp( activeMask );
             itemOffsets[ j ] = roundOffset + rank;
          }
       }
@@ -732,7 +728,12 @@ radixSortOnesweepKernel(
          // accumulated, which is the strip-relative exclusive offset
          stripExclusive = static_cast< Index >( accumulated );
       }
-      s_base[ digit ] = digitBase[ static_cast< Index >( pass ) * radixSortBuckets + digit ] + stripExclusive;
+      // shift the base of the digit's run by the tile-local start of the
+      // run, so that the staged writeout stores with a single shared operand
+      // (the start of the single-digit run is zero, so the direct writeout
+      // path below is unaffected by the shift)
+      s_base[ digit ] = digitBase[ static_cast< Index >( pass ) * radixSortBuckets + digit ] + stripExclusive
+                      - static_cast< Index >( s_digitStart[ digit ] );
       // republish with the strip-relative inclusive prefix through this
       // tile, which shortens the lookback of the subsequent blocks; the
       // block of the last tile of the strip publishes the strip's total
@@ -763,7 +764,7 @@ radixSortOnesweepKernel(
          // the digit starts - it is a pure function of the value and the pass
          for( int i = digit; i < tileSize; i += static_cast< int >( blockDim.x ) ) {
             const int dig = radixSortDigit< Value, descending >( s_rankTile.tile[ i ], pass );
-            output[ s_base[ dig ] + ( i - s_digitStart[ dig ] ) ] = s_rankTile.tile[ i ];
+            output[ s_base[ dig ] + i ] = s_rankTile.tile[ i ];
          }
       }
       __syncthreads();
@@ -943,11 +944,12 @@ radixSortSingleTileKernel( Containers::ArrayView< Value, Devices::GPU, Index > v
                   : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
             const RadixSortWarpMask match = __match_any_sync( activeMask, static_cast< int >( digits[ j ] ) );
             const int rank = radixSortPopcount( match & laneMaskLt );
-            const int leaderLane = radixSortFindFirstSet( match ) - 1;
-            int roundOffset = 0;
-            if( lane == leaderLane )
-               roundOffset = atomicAdd( &s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ], radixSortPopcount( match ) );
-            roundOffset = __shfl_sync( activeMask, roundOffset, leaderLane );
+            volatile int* counter = &s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ];
+            const int roundOffset = *counter;
+            __syncwarp( activeMask );
+            if( rank == 0 )
+               *counter = roundOffset + radixSortPopcount( match );
+            __syncwarp( activeMask );
             itemOffsets[ j ] = roundOffset + rank;
          }
       }
