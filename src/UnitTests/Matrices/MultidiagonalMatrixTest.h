@@ -1499,6 +1499,57 @@ test_SaveAndLoad()
    EXPECT_EQ( savedMatrix.getElement( 3, 3 ), 16 );
 }
 
+template< typename Matrix >
+void
+test_Comparison()
+{
+   /**
+    * Set up the following 5x5 matrix with diagonal offsets { -1, 0, 1 }:
+    *
+    *    / 0 0 0 0 0 \
+    *    | 0 0 0 0 0 |
+    *    | 0 0 4 0 0 |
+    *    | 0 0 0 0 0 |
+    *    \ 0 0 0 0 0 /
+    */
+   Matrix matrix( 5, 5, { -1, 0, 1 } );
+   matrix.setElement( 2, 2, 4.0 );
+
+   EXPECT_EQ( matrix, matrix );
+
+   // matrices with different values are not equal
+   Matrix differentValues( 5, 5, { -1, 0, 1 } );
+   differentValues.setElement( 2, 2, 5.0 );
+   EXPECT_NE( matrix, differentValues );
+   EXPECT_NE( differentValues, matrix );
+
+   // matrices with different dimensions are not equal, even if the same values are stored
+   Matrix fewerColumns( 5, 4, { -1, 0, 1 } );
+   fewerColumns.setElement( 2, 2, 4.0 );
+   EXPECT_NE( matrix, fewerColumns );
+   EXPECT_NE( fewerColumns, matrix );
+
+   Matrix moreRows( 6, 4, { -1, 0, 1 } );
+   moreRows.setElement( 2, 2, 4.0 );
+   EXPECT_NE( matrix, moreRows );
+   EXPECT_NE( moreRows, matrix );
+
+   // matrices with different diagonal offsets are not equal
+   Matrix differentOffsets( 5, 5, { -1, 0, 2 } );
+   differentOffsets.setElement( 2, 2, 4.0 );
+   EXPECT_NE( matrix, differentOffsets );
+   EXPECT_NE( differentOffsets, matrix );
+
+   // elements stored outside of the matrix are ignored in the comparison
+   Matrix outsideFilled( 5, 5, { -1, 0, 1 } );
+   outsideFilled.setValue( 7.0 );
+   for( int row = 0; row < 5; row++ )
+      for( int column = TNL::max( row - 1, 0 ); column <= TNL::min( row + 1, 4 ); column++ )
+         outsideFilled.setElement( row, column, row == 2 && column == 2 ? 4.0 : 0.0 );
+   EXPECT_EQ( matrix, outsideFilled );
+   EXPECT_EQ( outsideFilled, matrix );
+}
+
 // test fixture for typed tests
 template< typename Matrix >
 class MatrixTest : public ::testing::Test
@@ -1703,6 +1754,13 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
    using MatrixType = typename TestFixture::MatrixType;
 
    test_SaveAndLoad< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, comparisonTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_Comparison< MatrixType >();
 }
 
 #include "../main.h"

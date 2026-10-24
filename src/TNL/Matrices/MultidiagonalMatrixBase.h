@@ -165,14 +165,18 @@ public:
    /**
     * \brief Comparison operator with another multidiagonal matrix.
     *
-    * \tparam Real_ is \e Real type of the source matrix.
-    * \tparam Device_ is \e Device type of the source matrix.
-    * \tparam Index_ is \e Index type of the source matrix.
-    * \tparam Organization_ is \e Organization of the source matrix.
+    * The matrices must have the same dimensions and the same diagonal offsets.
+    * Only elements which are really present in the matrix are compared,
+    * i.e. the elements stored outside of the matrix are skipped.
+    *
+    * \tparam Real_ is the *Real* type of the source matrix.
+    * \tparam Device_ is the *Device* type of the source matrix.
+    * \tparam Index_ is the *Index* type of the source matrix.
+    * \tparam Organization_ is the *Organization* of the source matrix.
     *
     * \param matrix is the source matrix view.
     *
-    * \return \e true if both matrices are identical and \e false otherwise.
+    * \return `true` if both matrices are identical and `false` otherwise.
     */
    template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_ >
    [[nodiscard]] bool

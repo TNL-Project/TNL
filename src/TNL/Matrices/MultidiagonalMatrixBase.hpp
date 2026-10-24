@@ -126,7 +126,31 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::operator==(
 {
    static_assert(
       Organization == Organization_, "comparison of multidiagonal matrices with different organizations is not implemented" );
-   return this->values == matrix.values;
+   if( this->getRows() != matrix.getRows() || this->getColumns() != matrix.getColumns()
+       || this->getDiagonalOffsets() != matrix.getDiagonalOffsets() )
+      return false;
+   // Only elements which are really present in the matrix are compared, i.e. the elements stored outside of the matrix
+   // are skipped.
+   const auto indexer1 = this->indexer;
+   const auto diagonalOffsets1 = this->getDiagonalOffsets().getConstView();
+   const auto values1 = this->getValues().getConstView();
+   const auto indexer2 = matrix.getIndexer();
+   const auto values2 = matrix.getValues().getConstView();
+   auto fetch = [ = ] __cuda_callable__( IndexType row ) -> bool
+   {
+      bool result = true;
+      detail::forMultidiagonalRowElements(
+         indexer1,
+         diagonalOffsets1,
+         row,
+         [ & ]( IndexType localIdx, IndexType, IndexType globalIdx )
+         {
+            if( values1[ globalIdx ] != values2[ indexer2.getGlobalIndex( row, localIdx ) ] )
+               result = false;
+         } );
+      return result;
+   };
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->getRows(), fetch, TNL::LogicalAnd{}, true );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
