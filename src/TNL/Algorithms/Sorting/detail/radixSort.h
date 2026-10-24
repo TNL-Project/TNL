@@ -268,17 +268,19 @@ radixSortTotalHistogramKernel(
    for( Index tile = static_cast< Index >( blockIdx.x ); tile < numTiles; tile += static_cast< Index >( gridDim.x ) ) {
       const Index tileBegin = tile * static_cast< Index >( histogramTileSize );
       const Index tileEnd = tileBegin + TNL::min( n - tileBegin, static_cast< Index >( histogramTileSize ) );
-      const Index tileSize = tileEnd - tileBegin;
+      const int tileSize = static_cast< int >( tileEnd - tileBegin );
 
       // load the items of the tile into registers (to overlap the latency);
-      // the tile-local loop counter avoids overflow of the index type
+      // the loads are addressed with 32-bit tile-relative indices from the
+      // base pointer of the tile, which avoids the 64-bit address chain
       Value values[ itemsPerThread ]{};
       bool valid[ itemsPerThread ]{};
+      const Value* const tileInput = input.getData() + tileBegin;
       #pragma unroll
       for( int j = 0; j < itemsPerThread; j++ ) {
-         const Index i = j * static_cast< Index >( radixSortBlockSize ) + static_cast< Index >( threadIdx.x );
+         const int i = j * radixSortBlockSize + static_cast< int >( threadIdx.x );
          if( ( valid[ j ] = i < tileSize ) )
-            values[ j ] = input[ tileBegin + i ];
+            values[ j ] = tileInput[ i ];
       }
       #pragma unroll
       for( int j = 0; j < itemsPerThread; j++ ) {
