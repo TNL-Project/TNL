@@ -1831,3 +1831,109 @@ test_getTransposition()
 
    EXPECT_EQ( transposed.getElement( 0, 4 ), RealType{ 12 } );
 }
+
+template< typename Matrix >
+void
+test_Comparison()
+{
+   /**
+    * Set up the following 2x2 sparse matrix:
+    *
+    *    / 1 0 \
+    *    \ 0 2 /
+    */
+   const Matrix withoutZeros( 2, 2, { { 0, 0, 1 }, { 1, 1, 2 } } );
+
+   // the same matrix with an explicitly stored zero in the first row
+   const Matrix zerosInFirstRow( 2, 2, { { 0, 0, 1 }, { 0, 1, 0 }, { 1, 1, 2 } } );
+
+   // the same matrix with an explicitly stored zero in the second row
+   const Matrix zerosInSecondRow( 2, 2, { { 0, 0, 1 }, { 1, 0, 0 }, { 1, 1, 2 } } );
+
+   // the same matrix with an explicitly stored zero in each row
+   const Matrix zerosInBothRows( 2, 2, { { 0, 0, 1 }, { 0, 1, 0 }, { 1, 0, 0 }, { 1, 1, 2 } } );
+
+   // matrices differing only in the explicitly stored zeros are equal
+   EXPECT_EQ( withoutZeros, withoutZeros );
+   EXPECT_EQ( withoutZeros, zerosInFirstRow );
+   EXPECT_EQ( zerosInFirstRow, withoutZeros );
+   EXPECT_EQ( withoutZeros, zerosInSecondRow );
+   EXPECT_EQ( withoutZeros, zerosInBothRows );
+   EXPECT_EQ( zerosInFirstRow, zerosInSecondRow );
+   EXPECT_EQ( zerosInFirstRow, zerosInBothRows );
+   EXPECT_EQ( zerosInSecondRow, zerosInBothRows );
+
+   // matrices with different element values are not equal
+   const Matrix differentValues( 2, 2, { { 0, 0, 1 }, { 1, 1, 3 } } );
+   EXPECT_NE( withoutZeros, differentValues );
+   EXPECT_NE( zerosInFirstRow, differentValues );
+
+   // matrices with different non-zero patterns are not equal
+   const Matrix differentPattern( 2, 2, { { 0, 0, 1 }, { 1, 0, 5 }, { 1, 1, 2 } } );
+   EXPECT_NE( withoutZeros, differentPattern );
+   EXPECT_NE( zerosInBothRows, differentPattern );
+
+   // a non-zero element where the other matrix has an explicitly stored zero
+   const Matrix nonZeroInsteadOfZero( 2, 2, { { 0, 0, 1 }, { 0, 1, 4 }, { 1, 1, 2 } } );
+   EXPECT_NE( withoutZeros, nonZeroInsteadOfZero );
+   EXPECT_NE( zerosInFirstRow, nonZeroInsteadOfZero );
+
+   /**
+    * Set up the following 3x3 sparse matrix:
+    *
+    *    / 1 0 0 \
+    *    | 0 0 0 |
+    *    \ 0 0 2 /
+    */
+   const Matrix withEmptyRow( 3, 3, { { 0, 0, 1 }, { 2, 2, 2 } } );
+
+   // the same matrix with the empty row containing only explicitly stored zeros
+   const Matrix zeroOnlyRow( 3, 3, { { 0, 0, 1 }, { 1, 0, 0 }, { 1, 1, 0 }, { 1, 2, 0 }, { 2, 2, 2 } } );
+   EXPECT_EQ( withEmptyRow, zeroOnlyRow );
+   EXPECT_EQ( zeroOnlyRow, withEmptyRow );
+
+   // matrices with different dimensions are not equal
+   const Matrix moreRows( 3, 2, { { 0, 0, 1 }, { 1, 1, 2 }, { 2, 0, 3 } } );
+   EXPECT_NE( withoutZeros, moreRows );
+   EXPECT_NE( moreRows, withoutZeros );
+
+   const Matrix moreColumns( 2, 3, { { 0, 0, 1 }, { 1, 1, 2 } } );
+   EXPECT_NE( withoutZeros, moreColumns );
+   EXPECT_NE( moreColumns, withoutZeros );
+
+   /**
+    * Set up the following 3x3 sparse matrix:
+    *
+    *    / 1 0 2 \
+    *    | 0 3 0 |
+    *    \ 0 0 4 /
+    */
+   const Matrix withoutZeros2( 3, 3, { { 0, 0, 1 }, { 0, 2, 2 }, { 1, 1, 3 }, { 2, 2, 4 } } );
+
+   // the same matrix with explicitly stored zeros interleaved with the non-zero elements
+   const Matrix interleavedZeros(
+      3,
+      3,
+      { { 0, 0, 1 }, { 0, 1, 0 }, { 0, 2, 2 }, { 1, 0, 0 }, { 1, 1, 3 }, { 1, 2, 0 }, { 2, 0, 0 }, { 2, 1, 0 }, { 2, 2, 4 } } );
+
+   EXPECT_EQ( withoutZeros2, interleavedZeros );
+   EXPECT_EQ( interleavedZeros, withoutZeros2 );
+
+   /**
+    * Set up the following 2x2 sparse matrix:
+    *
+    *    / 1 0 \
+    *    \ 0 1 /
+    */
+   const Matrix onesWithZero( 2, 2, { { 0, 0, 1 }, { 0, 1, 0 }, { 1, 1, 1 } } );
+
+   // comparison with a binary matrix having the same pattern
+   using BinaryMatrixType = TNL::Matrices::SparseMatrix< bool, typename Matrix::DeviceType, typename Matrix::IndexType >;
+   const BinaryMatrixType binary( 2, 2, { { 0, 0, true }, { 1, 1, true } } );
+   EXPECT_EQ( onesWithZero, binary );
+   EXPECT_EQ( binary, onesWithZero );
+
+   // comparison with a binary matrix having the same pattern as a matrix with different values
+   EXPECT_NE( withoutZeros, binary );
+   EXPECT_NE( binary, withoutZeros );
+}

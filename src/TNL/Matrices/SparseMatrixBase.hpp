@@ -1019,6 +1019,8 @@ template< typename Matrix >
 bool
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::operator==( const Matrix& m ) const
 {
+   if( this->getRows() != m.getRows() || this->getColumns() != m.getColumns() )
+      return false;
    const auto& view1 = *this;
    const auto view2 = m.getConstView();
    auto fetch = [ = ] __cuda_callable__( IndexType i ) -> bool

@@ -105,4 +105,11 @@ TYPED_TEST( BinaryMatrixTest_SlicedEllpack, saveAndLoadTest )
    test_SaveAndLoad< SlicedEllpackMatrixType >( "test_BinarySparseMatrixTest" );
 }
 
+TYPED_TEST( BinaryMatrixTest_SlicedEllpack, comparisonTest )
+{
+   using SlicedEllpackMatrixType = typename TestFixture::SlicedEllpackMatrixType;
+
+   test_Comparison< SlicedEllpackMatrixType >();
+}
+
 #include "../main.h"
