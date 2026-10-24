@@ -62,9 +62,20 @@ struct RadixSort
     * kernel launch without any temporary buffers, so the workspace is not
     * touched at all at these sizes.
     *
+    * The workspace also captures the host-static kernel launch sequence of
+    * a sort into an executable CUDA/HIP graph on the first call and the
+    * sorts with a matching key (sorted size, sort order, device and buffer
+    * pointers) replay it with a single graph launch, which removes most of
+    * the host-side launch overhead of the driver. Sorting a different array
+    * of the cached size and order patches only the recorded pointer before
+    * the replay; a sort with a different size or order recaptures the
+    * sequence in the workspace (a handful of microseconds).
+    *
     * \note The sorts sharing one workspace must not overlap: the workspace
     * carries state between asynchronous kernel launches, so the sorts must
-    * be ordered on the same stream.
+    * be ordered on the same stream, which also orders the replays of the
+    * cached graph (one executable graph must not be relaunched while its
+    * previous launch is still pending).
     *
     * \tparam Value is the value type of the arrays to be sorted.
     * \tparam Device is the device type, only \ref Devices::GPU is implemented.

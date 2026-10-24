@@ -5,8 +5,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <deque>
 #include <functional>
 #include <type_traits>
+#include <utility>
 
 #include <TNL/Backend.h>
 #include <TNL/Containers/Array.h>
@@ -44,6 +47,20 @@ constexpr int radixSortTileSize = radixSortBlockSize * radixSortItemsPerThread;
 //! about 2^22 elements on the current GPUs); larger sorts share the first
 //! region and zero it right before each sweep (see \ref radixSort).
 constexpr int radixSortAggregatedFillLimit = 1 << 22;
+
+//! \brief Array size threshold below which the sorts replay their captured
+//! kernel launch sequence through a cached CUDA/HIP graph.
+//!
+//! Replaying the launch sequence removes the host-side launch overhead,
+//! which is exposed only while the kernels are so short that the device
+//! drains the launch queue faster than the host fills it. Once the kernels
+//! are long enough, the host issues the whole sequence before the device
+//! runs out of queued work, so the direct launches hide their own overhead
+//! while the replayed graph still pays the device-side node scheduling
+//! between the kernels (measured at about 2% at one million elements). The
+//! limit is set below the regression - the largest measured winning size
+//! was 100k elements.
+constexpr int radixSortGraphLimit = 1 << 19;
 
 // The per-digit phases of the scatter kernel rely on each thread handling
 // exactly one digit, which requires the block size to be equal to the number
@@ -1045,6 +1062,466 @@ radixSortSingleTileKernel( Containers::ArrayView< Value, Devices::GPU, Index > v
 #endif
 }
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
+/**
+ * \brief Kernel zero-filling a range of elements, launched by
+ * \ref radixSortFillZeroAsync.
+ *
+ * The geometry of the two variants matches the element fill of
+ * \ref TNL::Algorithms::detail::ParallelFor1D: without the grid stride the
+ * grid covers the whole range, otherwise the grid is capped by the number
+ * of multiprocessors.
+ */
+template< bool gridStride, typename Element, typename Index >
+__global__
+void
+radixSortFillZeroKernel( Index end, Element* data )
+{
+   Index i = blockIdx.x * blockDim.x + threadIdx.x;
+   while( i < end ) {
+      data[ i ] = Element( 0 );
+      if constexpr( gridStride )
+         i += blockDim.x * gridDim.x;
+      else
+         break;
+   }
+}
+
+/**
+ * \brief Zero-fills `size` elements asynchronously on the given stream.
+ *
+ * The stream keeps the fill ordered with the kernels of the sort and is
+ * required inside its graph capture, where the default stream cannot be
+ * used.
+ */
+template< typename Element, typename Index >
+void
+radixSortFillZeroAsync( Element* data, Index size, Backend::stream_t stream )
+{
+   if( size == 0 )
+      return;
+   TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
+   Backend::LaunchConfiguration launch_config;
+   launch_config.stream = stream;
+   launch_config.blockSize.x = 256;
+   launch_config.blockSize.x = TNL::min( launch_config.blockSize.x, Backend::getMaxThreadsPerBlock() );
+   launch_config.gridSize.x =
+      TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( size, launch_config.blockSize.x ) );
+
+   const auto totalThreads =
+      static_cast< std::size_t >( launch_config.blockSize.x ) * static_cast< std::size_t >( launch_config.gridSize.x );
+   const bool needsGridStride = totalThreads > Backend::getMaxThreadsPerGrid();
+
+   if( ! needsGridStride && totalThreads >= static_cast< std::size_t >( size ) ) {
+      constexpr auto kernel = radixSortFillZeroKernel< false, Element, Index >;
+      Backend::launchKernelAsync( kernel, launch_config, size, data );
+   }
+   else {
+      // decrease the grid size and align to the number of multiprocessors
+      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
+      launch_config.gridSize.x = TNL::min( desGridSize, Backend::getNumberOfBlocks( size, launch_config.blockSize.x ) );
+      constexpr auto kernel = radixSortFillZeroKernel< true, Element, Index >;
+      Backend::launchKernelAsync( kernel, launch_config, size, data );
+   }
+}
+
+#endif
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
+   //! \brief CUDA/HIP graph type aliases used by \ref RadixSortGraphCache.
+   #if defined( __CUDACC__ )
+using RadixSortGraphT = cudaGraph_t;
+using RadixSortGraphExecT = cudaGraphExec_t;
+using RadixSortGraphNodeT = cudaGraphNode_t;
+using RadixSortKernelNodeParams = cudaKernelNodeParams;
+   #else
+using RadixSortGraphT = hipGraph_t;
+using RadixSortGraphExecT = hipGraphExec_t;
+using RadixSortGraphNodeT = hipGraphNode_t;
+using RadixSortKernelNodeParams = hipKernelNodeParams;
+   #endif
+
+//! \brief Begins the capture of the launches issued to `stream` (the
+//! thread-local mode keeps the capture unaffected by the other threads).
+inline void
+radixSortGraphBeginCapture( Backend::stream_t stream )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaStreamBeginCapture( stream, cudaStreamCaptureModeThreadLocal ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipStreamBeginCapture( stream, hipStreamCaptureModeThreadLocal ) );
+   #endif
+}
+
+//! \brief Ends the capture and returns the captured graph template.
+inline RadixSortGraphT
+radixSortGraphEndCapture( Backend::stream_t stream )
+{
+   RadixSortGraphT graph;
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaStreamEndCapture( stream, &graph ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipStreamEndCapture( stream, &graph ) );
+   #endif
+   return graph;
+}
+
+/**
+ * \brief Returns the handle of the node that the next operation captured by
+ * `stream` would depend on.
+ *
+ * The captured launch sequence is a linear chain, so the single dependency
+ * is the handle of the last appended node. The handle belongs to the
+ * captured graph template, which must stay alive for the executable-graph
+ * parameter updates (the graph API refers the updated nodes by their
+ * template handles).
+ */
+inline RadixSortGraphNodeT
+radixSortGraphLastNode( Backend::stream_t stream )
+{
+   #if defined( __CUDACC__ )
+   cudaStreamCaptureStatus status;
+   cudaGraph_t graph;
+   const cudaGraphNode_t* dependencies = nullptr;
+   std::size_t dependenciesCount = 0;
+      #if CUDART_VERSION >= 12000
+   TNL_BACKEND_SAFE_CALL(
+      cudaStreamGetCaptureInfo( stream, &status, nullptr, &graph, &dependencies, nullptr, &dependenciesCount ) );
+      #else
+   TNL_BACKEND_SAFE_CALL( cudaStreamGetCaptureInfo( stream, &status, nullptr, &graph, &dependencies, &dependenciesCount ) );
+      #endif
+   #else
+   hipStreamCaptureStatus status;
+   hipGraph_t graph;
+   const hipGraphNode_t* dependencies = nullptr;
+   std::size_t dependenciesCount = 0;
+   TNL_BACKEND_SAFE_CALL( hipStreamGetCaptureInfo_v2( stream, &status, nullptr, &graph, &dependencies, &dependenciesCount ) );
+   #endif
+   TNL_ASSERT_EQ( dependenciesCount, 1u, "the captured sequence is a linear chain" );
+   return dependencies[ 0 ];
+}
+
+//! \brief Instantiates the captured graph template into an executable graph.
+inline void
+radixSortGraphInstantiate( RadixSortGraphExecT& graphExec, RadixSortGraphT graph )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaGraphInstantiate( &graphExec, graph, 0 ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipGraphInstantiate( &graphExec, graph, nullptr, nullptr, 0 ) );
+   #endif
+}
+
+//! \brief Launches the executable graph on `stream`.
+inline void
+radixSortGraphLaunch( RadixSortGraphExecT graphExec, Backend::stream_t stream )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaGraphLaunch( graphExec, stream ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipGraphLaunch( graphExec, stream ) );
+   #endif
+}
+
+//! \brief Updates the parameters of one kernel node of the executable
+//! graph (the node handle refers to the template the executable was
+//! instantiated from).
+inline void
+radixSortGraphExecSetKernelNodeParams(
+   RadixSortGraphExecT graphExec,
+   RadixSortGraphNodeT node,
+   const RadixSortKernelNodeParams& params )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaGraphExecKernelNodeSetParams( graphExec, node, &params ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipGraphExecKernelNodeSetParams( graphExec, node, &params ) );
+   #endif
+}
+
+//! \brief Destroys the executable graph.
+inline void
+radixSortGraphExecDestroy( RadixSortGraphExecT& graphExec )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaGraphExecDestroy( graphExec ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipGraphExecDestroy( graphExec ) );
+   #endif
+   graphExec = nullptr;
+}
+
+//! \brief Destroys the graph template.
+inline void
+radixSortGraphDestroy( RadixSortGraphT& graph )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaGraphDestroy( graph ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipGraphDestroy( graph ) );
+   #endif
+   graph = nullptr;
+}
+
+//! \brief Creates the non-blocking stream used for the graph capture.
+inline void
+radixSortGraphCreateCaptureStream( Backend::stream_t& stream )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaStreamCreateWithFlags( &stream, cudaStreamNonBlocking ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipStreamCreateWithFlags( &stream, hipStreamNonBlocking ) );
+   #endif
+}
+
+//! \brief Destroys the capture stream.
+inline void
+radixSortGraphDestroyStream( Backend::stream_t& stream )
+{
+   #if defined( __CUDACC__ )
+   TNL_BACKEND_SAFE_CALL( cudaStreamDestroy( stream ) );
+   #else
+   TNL_BACKEND_SAFE_CALL( hipStreamDestroy( stream ) );
+   #endif
+   stream = nullptr;
+}
+
+/**
+ * \brief Cache of the captured kernel-launch sequence of the radix sort
+ * driver.
+ *
+ * The host-side launch sequence of the radix sort is static for a given
+ * (array size, sort order, device, set of workspace buffer pointers): all
+ * grid sizes and kernel arguments are computed on the host and only the
+ * pass-skip decisions are made on the device. A workspace therefore caches
+ * one captured CUDA/HIP graph and replays it with a single graph launch on
+ * the calls with a matching key, which removes the per-kernel launch
+ * overhead of the driver.
+ *
+ * The kernels referencing the user array (the total histogram, the binnings
+ * and the copy-back) take it as their first argument, so a sort of a
+ * *different* array of the cached size and order patches only the data
+ * pointer of the recorded kernel arguments (the array views carry the data
+ * pointer as their first member).
+ *
+ * \note The cache is thread-compatible with the workspace contract: the
+ * sorts sharing one workspace must be ordered on the same stream, which
+ * also orders the replays of the cached graph. One executable graph must
+ * not be relaunched while its previous launch is still pending on another
+ * stream; the single-stream contract implies that.
+ */
+struct RadixSortGraphCache
+{
+   //! Maximum number of kernel arguments of a recorded node (the widest
+   //! signature is the binning kernel with 9 arguments).
+   static constexpr std::size_t maxNodeArgs = 10;
+
+   //! \brief Recorded kernel node referencing the user array, with owned
+   //! copies of its arguments.
+   struct ViewNode
+   {
+      //! Handle of the node in the captured graph template.
+      RadixSortGraphNodeT node = nullptr;
+      //! Kernel parameters referencing `argStorage`.
+      RadixSortKernelNodeParams params{};
+      //! Pointers to the arguments stored in `argStorage`.
+      void* argPointers[ maxNodeArgs ] = {};
+      //! Owned copies of the kernel arguments, 16-byte aligned per
+      //! argument; the first argument is always the array view of the
+      //! user data, whose data pointer is its first member.
+      alignas( 16 ) unsigned char argStorage[ 16 * maxNodeArgs ] = {};
+   };
+
+   RadixSortGraphCache() = default;
+
+   //! Destroys the graph objects and the capture stream.
+   ~RadixSortGraphCache()
+   {
+      clearGraph();
+      if( captureStream != nullptr )
+         radixSortGraphDestroyStream( captureStream );
+   }
+
+   // the graph handles are uniquely owned; copying is implemented by the
+   // workspace (it copies the buffers and leaves a default-constructed
+   // cache which captures its own graph on demand)
+   RadixSortGraphCache( const RadixSortGraphCache& ) = delete;
+   RadixSortGraphCache&
+   operator=( const RadixSortGraphCache& ) = delete;
+
+   RadixSortGraphCache( RadixSortGraphCache&& other ) noexcept
+   {
+      stealFrom( other );
+   }
+
+   RadixSortGraphCache&
+   operator=( RadixSortGraphCache&& other ) noexcept
+   {
+      if( this != &other ) {
+         clearGraph();
+         if( captureStream != nullptr )
+            radixSortGraphDestroyStream( captureStream );
+         stealFrom( other );
+      }
+      return *this;
+   }
+
+   //! \brief Destroys the captured graph objects and drops the cache key
+   //! (the capture stream is kept for the next capture).
+   void
+   clearGraph()
+   {
+      if( graphExec != nullptr )
+         radixSortGraphExecDestroy( graphExec );
+      if( graph != nullptr )
+         radixSortGraphDestroy( graph );
+      size = 0;
+      descending = false;
+      device = -1;
+      auxData = nullptr;
+      digitBaseData = nullptr;
+      tileStatusData = nullptr;
+      passFlagsData = nullptr;
+      viewData = nullptr;
+      viewNodes.clear();
+   }
+
+   /**
+    * \brief Patches the user-array pointer in the recorded kernel nodes.
+    *
+    * Every recorded kernel takes the user array view as its first argument
+    * and the array view stores the data pointer as its first member, so
+    * patching the pointer of the first argument redirects the kernels to
+    * the new array (the view size stays the cached size).
+    */
+   void
+   patchViews( const void* newData )
+   {
+      for( auto& viewNode : viewNodes ) {
+         std::memcpy( viewNode.argStorage, &newData, sizeof( newData ) );
+         radixSortGraphExecSetKernelNodeParams( graphExec, viewNode.node, viewNode.params );
+      }
+      viewData = newData;
+   }
+
+   //! \brief Stream used for the graph capture (owned, created lazily). The
+   //! capture cannot use the driver's stream: the launches issued during
+   //! the capture would otherwise become an implicit part of the graph of
+   //! the caller instead of being replayed on it.
+   Backend::stream_t captureStream = nullptr;
+
+   //! \brief Captured launch sequence; the node handles of `viewNodes`
+   //! refer to this template, which must therefore stay alive.
+   RadixSortGraphT graph = nullptr;
+
+   //! \brief Executable graph replayed by the sorts with a matching key.
+   RadixSortGraphExecT graphExec = nullptr;
+
+   //! \brief Array size the graph was captured for (the launch
+   //! configuration depends on it).
+   std::size_t size = 0;
+
+   //! \brief Sort order the graph was captured for (a workspace shared by
+   //! ascending and descending sorts).
+   bool descending = false;
+
+   //! \brief Device the graph was captured on (-1 while no graph is held).
+   int device = -1;
+
+   //! \brief Buffer pointers referenced by the captured kernels; a change
+   //! (e.g., after the workspace grows) invalidates the graph.
+   const void* auxData = nullptr;
+   const void* digitBaseData = nullptr;
+   const void* tileStatusData = nullptr;
+   const void* passFlagsData = nullptr;
+
+   //! \brief User-array pointer referenced by the recorded kernel nodes.
+   const void* viewData = nullptr;
+
+   //! \brief Recorded kernel nodes referencing the user array (the total
+   //! histogram, the binnings and the copy-back). A deque keeps the node
+   //! objects address-stable, which the parameters' pointers into
+   //! `argStorage` rely on.
+   std::deque< ViewNode > viewNodes;
+
+private:
+   //! \brief Takes the ownership of \p other (leaving it empty).
+   void
+   stealFrom( RadixSortGraphCache& other ) noexcept
+   {
+      captureStream = other.captureStream;
+      graph = other.graph;
+      graphExec = other.graphExec;
+      size = other.size;
+      descending = other.descending;
+      device = other.device;
+      auxData = other.auxData;
+      digitBaseData = other.digitBaseData;
+      tileStatusData = other.tileStatusData;
+      passFlagsData = other.passFlagsData;
+      viewData = other.viewData;
+      viewNodes = std::move( other.viewNodes );
+      other.captureStream = nullptr;
+      other.graph = nullptr;
+      other.graphExec = nullptr;
+      other.size = 0;
+      other.device = -1;
+      other.viewData = nullptr;
+   }
+};
+
+/**
+ * \brief Records the kernel that was just launched into the capturing
+ * stream as a view-referencing node of the cache.
+ *
+ * The arguments are copied into the node record so that the user-array
+ * pointer can be patched later (see \ref RadixSortGraphCache); the argument
+ * values must be identical to the ones of the launch.
+ */
+template< typename KernelFunction, typename... Args >
+void
+radixSortRecordGraphViewNode(
+   RadixSortGraphCache& cache,
+   Backend::stream_t stream,
+   KernelFunction kernel,
+   const Backend::LaunchConfiguration& launch_config,
+   const Args&... args )
+{
+   static_assert( sizeof...( Args ) <= RadixSortGraphCache::maxNodeArgs );
+   // the record is built in place: the kernel parameters point into the
+   // node's own storage, which must stay address-stable (see the deque of
+   // RadixSortGraphCache)
+   auto& viewNode = cache.viewNodes.emplace_back();
+   std::size_t offset = 0;
+   std::size_t argIndex = 0;
+   const auto storeArg = [ &viewNode, &offset, &argIndex ]( const auto& arg )
+   {
+      // the kernel arguments are plain aggregates (pointers, sizes and the
+      // (pointer, size) array views), so they are copied as bytes; note
+      // that the views are not "trivially copyable" in the sense of the
+      // type traits when compiled with -rdc=true, but they stay
+      // standard-layout aggregates here
+      static_assert( std::is_standard_layout_v< std::decay_t< decltype( arg ) > > );
+      std::memcpy( viewNode.argStorage + offset, &arg, sizeof( arg ) );
+      viewNode.argPointers[ argIndex ] = viewNode.argStorage + offset;
+      argIndex++;
+      offset += ( sizeof( arg ) + 15 ) / 16 * 16;
+   };
+   ( storeArg( args ), ... );
+   TNL_ASSERT_LE( offset, sizeof( viewNode.argStorage ), "the recorded arguments must fit the node storage" );
+   viewNode.params.func = reinterpret_cast< void* >( kernel );
+   viewNode.params.gridDim = launch_config.gridSize;
+   viewNode.params.blockDim = launch_config.blockSize;
+   viewNode.params.sharedMemBytes = static_cast< unsigned int >( launch_config.dynamicSharedMemorySize );
+   viewNode.params.kernelParams = viewNode.argPointers;
+   viewNode.params.extra = nullptr;
+   viewNode.node = radixSortGraphLastNode( stream );
+}
+
+#endif
+
 /**
  * \brief Workspace of the temporary buffers of the radix sort driver.
  *
@@ -1077,6 +1554,39 @@ struct RadixSortWorkspace
    static_assert( std::is_same_v< Device, Devices::GPU >, "RadixSort is implemented only for the GPU device" );
    static_assert( std::is_arithmetic_v< Value >, "RadixSort supports only arithmetic value types" );
    static_assert( sizeof( Value ) <= 8, "RadixSort supports value types with at most 8 bytes" );
+
+   RadixSortWorkspace() = default;
+   ~RadixSortWorkspace() = default;
+
+   /**
+    * \brief Copying a workspace copies the buffers; the cached graph is
+    * not copied (the copy captures its own graph on the first use).
+    */
+   RadixSortWorkspace( const RadixSortWorkspace& other )
+   : aux( other.aux ),
+     digitBase( other.digitBase ),
+     tileStatus( other.tileStatus ),
+     passFlags( other.passFlags )
+   {}
+
+   RadixSortWorkspace&
+   operator=( const RadixSortWorkspace& other )
+   {
+      aux = other.aux;
+      digitBase = other.digitBase;
+      tileStatus = other.tileStatus;
+      passFlags = other.passFlags;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+      // the buffers were deep-copied, so a cached graph of the assigned
+      // workspace must not be replayed against them
+      graphCache.clearGraph();
+#endif
+      return *this;
+   }
+
+   RadixSortWorkspace( RadixSortWorkspace&& ) = default;
+   RadixSortWorkspace&
+   operator=( RadixSortWorkspace&& ) = default;
 
    /**
     * \brief Grows the buffers so that an array of `size` elements can be
@@ -1132,7 +1642,284 @@ struct RadixSortWorkspace
 
    //! \brief Skip flags and buffer-parity flags of the passes: `2 * passes + 1` entries.
    Containers::Array< int, Device, Index > passFlags;
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   /**
+    * \brief Cache of the captured kernel-launch sequence replayed by the
+    * sorts of a matching (array size, sort order, device and buffer
+    * pointers), removing the per-kernel launch overhead of the driver.
+    */
+   RadixSortGraphCache graphCache;
+#endif
 };
+
+/**
+ * \brief Launches the kernel sequence of the radix sort driver on the
+ * given stream.
+ *
+ * The sequence is host-static for a given (array size, sort order, device
+ * and set of workspace buffer pointers): all kernels are launched
+ * unconditionally with host-computed launch configurations and the
+ * pass-skip decisions are read by the sweeps on the device (see \ref
+ * radixSortProcessHistogramsKernel). When \p cache is not null, the stream
+ * must be under graph capture and the sequence additionally records the
+ * kernels referencing the user array view into the cache; the captured
+ * kernels do not execute, so the caller replays the instantiated graph to
+ * perform the sort.
+ */
+template< typename Value, typename Device, typename Index, bool descending >
+void
+radixSortLaunchSequence(
+   Containers::ArrayView< Value, Device, Index > view,
+   RadixSortWorkspace< Value, Device, Index >& workspace,
+   const Index n,
+   Backend::stream_t stream,
+   RadixSortGraphCache* cache )
+{
+   constexpr int passes = static_cast< int >( sizeof( Value ) );
+
+   // computed without rounding up to avoid overflow of n + radixSortTileSize
+   // when the index type is signed and n is close to its maximum
+   const Index numTiles = n / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( n % radixSortTileSize != 0 );
+   const int multiprocessors = Backend::getDeviceMultiprocessors( Backend::getDevice() );
+   const Index maxBlocks = static_cast< Index >( multiprocessors ) * 32;
+
+   // the sweeps of the executed passes alternate between view and the
+   // auxiliary array of the workspace
+   auto aux = workspace.aux.getView( 0, n );
+
+   Backend::LaunchConfiguration launch_config;
+   launch_config.stream = stream;
+   launch_config.blockSize.x = radixSortBlockSize;
+   launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
+
+   // the digit counts are independent of the order of the elements, which
+   // changes between the passes, so the histograms of all passes are
+   // computed upfront; the exclusive scan of each histogram then gives the
+   // global base offsets of the digit runs
+   auto& digitBase = workspace.digitBase;
+   radixSortFillZeroAsync( digitBase.getData(), digitBase.getSize(), stream );
+
+   constexpr auto totalHistogramKernel = radixSortTotalHistogramKernel< Value, Index, descending >;
+   Backend::launchKernelAsync( totalHistogramKernel, launch_config, view, digitBase.getView() );
+   if( cache != nullptr )
+      radixSortRecordGraphViewNode( *cache, stream, totalHistogramKernel, launch_config, view, digitBase.getView() );
+
+   // scan the digit histograms of all passes and detect the skippable
+   // passes together with the source/target buffer parity of each sweep in
+   // a single kernel, so that the host can launch the sweeps of all passes
+   // without knowing which of them are going to run; the fused kernel
+   // replaces the per-pass non-blocking launches of the standalone
+   // Algorithms::inplaceExclusiveScan
+   constexpr auto processHistogramsKernel = radixSortProcessHistogramsKernel< Value, Index >;
+   auto& passFlags = workspace.passFlags;
+   Backend::LaunchConfiguration processHistogramsConfig( 1, radixSortBuckets );
+   processHistogramsConfig.stream = stream;
+   Backend::launchKernelAsync( processHistogramsKernel, processHistogramsConfig, digitBase.getView(), passFlags.getView() );
+
+   // the input is processed in strips of up to 2^28 elements: the values
+   // exchanged by the decoupled lookback must fit into 30 bits, and the
+   // tile status array (half a byte per element, one counter per tile and
+   // digit) stays reasonably small
+   constexpr Index onesweepStripSize = ( static_cast< Index >( 1 ) << 28 );
+   const Index numStrips = n / onesweepStripSize + static_cast< Index >( n % onesweepStripSize != 0 );
+   const Index maxStripTiles = TNL::min( numTiles, onesweepStripSize / radixSortTileSize );
+
+   // each pass owns one region of the tile status buffer, holding one
+   // status counter per (tile, digit) of a strip plus the work counter;
+   // the region size is padded to a multiple of the bucket count, so every
+   // region starts on the same 1 KiB alignment as the single-region layout
+   // and the per-tile counter bursts stay line-aligned in all passes;
+   // the buffer is reused, so it may be larger than needed, but the kernels
+   // of this call touch only the used prefix of the buffer
+   auto& tileStatus = workspace.tileStatus;
+   const Index tileStatusSize = ( maxStripTiles + 1 ) * radixSortBuckets;
+
+   constexpr auto onesweepKernel = radixSortOnesweepKernel< Value, Index, descending >;
+   constexpr auto advanceBaseKernel = radixSortAdvanceBaseKernel< Index >;
+
+   // zero the tile status counters of all passes with a single fill when
+   // the sort is small enough that the zeroed regions stay cache-hot until
+   // their sweeps (see radixSortAggregatedFillLimit); each sweep
+   // exclusively owns its pass's region of the buffer - the lookback of a
+   // sweep reads only the counters published by the sweeps of the same
+   // pass - so zeroing the regions of the later passes upfront is safe (the
+   // fill is ordered before all sweeps on the stream); zeroing the status
+   // also resets the work counter of each region
+   const bool aggregateFill = n <= static_cast< Index >( radixSortAggregatedFillLimit );
+   if( aggregateFill )
+      radixSortFillZeroAsync( tileStatus.getData(), static_cast< Index >( passes ) * tileStatusSize, stream );
+
+   // the host launches the sweeps of all passes: the sweeps of a skipped
+   // pass exit immediately, so they permute the array by the identity
+   // permutation, and the advance of the pass's base offsets by the still
+   // zeroed tile counters is a no-op (see radixSortAdvanceBaseKernel)
+   for( int pass = 0; pass < passes; pass++ ) {
+      for( Index strip = 0; strip < numStrips; strip++ ) {
+         const Index stripBegin = strip * onesweepStripSize;
+         // computed from the strip size to avoid overflow of the index type
+         // when n is close to its maximum (stripBegin + onesweepStripSize
+         // can overflow a signed index type)
+         const Index stripSize = TNL::min( n - stripBegin, onesweepStripSize );
+         const Index stripEnd = stripBegin + stripSize;
+         // computed without rounding up to avoid overflow of the index type
+         // when the strip size is close to its maximum
+         const Index stripNumTiles = stripSize / radixSortTileSize + static_cast< Index >( stripSize % radixSortTileSize != 0 );
+
+         // with the aggregated fill the sweep uses its pass's region;
+         // without it the sweeps share the first region (zeroed right
+         // before each sweep, so that it is still cache-hot when the sweep
+         // runs), which keeps the counter addressing identical to the
+         // single-region layout; the strips after the first one always
+         // re-zero the region (also resetting the work counter)
+         const Index regionBegin = aggregateFill ? pass * tileStatusSize : 0;
+         auto tileStatusRegion = tileStatus.getView( regionBegin, regionBegin + tileStatusSize );
+         if( ! aggregateFill || strip > 0 )
+            radixSortFillZeroAsync( tileStatus.getData() + regionBegin, tileStatusSize, stream );
+         launch_config.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
+         Backend::launchKernelAsync(
+            onesweepKernel,
+            launch_config,
+            view,
+            aux,
+            digitBase.getView(),
+            tileStatusRegion,
+            passFlags.getConstView(),
+            stripBegin,
+            stripEnd,
+            stripNumTiles,
+            pass );
+         if( cache != nullptr )
+            radixSortRecordGraphViewNode(
+               *cache,
+               stream,
+               onesweepKernel,
+               launch_config,
+               view,
+               aux,
+               digitBase.getView(),
+               tileStatusRegion,
+               passFlags.getConstView(),
+               stripBegin,
+               stripEnd,
+               stripNumTiles,
+               pass );
+
+         // the last tile of the strip has published the strip's digit totals
+         // in its tile counters, which advance the base offsets for the next
+         // strip
+         if( strip + 1 < numStrips ) {
+            launch_config.gridSize.x = 1;
+            Backend::launchKernelAsync(
+               advanceBaseKernel, launch_config, digitBase.getView(), tileStatusRegion, stripNumTiles, pass );
+         }
+      }
+   }
+
+   // for an odd number of executed passes the sorted data ends up in the
+   // auxiliary array and is copied back by the kernel; zero executed passes
+   // means that all elements share every digit, i.e. the input is already
+   // sorted in place (even parity, no copy)
+   constexpr auto copyBackKernel = radixSortCopyBackKernel< Value, Index >;
+   launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
+   Backend::launchKernelAsync( copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
+   if( cache != nullptr )
+      radixSortRecordGraphViewNode( *cache, stream, copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
+}
+
+/**
+ * \brief Implementation of \ref radixSort with an optional use of the
+ * graph cache of the workspace.
+ */
+template< typename Value, typename Device, typename Index, bool descending >
+void
+radixSortImpl(
+   Containers::ArrayView< Value, Device, Index > view,
+   RadixSortWorkspace< Value, Device, Index >& workspace,
+   const bool useGraphCache )
+{
+   static_assert( std::is_same_v< Device, Devices::GPU >, "RadixSort is implemented only for the GPU device" );
+   static_assert( std::is_arithmetic_v< Value >, "RadixSort supports only arithmetic value types" );
+   static_assert( sizeof( Value ) <= 8, "RadixSort supports value types with at most 8 bytes" );
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   // early exit for empty or single-element arrays (already sorted)
+   if( view.getSize() <= 1 )
+      return;
+
+   const Index n = view.getSize();
+
+   // an array of at most one tile is sorted by a single block in shared
+   // memory, which replaces the whole machinery below with one kernel
+   // launch and needs no temporary buffers, so the workspace is left
+   // untouched (see radixSortSingleTileKernel)
+   if( n <= radixSortTileSize ) {
+      constexpr auto singleTileKernel = radixSortSingleTileKernel< Value, Index, descending >;
+      Backend::LaunchConfiguration launch_config( 1, radixSortBlockSize );
+      Backend::launchKernelAsync( singleTileKernel, launch_config, view );
+      Backend::streamSynchronize( launch_config.stream );
+      return;
+   }
+
+   // grow the reused buffers to fit the input; the buffers keep their
+   // capacity when the input shrinks, so repeated sorts do not allocate
+   workspace.setSize( n );
+
+   if( useGraphCache && n <= static_cast< Index >( radixSortGraphLimit ) ) {
+      auto& cache = workspace.graphCache;
+      // an executable graph is replayed only when everything that the
+      // captured kernels refer to is unchanged: the array size (the launch
+      // configuration), the sort order, the device, and the pointers of
+      // the workspace buffers (a growth of the workspace reallocates them)
+      const bool ready = cache.graphExec != nullptr && cache.size == static_cast< std::size_t >( n )
+                      && cache.descending == descending && cache.device == Backend::getDevice()
+                      && cache.auxData == static_cast< const void* >( workspace.aux.getData() )
+                      && cache.digitBaseData == static_cast< const void* >( workspace.digitBase.getData() )
+                      && cache.tileStatusData == static_cast< const void* >( workspace.tileStatus.getData() )
+                      && cache.passFlagsData == static_cast< const void* >( workspace.passFlags.getData() );
+      if( ready ) {
+         // the kernels reference the user array by their first argument:
+         // a sort of a different array of the cached size and order only
+         // patches the recorded pointers, which costs a fraction of a
+         // microsecond per node
+         if( cache.viewData != static_cast< const void* >( view.getData() ) )
+            cache.patchViews( view.getData() );
+         radixSortGraphLaunch( cache.graphExec, 0 );
+         Backend::streamSynchronize( 0 );
+         return;
+      }
+
+      // no usable executable graph: drop the stale state and capture the
+      // launch sequence on the internal stream; the captured kernels do
+      // not execute, so the cold call ends by replaying the fresh
+      // executable graph on the driver's stream
+      cache.clearGraph();
+      if( cache.captureStream == nullptr )
+         radixSortGraphCreateCaptureStream( cache.captureStream );
+      radixSortGraphBeginCapture( cache.captureStream );
+      radixSortLaunchSequence< Value, Device, Index, descending >( view, workspace, n, cache.captureStream, &cache );
+      cache.graph = radixSortGraphEndCapture( cache.captureStream );
+      radixSortGraphInstantiate( cache.graphExec, cache.graph );
+      cache.size = static_cast< std::size_t >( n );
+      cache.descending = descending;
+      cache.device = Backend::getDevice();
+      cache.auxData = workspace.aux.getData();
+      cache.digitBaseData = workspace.digitBase.getData();
+      cache.tileStatusData = workspace.tileStatus.getData();
+      cache.passFlagsData = workspace.passFlags.getData();
+      cache.viewData = view.getData();
+      radixSortGraphLaunch( cache.graphExec, 0 );
+      Backend::streamSynchronize( 0 );
+      return;
+   }
+
+   radixSortLaunchSequence< Value, Device, Index, descending >( view, workspace, n, 0, nullptr );
+   Backend::streamSynchronize( 0 );
+#else
+   (void) useGraphCache;
+   throw Exceptions::NotImplementedError( "RadixSort is supported only when CUDA or HIP is enabled." );
+#endif
+}
 
 /**
  * \brief Sorts the given view using LSD radix sort, reusing the given
@@ -1175,6 +1962,21 @@ struct RadixSortWorkspace
  * are going to run: all kernels are launched asynchronously on the same
  * stream and the host synchronizes only once, at the very end.
  *
+ * The launch sequence of a sort is host-static for a given (array size,
+ * sort order, device and set of workspace buffer pointers): the driver
+ * captures it into an executable CUDA/HIP graph on the first call with a
+ * given workspace and the calls with a matching key replay it with a
+ * single graph launch, which removes most of the host-side launch overhead
+ * of the driver. Sorting a different array of the cached size and order
+ * reuses the graph as well: the kernels take the array as their first
+ * argument, so only the recorded pointer is patched before the replay. A
+ * sort with a different size or order recaptures the sequence in its
+ * workspace (a handful of microseconds). The replay is limited to arrays
+ * of at most \ref radixSortGraphLimit elements: longer arrays keep the
+ * direct launches, which hide their own overhead once their kernels are
+ * long enough to keep the device busy while the host issues the sequence
+ * (a replayed graph would still pay the device-side node scheduling).
+ *
  * The temporary buffers are taken from \p workspace (see
  * \ref RadixSortWorkspace), which the caller can reuse across sorts to
  * avoid the per-call device memory allocations.
@@ -1188,168 +1990,7 @@ template< typename Value, typename Device, typename Index, bool descending >
 void
 radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspace< Value, Device, Index >& workspace )
 {
-   static_assert( std::is_same_v< Device, Devices::GPU >, "RadixSort is implemented only for the GPU device" );
-   static_assert( std::is_arithmetic_v< Value >, "RadixSort supports only arithmetic value types" );
-   static_assert( sizeof( Value ) <= 8, "RadixSort supports value types with at most 8 bytes" );
-
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   // early exit for empty or single-element arrays (already sorted)
-   if( view.getSize() <= 1 )
-      return;
-
-   const Index n = view.getSize();
-   constexpr int passes = static_cast< int >( sizeof( Value ) );
-
-   // an array of at most one tile is sorted by a single block in shared
-   // memory, which replaces the whole machinery below with one kernel
-   // launch and needs no temporary buffers, so the workspace is left
-   // untouched (see radixSortSingleTileKernel)
-   if( n <= radixSortTileSize ) {
-      constexpr auto singleTileKernel = radixSortSingleTileKernel< Value, Index, descending >;
-      Backend::LaunchConfiguration launch_config( 1, radixSortBlockSize );
-      Backend::launchKernelAsync( singleTileKernel, launch_config, view );
-      Backend::streamSynchronize( launch_config.stream );
-      return;
-   }
-
-   // grow the reused buffers to fit the input; the buffers keep their
-   // capacity when the input shrinks, so repeated sorts do not allocate
-   workspace.setSize( n );
-
-   // computed without rounding up to avoid overflow of n + radixSortTileSize
-   // when the index type is signed and n is close to its maximum
-   const Index numTiles = n / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( n % radixSortTileSize != 0 );
-   const int multiprocessors = Backend::getDeviceMultiprocessors( Backend::getDevice() );
-   const Index maxBlocks = static_cast< Index >( multiprocessors ) * 32;
-
-   // the sweeps of the executed passes alternate between view and the
-   // auxiliary array of the workspace
-   auto aux = workspace.aux.getView( 0, n );
-
-   Backend::LaunchConfiguration launch_config;
-   launch_config.blockSize.x = radixSortBlockSize;
-   launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
-
-   // the digit counts are independent of the order of the elements, which
-   // changes between the passes, so the histograms of all passes are
-   // computed upfront; the exclusive scan of each histogram then gives the
-   // global base offsets of the digit runs. Everything up to the final
-   // streamSynchronize is launched asynchronously on the same stream, so
-   // the host never blocks.
-   auto& digitBase = workspace.digitBase;
-   Devices::GPU::LaunchConfiguration fillConfig;
-   fillConfig.blockHostUntilFinished = false;
-   Algorithms::fill< Devices::GPU >( digitBase.getData(), Index( 0 ), digitBase.getSize(), fillConfig );
-
-   constexpr auto totalHistogramKernel = radixSortTotalHistogramKernel< Value, Index, descending >;
-   Backend::launchKernelAsync( totalHistogramKernel, launch_config, view, digitBase.getView() );
-
-   // scan the digit histograms of all passes and detect the skippable
-   // passes together with the source/target buffer parity of each sweep in
-   // a single kernel, so that the host can launch the sweeps of all passes
-   // without knowing which of them are going to run; the fused kernel
-   // replaces the per-pass non-blocking launches of the standalone
-   // Algorithms::inplaceExclusiveScan
-   constexpr auto processHistogramsKernel = radixSortProcessHistogramsKernel< Value, Index >;
-   auto& passFlags = workspace.passFlags;
-   Backend::launchKernelAsync(
-      processHistogramsKernel, Backend::LaunchConfiguration( 1, radixSortBuckets ), digitBase.getView(), passFlags.getView() );
-
-   // the input is processed in strips of up to 2^28 elements: the values
-   // exchanged by the decoupled lookback must fit into 30 bits, and the
-   // tile status array (half a byte per element, one counter per tile and
-   // digit) stays reasonably small
-   constexpr Index onesweepStripSize = ( static_cast< Index >( 1 ) << 28 );
-   const Index numStrips = n / onesweepStripSize + static_cast< Index >( n % onesweepStripSize != 0 );
-   const Index maxStripTiles = TNL::min( numTiles, onesweepStripSize / radixSortTileSize );
-
-   // each pass owns one region of the tile status buffer, holding one
-   // status counter per (tile, digit) of a strip plus the work counter;
-   // the region size is padded to a multiple of the bucket count, so every
-   // region starts on the same 1 KiB alignment as the single-region layout
-   // and the per-tile counter bursts stay line-aligned in all passes;
-   // the buffer is reused, so it may be larger than needed, but the kernels
-   // of this call touch only the used prefix of the buffer
-   auto& tileStatus = workspace.tileStatus;
-   const Index tileStatusSize = ( maxStripTiles + 1 ) * radixSortBuckets;
-
-   constexpr auto onesweepKernel = radixSortOnesweepKernel< Value, Index, descending >;
-   constexpr auto advanceBaseKernel = radixSortAdvanceBaseKernel< Index >;
-
-   // zero the tile status counters of all passes with a single fill when
-   // the sort is small enough that the zeroed regions stay cache-hot until
-   // their sweeps (see radixSortAggregatedFillLimit); each sweep
-   // exclusively owns its pass's region of the buffer - the lookback of a
-   // sweep reads only the counters published by the sweeps of the same
-   // pass - so zeroing the regions of the later passes upfront is safe (the
-   // fill is ordered before all sweeps on the stream); zeroing the status
-   // also resets the work counter of each region
-   const bool aggregateFill = n <= static_cast< Index >( radixSortAggregatedFillLimit );
-   if( aggregateFill )
-      Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, static_cast< Index >( passes ) * tileStatusSize, fillConfig );
-
-   // the host launches the sweeps of all passes: the sweeps of a skipped
-   // pass exit immediately, so they permute the array by the identity
-   // permutation, and the advance of the pass's base offsets by the still
-   // zeroed tile counters is a no-op (see radixSortAdvanceBaseKernel)
-   for( int pass = 0; pass < passes; pass++ ) {
-      for( Index strip = 0; strip < numStrips; strip++ ) {
-         const Index stripBegin = strip * onesweepStripSize;
-         // computed from the strip size to avoid overflow of the index type
-         // when n is close to its maximum (stripBegin + onesweepStripSize
-         // can overflow a signed index type)
-         const Index stripSize = TNL::min( n - stripBegin, onesweepStripSize );
-         const Index stripEnd = stripBegin + stripSize;
-         // computed without rounding up to avoid overflow of the index type
-         // when the strip size is close to its maximum
-         const Index stripNumTiles = stripSize / radixSortTileSize + static_cast< Index >( stripSize % radixSortTileSize != 0 );
-
-         // with the aggregated fill the sweep uses its pass's region;
-         // without it the sweeps share the first region (zeroed right
-         // before each sweep, so that it is still cache-hot when the sweep
-         // runs), which keeps the counter addressing identical to the
-         // single-region layout; the strips after the first one always
-         // re-zero the region (also resetting the work counter)
-         const Index regionBegin = aggregateFill ? pass * tileStatusSize : 0;
-         auto tileStatusRegion = tileStatus.getView( regionBegin, regionBegin + tileStatusSize );
-         if( ! aggregateFill || strip > 0 )
-            Algorithms::fill< Devices::GPU >( tileStatus.getData() + regionBegin, 0u, tileStatusSize, fillConfig );
-         launch_config.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
-         Backend::launchKernelAsync(
-            onesweepKernel,
-            launch_config,
-            view,
-            aux,
-            digitBase.getView(),
-            tileStatusRegion,
-            passFlags.getConstView(),
-            stripBegin,
-            stripEnd,
-            stripNumTiles,
-            pass );
-
-         // the last tile of the strip has published the strip's digit totals
-         // in its tile counters, which advance the base offsets for the next
-         // strip
-         if( strip + 1 < numStrips ) {
-            launch_config.gridSize.x = 1;
-            Backend::launchKernelAsync(
-               advanceBaseKernel, launch_config, digitBase.getView(), tileStatusRegion, stripNumTiles, pass );
-         }
-      }
-   }
-
-   // for an odd number of executed passes the sorted data ends up in the
-   // auxiliary array and is copied back by the kernel; zero executed passes
-   // means that all elements share every digit, i.e. the input is already
-   // sorted in place (even parity, no copy)
-   constexpr auto copyBackKernel = radixSortCopyBackKernel< Value, Index >;
-   launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
-   Backend::launchKernelAsync( copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
-   Backend::streamSynchronize( launch_config.stream );
-#else
-   throw Exceptions::NotImplementedError( "RadixSort is supported only when CUDA or HIP is enabled." );
-#endif
+   radixSortImpl< Value, Device, Index, descending >( view, workspace, true );
 }
 
 /**
@@ -1358,13 +1999,17 @@ radixSort( Containers::ArrayView< Value, Device, Index > view, RadixSortWorkspac
  *
  * Repeated sorts should prefer the overload taking \ref RadixSortWorkspace,
  * which removes the per-call device memory allocations.
+ *
+ * Unlike the workspace overload, the launch sequence is never captured
+ * into an executable graph: the fresh workspace would have to recapture it
+ * on every call, which costs more than the kernel launches it saves.
  */
 template< typename Value, typename Device, typename Index, bool descending >
 void
 radixSort( Containers::ArrayView< Value, Device, Index > view )
 {
    RadixSortWorkspace< Value, Device, Index > workspace;
-   radixSort< Value, Device, Index, descending >( view, workspace );
+   radixSortImpl< Value, Device, Index, descending >( view, workspace, false );
 }
 
 }  // namespace TNL::Algorithms::Sorting::detail
