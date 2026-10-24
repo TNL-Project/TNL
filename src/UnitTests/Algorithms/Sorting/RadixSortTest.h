@@ -368,6 +368,58 @@ TYPED_TEST( RadixSortTest, workspace_descendingOrder )
    EXPECT_TRUE( Algorithms::isDescending( view ) );
 }
 
+// Graph replay tests (workspace reuse with a steady launch sequence)
+
+TYPED_TEST( RadixSortTest, workspace_alternatingViews )
+{
+   using Workspace = Sorting::RadixSort::Workspace< TypeParam, TNL::Devices::GPU, int >;
+   Workspace workspace;
+   const int size = 1 << 16;
+   std::vector< TypeParam > vecA = makeRandomVector< TypeParam >( size, 8101 );
+   std::vector< TypeParam > vecB = makeRandomVector< TypeParam >( size, 8102 );
+   std::vector< TypeParam > expectedA( vecA ), expectedB( vecB );
+   std::sort( expectedA.begin(), expectedA.end() );
+   std::sort( expectedB.begin(), expectedB.end() );
+
+   TNL::Containers::Array< TypeParam, TNL::Devices::GPU, int > arrA, arrB;
+   // alternating sorts of two arrays with one workspace: the graph path
+   // patches the user-array pointer of the cached kernel nodes on every
+   // call, and each round checks the exact sorted values
+   for( int round = 0; round < 4; round++ ) {
+      arrA = vecA;
+      auto viewA = arrA.getView();
+      Sorting::RadixSort::sort( viewA, workspace );
+      TNL::Containers::Array< TypeParam, TNL::Devices::GPU, int > expectedArrA( expectedA );
+      EXPECT_TRUE( arrA.getView() == expectedArrA.getView() ) << "arrA failed in round " << round;
+
+      arrB = vecB;
+      auto viewB = arrB.getView();
+      Sorting::RadixSort::sort( viewB, workspace );
+      TNL::Containers::Array< TypeParam, TNL::Devices::GPU, int > expectedArrB( expectedB );
+      EXPECT_TRUE( arrB.getView() == expectedArrB.getView() ) << "arrB failed in round " << round;
+   }
+}
+
+TYPED_TEST( RadixSortTest, workspace_mixedSizes )
+{
+   using Workspace = Sorting::RadixSort::Workspace< TypeParam, TNL::Devices::GPU, int >;
+   Workspace workspace;
+   std::mt19937 rng( 8201 );
+   // mixed sizes above the single-tile threshold in both fill regimes
+   // (radixSortAggregatedFillLimit = 2^22), shrinking and growing again:
+   // every size change invalidates the cached launch graph
+   for( const int size : { 100000, 2049, ( 1 << 22 ) + 3, 4096, 5000000, 65536 } ) {
+      std::vector< TypeParam > vec = makeRandomVector< TypeParam >( size, rng() );
+      std::vector< TypeParam > expected( vec );
+      TNL::Containers::Array< TypeParam, TNL::Devices::GPU, int > arr( vec );
+      auto view = arr.getView();
+      Sorting::RadixSort::sort( view, workspace );
+      std::sort( expected.begin(), expected.end() );
+      TNL::Containers::Array< TypeParam, TNL::Devices::GPU, int > expectedArr( expected );
+      EXPECT_TRUE( arr.getView() == expectedArr.getView() ) << "failed for size " << size;
+   }
+}
+
 // Single-tile threshold tests (both sides of the single-tile dispatch)
 
 /**
