@@ -1,85 +1,10 @@
-# tests whose GPU builds are split into several translation units to reduce the compile time
-# and memory of each compiler process (items <test name>:<number of parts>)
-set(SPLIT_TESTS
-    TraverseSegmentsTest_SortedEllpack:4
-    TraverseSegmentsTest_SortedSlicedEllpack:4
-    TraverseSegmentsTest_SortedChunkedEllpack:4
-    TraverseSegmentsTest_SortedBiEllpack:4
+# generates the TraverseSegmentsTest executables for all formats of segments in SEGMENTS_TEST_FORMATS
+# (see ../CMakeLists.txt)
+tnl_add_format_tests(
+    NAME TraverseSegmentsTest
+    SUITE TraverseSegmentsTest
+    PREFIX <FORMAT>Segments
+    TYPES "${SEGMENTS_TEST_TYPES}"
+    HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../SegmentsTestFormats.h ${CMAKE_CURRENT_SOURCE_DIR}/TraverseSegmentsTestSuite.hpp
+    FORMATS ${SEGMENTS_TEST_FORMATS}
 )
-
-set(CPP_TESTS
-    TraverseSegmentsTest_AdaptiveCSR
-    TraverseSegmentsTest_BiEllpack
-    TraverseSegmentsTest_ChunkedEllpack
-    TraverseSegmentsTest_CSR
-    TraverseSegmentsTest_Ellpack
-    TraverseSegmentsTest_SlicedEllpack
-    TraverseSegmentsTest_SortedAdaptiveCSR
-    TraverseSegmentsTest_SortedBiEllpack
-    TraverseSegmentsTest_SortedChunkedEllpack
-    TraverseSegmentsTest_SortedCSR
-    TraverseSegmentsTest_SortedEllpack
-    TraverseSegmentsTest_SortedSlicedEllpack
-)
-
-set(CUDA_TESTS
-    TraverseSegmentsTest_AdaptiveCSR_cuda
-    TraverseSegmentsTest_BiEllpack_cuda
-    TraverseSegmentsTest_ChunkedEllpack_cuda
-    TraverseSegmentsTest_CSR_cuda
-    TraverseSegmentsTest_Ellpack_cuda
-    TraverseSegmentsTest_SlicedEllpack_cuda
-    TraverseSegmentsTest_SortedAdaptiveCSR_cuda
-    TraverseSegmentsTest_SortedBiEllpack_cuda
-    TraverseSegmentsTest_SortedChunkedEllpack_cuda
-    TraverseSegmentsTest_SortedCSR_cuda
-    TraverseSegmentsTest_SortedEllpack_cuda
-    TraverseSegmentsTest_SortedSlicedEllpack_cuda
-)
-
-set(HIP_TESTS
-    TraverseSegmentsTest_AdaptiveCSR_hip
-    TraverseSegmentsTest_BiEllpack_hip
-    TraverseSegmentsTest_ChunkedEllpack_hip
-    TraverseSegmentsTest_CSR_hip
-    TraverseSegmentsTest_Ellpack_hip
-    TraverseSegmentsTest_SlicedEllpack_hip
-    TraverseSegmentsTest_SortedAdaptiveCSR_hip
-    TraverseSegmentsTest_SortedBiEllpack_hip
-    TraverseSegmentsTest_SortedChunkedEllpack_hip
-    TraverseSegmentsTest_SortedCSR_hip
-    TraverseSegmentsTest_SortedEllpack_hip
-    TraverseSegmentsTest_SortedSlicedEllpack_hip
-)
-
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-endforeach()
-
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        string(REGEX REPLACE "_cuda$" "" common_target ${target})
-        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.cu SPLIT_TESTS ${SPLIT_TESTS})
-        add_executable(${target} ${sources})
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
-
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        string(REGEX REPLACE "_hip$" "" common_target ${target})
-        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.hip SPLIT_TESTS ${SPLIT_TESTS})
-        add_executable(${target} ${sources})
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()

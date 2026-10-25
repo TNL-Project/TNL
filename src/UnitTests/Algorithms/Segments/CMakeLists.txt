@@ -1,63 +1,40 @@
+# formats of segments for which the tests of segments are instantiated (see SegmentsTestFormats.h)
+set(SEGMENTS_TEST_FORMATS
+    CSR
+    AdaptiveCSR
+    Ellpack
+    SlicedEllpack
+    ChunkedEllpack
+    BiEllpack
+    SortedCSR
+    SortedAdaptiveCSR
+    SortedEllpack
+    SortedSlicedEllpack
+    SortedChunkedEllpack
+    SortedBiEllpack
+)
+set(SEGMENTS_TEST_TYPES
+    "TNL::UnitTests::SegmentsTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice, int, long >"
+)
+
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
-# tests whose GPU builds are split into several translation units to reduce the compile time
-# and memory of each compiler process (items <test name>:<number of parts>)
-set(SPLIT_TESTS
-    SegmentsTest_SortedCSR:2
-    SegmentsTest_SortedEllpack:4
-    SegmentsTest_SortedSlicedEllpack:4
-    SegmentsTest_SortedChunkedEllpack:4
-    SegmentsTest_SortedBiEllpack:4
+# generates the SegmentsTest executables for all formats of segments in SEGMENTS_TEST_FORMATS
+# and adds the Ellpack-specific tests
+tnl_add_format_tests(
+    NAME SegmentsTest
+    SUITE SegmentsTest
+    PREFIX <FORMAT>Segments
+    TYPES "${SEGMENTS_TEST_TYPES}"
+    HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/SegmentsTestFormats.h ${CMAKE_CURRENT_SOURCE_DIR}/SegmentsTestSuite.hpp
+    FORMATS ${SEGMENTS_TEST_FORMATS}
+    EXTRA Ellpack:${CMAKE_CURRENT_SOURCE_DIR}/SegmentsTest_Ellpack.h
 )
 
-set(CPP_TESTS
-    SegmentsTest_AdaptiveCSR
-    SegmentsTest_BiEllpack
-    SegmentsTest_ChunkedEllpack
-    SegmentsTest_CSR
-    SegmentsTest_Ellpack
-    SegmentsTest_SlicedEllpack
-    SegmentsTest_SortedAdaptiveCSR
-    SegmentsTest_SortedBiEllpack
-    SegmentsTest_SortedChunkedEllpack
-    SegmentsTest_SortedCSR
-    SegmentsTest_SortedEllpack
-    SegmentsTest_SortedSlicedEllpack
-    GrowingSegmentsTest
-)
-
-set(CUDA_TESTS
-    SegmentsTest_AdaptiveCSR_cuda
-    SegmentsTest_BiEllpack_cuda
-    SegmentsTest_ChunkedEllpack_cuda
-    SegmentsTest_CSR_cuda
-    SegmentsTest_Ellpack_cuda
-    SegmentsTest_SlicedEllpack_cuda
-    SegmentsTest_SortedAdaptiveCSR_cuda
-    SegmentsTest_SortedBiEllpack_cuda
-    SegmentsTest_SortedChunkedEllpack_cuda
-    SegmentsTest_SortedCSR_cuda
-    SegmentsTest_SortedEllpack_cuda
-    SegmentsTest_SortedSlicedEllpack_cuda
-    GrowingSegmentsTest_cuda
-)
-
-set(HIP_TESTS
-    SegmentsTest_AdaptiveCSR_hip
-    SegmentsTest_BiEllpack_hip
-    SegmentsTest_ChunkedEllpack_hip
-    SegmentsTest_CSR_hip
-    SegmentsTest_Ellpack_hip
-    SegmentsTest_SlicedEllpack_hip
-    SegmentsTest_SortedAdaptiveCSR_hip
-    SegmentsTest_SortedBiEllpack_hip
-    SegmentsTest_SortedChunkedEllpack_hip
-    SegmentsTest_SortedCSR_hip
-    SegmentsTest_SortedEllpack_hip
-    SegmentsTest_SortedSlicedEllpack_hip
-    GrowingSegmentsTest_hip
-)
+set(CPP_TESTS GrowingSegmentsTest)
+set(CUDA_TESTS GrowingSegmentsTest_cuda)
+set(HIP_TESTS GrowingSegmentsTest_hip)
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)
@@ -69,9 +46,7 @@ endforeach()
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${CUDA_TESTS})
-        string(REGEX REPLACE "_cuda$" "" common_target ${target})
-        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.cu SPLIT_TESTS ${SPLIT_TESTS})
-        add_executable(${target} ${sources})
+        add_executable(${target} ${target}.cu)
         target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
@@ -81,9 +56,7 @@ endif()
 
 if(TNL_BUILD_HIP)
     foreach(target IN ITEMS ${HIP_TESTS})
-        string(REGEX REPLACE "_hip$" "" common_target ${target})
-        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.hip SPLIT_TESTS ${SPLIT_TESTS})
-        add_executable(${target} ${sources})
+        add_executable(${target} ${target}.hip)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})

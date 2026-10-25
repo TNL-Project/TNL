@@ -1,87 +1,14 @@
-# tests whose GPU builds are split into several translation units to reduce the compile time
-# and memory of each compiler process (items <test name>:<number of parts>)
-set(SPLIT_TESTS
-    ReduceSegmentsTest_SlicedEllpack:4
-    ReduceSegmentsTest_SortedCSR:2
-    ReduceSegmentsTest_SortedEllpack:4
-    ReduceSegmentsTest_SortedSlicedEllpack:4
-    ReduceSegmentsTest_SortedChunkedEllpack:4
-    ReduceSegmentsTest_SortedBiEllpack:4
+# generates the ReduceSegmentsTest executables for all formats of segments in SEGMENTS_TEST_FORMATS
+# (see ../CMakeLists.txt) and adds the format-specific types and tests of AdaptiveCSR and SlicedEllpack
+tnl_add_format_tests(
+    NAME ReduceSegmentsTest
+    SUITE ReduceSegmentsTest
+    PREFIX <FORMAT>Segments
+    TYPES "${SEGMENTS_TEST_TYPES}"
+    HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../SegmentsTestFormats.h ${CMAKE_CURRENT_SOURCE_DIR}/ReduceSegmentsTestSuite.hpp
+    FORMATS ${SEGMENTS_TEST_FORMATS}
+    FORMAT_TYPES SlicedEllpack:SlicedEllpackReduceSegmentsTestTypes
+    EXTRA
+        AdaptiveCSR:${CMAKE_CURRENT_SOURCE_DIR}/ReduceSegmentsTest_AdaptiveCSR.h
+        SlicedEllpack:${CMAKE_CURRENT_SOURCE_DIR}/ReduceSegmentsTest_SlicedEllpack.h
 )
-
-set(CPP_TESTS
-    ReduceSegmentsTest_AdaptiveCSR
-    ReduceSegmentsTest_BiEllpack
-    ReduceSegmentsTest_ChunkedEllpack
-    ReduceSegmentsTest_CSR
-    ReduceSegmentsTest_Ellpack
-    ReduceSegmentsTest_SlicedEllpack
-    ReduceSegmentsTest_SortedAdaptiveCSR
-    ReduceSegmentsTest_SortedBiEllpack
-    ReduceSegmentsTest_SortedChunkedEllpack
-    ReduceSegmentsTest_SortedCSR
-    ReduceSegmentsTest_SortedEllpack
-    ReduceSegmentsTest_SortedSlicedEllpack
-)
-
-set(CUDA_TESTS
-    ReduceSegmentsTest_AdaptiveCSR_cuda
-    ReduceSegmentsTest_BiEllpack_cuda
-    ReduceSegmentsTest_ChunkedEllpack_cuda
-    ReduceSegmentsTest_CSR_cuda
-    ReduceSegmentsTest_Ellpack_cuda
-    ReduceSegmentsTest_SlicedEllpack_cuda
-    ReduceSegmentsTest_SortedAdaptiveCSR_cuda
-    ReduceSegmentsTest_SortedBiEllpack_cuda
-    ReduceSegmentsTest_SortedChunkedEllpack_cuda
-    ReduceSegmentsTest_SortedCSR_cuda
-    ReduceSegmentsTest_SortedEllpack_cuda
-    ReduceSegmentsTest_SortedSlicedEllpack_cuda
-)
-
-set(HIP_TESTS
-    ReduceSegmentsTest_AdaptiveCSR_hip
-    ReduceSegmentsTest_BiEllpack_hip
-    ReduceSegmentsTest_ChunkedEllpack_hip
-    ReduceSegmentsTest_CSR_hip
-    ReduceSegmentsTest_Ellpack_hip
-    ReduceSegmentsTest_SlicedEllpack_hip
-    ReduceSegmentsTest_SortedAdaptiveCSR_hip
-    ReduceSegmentsTest_SortedBiEllpack_hip
-    ReduceSegmentsTest_SortedChunkedEllpack_hip
-    ReduceSegmentsTest_SortedCSR_hip
-    ReduceSegmentsTest_SortedEllpack_hip
-    ReduceSegmentsTest_SortedSlicedEllpack_hip
-)
-
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-endforeach()
-
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        string(REGEX REPLACE "_cuda$" "" common_target ${target})
-        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.cu SPLIT_TESTS ${SPLIT_TESTS})
-        add_executable(${target} ${sources})
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
-
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        string(REGEX REPLACE "_hip$" "" common_target ${target})
-        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.hip SPLIT_TESTS ${SPLIT_TESTS})
-        add_executable(${target} ${sources})
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()

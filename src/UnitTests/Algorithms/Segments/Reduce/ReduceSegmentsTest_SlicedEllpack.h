@@ -1,3 +1,8 @@
+#pragma once
+
+// Types of the SlicedEllpack segments for the ReduceSegmentsTest, included in the generated
+// ReduceSegmentsTest_SlicedEllpack sources (see tnl_add_format_tests in CMakeLists.txt)
+
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 
 #include <gtest/gtest.h>
@@ -13,8 +18,8 @@ using ColumnMajorSlicedEllpackType = TNL::Algorithms::Segments::ColumnMajorSlice
    typename TNL::Allocators::Default< Device >::template Allocator< Index >,
    SliceSize >;
 
-// types for which MatrixTest is instantiated
-using SlicedEllpackSegmentsTypes = ::testing::Types<
+// more slice sizes are tested on GPUs
+using SlicedEllpackReduceSegmentsTestTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int >,
    TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long >,
@@ -44,10 +49,3 @@ using SlicedEllpackSegmentsTypes = ::testing::Types<
    ColumnMajorSlicedEllpackType< TNL::Devices::Hip, long int, 1 >
 #endif
    >;
-
-#include "ReduceSegmentsTestSuite.hpp"
-#include "../../../TypedTestSplit.h"
-
-TNL_INSTANTIATE_TYPED_TEST_SUITE_P( SlicedEllpackSegments, ReduceSegmentsTest, SlicedEllpackSegmentsTypes );
-
-#include "../../../main.h"

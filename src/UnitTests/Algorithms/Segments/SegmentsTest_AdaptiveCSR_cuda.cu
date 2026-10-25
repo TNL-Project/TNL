@@ -1,1 +1,0 @@
-SegmentsTest_AdaptiveCSR.cpp
