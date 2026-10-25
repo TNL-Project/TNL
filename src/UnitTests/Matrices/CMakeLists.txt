@@ -1,3 +1,19 @@
+# formats of segments for which the tests of the reduction and traversal of sparse matrices are
+# instantiated (see ../Algorithms/Segments/SegmentsTestFormats.h and SparseMatrixTestTypes.h)
+set(SPARSE_MATRIX_TEST_FORMATS
+    CSR
+    AdaptiveCSR
+    Ellpack
+    SlicedEllpack
+    ChunkedEllpack
+    BiEllpack
+)
+set(SPARSE_MATRIX_TEST_TYPES
+    "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+    TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< long, long >,
+    TNL::UnitTests::MatrixElementTypes< float, int >, TNL::UnitTests::MatrixElementTypes< double, long > >"
+)
+
 add_subdirectory(Factorization)
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)

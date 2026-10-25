@@ -1,25 +1,15 @@
-set(COMMON_TESTS
-    DenseMatrixReduceTest
-    LambdaMatrixReduceTest
-    MultidiagonalMatrixReduceTest
-    TridiagonalMatrixReduceTest
-    SparseMatrixReduceTest_CSR
-    SparseMatrixReduceTest_Ellpack
-    SparseMatrixReduceTest_BiEllpack
-    SparseMatrixReduceTest_ChunkedEllpack
-    SparseMatrixReduceTest_SlicedEllpack
-    SparseMatrixReduceTest_AdaptiveCSR
-)
+set(COMMON_TESTS DenseMatrixReduceTest LambdaMatrixReduceTest MultidiagonalMatrixReduceTest TridiagonalMatrixReduceTest)
 
-# tests whose GPU builds are split into several translation units to reduce the compile time
-# and memory of each compiler process (items <test name>:<number of parts>)
-set(SPLIT_TESTS
-    SparseMatrixReduceTest_CSR:4
-    SparseMatrixReduceTest_Ellpack:4
-    SparseMatrixReduceTest_BiEllpack:4
-    SparseMatrixReduceTest_ChunkedEllpack:4
-    SparseMatrixReduceTest_SlicedEllpack:4
-    SparseMatrixReduceTest_AdaptiveCSR:4
+# generates the SparseMatrixReduceTest executables for all formats of segments in
+# SPARSE_MATRIX_TEST_FORMATS (see ../CMakeLists.txt)
+tnl_add_format_tests(
+    NAME SparseMatrixReduceTest
+    SUITE MatrixReduceTest
+    PREFIX SparseMatrix<FORMAT>
+    TYPES "${SPARSE_MATRIX_TEST_TYPES}"
+    HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../SparseMatrixTestTypes.h ${CMAKE_CURRENT_SOURCE_DIR}/MatrixReduceTest.h
+    FORMATS ${SPARSE_MATRIX_TEST_FORMATS}
+    LABELS Matrices
 )
 
 set(CPP_TESTS ${COMMON_TESTS})

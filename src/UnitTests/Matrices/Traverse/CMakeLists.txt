@@ -1,14 +1,15 @@
-set(COMMON_TESTS
-    DenseMatrixTraverseTest
-    LambdaMatrixTraverseTest
-    MultidiagonalMatrixTraverseTest
-    TridiagonalMatrixTraverseTest
-    SparseMatrixTraverseTest_CSR
-    SparseMatrixTraverseTest_Ellpack
-    SparseMatrixTraverseTest_BiEllpack
-    SparseMatrixTraverseTest_ChunkedEllpack
-    SparseMatrixTraverseTest_SlicedEllpack
-    SparseMatrixTraverseTest_AdaptiveCSR
+set(COMMON_TESTS DenseMatrixTraverseTest LambdaMatrixTraverseTest MultidiagonalMatrixTraverseTest TridiagonalMatrixTraverseTest)
+
+# generates the SparseMatrixTraverseTest executables for all formats of segments in
+# SPARSE_MATRIX_TEST_FORMATS (see ../CMakeLists.txt)
+tnl_add_format_tests(
+    NAME SparseMatrixTraverseTest
+    SUITE MatrixTraverseTest
+    PREFIX SparseMatrix<FORMAT>
+    TYPES "${SPARSE_MATRIX_TEST_TYPES}"
+    HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../SparseMatrixTestTypes.h ${CMAKE_CURRENT_SOURCE_DIR}/MatrixTraverseTest.h
+    FORMATS ${SPARSE_MATRIX_TEST_FORMATS}
+    LABELS Matrices
 )
 
 set(CPP_TESTS ${COMMON_TESTS})

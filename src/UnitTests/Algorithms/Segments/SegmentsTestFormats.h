@@ -4,10 +4,11 @@
 #pragma once
 
 // Formats of segments for which the unit tests of segments (and of the algorithms and
-// data structures based on segments) are instantiated. Each format is a list of segment
+// data structures based on segments) are instantiated. Each format consists of segment
 // templates with the signature < Device, Index, IndexAllocator >, which is the same as
 // the signature of the Segments template parameter of SparseMatrix. The type lists for
-// a test suite are generated with SegmentsTestTypes.
+// the tests of segments are generated with SegmentsTestTypes, the type lists for the
+// tests of sparse matrices with SparseMatrixTestTypes (see Matrices/SparseMatrixTestTypes.h).
 
 #include <TNL/Algorithms/Segments/AdaptiveCSR.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
@@ -34,24 +35,46 @@ using TestDevice = Devices::GPU;
 using TestDevice = Devices::Host;
 #endif
 
-//! \brief List of segment templates that make up one format.
-template< template< typename Device, typename Index, typename IndexAllocator > class... Segments >
+/**
+ * \brief Format of segments.
+ *
+ * \tparam DefaultSegments is the segments template with the default organization for the
+ *         device. It is used in the tests of the data structures based on segments, such as
+ *         sparse matrices.
+ * \tparam Segments are all variants of the format (e.g. row-major and column-major), which
+ *         are used in the tests of segments (see \ref SegmentsTestTypes).
+ */
+template<
+   template< typename Device, typename Index, typename IndexAllocator > class DefaultSegments,
+   template< typename Device, typename Index, typename IndexAllocator > class... Segments >
 struct SegmentsFormat
 {};
 
 // clang-format off
-using CSRFormat = SegmentsFormat< Algorithms::Segments::CSR >;
-using AdaptiveCSRFormat = SegmentsFormat< Algorithms::Segments::AdaptiveCSR >;
-using EllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorEllpack, Algorithms::Segments::ColumnMajorEllpack >;
-using SlicedEllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorSlicedEllpack, Algorithms::Segments::ColumnMajorSlicedEllpack >;
-using ChunkedEllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorChunkedEllpack, Algorithms::Segments::ColumnMajorChunkedEllpack >;
-using BiEllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorBiEllpack, Algorithms::Segments::ColumnMajorBiEllpack >;
-using SortedCSRFormat = SegmentsFormat< Algorithms::Segments::SortedCSR >;
-using SortedAdaptiveCSRFormat = SegmentsFormat< Algorithms::Segments::SortedAdaptiveCSR >;
-using SortedEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedRowMajorEllpack, Algorithms::Segments::SortedColumnMajorEllpack >;
-using SortedSlicedEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedRowMajorSlicedEllpack, Algorithms::Segments::SortedColumnMajorSlicedEllpack >;
-using SortedChunkedEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedRowMajorChunkedEllpack, Algorithms::Segments::SortedColumnMajorChunkedEllpack >;
-using SortedBiEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedRowMajorBiEllpack, Algorithms::Segments::SortedColumnMajorBiEllpack >;
+using CSRFormat = SegmentsFormat< Algorithms::Segments::CSR,
+                                  Algorithms::Segments::CSR >;
+using AdaptiveCSRFormat = SegmentsFormat< Algorithms::Segments::AdaptiveCSR,
+                                          Algorithms::Segments::AdaptiveCSR >;
+using EllpackFormat = SegmentsFormat< Algorithms::Segments::Ellpack,
+                                      Algorithms::Segments::RowMajorEllpack, Algorithms::Segments::ColumnMajorEllpack >;
+using SlicedEllpackFormat = SegmentsFormat< Algorithms::Segments::SlicedEllpack,
+                                            Algorithms::Segments::RowMajorSlicedEllpack, Algorithms::Segments::ColumnMajorSlicedEllpack >;
+using ChunkedEllpackFormat = SegmentsFormat< Algorithms::Segments::ChunkedEllpack,
+                                             Algorithms::Segments::RowMajorChunkedEllpack, Algorithms::Segments::ColumnMajorChunkedEllpack >;
+using BiEllpackFormat = SegmentsFormat< Algorithms::Segments::BiEllpack,
+                                        Algorithms::Segments::RowMajorBiEllpack, Algorithms::Segments::ColumnMajorBiEllpack >;
+using SortedCSRFormat = SegmentsFormat< Algorithms::Segments::SortedCSR,
+                                        Algorithms::Segments::SortedCSR >;
+using SortedAdaptiveCSRFormat = SegmentsFormat< Algorithms::Segments::SortedAdaptiveCSR,
+                                                Algorithms::Segments::SortedAdaptiveCSR >;
+using SortedEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedEllpack,
+                                            Algorithms::Segments::SortedRowMajorEllpack, Algorithms::Segments::SortedColumnMajorEllpack >;
+using SortedSlicedEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedSlicedEllpack,
+                                                  Algorithms::Segments::SortedRowMajorSlicedEllpack, Algorithms::Segments::SortedColumnMajorSlicedEllpack >;
+using SortedChunkedEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedChunkedEllpack,
+                                                   Algorithms::Segments::SortedRowMajorChunkedEllpack, Algorithms::Segments::SortedColumnMajorChunkedEllpack >;
+using SortedBiEllpackFormat = SegmentsFormat< Algorithms::Segments::SortedBiEllpack,
+                                              Algorithms::Segments::SortedRowMajorBiEllpack, Algorithms::Segments::SortedColumnMajorBiEllpack >;
 // clang-format on
 
 namespace detail {
@@ -81,8 +104,12 @@ struct SegmentsTemplateTypes
 template< typename Format, typename Device, typename... Indices >
 struct SegmentsTestTypes;
 
-template< template< typename, typename, typename > class... Segments, typename Device, typename... Indices >
-struct SegmentsTestTypes< SegmentsFormat< Segments... >, Device, Indices... >
+template<
+   template< typename, typename, typename > class DefaultSegments,
+   template< typename, typename, typename > class... Segments,
+   typename Device,
+   typename... Indices >
+struct SegmentsTestTypes< SegmentsFormat< DefaultSegments, Segments... >, Device, Indices... >
 {
    using type = typename ConcatTypes< typename SegmentsTemplateTypes< Segments, Device, Indices... >::type... >::type;
 };
