@@ -38,6 +38,17 @@ namespace TNL::Algorithms {
  * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
  *                 for the reduction operation, i.e. element which does not
  *                 change the result of the reduction.
+ * \param launch_config kernel launch parameters. On the GPU, only the stream
+ *                      and the `blockHostUntilFinished` flag are used, the grid
+ *                      and block sizes are compile-time parameters of the
+ *                      kernels. When `blockHostUntilFinished` is false, the
+ *                      kernels are launched without a following
+ *                      synchronization, so the scan may still be running on
+ *                      the device when this function returns and the caller
+ *                      is responsible for synchronizing the stream before
+ *                      reading the result. On the Sequential and Host devices
+ *                      there is no asynchronous execution, so the launch
+ *                      configuration is ignored.
  *
  * The reduction functor takes two variables to be reduced:
  *
@@ -62,7 +73,8 @@ inclusiveScan(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   typename OutputArray::DeviceType::LaunchConfiguration launch_config = {} )
 {
    static_assert(
       std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
@@ -75,7 +87,7 @@ inclusiveScan(
    constexpr auto phaseType = IsArrayType< std::decay_t< InputArray > >::value ? detail::ScanPhaseType::WriteInSecondPhase
                                                                                : detail::ScanPhaseType::WriteInFirstPhase;
    using Scan = detail::Scan< typename OutputArray::DeviceType, detail::ScanType::Inclusive, phaseType >;
-   Scan::perform( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+   Scan::perform( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 /**
@@ -95,12 +107,13 @@ inclusiveScan(
    typename InputArray::IndexType begin = 0,
    typename InputArray::IndexType end = 0,
    typename OutputArray::IndexType outputBegin = 0,
-   Reduction&& reduction = TNL::Plus{} )
+   Reduction&& reduction = TNL::Plus{},
+   typename OutputArray::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
       end = input.getSize();
    constexpr auto identity = Reduction::template getIdentity< typename OutputArray::ValueType >();
-   inclusiveScan( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+   inclusiveScan( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 /**
@@ -130,6 +143,17 @@ inclusiveScan(
  * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
  *                 for the reduction operation, i.e. element which does not
  *                 change the result of the reduction.
+ * \param launch_config kernel launch parameters. On the GPU, only the stream
+ *                      and the `blockHostUntilFinished` flag are used, the grid
+ *                      and block sizes are compile-time parameters of the
+ *                      kernels. When `blockHostUntilFinished` is false, the
+ *                      kernels are launched without a following
+ *                      synchronization, so the scan may still be running on
+ *                      the device when this function returns and the caller
+ *                      is responsible for synchronizing the stream before
+ *                      reading the result. On the Sequential and Host devices
+ *                      there is no asynchronous execution, so the launch
+ *                      configuration is ignored.
  *
  * The reduction functor takes two variables to be reduced:
  *
@@ -154,7 +178,8 @@ exclusiveScan(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   typename OutputArray::DeviceType::LaunchConfiguration launch_config = {} )
 {
    static_assert(
       std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
@@ -163,7 +188,7 @@ exclusiveScan(
    constexpr auto phaseType = IsArrayType< std::decay_t< InputArray > >::value ? detail::ScanPhaseType::WriteInSecondPhase
                                                                                : detail::ScanPhaseType::WriteInFirstPhase;
    using Scan = detail::Scan< typename OutputArray::DeviceType, detail::ScanType::Exclusive, phaseType >;
-   Scan::perform( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+   Scan::perform( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 /**
@@ -183,12 +208,13 @@ exclusiveScan(
    typename InputArray::IndexType begin = 0,
    typename InputArray::IndexType end = 0,
    typename OutputArray::IndexType outputBegin = 0,
-   Reduction&& reduction = TNL::Plus{} )
+   Reduction&& reduction = TNL::Plus{},
+   typename OutputArray::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
       end = input.getSize();
    constexpr auto identity = Reduction::template getIdentity< typename OutputArray::ValueType >();
-   exclusiveScan( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+   exclusiveScan( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 /**
@@ -212,6 +238,17 @@ exclusiveScan(
  * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
  *                 for the reduction operation, i.e. element which does not
  *                 change the result of the reduction.
+ * \param launch_config kernel launch parameters. On the GPU, only the stream
+ *                      and the `blockHostUntilFinished` flag are used, the grid
+ *                      and block sizes are compile-time parameters of the
+ *                      kernels. When `blockHostUntilFinished` is false, the
+ *                      kernels are launched without a following
+ *                      synchronization, so the scan may still be running on
+ *                      the device when this function returns and the caller
+ *                      is responsible for synchronizing the stream before
+ *                      reading the result. On the Sequential and Host devices
+ *                      there is no asynchronous execution, so the launch
+ *                      configuration is ignored.
  *
  * The reduction functor takes two variables to be reduced:
  *
@@ -234,12 +271,13 @@ inplaceInclusiveScan(
    typename Array::IndexType begin,
    typename Array::IndexType end,
    Reduction&& reduction,
-   typename Array::ValueType identity )
+   typename Array::ValueType identity,
+   typename Array::DeviceType::LaunchConfiguration launch_config = {} )
 {
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    using Scan =
       detail::Scan< typename Array::DeviceType, detail::ScanType::Inclusive, detail::ScanPhaseType::WriteInSecondPhase >;
-   Scan::perform( array, array, begin, end, begin, std::forward< Reduction >( reduction ), identity );
+   Scan::perform( array, array, begin, end, begin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 /**
@@ -257,12 +295,13 @@ inplaceInclusiveScan(
    Array& array,
    typename Array::IndexType begin = 0,
    typename Array::IndexType end = 0,
-   Reduction&& reduction = TNL::Plus{} )
+   Reduction&& reduction = TNL::Plus{},
+   typename Array::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
       end = array.getSize();
    constexpr auto identity = Reduction::template getIdentity< typename Array::ValueType >();
-   inplaceInclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity );
+   inplaceInclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 /**
@@ -286,6 +325,17 @@ inplaceInclusiveScan(
  * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
  *                 for the reduction operation, i.e. element which does not
  *                 change the result of the reduction.
+ * \param launch_config kernel launch parameters. On the GPU, only the stream
+ *                      and the `blockHostUntilFinished` flag are used, the grid
+ *                      and block sizes are compile-time parameters of the
+ *                      kernels. When `blockHostUntilFinished` is false, the
+ *                      kernels are launched without a following
+ *                      synchronization, so the scan may still be running on
+ *                      the device when this function returns and the caller
+ *                      is responsible for synchronizing the stream before
+ *                      reading the result. On the Sequential and Host devices
+ *                      there is no asynchronous execution, so the launch
+ *                      configuration is ignored.
  *
  * The reduction functor takes two variables to be reduced:
  *
@@ -308,12 +358,13 @@ inplaceExclusiveScan(
    typename Array::IndexType begin,
    typename Array::IndexType end,
    Reduction&& reduction,
-   typename Array::ValueType identity )
+   typename Array::ValueType identity,
+   typename Array::DeviceType::LaunchConfiguration launch_config = {} )
 {
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    using Scan =
       detail::Scan< typename Array::DeviceType, detail::ScanType::Exclusive, detail::ScanPhaseType::WriteInSecondPhase >;
-   Scan::perform( array, array, begin, end, begin, std::forward< Reduction >( reduction ), identity );
+   Scan::perform( array, array, begin, end, begin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 /**
@@ -331,12 +382,13 @@ inplaceExclusiveScan(
    Array& array,
    typename Array::IndexType begin = 0,
    typename Array::IndexType end = 0,
-   Reduction&& reduction = TNL::Plus{} )
+   Reduction&& reduction = TNL::Plus{},
+   typename Array::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
       end = array.getSize();
    constexpr auto identity = Reduction::template getIdentity< typename Array::ValueType >();
-   inplaceExclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity );
+   inplaceExclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 }  // namespace TNL::Algorithms
