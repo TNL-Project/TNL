@@ -7,4 +7,5 @@ tnl_add_format_tests(
     TYPES "${SEGMENTS_TEST_TYPES}"
     HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../SegmentsTestFormats.h ${CMAKE_CURRENT_SOURCE_DIR}/TraverseSegmentsTestSuite.hpp
     FORMATS ${SEGMENTS_TEST_FORMATS}
+    SPLIT SortedEllpack:4 SortedSlicedEllpack:4 SortedChunkedEllpack:4 SortedBiEllpack:4
 )

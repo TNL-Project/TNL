@@ -9,6 +9,7 @@ tnl_add_format_tests(
     TYPES "${SPARSE_MATRIX_TEST_TYPES}"
     HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../SparseMatrixTestTypes.h ${CMAKE_CURRENT_SOURCE_DIR}/MatrixReduceTest.h
     FORMATS ${SPARSE_MATRIX_TEST_FORMATS}
+    SPLIT CSR:4 AdaptiveCSR:4 Ellpack:4 SlicedEllpack:4 ChunkedEllpack:4 BiEllpack:4
     LABELS Matrices
 )
 

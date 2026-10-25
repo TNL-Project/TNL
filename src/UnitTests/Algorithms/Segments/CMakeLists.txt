@@ -30,6 +30,7 @@ tnl_add_format_tests(
     HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/SegmentsTestFormats.h ${CMAKE_CURRENT_SOURCE_DIR}/SegmentsTestSuite.hpp
     FORMATS ${SEGMENTS_TEST_FORMATS}
     EXTRA Ellpack:${CMAKE_CURRENT_SOURCE_DIR}/SegmentsTest_Ellpack.h
+    SPLIT SortedCSR:2 SortedAdaptiveCSR:2 SortedEllpack:4 SortedSlicedEllpack:4 SortedChunkedEllpack:4 SortedBiEllpack:4
 )
 
 set(CPP_TESTS GrowingSegmentsTest)

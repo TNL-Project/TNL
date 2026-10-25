@@ -11,4 +11,12 @@ tnl_add_format_tests(
     EXTRA
         AdaptiveCSR:${CMAKE_CURRENT_SOURCE_DIR}/ReduceSegmentsTest_AdaptiveCSR.h
         SlicedEllpack:${CMAKE_CURRENT_SOURCE_DIR}/ReduceSegmentsTest_SlicedEllpack.h
+    SPLIT
+        SlicedEllpack:4
+        SortedCSR:2
+        SortedAdaptiveCSR:2
+        SortedEllpack:4
+        SortedSlicedEllpack:4
+        SortedChunkedEllpack:4
+        SortedBiEllpack:4
 )

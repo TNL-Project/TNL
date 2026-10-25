@@ -161,10 +161,12 @@ endfunction()
 # PREFIX, and defines main(). The placeholder <FORMAT> in TYPES and PREFIX is replaced by
 # the name of the format and FORMAT_TYPES overrides TYPES for some formats. The test
 # executables are named <name>_<format>, <name>_<format>_cuda and <name>_<format>_hip.
+# The GPU builds of the formats listed in SPLIT are split into the given number of parts
+# (see tnl_test_sources), so the EXTRA headers of these formats must not define tests.
 # usage: tnl_add_format_tests(NAME <name> SUITE <suite> PREFIX <prefix> TYPES <types>
 #                             HEADERS <header>... FORMATS <format>...
 #                             [FORMAT_TYPES <format>:<types>...] [EXTRA <format>:<header>...]
-#                             [LABELS <label>...])
+#                             [SPLIT <format>:<parts>...] [LABELS <label>...])
 function(tnl_add_format_tests)
     set(options)
     set(oneValueArgs NAME SUITE PREFIX TYPES)
@@ -173,6 +175,7 @@ function(tnl_add_format_tests)
         FORMATS
         FORMAT_TYPES
         EXTRA
+        SPLIT
         LABELS
     )
     cmake_parse_arguments(TNL_FORMAT_TESTS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -208,8 +211,9 @@ function(tnl_add_format_tests)
         endforeach()
         string(
             APPEND content
+            "#include \"${PROJECT_SOURCE_DIR}/src/UnitTests/TypedTestSplit.h\"\n"
             "\nusing InstantiatedTestTypes = ${types};\n"
-            "INSTANTIATE_TYPED_TEST_SUITE_P( ${prefix}, ${TNL_FORMAT_TESTS_SUITE}, InstantiatedTestTypes );\n\n"
+            "TNL_INSTANTIATE_TYPED_TEST_SUITE_P( ${prefix}, ${TNL_FORMAT_TESTS_SUITE}, InstantiatedTestTypes );\n\n"
             "#include \"${PROJECT_SOURCE_DIR}/src/UnitTests/main.h\"\n"
         )
 
@@ -223,8 +227,12 @@ function(tnl_add_format_tests)
             endif()
             set(source "${CMAKE_CURRENT_BINARY_DIR}/${target}.${backend}")
             file(CONFIGURE OUTPUT "${source}" CONTENT "${content}")
+            set(sources ${source})
+            if(NOT backend STREQUAL "cpp")
+                tnl_test_sources(sources NAME ${format} SOURCE ${source} SPLIT_TESTS ${TNL_FORMAT_TESTS_SPLIT})
+            endif()
 
-            add_executable(${target} ${source})
+            add_executable(${target} ${sources})
             target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
             target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
             set(command "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")

@@ -38,6 +38,19 @@ tnl_add_format_tests(
         SortedSlicedEllpack
         SortedChunkedEllpack
         SortedBiEllpack
+    SPLIT
+        CSR:3
+        AdaptiveCSR:3
+        Ellpack:5
+        SlicedEllpack:5
+        ChunkedEllpack:5
+        BiEllpack:5
+        SortedCSR:3
+        SortedAdaptiveCSR:3
+        SortedEllpack:5
+        SortedSlicedEllpack:5
+        SortedChunkedEllpack:5
+        SortedBiEllpack:5
     LABELS Matrices
 )
 
