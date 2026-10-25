@@ -159,8 +159,42 @@ workflow:
 .build_template:
     # don't wait for jobs in previous stages to complete before starting this job
     needs: []
+    variables:
+        # sccache rewrites paths below this base to relative form before hashing, so the same
+        # job hits the same entries on a different runner, node or fork checkout.
+        # The build directory must stay inside this base (build/$CI_JOB_NAME_SLUG) - a build
+        # outside of $CI_PROJECT_DIR would hash its absolute paths verbatim and silently
+        # never hit the cache.
+        SCCACHE_BASEDIRS: "${CI_PROJECT_DIR}"
+        # namespaces the shared S3 bucket and keeps TNL entries apart from other projects;
+        # the bucket itself is configured with CI/CD variables in the project settings
+        # (SCCACHE_BUCKET, SCCACHE_ENDPOINT, SCCACHE_REGION, SCCACHE_S3_USE_SSL and the
+        # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY credentials)
+        SCCACHE_S3_KEY_PREFIX: "tnl/"
+        # by default the daemon shuts itself down after 10 idle minutes, which can happen
+        # between compiles of a long build
+        SCCACHE_IDLE_TIMEOUT: "0"
+        # the capability check reads and writes .sccache_check in the bucket: a throttled backend
+        # fails the server startup, and a failed write probe silently downgrades the cache to
+        # read-only, so trust the configured rw_mode instead
+        SCCACHE_SKIP_CACHE_CHECK: "1"
     script:
         - *env_setup
+        # Write access to the shared cache is limited to the upstream project. Fork pipelines
+        # run in the fork, which never sees this project's CI/CD variables, so this guard is
+        # defense in depth (group/instance-level credentials, fork MRs run in this project).
+        # The path below must be kept in sync: after a rename it silently degrades to
+        # read-only and the cache stops warming.
+        - if [[ "${CI_PROJECT_PATH}" != "tnl-project/tnl" || ( -n "${CI_MERGE_REQUEST_SOURCE_PROJECT_PATH:-}" && "${CI_MERGE_REQUEST_SOURCE_PROJECT_PATH}" != "${CI_PROJECT_PATH}" ) ]]; then
+              export SCCACHE_S3_RW_MODE="READ_ONLY";
+          fi
+        # cmake enables the compiler launcher by itself when sccache is found, see
+        # cmake/sccache.cmake, so this only warns about images that do not ship it
+        - if command -v sccache >/dev/null 2>&1; then
+              sccache --zero-stats || echo "WARNING, sccache --zero-stats failed, the cache may be misconfigured";
+          else
+              echo "WARNING, sccache not found in this image, building without the compiler cache";
+          fi
         # handle the $MATRIX_TARGET variable from .matrix_template
         - if [[ ${MATRIX_TARGET} == "tests" ]]; then
                 BUILD_TARGETS=("non-matrix-tests");
@@ -187,6 +221,9 @@ workflow:
                 -DTNL_USE_CI_FLAGS=yes
         # build the given targets
         - cmake --build "./build/$CI_JOB_NAME_SLUG" --parallel ${NUM_CORES} --target "${BUILD_TARGETS[@]}"
+        # the daemon is reaped together with the rest of the script section, so the stats have
+        # to be printed here and not in after_script
+        - if command -v sccache >/dev/null 2>&1; then sccache --show-stats; fi
         # we have ctest options set in the preset, but ctest does not allow to override the build directory
         # https://gitlab.kitware.com/cmake/cmake/-/issues/23982
         - "sed 's|\"binaryDir\": \"${sourceDir}/build\",|\"binaryDir\": \"${sourceDir}\",|' CMakePresets.json > \"./build/$CI_JOB_NAME_SLUG/CMakePresets.json\""
