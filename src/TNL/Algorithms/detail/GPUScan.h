@@ -127,6 +127,15 @@ struct GPUScanKernelLauncher
     *                  (usually addition, i.e. an instance of \ref std::plus).
     * \param identity Neutral element for given reduction operation, i.e.
     *                 value such that `reduction(identity, x) == x` for any `x`.
+    * \param launch_config kernel launch parameters. Only the stream and the
+    *                      `blockHostUntilFinished` flag are used, the grid and
+    *                      block sizes are compile-time parameters of the kernels.
+    *                      When `blockHostUntilFinished` is false, all kernels of
+    *                      the scan are launched without a following
+    *                      synchronization, so the scan may still be running on
+    *                      the device when this function returns and the caller
+    *                      is responsible for synchronizing the stream before
+    *                      reading the result.
     */
    template< typename InputArray, typename OutputArray, typename Reduction >
    static void
@@ -137,11 +146,12 @@ struct GPUScanKernelLauncher
       typename InputArray::IndexType end,
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
-      typename OutputArray::ValueType identity )
+      typename OutputArray::ValueType identity,
+      const Backend::LaunchConfiguration& launch_config = {} )
    {
       if( end - begin <= blockSize * valuesPerThread ) {
          // the result of the block is not needed, so blockResults are not allocated
-         performSingleBlock( input, output, begin, end, outputBegin, reduction, identity, nullptr );
+         performSingleBlock( input, output, begin, end, outputBegin, reduction, identity, nullptr, launch_config );
          gridsCount() = 1;
          return;
       }
@@ -152,13 +162,15 @@ struct GPUScanKernelLauncher
       const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
 
       if( numberOfGrids == 1 ) {
-         performLookback( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+         performLookback(
+            input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
          return;
       }
 
-      const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
+      const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity, launch_config );
       if( blockShifts.getSize() > 2 )
-         performSecondPhase( input, output, blockShifts, begin, end, outputBegin, reduction, identity, identity );
+         performSecondPhase(
+            input, output, blockShifts, begin, end, outputBegin, reduction, identity, identity, launch_config );
    }
 
    template< typename InputArray, typename OutputArray, typename Reduction >
@@ -170,7 +182,8 @@ struct GPUScanKernelLauncher
       typename InputArray::IndexType end,
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
-      typename OutputArray::ValueType identity )
+      typename OutputArray::ValueType identity,
+      const Backend::LaunchConfiguration& launch_config = {} )
    {
       using Index = typename InputArray::IndexType;
       constexpr int maxElementsInBlock = blockSize * lookbackValuesPerThread;
@@ -183,11 +196,15 @@ struct GPUScanKernelLauncher
       // Invalid by the kernel and the array does not have to be reset. It is
       // reset (together with the tile counter) only when it is (re)allocated,
       // when the epoch would overflow, and after a failed kernel launch.
-      // The cache is per device and the scans which use it are serialized by
-      // its mutex, which is held until the kernel finishes (it is launched
-      // synchronously), so the array cannot be reallocated or its epoch
-      // changed by another host thread while the kernel uses it.
-      auto& cache = LookbackCachePool< ValueType >::getInstance().getCache();
+      // The cache is per device, stream and host thread (the default stream is
+      // per-thread, so the same stream handle used by different host threads
+      // may denote different streams). The scans sharing the cache are
+      // serialized by its mutex, which is held until the kernel finishes when
+      // the scan blocks the host, so the array cannot be reallocated or its
+      // `epoch` changed by another host thread while the kernel uses it.
+      // Asynchronous scans sharing the cache are ordered on the same stream,
+      // which gives the kernel the same exclusive use of the array.
+      auto& cache = LookbackCachePool< ValueType >::getInstance().getCache( launch_config.stream );
       std::scoped_lock lock( cache.mutex );
       auto& states = cache.states;
       auto& epoch = cache.epoch;
@@ -195,9 +212,14 @@ struct GPUScanKernelLauncher
       // (which may be unsigned)
       const bool grow = static_cast< Index >( states.getSize() ) < numberOfBlocks;
       if( grow || epoch == maxLookbackEpoch ) {
-         if( grow )
+         if( grow ) {
+            // the array may not be reallocated while the kernels of previously
+            // launched asynchronous scans are still using it
+            Backend::streamSynchronize( launch_config.stream );
             states.setSize( numberOfBlocks );
+         }
          Devices::GPU::LaunchConfiguration fillConfig;
+         fillConfig.stream = launch_config.stream;
          fillConfig.blockHostUntilFinished = false;
          Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize(), fillConfig );
          epoch = 0;
@@ -216,14 +238,13 @@ struct GPUScanKernelLauncher
          std::decay_t< Reduction >,
          ValueType >;
 
-      Backend::LaunchConfiguration launch_config;
-      launch_config.blockSize.x = blockSize;
-      launch_config.gridSize.x = numberOfBlocks;
+      Backend::LaunchConfiguration config(
+         numberOfBlocks, blockSize, 0, launch_config.stream, launch_config.blockHostUntilFinished );
 
       try {
-         Backend::launchKernelSync(
+         Backend::launchKernel(
             kernel,
-            launch_config,
+            config,
             input.getConstView(),
             output.getView(),
             begin,
@@ -253,7 +274,7 @@ struct GPUScanKernelLauncher
    /* Scans the input which fits into one tile using one CUDA block. The number
     * of values per thread is chosen according to the size of the input. If
     * blockResults is not null, the result of the block is stored in
-    * blockResults[ 0 ].
+    * `blockResults[ 0 ]`. The launch configuration is used as in \ref perform.
     */
    template< typename InputArray, typename OutputArray, typename Reduction >
    static void
@@ -265,16 +286,21 @@ struct GPUScanKernelLauncher
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
       typename OutputArray::ValueType identity,
-      typename OutputArray::ValueType* blockResults )
+      typename OutputArray::ValueType* blockResults,
+      const Backend::LaunchConfiguration& launch_config = {} )
    {
       if( end - begin <= blockSize )
-         performSingleBlockImpl< 1 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+         performSingleBlockImpl< 1 >(
+            input, output, begin, end, outputBegin, reduction, identity, blockResults, launch_config );
       else if( end - begin <= blockSize * 3 )
-         performSingleBlockImpl< 3 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+         performSingleBlockImpl< 3 >(
+            input, output, begin, end, outputBegin, reduction, identity, blockResults, launch_config );
       else if( end - begin <= blockSize * 5 )
-         performSingleBlockImpl< 5 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+         performSingleBlockImpl< 5 >(
+            input, output, begin, end, outputBegin, reduction, identity, blockResults, launch_config );
       else
-         performSingleBlockImpl< valuesPerThread >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+         performSingleBlockImpl< valuesPerThread >(
+            input, output, begin, end, outputBegin, reduction, identity, blockResults, launch_config );
    }
 
    template< int elementsPerThread, typename InputArray, typename OutputArray, typename Reduction >
@@ -287,7 +313,8 @@ struct GPUScanKernelLauncher
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
       typename OutputArray::ValueType identity,
-      typename OutputArray::ValueType* blockResults )
+      typename OutputArray::ValueType* blockResults,
+      const Backend::LaunchConfiguration& launch_config )
    {
       constexpr auto kernel = GPUScanKernelIndependentTiles<
          scanType,
@@ -296,17 +323,9 @@ struct GPUScanKernelLauncher
          typename InputArray::ConstViewType,
          typename OutputArray::ViewType,
          std::decay_t< Reduction > >;
-      Backend::launchKernelSync(
-         kernel,
-         Backend::LaunchConfiguration( 1, blockSize ),
-         input.getConstView(),
-         output.getView(),
-         begin,
-         end,
-         outputBegin,
-         reduction,
-         identity,
-         blockResults );
+      Backend::LaunchConfiguration config( 1, blockSize, 0, launch_config.stream, launch_config.blockHostUntilFinished );
+      Backend::launchKernel(
+         kernel, config, input.getConstView(), output.getView(), begin, end, outputBegin, reduction, identity, blockResults );
    }
 
    /**
@@ -323,6 +342,20 @@ struct GPUScanKernelLauncher
     *                  (usually addition, i.e. an instance of \ref std::plus).
     * \param identity Neutral element for given reduction operation, i.e.
     *                 value such that `reduction(identity, x) == x` for any `x`.
+    * \param launch_config kernel launch parameters, see \ref perform. When the
+    *                      input spans multiple grids and `blockHostUntilFinished`
+    *                      is false, the kernels of the phase as well as the
+    *                      recursive scan of the block shifts are launched
+    *                      without a following synchronization.
+    *
+    * \return A view of the block shifts, to be passed to \ref performSecondPhase.
+    *         The view is backed by a per-instantiation cache (see
+    *         `BlockShiftsCachePool`), so it remains valid only until the next call
+    *         of this function or of \ref performSecondPhase with the same
+    *         instantiation on the same stream. The first element of the view
+    *         is the identity, the (`i`+1)-th element is the reduction of the
+    *         first `i` blocks, so the last element is the reduction of the
+    *         whole input range.
     */
    template< typename InputArray, typename OutputArray, typename Reduction >
    static auto
@@ -333,27 +366,61 @@ struct GPUScanKernelLauncher
       typename InputArray::IndexType end,
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
-      typename OutputArray::ValueType identity )
+      typename OutputArray::ValueType identity,
+      const Backend::LaunchConfiguration& launch_config = {} )
    {
       static_assert( std::is_same_v< ValueType, typename OutputArray::ValueType >, "invalid configuration of ValueType" );
       using Index = typename InputArray::IndexType;
 
+      if( end <= begin ) {
+         // The reduction of an empty range is the identity. The block shifts
+         // are backed by the cache even in this case, so that the caller can
+         // read them like in the other cases.
+         auto& blockShifts = BlockShiftsCachePool< ValueType >::getInstance().getCache( launch_config.stream );
+         if( static_cast< Index >( blockShifts.getSize() ) < 1 ) {
+            // the array may not be reallocated while the kernels of previously
+            // launched asynchronous scans are still using it
+            Backend::streamSynchronize( launch_config.stream );
+            blockShifts.setSize( 1 );
+         }
+         Devices::GPU::LaunchConfiguration fillConfig;
+         fillConfig.stream = launch_config.stream;
+         fillConfig.blockHostUntilFinished = launch_config.blockHostUntilFinished;
+         Algorithms::fill< Devices::GPU >( blockShifts.getData(), identity, 1, fillConfig );
+         return blockShifts.getView( 0, 1 );
+      }
+
       if( end - begin <= blockSize * valuesPerThread ) {
-         // allocate array for the block results
-         Containers::Array< typename OutputArray::ValueType, Devices::Cuda > blockResults;
-         blockResults.setSize( 2 );
-         blockResults.setElement( 0, identity );
+         // The block shifts are stored in the cache also in this case (see the
+         // multi-block path below), so that the returned view is always
+         // cache-backed: freeing the shifts as a local array would serialize
+         // the host with the pending kernels, which an asynchronous scan
+         // avoids by definition. The first element is filled before the
+         // kernel, ordered on the stream - a blocking kernel launch
+         // synchronizes the stream, which covers the fill as well.
+         auto& blockShifts = BlockShiftsCachePool< ValueType >::getInstance().getCache( launch_config.stream );
+         if( static_cast< Index >( blockShifts.getSize() ) < 2 ) {
+            // the array may not be reallocated while the kernels of previously
+            // launched asynchronous scans are still using it
+            Backend::streamSynchronize( launch_config.stream );
+            blockShifts.setSize( 2 );
+         }
+         Devices::GPU::LaunchConfiguration fillConfig;
+         fillConfig.stream = launch_config.stream;
+         fillConfig.blockHostUntilFinished = false;
+         Algorithms::fill< Devices::GPU >( blockShifts.getData(), identity, 1, fillConfig );
 
          // run the kernel with just 1 block
          // blockResults are shifted by 1, because the 0-th element should stay identity
-         performSingleBlock( input, output, begin, end, outputBegin, reduction, identity, &blockResults.getData()[ 1 ] );
+         performSingleBlock(
+            input, output, begin, end, outputBegin, reduction, identity, &blockShifts.getData()[ 1 ], launch_config );
 
          // Store the number of CUDA grids for the purpose of unit testing, i.e.
          // to check if we test the algorithm with more than one CUDA grid.
          gridsCount() = 1;
 
-         // blockResults now contains shift values for each block - to be used in the second phase
-         return blockResults;
+         // `blockShifts` now contains shift values for each block - to be used in the second phase
+         return blockShifts.getView( 0, 2 );
       }
       else {
          // compute the number of grids
@@ -361,9 +428,30 @@ struct GPUScanKernelLauncher
          const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
          const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
 
-         // allocate array for the block results
-         Containers::Array< typename OutputArray::ValueType, Devices::Cuda > blockResults;
-         blockResults.setSize( numberOfBlocks + 1 );
+         // reuse the per-instantiation cache of the block shifts array to
+         // avoid `cudaMalloc`/`cudaFree` churn: freeing the shifts as a local
+         // array would serialize the host with the pending kernels, which an
+         // asynchronous scan avoids by definition. The cache grows as needed;
+         // when the requested size shrinks we keep the existing (larger)
+         // allocation. Reusing the cache across calls is safe only for
+         // kernels ordered on the same stream, which the cache keying
+         // guarantees.
+         auto& blockShifts = BlockShiftsCachePool< ValueType >::getInstance().getCache( launch_config.stream );
+         if( static_cast< Index >( blockShifts.getSize() ) < numberOfBlocks + 1 ) {
+            // the array may not be reallocated while the kernels of previously
+            // launched asynchronous scans are still using it
+            Backend::streamSynchronize( launch_config.stream );
+            blockShifts.setSize( numberOfBlocks + 1 );
+         }
+
+         // The recursive scan of the block shifts must not enter the
+         // two-phase path again - it would reuse this cache as its
+         // block-results buffer and overwrite the shifts while they are
+         // still being scanned.
+         TNL_ASSERT_LE(
+            static_cast< std::size_t >( Backend::getNumberOfBlocks( numberOfBlocks + 1, maxElementsInBlock ) ),
+            maxGridSize(),
+            "the recursive scan of the block shifts must not split into multiple grids" );
 
          // loop over all grids
          for( Index gridIdx = 0; gridIdx < numberOfGrids; gridIdx++ ) {
@@ -372,9 +460,8 @@ struct GPUScanKernelLauncher
             const Index currentSize = TNL::min( end - begin - gridOffset, maxGridSize() * maxElementsInBlock );
 
             // set CUDA launch configuration
-            Backend::LaunchConfiguration launch_config;
-            launch_config.blockSize.x = blockSize;
-            launch_config.gridSize.x = Backend::getNumberOfBlocks( currentSize, maxElementsInBlock );
+            Backend::LaunchConfiguration config(
+               Backend::getNumberOfBlocks( currentSize, maxElementsInBlock ), blockSize, 0, launch_config.stream, false );
 
             // run the kernel
             switch( phaseType ) {
@@ -389,7 +476,7 @@ struct GPUScanKernelLauncher
                         Reduction >;
                      Backend::launchKernelAsync(
                         kernel,
-                        launch_config,
+                        config,
                         input.getConstView(),
                         output.getView(),
                         begin + gridOffset,
@@ -397,7 +484,7 @@ struct GPUScanKernelLauncher
                         outputBegin + gridOffset,
                         reduction,
                         identity,
-                        &blockResults.getData()[ gridIdx * maxGridSize() ] );
+                        &blockShifts.getData()[ gridIdx * maxGridSize() ] );
                      break;
                   }
 
@@ -411,32 +498,38 @@ struct GPUScanKernelLauncher
                         typename OutputArray::ValueType >;
                      Backend::launchKernelAsync(
                         kernel,
-                        launch_config,
+                        config,
                         input.getConstView(),
                         begin + gridOffset,
                         begin + gridOffset + currentSize,
                         reduction,
                         identity,
-                        &blockResults.getData()[ gridIdx * maxGridSize() ] );
+                        &blockShifts.getData()[ gridIdx * maxGridSize() ] );
                      break;
                   }
             }
          }
 
-         // synchronize the null-stream after all grids
-         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
+         // synchronize the stream after all grids when the scan blocks the
+         // host; for an asynchronous scan, the kernels are ordered on the
+         // stream and the scan of the block shifts below is asynchronous as
+         // well
+         if( launch_config.blockHostUntilFinished )
+            Backend::streamSynchronize( launch_config.stream );
 
-         // blockResults now contains scan results for each block. The first phase
+         auto shiftsView = blockShifts.getView( 0, numberOfBlocks + 1 );
+
+         // `blockShifts` now contains scan results for each block. The first phase
          // ends by computing an exclusive scan of this array.
          GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::perform(
-            blockResults, blockResults, 0, blockResults.getSize(), 0, reduction, identity );
+            shiftsView, shiftsView, 0, numberOfBlocks + 1, 0, reduction, identity, launch_config );
 
          // Store the number of CUDA grids for the purpose of unit testing, i.e.
          // to check if we test the algorithm with more than one CUDA grid.
          gridsCount() = numberOfGrids;
 
-         // blockResults now contains shift values for each block - to be used in the second phase
-         return blockResults;
+         // `blockShifts` now contains shift values for each block - to be used in the second phase
+         return shiftsView;
       }
    }
 
@@ -458,6 +551,7 @@ struct GPUScanKernelLauncher
     *                 value such that `reduction(identity, x) == x` for any `x`.
     * \param shift A constant shifting all elements of the array (usually
     *              `identity`, i.e. the neutral value).
+    * \param launch_config kernel launch parameters, see \ref perform.
     */
    template< typename InputArray, typename OutputArray, typename BlockShifts, typename Reduction >
    static void
@@ -470,7 +564,8 @@ struct GPUScanKernelLauncher
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
       typename OutputArray::ValueType identity,
-      typename OutputArray::ValueType shift )
+      typename OutputArray::ValueType shift,
+      const Backend::LaunchConfiguration& launch_config = {} )
    {
       static_assert( std::is_same_v< ValueType, typename OutputArray::ValueType >, "invalid configuration of ValueType" );
       using Index = typename InputArray::IndexType;
@@ -480,15 +575,9 @@ struct GPUScanKernelLauncher
       if( end - begin <= blockSize * valuesPerThread ) {
          constexpr auto kernel =
             GPUScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
-         Backend::launchKernelSync(
-            kernel,
-            Backend::LaunchConfiguration( 1, blockSize ),
-            output.getView(),
-            outputBegin,
-            outputBegin + end - begin,
-            reduction,
-            blockShifts.getData(),
-            shift );
+         Backend::LaunchConfiguration config( 1, blockSize, 0, launch_config.stream, launch_config.blockHostUntilFinished );
+         Backend::launchKernel(
+            kernel, config, output.getView(), outputBegin, outputBegin + end - begin, reduction, blockShifts.getData(), shift );
       }
       else {
          // compute the number of grids
@@ -503,9 +592,8 @@ struct GPUScanKernelLauncher
             const Index currentSize = TNL::min( end - begin - gridOffset, maxGridSize() * maxElementsInBlock );
 
             // set CUDA launch configuration
-            Backend::LaunchConfiguration launch_config;
-            launch_config.blockSize.x = blockSize;
-            launch_config.gridSize.x = Backend::getNumberOfBlocks( currentSize, maxElementsInBlock );
+            Backend::LaunchConfiguration config(
+               Backend::getNumberOfBlocks( currentSize, maxElementsInBlock ), blockSize, 0, launch_config.stream, false );
 
             // run the kernel
             switch( phaseType ) {
@@ -515,7 +603,7 @@ struct GPUScanKernelLauncher
                         GPUScanKernelUniformShift< blockSize, valuesPerThread, typename OutputArray::ViewType, Reduction >;
                      Backend::launchKernelAsync(
                         kernel,
-                        launch_config,
+                        config,
                         output.getView(),
                         outputBegin + gridOffset,
                         outputBegin + gridOffset + currentSize,
@@ -536,7 +624,7 @@ struct GPUScanKernelLauncher
                         Reduction >;
                      Backend::launchKernelAsync(
                         kernel,
-                        launch_config,
+                        config,
                         input.getConstView(),
                         output.getView(),
                         begin + gridOffset,
@@ -551,8 +639,9 @@ struct GPUScanKernelLauncher
             }
          }
 
-         // synchronize the null-stream after all grids
-         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
+         // synchronize the stream after all grids
+         if( launch_config.blockHostUntilFinished )
+            Backend::streamSynchronize( launch_config.stream );
       }
    }
 

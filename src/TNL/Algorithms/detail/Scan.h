@@ -26,7 +26,8 @@ struct Scan< Devices::Sequential, Type, PhaseType >
       typename InputArray::IndexType end,
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
-      typename OutputArray::ValueType identity );
+      typename OutputArray::ValueType identity,
+      Devices::Sequential::LaunchConfiguration launch_config = {} );
 
    template< typename InputArray, typename OutputArray, typename Reduction >
    static auto
@@ -65,7 +66,8 @@ struct Scan< Devices::Host, Type, PhaseType >
       typename InputArray::IndexType end,
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
-      typename OutputArray::ValueType identity );
+      typename OutputArray::ValueType identity,
+      Devices::Host::LaunchConfiguration launch_config = {} );
 
    template< typename InputArray, typename OutputArray, typename Reduction >
    static auto
@@ -104,7 +106,8 @@ struct Scan< Devices::Cuda, Type, PhaseType >
       typename InputArray::IndexType end,
       typename OutputArray::IndexType outputBegin,
       Reduction&& reduction,
-      typename OutputArray::ValueType identity );
+      typename OutputArray::ValueType identity,
+      Devices::Cuda::LaunchConfiguration launch_config = {} );
 
    template< typename InputArray, typename OutputArray, typename Reduction >
    static auto

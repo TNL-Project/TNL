@@ -25,7 +25,8 @@ Scan< Devices::Sequential, Type, PhaseType >::perform(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   [[maybe_unused]] Devices::Sequential::LaunchConfiguration launch_config )
 {
    using ValueType = typename OutputArray::ValueType;
 
@@ -121,7 +122,8 @@ Scan< Devices::Host, Type, PhaseType >::perform(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   [[maybe_unused]] Devices::Host::LaunchConfiguration launch_config )
 {
 #ifdef HAVE_OPENMP
    using ValueType = typename OutputArray::ValueType;
@@ -326,13 +328,14 @@ Scan< Devices::Cuda, Type, PhaseType >::perform(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   Devices::Cuda::LaunchConfiguration launch_config )
 {
    if( end <= begin )
       return;
 
    detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::perform(
-      input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+      input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >
@@ -347,12 +350,6 @@ Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase(
    Reduction&& reduction,
    typename OutputArray::ValueType identity )
 {
-   if( end <= begin ) {
-      Containers::Array< typename OutputArray::ValueType, Devices::Cuda > block_results( 1 );
-      block_results.setValue( identity );
-      return block_results;
-   }
-
    return detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performFirstPhase(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 }
