@@ -3,7 +3,7 @@
 
 const char* saveAndLoadFileName = "test_SparseMatrixTest_SortedCSR_segments";
 
-using MatrixTypes = MatrixTypesTemplate< TNL::Algorithms::Segments::CSR >;
+using MatrixTypes = MatrixTypesTemplate< TNL::Algorithms::Segments::SortedCSR >;
 
 #include "SparseMatrixTest.h"
 #include "../main.h"
