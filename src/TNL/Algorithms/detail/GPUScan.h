@@ -74,14 +74,13 @@
  */
 
 #include <atomic>
-#include <map>
-#include <mutex>
 
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/fill.h>
 #include <TNL/Algorithms/detail/ScanType.h>
+#include <TNL/Algorithms/detail/GPUScan/CachePool.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelDownsweep.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelLookback.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelIndependentTiles.h>
@@ -188,7 +187,7 @@ struct GPUScanKernelLauncher
       // its mutex, which is held until the kernel finishes (it is launched
       // synchronously), so the array cannot be reallocated or its epoch
       // changed by another host thread while the kernel uses it.
-      auto& cache = lookbackCache();
+      auto& cache = LookbackCachePool< ValueType >::getInstance().getCache();
       std::scoped_lock lock( cache.mutex );
       auto& states = cache.states;
       auto& epoch = cache.epoch;
@@ -571,37 +570,6 @@ struct GPUScanKernelLauncher
    {
       maxGridSize() = Backend::getMaxGridXSize();
       gridsCount() = -1;
-   }
-
-   // Cache of the lookback states array, reused across calls to
-   // performLookback to avoid cudaMalloc/cudaFree churn.
-   struct LookbackCache
-   {
-      std::mutex mutex;
-      Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
-      // epoch of the last scan which used the states, see LookbackStatus
-      unsigned int epoch = 0;
-      // counter used by the kernel to assign the tiles to the blocks; it is
-      // reset only together with the states, each scan uses the values
-      // starting at tileCounterBase
-      Containers::Array< unsigned long long, Devices::Cuda > tileCounter;
-      unsigned long long tileCounterBase = 0;
-   };
-
-   // Returns the per-instantiation cache for the active device. The caches are
-   // intentionally never destroyed: the destructor of the array would free the
-   // device memory at exit, when the GPU runtime may be already shut down (e.g.
-   // after cudaDeviceReset) and the resulting exception would terminate the
-   // program.
-   static LookbackCache&
-   lookbackCache()
-   {
-      static std::mutex mutex;
-      static auto* caches = new std::map< int, LookbackCache >;
-      const int device = Backend::getDevice();
-      std::scoped_lock lock( mutex );
-      // std::map does not invalidate references to its elements on insertion
-      return ( *caches )[ device ];
    }
 
    // number of grids used by the last scan (for the unit tests); it is atomic,
