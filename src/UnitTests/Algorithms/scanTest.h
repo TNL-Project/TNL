@@ -1078,6 +1078,224 @@ TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
       EXPECT_EQ( errors[ t ], 0 ) << "wrong results in thread " << t;
 }
 
+// Test the in-place scan with a non-blocking launch configuration: on the GPU
+// the kernels are launched without blocking the host, so the device is
+// synchronized explicitly before reading the results (the same contract as
+// fill with `blockHostUntilFinished = false` in the launch configuration).
+// The fixture sets `maxGridSize = 3`, so the full-size scan exercises the
+// non-blocking two-phase (multi-grid) path and the small scan the
+// non-blocking single-block path.
+TYPED_TEST( ScanTest, inplaceExclusiveScan_nonblocking )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using DeviceType = typename TestFixture::DeviceType;
+   using ArrayType = typename TestFixture::ArrayType;
+   using HostArrayType = typename TestFixture::HostArrayType;
+
+   typename DeviceType::LaunchConfiguration launch_config;
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
+      launch_config.blockHostUntilFinished = false;
+
+   auto synchronize = []()
+   {
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
+         Backend::deviceSynchronize();
+   };
+
+   for( int i = 0; i < this->size; i++ ) {
+      this->input_host[ i ] = i;
+      this->expected_host[ i ] = ( i * ( i - 1 ) ) / 2;
+   }
+
+   // general overload, full-size array
+   this->a = this->input_host;
+   inplaceExclusiveScan( this->a, 0, this->size, std::plus<>{}, (ValueType) 0, launch_config );
+   synchronize();
+   this->template checkResult< ScanType::Exclusive >( this->a );
+
+   this->resetWorkingArrays();
+
+   // overload with default reduction operation, array view
+   this->a = this->input_host;
+   inplaceExclusiveScan( this->a_view, 0, this->size, TNL::Plus{}, launch_config );
+   synchronize();
+   this->template checkResult< ScanType::Exclusive >( this->a );
+
+   // general overload, small array (fits into a single block)
+   const int smallSize = 256;
+   ArrayType small;
+   small.setSize( smallSize );
+   HostArrayType small_host( smallSize ), small_expected( smallSize );
+   for( int i = 0; i < smallSize; i++ ) {
+      small_host[ i ] = i;
+      small_expected[ i ] = ( i * ( i - 1 ) ) / 2;
+   }
+   small = small_host;
+   inplaceExclusiveScan( small, 0, smallSize, std::plus<>{}, (ValueType) 0, launch_config );
+   synchronize();
+   this->array_host = small;
+   for( int i = 0; i < smallSize; i++ )
+      EXPECT_EQ( this->array_host[ i ], small_expected[ i ] ) << "arrays differ at index i = " << i;
+}
+
+TYPED_TEST( ScanTest, inplaceInclusiveScan_nonblocking )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using DeviceType = typename TestFixture::DeviceType;
+   using ArrayType = typename TestFixture::ArrayType;
+   using HostArrayType = typename TestFixture::HostArrayType;
+
+   typename DeviceType::LaunchConfiguration launch_config;
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
+      launch_config.blockHostUntilFinished = false;
+
+   auto synchronize = []()
+   {
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
+         Backend::deviceSynchronize();
+   };
+
+   for( int i = 0; i < this->size; i++ ) {
+      this->input_host[ i ] = i;
+      this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
+   }
+
+   // general overload, full-size array
+   this->a = this->input_host;
+   inplaceInclusiveScan( this->a, 0, this->size, std::plus<>{}, (ValueType) 0, launch_config );
+   synchronize();
+   this->template checkResult< ScanType::Inclusive >( this->a );
+
+   this->resetWorkingArrays();
+
+   // overload with default reduction operation, array view
+   this->a = this->input_host;
+   inplaceInclusiveScan( this->a_view, 0, this->size, TNL::Plus{}, launch_config );
+   synchronize();
+   this->template checkResult< ScanType::Inclusive >( this->a );
+
+   // general overload, small array (fits into a single block)
+   const int smallSize = 256;
+   ArrayType small;
+   small.setSize( smallSize );
+   HostArrayType small_host( smallSize ), small_expected( smallSize );
+   for( int i = 0; i < smallSize; i++ ) {
+      small_host[ i ] = i;
+      small_expected[ i ] = ( i * ( i + 1 ) ) / 2;
+   }
+   small = small_host;
+   inplaceInclusiveScan( small, 0, smallSize, std::plus<>{}, (ValueType) 0, launch_config );
+   synchronize();
+   this->array_host = small;
+   for( int i = 0; i < smallSize; i++ )
+      EXPECT_EQ( this->array_host[ i ], small_expected[ i ] ) << "arrays differ at index i = " << i;
+}
+
+// Test the non-blocking scan with the lookback kernel: the fixture constrains
+// `maxGridSize` to 3, which routes the scan to the two-phase path, so the test
+// restores `maxGridSize` first (mirroring `lookback_kernel_linear_sequence`).
+TYPED_TEST( ScanTest, inplaceScan_lookback_nonblocking )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using IndexType = typename TestFixture::IndexType;
+   using DeviceType = typename TestFixture::DeviceType;
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+   }
+   else {
+      // the lookback kernel exists only on the GPU
+      return;
+   }
+
+   typename DeviceType::LaunchConfiguration launch_config;
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
+      launch_config.blockHostUntilFinished = false;
+
+   const IndexType lookbackSize = 9377;
+
+   this->input_host.setSize( lookbackSize );
+   this->expected_host.setSize( lookbackSize );
+   for( IndexType i = 0; i < lookbackSize; i++ ) {
+      this->input_host[ i ] = i;
+      this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
+   }
+
+   this->a.setSize( lookbackSize );
+
+   // in-place inclusive scan
+   this->a = this->input_host;
+   inplaceInclusiveScan( this->a, 0, lookbackSize, std::plus<>{}, (ValueType) 0, launch_config );
+   Backend::deviceSynchronize();
+   {
+      this->array_host = this->a;
+      for( IndexType i = 0; i < lookbackSize; i++ )
+         EXPECT_EQ( this->array_host[ i ], this->expected_host[ i ] ) << "inclusive in-place mismatch at i=" << i;
+   }
+
+   // in-place exclusive scan
+   this->a = this->input_host;
+   inplaceExclusiveScan( this->a, 0, lookbackSize, std::plus<>{}, (ValueType) 0, launch_config );
+   Backend::deviceSynchronize();
+   {
+      this->array_host = this->a;
+      for( IndexType i = 0; i < lookbackSize; i++ )
+         EXPECT_EQ( this->array_host[ i ], ( i * ( i - 1 ) ) / 2 ) << "exclusive in-place mismatch at i=" << i;
+   }
+
+   // verify that the lookback kernel was actually used (`gridsCount` == 1)
+   const auto gridsCount = TNL::max(
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount().load(),
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount().load() );
+   EXPECT_EQ( gridsCount, 1 );
+}
+
+// Test the scan on multiple streams: the internal caches are keyed by the
+// stream and the host thread, so scans issued on different streams must not
+// interfere even though the host is not blocked until they finish. The scan
+// of `c` is issued on `stream1` again, after non-blocking scans were launched
+// on both streams, to verify that reusing the cache of a stream with pending
+// kernels is safe.
+TYPED_TEST( ScanTest, inplaceScan_multiple_streams )
+{
+   using ValueType = typename TestFixture::ValueType;
+   using DeviceType = typename TestFixture::DeviceType;
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      for( int i = 0; i < this->size; i++ ) {
+         this->input_host[ i ] = i;
+         this->expected_host[ i ] = ( i * ( i + 1 ) ) / 2;
+      }
+
+      Backend::stream_t stream1 = Backend::streamCreateWithPriority( 0, 0 );
+      Backend::stream_t stream2 = Backend::streamCreateWithPriority( 0, 0 );
+      typename DeviceType::LaunchConfiguration launch_config1, launch_config2;
+      launch_config1.stream = stream1;
+      launch_config1.blockHostUntilFinished = false;
+      launch_config2.stream = stream2;
+      launch_config2.blockHostUntilFinished = false;
+
+      this->a = this->input_host;
+      this->b = this->input_host;
+      this->c = this->input_host;
+      inplaceInclusiveScan( this->a, 0, this->size, std::plus<>{}, (ValueType) 0, launch_config1 );
+      inplaceInclusiveScan( this->b, 0, this->size, std::plus<>{}, (ValueType) 0, launch_config2 );
+      inplaceInclusiveScan( this->c, 0, this->size, std::plus<>{}, (ValueType) 0, launch_config1 );
+
+      Backend::streamSynchronize( stream1 );
+      Backend::streamSynchronize( stream2 );
+      Backend::streamDestroy( stream1 );
+      Backend::streamDestroy( stream2 );
+
+      this->template checkResult< ScanType::Inclusive >( this->a );
+      this->template checkResult< ScanType::Inclusive >( this->b );
+      this->template checkResult< ScanType::Inclusive >( this->c );
+   }
+}
+
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 // Test of the GPU scan with value types smaller than 4 bytes, which are
 // shuffled as 4-byte words in the block scan. The results (with the overflows
