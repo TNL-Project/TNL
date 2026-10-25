@@ -92,6 +92,9 @@ while the second subsection describes useful shortcuts.
      the list of compiler flags for the Release configuration (OFF by default)
    - `TNL_BUILD_COVERAGE` – Enable code coverage reports from unit tests (OFF
      by default)
+   - `TNL_SPLIT_UNIT_TESTS` – Split the heaviest GPU unit tests into several
+     translation units to reduce the compile time and memory of each compiler
+     process; a full build takes slightly more CPU time (ON by default)
    - `TNL_OFFLINE_BUILD` – Offline build (i.e. without downloading libraries
      such as GTest) (OFF by default)
 

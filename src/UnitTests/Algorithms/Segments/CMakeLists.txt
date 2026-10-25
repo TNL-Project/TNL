@@ -1,6 +1,16 @@
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
+# tests whose GPU builds are split into several translation units to reduce the compile time
+# and memory of each compiler process (items <test name>:<number of parts>)
+set(SPLIT_TESTS
+    SegmentsTest_SortedCSR:2
+    SegmentsTest_SortedEllpack:4
+    SegmentsTest_SortedSlicedEllpack:4
+    SegmentsTest_SortedChunkedEllpack:4
+    SegmentsTest_SortedBiEllpack:4
+)
+
 set(CPP_TESTS
     SegmentsTest_AdaptiveCSR
     SegmentsTest_BiEllpack
@@ -59,7 +69,9 @@ endforeach()
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
+        string(REGEX REPLACE "_cuda$" "" common_target ${target})
+        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.cu SPLIT_TESTS ${SPLIT_TESTS})
+        add_executable(${target} ${sources})
         target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
@@ -69,7 +81,9 @@ endif()
 
 if(TNL_BUILD_HIP)
     foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
+        string(REGEX REPLACE "_hip$" "" common_target ${target})
+        tnl_test_sources(sources NAME ${common_target} SOURCE ${target}.hip SPLIT_TESTS ${SPLIT_TESTS})
+        add_executable(${target} ${sources})
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})

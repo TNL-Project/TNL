@@ -18,7 +18,8 @@ using SortedCSRSegmentsTypes = ::testing::Types<
    >;
 
 #include "SegmentsTestSuite.hpp"
+#include "../../TypedTestSplit.h"
 
-INSTANTIATE_TYPED_TEST_SUITE_P( SortedCSRSegments, SegmentsTest, SortedCSRSegmentsTypes );
+TNL_INSTANTIATE_TYPED_TEST_SUITE_P( SortedCSRSegments, SegmentsTest, SortedCSRSegmentsTypes );
 
 #include "../../main.h"

@@ -40,5 +40,6 @@ using SparseMatrixSlicedEllpackTypes = ::testing::Types<
    >;
 
 #include "MatrixReduceTest.h"
+#include "../../TypedTestSplit.h"
 
-INSTANTIATE_TYPED_TEST_SUITE_P( SparseMatrixSlicedEllpack, MatrixReduceTest, SparseMatrixSlicedEllpackTypes );
+TNL_INSTANTIATE_TYPED_TEST_SUITE_P( SparseMatrixSlicedEllpack, MatrixReduceTest, SparseMatrixSlicedEllpackTypes );

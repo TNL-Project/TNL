@@ -51,6 +51,54 @@ function(tnl_add_mpi_test)
     set_property(TEST ${ADD_TEST_MPI_NAME} PROPERTY PROCESSORS ${ADD_TEST_MPI_NPROC})
 endfunction()
 
+# function to get the sources of a test, which may be split into several translation
+# units compiled separately and linked into one executable to reduce the compile time and
+# memory of each compiler process. SPLIT_TESTS is a list of items <name>:<parts>. When the
+# test NAME is listed there, the source is replaced by <parts> generated sources, each of
+# which defines TNL_TEST_PART and TNL_TEST_PARTS and includes the original source. The
+# source must instantiate the tests with TNL_INSTANTIATE_TYPED_TEST_SUITE_P (see
+# src/UnitTests/TypedTestSplit.h) and the number of parts must not exceed the number of
+# types in the instantiation. The split is disabled when TNL_SPLIT_UNIT_TESTS is OFF.
+# usage: tnl_test_sources(<output_variable> NAME <name> SOURCE <source> [SPLIT_TESTS <name>:<parts>...])
+function(tnl_test_sources output_variable)
+    set(options)
+    set(oneValueArgs NAME SOURCE)
+    set(multiValueArgs SPLIT_TESTS)
+    cmake_parse_arguments(TNL_TEST_SOURCES "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set(parts)
+    if(NOT TNL_SPLIT_UNIT_TESTS)
+        set(TNL_TEST_SOURCES_SPLIT_TESTS)
+    endif()
+    foreach(item IN LISTS TNL_TEST_SOURCES_SPLIT_TESTS)
+        if(item MATCHES "^${TNL_TEST_SOURCES_NAME}:([0-9]+)$")
+            set(parts ${CMAKE_MATCH_1})
+        endif()
+    endforeach()
+    if(NOT parts)
+        set(${output_variable} ${TNL_TEST_SOURCES_SOURCE} PARENT_SCOPE)
+        return()
+    endif()
+
+    get_filename_component(source "${TNL_TEST_SOURCES_SOURCE}" ABSOLUTE)
+    get_filename_component(name "${source}" NAME_WE)
+    get_filename_component(extension "${source}" LAST_EXT)
+
+    set(sources)
+    math(EXPR last_part "${parts} - 1")
+    foreach(part RANGE ${last_part})
+        set(part_source "${CMAKE_CURRENT_BINARY_DIR}/${name}_part${part}${extension}")
+        file(
+            CONFIGURE
+            OUTPUT "${part_source}"
+            CONTENT "#define TNL_TEST_PART ${part}\n#define TNL_TEST_PARTS ${parts}\n#include \"${source}\"\n"
+        )
+        list(APPEND sources "${part_source}")
+    endforeach()
+
+    set(${output_variable} ${sources} PARENT_SCOPE)
+endfunction()
+
 # function to add a HIP test with RUN_SERIAL property
 # Parallel execution of HIP tests oversubscribes the GPU hardware queues,
 # causing amdgpu kernel warnings and potential lockups on AMD GPUs.

@@ -24,7 +24,8 @@ using SortedSlicedEllpackSegmentsTypes = ::testing::Types<
    >;
 
 #include "TraverseSegmentsTestSuite.hpp"
+#include "../../../TypedTestSplit.h"
 
-INSTANTIATE_TYPED_TEST_SUITE_P( SortedSlicedEllpackSegments, TraverseSegmentsTest, SortedSlicedEllpackSegmentsTypes );
+TNL_INSTANTIATE_TYPED_TEST_SUITE_P( SortedSlicedEllpackSegments, TraverseSegmentsTest, SortedSlicedEllpackSegmentsTypes );
 
 #include "../../../main.h"

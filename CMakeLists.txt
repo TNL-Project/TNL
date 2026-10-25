@@ -29,6 +29,11 @@ option(
     OFF
 )
 option(TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF)
+option(
+    TNL_SPLIT_UNIT_TESTS
+    "Split the heaviest GPU unit tests into several translation units to reduce the compile time and memory of each compiler process"
+    ON
+)
 option(TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF)
 option(TNL_DOXYGEN_USE_CLANG "Instruct Doxygen to use Clang-assisted parsing" OFF)
 option(
@@ -295,6 +300,7 @@ if(PROJECT_IS_TOP_LEVEL)
     message("   TNL_USE_GMP = ${TNL_USE_GMP}")
     message("   TNL_USE_SYSTEM_GTEST = ${TNL_USE_SYSTEM_GTEST}")
     message("   TNL_BUILD_COVERAGE = ${TNL_BUILD_COVERAGE}")
+    message("   TNL_SPLIT_UNIT_TESTS = ${TNL_SPLIT_UNIT_TESTS}")
     message("   TNL_OFFLINE_BUILD = ${TNL_OFFLINE_BUILD}")
     # Print used compilers
     message("-- Compilers:")

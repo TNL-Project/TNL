@@ -40,5 +40,6 @@ using SparseMatrixAdaptiveCSRTypes = ::testing::Types<
    >;
 
 #include "MatrixReduceTest.h"
+#include "../../TypedTestSplit.h"
 
-INSTANTIATE_TYPED_TEST_SUITE_P( SparseMatrixAdaptiveCSR, MatrixReduceTest, SparseMatrixAdaptiveCSRTypes );
+TNL_INSTANTIATE_TYPED_TEST_SUITE_P( SparseMatrixAdaptiveCSR, MatrixReduceTest, SparseMatrixAdaptiveCSRTypes );

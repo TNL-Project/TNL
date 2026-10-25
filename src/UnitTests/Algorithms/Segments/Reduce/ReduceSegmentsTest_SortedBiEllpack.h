@@ -24,7 +24,8 @@ using SortedBiEllpackSegmentsTypes = ::testing::Types<
    >;
 
 #include "ReduceSegmentsTestSuite.hpp"
+#include "../../../TypedTestSplit.h"
 
-INSTANTIATE_TYPED_TEST_SUITE_P( SortedBiEllpackSegments, ReduceSegmentsTest, SortedBiEllpackSegmentsTypes );
+TNL_INSTANTIATE_TYPED_TEST_SUITE_P( SortedBiEllpackSegments, ReduceSegmentsTest, SortedBiEllpackSegmentsTypes );
 
 #include "../../../main.h"
