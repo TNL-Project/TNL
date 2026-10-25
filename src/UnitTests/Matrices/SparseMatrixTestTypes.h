@@ -5,14 +5,17 @@
 
 // Type lists of sparse matrices for the formats of segments defined in SegmentsTestFormats.h.
 
+#include <type_traits>
+
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include "../Algorithms/Segments/SegmentsTestFormats.h"
 
 namespace TNL::UnitTests {
 
-//! \brief Pair of the real and index type of a sparse matrix.
-template< typename Real, typename Index >
+//! \brief Real, index and compute real type of a sparse matrix (the default compute real type is the
+//! same as in SparseMatrix).
+template< typename Real, typename Index, typename ComputeReal = std::conditional_t< std::is_same_v< Real, bool >, Index, Real > >
 struct MatrixElementTypes
 {};
 
@@ -26,11 +29,15 @@ template<
    template< typename, typename, typename > class... Segments,
    typename Device,
    typename... Reals,
-   typename... Indices >
-struct SparseMatrixTestTypes< SegmentsFormat< DefaultSegments, Segments... >, Device, MatrixElementTypes< Reals, Indices >... >
+   typename... Indices,
+   typename... ComputeReals >
+struct SparseMatrixTestTypes<
+   SegmentsFormat< DefaultSegments, Segments... >,
+   Device,
+   MatrixElementTypes< Reals, Indices, ComputeReals >... >
 {
-   using type =
-      ::testing::Types< Matrices::SparseMatrix< Reals, Device, Indices, Matrices::GeneralMatrix, DefaultSegments >... >;
+   using type = ::testing::Types<
+      Matrices::SparseMatrix< Reals, Device, Indices, Matrices::GeneralMatrix, DefaultSegments, ComputeReals >... >;
 };
 
 }  // namespace detail
