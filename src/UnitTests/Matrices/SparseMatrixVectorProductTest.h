@@ -4,68 +4,79 @@
 
 #include <gtest/gtest.h>
 
-// test fixture for typed tests
-template< typename T >
+// test fixture for type-parameterized tests
+template< typename Matrix >
 class MatrixTest : public ::testing::Test
 {
 protected:
-   using MatrixType = typename T::MatrixType;
+   using MatrixType = Matrix;
 };
 
-TYPED_TEST_SUITE( MatrixTest, MatrixTypes );
+TYPED_TEST_SUITE_P( MatrixTest );
 
-TYPED_TEST( MatrixTest, vectorProductTest_zeroMatrix )
+TYPED_TEST_P( MatrixTest, vectorProductTest_zeroMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_zeroMatrix< MatrixType >();
 }
 
-TYPED_TEST( MatrixTest, vectorProductTest_smallMatrix1 )
+TYPED_TEST_P( MatrixTest, vectorProductTest_smallMatrix1 )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_smallMatrix1< MatrixType >();
 }
 
-TYPED_TEST( MatrixTest, vectorProductTest_smallMatrix2 )
+TYPED_TEST_P( MatrixTest, vectorProductTest_smallMatrix2 )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_smallMatrix2< MatrixType >();
 }
 
-TYPED_TEST( MatrixTest, vectorProductTest_smallMatrix3 )
+TYPED_TEST_P( MatrixTest, vectorProductTest_smallMatrix3 )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_smallMatrix3< MatrixType >();
 }
 
-TYPED_TEST( MatrixTest, vectorProductTest_mediumSizeMatrix1 )
+TYPED_TEST_P( MatrixTest, vectorProductTest_mediumSizeMatrix1 )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_mediumSizeMatrix1< MatrixType >();
 }
 
-TYPED_TEST( MatrixTest, vectorProductTest_mediumSizeMatrix2 )
+TYPED_TEST_P( MatrixTest, vectorProductTest_mediumSizeMatrix2 )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_mediumSizeMatrix2< MatrixType >();
 }
 
-TYPED_TEST( MatrixTest, vectorProductTest_largeMatrix )
+TYPED_TEST_P( MatrixTest, vectorProductTest_largeMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_largeMatrix< MatrixType >();
 }
 
-TYPED_TEST( MatrixTest, vectorProductTest_longRowsMatrix )
+TYPED_TEST_P( MatrixTest, vectorProductTest_longRowsMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_VectorProduct_longRowsMatrix< MatrixType >();
 }
+
+REGISTER_TYPED_TEST_SUITE_P(
+   MatrixTest,
+   vectorProductTest_zeroMatrix,
+   vectorProductTest_smallMatrix1,
+   vectorProductTest_smallMatrix2,
+   vectorProductTest_smallMatrix3,
+   vectorProductTest_mediumSizeMatrix1,
+   vectorProductTest_mediumSizeMatrix2,
+   vectorProductTest_largeMatrix,
+   vectorProductTest_longRowsMatrix );
