@@ -18,6 +18,29 @@ add_subdirectory(Factorization)
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
+# generates the SparseMatrixTest executables for all formats of segments including the sorted ones,
+# with all variants of each format (e.g. row-major and column-major)
+tnl_add_format_tests(
+    NAME SparseMatrixTest
+    SUITE MatrixTest
+    PREFIX SparseMatrix<FORMAT>
+    TYPES
+        "TNL::UnitTests::SparseMatrixVariantsTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< long, long >,
+        TNL::UnitTests::MatrixElementTypes< float, int >, TNL::UnitTests::MatrixElementTypes< double, long >,
+        TNL::UnitTests::MatrixElementTypes< TNL::Arithmetics::Complex< float >, long > >"
+    HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/SparseMatrixTestTypes.h ${CMAKE_CURRENT_SOURCE_DIR}/SparseMatrixTest.h
+    FORMATS
+        ${SPARSE_MATRIX_TEST_FORMATS}
+        SortedCSR
+        SortedAdaptiveCSR
+        SortedEllpack
+        SortedSlicedEllpack
+        SortedChunkedEllpack
+        SortedBiEllpack
+    LABELS Matrices
+)
+
 # generates the SparseMatrixVectorProductTest executables for all formats of segments in
 # SPARSE_MATRIX_TEST_FORMATS, with all variants of each format (e.g. row-major and column-major)
 tnl_add_format_tests(
@@ -55,18 +78,6 @@ set(COMMON_TESTS
     MultidiagonalMatrixTest
     SparseDenseMatrixOperationsTest_CSR
     SparseMatrixOperationsTest_CSR
-    SparseMatrixTest_CSR
-    SparseMatrixTest_AdaptiveCSR
-    SparseMatrixTest_Ellpack
-    SparseMatrixTest_SlicedEllpack
-    SparseMatrixTest_ChunkedEllpack
-    SparseMatrixTest_BiEllpack
-    SparseMatrixTest_SortedAdaptiveCSR
-    SparseMatrixTest_SortedCSR
-    SparseMatrixTest_SortedBiEllpack
-    SparseMatrixTest_SortedChunkedEllpack
-    SparseMatrixTest_SortedEllpack
-    SparseMatrixTest_SortedSlicedEllpack
     SparseMatrixCopyTest
     BinarySparseMatrixCopyTest
     SymmetricSparseMatrixTest_CSR
@@ -77,23 +88,6 @@ set(COMMON_TESTS
     DenseMatrixMultiplicationTest
     DenseMatrixTranspositionTest
     DenseMatrixTransMultiplication
-)
-
-# tests whose GPU builds are split into several translation units to reduce the compile time
-# and memory of each compiler process (items <test name>:<number of parts>)
-set(SPLIT_TESTS
-    SparseMatrixTest_CSR:3
-    SparseMatrixTest_AdaptiveCSR:3
-    SparseMatrixTest_Ellpack:3
-    SparseMatrixTest_SlicedEllpack:3
-    SparseMatrixTest_ChunkedEllpack:3
-    SparseMatrixTest_BiEllpack:3
-    SparseMatrixTest_SortedAdaptiveCSR:3
-    SparseMatrixTest_SortedCSR:3
-    SparseMatrixTest_SortedBiEllpack:3
-    SparseMatrixTest_SortedChunkedEllpack:3
-    SparseMatrixTest_SortedEllpack:3
-    SparseMatrixTest_SortedSlicedEllpack:3
 )
 
 set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest MatrixReaderTest)

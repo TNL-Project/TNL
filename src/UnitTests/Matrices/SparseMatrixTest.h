@@ -4,14 +4,16 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
+#include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include "SparseMatrixTest.hpp"
 
 #include <gtest/gtest.h>
 
-// test fixture for typed tests
+// test fixture for type-parameterized tests
 template< typename Matrix >
 class MatrixTest : public ::testing::Test
 {
@@ -165,7 +167,10 @@ TYPED_TEST_P( MatrixTest, saveAndLoad )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
-   test_SaveAndLoad< MatrixType >( saveAndLoadFileName );
+   // the file name is unique for each instantiation, because the tests of different formats may run in parallel
+   std::string fileName = std::string( "test_" ) + ::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name();
+   std::replace( fileName.begin(), fileName.end(), '/', '_' );
+   test_SaveAndLoad< MatrixType >( fileName.c_str() );
 }
 
 TYPED_TEST_P( MatrixTest, getTransposition )
