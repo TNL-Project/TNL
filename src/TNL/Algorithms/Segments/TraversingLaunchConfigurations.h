@@ -42,11 +42,11 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 8 ), "BlockMerged 8 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::DynamicGrouping, 1 ), "DynamicGrouping 1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 2 ), "PerElement 2 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 8 ), "PerElement 8 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 1 ), "Tiered 1 TPS" },
          };
    }
 
@@ -60,7 +60,7 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
          if constexpr( Segments::getOrganization() == ColumnMajorOrder )
             return std::list< std::pair< LaunchConfiguration, std::string > >{
                { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
+               { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" }
             };
          else
             return std::list< std::pair< LaunchConfiguration, std::string > >{
@@ -73,7 +73,7 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
                { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
                { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
-               { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
+               { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" }
             };
       }
    }
@@ -94,7 +94,7 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" }
          };
    }
 

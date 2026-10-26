@@ -9,7 +9,7 @@
 #include <TNL/Algorithms/find.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
-#include "detail/TraversingKernels_CSR.h"
+#include "detail/TraversingKernels_CSR_PerElement.h"
 #include "detail/TraversingKernels_CSR_Uniform.h"
 
 #include "CSRBase.h"
@@ -189,7 +189,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
             Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, condition, function );
          }
          else {
-            constexpr auto kernel = detail::forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;
+            constexpr auto kernel = detail::forElements_CSR_PerElement< ConstOffsetsView, IndexType, Function >;
             Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
          }
       }

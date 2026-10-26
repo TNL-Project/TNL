@@ -13,16 +13,23 @@ namespace TNL::Algorithms::Segments {
  * \brief Enumeration for mapping threads to segments.
  *
  * This enumeration defines how threads are mapped to segments during parallel operations.
- * It includes options for mapping one thread per segment, one warp per segment, and user-defined mappings.
+ * Not every mapping is supported by every segments format and operation.
  */
 enum class ThreadsToSegmentsMapping : std::uint8_t
 {
+   //! \brief The best native strategy of the given segments format, resolved by the format itself.
    Default,
+   //! \brief The same number of threads (the threads per segment count) is assigned to every segment.
    Uniform,
+   //! \brief One warp of threads is assigned to every segment.
    UniformWarp,
    Block,
-   BlockMerged,
-   DynamicGrouping,
+   //! \brief The threads are assigned to the elements of the segments processed by a block, regardless of
+   //! the segment boundaries.
+   PerElement,
+   //! \brief Segments are processed by a single thread, a warp or a whole block, depending on their size.
+   Tiered,
+   //! \brief The adaptive kernel of AdaptiveCSR, which assigns the segments to the blocks in advance.
    Adaptive
 };
 

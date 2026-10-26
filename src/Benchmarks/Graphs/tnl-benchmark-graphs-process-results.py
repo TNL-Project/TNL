@@ -206,11 +206,11 @@ def get_launch_configurations(input_df, kernels, problems):
                             "64 TPS": 6,
                             "128 TPS": 7,
                             "256 TPS": 8,
-                            "BlockMerged 1 TPS": 9,
-                            "BlockMerged 2 TPS": 10,
-                            "BlockMerged 4 TPS": 11,
-                            "BlockMerged 8 TPS": 12,
-                            "DynamicGrouping 1 TPS": 13,
+                            "PerElement 1 TPS": 9,
+                            "PerElement 2 TPS": 10,
+                            "PerElement 4 TPS": 11,
+                            "PerElement 8 TPS": 12,
+                            "Tiered 1 TPS": 13,
                         }
                         launch_configs[(problem, solver, device, kernel)].sort(
                             key=lambda d: order.get(d, len(order))
