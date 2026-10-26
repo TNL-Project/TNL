@@ -23,7 +23,6 @@ enum class ThreadsToSegmentsMapping : std::uint8_t
    Uniform,
    //! \brief One warp of threads is assigned to every segment.
    UniformWarp,
-   Block,
    //! \brief The threads are assigned to the elements of the segments processed by a block, regardless of
    //! the segment boundaries.
    PerElement,
