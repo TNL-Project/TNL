@@ -1064,72 +1064,6 @@ radixSortSingleTileKernel( Containers::ArrayView< Value, Devices::GPU, Index > v
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-/**
- * \brief Kernel zero-filling a range of elements, launched by
- * \ref radixSortFillZeroAsync.
- *
- * The geometry of the two variants matches the element fill of
- * \ref TNL::Algorithms::detail::ParallelFor1D: without the grid stride the
- * grid covers the whole range, otherwise the grid is capped by the number
- * of multiprocessors.
- */
-template< bool gridStride, typename Element, typename Index >
-__global__
-void
-radixSortFillZeroKernel( Index end, Element* data )
-{
-   Index i = blockIdx.x * blockDim.x + threadIdx.x;
-   while( i < end ) {
-      data[ i ] = Element( 0 );
-      if constexpr( gridStride )
-         i += blockDim.x * gridDim.x;
-      else
-         break;
-   }
-}
-
-/**
- * \brief Zero-fills `size` elements asynchronously on the given stream.
- *
- * The stream keeps the fill ordered with the kernels of the sort and is
- * required inside its graph capture, where the default stream cannot be
- * used.
- */
-template< typename Element, typename Index >
-void
-radixSortFillZeroAsync( Element* data, Index size, Backend::stream_t stream )
-{
-   if( size == 0 )
-      return;
-   TNL_ASSERT_TRUE( data, "Attempted to set data through a nullptr." );
-   Backend::LaunchConfiguration launch_config;
-   launch_config.stream = stream;
-   launch_config.blockSize.x = 256;
-   launch_config.blockSize.x = TNL::min( launch_config.blockSize.x, Backend::getMaxThreadsPerBlock() );
-   launch_config.gridSize.x =
-      TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( size, launch_config.blockSize.x ) );
-
-   const auto totalThreads =
-      static_cast< std::size_t >( launch_config.blockSize.x ) * static_cast< std::size_t >( launch_config.gridSize.x );
-   const bool needsGridStride = totalThreads > Backend::getMaxThreadsPerGrid();
-
-   if( ! needsGridStride && totalThreads >= static_cast< std::size_t >( size ) ) {
-      constexpr auto kernel = radixSortFillZeroKernel< false, Element, Index >;
-      Backend::launchKernelAsync( kernel, launch_config, size, data );
-   }
-   else {
-      // decrease the grid size and align to the number of multiprocessors
-      const int desGridSize = 32 * Backend::getDeviceMultiprocessors( Backend::getDevice() );
-      launch_config.gridSize.x = TNL::min( desGridSize, Backend::getNumberOfBlocks( size, launch_config.blockSize.x ) );
-      constexpr auto kernel = radixSortFillZeroKernel< true, Element, Index >;
-      Backend::launchKernelAsync( kernel, launch_config, size, data );
-   }
-}
-
-#endif
-
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
    //! \brief CUDA/HIP graph type aliases used by \ref RadixSortGraphCache.
    #if defined( __CUDACC__ )
 using RadixSortGraphT = cudaGraph_t;
@@ -1693,12 +1627,19 @@ radixSortLaunchSequence(
    launch_config.blockSize.x = radixSortBlockSize;
    launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
 
+   // launch configuration for zero-filling the work buffers: the fills are
+   // ordered with the sort kernels on the stream and do not block the
+   // host, which keeps them valid also inside the graph capture
+   Devices::GPU::LaunchConfiguration fillConfig;
+   fillConfig.stream = stream;
+   fillConfig.blockHostUntilFinished = false;
+
    // the digit counts are independent of the order of the elements, which
    // changes between the passes, so the histograms of all passes are
    // computed upfront; the exclusive scan of each histogram then gives the
    // global base offsets of the digit runs
    auto& digitBase = workspace.digitBase;
-   radixSortFillZeroAsync( digitBase.getData(), digitBase.getSize(), stream );
+   Algorithms::fill< Devices::GPU >( digitBase.getData(), Index( 0 ), digitBase.getSize(), fillConfig );
 
    constexpr auto totalHistogramKernel = radixSortTotalHistogramKernel< Value, Index, descending >;
    Backend::launchKernelAsync( totalHistogramKernel, launch_config, view, digitBase.getView() );
@@ -1748,7 +1689,7 @@ radixSortLaunchSequence(
    // also resets the work counter of each region
    const bool aggregateFill = n <= static_cast< Index >( radixSortAggregatedFillLimit );
    if( aggregateFill )
-      radixSortFillZeroAsync( tileStatus.getData(), static_cast< Index >( passes ) * tileStatusSize, stream );
+      Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, static_cast< Index >( passes ) * tileStatusSize, fillConfig );
 
    // the host launches the sweeps of all passes: the sweeps of a skipped
    // pass exit immediately, so they permute the array by the identity
@@ -1775,7 +1716,7 @@ radixSortLaunchSequence(
          const Index regionBegin = aggregateFill ? pass * tileStatusSize : 0;
          auto tileStatusRegion = tileStatus.getView( regionBegin, regionBegin + tileStatusSize );
          if( ! aggregateFill || strip > 0 )
-            radixSortFillZeroAsync( tileStatus.getData() + regionBegin, tileStatusSize, stream );
+            Algorithms::fill< Devices::GPU >( tileStatus.getData() + regionBegin, 0u, tileStatusSize, fillConfig );
          launch_config.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
          Backend::launchKernelAsync(
             onesweepKernel,
