@@ -82,7 +82,7 @@ test_reduceSegments_MaximumInSegments()
 
 // Segments longer than the block size (256 threads), longer than the warp size and
 // shorter than the warp size are reduced differently by some launch configurations,
-// e.g. the dynamic grouping of CSR, where the warps of a block also process different
+// e.g. the Tiered mapping of CSR, where the warps of a block also process different
 // numbers of segments. The element with the local index j has the value j + 1, so the
 // maximum of a segment is its size and the argument of the maximum is the size - 1.
 template< typename Segments >

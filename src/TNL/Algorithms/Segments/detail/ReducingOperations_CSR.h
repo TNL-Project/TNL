@@ -11,7 +11,7 @@
 #include <TNL/TypeTraits.h>
 #include "CSRHostScheduling.h"
 #include "FetchLambdaAdapter.h"
-#include "ReducingKernels_CSR.h"
+#include "ReducingKernels_CSR_Tiered.h"
 #include "ReducingKernels_CSR_Uniform.h"
 #include "ReducingOperationsBase.h"
 
@@ -157,7 +157,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -339,8 +339,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernel<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
+                  constexpr auto kernel = reduceSegments_CSR_Tiered<
                      ConstViewType,
                      IndexType,
                      std::remove_reference_t< Fetch >,
@@ -454,7 +454,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             Backend::LaunchConfiguration launch_config;
@@ -637,8 +637,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithIndexes<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
+                  constexpr auto kernel = reduceSegments_CSR_Tiered_WithIndexes<
                      ConstViewType,
                      ArrayView,
                      IndexType,
@@ -759,7 +759,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -941,8 +941,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithArgument<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
+                  constexpr auto kernel = reduceSegments_CSR_Tiered_WithArgument<
                      ConstViewType,
                      IndexType,
                      std::remove_reference_t< Fetch >,
@@ -1058,7 +1058,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             Backend::LaunchConfiguration launch_config;
@@ -1241,8 +1241,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                            + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
+                  constexpr auto kernel = reduceSegments_CSR_Tiered_WithIndexesAndArgument<
                      ConstViewType,
                      ArrayView,
                      IndexType,

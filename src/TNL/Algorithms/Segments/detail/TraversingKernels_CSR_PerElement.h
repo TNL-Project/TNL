@@ -3,148 +3,40 @@
 
 #pragma once
 
-#include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 #include <TNL/Algorithms/find.h>
+#include <TNL/Assert.h>
+#include <TNL/Backend/LaunchHelpers.h>
+#include <TNL/TypeTraits.h>
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
-__device__
-void
-dynamicGroupingTraversingKernel_CSR(
-   const OffsetsView offsets,
-   bool traverse_segment,
-   const Index segmentIdx,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   constexpr Index warpSize = Backend::getWarpSize();
-   constexpr Index warpsPerBlock = BlockSize / warpSize;
-   __shared__ Index warps_scheduler[ BlockSize ];
-
-   // Processing segments larger than BlockSize
-   __shared__ Index scheduled_segment[ 1 ];
-   constexpr Index none_scheduled = -1;
-   Index segment_size = -1;
-   if( traverse_segment ) {
-      segment_size = offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ];
-   }
-
-   if( threadIdx.x == 0 )
-      scheduled_segment[ 0 ] = none_scheduled;
-   __syncthreads();
-   while( true ) {
-      if( traverse_segment && segment_size > BlockSize ) {
-         AtomicOperations< Devices::GPU >::CAS( scheduled_segment[ 0 ], scheduled_segment[ 0 ], segmentIdx );
-      }
-      __syncthreads();
-      if( scheduled_segment[ 0 ] == none_scheduled )
-         break;
-
-      Index globalIdx = offsets[ scheduled_segment[ 0 ] ] + threadIdx.x;
-      const Index endIdx = offsets[ scheduled_segment[ 0 ] + 1 ];
-
-      if constexpr( callableArgumentCount< Function >() == 3 ) {
-         Index localIdx = threadIdx.x;
-         while( globalIdx < endIdx ) {
-            function( scheduled_segment[ 0 ], localIdx, globalIdx );
-            localIdx += BlockSize;
-            globalIdx += BlockSize;
-         }
-      }
-      else
-         while( globalIdx < endIdx ) {
-            function( scheduled_segment[ 0 ], globalIdx );
-            globalIdx += BlockSize;
-         }
-      // All threads must finish reading scheduled_segment before it is reset
-      __syncthreads();
-
-      // Mark segment as processed
-      if( segmentIdx == scheduled_segment[ 0 ] ) {
-         traverse_segment = false;
-         scheduled_segment[ 0 ] = none_scheduled;
-      }
-      __syncthreads();
-   }
-
-   // Processing segments smaller than BlockSize and larger the warp size
-   __shared__ int active_warps[ 1 ];
-   if( threadIdx.x == 0 )
-      active_warps[ 0 ] = 0;
-   __syncthreads();
-
-   // Each thread owning segment with size larger than warpSize registers for scheduling
-   if( traverse_segment && segment_size > warpSize ) {
-      warps_scheduler[ AtomicOperations< Devices::GPU >::add( active_warps[ 0 ], 1 ) ] = segmentIdx;
-      traverse_segment = false;
-   }
-   __syncthreads();
-
-   // Now traverse scheduled segments in warps
-   Index warp_idx = threadIdx.x / warpSize;
-   while( warp_idx < active_warps[ 0 ] ) {
-      Index scheduled_segment = warps_scheduler[ warp_idx ];
-      Index globalIdx = offsets[ scheduled_segment ] + ( threadIdx.x & ( warpSize - 1 ) );  // & is cheaper than %
-      const Index endIdx = offsets[ scheduled_segment + 1 ];
-      if constexpr( callableArgumentCount< Function >() == 3 ) {
-         Index localIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
-         for( ; globalIdx < endIdx; globalIdx += warpSize ) {
-            function( scheduled_segment, localIdx, globalIdx );
-            localIdx += warpSize;
-         }
-      }
-      else {
-         for( ; globalIdx < endIdx; globalIdx += warpSize ) {
-            function( scheduled_segment, globalIdx );
-         }
-      }
-      warp_idx += warpsPerBlock;
-   }
-
-   // Processing segments smaller than or equal to warp size
-   if( traverse_segment ) {
-      Index globalIdx = offsets[ segmentIdx ];
-      const Index endIdx = offsets[ segmentIdx + 1 ];
-      if constexpr( callableArgumentCount< Function >() == 3 ) {
-         Index localIdx = 0;
-         for( ; globalIdx < endIdx; globalIdx++ ) {
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-         }
-      }
-      else {
-         for( ; globalIdx < endIdx; globalIdx++ ) {
-            function( segmentIdx, globalIdx );
-         }
-      }
-   }
-#endif
-}
-
+/**
+ * \brief Kernel for the PerElement thread mapping, traversing a contiguous range of segments.
+ *
+ * Unlike the other thread mappings, the threads are not assigned to segments but to elements: all
+ * elements of the segments processed by a block are merged into one contiguous range, which is
+ * divided evenly among the threads of the block regardless of the segment boundaries. Each thread
+ * then finds the segment its element belongs to by a binary search in the offsets of the block's
+ * segments stored in shared memory. The work is thus balanced perfectly within each block, but not
+ * across the blocks, since every block processes a fixed number of segments.
+ *
+ * Every block processes `BlockSize` consecutive segments of the range [\e begin, \e end); their
+ * offsets are read directly from \e offsets into shared memory.
+ *
+ * This kind of work distribution is called nonzero splitting (as opposed to row splitting) in
+ *
+ * D. Merrill and M. Garland, "Merge-based parallel sparse matrix-vector multiplication," SC '16: Proceedings of the
+ * International Conference for High Performance Computing, Networking, Storage and Analysis, Salt Lake City, UT, USA,
+ * 2016, pp. 678-689.
+ *
+ * which balances the elements globally using the merge-path decomposition; here the balancing is
+ * restricted to the block and a plain binary search is used instead.
+ */
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __global__
 void
-forElementsDynamicGroupingKernel_CSR(
-   const Index gridIdx,
-   const OffsetsView offsets,
-   const Index begin,
-   const Index end,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   bool traverse_segment = ( segmentIdx < end );
-
-   dynamicGroupingTraversingKernel_CSR( offsets, traverse_segment, segmentIdx, function );
-#endif
-}
-
-template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
-__global__
-void
-forElementsBlockMergeKernel_CSR(
+forElements_CSR_PerElement(
    const Index gridIdx,
    const OffsetsView offsets,
    const Index begin,
@@ -184,38 +76,26 @@ forElementsBlockMergeKernel_CSR(
 #endif
 }
 
-template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int BlockSize = 256 >
-__global__
-void
-forElementsWithSegmentIndexesDynamicGroupingKernel_CSR(
-   const Index gridIdx,
-   const OffsetsView offsets,
-   const ArrayView segmentIndexes,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   const Index segmentIdx_ptr = Backend::getGlobalThreadIdx_x( gridIdx );
-
-   Index segmentIdx( 0 );
-   bool traverse_segment( false );
-   if( segmentIdx_ptr < segmentIndexes.getSize() ) {
-      TNL_ASSERT_GE( segmentIdx_ptr, 0, "" );
-      TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
-      segmentIdx = segmentIndexes[ segmentIdx_ptr ];
-      TNL_ASSERT_GE( segmentIdx, 0, "Wrong index of segment index - smaller that 0." );
-      TNL_ASSERT_LT( segmentIdx, offsets.getSize() - 1, "Wrong index of segment index - larger that the number of indexes." );
-      traverse_segment = true;
-   }
-
-   dynamicGroupingTraversingKernel_CSR( offsets, traverse_segment, segmentIdx, function );
-#endif
-}
-
+/**
+ * \brief Kernel for the PerElement thread mapping, traversing the segments given explicitly by
+ * \e segmentIndexes.
+ *
+ * Unlike the other thread mappings, the threads are not assigned to segments but to elements: all
+ * elements of the segments processed by a block are merged into one contiguous range, which is
+ * divided evenly among the threads of the block regardless of the segment boundaries. Each thread
+ * then finds the segment its element belongs to by a binary search in the offsets of the block's
+ * segments stored in shared memory. The work is thus balanced perfectly within each block, but not
+ * across the blocks, since every block processes a fixed number of segments.
+ *
+ * Every block processes \e SegmentsPerBlock consecutive entries of \e segmentIndexes. Since the
+ * segments are not contiguous in memory, their local offsets within the block are computed by a
+ * block-wide exclusive scan of their sizes and their global offsets are stored separately. See
+ * \ref forElements_CSR_PerElement for the literature reference.
+ */
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int SegmentsPerBlock, int BlockSize = 256 >
 __global__
 void
-forElementsWithSegmentIndexesBlockMergeKernel_CSR(
+forElements_CSR_PerElement_WithIndexes(
    const Index gridIdx,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
@@ -292,34 +172,27 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR(
 #endif
 }
 
-template< typename OffsetsView, typename Index, typename Condition, typename Function, int BlockSize = 256 >
-__global__
-void
-forElementsIfDynamicGroupingKernel_CSR(
-   const Index gridIdx,
-   const OffsetsView offsets,
-   const Index begin,
-   const Index end,
-   Condition condition,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-
-   bool traverse_segment = false;
-   if( segmentIdx < end ) {
-      traverse_segment = condition( segmentIdx );
-   }
-
-   dynamicGroupingTraversingKernel_CSR( offsets, traverse_segment, segmentIdx, function );
-#endif
-}
-
+/**
+ * \brief Kernel for the PerElement thread mapping, traversing the segments of a contiguous range
+ * that satisfy \e condition.
+ *
+ * Unlike the other thread mappings, the threads are not assigned to segments but to elements: all
+ * elements of the segments processed by a block are merged into one contiguous range, which is
+ * divided evenly among the threads of the block regardless of the segment boundaries. Each thread
+ * then finds the segment its element belongs to by a binary search in the offsets of the block's
+ * segments stored in shared memory. The work is thus balanced perfectly within each block, but not
+ * across the blocks, since every block processes a fixed number of segments.
+ *
+ * Every block evaluates \e condition for \e SegmentsPerBlock consecutive segments of the range
+ * [\e begin, \e end). The segments satisfying the condition are compacted using a block-wide
+ * inclusive scan of the condition values and their local offsets are then computed by an exclusive
+ * scan of their sizes, so only the elements of the active segments are divided among the threads.
+ * See \ref forElements_CSR_PerElement for the literature reference.
+ */
 template< typename OffsetsView, typename Index, typename Condition, typename Function, int SegmentsPerBlock, int BlockSize = 256 >
 __global__
 void
-forElementsIfBlockMergeKernel_CSR(
+forElements_CSR_PerElement_If(
    Index gridIdx,
    OffsetsView offsets,
    const Index begin,

@@ -230,7 +230,7 @@ test_forElements()
 
 // Segments longer than the block size (256 threads), longer than the warp size and
 // shorter than the warp size are traversed differently by some launch configurations,
-// e.g. the dynamic grouping of CSR. Each element must be visited exactly once, with the
+// e.g. the Tiered mapping of CSR. Each element must be visited exactly once, with the
 // index of its own segment and its local index.
 template< typename Segments >
 void

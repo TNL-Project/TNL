@@ -7,6 +7,7 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "TraversingKernels_SlicedEllpack.h"
+#include "TraversingKernels_SlicedEllpack_PerElement.h"
 #include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
@@ -104,7 +105,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                threadsCount = slicesCount * static_cast< std::size_t >( SliceSize )
                             * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
                const IndexType firstSegmentIdx = ( begin / SliceSize ) * SliceSize;
                const IndexType lastSegmentIdx =
                   roundUpDivision( static_cast< IndexType >( end ), static_cast< IndexType >( SliceSize ) )
@@ -129,8 +130,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   Backend::launchKernelAsync(
                      kernel, launchConfig, gridIdx, launchConfig.getThreadsPerSegmentCount(), segments, begin, end, function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsBlockMergeKernel_SlicedEllpack<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+                  constexpr auto kernel = forElements_SlicedEllpack_PerElement<
                      ConstViewType,
                      IndexType,
                      std::remove_reference_t< Function >,
@@ -234,7 +235,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
                launchConfig.blockSize.x = 256;
             }
 
@@ -260,8 +261,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                      segmentIndexesView,
                      function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+                  constexpr auto kernel = forElements_SlicedEllpack_PerElement_WithIndexes<
                      ConstViewType,
                      typename Array::ConstViewType,
                      IndexType,
@@ -397,8 +398,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                      condition,
                      function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsIfBlockMergeKernel_SlicedEllpack<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+                  constexpr auto kernel = forElements_SlicedEllpack_PerElement_If<
                      ConstViewType,
                      IndexType,
                      std::remove_reference_t< Condition >,

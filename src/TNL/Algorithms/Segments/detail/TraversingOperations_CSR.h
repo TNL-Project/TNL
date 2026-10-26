@@ -7,7 +7,8 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "CSRHostScheduling.h"
-#include "TraversingKernels_CSR.h"
+#include "TraversingKernels_CSR_PerElement.h"
+#include "TraversingKernels_CSR_Tiered.h"
 #include "TraversingKernels_CSR_Uniform.h"
 #include "TraversingOperationsBase.h"
 
@@ -111,8 +112,8 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          }
          else {
             std::size_t threadsCount = end - begin;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
-                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
             {
                launchConfig.blockSize.x = 256;
             }
@@ -146,14 +147,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      condition,
                      function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
                   constexpr auto kernel =
-                     forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
+                     forElements_CSR_PerElement< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
                   constexpr auto kernel =
-                     forElementsDynamicGroupingKernel_CSR< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
+                     forElements_CSR_Tiered< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                }
                else {
@@ -238,8 +239,8 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
-                     || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement
+                     || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
             {
                launchConfig.blockSize.x = 256;
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
@@ -265,12 +266,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      segmentIndexesView,
                      function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
                         {
                            constexpr int SegmentsPerBlock = 256;
-                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
                               ConstOffsetsView,
                               typename Array::ConstViewType,
                               IndexType,
@@ -283,7 +284,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      case 2:
                         {
                            constexpr int SegmentsPerBlock = 128;
-                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
                               ConstOffsetsView,
                               typename Array::ConstViewType,
                               IndexType,
@@ -296,7 +297,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      case 4:
                         {
                            constexpr int SegmentsPerBlock = 64;
-                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
                               ConstOffsetsView,
                               typename Array::ConstViewType,
                               IndexType,
@@ -309,7 +310,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      case 8:
                         {
                            constexpr int SegmentsPerBlock = 32;
-                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
                               ConstOffsetsView,
                               typename Array::ConstViewType,
                               IndexType,
@@ -323,8 +324,8 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                         throw std::invalid_argument( "Unsupported threads per segment count for CSR segments." );
                   }
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = detail::forElementsWithSegmentIndexesDynamicGroupingKernel_CSR<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
+                  constexpr auto kernel = detail::forElements_CSR_Tiered_WithIndexes<
                      ConstOffsetsView,
                      typename Array::ConstViewType,
                      IndexType,
@@ -441,8 +442,8 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      condition,
                      function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsIfBlockMergeKernel_CSR<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+                  constexpr auto kernel = forElements_CSR_PerElement_If<
                      ConstOffsetsView,
                      IndexType,
                      std::remove_reference_t< Condition >,
@@ -452,8 +453,8 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = forElementsIfDynamicGroupingKernel_CSR<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
+                  constexpr auto kernel = forElements_CSR_Tiered_If<
                      ConstOffsetsView,
                      IndexType,
                      std::remove_reference_t< Condition >,

@@ -6,6 +6,7 @@
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include "TraversingKernels_Ellpack.h"
+#include "TraversingKernels_Ellpack_PerElement.h"
 #include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
@@ -94,7 +95,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
                threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
 
             dim3 blocksCount;
@@ -126,8 +127,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      condition,
                      function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsBlockMergeKernel_Ellpack<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+                  constexpr auto kernel = forElements_Ellpack_PerElement<
                      ViewType,
                      IndexType,
                      std::remove_reference_t< Function >,
@@ -224,7 +225,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
                threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
 
             dim3 blocksCount;
@@ -250,8 +251,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      segmentIndexesView,
                      function );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsWithSegmentIndexesBlockMergeKernel_Ellpack<
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+                  constexpr auto kernel = forElements_Ellpack_PerElement_WithIndexes<
                      ViewType,
                      typename Array::ConstViewType,
                      IndexType,
@@ -387,8 +388,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      condition,
                      function );
                }
-               else {  // BlockMerge mapping - this mapping is currently the default one
-                  constexpr auto kernel = forElementsIfBlockMergeKernel_Ellpack<
+               else {  // PerElement mapping - this mapping is currently the default one
+                  constexpr auto kernel = forElements_Ellpack_PerElement_If<
                      ViewType,
                      IndexType,
                      std::remove_reference_t< Condition >,

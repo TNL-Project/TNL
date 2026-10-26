@@ -14,12 +14,32 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Kernel for the DynamicGrouping thread mapping.
+ * \brief Kernel for the Tiered thread mapping, reducing a contiguous range of segments.
  *
- * Segments larger than the block are scheduled one at a time to the whole block via atomic CAS,
- * segments larger than a warp but small enough to fit into the block are scheduled to individual
- * warps via an atomic counter, and the remaining (warp-sized or smaller) segments are each
- * processed by a single warp directly.
+ * Every block initially owns `BlockSize / threadsPerSegment` consecutive segments, one per thread
+ * (the remaining threads of the block own no segment and only help with the larger tiers). The
+ * segments owned by a block are then processed in three tiers according to their size:
+ *
+ * 1. Segments larger than the block are processed one at a time by the whole block. The next such
+ *    segment is picked via an atomic CAS on a shared variable, its elements are strided over all
+ *    threads of the block and the partial results are combined by a block-wide reduction.
+ * 2. Segments larger than a warp but not larger than the block are registered in a shared queue via
+ *    an atomic counter and the warps of the block take them from the queue one by one. Each segment
+ *    is reduced by a single warp using warp shuffles.
+ * 3. Segments not larger than a warp are reduced sequentially by the thread that owns them.
+ *
+ * Unlike \ref reduceSegments_CSR_Uniform, the number of threads working on a segment is thus decided
+ * at run time inside the kernel from the actual segment size, which balances the work for segments of
+ * very different sizes without any preprocessing. This is the run-time counterpart of the Adaptive
+ * mapping of AdaptiveCSR, which assigns the segments to the blocks in advance on the host.
+ *
+ * The strategy follows the thread/warp/CTA (TWC) gathering of
+ *
+ * D. Merrill, M. Garland, and A. Grimshaw, "Scalable GPU graph traversal," Proceedings of the 17th ACM SIGPLAN
+ * Symposium on Principles and Practice of Parallel Programming (PPoPP '12), New Orleans, LA, USA, 2012, pp. 117-128.
+ *
+ * with the difference that the smallest segments are processed sequentially by a single thread
+ * instead of the scan-based fine-grained gathering used in the paper.
  */
 template<
    typename Segments,
@@ -31,7 +51,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernel(
+reduceSegments_CSR_Tiered(
    int gridIdx,
    const Index threadsPerSegment,
    const Segments segments,
@@ -185,8 +205,13 @@ reduceSegmentsCSRDynamicGroupingKernel(
 #endif
 }
 
-// Reduction with segment indexes
-
+/**
+ * \brief Kernel for the Tiered thread mapping, reducing the segments given explicitly by
+ * \e segmentIndexes.
+ *
+ * Every thread initially owns one entry of \e segmentIndexes instead of one segment of a contiguous
+ * range; otherwise it works the same way as \ref reduceSegments_CSR_Tiered.
+ */
 template<
    typename Segments,
    typename ArrayView,
@@ -198,7 +223,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
+reduceSegments_CSR_Tiered_WithIndexes(
    int gridIdx,
    const Index threadsPerSegment,
    const Segments segments,
@@ -356,8 +381,13 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
 #endif
 }
 
-// Reduction with argument
-
+/**
+ * \brief Kernel for the Tiered thread mapping, reducing a contiguous range of segments and
+ * computing also the position of the result (e.g. the argument of the minimum) within each segment.
+ *
+ * It works the same way as \ref reduceSegments_CSR_Tiered, only the reduction carries the local
+ * index of the element together with the partial result.
+ */
 template<
    typename Segments,
    typename Index,
@@ -368,7 +398,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernelWithArgument(
+reduceSegments_CSR_Tiered_WithArgument(
    int gridIdx,
    const Index threadsPerSegment,
    const Segments segments,
@@ -523,8 +553,13 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument(
 #endif
 }
 
-// Reduction with segment indexes and argument
-
+/**
+ * \brief Kernel for the Tiered thread mapping, reducing the segments given explicitly by
+ * \e segmentIndexes and computing also the position of the result within each segment.
+ *
+ * It combines \ref reduceSegments_CSR_Tiered_WithIndexes and
+ * \ref reduceSegments_CSR_Tiered_WithArgument.
+ */
 template<
    typename Segments,
    typename ArrayView,
@@ -536,7 +571,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
+reduceSegments_CSR_Tiered_WithIndexesAndArgument(
    int gridIdx,
    const Index threadsPerSegment,
    const Segments segments,

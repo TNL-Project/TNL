@@ -36,8 +36,8 @@ Each format is benchmarked with the following operations:
 - `reduceSegmentIf` – conditional sum reduction, with strides 2, 4, and 8
 
 Each operation is timed with all kernel launch configurations supported by the given format. These are
-referred to as threads mappings, for example fixed numbers of threads per segment (1 to 256 TPS),
-block-merged mappings, or dynamic grouping. Reduction results are verified against the expected segment sizes.
+referred to as threads mappings, for example uniform numbers of threads per segment (1 to 256 TPS),
+per-element mappings, or tiered mappings. Reduction results are verified against the expected segment sizes.
 
 ## Segments setups
 

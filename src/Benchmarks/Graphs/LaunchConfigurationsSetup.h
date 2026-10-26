@@ -37,11 +37,10 @@ struct LaunchConfigurationsSetup< TNL::Algorithms::Segments::CSR< Device, Index,
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UniformWarp, 1 ),
               "UniformWarp per segment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 8 ),
-              "BlockMerged 8 TPS" }
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 2 ), "PerElement 2 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 8 ), "PerElement 8 TPS" }
          };
    }
 };
