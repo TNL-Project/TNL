@@ -98,8 +98,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
+         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
+         // Adaptive mapping (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
+         // so it resolves to the Default mapping as well.
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
+             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
+         {
             launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
@@ -219,8 +223,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
+         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
+         // Adaptive mapping (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
+         // so it resolves to the Default mapping as well.
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
+             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
+         {
             launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
@@ -396,8 +404,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             return;
 
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
+         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
+         // Adaptive mapping (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
+         // so it resolves to the Default mapping as well.
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
+             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
+         {
             launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
          }
