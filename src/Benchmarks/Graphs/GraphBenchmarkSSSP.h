@@ -265,7 +265,7 @@ public:
             digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
          benchmark.setMetadataElement( { "problem", "Semiring SSSP dir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
-         benchmark.setMetadataElement( { "launch cfg.", "1 TPS" } );
+         benchmark.setMetadataElement( { "launch cfg.", "Default" } );
 
          auto semiring_sssp_dir = [ & ]() mutable
          {
@@ -286,7 +286,7 @@ public:
             graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
          benchmark.setMetadataElement( { "problem", "Semiring SSSP undir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
-         benchmark.setMetadataElement( { "launch cfg.", "1 TPS" } );
+         benchmark.setMetadataElement( { "launch cfg.", "Default" } );
 
          auto semiring_sssp_undir = [ & ]() mutable
          {

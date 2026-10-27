@@ -197,20 +197,21 @@ def get_launch_configurations(input_df, kernels, problems):
                 for kernel in kernels:
                     if (problem, solver, device, kernel) in launch_configs:
                         order = {
-                            "1 TPS": 0,
-                            "2 TPS": 1,
-                            "4 TPS": 2,
-                            "8 TPS": 3,
-                            "16 TPS": 4,
-                            "32 TPS": 5,
-                            "64 TPS": 6,
-                            "128 TPS": 7,
-                            "256 TPS": 8,
-                            "PerElement 1 TPS": 9,
-                            "PerElement 2 TPS": 10,
-                            "PerElement 4 TPS": 11,
-                            "PerElement 8 TPS": 12,
-                            "Tiered 1 TPS": 13,
+                            "Default": 0,
+                            "1 TPS": 1,
+                            "2 TPS": 2,
+                            "4 TPS": 3,
+                            "8 TPS": 4,
+                            "16 TPS": 5,
+                            "32 TPS": 6,
+                            "64 TPS": 7,
+                            "128 TPS": 8,
+                            "256 TPS": 9,
+                            "PerElement 1 TPS": 10,
+                            "PerElement 2 TPS": 11,
+                            "PerElement 4 TPS": 12,
+                            "PerElement 8 TPS": 13,
+                            "Tiered 1 TPS": 14,
                         }
                         launch_configs[(problem, solver, device, kernel)].sort(
                             key=lambda d: order.get(d, len(order))
