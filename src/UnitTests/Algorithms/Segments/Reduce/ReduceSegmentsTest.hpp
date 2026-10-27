@@ -126,9 +126,11 @@ test_reduceSegments_LongSegments()
          } );
 
       const auto v_view = v.getConstView();
+      // The value is fetched only if the local index passed to the fetch matches the global
+      // index, so a wrong local index makes the maximum smaller than the segment size.
       auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
       {
-         return TNL::max( v_view[ globalIdx ], 0 );
+         return v_view[ globalIdx ] == localIdx + 1 ? v_view[ globalIdx ] : 0;
       };
 
       VectorType result( segmentsCount, -1 );
