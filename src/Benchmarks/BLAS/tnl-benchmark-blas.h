@@ -112,7 +112,6 @@ runBlasBenchmarks( Benchmark& benchmark, const Config::ParameterContainer& param
    }
 
    // Triad benchmark: copy from host, compute, copy to host
-#if defined( __CUDACC__ ) || defined( __HIP__ )
    if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       std::cout << "\n== Triad (" << deviceName << ") ==\n\n";
       for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
@@ -125,7 +124,6 @@ runBlasBenchmarks( Benchmark& benchmark, const Config::ParameterContainer& param
          benchmarkTriad< Real >( benchmark, size );
       }
    }
-#endif
 }
 
 template< typename Real >
