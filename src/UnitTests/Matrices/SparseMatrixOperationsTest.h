@@ -53,6 +53,23 @@ TYPED_TEST( SparseMatrixOperationsTest, copySparseToSparseMatrixWithDifferentDev
    }
 }
 
+TYPED_TEST( SparseMatrixOperationsTest, copySparseMatrixElementsAcrossDevicesInChunks )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+   using SymmetricMatrixType = typename TestFixture::SymmetricMatrixType;
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+
+   // In host builds, Sequential serves as the other device, so the copy across devices is tested as well
+   using OtherDeviceType =
+      std::conditional_t< std::is_same_v< DeviceType, TNL::Devices::Host >, TNL::Devices::Sequential, TNL::Devices::Host >;
+   using OtherMatrixType = typename MatrixType::template Self< RealType, OtherDeviceType >;
+   using OtherSymmetricMatrixType = typename SymmetricMatrixType::template Self< RealType, OtherDeviceType >;
+
+   copySparseMatrixElementsAcrossDevicesInChunks_test< OtherMatrixType, MatrixType, OtherSymmetricMatrixType >();
+   copySparseMatrixElementsAcrossDevicesInChunks_test< MatrixType, OtherMatrixType, SymmetricMatrixType >();
+}
+
 TYPED_TEST( SparseMatrixOperationsTest, assignmentOperator )
 {
    using MatrixType = typename TestFixture::MatrixType;

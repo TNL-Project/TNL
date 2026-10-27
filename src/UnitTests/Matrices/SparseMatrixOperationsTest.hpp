@@ -509,6 +509,70 @@ copySparseToSparseMatrixWithDifferentDevice_test()
    }
 }
 
+template< typename TargetMatrix, typename SourceMatrix >
+void
+copySparseMatrixElementsAcrossDevicesInChunks_check( const SourceMatrix& source, bool symmetricToGeneral )
+{
+   using IndexType = typename SourceMatrix::IndexType;
+   using SourceDeviceType = typename SourceMatrix::DeviceType;
+   using ExpectedMatrix = typename TargetMatrix::template Self< typename TargetMatrix::RealType, SourceDeviceType >;
+
+   // The copy on the same device serves as the reference
+   ExpectedMatrix expected;
+   expected = source;
+   TNL::Containers::Vector< IndexType, SourceDeviceType, IndexType > rowCapacities;
+   expected.getRowCapacities( rowCapacities );
+
+   for( IndexType chunkSize : { 1, 2, 3, 5, 100 } ) {
+      TargetMatrix target;
+      target.setDimensions( expected.getRows(), expected.getColumns() );
+      target.setRowCapacities( rowCapacities );
+      target.getColumnIndexes() = TNL::Matrices::paddingIndex< IndexType >;
+      TNL::Matrices::detail::copySparseMatrixElementsAcrossDevices( target, source, false, symmetricToGeneral, chunkSize );
+
+      for( IndexType rowIdx = 0; rowIdx < expected.getRows(); rowIdx++ )
+         for( IndexType columnIdx = 0; columnIdx < expected.getColumns(); columnIdx++ )
+            EXPECT_EQ( target.getElement( rowIdx, columnIdx ), expected.getElement( rowIdx, columnIdx ) )
+               << "chunkSize = " << chunkSize << ", rowIdx = " << rowIdx << ", columnIdx = " << columnIdx;
+   }
+}
+
+template< typename SourceMatrix, typename TargetMatrix, typename SourceSymmetricMatrix >
+void
+copySparseMatrixElementsAcrossDevicesInChunks_test()
+{
+   // Create sparse source matrix with empty rows, an explicit zero and a long row, so that the matrix is
+   // split into chunks in various ways
+   // clang-format off
+   // /  1  0  0  2  0  0  0  0  0 |
+   // |  0  0  0  0  0  0  0  0  0 |
+   // |  3  0  4  0  0  0  0  0  5 |
+   // |  6  7  8  9 10 11 12 13 14 |
+   // |  0  0  0  0 15  0  0  0  0 |
+   // |  0  0  0  0  0  0  0  0  0 |
+   // |  0  0 16  0  0  0 17  0  0 |
+   // |  0  0  0  0  0  0  0 18  0 |
+   // \  0 19  0  0  0  0  0  0 20 /
+   SourceMatrix source( 9, 9,
+   { { 0, 0,  1 },                                         { 0, 3,  2 },
+     { 2, 0,  3 }, { 2, 1,  0 }, { 2, 2,  4 },                                                                                     { 2, 8,  5 },
+     { 3, 0,  6 }, { 3, 1,  7 }, { 3, 2,  8 }, { 3, 3,  9 }, { 3, 4, 10 }, { 3, 5, 11 }, { 3, 6, 12 }, { 3, 7, 13 }, { 3, 8, 14 },
+                                                             { 4, 4, 15 },
+                                 { 6, 2, 16 },                                           { 6, 6, 17 },
+                                                                                                       { 7, 7, 18 },
+                   { 8, 1, 19 },                                                                                                   { 8, 8, 20 } } );
+   // clang-format on
+
+   copySparseMatrixElementsAcrossDevicesInChunks_check< TargetMatrix >( source, false );
+
+   if constexpr( ! std::is_same_v< typename SourceSymmetricMatrix::RealType, long > ) {
+      // Reconstruct the upper part from a symmetric matrix storing the lower part of the source matrix
+      SourceSymmetricMatrix symmetricSource;
+      symmetricSource = source;
+      copySparseMatrixElementsAcrossDevicesInChunks_check< TargetMatrix >( symmetricSource, true );
+   }
+}
+
 template< typename Matrix, typename SymmetricMatrix >
 void
 assignmentOperator_test()
