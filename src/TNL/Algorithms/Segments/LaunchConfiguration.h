@@ -21,8 +21,6 @@ enum class ThreadsToSegmentsMapping : std::uint8_t
    Default,
    //! \brief The same number of threads (the threads per segment count) is assigned to every segment.
    Uniform,
-   //! \brief One warp of threads is assigned to every segment.
-   UniformWarp,
    //! \brief The threads are assigned to the elements of the segments processed by a block, regardless of
    //! the segment boundaries.
    PerElement,

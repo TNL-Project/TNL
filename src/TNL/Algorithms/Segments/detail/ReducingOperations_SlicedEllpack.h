@@ -137,8 +137,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
          std::size_t sliceCount = end / SliceSize + ( end % SliceSize != 0 ) - begin / SliceSize;
          TNL_ASSERT_LE( sliceCount, (std::size_t) segments.getSliceSegmentSizesView().getSize(), "Too many slices." );
          std::size_t threadsCount = sliceCount * ConstViewType::getSliceSize();
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UniformWarp )
-            threadsCount *= warpSize;
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
             threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 

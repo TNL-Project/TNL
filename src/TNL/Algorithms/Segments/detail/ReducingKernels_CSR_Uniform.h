@@ -12,7 +12,7 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Kernel for the Uniform and UniformWarp thread mappings.
+ * \brief Kernel for the Uniform thread mapping.
  *
  * A fixed number of threads (\e ThreadsPerSegment) is assigned to every segment regardless of
  * its size, and \e ThreadsPerSegment fits into a single warp, so the partial results can be

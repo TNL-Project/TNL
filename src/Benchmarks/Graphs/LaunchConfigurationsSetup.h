@@ -32,16 +32,18 @@ struct LaunchConfigurationsSetup< TNL::Algorithms::Segments::CSR< Device, Index,
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" }
          };
-      else
+      else {
+         LaunchConfiguration warpPerSegment( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Uniform, 1 );
+         warpPerSegment.setThreadsPerSegmentCountToWarpSize();
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UniformWarp, 1 ),
-              "UniformWarp per segment" },
+            { warpPerSegment, "Warp per segment" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 2 ), "PerElement 2 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::PerElement, 8 ), "PerElement 8 TPS" }
          };
+      }
    }
 };
 
