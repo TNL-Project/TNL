@@ -40,6 +40,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "BiEllpack" );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
@@ -125,6 +126,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "BiEllpack" );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -224,6 +226,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "BiEllpack" );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
@@ -315,6 +318,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "BiEllpack" );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
