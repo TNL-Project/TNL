@@ -49,6 +49,7 @@ threads_mappings_translation = {
     "": "",
     "Single": "Single",
     "N/A": "N/A",
+    "Default": "Default",
     "1 TPS": "Single",
     "2 TPS": "2 TPS",
     "4 TPS": "4 TPS",
