@@ -58,7 +58,7 @@ reduceSegments_AdaptiveCSR(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+   constexpr int BlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
    constexpr int WarpSize = Backend::getWarpSize();
    constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
    constexpr std::size_t StreamedSharedElementsPerWarp =
@@ -66,14 +66,14 @@ reduceSegments_AdaptiveCSR(
 
    // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
    __shared__ Backend::Uninitialized< ReturnType > streamShared[ WarpsCount ][ StreamedSharedElementsPerWarp ];
-   __shared__ Backend::Uninitialized< ReturnType > multivectorShared[ CudaBlockSize / WarpSize ];
+   __shared__ Backend::Uninitialized< ReturnType > multivectorShared[ BlockSize / WarpSize ];
 
    const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
    const Index blockIdx = index / WarpSize;
    if( blockIdx >= blocks.getSize() - 1 )
       return;
 
-   if( threadIdx.x < CudaBlockSize / WarpSize )
+   if( threadIdx.x < BlockSize / WarpSize )
       multivectorShared[ threadIdx.x ] = identity;
    __syncthreads();
    ReturnType result = identity;
@@ -158,7 +158,7 @@ reduceSegments_AdaptiveCSR(
       __syncthreads();
       // Reduction in multivectorShared using warp-level shuffle
       if( block.getWarpIdx() == 0 ) {
-         constexpr int totalWarps = CudaBlockSize / WarpSize;
+         constexpr int totalWarps = BlockSize / WarpSize;
          auto myValue = ( laneIdx < totalWarps ) ? multivectorShared[ laneIdx ].get() : identity;
          myValue = BlockReduce::warpReduce( reduction, myValue );
          if( laneIdx == 0 )
@@ -194,7 +194,7 @@ reduceSegments_AdaptiveCSR_WithArgument(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+   constexpr int BlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
    constexpr int WarpSize = Backend::getWarpSize();
    constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
    constexpr std::size_t StreamedSharedElementsPerWarp =
@@ -202,15 +202,15 @@ reduceSegments_AdaptiveCSR_WithArgument(
 
    // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables
    __shared__ Backend::Uninitialized< ReturnType > streamShared_result[ WarpsCount ][ StreamedSharedElementsPerWarp ];
-   __shared__ Backend::Uninitialized< ReturnType > multivectorShared_result[ CudaBlockSize / WarpSize ];
-   __shared__ Index multivectorShared_argument[ CudaBlockSize / WarpSize ];
+   __shared__ Backend::Uninitialized< ReturnType > multivectorShared_result[ BlockSize / WarpSize ];
+   __shared__ Index multivectorShared_argument[ BlockSize / WarpSize ];
 
    const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
    const Index blockIdx = index / WarpSize;
    if( blockIdx >= blocks.getSize() - 1 )
       return;
 
-   if( threadIdx.x < CudaBlockSize / WarpSize )
+   if( threadIdx.x < BlockSize / WarpSize )
       multivectorShared_result[ threadIdx.x ] = identity;
    __syncthreads();
    ReturnType result = identity;
@@ -309,7 +309,7 @@ reduceSegments_AdaptiveCSR_WithArgument(
       __syncthreads();
       // Reduction in multivectorShared using warp-level shuffle
       if( block.getWarpIdx() == 0 ) {
-         constexpr int totalWarps = CudaBlockSize / WarpSize;
+         constexpr int totalWarps = BlockSize / WarpSize;
          auto myResult = ( laneIdx < totalWarps ) ? multivectorShared_result[ laneIdx ].get() : identity;
          auto myArgument = ( laneIdx < totalWarps ) ? multivectorShared_argument[ laneIdx ] : Index{};
          auto [ reducedResult, reducedArgument ] = BlockReduce::warpReduceWithArgument( reduction, myResult, myArgument );

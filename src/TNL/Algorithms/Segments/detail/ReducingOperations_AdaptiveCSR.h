@@ -55,7 +55,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
 
          using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
          Backend::LaunchConfiguration launch_config;
-         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
          constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
          // Fill blocks
@@ -127,7 +127,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
 
          using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
          Backend::LaunchConfiguration launch_config;
-         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
          constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
          // Fill blocks

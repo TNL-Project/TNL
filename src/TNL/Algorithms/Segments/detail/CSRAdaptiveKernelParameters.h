@@ -7,9 +7,9 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-// This can be used for tuning the number of CUDA threads per block depending on the size of Value
+// This can be used for tuning the number of threads per block depending on the size of Value
 // TODO: Perform some tests
-static constexpr int CSRAdaptiveKernelParametersCudaBlockSizes[] = { 256, 256, 256, 256, 256, 256 };
+static constexpr int CSRAdaptiveKernelParametersBlockSizes[] = { 256, 256, 256, 256, 256, 256 };
 
 template< int SizeOfValue = 1, int StreamedSharedMemory_ = 24576 >
 struct CSRAdaptiveKernelParameters
@@ -30,14 +30,14 @@ struct CSRAdaptiveKernelParameters
    static_assert( SizeOfValueLog < MaxValueSizeLog, "Parameter SizeOfValue is too large." );
 
    /**
-    * \brief Computes number of CUDA threads per block depending on Value type.
+    * \brief Computes number of threads per block depending on Value type.
     *
-    * \return CUDA block size.
+    * \return Block size.
     */
    static constexpr int
-   CudaBlockSize()
+   BlockSize()
    {
-      return CSRAdaptiveKernelParametersCudaBlockSizes[ SizeOfValueLog ];
+      return CSRAdaptiveKernelParametersBlockSizes[ SizeOfValueLog ];
    }
    //{ return SizeOfValue == 8 ? 128 : 256; };
 
@@ -62,7 +62,7 @@ struct CSRAdaptiveKernelParameters
    }
 
    /**
-    * \brief Computes number of warps in one CUDA block.
+    * \brief Computes number of warps in one block.
     *
     * Warning: `Backend::getWarpSize()` is only correct during device compilation.
     * On HIP host, it returns 32 even for wavefront=64 GPUs. This function is
@@ -72,7 +72,7 @@ struct CSRAdaptiveKernelParameters
    [[nodiscard]] static constexpr std::size_t
    WarpsCount()
    {
-      return CudaBlockSize() / Backend::getWarpSize();
+      return BlockSize() / Backend::getWarpSize();
    }
 
    /**

@@ -81,13 +81,14 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end
-         const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const IndexType blocksCount = segments.getNumberOfSlices();
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          launch_config.blockSize.x = segments.getChunksInSlice();
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = reduceSegments_ChunkedEllpack<
                ConstSegmentsView,
@@ -164,13 +165,14 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters the size of segmentIndexes
-         const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const IndexType blocksCount = segments.getNumberOfSlices();
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          launch_config.blockSize.x = segments.getChunksInSlice();
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = reduceSegments_ChunkedEllpack_WithIndexes<
                ConstSegmentsView,
@@ -262,8 +264,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end
-         const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const IndexType blocksCount = segments.getNumberOfSlices();
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          launch_config.blockSize.x = segments.getChunksInSlice();
 
          // Must match the alignment padding in reduceSegments_ChunkedEllpack_WithArgument
@@ -272,8 +275,8 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          const std::size_t argumentsOffset = ( resultsBytes + alignof( IndexType ) - 1 ) & ~( alignof( IndexType ) - 1 );
          launch_config.dynamicSharedMemorySize = argumentsOffset + launch_config.blockSize.x * sizeof( IndexType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = reduceSegments_ChunkedEllpack_WithArgument<
                ConstSegmentsView,
@@ -357,13 +360,14 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end
-         const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const IndexType blocksCount = segments.getNumberOfSlices();
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          launch_config.blockSize.x = segments.getChunksInSlice();
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = reduceSegments_ChunkedEllpack_WithIndexesAndArgument<
                ConstSegmentsView,

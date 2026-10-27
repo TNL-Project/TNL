@@ -204,11 +204,11 @@ AdaptiveCSR< Device, Index, IndexAllocator >::initValueSize( const Offsets& offs
       nextStart = findLimit< SizeOfValue >( start, hostOffsets, rows, type );
       if( type == detail::Type::LONG ) {
          const Index blocksCount = inBlocks.size();
-         const Index warpsPerCudaBlock =
-            detail::CSRAdaptiveKernelParameters< SizeOfValue >::CudaBlockSize() / Backend::getWarpSize( Backend::getDevice() );
-         Index warpsLeft = roundUpDivision( blocksCount, warpsPerCudaBlock ) * warpsPerCudaBlock - blocksCount;
+         const Index warpsPerBlock =
+            detail::CSRAdaptiveKernelParameters< SizeOfValue >::BlockSize() / Backend::getWarpSize( Backend::getDevice() );
+         Index warpsLeft = roundUpDivision( blocksCount, warpsPerBlock ) * warpsPerBlock - blocksCount;
          if( warpsLeft == 0 )
-            warpsLeft = warpsPerCudaBlock;
+            warpsLeft = warpsPerBlock;
          for( Index index = 0; index < warpsLeft; index++ )
             inBlocks.emplace_back( start, detail::Type::LONG, index, warpsLeft );
       }
