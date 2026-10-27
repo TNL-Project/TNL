@@ -88,7 +88,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernel<
+            constexpr auto kernel = reduceSegments_ChunkedEllpack<
                ConstSegmentsView,
                IndexType,
                std::remove_reference_t< Fetch >,
@@ -170,7 +170,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexes<
+            constexpr auto kernel = reduceSegments_ChunkedEllpack_WithIndexes<
                ConstSegmentsView,
                ArrayView,
                IndexType,
@@ -263,7 +263,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
          launch_config.blockSize.x = segments.getChunksInSlice();
 
-         // Must match the alignment padding in ChunkedEllpackReduceSegmentsKernelWithArgument
+         // Must match the alignment padding in reduceSegments_ChunkedEllpack_WithArgument
          // (value + align-1) rounds up, & ~(align-1) clears low bits to align boundary
          const std::size_t resultsBytes = launch_config.blockSize.x * sizeof( ReturnType );
          const std::size_t argumentsOffset = ( resultsBytes + alignof( IndexType ) - 1 ) & ~( alignof( IndexType ) - 1 );
@@ -272,7 +272,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithArgument<
+            constexpr auto kernel = reduceSegments_ChunkedEllpack_WithArgument<
                ConstSegmentsView,
                IndexType,
                std::remove_reference_t< Fetch >,
@@ -361,7 +361,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
             launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument<
+            constexpr auto kernel = reduceSegments_ChunkedEllpack_WithIndexesAndArgument<
                ConstSegmentsView,
                ArrayView,
                IndexType,

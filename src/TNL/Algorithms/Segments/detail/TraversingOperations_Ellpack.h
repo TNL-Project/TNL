@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
-#include "TraversingKernels_Ellpack.h"
+#include "TraversingKernels_Ellpack_Uniform.h"
 #include "TraversingKernels_Ellpack_PerElement.h"
 #include "TraversingOperationsBase.h"
 
@@ -109,7 +109,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                   {
                      return true;
                   };
-                  constexpr auto kernel = forElementsIfKernel_Ellpack<
+                  constexpr auto kernel = forElements_Ellpack_Uniform_If<
                      ViewType,
                      IndexType,
                      decltype( condition ),
@@ -235,7 +235,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = forElementsWithSegmentIndexesKernel_Ellpack<
+                  constexpr auto kernel = forElements_Ellpack_Uniform_WithIndexes<
                      ViewType,
                      typename Array::ConstViewType,
                      IndexType,
@@ -370,7 +370,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = forElementsIfKernel_Ellpack<
+                  constexpr auto kernel = forElements_Ellpack_Uniform_If<
                      ViewType,
                      IndexType,
                      std::remove_reference_t< Condition >,

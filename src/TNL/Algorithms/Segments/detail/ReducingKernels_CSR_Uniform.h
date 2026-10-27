@@ -99,7 +99,7 @@ reduceSegments_CSR_Uniform(
  * warp of the group performs a second warp-shuffle reduction over them to produce the final
  * result - hence "MultipleWarps": several single-warp reductions combined into one.
  *
- * This is conceptually similar to the \c Type::LONG case of \ref reduceSegmentsCSRAdaptiveKernel,
+ * This is conceptually similar to the \c Type::LONG case of \ref reduceSegments_AdaptiveCSR,
  * which also lets several warps cooperate on one segment through shared memory. The difference
  * is that here the number of warps per segment is a compile-time constant applied uniformly to
  * every segment processed by this kernel launch (chosen ahead of time from the average segment

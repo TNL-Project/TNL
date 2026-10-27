@@ -8,7 +8,7 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "FetchLambdaAdapter.h"
 #include "ReducingOperationsBase.h"
-#include "ReducingKernels_SlicedEllpack.h"
+#include "ReducingKernels_SlicedEllpack_Uniform.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
@@ -154,7 +154,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 2, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                           constexpr auto kernel = reduceSegments_SlicedEllpack_Uniform<
                               256,
                               2,
                               ConstViewType,
@@ -192,7 +192,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 4, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                           constexpr auto kernel = reduceSegments_SlicedEllpack_Uniform<
                               256,
                               4,
                               ConstViewType,
@@ -231,7 +231,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 8, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                           constexpr auto kernel = reduceSegments_SlicedEllpack_Uniform<
                               256,
                               8,
                               ConstViewType,
@@ -270,7 +270,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 16, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                           constexpr auto kernel = reduceSegments_SlicedEllpack_Uniform<
                               256,
                               16,
                               ConstViewType,
@@ -309,7 +309,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 32, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                           constexpr auto kernel = reduceSegments_SlicedEllpack_Uniform<
                               256,
                               32,
                               ConstViewType,
@@ -356,7 +356,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                               + std::to_string( warpSize ) + "." );
                         }
                         else if constexpr( SlicedEllpackReductionSupported< ConstViewType, 64, 256 >() ) {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                           constexpr auto kernel = reduceSegments_SlicedEllpack_Uniform<
                               256,
                               64,
                               ConstViewType,

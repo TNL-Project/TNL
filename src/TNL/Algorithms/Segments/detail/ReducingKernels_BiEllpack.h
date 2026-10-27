@@ -21,7 +21,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsKernelWithAllParameters(
+reduceSegments_BiEllpack_WithAllParameters_impl(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -77,7 +77,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsKernel(
+reduceSegments_BiEllpack_impl(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -200,7 +200,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernel(
+reduceSegments_BiEllpack(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -211,9 +211,10 @@ BiEllpackReduceSegmentsKernel(
    Value identity )
 {
    if constexpr( callableArgumentCount< Fetch >() == 3 )
-      reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
+      reduceSegments_BiEllpack_WithAllParameters_impl< BlockDim >(
+         segments, gridIdx, begin, end, fetch, reduction, storer, identity );
    else
-      reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
+      reduceSegments_BiEllpack_impl< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
 template<
@@ -227,7 +228,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithIndexes(
+reduceSegments_BiEllpack_WithIndexes(
    SegmentsView segments,
    ArrayView segmentIndexes,
    Index gridIdx,
@@ -289,7 +290,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsKernelWithAllParametersWithArgument(
+reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -358,7 +359,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithArgument(
+reduceSegments_BiEllpack_WithArgument(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -369,7 +370,7 @@ BiEllpackReduceSegmentsKernelWithArgument(
    Value identity )
 {
    //Currently we do not have specialized kernel for short fetch with argument
-   reduceSegmentsKernelWithAllParametersWithArgument< BlockDim >(
+   reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl< BlockDim >(
       segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
@@ -384,7 +385,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithIndexesAndArgument(
+reduceSegments_BiEllpack_WithIndexesAndArgument(
    SegmentsView segments,
    ArrayView segmentIndexes,
    Index gridIdx,

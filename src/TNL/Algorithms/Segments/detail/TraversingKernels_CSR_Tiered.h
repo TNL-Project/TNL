@@ -28,7 +28,7 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __device__
 void
-traverseSegments_CSR_Tiered( const OffsetsView offsets, bool traverse_segment, const Index segmentIdx, Function function )
+forElements_CSR_Tiered_impl( const OffsetsView offsets, bool traverse_segment, const Index segmentIdx, Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    constexpr Index warpSize = Backend::getWarpSize();
@@ -139,7 +139,7 @@ traverseSegments_CSR_Tiered( const OffsetsView offsets, bool traverse_segment, c
  * \brief Kernel for the Tiered thread mapping, traversing a contiguous range of segments.
  *
  * Every thread owns one segment of the range [\e begin, \e end) and the segments are traversed by
- * \ref traverseSegments_CSR_Tiered.
+ * \ref forElements_CSR_Tiered_impl.
  */
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __global__
@@ -150,7 +150,7 @@ forElements_CSR_Tiered( const Index gridIdx, const OffsetsView offsets, const In
    const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
    bool traverse_segment = ( segmentIdx < end );
 
-   traverseSegments_CSR_Tiered( offsets, traverse_segment, segmentIdx, function );
+   forElements_CSR_Tiered_impl( offsets, traverse_segment, segmentIdx, function );
 #endif
 }
 
@@ -159,7 +159,7 @@ forElements_CSR_Tiered( const Index gridIdx, const OffsetsView offsets, const In
  * \e segmentIndexes.
  *
  * Every thread owns one entry of \e segmentIndexes and the segments are traversed by
- * \ref traverseSegments_CSR_Tiered.
+ * \ref forElements_CSR_Tiered_impl.
  */
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int BlockSize = 256 >
 __global__
@@ -185,7 +185,7 @@ forElements_CSR_Tiered_WithIndexes(
       traverse_segment = true;
    }
 
-   traverseSegments_CSR_Tiered( offsets, traverse_segment, segmentIdx, function );
+   forElements_CSR_Tiered_impl( offsets, traverse_segment, segmentIdx, function );
 #endif
 }
 
@@ -194,7 +194,7 @@ forElements_CSR_Tiered_WithIndexes(
  * satisfy \e condition.
  *
  * Every thread owns one segment of the range [\e begin, \e end) and evaluates \e condition for it;
- * only the segments satisfying the condition are passed to \ref traverseSegments_CSR_Tiered.
+ * only the segments satisfying the condition are passed to \ref forElements_CSR_Tiered_impl.
  */
 template< typename OffsetsView, typename Index, typename Condition, typename Function, int BlockSize = 256 >
 __global__
@@ -216,7 +216,7 @@ forElements_CSR_Tiered_If(
       traverse_segment = condition( segmentIdx );
    }
 
-   traverseSegments_CSR_Tiered( offsets, traverse_segment, segmentIdx, function );
+   forElements_CSR_Tiered_impl( offsets, traverse_segment, segmentIdx, function );
 #endif
 }
 

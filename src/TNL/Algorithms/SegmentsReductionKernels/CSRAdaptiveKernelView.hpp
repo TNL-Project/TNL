@@ -93,7 +93,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments(
          OffsetsView offsets = segments.getOffsets();
 
          constexpr auto kernel = Segments::detail::
-            reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
+            reduceSegments_AdaptiveCSR< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
          Backend::launchKernelAsync( kernel, launch_config, blocks, gridIdx, offsets, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );

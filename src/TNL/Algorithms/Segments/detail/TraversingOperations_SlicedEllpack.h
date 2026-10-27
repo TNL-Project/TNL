@@ -6,7 +6,7 @@
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include "TraversingKernels_SlicedEllpack.h"
+#include "TraversingKernels_SlicedEllpack_Uniform.h"
 #include "TraversingKernels_SlicedEllpack_PerElement.h"
 #include "TraversingOperationsBase.h"
 
@@ -121,7 +121,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = forElementsKernel_SlicedEllpack<
+                  constexpr auto kernel = forElements_SlicedEllpack_Uniform<
                      ConstViewType,
                      IndexType,
                      std::remove_reference_t< Function >,
@@ -245,7 +245,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = forElementsWithSegmentIndexesKernel_SlicedEllpack<
+                  constexpr auto kernel = forElements_SlicedEllpack_Uniform_WithIndexes<
                      ConstViewType,
                      typename Array::ConstViewType,
                      IndexType,
@@ -380,7 +380,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = forElementsIfKernel_SlicedEllpack<
+                  constexpr auto kernel = forElements_SlicedEllpack_Uniform_If<
                      ConstViewType,
                      IndexType,
                      std::remove_reference_t< Condition >,

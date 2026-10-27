@@ -12,7 +12,7 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename SegmentsView, typename ArrayView, typename Index, typename Function, ElementsOrganization Organization >
 __global__
 void
-forElementsWithSegmentIndexesKernel_Ellpack(
+forElements_Ellpack_Uniform_WithIndexes(
    const Index gridIdx,
    const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
@@ -80,7 +80,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-forElementsIfKernel_Ellpack(
+forElements_Ellpack_Uniform_If(
    const Index gridIdx,
    const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
