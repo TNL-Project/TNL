@@ -71,7 +71,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments(
    else {
       using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       Backend::LaunchConfiguration launch_config;
-      launch_config.blockSize.x = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+      launch_config.blockSize.x = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
       constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
       // Fill blocks
