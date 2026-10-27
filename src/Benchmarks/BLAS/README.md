@@ -99,3 +99,10 @@ just build tnl-benchmark-blas-cuda
 
 The benchmark outputs timing measurements in the JSONL format to the log file
 (`<program>.log` by default) and prints a summary table to the terminal.
+
+The log can be converted to an HTML report with tables and plots by the general tool
+`src/Tools/tnl-benchmark-to-html.py`:
+
+```bash
+src/Tools/tnl-benchmark-to-html.py tnl-benchmark-blas-cuda.log
+```
