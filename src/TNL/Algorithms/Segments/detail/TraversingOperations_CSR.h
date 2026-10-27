@@ -98,9 +98,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated UniformWarp
-         // kernel, but the Uniform kernel already takes the thread count as a runtime parameter,
-         // so a warp-sized Uniform mapping achieves the same effect.
+         // library-wide GPU default for CSR-based formats.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
             launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
@@ -221,9 +219,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated UniformWarp
-         // kernel, but the Uniform kernel already takes the thread count as a runtime parameter,
-         // so a warp-sized Uniform mapping achieves the same effect.
+         // library-wide GPU default for CSR-based formats.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
             launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();
@@ -400,9 +396,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             return;
 
          // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR traversal has no dedicated UniformWarp
-         // kernel, but the Uniform kernel already takes the thread count as a runtime parameter,
-         // so a warp-sized Uniform mapping achieves the same effect.
+         // library-wide GPU default for CSR-based formats.
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
             launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
             launchConfig.setThreadsPerSegmentCountToWarpSize();

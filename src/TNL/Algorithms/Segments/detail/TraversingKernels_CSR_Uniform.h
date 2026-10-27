@@ -10,7 +10,7 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Kernel for the Uniform and UniformWarp thread mappings, traversing the segments given
+ * \brief Kernel for the Uniform thread mapping, traversing the segments given
  * explicitly by \e segmentIndexes.
  *
  * The same, fixed number of threads (\e threadsPerSegment) is assigned to every segment in the
@@ -70,7 +70,7 @@ forElements_CSR_Uniform_WithIndexes(
 }
 
 /**
- * \brief Kernel for the Uniform and UniformWarp thread mappings, traversing a contiguous range
+ * \brief Kernel for the Uniform thread mapping, traversing a contiguous range
  * of segments that satisfy \e condition.
  *
  * This also implements the plain \e forElements (without a condition), which calls this kernel
