@@ -33,12 +33,10 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
    CudaArray deviceArray2;
    hostArray.setSize( size );
    hostArray2.setSize( size );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
    if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       deviceArray.setSize( size );
       deviceArray2.setSize( size );
    }
-#endif
 
    Real resultHost;
 
@@ -46,16 +44,14 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
    auto reset1 = [ & ]()
    {
       hostArray.setValue( 1.0 );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      deviceArray.setValue( 1.0 );
-#endif
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
+         deviceArray.setValue( 1.0 );
    };
    auto reset2 = [ & ]()
    {
       hostArray2.setValue( 1.0 );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      deviceArray2.setValue( 1.0 );
-#endif
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
+         deviceArray2.setValue( 1.0 );
    };
    auto reset12 = [ & ]()
    {
@@ -135,7 +131,6 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
       benchmark.setDatasetSize( datasetSize );
       benchmark.time< Devices::Host >( setSize1, "TNL", resetSizeHost );
    }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
    if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       if( std::is_fundamental_v< Real > ) {
          // Backend::memcpy
@@ -155,7 +150,7 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
       Real resultDevice;
       auto compareCuda = [ & ]()
       {
-         resultDevice = (int) ( deviceArray == deviceArray2 );
+         resultDevice = static_cast< int >( deviceArray == deviceArray2 );
       };
       benchmark.setOperation( "comparison (operator==)" );
       benchmark.setDatasetSize( 2 * datasetSize );
@@ -214,7 +209,6 @@ benchmarkArrayOperations( Benchmark& benchmark, const long& size )
       benchmark.setDatasetSize( datasetSize );
       benchmark.time< Devices::GPU >( setSize1, "TNL", resetSizeCuda );
    }
-#endif
 }
 
 }  // namespace TNL::Benchmarks

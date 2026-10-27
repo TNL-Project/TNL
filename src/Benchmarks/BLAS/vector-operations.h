@@ -119,6 +119,9 @@ class VectorOperationsBenchmark
 #elif defined( __HIP__ )
    hipblasHandle_t hipblasHandle;
    const char* gpuBlasName = "hipBLAS";
+#else
+   // used only in the GPU branches, which are not instantiated in host-only builds
+   const char* gpuBlasName = "";
 #endif
 
 public:
@@ -131,25 +134,23 @@ public:
       hostVector2.setSize( size );
       hostVector3.setSize( size );
       hostVector4.setSize( size );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          deviceVector.setSize( size );
          deviceVector2.setSize( size );
          deviceVector3.setSize( size );
          deviceVector4.setSize( size );
       }
-#endif
 
       hostView.bind( hostVector );
       hostView2.bind( hostVector2 );
       hostView3.bind( hostVector3 );
       hostView4.bind( hostVector4 );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-      deviceView.bind( deviceVector );
-      deviceView2.bind( deviceVector2 );
-      deviceView3.bind( deviceVector3 );
-      deviceView4.bind( deviceVector4 );
-#endif
+      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+         deviceView.bind( deviceVector );
+         deviceView2.bind( deviceVector2 );
+         deviceView3.bind( deviceVector3 );
+         deviceView4.bind( deviceVector4 );
+      }
 
       // reset functions
       // (Make sure to always use some in benchmarks, even if it's not necessary
@@ -158,9 +159,8 @@ public:
       reset1 = [ & ]()
       {
          hostVector.setValue( 1.0 );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-         deviceVector.setValue( 1.0 );
-#endif
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            deviceVector.setValue( 1.0 );
          // A relatively harmless call to keep the compiler from realizing we
          // don't actually do any useful work with the result of the reduction.
          srand( static_cast< unsigned int >( resultHost ) );
@@ -169,23 +169,20 @@ public:
       reset2 = [ & ]()
       {
          hostVector2.setValue( 1.0 );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-         deviceVector2.setValue( 1.0 );
-#endif
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            deviceVector2.setValue( 1.0 );
       };
       reset3 = [ & ]()
       {
          hostVector3.setValue( 1.0 );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-         deviceVector3.setValue( 1.0 );
-#endif
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            deviceVector3.setValue( 1.0 );
       };
       reset4 = [ & ]()
       {
          hostVector4.setValue( 1.0 );
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-         deviceVector4.setValue( 1.0 );
-#endif
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            deviceVector4.setValue( 1.0 );
       };
 
       resetAll = [ & ]()
@@ -290,7 +287,6 @@ public:
          verify( "thrust::max_element", resultHost, 1.0 );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -307,7 +303,7 @@ public:
          benchmark.time< Devices::GPU >( reset1, "ET", computeCudaET );
          verify( "ET", resultDevice, 1.0 );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             resultDevice = *thrust::max_element(
@@ -317,9 +313,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::max_element", computeThrustDevice );
          verify( "thrust::max_element", resultDevice, 1.0 );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -363,7 +358,6 @@ public:
          verify( "thrust::min_element", resultHost, 1.0 );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -380,7 +374,7 @@ public:
          benchmark.time< Devices::GPU >( reset1, "ET", computeCudaET );
          verify( "ET", resultDevice, 1.0 );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             resultDevice = *thrust::min_element(
@@ -390,9 +384,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::min_element", computeThrustDevice );
          verify( "thrust::min_element", resultDevice, 1.0 );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -458,7 +451,6 @@ public:
          verify( "thrust::max_element", resultHost, 1.0 );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -478,17 +470,17 @@ public:
          auto computeCudaCUBLAS = [ & ]()
          {
             int index = 0;
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasIgamax( cublasHandle, size, deviceVector.getData(), 1, &index );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasIgamax( hipblasHandle, size, deviceVector.getData(), 1, &index );
-   #endif
+#endif
             resultDevice = deviceVector.getElement( index );
          };
          benchmark.time< Devices::GPU >( reset1, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, resultDevice, 1.0 );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             resultDevice = *thrust::max_element(
@@ -502,9 +494,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::max_element", computeThrustDevice );
          verify( "thrust::max_element", resultDevice, 1.0 );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -572,7 +563,6 @@ public:
          verify( "thrust::min_element", resultHost, 1.0 );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -592,17 +582,17 @@ public:
          auto computeCudaCUBLAS = [ & ]()
          {
             int index = 0;
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasIgamin( cublasHandle, size, deviceVector.getData(), 1, &index );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasIgamin( hipblasHandle, size, deviceVector.getData(), 1, &index );
-   #endif
+#endif
             resultDevice = deviceVector.getElement( index );
          };
          benchmark.time< Devices::GPU >( reset1, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, resultDevice, 1.0 );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             resultDevice = *thrust::min_element(
@@ -616,9 +606,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::min_element", computeThrustDevice );
          verify( "thrust::min_element", resultDevice, 1.0 );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -661,7 +650,6 @@ public:
          verify( "thrust::reduce", resultHost, size );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -678,7 +666,7 @@ public:
          benchmark.time< Devices::GPU >( reset1, "ET", computeCudaET );
          verify( "ET", resultDevice, size );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             resultDevice = thrust::reduce(
@@ -688,9 +676,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::reduce", computeThrustDevice );
          verify( "thrust::reduce", resultDevice, size );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -758,7 +745,6 @@ public:
          verify( "thrust::transform_reduce", resultHost, size );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -776,16 +762,16 @@ public:
 
          auto computeCudaCUBLAS = [ & ]()
          {
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasGasum( cublasHandle, size, deviceVector.getData(), 1, &resultDevice );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasGasum( hipblasHandle, size, deviceVector.getData(), 1, &resultDevice );
-   #endif
+#endif
          };
          benchmark.time< Devices::GPU >( reset1, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, resultDevice, size );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             resultDevice = thrust::transform_reduce(
@@ -801,9 +787,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::transform_reduce", computeThrustDevice );
          verify( "thrust::transform_reduce", resultDevice, size );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -873,7 +858,6 @@ public:
          verify( "thrust::transform_reduce", resultHost, std::sqrt( size ) );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -891,16 +875,16 @@ public:
 
          auto computeCudaCUBLAS = [ & ]()
          {
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasGnrm2( cublasHandle, size, deviceVector.getData(), 1, &resultDevice );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasGnrm2( hipblasHandle, size, deviceVector.getData(), 1, &resultDevice );
-   #endif
+#endif
          };
          benchmark.time< Devices::GPU >( reset1, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, resultDevice, std::sqrt( size ) );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             const auto sum = thrust::transform_reduce(
@@ -917,9 +901,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::transform_reduce", computeThrustDevice );
          verify( "thrust::transform_reduce", resultDevice, std::sqrt( size ) );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -980,7 +963,6 @@ public:
          verify( "thrust::transform_reduce", resultHost, std::cbrt( size ) );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -996,7 +978,7 @@ public:
          benchmark.time< Devices::GPU >( reset1, "ET", computeCudaET );
          verify( "ET", resultDevice, std::cbrt( size ) );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             const auto sum = thrust::transform_reduce(
@@ -1013,9 +995,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::transform_reduce", computeThrustDevice );
          verify( "thrust::transform_reduce", resultDevice, std::cbrt( size ) );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -1079,7 +1060,6 @@ public:
          verify( "thrust::inner_product", resultHost, size );
       }
 #endif
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -1097,16 +1077,16 @@ public:
 
          auto computeCudaCUBLAS = [ & ]()
          {
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasGdot( cublasHandle, size, deviceVector.getData(), 1, deviceVector2.getData(), 1, &resultDevice );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasGdot( hipblasHandle, size, deviceVector.getData(), 1, deviceVector2.getData(), 1, &resultDevice );
-   #endif
+#endif
          };
          benchmark.time< Devices::GPU >( reset1, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, resultDevice, size );
 
-   #ifdef HAVE_THRUST
+#ifdef HAVE_THRUST
          auto computeThrustDevice = [ & ]()
          {
             resultDevice = thrust::inner_product(
@@ -1120,9 +1100,8 @@ public:
          };
          benchmark.time< Devices::GPU >( reset1, "thrust::inner_product", computeThrustDevice );
          verify( "thrust::inner_product", resultDevice, size );
-   #endif
-      }
 #endif
+      }
    }
 
    void
@@ -1150,7 +1129,6 @@ public:
          verify( "BLAS", hostVector, 0.5 );
 #endif
       }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaTNL = [ & ]()
          {
@@ -1162,16 +1140,15 @@ public:
          auto computeCudaCUBLAS = [ & ]()
          {
             const Real alpha = 0.5;
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasGscal( cublasHandle, size, &alpha, deviceVector.getData(), 1 );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasGscal( hipblasHandle, size, &alpha, deviceVector.getData(), 1 );
-   #endif
+#endif
          };
          benchmark.time< Devices::GPU >( reset1, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, deviceVector, 0.5 );
       }
-#endif
    }
 
    void
@@ -1206,7 +1183,6 @@ public:
          verify( "BLAS", hostVector, 2.0 );
 #endif
       }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -1226,16 +1202,15 @@ public:
          auto computeCudaCUBLAS = [ & ]()
          {
             const Real alpha = 1.0;
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasGaxpy( cublasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
-   #endif
+#endif
          };
          benchmark.time< Devices::GPU >( resetAll, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, deviceVector, 2.0 );
       }
-#endif
    }
 
    void
@@ -1293,7 +1268,6 @@ public:
          verify( "BLAS", hostVector, 3.0 );
 #endif
       }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -1339,18 +1313,17 @@ public:
          auto computeCudaCUBLAS = [ & ]()
          {
             const Real alpha = 1.0;
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasGaxpy( cublasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
             cublasGaxpy( cublasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
             hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
-   #endif
+#endif
          };
          benchmark.time< Devices::GPU >( resetAll, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, deviceVector, 3.0 );
       }
-#endif
    }
 
    void
@@ -1411,7 +1384,6 @@ public:
          verify( "BLAS", hostVector, 4.0 );
 #endif
       }
-#if defined( __CUDACC__ ) || defined( __HIP__ )
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          auto computeCudaLegacy = [ & ]()
          {
@@ -1461,20 +1433,19 @@ public:
          auto computeCudaCUBLAS = [ & ]()
          {
             const Real alpha = 1.0;
-   #if defined( __CUDACC__ )
+#if defined( __CUDACC__ )
             cublasGaxpy( cublasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
             cublasGaxpy( cublasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
             cublasGaxpy( cublasHandle, size, &alpha, deviceVector4.getData(), 1, deviceVector.getData(), 1 );
-   #elif defined( __HIP__ )
+#elif defined( __HIP__ )
             hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector2.getData(), 1, deviceVector.getData(), 1 );
             hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector3.getData(), 1, deviceVector.getData(), 1 );
             hipblasGaxpy( hipblasHandle, size, &alpha, deviceVector4.getData(), 1, deviceVector.getData(), 1 );
-   #endif
+#endif
          };
          benchmark.time< Devices::GPU >( resetAll, gpuBlasName, computeCudaCUBLAS );
          verify( gpuBlasName, deviceVector, 4.0 );
       }
-#endif
    }
 };
 
