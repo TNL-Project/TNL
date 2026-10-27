@@ -106,7 +106,7 @@ The script `tnl-benchmark-scan-html-table-generator.py` (requires `pandas` and t
 module `TNL.BenchmarkLogs`) generates HTML tables from one or more logs:
 
 ```bash
-src/Benchmarks/Algorithms/tnl-benchmark-scan-html-table-generator.py scan-$(hostname).log
+src/Benchmarks/Scan/tnl-benchmark-scan-html-table-generator.py scan-$(hostname).log
 ```
 
 For each operation, it produces the tables of times and bandwidths of all devices and performers,
