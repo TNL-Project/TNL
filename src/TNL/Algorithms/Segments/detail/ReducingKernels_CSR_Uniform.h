@@ -65,8 +65,10 @@ reduceSegments_CSR_Uniform(
          Index localIdx = laneID;
          for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
               globalIdx += ThreadsPerSegment )
+         {
             result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
-         localIdx += ThreadsPerSegment;
+            localIdx += ThreadsPerSegment;
+         }
       }
       else {
          for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
@@ -221,8 +223,10 @@ reduceSegments_CSR_Uniform_WithIndexes(
          Index localIdx = laneID;
          for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
               globalIdx += ThreadsPerSegment )
+         {
             result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
-         localIdx += ThreadsPerSegment;
+            localIdx += ThreadsPerSegment;
+         }
       }
       else {
          for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID;
