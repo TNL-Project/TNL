@@ -18,7 +18,7 @@ The benchmark consists of three parts:
 2. **Vector operations** measure reductions and in-place operations on
    `TNL::Containers::Vector`: `max`, `min`, `absMax`, `absMin`, `sum`, l1, l2, and l3 norms,
    scalar product, scalar multiplication, and addition of one, two, or three vectors. The scans
-   (prefix sums) are measured by the separate scan benchmark (`src/Benchmarks/Algorithms`).
+   (prefix sums) are measured by the separate scan benchmark (`src/Benchmarks/Scan`).
 3. **Triad** (GPU builds only) measures the STREAM-triad operation `a[i] = b[i] + scalar * c[i]`
    combined with copying the input data from the host memory to the device and the result back.
    The variants differ in the memory allocation used: pageable, pinned, zero-copy, and unified
