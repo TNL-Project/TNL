@@ -133,7 +133,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   {
                      return true;
                   };
-                  constexpr auto kernel = forElements_CSR_Uniform<
+                  constexpr auto kernel = forElements_CSR_Uniform_If<
                      ConstOffsetsView,
                      IndexType,
                      decltype( condition ),
@@ -432,7 +432,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  constexpr auto kernel = forElements_CSR_Uniform<
+                  constexpr auto kernel = forElements_CSR_Uniform_If<
                      ConstOffsetsView,
                      IndexType,
                      std::remove_reference_t< Condition >,

@@ -112,7 +112,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments(
          launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
          using ConstSegmentsView = typename SegmentsView::ConstViewType;
          constexpr auto kernel = Segments::detail::
-            ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+            reduceSegments_ChunkedEllpack< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Backend::launchKernelAsync(
             kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
       }

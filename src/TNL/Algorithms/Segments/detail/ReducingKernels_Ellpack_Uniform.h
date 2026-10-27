@@ -20,7 +20,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernel(
+reduceSegments_Ellpack_Uniform(
    int gridIdx,
    const Segments segments,
    IndexBegin begin,
@@ -82,7 +82,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithSegmentIndexes(
+reduceSegments_Ellpack_Uniform_WithIndexes(
    int gridIdx,
    const Segments segments,
    const ArrayView segmentIndexes,
@@ -148,7 +148,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithArgument(
+reduceSegments_Ellpack_Uniform_WithArgument(
    int gridIdx,
    const Segments segments,
    IndexBegin begin,
@@ -214,7 +214,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithSegmentIndexesAndArgument(
+reduceSegments_Ellpack_Uniform_WithIndexesAndArgument(
    int gridIdx,
    const Segments segments,
    const ArrayView segmentIndexes,

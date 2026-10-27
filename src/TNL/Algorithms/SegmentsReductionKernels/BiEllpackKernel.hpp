@@ -35,10 +35,11 @@ BiEllpackreduceSegmentsKernel(
    Value identity )
 {
    if constexpr( callableArgumentCount< Fetch >() == 3 )
-      Segments::detail::reduceSegmentsKernelWithAllParameters< BlockDim >(
+      Segments::detail::reduceSegments_BiEllpack_WithAllParameters_impl< BlockDim >(
          segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
    else
-      Segments::detail::reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+      Segments::detail::reduceSegments_BiEllpack_impl< BlockDim >(
+         segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >

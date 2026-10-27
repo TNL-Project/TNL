@@ -12,7 +12,7 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename SegmentsConstView, typename Index, typename Function, ElementsOrganization Organization, int SliceSize >
 __global__
 void
-forElementsKernel_SlicedEllpack(
+forElements_SlicedEllpack_Uniform(
    const Index gridIdx,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
@@ -92,7 +92,7 @@ template<
    int SliceSize >
 __global__
 void
-forElementsWithSegmentIndexesKernel_SlicedEllpack(
+forElements_SlicedEllpack_Uniform_WithIndexes(
    const Index gridIdx,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
@@ -149,7 +149,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-forElementsIfKernel_SlicedEllpack(
+forElements_SlicedEllpack_Uniform_If(
    const Index gridIdx,
    const Index threadsPerSegment,
    const SegmentsConstView segments,

@@ -7,7 +7,7 @@
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "FetchLambdaAdapter.h"
-#include "ReducingKernels_Ellpack.h"
+#include "ReducingKernels_Ellpack_Uniform.h"
 #include "ReducingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
@@ -65,7 +65,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
             {
-               constexpr auto kernel1 = EllpackCudaReductionKernel<
+               constexpr auto kernel1 = reduceSegments_Ellpack_Uniform<
                   1,
                   ConstViewType,
                   IndexBegin,
@@ -74,7 +74,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   std::remove_reference_t< Reduction >,
                   std::remove_reference_t< ResultStorer >,
                   ReturnType >;
-               constexpr auto kernel2 = EllpackCudaReductionKernel<
+               constexpr auto kernel2 = reduceSegments_Ellpack_Uniform<
                   2,
                   ConstViewType,
                   IndexBegin,
@@ -83,7 +83,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   std::remove_reference_t< Reduction >,
                   std::remove_reference_t< ResultStorer >,
                   ReturnType >;
-               constexpr auto kernel4 = EllpackCudaReductionKernel<
+               constexpr auto kernel4 = reduceSegments_Ellpack_Uniform<
                   4,
                   ConstViewType,
                   IndexBegin,
@@ -92,7 +92,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   std::remove_reference_t< Reduction >,
                   std::remove_reference_t< ResultStorer >,
                   ReturnType >;
-               constexpr auto kernel8 = EllpackCudaReductionKernel<
+               constexpr auto kernel8 = reduceSegments_Ellpack_Uniform<
                   8,
                   ConstViewType,
                   IndexBegin,
@@ -101,7 +101,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   std::remove_reference_t< Reduction >,
                   std::remove_reference_t< ResultStorer >,
                   ReturnType >;
-               constexpr auto kernel16 = EllpackCudaReductionKernel<
+               constexpr auto kernel16 = reduceSegments_Ellpack_Uniform<
                   16,
                   ConstViewType,
                   IndexBegin,
@@ -110,7 +110,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   std::remove_reference_t< Reduction >,
                   std::remove_reference_t< ResultStorer >,
                   ReturnType >;
-               constexpr auto kernel32 = EllpackCudaReductionKernel<
+               constexpr auto kernel32 = reduceSegments_Ellpack_Uniform<
                   32,
                   ConstViewType,
                   IndexBegin,
@@ -145,7 +145,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                            throw std::invalid_argument(
                               "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                               + std::to_string( warpSize ) + "." );
-                        constexpr auto kernel64 = EllpackCudaReductionKernel<
+                        constexpr auto kernel64 = reduceSegments_Ellpack_Uniform<
                            64,
                            ConstViewType,
                            IndexBegin,
@@ -252,7 +252,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      identity );
                }
             };
-            constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexes<
+            constexpr auto kernel1 = reduceSegments_Ellpack_Uniform_WithIndexes<
                1,
                ConstViewType,
                ArrayView,
@@ -260,7 +260,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexes<
+            constexpr auto kernel2 = reduceSegments_Ellpack_Uniform_WithIndexes<
                2,
                ConstViewType,
                ArrayView,
@@ -268,7 +268,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexes<
+            constexpr auto kernel4 = reduceSegments_Ellpack_Uniform_WithIndexes<
                4,
                ConstViewType,
                ArrayView,
@@ -276,7 +276,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexes<
+            constexpr auto kernel8 = reduceSegments_Ellpack_Uniform_WithIndexes<
                8,
                ConstViewType,
                ArrayView,
@@ -284,7 +284,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexes<
+            constexpr auto kernel16 = reduceSegments_Ellpack_Uniform_WithIndexes<
                16,
                ConstViewType,
                ArrayView,
@@ -292,7 +292,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexes<
+            constexpr auto kernel32 = reduceSegments_Ellpack_Uniform_WithIndexes<
                32,
                ConstViewType,
                ArrayView,
@@ -325,7 +325,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         throw std::invalid_argument(
                            "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                            + std::to_string( warpSize ) + "." );
-                     constexpr auto kernel64 = EllpackCudaReductionKernelWithSegmentIndexes<
+                     constexpr auto kernel64 = reduceSegments_Ellpack_Uniform_WithIndexes<
                         64,
                         ConstViewType,
                         ArrayView,
@@ -424,7 +424,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
                }
             };
-            constexpr auto kernel1 = EllpackCudaReductionKernelWithArgument<
+            constexpr auto kernel1 = reduceSegments_Ellpack_Uniform_WithArgument<
                1,
                ConstViewType,
                IndexBegin,
@@ -433,7 +433,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel2 = EllpackCudaReductionKernelWithArgument<
+            constexpr auto kernel2 = reduceSegments_Ellpack_Uniform_WithArgument<
                2,
                ConstViewType,
                IndexBegin,
@@ -442,7 +442,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel4 = EllpackCudaReductionKernelWithArgument<
+            constexpr auto kernel4 = reduceSegments_Ellpack_Uniform_WithArgument<
                4,
                ConstViewType,
                IndexBegin,
@@ -451,7 +451,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel8 = EllpackCudaReductionKernelWithArgument<
+            constexpr auto kernel8 = reduceSegments_Ellpack_Uniform_WithArgument<
                8,
                ConstViewType,
                IndexBegin,
@@ -460,7 +460,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel16 = EllpackCudaReductionKernelWithArgument<
+            constexpr auto kernel16 = reduceSegments_Ellpack_Uniform_WithArgument<
                16,
                ConstViewType,
                IndexBegin,
@@ -469,7 +469,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel32 = EllpackCudaReductionKernelWithArgument<
+            constexpr auto kernel32 = reduceSegments_Ellpack_Uniform_WithArgument<
                32,
                ConstViewType,
                IndexBegin,
@@ -503,7 +503,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         throw std::invalid_argument(
                            "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                            + std::to_string( warpSize ) + "." );
-                     constexpr auto kernel64 = EllpackCudaReductionKernelWithArgument<
+                     constexpr auto kernel64 = reduceSegments_Ellpack_Uniform_WithArgument<
                         64,
                         ConstViewType,
                         IndexBegin,
@@ -617,7 +617,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      identity );
                }
             };
-            constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+            constexpr auto kernel1 = reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
                1,
                ConstViewType,
                ArrayView,
@@ -625,7 +625,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+            constexpr auto kernel2 = reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
                2,
                ConstViewType,
                ArrayView,
@@ -633,7 +633,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+            constexpr auto kernel4 = reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
                4,
                ConstViewType,
                ArrayView,
@@ -641,7 +641,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+            constexpr auto kernel8 = reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
                8,
                ConstViewType,
                ArrayView,
@@ -649,7 +649,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+            constexpr auto kernel16 = reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
                16,
                ConstViewType,
                ArrayView,
@@ -657,7 +657,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                std::remove_reference_t< Reduction >,
                std::remove_reference_t< ResultStorer >,
                ReturnType >;
-            constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+            constexpr auto kernel32 = reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
                32,
                ConstViewType,
                ArrayView,
@@ -690,7 +690,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                         throw std::invalid_argument(
                            "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
                            + std::to_string( warpSize ) + "." );
-                     constexpr auto kernel64 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
+                     constexpr auto kernel64 = reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
                         64,
                         ConstViewType,
                         ArrayView,

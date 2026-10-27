@@ -23,7 +23,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsRowMajorSlicedEllpackKernel(
+reduceSegments_SlicedEllpack_Uniform_RowMajor_impl(
    const int gridIdx,
    const Segments& segments,
    IndexBegin begin,
@@ -97,7 +97,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsColumnMajorSlicedEllpackKernel(
+reduceSegments_SlicedEllpack_Uniform_ColumnMajor_impl(
    const int gridIdx,
    const Segments& segments,
    IndexBegin begin,
@@ -332,7 +332,7 @@ template<
    typename Value >
 __global__
 void
-reduceSegmentsSlicedEllpackKernel(
+reduceSegments_SlicedEllpack_Uniform(
    const int gridIdx,
    const Segments segments,
    IndexBegin begin,
@@ -346,10 +346,10 @@ reduceSegmentsSlicedEllpackKernel(
       ThreadsPerSegment <= Backend::getMaxWarpSize(),
       "ThreadsPerSegment must be less than or equal to the maximum warp size." );
    if constexpr( Segments::getOrganization() == RowMajorOrder )
-      reduceSegmentsRowMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
+      reduceSegments_SlicedEllpack_Uniform_RowMajor_impl< BlockSize, ThreadsPerSegment >(
          gridIdx, segments, begin, end, fetch, reduce, store, identity );
    else
-      reduceSegmentsColumnMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
+      reduceSegments_SlicedEllpack_Uniform_ColumnMajor_impl< BlockSize, ThreadsPerSegment >(
          gridIdx, segments, begin, end, fetch, reduce, store, identity );
 }
 }  // namespace TNL::Algorithms::Segments::detail

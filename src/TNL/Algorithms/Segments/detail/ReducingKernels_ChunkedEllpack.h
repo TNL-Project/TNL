@@ -13,7 +13,7 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernel(
+reduceSegments_ChunkedEllpack(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -107,7 +107,7 @@ template<
    typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernelWithIndexes(
+reduceSegments_ChunkedEllpack_WithIndexes(
    SegmentsView segments,
    ArrayView segmentIndexes,
    Index gridIdx,
@@ -160,7 +160,7 @@ ChunkedEllpackReduceSegmentsKernelWithIndexes(
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernelWithArgument(
+reduceSegments_ChunkedEllpack_WithArgument(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -258,7 +258,7 @@ template<
    typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument(
+reduceSegments_ChunkedEllpack_WithIndexesAndArgument(
    SegmentsView segments,
    ArrayView segmentIndexes,
    Index gridIdx,

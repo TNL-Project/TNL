@@ -81,7 +81,7 @@ forElements_CSR_Uniform_WithIndexes(
 template< typename OffsetsView, typename Index, typename Condition, typename Function >
 __global__
 void
-forElements_CSR_Uniform(
+forElements_CSR_Uniform_If(
    const Index gridIdx,
    const Index threadsPerSegment,
    const OffsetsView offsets,

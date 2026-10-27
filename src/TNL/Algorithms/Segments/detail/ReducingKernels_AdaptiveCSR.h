@@ -47,7 +47,7 @@ template<
    typename Value >
 __global__
 void
-reduceSegmentsCSRAdaptiveKernel(
+reduceSegments_AdaptiveCSR(
    int gridIdx,
    BlocksView blocks,
    Offsets offsets,
@@ -183,7 +183,7 @@ template<
    typename Value >
 __global__
 void
-reduceSegmentsCSRAdaptiveKernelWithArgument(
+reduceSegments_AdaptiveCSR_WithArgument(
    int gridIdx,
    BlocksView blocks,
    Offsets offsets,

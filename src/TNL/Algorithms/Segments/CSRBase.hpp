@@ -185,7 +185,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
                return true;
             };
             constexpr auto kernel =
-               detail::forElements_CSR_Uniform< ConstOffsetsView, IndexType, decltype( condition ), Function >;
+               detail::forElements_CSR_Uniform_If< ConstOffsetsView, IndexType, decltype( condition ), Function >;
             Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, condition, function );
          }
          else {
@@ -323,7 +323,7 @@ CSRBase< Device, Index >::forElementsIf( IndexType begin, IndexType end, Conditi
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         constexpr auto kernel = detail::forElements_CSR_Uniform< ConstOffsetsView, IndexType, Condition, Function >;
+         constexpr auto kernel = detail::forElements_CSR_Uniform_If< ConstOffsetsView, IndexType, Condition, Function >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, condition, function );
       }
       Backend::streamSynchronize( launch_config.stream );

@@ -77,7 +77,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
             using BlocksView = typename SegmentsViewType::BlocksView;
 
-            constexpr auto kernel = reduceSegmentsCSRAdaptiveKernel<
+            constexpr auto kernel = reduceSegments_AdaptiveCSR<
                BlocksView,
                OffsetsView,
                IndexType,
@@ -149,7 +149,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
             using BlocksView = typename SegmentsViewType::BlocksView;
 
-            constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument<
+            constexpr auto kernel = reduceSegments_AdaptiveCSR_WithArgument<
                BlocksView,
                OffsetsView,
                IndexType,
