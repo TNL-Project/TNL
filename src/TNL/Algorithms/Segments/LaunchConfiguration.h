@@ -3,6 +3,8 @@
 
 #pragma once
 #include <cstdint>
+#include <stdexcept>
+#include <string>
 
 #include <TNL/Backend/KernelLaunch.h>
 #include <TNL/Backend/LaunchHelpers.h>
@@ -91,5 +93,23 @@ protected:
    ThreadsToSegmentsMapping threadsToSegmentsMapping = ThreadsToSegmentsMapping::Default;
    int threadsPerSegmentCount = 1;
 };
+
+namespace detail {
+
+/**
+ * \brief Throws an exception if \e launchConfig requests other than the Default thread mapping.
+ *
+ * This is used by the segments formats which have a single native kernel for each operation and
+ * thus cannot honor any other thread mapping.
+ */
+inline void
+checkDefaultThreadsToSegmentsMapping( const LaunchConfiguration& launchConfig, const std::string& segmentsName )
+{
+   if( launchConfig.getThreadsToSegmentsMapping() != ThreadsToSegmentsMapping::Default )
+      throw std::invalid_argument(
+         "Unsupported threads to segments mapping for " + segmentsName + " segments. Only the Default mapping is supported." );
+}
+
+}  // namespace detail
 
 }  // namespace TNL::Algorithms::Segments
