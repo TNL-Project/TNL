@@ -796,6 +796,80 @@ way as \ref Segments_reduceSegments_with_segment_indices "reduceSegments" with s
 indexes and \ref Segments_reduceSegmentsIf "reduceSegmentsIf", and
 therefore we do not cover them in more detail in this user guide.
 
+## Launch configuration
+
+The traversing and reduction functions on GPUs can be tuned
+by an optional last parameter,
+a \ref TNL::Algorithms::Segments::LaunchConfiguration "LaunchConfiguration".
+It specifies how the threads are mapped to the segments
+(\ref TNL::Algorithms::Segments::ThreadsToSegmentsMapping "ThreadsToSegmentsMapping")
+and how many threads are used per segment.
+The number of threads per segment must be a positive power of two.
+The following mappings are available:
+
+- `Default` is the best native strategy of the segments format.
+  It is used when no launch configuration is given.
+- `Uniform` assigns the same number of threads to every segment.
+  It suits segments of similar sizes;
+  the number of threads per segment should grow
+  with the average segment size.
+- `PerElement` assigns the threads to the elements
+  of the segments processed by a block,
+  regardless of the segment boundaries.
+  A block of 256 threads processes `256 / threadsPerSegment` segments,
+  so the number of threads per segment holds only on average.
+- `Tiered` processes each segment by a single thread, a warp or a whole block,
+  depending on its size.
+  The number of threads per segment has the same meaning
+  as for the `PerElement` mapping.
+  It suits segments of very different sizes.
+- `Adaptive` is the native kernel of the AdaptiveCSR format,
+  which assigns the segments to the blocks in advance.
+
+Not every segments format supports every mapping:
+
+| Segments format            | Traversal                       | Reduction                  |
+|----------------------------|---------------------------------|----------------------------|
+| CSR                        | Uniform, PerElement, Tiered     | Uniform, Tiered            |
+| AdaptiveCSR                | as CSR                          | Adaptive (Default), as CSR |
+| Ellpack, SlicedEllpack     | Uniform, PerElement             | Uniform                    |
+| BiEllpack, ChunkedEllpack  | Default only                    | Default only               |
+
+A segments format throws `std::invalid_argument`
+when it does not support the requested mapping
+or the number of threads per segment.
+On the host, the launch configuration is ignored,
+except that BiEllpack and ChunkedEllpack reject mappings other than `Default`
+on all devices.
+
+The launch configuration is passed as the last parameter of a traversing function
+
+\snippet Algorithms/Segments/SegmentsExample_launchConfiguration.cpp traversal
+
+as well as of a reduction function:
+
+\snippet Algorithms/Segments/SegmentsExample_launchConfiguration.cpp reduction
+
+The functions `TNL::Algorithms::Segments::traversingLaunchConfigurations`
+and `TNL::Algorithms::Segments::reductionLaunchConfigurations`
+return the list of launch configurations available for given segments,
+together with their descriptions.
+They are useful for finding the best launch configuration for a particular problem:
+
+\snippet Algorithms/Segments/SegmentsExample_launchConfiguration.cpp list
+
+An unsupported launch configuration is reported by an exception:
+
+\snippet Algorithms/Segments/SegmentsExample_launchConfiguration.cpp unsupported
+
+The full example reads as:
+
+\includelineno Algorithms/Segments/SegmentsExample_launchConfiguration.cpp
+
+The result looks as follows:
+
+\include SegmentsExample_launchConfiguration.out
+
 ## Scan (prefix-sum)
 
 With the function \ref SegmentScanOverview "scan", you can perform
