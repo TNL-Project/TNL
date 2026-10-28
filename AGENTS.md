@@ -108,6 +108,12 @@ Use `just format` or `just check-format` for automatic formatting.
 - Use title-case in first-level headings only: `# Page Title`
 - Use sentence-case in all other section levels: `## First section`, `### Some subsection`
 
+### Documentation comments
+
+- Before writing or editing Doxygen comments, read
+  [.agents/skills/doxygen-writer/SKILL.md](.agents/skills/doxygen-writer/SKILL.md)
+  (Markdown instead of `\e`/`\c`, semantic line breaks, `/** */` vs `//!`).
+
 ### Git best practices
 
 Use `git` for managing the local repository and `glab` for the remote repository on GitLab (issues, merge requests, CI, etc).
