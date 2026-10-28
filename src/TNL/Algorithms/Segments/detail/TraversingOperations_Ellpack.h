@@ -36,7 +36,12 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             launchConfig.setThreadsPerSegmentCount( 1 );
             break;
          case ThreadsToSegmentsMapping::Uniform:
+            break;
          case ThreadsToSegmentsMapping::PerElement:
+            if( launchConfig.getThreadsPerSegmentCount() != 1 )
+               throw std::invalid_argument(
+                  "Unsupported threads per segment count ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                  + " ) for the PerElement traversal of Ellpack segments. Only 1 is supported." );
             break;
          default:
             throw std::invalid_argument( "Unsupported threads to segments mapping for the traversal of Ellpack segments." );
@@ -155,15 +160,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      std::remove_reference_t< Function >,
                      Organization,
                      256 >;
-                  switch( launchConfig.getThreadsPerSegmentCount() ) {
-                     case 1:
-                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
-                        break;
-                     default:
-                        throw std::invalid_argument(
-                           "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                           + " ) count for Ellpack segments." );
-                  }
+                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -278,15 +275,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      256,    // SegmentsPerBlock
                      256 >;  // BlockSize
 
-                  switch( launchConfig.getThreadsPerSegmentCount() ) {
-                     case 1:
-                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
-                        break;
-                     default:
-                        throw std::invalid_argument(
-                           "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                           + " ) count for Ellpack segments." );
-                  }
+                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
