@@ -14,14 +14,18 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief Returns a list of launch configurations for reduction operations on segments.
+ * \brief Returns a list of launch configurations
+ * for reduction operations on segments.
  *
- * This function generates a list of launch configurations suitable for reduction operations
- * on segments, based on the type of segments provided. The first one is always the Default
- * launch configuration. On the host, the thread mapping is not used, so the Default launch
- * configuration is the only one.
+ * This function generates a list of launch configurations
+ * suitable for reduction operations on segments,
+ * based on the type of segments provided.
+ * The first one is always the Default launch configuration.
+ * On the host, the thread mapping is not used,
+ * so the Default launch configuration is the only one.
  *
- * \tparam Segments The type of segments for which the launch configurations are generated.
+ * \tparam Segments The type of segments
+ *         for which the launch configurations are generated.
  * \param segments The segments for which the launch configurations are created.
  * \return A list of pairs containing launch configurations and their descriptions.
  */

@@ -14,20 +14,27 @@ namespace TNL::Algorithms::Segments::detail {
 /**
  * \brief Kernel for the Uniform thread mapping.
  *
- * A fixed number of threads (\e ThreadsPerSegment) is assigned to every segment regardless of
- * its size, and \e ThreadsPerSegment fits into a single warp, so the partial results can be
- * combined with a single warp-shuffle reduction pass.
+ * A fixed number of threads (`ThreadsPerSegment`) is assigned to every segment
+ * regardless of its size,
+ * and `ThreadsPerSegment` fits into a single warp,
+ * so the partial results can be combined
+ * with a single warp-shuffle reduction pass.
  *
- * For segments wide enough to need more than one warp, see \ref reduceSegments_CSR_Uniform_MultipleWarps.
+ * For segments wide enough to need more than one warp,
+ * see \ref reduceSegments_CSR_Uniform_MultipleWarps.
  *
- * The choice of \e ThreadsPerSegment based on the average number of elements per segment is
- * based on the following paper:
+ * The choice of `ThreadsPerSegment`
+ * based on the average number of elements per segment
+ * is based on the following paper:
  *
- * Y. Liu and B. Schmidt, "LightSpMV: Faster CSR-based sparse matrix-vector multiplication on CUDA-enabled GPUs," 2015 IEEE 26th
- * International Conference on Application-specific Systems, Architectures and Processors (ASAP), Toronto, ON, Canada, 2015, pp.
- * 82-89.
+ * Y. Liu and B. Schmidt,
+ * "LightSpMV: Faster CSR-based sparse matrix-vector multiplication
+ * on CUDA-enabled GPUs,"
+ * 2015 IEEE 26th International Conference on Application-specific Systems,
+ * Architectures and Processors (ASAP), Toronto, ON, Canada, 2015, pp. 82-89.
  *
- * \see LaunchConfigurationSetter_LightCSR, which selects \e ThreadsPerSegment for this kernel.
+ * \see LaunchConfigurationSetter_LightCSR,
+ * which selects `ThreadsPerSegment` for this kernel.
  */
 template<
    int ThreadsPerSegment,
@@ -88,28 +95,40 @@ reduceSegments_CSR_Uniform(
 }
 
 /**
- * \brief Kernel for the Uniform thread mappings when \e ThreadsPerSegment spans
- * more than one warp.
+ * \brief Kernel for the Uniform thread mapping
+ * when `ThreadsPerSegment` spans more than one warp.
  *
- * This is the counterpart of \ref reduceSegments_CSR_Uniform for segments that need
- * more threads than fit into a single warp (e.g. 64 or 128 threads per segment). Every segment
- * in the launch still gets the same, fixed number of threads (\e ThreadsPerSegment), spanning
- * \e ThreadsPerSegment / warpSize warps. Each warp first reduces its own share with a
- * warp-shuffle pass, the per-warp partial results are written to shared memory, and the first
- * warp of the group performs a second warp-shuffle reduction over them to produce the final
- * result - hence "MultipleWarps": several single-warp reductions combined into one.
+ * This is the counterpart of \ref reduceSegments_CSR_Uniform
+ * for segments that need more threads than fit into a single warp
+ * (e.g. 64 or 128 threads per segment).
+ * Every segment in the launch still gets the same,
+ * fixed number of threads (`ThreadsPerSegment`),
+ * spanning `ThreadsPerSegment / warpSize` warps.
+ * Each warp first reduces its own share with a warp-shuffle pass,
+ * the per-warp partial results are written to shared memory,
+ * and the first warp of the group performs a second warp-shuffle reduction
+ * over them to produce the final result.
+ * Hence "MultipleWarps": several single-warp reductions combined into one.
  *
- * This is conceptually similar to the \c Type::LONG case of \ref reduceSegments_AdaptiveCSR,
- * which also lets several warps cooperate on one segment through shared memory. The difference
- * is that here the number of warps per segment is a compile-time constant applied uniformly to
- * every segment processed by this kernel launch (chosen ahead of time from the average segment
- * size, see \ref reduceSegments_CSR_Uniform), whereas AdaptiveCSR computes the number
- * of warps individually for each long segment when building the block descriptors and dedicates
- * a whole thread block to that single segment. The technique of combining several warps through
- * shared memory to reduce one long row was introduced for that AdaptiveCSR-style algorithm by:
+ * This is conceptually similar to the `Type::LONG` case of
+ * \ref reduceSegments_AdaptiveCSR,
+ * which also lets several warps cooperate on one segment through shared memory.
+ * The difference is that here the number of warps per segment
+ * is a compile-time constant applied uniformly
+ * to every segment processed by this kernel launch
+ * (chosen ahead of time from the average segment size,
+ * see \ref reduceSegments_CSR_Uniform),
+ * whereas AdaptiveCSR computes the number of warps individually
+ * for each long segment when building the block descriptors
+ * and dedicates a whole thread block to that single segment.
+ * The technique of combining several warps through shared memory
+ * to reduce one long row
+ * was introduced for that AdaptiveCSR-style algorithm by:
  *
- * J. L. Greathouse and M. Daga, "Efficient Sparse Matrix-Vector Multiplication on GPUs Using the
- * CSR Storage Format," in Proceedings of the International Conference for High Performance
+ * J. L. Greathouse and M. Daga,
+ * "Efficient Sparse Matrix-Vector Multiplication on GPUs
+ * Using the CSR Storage Format,"
+ * in Proceedings of the International Conference for High Performance
  * Computing, Networking, Storage and Analysis (SC '14), 2014.
  */
 template<
