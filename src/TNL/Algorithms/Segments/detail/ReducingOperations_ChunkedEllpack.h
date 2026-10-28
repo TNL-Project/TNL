@@ -41,7 +41,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-      if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
             TNL_ASSERT_LE( sliceIndex, segments.getSegmentCount(), "" );
