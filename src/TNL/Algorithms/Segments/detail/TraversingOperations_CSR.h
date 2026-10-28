@@ -27,11 +27,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
     * \brief Resolves the `Default` mapping of `launchConfig` in place
     * and rejects the mappings without a GPU traversal kernel.
     *
-    * The `Default` mapping resolves to the `Uniform` mapping with a warp of threads per segment,
+    * The `Default` mapping resolves to the `Uniform` mapping
+    * with a warp of threads per segment,
     * the library-wide GPU default for CSR-based formats.
     * CSR has no dedicated kernel for the `Adaptive` mapping
     * (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
     * so it resolves to the `Default` mapping as well.
+    * The `Tiered` mapping supports at most 256 threads per segment,
+    * the block size of its kernels.
     */
    static void
    resolveLaunchConfiguration( LaunchConfiguration& launchConfig )
@@ -44,7 +47,13 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             break;
          case ThreadsToSegmentsMapping::Uniform:
          case ThreadsToSegmentsMapping::PerElement:
+            break;
          case ThreadsToSegmentsMapping::Tiered:
+            // a block of the Tiered kernels with 256 threads processes 256 / threadsPerSegment segments
+            if( launchConfig.getThreadsPerSegmentCount() > 256 )
+               throw std::invalid_argument(
+                  "Unsupported threads per segment count ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                  + " ) for the Tiered traversal of CSR segments." );
             break;
          default:
             throw std::invalid_argument( "Unsupported threads to segments mapping for the traversal of CSR segments." );
