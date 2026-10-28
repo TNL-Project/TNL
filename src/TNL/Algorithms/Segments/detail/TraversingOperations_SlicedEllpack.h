@@ -37,12 +37,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             launchConfig.setThreadsPerSegmentCount( 1 );
             break;
          case ThreadsToSegmentsMapping::Uniform:
-            break;
          case ThreadsToSegmentsMapping::PerElement:
-            if( launchConfig.getThreadsPerSegmentCount() != 1 )
-               throw std::invalid_argument(
-                  "Unsupported threads per segment count ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                  + " ) for the PerElement traversal of Sliced Ellpack segments. Only 1 is supported." );
             break;
          default:
             throw std::invalid_argument(
@@ -137,7 +132,9 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   roundUpDivision( static_cast< IndexType >( end ), static_cast< IndexType >( SliceSize ) )
                   * static_cast< IndexType >( SliceSize );
                const IndexType segmentsCount = lastSegmentIdx - firstSegmentIdx;
-               threadsCount = segmentsCount / static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+               // a block with 256 threads processes 256 / threadsPerSegment segments
+               threadsCount = static_cast< std::size_t >( segmentsCount )
+                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
                launchConfig.blockSize.x = 256;
             }
 
@@ -157,14 +154,29 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                      kernel, launchConfig, gridIdx, launchConfig.getThreadsPerSegmentCount(), segments, begin, end, function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
-                  constexpr auto kernel = forElements_SlicedEllpack_PerElement<
-                     ConstViewType,
-                     IndexType,
-                     std::remove_reference_t< Function >,
-                     Organization,
-                     SliceSize,
-                     256 >;
-                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+                  dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+                     launchConfig.getThreadsPerSegmentCount(),
+                     [ & ]( auto threadsPerSegment )
+                     {
+                        constexpr int SegmentsPerBlock = 256 / decltype( threadsPerSegment )::value;
+                        // the block must process whole slices
+                        if constexpr( SegmentsPerBlock >= SliceSize && SegmentsPerBlock % SliceSize == 0 ) {
+                           constexpr auto kernel = forElements_SlicedEllpack_PerElement<
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Function >,
+                              Organization,
+                              SliceSize,
+                              SegmentsPerBlock >;
+                           Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+                        }
+                        else
+                           throw std::invalid_argument(
+                              "Unsupported threads per segment count ( " + std::to_string( 256 / SegmentsPerBlock )
+                              + " ) for the PerElement traversal of Sliced Ellpack segments with slice size "
+                              + std::to_string( SliceSize ) + "." );
+                     },
+                     "Sliced Ellpack" );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -244,13 +256,11 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          }
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
-            std::size_t threadsCount = segmentIndexes.getSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            }
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+            // For the PerElement mapping, a block with 256 threads processes 256 / threadsPerSegment segments.
+            const std::size_t threadsCount = static_cast< std::size_t >( segmentIndexes.getSize() )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
                launchConfig.blockSize.x = 256;
-            }
 
             dim3 blocksCount;
             dim3 gridsCount;
@@ -275,16 +285,21 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
-                  constexpr auto kernel = forElements_SlicedEllpack_PerElement_WithIndexes<
-                     ConstViewType,
-                     typename Array::ConstViewType,
-                     IndexType,
-                     std::remove_reference_t< Function >,
-                     Organization,
-                     SliceSize,
-                     256,    // SegmentsPerBlock
-                     256 >;  // BlockSize
-                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
+                  dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+                     launchConfig.getThreadsPerSegmentCount(),
+                     [ & ]( auto threadsPerSegment )
+                     {
+                        constexpr auto kernel = forElements_SlicedEllpack_PerElement_WithIndexes<
+                           ConstViewType,
+                           typename Array::ConstViewType,
+                           IndexType,
+                           std::remove_reference_t< Function >,
+                           Organization,
+                           SliceSize,
+                           256 / decltype( threadsPerSegment )::value >;
+                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
+                     },
+                     "Sliced Ellpack" );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -367,9 +382,9 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          }
          else {
-            std::size_t threadsCount = end - begin;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
-               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            // For the PerElement mapping, a block with 256 threads processes 256 / threadsPerSegment segments.
+            const std::size_t threadsCount = static_cast< std::size_t >( end - begin )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -399,16 +414,21 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
-                  constexpr auto kernel = forElements_SlicedEllpack_PerElement_If<
-                     ConstViewType,
-                     IndexType,
-                     std::remove_reference_t< Condition >,
-                     std::remove_reference_t< Function >,
-                     Organization,
-                     SliceSize,
-                     256,
-                     256 >;
-                  Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
+                  dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+                     launchConfig.getThreadsPerSegmentCount(),
+                     [ & ]( auto threadsPerSegment )
+                     {
+                        constexpr auto kernel = forElements_SlicedEllpack_PerElement_If<
+                           ConstViewType,
+                           IndexType,
+                           std::remove_reference_t< Condition >,
+                           std::remove_reference_t< Function >,
+                           Organization,
+                           SliceSize,
+                           256 / decltype( threadsPerSegment )::value >;
+                        Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
+                     },
+                     "Sliced Ellpack" );
                }
             }
             Backend::streamSynchronize( launch_config.stream );

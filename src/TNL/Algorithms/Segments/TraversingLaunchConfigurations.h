@@ -59,26 +59,21 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
       };
    }
    else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
-      if constexpr( Segments::getOrganization() == ColumnMajorOrder )
-         return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration(), "Default" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" }
-         };
-      else
-         return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration(), "Default" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 1 ), "1 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 2 ), "2 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 4 ), "4 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 8 ), "8 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 16 ), "16 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" }
-         };
+      std::list< std::pair< LaunchConfiguration, std::string > > configurations;
+      configurations.emplace_back( LaunchConfiguration(), "Default" );
+      // the column-major organization supports only one thread per segment in the Uniform mapping
+      const int maxUniformThreadsPerSegment = Segments::getOrganization() == ColumnMajorOrder ? 1 : 256;
+      for( int threadsPerSegment = 1; threadsPerSegment <= maxUniformThreadsPerSegment; threadsPerSegment *= 2 )
+         configurations.emplace_back(
+            LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, threadsPerSegment ),
+            std::to_string( threadsPerSegment ) + " TPS" );
+      // every block of 256 threads of the PerElement traversal processes whole slices
+      for( int threadsPerSegment = 1; threadsPerSegment <= 32; threadsPerSegment *= 2 )
+         if( 256 / threadsPerSegment >= Segments::getSliceSize() )
+            configurations.emplace_back(
+               LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, threadsPerSegment ),
+               "PerElement " + std::to_string( threadsPerSegment ) + " TPS" );
+      return configurations;
    }
    else if constexpr( isEllpackSegments_v< Segments > ) {
       return std::list< std::pair< LaunchConfiguration, std::string > >{
@@ -92,7 +87,12 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
-         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" }
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 2 ), "PerElement 2 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 8 ), "PerElement 8 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 16 ), "PerElement 16 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 32 ), "PerElement 32 TPS" }
       };
    }
    else {

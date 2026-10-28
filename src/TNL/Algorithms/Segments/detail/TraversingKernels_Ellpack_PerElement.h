@@ -13,48 +13,50 @@ namespace TNL::Algorithms::Segments::detail {
 /**
  * \brief Kernel for the PerElement thread mapping, traversing a contiguous range of segments.
  *
- * Every thread of the grid processes exactly one element of the range [\e begin, \e end). Since
- * all Ellpack segments have the same size, the segment index and the local index of the element are
- * obtained directly from the global thread index by a division and a modulo - for the row-major
- * organization the consecutive threads process the consecutive elements of one segment, for the
- * column-major organization they process the elements with the same local index in consecutive
- * segments, so that the memory accesses are coalesced in both cases.
+ * Every block processes `SegmentsPerBlock` consecutive segments of the range [`begin`, `end`)
+ * and the elements of these segments are divided evenly among the threads of the block.
+ * Since all Ellpack segments have the same size,
+ * the segment index and the local index of an element are obtained by a division and a modulo.
+ * For the row-major organization,
+ * the consecutive threads process the consecutive elements of one segment;
+ * for the column-major organization,
+ * they process the elements with the same local index in consecutive segments,
+ * so that the memory accesses are coalesced in both cases.
  *
  * See \ref forElements_CSR_PerElement for the general idea of the PerElement mapping.
  */
-template< typename SegmentsView, typename Index, typename Function, ElementsOrganization Organization, int BlockSize = 256 >
+template<
+   typename SegmentsView,
+   typename Index,
+   typename Function,
+   ElementsOrganization Organization,
+   int SegmentsPerBlock = 256,
+   int BlockSize = 256 >
 __global__
 void
 forElements_Ellpack_PerElement( Index gridIdx, SegmentsView segments, Index begin, Index end, Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   if( segments.getSegmentSize() == 0 )
+   const Index segmentSize = segments.getSegmentSize();
+   const Index firstSegmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock;
+   const Index segmentsInBlock = min( end - firstSegmentIdx, (Index) SegmentsPerBlock );
+   if( segmentSize == 0 || segmentsInBlock <= 0 )
       return;
-   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
-   if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
-      const Index localIdx = globalThreadIdx % segments.getSegmentSize();
-      const Index segmentIdx = begin + globalThreadIdx / segments.getSegmentSize();
-      if( segmentIdx >= end )
-         return;
-      TNL_ASSERT_GE( segmentIdx, 0, "" );
-      TNL_ASSERT_GE( localIdx, 0, "" );
-      TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
-      const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
-      if constexpr( callableArgumentCount< Function >() == 3 )
-         function( segmentIdx, localIdx, globalIdx );
-      else
-         function( segmentIdx, globalIdx );
-   }
-   else {  // ColumnMajorOrder
-      const Index segmentsCount = ( end - begin );
-      const Index localIdx = globalThreadIdx / segmentsCount;
-      const Index segmentIdx = begin + globalThreadIdx % segmentsCount;
-      if( localIdx >= segments.getSegmentSize() )
-         return;
 
+   const Index elementsInBlock = segmentsInBlock * segmentSize;
+   for( Index idx = threadIdx.x; idx < elementsInBlock; idx += BlockSize ) {
+      Index segmentIdx;
+      Index localIdx;
+      if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
+         segmentIdx = firstSegmentIdx + idx / segmentSize;
+         localIdx = idx % segmentSize;
+      }
+      else {  // ColumnMajorOrder
+         segmentIdx = firstSegmentIdx + idx % segmentsInBlock;
+         localIdx = idx / segmentsInBlock;
+      }
       TNL_ASSERT_LT( segmentIdx, end, "" );
-      TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
+      TNL_ASSERT_LT( localIdx, segmentSize, "" );
       const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
       if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
@@ -66,11 +68,10 @@ forElements_Ellpack_PerElement( Index gridIdx, SegmentsView segments, Index begi
 
 /**
  * \brief Kernel for the PerElement thread mapping, traversing the segments given explicitly by
- * \e segmentIndexes.
+ * `segmentIndexes`.
  *
- * It works the same way as \ref forElements_Ellpack_PerElement, only the segment index computed
- * from the global thread index is used as a position in \e segmentIndexes. The template parameter
- * \e SegmentsPerBlock is not used.
+ * It works the same way as \ref forElements_Ellpack_PerElement,
+ * only every block processes `SegmentsPerBlock` consecutive entries of `segmentIndexes`.
  */
 template<
    typename SegmentsConstView,
@@ -78,7 +79,7 @@ template<
    typename Index,
    typename Function,
    ElementsOrganization Organization,
-   int SegmentsPerBlock,
+   int SegmentsPerBlock = 256,
    int BlockSize = 256 >
 __global__
 void
@@ -89,41 +90,33 @@ forElements_Ellpack_PerElement_WithIndexes(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   if( segments.getSegmentSize() == 0 )
+   const Index segmentSize = segments.getSegmentSize();
+   const Index firstEntry = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock;
+   const Index segmentsInBlock = min( segmentIndexes.getSize() - firstEntry, (Index) SegmentsPerBlock );
+   if( segmentSize == 0 || segmentsInBlock <= 0 )
       return;
-   const std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
-   if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
-      const Index localIdx = globalThreadIdx % segments.getSegmentSize();
-      const Index segmentIdx_idx = globalThreadIdx / segments.getSegmentSize();
-      if( segmentIdx_idx >= segmentIndexes.getSize() )
-         return;
-      TNL_ASSERT_GE( segmentIdx_idx, 0, "" );
-      TNL_ASSERT_GE( localIdx, 0, "" );
-      TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
-      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+
+   const Index elementsInBlock = segmentsInBlock * segmentSize;
+   for( Index idx = threadIdx.x; idx < elementsInBlock; idx += BlockSize ) {
+      Index entry;
+      Index localIdx;
+      if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
+         entry = firstEntry + idx / segmentSize;
+         localIdx = idx % segmentSize;
+      }
+      else {  // ColumnMajorOrder
+         entry = firstEntry + idx % segmentsInBlock;
+         localIdx = idx / segmentsInBlock;
+      }
+      TNL_ASSERT_LT( entry, segmentIndexes.getSize(), "" );
+      TNL_ASSERT_LT( localIdx, segmentSize, "" );
+      const Index segmentIdx = segmentIndexes[ entry ];
       const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
       if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
       else
          function( segmentIdx, globalIdx );
    }
-   else {  // ColumnMajorOrder
-      const Index segmentsCount = segmentIndexes.getSize();
-      const Index localIdx = globalThreadIdx / segmentsCount;
-      const Index segmentIdx_idx = globalThreadIdx % segmentsCount;
-      if( localIdx >= segments.getSegmentSize() )
-         return;
-
-      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
-      TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
-      const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-      const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
-      if constexpr( callableArgumentCount< Function >() == 3 )
-         function( segmentIdx, localIdx, globalIdx );
-      else
-         function( segmentIdx, globalIdx );
-   }
-
 #endif
 }
 
@@ -192,7 +185,7 @@ forElements_Ellpack_PerElement_If(
    __shared__ Index activeSegmentsCount;
    if( threadIdx.x == 0 )
       activeSegmentsCount = conditions[ SegmentsPerBlock - 1 ];
-   const Index prevConditions = ( threadIdx.x == 0 ) ? 0 : conditions[ threadIdx.x - 1 ];
+   const Index prevConditions = ( threadIdx.x == 0 || threadIdx.x > SegmentsPerBlock ) ? 0 : conditions[ threadIdx.x - 1 ];
    if( threadIdx.x < SegmentsPerBlock && conditions[ threadIdx.x ] != prevConditions )
       shared_segment_indexes[ conditions[ threadIdx.x ] - 1 ] = segmentIdx;
    __syncthreads();
