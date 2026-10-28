@@ -229,9 +229,12 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
-      // There is a single kernel for this operation, so the launch configuration is not used.
+      // There is a single kernel for this operation,
+      // so the launch configuration is only checked for an unsupported mapping.
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
+         resolveLaunchConfiguration( launchConfig );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
@@ -289,9 +292,12 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
-      // There is a single kernel for this operation, so the launch configuration is not used.
+      // There is a single kernel for this operation,
+      // so the launch configuration is only checked for an unsupported mapping.
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
+         resolveLaunchConfiguration( launchConfig );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
@@ -354,9 +360,12 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
-      // There is a single kernel for this operation, so the launch configuration is not used.
+      // There is a single kernel for this operation,
+      // so the launch configuration is only checked for an unsupported mapping.
+      if constexpr( std::is_same_v< Device, Devices::GPU > )
+         resolveLaunchConfiguration( launchConfig );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();

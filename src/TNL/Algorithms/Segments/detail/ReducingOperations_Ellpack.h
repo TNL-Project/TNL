@@ -126,7 +126,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
-         // There is a single kernel for the column-major organization, so the launch configuration is not used.
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
@@ -235,7 +238,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
-         // There is a single kernel for the column-major organization, so the launch configuration is not used.
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx_idx ) mutable
@@ -343,7 +349,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
-         // There is a single kernel for the column-major organization, so the launch configuration is not used.
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
@@ -463,7 +472,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
-         // There is a single kernel for the column-major organization, so the launch configuration is not used.
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx_idx ) mutable
