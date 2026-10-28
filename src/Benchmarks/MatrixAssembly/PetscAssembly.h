@@ -36,6 +36,104 @@ checkPetsc( PetscErrorCode error, const char* call )
 
    #define TNL_PETSC_CALL( call ) checkPetsc( call, #call )
 
+//! \brief Reads the matrix row by row and compares it with the exact matrix.
+template< typename Real, typename Index >
+void
+verifyPetscMatrix( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, Mat matrix )
+{
+   std::vector< PetscInt > rowPointers( 1, 0 );
+   std::vector< PetscInt > columnIndexes;
+   std::vector< PetscScalar > data;
+   for( PetscInt row = 0; row < problem.getRows(); row++ ) {
+      PetscInt size = 0;
+      const PetscInt* columns = nullptr;
+      const PetscScalar* rowValues = nullptr;
+      TNL_PETSC_CALL( MatGetRow( matrix, row, &size, &columns, &rowValues ) );
+      columnIndexes.insert( columnIndexes.end(), columns, columns + size );
+      data.insert( data.end(), rowValues, rowValues + size );
+      TNL_PETSC_CALL( MatRestoreRow( matrix, row, &size, &columns, &rowValues ) );
+      rowPointers.push_back( columnIndexes.size() );
+   }
+   reportVerification( benchmark, "PETSc", problem.compare( rowPointers, columnIndexes, data ) );
+}
+
+//! \brief Assembles a MATSEQAIJ matrix on the host with the COO interface.
+template< typename Real, typename Index >
+Mat
+assemblePetscHostMatrix( const LaplaceProblem< Real, Index >& problem )
+{
+   const Index rows = problem.getRows();
+   const Index nonzeros = problem.getNonzeroElementsCount();
+   Mat matrix = nullptr;
+   TNL_PETSC_CALL( MatCreate( PETSC_COMM_SELF, &matrix ) );
+   TNL_PETSC_CALL( MatSetSizes( matrix, rows, rows, rows, rows ) );
+   TNL_PETSC_CALL( MatSetType( matrix, MATSEQAIJ ) );
+   Containers::Vector< PetscInt, Devices::Host, Index > offsets;
+   Containers::Vector< PetscInt, Devices::Host, Index > cooRows( nonzeros );
+   Containers::Vector< PetscInt, Devices::Host, Index > cooColumns( nonzeros );
+   Containers::Vector< PetscScalar, Devices::Host, Index > values( nonzeros );
+   problem.computeRowOffsets( offsets );
+   problem.writeCOO( offsets, cooRows.getData(), cooColumns.getData(), values.getData() );
+   TNL_PETSC_CALL( MatSetPreallocationCOO( matrix, nonzeros, cooRows.getData(), cooColumns.getData() ) );
+   TNL_PETSC_CALL( MatSetValuesCOO( matrix, values.getData(), INSERT_VALUES ) );
+   return matrix;
+}
+
+/**
+ * \brief Benchmarks the assembly of a CSR matrix on the host followed by the transfer to the GPU.
+ *
+ * The matrix is assembled as MATSEQAIJ with the COO interface and converted to the GPU type
+ * (MATSEQAIJCUSPARSE or MATSEQAIJHIPSPARSE) with `MatConvert`. PETSc copies the matrix to the
+ * GPU lazily, so the copy is forced by getting the array of values on the device.
+ * See \ref timeHostAssemblyAndTransfer for the measured operations.
+ */
+template< typename Real, typename Device, typename Index >
+void
+benchmarkPetscHostToGPU( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, bool verify )
+{
+   #if ( defined( __CUDACC__ ) && defined( PETSC_HAVE_CUDA ) ) || ( defined( __HIP__ ) && defined( PETSC_HAVE_HIP ) )
+   benchmark.setMetadataElement( { "format", "CSR" } );
+
+   Mat hostMatrix = nullptr;
+   Mat matrix = nullptr;
+   auto resetDevice = [ & ]()
+   {
+      if( matrix != nullptr )
+         TNL_PETSC_CALL( MatDestroy( &matrix ) );
+      matrix = nullptr;
+   };
+   auto resetAll = [ & ]()
+   {
+      resetDevice();
+      if( hostMatrix != nullptr )
+         TNL_PETSC_CALL( MatDestroy( &hostMatrix ) );
+      hostMatrix = nullptr;
+   };
+   auto hostAssemble = [ & ]()
+   {
+      hostMatrix = assemblePetscHostMatrix( problem );
+   };
+   auto transfer = [ & ]()
+   {
+      const PetscScalar* deviceValues = nullptr;
+      #if defined( __CUDACC__ )
+      TNL_PETSC_CALL( MatConvert( hostMatrix, MATSEQAIJCUSPARSE, MAT_INITIAL_MATRIX, &matrix ) );
+      TNL_PETSC_CALL( MatSeqAIJCUSPARSEGetArrayRead( matrix, &deviceValues ) );
+      TNL_PETSC_CALL( MatSeqAIJCUSPARSERestoreArrayRead( matrix, &deviceValues ) );
+      #else
+      TNL_PETSC_CALL( MatConvert( hostMatrix, MATSEQAIJHIPSPARSE, MAT_INITIAL_MATRIX, &matrix ) );
+      TNL_PETSC_CALL( MatSeqAIJHIPSPARSEGetArrayRead( matrix, &deviceValues ) );
+      TNL_PETSC_CALL( MatSeqAIJHIPSPARSERestoreArrayRead( matrix, &deviceValues ) );
+      #endif
+   };
+   timeHostAssemblyAndTransfer< Device >( benchmark, "PETSc", resetAll, resetDevice, hostAssemble, transfer );
+
+   if( verify && matrix != nullptr )
+      verifyPetscMatrix( benchmark, problem, matrix );
+   resetAll();
+   #endif
+}
+
 /**
  * \brief Benchmarks the assembly of a PETSc matrix of the given type on one MPI rank.
  *
@@ -132,22 +230,8 @@ benchmarkPetscType(
    timeOperation< Device >( benchmark, "filling", "PETSc", noReset, fill );
    timeOperation< Device >( benchmark, "assembly", "PETSc", destroy, assemble );
 
-   if( verify && matrix != nullptr ) {
-      std::vector< PetscInt > rowPointers( 1, 0 );
-      std::vector< PetscInt > columnIndexes;
-      std::vector< PetscScalar > data;
-      for( PetscInt row = 0; row < rows; row++ ) {
-         PetscInt size = 0;
-         const PetscInt* columns = nullptr;
-         const PetscScalar* rowValues = nullptr;
-         TNL_PETSC_CALL( MatGetRow( matrix, row, &size, &columns, &rowValues ) );
-         columnIndexes.insert( columnIndexes.end(), columns, columns + size );
-         data.insert( data.end(), rowValues, rowValues + size );
-         TNL_PETSC_CALL( MatRestoreRow( matrix, row, &size, &columns, &rowValues ) );
-         rowPointers.push_back( columnIndexes.size() );
-      }
-      reportVerification( benchmark, "PETSc", problem.compare( rowPointers, columnIndexes, data ) );
-   }
+   if( verify && matrix != nullptr )
+      verifyPetscMatrix( benchmark, problem, matrix );
    destroy();
 }
 
@@ -178,6 +262,8 @@ benchmarkPetsc(
          if( formats.count( "SlicedEllpack" ) > 0 )
             benchmarkPetscType< Real, Device, Index >( benchmark, problem, "SlicedEllpack", MATSEQSELLHIP, verify );
    #endif
+         if( formats.count( "CSR" ) > 0 )
+            benchmarkPetscHostToGPU< Real, Device, Index >( benchmark, problem, verify );
       }
    }
 }
