@@ -36,12 +36,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             launchConfig.setThreadsPerSegmentCount( 1 );
             break;
          case ThreadsToSegmentsMapping::Uniform:
-            break;
          case ThreadsToSegmentsMapping::PerElement:
-            if( launchConfig.getThreadsPerSegmentCount() != 1 )
-               throw std::invalid_argument(
-                  "Unsupported threads per segment count ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                  + " ) for the PerElement traversal of Ellpack segments. Only 1 is supported." );
             break;
          default:
             throw std::invalid_argument( "Unsupported threads to segments mapping for the traversal of Ellpack segments." );
@@ -119,10 +114,10 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          }
          else {
             std::size_t threadsCount = end - begin;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
-               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
-               threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
+            // For the PerElement mapping, a block with 256 threads processes 256 / threadsPerSegment segments.
+            threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
+               launchConfig.blockSize.x = 256;
 
             dim3 blocksCount;
             dim3 gridsCount;
@@ -154,13 +149,19 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
-                  constexpr auto kernel = forElements_Ellpack_PerElement<
-                     ViewType,
-                     IndexType,
-                     std::remove_reference_t< Function >,
-                     Organization,
-                     256 >;
-                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+                  dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+                     launchConfig.getThreadsPerSegmentCount(),
+                     [ & ]( auto threadsPerSegment )
+                     {
+                        constexpr auto kernel = forElements_Ellpack_PerElement<
+                           ViewType,
+                           IndexType,
+                           std::remove_reference_t< Function >,
+                           Organization,
+                           256 / decltype( threadsPerSegment )::value >;
+                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+                     },
+                     "Ellpack" );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -237,10 +238,10 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount = segmentIndexes.getSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
-               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
-               threadsCount *= static_cast< std::size_t >( segments.getSegmentSize() );
+            // For the PerElement mapping, a block with 256 threads processes 256 / threadsPerSegment segments.
+            threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
+               launchConfig.blockSize.x = 256;
 
             dim3 blocksCount;
             dim3 gridsCount;
@@ -266,16 +267,20 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
-                  constexpr auto kernel = forElements_Ellpack_PerElement_WithIndexes<
-                     ViewType,
-                     typename Array::ConstViewType,
-                     IndexType,
-                     std::remove_reference_t< Function >,
-                     Organization,
-                     256,    // SegmentsPerBlock
-                     256 >;  // BlockSize
-
-                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
+                  dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+                     launchConfig.getThreadsPerSegmentCount(),
+                     [ & ]( auto threadsPerSegment )
+                     {
+                        constexpr auto kernel = forElements_Ellpack_PerElement_WithIndexes<
+                           ViewType,
+                           typename Array::ConstViewType,
+                           IndexType,
+                           std::remove_reference_t< Function >,
+                           Organization,
+                           256 / decltype( threadsPerSegment )::value >;
+                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
+                     },
+                     "Ellpack" );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -358,9 +363,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          }
          else {
-            std::size_t threadsCount = end - begin;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
-               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            // For the PerElement mapping, a block with 256 threads processes 256 / threadsPerSegment segments.
+            const std::size_t threadsCount = static_cast< std::size_t >( end - begin )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -390,16 +395,22 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                      condition,
                      function );
                }
-               else {  // PerElement mapping - this mapping is currently the default one
-                  constexpr auto kernel = forElements_Ellpack_PerElement_If<
-                     ViewType,
-                     IndexType,
-                     std::remove_reference_t< Condition >,
-                     std::remove_reference_t< Function >,
-                     Organization,
-                     256,
-                     256 >;
-                  Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
+               else {  // PerElement
+                  dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+                     launchConfig.getThreadsPerSegmentCount(),
+                     [ & ]( auto threadsPerSegment )
+                     {
+                        constexpr auto kernel = forElements_Ellpack_PerElement_If<
+                           ViewType,
+                           IndexType,
+                           std::remove_reference_t< Condition >,
+                           std::remove_reference_t< Function >,
+                           Organization,
+                           256,  // SliceSize, not used
+                           256 / decltype( threadsPerSegment )::value >;
+                        Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
+                     },
+                     "Ellpack" );
                }
             }
             Backend::streamSynchronize( launch_config.stream );

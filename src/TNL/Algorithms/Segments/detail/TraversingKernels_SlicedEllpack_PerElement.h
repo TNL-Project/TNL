@@ -14,16 +14,19 @@ namespace TNL::Algorithms::Segments::detail {
 /**
  * \brief Kernel for the PerElement thread mapping, traversing a contiguous range of segments.
  *
- * Every block processes `BlockSize / SliceSize` consecutive slices. The offsets of the slices
- * (relative to the first element of the block) and the segment sizes in the slices are stored in
- * shared memory. All elements of the block's slices are divided evenly among the threads of the block
- * regardless of the segment boundaries; each thread finds the slice its element belongs to by a
- * binary search in the slice offsets and computes the segment and the local index within the slice
- * directly, since all segments in a slice have the same size. Elements of the segments outside of the
- * range [\e begin, \e end) (in the first and the last slice) are skipped.
+ * Every block processes `SegmentsPerBlock / SliceSize` consecutive slices.
+ * The offsets of the slices (relative to the first element of the block)
+ * and the segment sizes in the slices are stored in shared memory.
+ * All elements of the block's slices are divided evenly among the threads of the block
+ * regardless of the segment boundaries;
+ * each thread finds the slice its element belongs to by a binary search in the slice offsets
+ * and computes the segment and the local index within the slice directly,
+ * since all segments in a slice have the same size.
+ * Elements of the segments outside of the range [`begin`, `end`)
+ * (in the first and the last slice) are skipped.
  *
- * See \ref forElements_CSR_PerElement for the general idea of the PerElement mapping and the
- * literature reference.
+ * See \ref forElements_CSR_PerElement for the general idea of the PerElement mapping
+ * and the literature reference.
  */
 template<
    typename SegmentsConstView,
@@ -31,6 +34,7 @@ template<
    typename Function,
    ElementsOrganization Organization,
    int SliceSize,
+   int SegmentsPerBlock = 256,
    int BlockSize = 256 >
 __global__
 void
@@ -42,9 +46,12 @@ forElements_SlicedEllpack_PerElement(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   static_assert( SegmentsPerBlock <= BlockSize, "Every segment of the block must have its own thread." );
+   static_assert( SegmentsPerBlock % SliceSize == 0, "The block must process whole slices." );
+   constexpr int SlicesPerBlock = SegmentsPerBlock / SliceSize;
 
-   __shared__ Index shared_offsets[ BlockSize / SliceSize + 1 ];
-   __shared__ Index shared_segments_size[ BlockSize / SliceSize ];
+   __shared__ Index shared_offsets[ SlicesPerBlock + 1 ];
+   __shared__ Index shared_segments_size[ SlicesPerBlock ];
 
    __shared__ Index firstSliceIdx;              // the slice corresponding to the segment with index `begin`
    __shared__ Index lastSliceIdx;               // the slice corresponding to the segment with index `end - 1`
@@ -61,18 +68,18 @@ forElements_SlicedEllpack_PerElement(
    }
    __syncthreads();
 
-   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
    const Index segmentInSliceIdx = segmentIdx % SliceSize;
    const Index sliceIdx = segmentIdx / SliceSize;
    if( threadIdx.x == 0 ) {
       firstSegmentInBlock = segmentIdx;
       firstSliceInBlockIdx = firstSegmentInBlock / SliceSize;
       firstSegmentInBlockOffset = segments.getGlobalIndex( firstSegmentInBlock, 0 );  // segmentIdx
-      slicesInBlockCount = min( lastSliceIdx - firstSliceInBlockIdx + 1, BlockSize / SliceSize );
+      slicesInBlockCount = min( lastSliceIdx - firstSliceInBlockIdx + 1, SlicesPerBlock );
    }
    __syncthreads();
 
-   if( segmentInSliceIdx == 0 && segmentIdx < end ) {
+   if( threadIdx.x < SegmentsPerBlock && segmentInSliceIdx == 0 && segmentIdx < end ) {
       shared_offsets[ sliceIdx - firstSliceInBlockIdx ] = segments.getGlobalIndex( segmentIdx, 0 ) - firstSegmentInBlockOffset;
       shared_segments_size[ sliceIdx - firstSliceInBlockIdx ] = segments.getSliceSegmentSizesView()[ sliceIdx ];
    }
@@ -311,7 +318,7 @@ forElements_SlicedEllpack_PerElement_If(
    __shared__ Index activeSegmentsCount;
    if( threadIdx.x == 0 )
       activeSegmentsCount = conditions[ SegmentsPerBlock - 1 ];
-   const Index prevConditions = ( threadIdx.x == 0 ) ? 0 : conditions[ threadIdx.x - 1 ];
+   const Index prevConditions = ( threadIdx.x == 0 || threadIdx.x > SegmentsPerBlock ) ? 0 : conditions[ threadIdx.x - 1 ];
    if( threadIdx.x < SegmentsPerBlock && conditions[ threadIdx.x ] != prevConditions ) {
       shared_segment_indexes[ conditions[ threadIdx.x ] - 1 ] = segmentIdx;
       shared_global_offsets[ conditions[ threadIdx.x ] - 1 ] =
@@ -320,7 +327,8 @@ forElements_SlicedEllpack_PerElement_If(
    }
    __syncthreads();
 
-   Index segmentSize = shared_offsets[ threadIdx.x ];
+   // the threads beyond the segments of the block contribute nothing to the scan
+   const Index segmentSize = ( threadIdx.x <= SegmentsPerBlock ) ? shared_offsets[ threadIdx.x ] : 0;
    const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, exclusive_scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
