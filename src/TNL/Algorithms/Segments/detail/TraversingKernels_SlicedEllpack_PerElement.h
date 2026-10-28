@@ -171,7 +171,8 @@ forElements_SlicedEllpack_PerElement_WithIndexes(
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
    const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
-   const Index last_local_segment_idx = min( SegmentsPerBlock, segmentIndexes.getSize() - blockIdx.x * SegmentsPerBlock );
+   const Index last_local_segment_idx =
+      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
