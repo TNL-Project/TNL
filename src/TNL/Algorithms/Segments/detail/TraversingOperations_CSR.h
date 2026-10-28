@@ -113,14 +113,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          }
          else {
-            std::size_t threadsCount = end - begin;
+            // For the PerElement and Tiered mappings, a block with 256 threads processes
+            // 256 / threadsPerSegment segments.
+            std::size_t threadsCount = static_cast< std::size_t >( end - begin )
+                                     * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
             {
                launchConfig.blockSize.x = 256;
-            }
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
 
             dim3 blocksCount;
@@ -150,14 +150,49 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
-                  constexpr auto kernel =
-                     forElements_CSR_PerElement< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
-                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
+                  auto launch = [ & ]( auto kernel )
+                  {
+                     Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
+                  };
+                  using F = std::remove_reference_t< Function >;
+                  switch( launchConfig.getThreadsPerSegmentCount() ) {
+                     case 1:
+                        launch( forElements_CSR_PerElement< ConstOffsetsView, IndexType, F, 256 > );
+                        break;
+                     case 2:
+                        launch( forElements_CSR_PerElement< ConstOffsetsView, IndexType, F, 128 > );
+                        break;
+                     case 4:
+                        launch( forElements_CSR_PerElement< ConstOffsetsView, IndexType, F, 64 > );
+                        break;
+                     case 8:
+                        launch( forElements_CSR_PerElement< ConstOffsetsView, IndexType, F, 32 > );
+                        break;
+                     case 16:
+                        launch( forElements_CSR_PerElement< ConstOffsetsView, IndexType, F, 16 > );
+                        break;
+                     case 32:
+                        launch( forElements_CSR_PerElement< ConstOffsetsView, IndexType, F, 8 > );
+                        break;
+                     case 64:
+                        launch( forElements_CSR_PerElement< ConstOffsetsView, IndexType, F, 4 > );
+                        break;
+                     default:
+                        throw std::invalid_argument( "Unsupported threads per segment count for CSR segments." );
+                  }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
                   constexpr auto kernel =
                      forElements_CSR_Tiered< ConstOffsetsView, IndexType, std::remove_reference_t< Function > >;
-                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launchConfig,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getOffsets(),
+                     begin,
+                     end,
+                     function );
                }
                else {
                   throw std::invalid_argument( "Unsupported threads to segments mapping for CSR segments." );
@@ -271,59 +306,35 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
+                  auto launch = [ & ]( auto kernel )
+                  {
+                     Backend::launchKernelAsync(
+                        kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
+                  };
+                  using ArrayView = typename Array::ConstViewType;
+                  using F = std::remove_reference_t< Function >;
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
-                        {
-                           constexpr int SegmentsPerBlock = 256;
-                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
-                              ConstOffsetsView,
-                              typename Array::ConstViewType,
-                              IndexType,
-                              std::remove_reference_t< Function >,
-                              SegmentsPerBlock >;
-                           Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
-                           break;
-                        }
+                        launch( forElements_CSR_PerElement_WithIndexes< ConstOffsetsView, ArrayView, IndexType, F, 256 > );
+                        break;
                      case 2:
-                        {
-                           constexpr int SegmentsPerBlock = 128;
-                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
-                              ConstOffsetsView,
-                              typename Array::ConstViewType,
-                              IndexType,
-                              std::remove_reference_t< Function >,
-                              SegmentsPerBlock >;
-                           Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
-                           break;
-                        }
+                        launch( forElements_CSR_PerElement_WithIndexes< ConstOffsetsView, ArrayView, IndexType, F, 128 > );
+                        break;
                      case 4:
-                        {
-                           constexpr int SegmentsPerBlock = 64;
-                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
-                              ConstOffsetsView,
-                              typename Array::ConstViewType,
-                              IndexType,
-                              std::remove_reference_t< Function >,
-                              SegmentsPerBlock >;
-                           Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
-                           break;
-                        }
+                        launch( forElements_CSR_PerElement_WithIndexes< ConstOffsetsView, ArrayView, IndexType, F, 64 > );
+                        break;
                      case 8:
-                        {
-                           constexpr int SegmentsPerBlock = 32;
-                           constexpr auto kernel = detail::forElements_CSR_PerElement_WithIndexes<
-                              ConstOffsetsView,
-                              typename Array::ConstViewType,
-                              IndexType,
-                              std::remove_reference_t< Function >,
-                              SegmentsPerBlock >;
-                           Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
-                           break;
-                        }
+                        launch( forElements_CSR_PerElement_WithIndexes< ConstOffsetsView, ArrayView, IndexType, F, 32 > );
+                        break;
+                     case 16:
+                        launch( forElements_CSR_PerElement_WithIndexes< ConstOffsetsView, ArrayView, IndexType, F, 16 > );
+                        break;
+                     case 32:
+                        launch( forElements_CSR_PerElement_WithIndexes< ConstOffsetsView, ArrayView, IndexType, F, 8 > );
+                        break;
+                     case 64:
+                        launch( forElements_CSR_PerElement_WithIndexes< ConstOffsetsView, ArrayView, IndexType, F, 4 > );
+                        break;
                      default:
                         throw std::invalid_argument( "Unsupported threads per segment count for CSR segments." );
                   }
@@ -335,7 +346,13 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      IndexType,
                      std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync(
-                     kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
+                     kernel,
+                     launchConfig,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getOffsets(),
+                     segmentIndexesView,
+                     function );
                }
                else {
                   throw std::invalid_argument( "Unsupported threads to segments mapping for CSR segments." );
@@ -419,10 +436,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          }
          else {
+            // For the PerElement and Tiered mappings, a block with 256 threads processes
+            // 256 / threadsPerSegment segments.
             const Index segmentsCount = end - begin;
-            std::size_t threadsCount = segmentsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform )
-               threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            const std::size_t threadsCount = static_cast< std::size_t >( segmentsCount )
+                                           * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -449,15 +467,38 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
-                  constexpr auto kernel = forElements_CSR_PerElement_If<
-                     ConstOffsetsView,
-                     IndexType,
-                     std::remove_reference_t< Condition >,
-                     std::remove_reference_t< Function >,
-                     256,
-                     256 >;
-                  Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
+                  auto launch = [ & ]( auto kernel )
+                  {
+                     Backend::launchKernelAsync(
+                        kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
+                  };
+                  using C = std::remove_reference_t< Condition >;
+                  using F = std::remove_reference_t< Function >;
+                  switch( launchConfig.getThreadsPerSegmentCount() ) {
+                     case 1:
+                        launch( forElements_CSR_PerElement_If< ConstOffsetsView, IndexType, C, F, 256 > );
+                        break;
+                     case 2:
+                        launch( forElements_CSR_PerElement_If< ConstOffsetsView, IndexType, C, F, 128 > );
+                        break;
+                     case 4:
+                        launch( forElements_CSR_PerElement_If< ConstOffsetsView, IndexType, C, F, 64 > );
+                        break;
+                     case 8:
+                        launch( forElements_CSR_PerElement_If< ConstOffsetsView, IndexType, C, F, 32 > );
+                        break;
+                     case 16:
+                        launch( forElements_CSR_PerElement_If< ConstOffsetsView, IndexType, C, F, 16 > );
+                        break;
+                     case 32:
+                        launch( forElements_CSR_PerElement_If< ConstOffsetsView, IndexType, C, F, 8 > );
+                        break;
+                     case 64:
+                        launch( forElements_CSR_PerElement_If< ConstOffsetsView, IndexType, C, F, 4 > );
+                        break;
+                     default:
+                        throw std::invalid_argument( "Unsupported threads per segment count for CSR segments." );
+                  }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
                   constexpr auto kernel = forElements_CSR_Tiered_If<
@@ -466,7 +507,15 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      std::remove_reference_t< Condition >,
                      std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getOffsets(),
+                     begin,
+                     end,
+                     condition,
+                     function );
                }
                else {
                   throw std::invalid_argument( "Unsupported threads to segments mapping for CSR segments." );

@@ -21,8 +21,8 @@ namespace TNL::Algorithms::Segments::detail {
  * segments stored in shared memory. The work is thus balanced perfectly within each block, but not
  * across the blocks, since every block processes a fixed number of segments.
  *
- * Every block processes `BlockSize` consecutive segments of the range [\e begin, \e end); their
- * offsets are read directly from \e offsets into shared memory.
+ * Every block processes `SegmentsPerBlock` consecutive segments of the range [`begin`, `end`);
+ * their offsets are read directly from `offsets` into shared memory.
  *
  * This kind of work distribution is called nonzero splitting (as opposed to row splitting) in
  *
@@ -33,7 +33,7 @@ namespace TNL::Algorithms::Segments::detail {
  * which balances the elements globally using the merge-path decomposition; here the balancing is
  * restricted to the block and a plain binary search is used instead.
  */
-template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
+template< typename OffsetsView, typename Index, typename Function, int SegmentsPerBlock = 256, int BlockSize = 256 >
 __global__
 void
 forElements_CSR_PerElement(
@@ -44,20 +44,22 @@ forElements_CSR_PerElement(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   static_assert( SegmentsPerBlock <= BlockSize, "Every segment of the block must have its own thread." );
 
-   __shared__ Index shared_offsets[ BlockSize + 1 ];
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   if( segmentIdx <= end )
-      shared_offsets[ threadIdx.x ] = offsets[ segmentIdx ];
-   if( threadIdx.x == 0 && end - begin >= BlockSize )
-      shared_offsets[ BlockSize ] = offsets[ end ];
+   __shared__ Index shared_offsets[ SegmentsPerBlock + 1 ];
+   const Index first_segment_in_block = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock;
+   const Index last_segment_in_block = min( end, first_segment_in_block + SegmentsPerBlock );
+   const Index segments_in_block = last_segment_in_block - first_segment_in_block;
+   if( segments_in_block <= 0 )
+      return;
+   if( threadIdx.x < segments_in_block )
+      shared_offsets[ threadIdx.x ] = offsets[ first_segment_in_block + threadIdx.x ];
+   if( threadIdx.x == 0 )
+      shared_offsets[ segments_in_block ] = offsets[ last_segment_in_block ];
    __syncthreads();
 
-   const Index first_segment_in_block = segmentIdx - threadIdx.x;
-   const Index last_segment_in_block = min( end, first_segment_in_block + BlockSize );
-   const Index segments_in_block = last_segment_in_block - first_segment_in_block;
    const Index first_idx = shared_offsets[ 0 ];
-   const Index last_idx = offsets[ last_segment_in_block ];
+   const Index last_idx = shared_offsets[ segments_in_block ];
 
    Index idx = threadIdx.x;
    while( idx + first_idx < last_idx ) {
@@ -240,7 +242,7 @@ forElements_CSR_PerElement_If(
    __shared__ Index activeSegmentsCount;
    if( threadIdx.x == 0 )
       activeSegmentsCount = conditions[ SegmentsPerBlock - 1 ];
-   const Index prevConditions = ( threadIdx.x == 0 ) ? 0 : conditions[ threadIdx.x - 1 ];
+   const Index prevConditions = ( threadIdx.x == 0 || threadIdx.x > SegmentsPerBlock ) ? 0 : conditions[ threadIdx.x - 1 ];
    if( threadIdx.x < SegmentsPerBlock && conditions[ threadIdx.x ] != prevConditions ) {
       TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
       shared_segment_indexes[ conditions[ threadIdx.x ] - 1 ] = segmentIdx;
@@ -249,7 +251,8 @@ forElements_CSR_PerElement_If(
    }
    __syncthreads();
 
-   const Index segmentSize = shared_offsets[ threadIdx.x ];
+   // the threads beyond the segments of the block contribute nothing to the scan
+   const Index segmentSize = ( threadIdx.x <= SegmentsPerBlock ) ? shared_offsets[ threadIdx.x ] : 0;
    const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;

@@ -54,6 +54,7 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 4 ), "Tiered 4 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 8 ), "Tiered 8 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 16 ), "Tiered 16 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 32 ), "Tiered 32 TPS" },
          { LaunchConfigurationSetter_LightCSR< Segments >::create( segments ), "Light CSR" },
          { LaunchConfigurationSetter_HybridCSR< Segments >::create( segments ), "Hybrid CSR" }
       };

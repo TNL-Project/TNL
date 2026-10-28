@@ -211,7 +211,14 @@ def get_launch_configurations(input_df, kernels, problems):
                             "PerElement 2 TPS": 11,
                             "PerElement 4 TPS": 12,
                             "PerElement 8 TPS": 13,
-                            "Tiered 1 TPS": 14,
+                            "PerElement 16 TPS": 14,
+                            "PerElement 32 TPS": 15,
+                            "Tiered 1 TPS": 16,
+                            "Tiered 2 TPS": 17,
+                            "Tiered 4 TPS": 18,
+                            "Tiered 8 TPS": 19,
+                            "Tiered 16 TPS": 20,
+                            "Tiered 32 TPS": 21,
                         }
                         launch_configs[(problem, solver, device, kernel)].sort(
                             key=lambda d: order.get(d, len(order))

@@ -48,7 +48,14 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 2 ), "PerElement 2 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 8 ), "PerElement 8 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 16 ), "PerElement 16 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 32 ), "PerElement 32 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 1 ), "Tiered 1 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 2 ), "Tiered 2 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 4 ), "Tiered 4 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 8 ), "Tiered 8 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 16 ), "Tiered 16 TPS" },
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 32 ), "Tiered 32 TPS" },
       };
    }
    else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
