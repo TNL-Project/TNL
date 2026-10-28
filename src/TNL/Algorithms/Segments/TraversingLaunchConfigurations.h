@@ -11,13 +11,20 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief Traversing launch configurations for segments.
+ * \brief Returns a list of launch configurations
+ * for traversing operations on segments.
  *
- * This struct creates a list of available launch configurations for given segments type.
- * The first one is always the Default launch configuration. On the host, the thread mapping
- * is not used, so the Default launch configuration is the only one.
+ * This function generates a list of launch configurations
+ * suitable for traversing operations on segments,
+ * based on the type of segments provided.
+ * The first one is always the Default launch configuration.
+ * On the host, the thread mapping is not used,
+ * so the Default launch configuration is the only one.
  *
- * \tparam Segments The type of segments for which the launch configurations are created.
+ * \tparam Segments The type of segments
+ *         for which the launch configurations are generated.
+ * \param segments The segments for which the launch configurations are created.
+ * \return A list of pairs containing launch configurations and their descriptions.
  */
 template< typename Segments >
 static auto

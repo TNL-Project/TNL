@@ -12,26 +12,38 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Kernel for the PerElement thread mapping, traversing a contiguous range of segments.
+ * \brief Kernel for the PerElement thread mapping,
+ * traversing a contiguous range of segments.
  *
- * Unlike the other thread mappings, the threads are not assigned to segments but to elements: all
- * elements of the segments processed by a block are merged into one contiguous range, which is
- * divided evenly among the threads of the block regardless of the segment boundaries. Each thread
- * then finds the segment its element belongs to by a binary search in the offsets of the block's
- * segments stored in shared memory. The work is thus balanced perfectly within each block, but not
- * across the blocks, since every block processes a fixed number of segments.
+ * Unlike the other thread mappings,
+ * the threads are not assigned to segments but to elements:
+ * all elements of the segments processed by a block
+ * are merged into one contiguous range,
+ * which is divided evenly among the threads of the block
+ * regardless of the segment boundaries.
+ * Each thread then finds the segment its element belongs to
+ * by a binary search in the offsets of the block's segments
+ * stored in shared memory.
+ * The work is thus balanced perfectly within each block,
+ * but not across the blocks,
+ * since every block processes a fixed number of segments.
  *
- * Every block processes `SegmentsPerBlock` consecutive segments of the range [`begin`, `end`);
+ * Every block processes `SegmentsPerBlock` consecutive segments
+ * of the range [`begin`, `end`);
  * their offsets are read directly from `offsets` into shared memory.
  *
- * This kind of work distribution is called nonzero splitting (as opposed to row splitting) in
+ * This kind of work distribution is called nonzero splitting
+ * (as opposed to row splitting) in
  *
- * D. Merrill and M. Garland, "Merge-based parallel sparse matrix-vector multiplication," SC '16: Proceedings of the
- * International Conference for High Performance Computing, Networking, Storage and Analysis, Salt Lake City, UT, USA,
- * 2016, pp. 678-689.
+ * D. Merrill and M. Garland,
+ * "Merge-based parallel sparse matrix-vector multiplication,"
+ * SC '16: Proceedings of the International Conference
+ * for High Performance Computing, Networking, Storage and Analysis,
+ * Salt Lake City, UT, USA, 2016, pp. 678-689.
  *
- * which balances the elements globally using the merge-path decomposition; here the balancing is
- * restricted to the block and a plain binary search is used instead.
+ * which balances the elements globally using the merge-path decomposition;
+ * here the balancing is restricted to the block
+ * and a plain binary search is used instead.
  */
 template< typename OffsetsView, typename Index, typename Function, int SegmentsPerBlock = 256, int BlockSize = 256 >
 __global__
@@ -79,20 +91,29 @@ forElements_CSR_PerElement(
 }
 
 /**
- * \brief Kernel for the PerElement thread mapping, traversing the segments given explicitly by
- * \e segmentIndexes.
+ * \brief Kernel for the PerElement thread mapping,
+ * traversing the segments given explicitly by `segmentIndexes`.
  *
- * Unlike the other thread mappings, the threads are not assigned to segments but to elements: all
- * elements of the segments processed by a block are merged into one contiguous range, which is
- * divided evenly among the threads of the block regardless of the segment boundaries. Each thread
- * then finds the segment its element belongs to by a binary search in the offsets of the block's
- * segments stored in shared memory. The work is thus balanced perfectly within each block, but not
- * across the blocks, since every block processes a fixed number of segments.
+ * Unlike the other thread mappings,
+ * the threads are not assigned to segments but to elements:
+ * all elements of the segments processed by a block
+ * are merged into one contiguous range,
+ * which is divided evenly among the threads of the block
+ * regardless of the segment boundaries.
+ * Each thread then finds the segment its element belongs to
+ * by a binary search in the offsets of the block's segments
+ * stored in shared memory.
+ * The work is thus balanced perfectly within each block,
+ * but not across the blocks,
+ * since every block processes a fixed number of segments.
  *
- * Every block processes \e SegmentsPerBlock consecutive entries of \e segmentIndexes. Since the
- * segments are not contiguous in memory, their local offsets within the block are computed by a
- * block-wide exclusive scan of their sizes and their global offsets are stored separately. See
- * \ref forElements_CSR_PerElement for the literature reference.
+ * Every block processes `SegmentsPerBlock` consecutive entries
+ * of `segmentIndexes`.
+ * Since the segments are not contiguous in memory,
+ * their local offsets within the block
+ * are computed by a block-wide exclusive scan of their sizes
+ * and their global offsets are stored separately.
+ * See \ref forElements_CSR_PerElement for the literature reference.
  */
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int SegmentsPerBlock, int BlockSize = 256 >
 __global__
@@ -175,20 +196,30 @@ forElements_CSR_PerElement_WithIndexes(
 }
 
 /**
- * \brief Kernel for the PerElement thread mapping, traversing the segments of a contiguous range
- * that satisfy \e condition.
+ * \brief Kernel for the PerElement thread mapping,
+ * traversing the segments of a contiguous range that satisfy `condition`.
  *
- * Unlike the other thread mappings, the threads are not assigned to segments but to elements: all
- * elements of the segments processed by a block are merged into one contiguous range, which is
- * divided evenly among the threads of the block regardless of the segment boundaries. Each thread
- * then finds the segment its element belongs to by a binary search in the offsets of the block's
- * segments stored in shared memory. The work is thus balanced perfectly within each block, but not
- * across the blocks, since every block processes a fixed number of segments.
+ * Unlike the other thread mappings,
+ * the threads are not assigned to segments but to elements:
+ * all elements of the segments processed by a block
+ * are merged into one contiguous range,
+ * which is divided evenly among the threads of the block
+ * regardless of the segment boundaries.
+ * Each thread then finds the segment its element belongs to
+ * by a binary search in the offsets of the block's segments
+ * stored in shared memory.
+ * The work is thus balanced perfectly within each block,
+ * but not across the blocks,
+ * since every block processes a fixed number of segments.
  *
- * Every block evaluates \e condition for \e SegmentsPerBlock consecutive segments of the range
- * [\e begin, \e end). The segments satisfying the condition are compacted using a block-wide
- * inclusive scan of the condition values and their local offsets are then computed by an exclusive
- * scan of their sizes, so only the elements of the active segments are divided among the threads.
+ * Every block evaluates `condition` for `SegmentsPerBlock` consecutive segments
+ * of the range [`begin`, `end`).
+ * The segments satisfying the condition are compacted
+ * using a block-wide inclusive scan of the condition values
+ * and their local offsets are then computed
+ * by an exclusive scan of their sizes,
+ * so only the elements of the active segments
+ * are divided among the threads.
  * See \ref forElements_CSR_PerElement for the literature reference.
  */
 template< typename OffsetsView, typename Index, typename Condition, typename Function, int SegmentsPerBlock, int BlockSize = 256 >

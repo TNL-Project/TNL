@@ -16,15 +16,18 @@ namespace TNL::Algorithms::Segments {
 /**
  * \brief Launch configuration setter for CSR segments.
  *
- * The mapping of threads is inspired by paper:
+ * The mapping of threads is inspired by the paper:
  *
- * Y. Liu and B. Schmidt, "LightSpMV: Faster CSR-based sparse matrix-vector multiplication on CUDA-enabled GPUs," 2015 IEEE 26th
- * International Conference on Application-specific Systems, Architectures and Processors (ASAP), Toronto, ON, Canada, 2015, pp.
- * 82-89.
+ * Y. Liu and B. Schmidt,
+ * "LightSpMV: Faster CSR-based sparse matrix-vector multiplication
+ * on CUDA-enabled GPUs,"
+ * 2015 IEEE 26th International Conference on Application-specific Systems,
+ * Architectures and Processors (ASAP), Toronto, ON, Canada, 2015, pp. 82-89.
  *
  * but it allows to map more than one warp of threads to each segment.
  *
- * \tparam Segments The type of segments for which the launch configuration is created.
+ * \tparam Segments The type of segments
+ *         for which the launch configuration is created.
  */
 template< typename Segments >
 struct LaunchConfigurationSetter_HybridCSR
