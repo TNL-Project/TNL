@@ -138,45 +138,58 @@ forElements_CSR_Tiered_impl( const OffsetsView offsets, bool traverse_segment, c
 /**
  * \brief Kernel for the Tiered thread mapping, traversing a contiguous range of segments.
  *
- * Every thread owns one segment of the range [\e begin, \e end) and the segments are traversed by
- * \ref forElements_CSR_Tiered_impl.
+ * Every block owns `BlockSize / threadsPerSegment` consecutive segments
+ * of the range [`begin`, `end`),
+ * each of them owned by one thread,
+ * and the segments are traversed by \ref forElements_CSR_Tiered_impl.
+ * The remaining threads of the block own no segment
+ * and only help with the larger tiers.
  */
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __global__
 void
-forElements_CSR_Tiered( const Index gridIdx, const OffsetsView offsets, const Index begin, const Index end, Function function )
+forElements_CSR_Tiered(
+   const Index gridIdx,
+   const Index threadsPerSegment,
+   const OffsetsView offsets,
+   const Index begin,
+   const Index end,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   bool traverse_segment = ( segmentIdx < end );
+   const Index segmentsPerBlock = BlockSize / threadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * segmentsPerBlock + threadIdx.x;
+   bool traverse_segment = ( threadIdx.x < segmentsPerBlock && segmentIdx < end );
 
    forElements_CSR_Tiered_impl( offsets, traverse_segment, segmentIdx, function );
 #endif
 }
 
 /**
- * \brief Kernel for the Tiered thread mapping, traversing the segments given explicitly by
- * \e segmentIndexes.
+ * \brief Kernel for the Tiered thread mapping,
+ * traversing the segments given explicitly by `segmentIndexes`.
  *
- * Every thread owns one entry of \e segmentIndexes and the segments are traversed by
- * \ref forElements_CSR_Tiered_impl.
+ * Every block owns `BlockSize / threadsPerSegment` consecutive entries of `segmentIndexes`,
+ * each of them owned by one thread,
+ * and the segments are traversed by \ref forElements_CSR_Tiered_impl.
  */
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int BlockSize = 256 >
 __global__
 void
 forElements_CSR_Tiered_WithIndexes(
    const Index gridIdx,
+   const Index threadsPerSegment,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   const Index segmentIdx_ptr = Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentsPerBlock = BlockSize / threadsPerSegment;
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * segmentsPerBlock + threadIdx.x;
 
    Index segmentIdx( 0 );
    bool traverse_segment( false );
-   if( segmentIdx_ptr < segmentIndexes.getSize() ) {
+   if( threadIdx.x < segmentsPerBlock && segmentIdx_ptr < segmentIndexes.getSize() ) {
       TNL_ASSERT_GE( segmentIdx_ptr, 0, "" );
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       segmentIdx = segmentIndexes[ segmentIdx_ptr ];
@@ -190,10 +203,12 @@ forElements_CSR_Tiered_WithIndexes(
 }
 
 /**
- * \brief Kernel for the Tiered thread mapping, traversing the segments of a contiguous range that
- * satisfy \e condition.
+ * \brief Kernel for the Tiered thread mapping,
+ * traversing the segments of a contiguous range that satisfy `condition`.
  *
- * Every thread owns one segment of the range [\e begin, \e end) and evaluates \e condition for it;
+ * Every block owns `BlockSize / threadsPerSegment` consecutive segments
+ * of the range [`begin`, `end`),
+ * each of them owned by one thread which evaluates `condition` for it;
  * only the segments satisfying the condition are passed to \ref forElements_CSR_Tiered_impl.
  */
 template< typename OffsetsView, typename Index, typename Condition, typename Function, int BlockSize = 256 >
@@ -201,6 +216,7 @@ __global__
 void
 forElements_CSR_Tiered_If(
    const Index gridIdx,
+   const Index threadsPerSegment,
    const OffsetsView offsets,
    const Index begin,
    const Index end,
@@ -208,11 +224,11 @@ forElements_CSR_Tiered_If(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentsPerBlock = BlockSize / threadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * segmentsPerBlock + threadIdx.x;
 
    bool traverse_segment = false;
-   if( segmentIdx < end ) {
+   if( threadIdx.x < segmentsPerBlock && segmentIdx < end ) {
       traverse_segment = condition( segmentIdx );
    }
 

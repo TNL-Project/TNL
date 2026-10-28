@@ -23,10 +23,23 @@ enum class ThreadsToSegmentsMapping : std::uint8_t
    Default,
    //! \brief The same number of threads (the threads per segment count) is assigned to every segment.
    Uniform,
-   //! \brief The threads are assigned to the elements of the segments processed by a block, regardless of
-   //! the segment boundaries.
+   /**
+    * \brief The threads are assigned to the elements of the segments processed by a block,
+    * regardless of the segment boundaries.
+    *
+    * The threads per segment count is the average number of threads per segment,
+    * i.e. a block with `BlockSize` threads
+    * processes `BlockSize / threadsPerSegmentCount` segments.
+    */
    PerElement,
-   //! \brief Segments are processed by a single thread, a warp or a whole block, depending on their size.
+   /**
+    * \brief Segments are processed by a single thread, a warp or a whole block,
+    * depending on their size.
+    *
+    * The threads per segment count is the average number of threads per segment,
+    * i.e. a block with `BlockSize` threads
+    * processes `BlockSize / threadsPerSegmentCount` segments.
+    */
    Tiered,
    //! \brief The adaptive kernel of AdaptiveCSR, which assigns the segments to the blocks in advance.
    //! CSR, which has no adaptive kernel, resolves it to the Default mapping.
