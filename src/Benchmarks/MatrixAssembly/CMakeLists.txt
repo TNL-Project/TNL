@@ -105,6 +105,13 @@ foreach(target backend IN ZIP_LISTS targets backends)
     endif()
     if(backend STREQUAL "CUDA")
         target_link_libraries(${target} PUBLIC CUDA::cusparse)
+        # TNL does not enable OpenMP for code compiled by nvcc, but the host assembly followed by
+        # the transfer to the GPU must run in parallel to be comparable with the host executable
+        if(TNL_BUILD_OPENMP)
+            target_compile_definitions(${target} PUBLIC HAVE_OPENMP)
+            target_compile_options(${target} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>)
+            target_link_libraries(${target} PUBLIC OpenMP::OpenMP_CXX)
+        endif()
     endif()
 endforeach()
 

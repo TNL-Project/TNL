@@ -41,6 +41,9 @@ checkCusparse( cusparseStatus_t status, const char* call )
  * - `filling`: generating the COO triplets on the GPU (sorted in the row-major order,
  *   so no sorting is needed), `cusparseXcoo2csr` and creating the matrix descriptor,
  * - `assembly`: allocation + filling.
+ *
+ * The assembly of the CSR arrays on the host followed by their transfer to the GPU and
+ * creating the matrix descriptor is measured in addition (see \ref timeHostAssemblyAndTransfer).
  */
 template< typename Real, typename Index >
 void
@@ -120,7 +123,8 @@ benchmarkCusparse( Benchmark& benchmark, const LaplaceProblem< Real, Index >& pr
    timeOperation< Device >( benchmark, "filling", "cuSPARSE", destroyDescriptor, fill );
    timeOperation< Device >( benchmark, "assembly", "cuSPARSE", destroy, assemble );
 
-   if( verify ) {
+   auto verifyMatrix = [ & ]()
+   {
       const Containers::Vector< Index, Devices::Host, Index > hostRowPointersVector( rowPointers );
       const Containers::Vector< Index, Devices::Host, Index > hostColumnIndexesVector( columnIndexes );
       const Containers::Vector< Real, Devices::Host, Index > hostValuesVector( values );
@@ -131,9 +135,62 @@ benchmarkCusparse( Benchmark& benchmark, const LaplaceProblem< Real, Index >& pr
       const std::vector< Real > hostValues(
          hostValuesVector.getData(), hostValuesVector.getData() + hostValuesVector.getSize() );
       reportVerification( benchmark, "cuSPARSE", problem.compare( hostRowPointers, hostColumnIndexes, hostValues ) );
-   }
+   };
 
+   if( verify )
+      verifyMatrix();
    destroy();
+
+   // assembly of the CSR arrays on the host followed by the transfer to the GPU
+   Containers::Vector< Index, Devices::Host, Index > hostRowPointers;
+   Containers::Vector< Index, Devices::Host, Index > hostColumnIndexes;
+   Containers::Vector< Real, Devices::Host, Index > hostValues;
+   auto resetDevice = [ & ]()
+   {
+      destroyDescriptor();
+      rowPointers.reset();
+      columnIndexes.reset();
+      values.reset();
+   };
+   auto resetAll = [ & ]()
+   {
+      resetDevice();
+      hostRowPointers.reset();
+      hostColumnIndexes.reset();
+      hostValues.reset();
+   };
+   auto hostAssemble = [ & ]()
+   {
+      // the row offsets are the CSR row pointers
+      problem.computeRowOffsets( hostRowPointers );
+      hostColumnIndexes.setSize( nonzeros );
+      hostValues.setSize( nonzeros );
+      problem.writeCOO( hostRowPointers, (Index*) nullptr, hostColumnIndexes.getData(), hostValues.getData() );
+   };
+   auto transfer = [ & ]()
+   {
+      rowPointers = hostRowPointers;
+      columnIndexes = hostColumnIndexes;
+      values = hostValues;
+      TNL_CUSPARSE_CALL( cusparseCreateCsr(
+         &descriptor,
+         rows,
+         rows,
+         nonzeros,
+         rowPointers.getData(),
+         columnIndexes.getData(),
+         values.getData(),
+         CUSPARSE_INDEX_32I,
+         CUSPARSE_INDEX_32I,
+         CUSPARSE_INDEX_BASE_ZERO,
+         valueType ) );
+   };
+   timeHostAssemblyAndTransfer< Device >( benchmark, "cuSPARSE", resetAll, resetDevice, hostAssemble, transfer );
+
+   if( verify )
+      verifyMatrix();
+   resetAll();
+
    TNL_CUSPARSE_CALL( cusparseDestroy( handle ) );
 }
 

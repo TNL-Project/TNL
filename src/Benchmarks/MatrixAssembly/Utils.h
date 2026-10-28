@@ -39,6 +39,41 @@ timeOperation(
    }
 }
 
+/**
+ * \brief Measures the assembly of a matrix on the host followed by its transfer to the GPU.
+ *
+ * Measured operations:
+ *
+ * - `host assembly`: assembling the matrix on the host,
+ * - `transfer`: copying the matrix assembled on the host to the GPU,
+ * - `host assembly + transfer`: both together.
+ *
+ * \param resetAll destroys both the host and the GPU matrix.
+ * \param resetDevice destroys only the GPU matrix (the host matrix is kept for the transfer).
+ * \param hostAssemble assembles the matrix on the host.
+ * \param transfer copies the matrix assembled on the host to the GPU.
+ */
+template< typename Device, typename ResetAll, typename ResetDevice, typename HostAssemble, typename Transfer >
+void
+timeHostAssemblyAndTransfer(
+   Benchmark& benchmark,
+   const std::string& performer,
+   ResetAll&& resetAll,
+   ResetDevice&& resetDevice,
+   HostAssemble& hostAssemble,
+   Transfer& transfer )
+{
+   auto total = [ & ]()
+   {
+      hostAssemble();
+      transfer();
+   };
+   timeOperation< Device >( benchmark, "host assembly", performer, resetAll, hostAssemble );
+   // the host matrix is assembled after the last loop
+   timeOperation< Device >( benchmark, "transfer", performer, resetDevice, transfer );
+   timeOperation< Device >( benchmark, "host assembly + transfer", performer, resetAll, total );
+}
+
 //! \brief Reports the result of the verification of the assembled matrix.
 inline void
 reportVerification( Benchmark& benchmark, const std::string& performer, const std::string& error )

@@ -23,15 +23,27 @@ The default grid sizes are 10^6 nodes in 1D, 1000x1000 nodes in 2D and 100x100x1
   This is the fairest comparison of the libraries, because each library splits the work between
   the two phases differently.
 
-For TNL on GPUs, two more operations are measured:
+For GPUs, the assembly on the host followed by the transfer of the matrix to the GPU is measured as well.
+This is done for all libraries:
 
-- `array transfer` – copying only the arrays of values and column indexes of a matrix assembled on the host
-  to the GPU.
-  This is the lower bound of the transfer time.
-- `transfer` – copying a matrix assembled on the host to the GPU with the assignment operator of
-  `TNL::Matrices::SparseMatrix`.
-- `host assembly + transfer` – assembling the matrix on the host and copying it to the GPU.
+- `host assembly` – assembling the matrix on the host.
+- `transfer` – copying the matrix assembled on the host to the GPU.
+- `host assembly + transfer` – both together.
   Compare it with `assembly` on the GPU to see the benefit of assembling the matrix directly on the GPU.
+
+| Library  | Host assembly | Transfer |
+|----------|---------------|----------|
+| TNL      | the same format on the host | assignment operator of `TNL::Matrices::SparseMatrix` |
+| Ginkgo   | the same format on the OpenMP executor | `copy_from` |
+| Hypre    | IJ matrix in the host memory | `HYPRE_IJMatrixMigrate` |
+| PETSc    | `MATSEQAIJ` (CSR only) | `MatConvert` to `MATSEQAIJCUSPARSE` and forcing the copy to the GPU |
+| cuSPARSE | CSR arrays on the host | copying the arrays and creating the matrix descriptor |
+
+For TNL, the operation `array transfer` measures copying only the arrays of values and column indexes,
+which is the lower bound of the transfer time.
+
+The GPU executable is built with OpenMP for the host code (TNL does not enable OpenMP for code compiled
+by nvcc by default), so the host assembly runs in parallel as in the host executable.
 
 Only bulk assembly is benchmarked, not inserting the elements one by one.
 
@@ -106,3 +118,24 @@ Main options:
 - `--precision` – `float`, `double` or `all`.
 - `--device` – `host`, `cuda`, `hip` or `all`.
 - `--verify` – verify the assembled matrices.
+
+## Processing the results
+
+The script `process-results.py` reads one or more JSON log files and writes an HTML page with tables
+of the measured times and LaTeX/TikZ (pgfplots) figures with speed-up graphs:
+
+```bash
+./process-results.py host.json gpu.json --output-dir results --pdf
+```
+
+- `matrix-assembly.html` – tables of all measured times and the speed-up of TNL for the assembly,
+  for each device and precision.
+- `speedup-<operation>-<device>-<precision>.tex` – speed-up of TNL over the other libraries with the
+  same matrix format for the allocation, filling and assembly.
+- `gpu-speedup-<device>-<precision>.tex` – speed-up of the assembly on the GPU over the assembly on
+  the host followed by the transfer, for all libraries and formats.
+- `host-to-gpu-<device>-<precision>-<grid>.tex` – stacked bars with the times of the host assembly and
+  the transfer for all libraries and formats.
+
+The `--pdf` option compiles the figures with `pdflatex`.
+The script requires `pandas`.
