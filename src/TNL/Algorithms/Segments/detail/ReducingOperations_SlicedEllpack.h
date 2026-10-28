@@ -31,6 +31,28 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
+   /**
+    * \brief Resolves the `Default` mapping of `launchConfig` in place
+    * and rejects the mappings without a GPU reduction kernel.
+    *
+    * The `Default` mapping resolves to the `Uniform` mapping with one thread per segment.
+    */
+   static void
+   resolveLaunchConfiguration( LaunchConfiguration& launchConfig )
+   {
+      switch( launchConfig.getThreadsToSegmentsMapping() ) {
+         case ThreadsToSegmentsMapping::Default:
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
+            launchConfig.setThreadsPerSegmentCount( 1 );
+            break;
+         case ThreadsToSegmentsMapping::Uniform:
+            break;
+         default:
+            throw std::invalid_argument(
+               "Unsupported threads to segments mapping for the reduction of Sliced Ellpack segments." );
+      }
+   }
+
    template<
       typename IndexBegin,
       typename IndexEnd,
@@ -102,7 +124,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Host > || std::is_same_v< Device, TNL::Devices::Sequential > ) {
          reduceSegmentsSequential(
@@ -117,10 +139,8 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       }
       else {
          const int warpSize = Backend::getWarpSize( Backend::getDevice() );
-         // The unspecified Default mapping resolves to the same strategy as the plain sequential
-         // {Uniform, 1}.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
+         resolveLaunchConfiguration( launchConfig );
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             reduceSegmentsSequential(
@@ -396,9 +416,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         + ". It can be only 2, 4, 8, 16, 32 or 64." );
                }
             }
-            else {
-               throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
-            }
          }
          Backend::streamSynchronize( launch_config.stream );
       }
@@ -420,6 +437,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      // There is a single kernel for this operation, so the launch configuration is not used.
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
@@ -479,6 +497,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      // There is a single kernel for this operation, so the launch configuration is not used.
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
@@ -543,6 +562,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      // There is a single kernel for this operation, so the launch configuration is not used.
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();

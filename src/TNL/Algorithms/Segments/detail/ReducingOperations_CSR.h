@@ -26,6 +26,33 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
+   /**
+    * \brief Resolves the `Default` mapping of `launchConfig` in place
+    * and rejects the mappings without a GPU reduction kernel.
+    *
+    * The `Default` mapping resolves to the `Uniform` mapping with a warp of threads per segment,
+    * the library-wide GPU default for CSR-based formats.
+    * CSR has no dedicated kernel for the `Adaptive` mapping
+    * (that strategy belongs to AdaptiveCSR, which falls back to CSR when its kernel cannot be used),
+    * so it resolves to the `Default` mapping as well.
+    */
+   static void
+   resolveLaunchConfiguration( LaunchConfiguration& launchConfig )
+   {
+      switch( launchConfig.getThreadsToSegmentsMapping() ) {
+         case ThreadsToSegmentsMapping::Default:
+         case ThreadsToSegmentsMapping::Adaptive:
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
+            launchConfig.setThreadsPerSegmentCountToWarpSize();
+            break;
+         case ThreadsToSegmentsMapping::Uniform:
+         case ThreadsToSegmentsMapping::Tiered:
+            break;
+         default:
+            throw std::invalid_argument( "Unsupported threads to segments mapping for the reduction of CSR segments." );
+      }
+   }
+
    template<
       typename IndexBegin,
       typename IndexEnd,
@@ -140,16 +167,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
-         // Adaptive mapping (that strategy belongs to AdaptiveCSR, which falls back to CSR when
-         // its kernel cannot be used), so it resolves to the Default mapping as well.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
-             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
-         {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
-            launchConfig.setThreadsPerSegmentCountToWarpSize();
-         }
+         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -362,9 +380,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                      storer,
                      identity );
                }
-               else {
-                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
-               }
             }
             Backend::streamSynchronize( launch_config.stream );
          }
@@ -438,16 +453,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
-         // Adaptive mapping (that strategy belongs to AdaptiveCSR, which falls back to CSR when
-         // its kernel cannot be used), so it resolves to the Default mapping as well.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
-             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
-         {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
-            launchConfig.setThreadsPerSegmentCountToWarpSize();
-         }
+         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -661,9 +667,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                      storer,
                      identity );
                }
-               else {
-                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
-               }
             }
             Backend::streamSynchronize( launch_config.stream );
          }
@@ -744,16 +747,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
-         // Adaptive mapping (that strategy belongs to AdaptiveCSR, which falls back to CSR when
-         // its kernel cannot be used), so it resolves to the Default mapping as well.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
-             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
-         {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
-            launchConfig.setThreadsPerSegmentCountToWarpSize();
-         }
+         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -966,9 +960,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                      storer,
                      identity );
                }
-               else {
-                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
-               }
             }
             Backend::streamSynchronize( launch_config.stream );
          }
@@ -1043,16 +1034,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
-         // Adaptive mapping (that strategy belongs to AdaptiveCSR, which falls back to CSR when
-         // its kernel cannot be used), so it resolves to the Default mapping as well.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
-             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
-         {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
-            launchConfig.setThreadsPerSegmentCountToWarpSize();
-         }
+         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -1266,9 +1248,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                      reduction,
                      storer,
                      identity );
-               }
-               else {
-                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
                }
             }
             Backend::streamSynchronize( launch_config.stream );

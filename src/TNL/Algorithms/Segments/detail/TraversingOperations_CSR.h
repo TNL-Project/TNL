@@ -23,6 +23,34 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
    using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
+   /**
+    * \brief Resolves the `Default` mapping of `launchConfig` in place
+    * and rejects the mappings without a GPU traversal kernel.
+    *
+    * The `Default` mapping resolves to the `Uniform` mapping with a warp of threads per segment,
+    * the library-wide GPU default for CSR-based formats.
+    * CSR has no dedicated kernel for the `Adaptive` mapping
+    * (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
+    * so it resolves to the `Default` mapping as well.
+    */
+   static void
+   resolveLaunchConfiguration( LaunchConfiguration& launchConfig )
+   {
+      switch( launchConfig.getThreadsToSegmentsMapping() ) {
+         case ThreadsToSegmentsMapping::Default:
+         case ThreadsToSegmentsMapping::Adaptive:
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
+            launchConfig.setThreadsPerSegmentCountToWarpSize();
+            break;
+         case ThreadsToSegmentsMapping::Uniform:
+         case ThreadsToSegmentsMapping::PerElement:
+         case ThreadsToSegmentsMapping::Tiered:
+            break;
+         default:
+            throw std::invalid_argument( "Unsupported threads to segments mapping for the traversal of CSR segments." );
+      }
+   }
+
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forElementsSequential(
@@ -97,16 +125,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
-         // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
-         // Adaptive mapping (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
-         // so it resolves to the Default mapping as well.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
-             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
-         {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
-            launchConfig.setThreadsPerSegmentCountToWarpSize();
-         }
+         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -194,9 +213,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      end,
                      function );
                }
-               else {
-                  throw std::invalid_argument( "Unsupported threads to segments mapping for CSR segments." );
-               }
             }
             Backend::streamSynchronize( launchConfig.stream );
          }
@@ -257,16 +273,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
-         // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
-         // Adaptive mapping (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
-         // so it resolves to the Default mapping as well.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
-             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
-         {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
-            launchConfig.setThreadsPerSegmentCountToWarpSize();
-         }
+         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -354,9 +361,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      segmentIndexesView,
                      function );
                }
-               else {
-                  throw std::invalid_argument( "Unsupported threads to segments mapping for CSR segments." );
-               }
                Backend::streamSynchronize( launchConfig.stream );
             }
          }
@@ -420,16 +424,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          if( end <= begin )
             return;
 
-         // The unspecified Default mapping resolves to a warp of threads per segment - the
-         // library-wide GPU default for CSR-based formats. CSR has no dedicated kernel for the
-         // Adaptive mapping (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
-         // so it resolves to the Default mapping as well.
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default
-             || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive )
-         {
-            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
-            launchConfig.setThreadsPerSegmentCountToWarpSize();
-         }
+         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -516,9 +511,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      end,
                      condition,
                      function );
-               }
-               else {
-                  throw std::invalid_argument( "Unsupported threads to segments mapping for CSR segments." );
                }
             }
             Backend::streamSynchronize( launch_config.stream );
