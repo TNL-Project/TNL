@@ -21,6 +21,28 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
 
+   /**
+    * \brief Resolves the `Default` mapping of `launchConfig` in place
+    * and rejects the mappings without a GPU traversal kernel.
+    *
+    * The `Default` mapping resolves to the `Uniform` mapping with one thread per segment.
+    */
+   static void
+   resolveLaunchConfiguration( LaunchConfiguration& launchConfig )
+   {
+      switch( launchConfig.getThreadsToSegmentsMapping() ) {
+         case ThreadsToSegmentsMapping::Default:
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
+            launchConfig.setThreadsPerSegmentCount( 1 );
+            break;
+         case ThreadsToSegmentsMapping::Uniform:
+         case ThreadsToSegmentsMapping::PerElement:
+            break;
+         default:
+            throw std::invalid_argument( "Unsupported threads to segments mapping for the traversal of Ellpack segments." );
+      }
+   }
+
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
    forElementsSequential(
@@ -84,9 +106,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
-         // The unspecified Default mapping resolves to the same strategy as Uniform.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
+         resolveLaunchConfiguration( launchConfig );
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
@@ -143,9 +164,6 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                            "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                            + " ) count for Ellpack segments." );
                   }
-               }
-               else {
-                  throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -213,9 +231,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
-         // The unspecified Default mapping resolves to the same strategy as Uniform.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
+         resolveLaunchConfiguration( launchConfig );
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
@@ -270,9 +287,6 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                            "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                            + " ) count for Ellpack segments." );
                   }
-               }
-               else {
-                  throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -348,9 +362,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          if( end <= begin )
             return;
 
-         // The unspecified Default mapping resolves to the same strategy as Uniform.
-         if( ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
-               || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default )
+         resolveLaunchConfiguration( launchConfig );
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
