@@ -101,12 +101,10 @@ getTNLMatrixCSR(
  * - `filling`: writing the non-zero elements into an allocated matrix,
  * - `assembly`: allocation + filling.
  *
- * For GPU devices, the following operations are measured in addition:
- *
- * - `array transfer`: copying only the arrays of values and column indexes of a matrix assembled
- *   on the host to the GPU (lower bound of the transfer time),
- * - `transfer`: copying a matrix assembled on the host to the GPU (using the assignment operator),
- * - `host assembly + transfer`: assembling the matrix on the host and copying it to the GPU.
+ * For GPU devices, the assembly on the host followed by the transfer to the GPU is measured in
+ * addition (see \ref timeHostAssemblyAndTransfer). The transfer uses the assignment operator of
+ * the sparse matrix. The operation `array transfer` measures copying only the arrays of values
+ * and column indexes, which is the lower bound of the transfer time.
  */
 template< typename Real, typename Device, typename Index, template< typename, typename, typename > class Segments >
 void
@@ -151,21 +149,33 @@ benchmarkTNL( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem
    if constexpr( ! std::is_same_v< Device, Devices::Host > ) {
       using HostMatrix = Matrices::SparseMatrix< Real, Devices::Host, Index, Matrices::GeneralMatrix, Segments >;
       HostMatrix hostMatrix;
-      allocateTNLMatrix( hostMatrix, problem );
-      fillTNLMatrix( hostMatrix, problem );
 
+      auto resetAll = [ & ]()
+      {
+         hostMatrix.reset();
+         matrix.reset();
+      };
+      auto hostAssemble = [ & ]()
+      {
+         allocateTNLMatrix( hostMatrix, problem );
+         fillTNLMatrix( hostMatrix, problem );
+      };
       auto transfer = [ & ]()
       {
          matrix = hostMatrix;
       };
-      auto hostAssembleAndTransfer = [ & ]()
-      {
-         HostMatrix m;
-         allocateTNLMatrix( m, problem );
-         fillTNLMatrix( m, problem );
-         matrix = m;
-      };
+      timeHostAssemblyAndTransfer< Device >( benchmark, "TNL", resetAll, resetMatrix, hostAssemble, transfer );
+
+      if( verify ) {
+         std::vector< Index > rowPointers;
+         std::vector< Index > columnIndexes;
+         std::vector< Real > values;
+         getTNLMatrixCSR( matrix, rowPointers, columnIndexes, values );
+         reportVerification( benchmark, "TNL", problem.compare( rowPointers, columnIndexes, values ) );
+      }
+
       // lower bound of the transfer: copying only the arrays of values and column indexes
+      // (the host matrix is assembled after the last loop of the previous measurement)
       Containers::Vector< Real, Device, Index > valuesCopy;
       Containers::Vector< Index, Device, Index > columnIndexesCopy;
       auto resetArrays = [ & ]()
@@ -179,17 +189,6 @@ benchmarkTNL( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem
          columnIndexesCopy = hostMatrix.getColumnIndexes();
       };
       timeOperation< Device >( benchmark, "array transfer", "TNL", resetArrays, transferArrays );
-      resetArrays();
-      timeOperation< Device >( benchmark, "transfer", "TNL", resetMatrix, transfer );
-      timeOperation< Device >( benchmark, "host assembly + transfer", "TNL", resetMatrix, hostAssembleAndTransfer );
-
-      if( verify ) {
-         std::vector< Index > rowPointers;
-         std::vector< Index > columnIndexes;
-         std::vector< Real > values;
-         getTNLMatrixCSR( matrix, rowPointers, columnIndexes, values );
-         reportVerification( benchmark, "TNL", problem.compare( rowPointers, columnIndexes, values ) );
-      }
    }
 }
 

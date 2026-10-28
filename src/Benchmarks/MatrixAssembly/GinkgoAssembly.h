@@ -39,6 +39,37 @@ getGinkgoExecutor()
    #endif
 }
 
+//! \brief Converts a Ginkgo matrix to CSR on the host and compares it with the exact matrix.
+template< typename Real, typename Index, typename Format >
+void
+verifyGinkgoMatrix( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, const Format& matrix )
+{
+   using Csr = gko::matrix::Csr< Real, Index >;
+   auto csr = Csr::create( matrix.get_executor()->get_master() );
+   matrix.convert_to( csr );
+   const auto rows = static_cast< Index >( csr->get_size()[ 0 ] );
+   const auto nnz = static_cast< Index >( csr->get_num_stored_elements() );
+   std::vector< Index > rowPointers( csr->get_const_row_ptrs(), csr->get_const_row_ptrs() + rows + 1 );
+   std::vector< Index > columnIndexes( csr->get_const_col_idxs(), csr->get_const_col_idxs() + nnz );
+   std::vector< Real > values( csr->get_const_values(), csr->get_const_values() + nnz );
+   reportVerification( benchmark, "Ginkgo", problem.compare( rowPointers, columnIndexes, values ) );
+}
+
+//! \brief Assembles a Ginkgo matrix from COO triplets generated on \e Device.
+template< typename Device, typename Format, typename Real, typename Index >
+std::unique_ptr< Format >
+assembleGinkgoMatrix( const std::shared_ptr< gko::Executor >& exec, const LaplaceProblem< Real, Index >& problem )
+{
+   gko::device_matrix_data< Real, Index > data(
+      exec, gko::dim< 2 >( problem.getRows(), problem.getRows() ), problem.getNonzeroElementsCount() );
+   Containers::Vector< Index, Device, Index > offsets;
+   problem.computeRowOffsets( offsets );
+   problem.writeCOO( offsets, data.get_row_idxs(), data.get_col_idxs(), data.get_values() );
+   auto matrix = Format::create( exec );
+   matrix->read( std::move( data ) );
+   return matrix;
+}
+
 /**
  * \brief Benchmarks the assembly of a Ginkgo matrix (Csr, Ell or Sellp).
  *
@@ -51,6 +82,9 @@ getGinkgoExecutor()
  * - `assembly`: allocation + filling.
  *
  * The triplets are generated sorted in the row-major order, so no sorting is needed.
+ *
+ * For GPU devices, the assembly on the OpenMP executor followed by `copy_from` to the GPU
+ * executor is measured in addition (see \ref timeHostAssemblyAndTransfer).
  */
 template< typename Real, typename Device, typename Index, typename Format >
 void
@@ -100,16 +134,34 @@ benchmarkGinkgoFormat(
    timeOperation< Device >( benchmark, "filling", "Ginkgo", allocate, fill );
    timeOperation< Device >( benchmark, "assembly", "Ginkgo", resetAll, assemble );
 
-   if( verify ) {
-      using Csr = gko::matrix::Csr< Real, Index >;
-      auto csr = Csr::create( exec->get_master() );
-      matrix->convert_to( csr );
-      const auto rows = static_cast< Index >( csr->get_size()[ 0 ] );
-      const auto nnz = static_cast< Index >( csr->get_num_stored_elements() );
-      std::vector< Index > rowPointers( csr->get_const_row_ptrs(), csr->get_const_row_ptrs() + rows + 1 );
-      std::vector< Index > columnIndexes( csr->get_const_col_idxs(), csr->get_const_col_idxs() + nnz );
-      std::vector< Real > values( csr->get_const_values(), csr->get_const_values() + nnz );
-      reportVerification( benchmark, "Ginkgo", problem.compare( rowPointers, columnIndexes, values ) );
+   if( verify )
+      verifyGinkgoMatrix( benchmark, problem, *matrix );
+
+   if constexpr( ! std::is_same_v< Device, Devices::Host > ) {
+      const auto hostExec = getGinkgoExecutor< Devices::Host >();
+      std::unique_ptr< Format > hostMatrix;
+      auto resetAll = [ & ]()
+      {
+         hostMatrix.reset();
+         matrix.reset();
+      };
+      auto resetDevice = [ & ]()
+      {
+         matrix.reset();
+      };
+      auto hostAssemble = [ & ]()
+      {
+         hostMatrix = assembleGinkgoMatrix< Devices::Host, Format >( hostExec, problem );
+      };
+      auto transfer = [ & ]()
+      {
+         matrix = Format::create( exec );
+         matrix->copy_from( hostMatrix.get() );
+      };
+      timeHostAssemblyAndTransfer< Device >( benchmark, "Ginkgo", resetAll, resetDevice, hostAssemble, transfer );
+
+      if( verify && matrix != nullptr )
+         verifyGinkgoMatrix( benchmark, problem, *matrix );
    }
 }
 

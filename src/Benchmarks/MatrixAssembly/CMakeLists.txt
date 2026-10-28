@@ -86,6 +86,16 @@ if(TNL_BUILD_CUDA)
     find_package(CUDAToolkit REQUIRED)
     add_executable(tnl-benchmark-matrix-assembly-cuda tnl-benchmark-matrix-assembly.cu)
     target_link_libraries(tnl-benchmark-matrix-assembly-cuda PUBLIC CUDA::cusparse)
+    # TNL does not enable OpenMP for code compiled by nvcc, but the host assembly followed by
+    # the transfer to the GPU must run in parallel to be comparable with the host executable
+    if(TNL_BUILD_OPENMP)
+        target_compile_definitions(tnl-benchmark-matrix-assembly-cuda PUBLIC HAVE_OPENMP)
+        target_compile_options(
+            tnl-benchmark-matrix-assembly-cuda
+            PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>
+        )
+        target_link_libraries(tnl-benchmark-matrix-assembly-cuda PUBLIC OpenMP::OpenMP_CXX)
+    endif()
     tnl_matrix_assembly_setup(tnl-benchmark-matrix-assembly-cuda TRUE)
 endif()
 
