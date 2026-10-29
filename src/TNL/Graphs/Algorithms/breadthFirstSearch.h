@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/TypeTraits.h>
 
@@ -40,16 +42,20 @@ namespace TNL::Graphs::Algorithms {
  * selected automatically on a per-iteration basis according to the current
  * frontier size relative to the total vertex count \c n:
  *
- * | Mode              | Condition                          | Best suited for                                     |
- * |-------------------|------------------------------------|-----------------------------------------------------|
- * | Top-down compact  | default                            | Medium frontier sizes; general-purpose fallback.    |
- * | Top-down bitmap   | frontier/n < \c bitmapThreshold    | Graphs with large diameter (paths, chains), where the frontier stays small for many iterations. Skips the O(n) frontier compaction. |
- * | Bottom-up         | frontier/n > \c bottomUpThreshold  | Graphs with small diameter (small-world, scale-free), where the frontier grows large near the end of traversal. Each unvisited vertex scans its own neighbors with early exit. Undirected graphs only. |
+ * | Mode                     | Condition                          | Best suited for                                     |
+ * |--------------------------|------------------------------------|-----------------------------------------------------|
+ * | Top-down compact         | default                            | Medium frontier sizes; general-purpose fallback.    |
+ * | Top-down expand-contract | \c topDownMode is \ref BFSTopDownMode::ExpandContract | Graphs with large diameter, where many iterations process a small frontier. The work of each iteration is proportional to the frontier edges, there is no O(n) step. |
+ * | Top-down bitmap          | frontier/n < \c bitmapThreshold    | Graphs with large diameter (paths, chains), where the frontier stays small for many iterations. Skips the O(n) frontier compaction. |
+ * | Bottom-up                | frontier/n > \c bottomUpThreshold  | Graphs with small diameter (small-world, scale-free), where the frontier grows large near the end of traversal. Each unvisited vertex scans its own neighbors with early exit. Undirected graphs only. |
  *
- * When both thresholds are non-zero, the algorithm may use top-down bitmap in
- * early iterations (small frontier), top-down compact in the middle, and
- * bottom-up at the peak (large frontier).  Setting a threshold to \c 0.0
- * disables the corresponding mode, yielding fully backward-compatible behavior.
+ * The \c topDownMode parameter selects whether the top-down iterations that do
+ * not use the bitmap mode run as top-down compact (default) or top-down
+ * expand-contract.  When both thresholds are non-zero, the algorithm may use
+ * top-down bitmap in early iterations (small frontier), top-down compact or
+ * expand-contract in the middle, and bottom-up at the peak (large frontier).
+ * Setting a threshold to \c 0.0 disables the corresponding mode, yielding fully
+ * backward-compatible behavior.
  *
  * The three modes differ in how they produce the next frontier from the
  * current one.  Top-down compact iterates the outgoing edges of the compacted
@@ -60,7 +66,12 @@ namespace TNL::Graphs::Algorithms {
  * when the frontier is small relative to \c n.  Bottom-up inverts the loop:
  * each unvisited vertex scans its adjacency row for any frontier neighbor and
  * exits early on the first hit, so the cost is proportional to the number of
- * unvisited vertices rather than to the frontier size.
+ * unvisited vertices rather than to the frontier size.  Top-down expand-contract
+ * keeps the frontier as a list of vertices and never touches all \c n vertices:
+ * it expands the frontier into an edge frontier with one slot per frontier
+ * edge, where the slot holds the target vertex if this edge discovered it and
+ * an invalid index otherwise, and contracts the edge frontier into the next
+ * vertex frontier by a prefix scan over the slots.
  *
  * The bottom-up mode is the direction-optimizing BFS of
  * Beamer et al. \cite beamer2013direction.  The top-down bitmap mode is
@@ -69,7 +80,9 @@ namespace TNL::Graphs::Algorithms {
  * and filter steps; skipping the filter (compaction) step when the frontier
  * is small is the key idea.  See also Merrill et al. \cite merrill2012scalable
  * for the foundational work on work-efficient, prefix-scan-based GPU BFS that
- * the top-down compact mode builds on.
+ * the top-down compact mode builds on.  The top-down expand-contract mode is
+ * the expand-contract strategy of Merrill et al., and it is the same algorithm
+ * as the BFS of Gunrock built from the advance and filter operators.
  *
  * \section BFSSubgraph Filtered subgraphs
  *
@@ -81,6 +94,19 @@ namespace TNL::Graphs::Algorithms {
  * ```
  */
 // clang-format on
+
+/**
+ * \brief Selects how the top-down iterations of BFS build the next frontier.
+ *
+ * See \ref BFSOverview "Traversal modes".
+ */
+enum class BFSTopDownMode : std::uint8_t
+{
+   //! Top-down compact: marks the discovered vertices and compacts the marks of all vertices into the next frontier.
+   Compact,
+   //! Top-down expand-contract: expands the frontier into an edge frontier and contracts it into the next frontier.
+   ExpandContract
+};
 
 /**
  * \brief Performs breadth-first search (BFS) on the given graph starting from the specified vertex.
@@ -103,6 +129,9 @@ namespace TNL::Graphs::Algorithms {
  * \param bottomUpThreshold When the frontier size exceeds this fraction of the
  *   total vertex count, BFS switches to bottom-up mode (undirected graphs only).
  *   See \ref BFSOverview "Traversal modes".  \c 0.0 (default) disables it.
+ * \param topDownMode Selects top-down compact (default) or top-down
+ *   expand-contract for the top-down iterations that do not use the bitmap mode.
+ *   See \ref BFSOverview "Traversal modes".
  * \param launchConfig The configuration for launching the segments traversal.
  *
  * \par Example
@@ -116,6 +145,7 @@ breadthFirstSearch(
    Vector& distances,
    double bitmapThreshold = 0.0,
    double bottomUpThreshold = 0.0,
+   BFSTopDownMode topDownMode = BFSTopDownMode::Compact,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -135,6 +165,7 @@ breadthFirstSearch(
  * \param distances The vector where distances from the start vertex will be stored.
  * \param bitmapThreshold See \ref breadthFirstSearch.
  * \param bottomUpThreshold See \ref breadthFirstSearch.
+ * \param topDownMode See \ref breadthFirstSearch.
  * \param launchConfig The configuration for launching the segments traversal.
  *
  * \par Example
@@ -153,6 +184,7 @@ breadthFirstSearchWithVisitor(
    Vector& distances,
    double bitmapThreshold = 0.0,
    double bottomUpThreshold = 0.0,
+   BFSTopDownMode topDownMode = BFSTopDownMode::Compact,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -177,6 +209,7 @@ breadthFirstSearchWithVisitor(
  *   atomic update — faster but non-reproducible between runs.
  * \param bitmapThreshold See \ref breadthFirstSearch.
  * \param bottomUpThreshold See \ref breadthFirstSearch.
+ * \param topDownMode See \ref breadthFirstSearch.
  * \param launchConfig The configuration for launching the segments traversal.
  */
 template< typename Graph, typename Vector, typename PredecessorVector >
@@ -189,6 +222,7 @@ breadthFirstSearchWithPredecessors(
    bool deterministic = false,
    double bitmapThreshold = 0.0,
    double bottomUpThreshold = 0.0,
+   BFSTopDownMode topDownMode = BFSTopDownMode::Compact,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -215,6 +249,7 @@ breadthFirstSearchWithPredecessors(
  *   \ref breadthFirstSearchWithPredecessors.
  * \param bitmapThreshold See \ref breadthFirstSearch.
  * \param bottomUpThreshold See \ref breadthFirstSearch.
+ * \param topDownMode See \ref breadthFirstSearch.
  * \param launchConfig The configuration for launching the segments traversal.
  */
 template<
@@ -233,6 +268,7 @@ breadthFirstSearchWithVisitorAndPredecessors(
    bool deterministic = false,
    double bitmapThreshold = 0.0,
    double bottomUpThreshold = 0.0,
+   BFSTopDownMode topDownMode = BFSTopDownMode::Compact,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 }  // namespace TNL::Graphs::Algorithms
 
