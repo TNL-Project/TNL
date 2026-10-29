@@ -61,6 +61,44 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       }
    }
 
+   /**
+    * \brief Launches the `Uniform` reduction kernel for `threadsPerSegment`
+    * threads per segment.
+    *
+    * `singleWarpKernel` and `multipleWarpsKernel` return the kernel for the
+    * threads per segment count given as `std::integral_constant`, and `launch`
+    * launches the returned kernel.
+    * The single-warp kernel is used when the threads of a segment fit into one
+    * warp of the current device, i.e. also for 64 threads per segment on AMD
+    * GPUs with 64-wide wavefronts, the multiple-warps kernel otherwise.
+    */
+   template< typename SingleWarpKernel, typename MultipleWarpsKernel, typename Launch >
+   static void
+   launchUniformKernel(
+      int threadsPerSegment,
+      int warpSize,
+      SingleWarpKernel&& singleWarpKernel,
+      MultipleWarpsKernel&& multipleWarpsKernel,
+      Launch&& launch )
+   {
+      dispatchThreadsPerSegment< 2, 4, 8, 16, 32, 64, 128 >(
+         threadsPerSegment,
+         [ & ]( auto threadsPerSegment )
+         {
+            constexpr int TPS = decltype( threadsPerSegment )::value;
+            if constexpr( TPS <= Backend::getMaxWarpSize() ) {
+               if( TPS <= warpSize ) {
+                  launch( singleWarpKernel( threadsPerSegment ) );
+                  return;
+               }
+            }
+            // the multiple-warps kernel needs at least one whole warp per segment
+            if constexpr( TPS > 32 )
+               launch( multipleWarpsKernel( threadsPerSegment ) );
+         },
+         "CSR" );
+   }
+
    template<
       typename IndexBegin,
       typename IndexEnd,
@@ -186,6 +224,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -194,48 +233,47 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  dispatchThreadsPerSegment< 2, 4, 8, 16, 32, 64, 128 >(
+                  auto launch = [ & ]( auto kernel )
+                  {
+                     Backend::launchKernelAsync(
+                        kernel,
+                        launch_config,
+                        gridIdx,
+                        segments.getConstView(),
+                        begin,
+                        end,
+                        fetch,
+                        reduction,
+                        storer,
+                        identity );
+                  };
+                  launchUniformKernel(
                      launchConfig.getThreadsPerSegmentCount(),
-                     [ & ]( auto threadsPerSegment )
+                     warpSize,
+                     []( auto threadsPerSegment )
                      {
-                        constexpr int TPS = decltype( threadsPerSegment )::value;
-                        auto launch = [ & ]( auto kernel )
-                        {
-                           Backend::launchKernelAsync(
-                              kernel,
-                              launch_config,
-                              gridIdx,
-                              segments.getConstView(),
-                              begin,
-                              end,
-                              fetch,
-                              reduction,
-                              storer,
-                              identity );
-                        };
-                        if constexpr( TPS <= 32 )
-                           launch(
-                              reduceSegments_CSR_Uniform<
-                                 TPS,
-                                 ConstViewType,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
-                        else
-                           launch(
-                              reduceSegments_CSR_Uniform_MultipleWarps<
-                                 256,
-                                 TPS,
-                                 ConstViewType,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
+                        return reduceSegments_CSR_Uniform<
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
                      },
-                     "CSR" );
+                     []( auto threadsPerSegment )
+                     {
+                        return reduceSegments_CSR_Uniform_MultipleWarps<
+                           256,
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
+                     },
+                     launch );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
                   constexpr auto kernel = reduceSegments_CSR_Tiered<
@@ -344,6 +382,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
+            const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -352,49 +391,48 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  dispatchThreadsPerSegment< 2, 4, 8, 16, 32, 64, 128 >(
+                  auto launch = [ & ]( auto kernel )
+                  {
+                     Backend::launchKernelAsync(
+                        kernel,
+                        launch_config,
+                        gridIdx,
+                        segments.getConstView(),
+                        segmentIndexes.getConstView(),
+                        fetch,
+                        reduction,
+                        storer,
+                        identity );
+                  };
+                  launchUniformKernel(
                      launchConfig.getThreadsPerSegmentCount(),
-                     [ & ]( auto threadsPerSegment )
+                     warpSize,
+                     []( auto threadsPerSegment )
                      {
-                        constexpr int TPS = decltype( threadsPerSegment )::value;
-                        auto launch = [ & ]( auto kernel )
-                        {
-                           Backend::launchKernelAsync(
-                              kernel,
-                              launch_config,
-                              gridIdx,
-                              segments.getConstView(),
-                              segmentIndexes.getConstView(),
-                              fetch,
-                              reduction,
-                              storer,
-                              identity );
-                        };
-                        if constexpr( TPS <= 32 )
-                           launch(
-                              reduceSegments_CSR_Uniform_WithIndexes<
-                                 TPS,
-                                 ConstViewType,
-                                 ArrayView,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
-                        else
-                           launch(
-                              reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes<
-                                 256,
-                                 TPS,
-                                 ConstViewType,
-                                 ArrayView,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
+                        return reduceSegments_CSR_Uniform_WithIndexes<
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           ArrayView,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
                      },
-                     "CSR" );
+                     []( auto threadsPerSegment )
+                     {
+                        return reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes<
+                           256,
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           ArrayView,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
+                     },
+                     launch );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
                   constexpr auto kernel = reduceSegments_CSR_Tiered_WithIndexes<
@@ -509,6 +547,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+            const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -517,48 +556,47 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  dispatchThreadsPerSegment< 2, 4, 8, 16, 32, 64, 128 >(
+                  auto launch = [ & ]( auto kernel )
+                  {
+                     Backend::launchKernelAsync(
+                        kernel,
+                        launch_config,
+                        gridIdx,
+                        segments.getConstView(),
+                        begin,
+                        end,
+                        fetch,
+                        reduction,
+                        storer,
+                        identity );
+                  };
+                  launchUniformKernel(
                      launchConfig.getThreadsPerSegmentCount(),
-                     [ & ]( auto threadsPerSegment )
+                     warpSize,
+                     []( auto threadsPerSegment )
                      {
-                        constexpr int TPS = decltype( threadsPerSegment )::value;
-                        auto launch = [ & ]( auto kernel )
-                        {
-                           Backend::launchKernelAsync(
-                              kernel,
-                              launch_config,
-                              gridIdx,
-                              segments.getConstView(),
-                              begin,
-                              end,
-                              fetch,
-                              reduction,
-                              storer,
-                              identity );
-                        };
-                        if constexpr( TPS <= 32 )
-                           launch(
-                              reduceSegments_CSR_Uniform_WithArgument<
-                                 TPS,
-                                 ConstViewType,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
-                        else
-                           launch(
-                              reduceSegments_CSR_Uniform_MultipleWarps_WithArgument<
-                                 256,
-                                 TPS,
-                                 ConstViewType,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
+                        return reduceSegments_CSR_Uniform_WithArgument<
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
                      },
-                     "CSR" );
+                     []( auto threadsPerSegment )
+                     {
+                        return reduceSegments_CSR_Uniform_MultipleWarps_WithArgument<
+                           256,
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
+                     },
+                     launch );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
                   constexpr auto kernel = reduceSegments_CSR_Tiered_WithArgument<
@@ -669,6 +707,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                 || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered )
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
 
+            const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -677,49 +716,48 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-                  dispatchThreadsPerSegment< 2, 4, 8, 16, 32, 64, 128 >(
+                  auto launch = [ & ]( auto kernel )
+                  {
+                     Backend::launchKernelAsync(
+                        kernel,
+                        launch_config,
+                        gridIdx,
+                        segments.getConstView(),
+                        segmentIndexes.getConstView(),
+                        fetch,
+                        reduction,
+                        storer,
+                        identity );
+                  };
+                  launchUniformKernel(
                      launchConfig.getThreadsPerSegmentCount(),
-                     [ & ]( auto threadsPerSegment )
+                     warpSize,
+                     []( auto threadsPerSegment )
                      {
-                        constexpr int TPS = decltype( threadsPerSegment )::value;
-                        auto launch = [ & ]( auto kernel )
-                        {
-                           Backend::launchKernelAsync(
-                              kernel,
-                              launch_config,
-                              gridIdx,
-                              segments.getConstView(),
-                              segmentIndexes.getConstView(),
-                              fetch,
-                              reduction,
-                              storer,
-                              identity );
-                        };
-                        if constexpr( TPS <= 32 )
-                           launch(
-                              reduceSegments_CSR_Uniform_WithIndexesAndArgument<
-                                 TPS,
-                                 ConstViewType,
-                                 ArrayView,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
-                        else
-                           launch(
-                              reduceSegments_CSR_Uniform_MultipleWarps_WithIndexesAndArgument<
-                                 256,
-                                 TPS,
-                                 ConstViewType,
-                                 ArrayView,
-                                 IndexType,
-                                 std::remove_reference_t< Fetch >,
-                                 std::remove_reference_t< Reduction >,
-                                 std::remove_reference_t< ResultStorer >,
-                                 Value > );
+                        return reduceSegments_CSR_Uniform_WithIndexesAndArgument<
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           ArrayView,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
                      },
-                     "CSR" );
+                     []( auto threadsPerSegment )
+                     {
+                        return reduceSegments_CSR_Uniform_MultipleWarps_WithIndexesAndArgument<
+                           256,
+                           decltype( threadsPerSegment )::value,
+                           ConstViewType,
+                           ArrayView,
+                           IndexType,
+                           std::remove_reference_t< Fetch >,
+                           std::remove_reference_t< Reduction >,
+                           std::remove_reference_t< ResultStorer >,
+                           Value >;
+                     },
+                     launch );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Tiered ) {
                   constexpr auto kernel = reduceSegments_CSR_Tiered_WithIndexesAndArgument<
