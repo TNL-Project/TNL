@@ -651,6 +651,80 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
    }
 }
 
+// The identity is passed as `int`, while `fetch` returns `double`.
+// The partial results must have the type returned by `fetch`, not the type of the identity.
+template< typename Segments >
+void
+test_reduceSegmentsWithSegmentIndexes_IdentityOfOtherType()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 270;
+   const IndexType maxSegmentSize = 70;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
+      {
+         value = idx % maxSegmentSize + 1;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( ( segmentsCount + 1 ) / 2 );
+   segmentIndexes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType& value )
+      {
+         value = 2 * idx;
+      } );
+
+   // some segments may use padding elements, which must not contribute to the result
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> double
+   {
+      if( localIdx <= segmentIdx % maxSegmentSize )
+         return localIdx + 0.5;
+      return 0.0;
+   };
+
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      TNL::Containers::Vector< double, DeviceType, IndexType > result( segmentsCount, -1 );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount, -1 );
+      auto result_view = result.getView();
+      auto args_view = args.getView();
+
+      auto keep = [ = ] __cuda_callable__( IndexType indexOfSegmentIdx, IndexType segmentIdx, double res ) mutable
+      {
+         result_view[ segmentIdx ] = res;
+      };
+      TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch, TNL::Plus{}, keep, 0, launch_config );
+
+      for( IndexType i = 0; i < segmentsCount; i += 2 ) {
+         const IndexType size = i % maxSegmentSize + 1;
+         EXPECT_EQ( result.getElement( i ), size * size / 2.0 ) << "segmentIdx = " << i;
+      }
+
+      result_view = -1;
+      auto keepWithArgument =
+         [ = ] __cuda_callable__(
+            IndexType indexOfSegmentIdx, IndexType segmentIdx, IndexType localIdx, double res, bool emptySegment ) mutable
+      {
+         result_view[ segmentIdx ] = res;
+         args_view[ segmentIdx ] = localIdx;
+      };
+      TNL::Algorithms::Segments::reduceSegmentsWithArgument(
+         segments, segmentIndexes, fetch, TNL::MaxWithArg{}, keepWithArgument, 0, launch_config );
+
+      for( IndexType i = 0; i < segmentsCount; i += 2 ) {
+         const IndexType size = i % maxSegmentSize + 1;
+         EXPECT_EQ( result.getElement( i ), size - 0.5 ) << "segmentIdx = " << i;
+         EXPECT_EQ( args.getElement( i ), size - 1 ) << "segmentIdx = " << i;
+      }
+   }
+}
+
 template< typename Segments >
 void
 test_reduceSegmentsIf_MaximumInSegments()
