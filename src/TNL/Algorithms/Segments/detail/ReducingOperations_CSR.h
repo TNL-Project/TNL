@@ -27,18 +27,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
    /**
-    * \brief Resolves the `Default` mapping of `launchConfig` in place
-    * and rejects the mappings without a GPU reduction kernel.
+    * \brief Resolves the `Default` mapping of `launchConfig` in place and
+    * rejects the mappings without a GPU reduction kernel.
     *
-    * The `Default` mapping resolves to the `Uniform` mapping
-    * with a warp of threads per segment,
-    * the library-wide GPU default for CSR-based formats.
-    * CSR has no dedicated kernel for the `Adaptive` mapping
-    * (that strategy belongs to AdaptiveCSR,
-    * which falls back to CSR when its kernel cannot be used),
-    * so it resolves to the `Default` mapping as well.
-    * The `Tiered` mapping supports at most 256 threads per segment,
-    * the block size of its kernels.
+    * The `Default` mapping resolves to the `Uniform` mapping with a warp of
+    * threads per segment, the library-wide GPU default for CSR-based formats.
+    * CSR has no dedicated kernel for the `Adaptive` mapping (that strategy
+    * belongs to AdaptiveCSR, which falls back to CSR when its kernel cannot be
+    * used), so it resolves to the `Default` mapping as well.
+    * The `Tiered` mapping supports at most 256 threads per
+    * segment, the block size of its kernels.
     */
    static void
    resolveLaunchConfiguration( LaunchConfiguration& launchConfig )

@@ -13,18 +13,17 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief Creates a launch configuration with the `Uniform` mapping
- * and the threads per segment count chosen by the average segment size.
+ * \brief Creates a launch configuration with the `Uniform` mapping and the
+ * threads per segment count chosen by the average segment size.
  *
- * The threads per segment count is the smallest power of two
- * which is not smaller than the average number of elements per segment,
- * i.e. `segments.getStorageSize() / segments.getSegmentCount()` rounded up,
- * clamped to the interval `[ minThreadsPerSegment, maxThreadsPerSegment ]`.
+ * The threads per segment count is the smallest power of two which is not
+ * smaller than the average number of elements per segment, i.e.
+ * `segments.getStorageSize() / segments.getSegmentCount()` rounded up, clamped
+ * to the interval `[ minThreadsPerSegment, maxThreadsPerSegment ]`.
  * The block size is 256 threads.
  *
- * With `maxThreadsPerSegment` equal to the warp size,
- * this is the choice of the vector size
- * in the LightSpMV kernel described in the paper:
+ * With `maxThreadsPerSegment` equal to the warp size, this is the choice of the
+ * vector size in the LightSpMV kernel described in the paper:
  *
  * Y. Liu and B. Schmidt,
  * "LightSpMV: Faster CSR-based sparse matrix-vector multiplication
@@ -32,7 +31,8 @@ namespace TNL::Algorithms::Segments {
  * 2015 IEEE 26th International Conference on Application-specific Systems,
  * Architectures and Processors (ASAP), Toronto, ON, Canada, 2015, pp. 82-89.
  *
- * A larger `maxThreadsPerSegment` allows to map more than one warp to each segment.
+ * A larger `maxThreadsPerSegment` allows to map more
+ * than one warp to each segment.
  * The segments format may still reject the resulting configuration,
  * see \ref ThreadsToSegmentsMapping.
  *
@@ -44,8 +44,8 @@ namespace TNL::Algorithms::Segments {
  *        which must be a power of two not smaller than `minThreadsPerSegment`.
  *        The default value is the warp size of the current GPU.
  * \return The launch configuration.
- * \throws std::invalid_argument if the bounds are not powers of two
- *         or `minThreadsPerSegment` is larger than `maxThreadsPerSegment`.
+ * \throws std::invalid_argument if the bounds are not powers of two or
+ *         `minThreadsPerSegment` is larger than `maxThreadsPerSegment`.
  */
 template< typename Segments >
 [[nodiscard]] LaunchConfiguration

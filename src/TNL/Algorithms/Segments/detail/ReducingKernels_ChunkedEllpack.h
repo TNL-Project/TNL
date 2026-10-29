@@ -13,16 +13,16 @@ namespace TNL::Algorithms::Segments::detail {
 /**
  * \brief Kernel reducing a contiguous range of ChunkedEllpack segments.
  *
- * The ChunkedEllpack format (see \ref TNL::Algorithms::Segments::ChunkedEllpack)
- * splits the segments into slices of `chunksInSlice` chunks
- * and every segment of a slice occupies one or more chunks of the same size.
- * One block processes one slice and every thread of the block one chunk:
- * it reduces the elements of its chunk
- * (contiguous for the row-major organization,
- * strided by `chunksInSlice` for the column-major organization)
+ * The ChunkedEllpack format (see
+ * \ref TNL::Algorithms::Segments::ChunkedEllpack) splits the segments into
+ * slices of `chunksInSlice` chunks and every segment of a slice occupies
+ * one or more chunks of the same size.
+ * One block processes one slice and every thread of the block one chunk: it
+ * reduces the elements of its chunk (contiguous for the row-major
+ * organization, strided by `chunksInSlice` for the column-major organization)
  * and stores the partial result in shared memory.
- * Then one thread per segment of the slice reduces the partial results
- * of the chunks of its segment.
+ * Then one thread per segment of the slice reduces the partial
+ * results of the chunks of its segment.
  * The shared memory size must be `blockDim.x * sizeof( ReturnType )`.
  */
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
@@ -113,12 +113,12 @@ reduceSegments_ChunkedEllpack(
 }
 
 /**
- * \brief Kernel reducing the ChunkedEllpack segments given explicitly by `segmentIndexes`.
+ * \brief Kernel reducing the ChunkedEllpack segments given
+ * explicitly by `segmentIndexes`.
  *
- * Unlike \ref reduceSegments_ChunkedEllpack,
- * one thread is assigned to every entry of `segmentIndexes`
- * and it sequentially reduces all chunks of its segment,
- * since the given segments are not grouped into slices.
+ * Unlike \ref reduceSegments_ChunkedEllpack, one thread is assigned to every
+ * entry of `segmentIndexes` and it sequentially reduces all chunks of its
+ * segment, since the given segments are not grouped into slices.
  */
 template<
    typename SegmentsView,
@@ -181,12 +181,13 @@ reduceSegments_ChunkedEllpack_WithIndexes(
 }
 
 /**
- * \brief Kernel reducing a contiguous range of ChunkedEllpack segments with argument.
+ * \brief Kernel reducing a contiguous range of
+ * ChunkedEllpack segments with argument.
  *
- * It works the same way as \ref reduceSegments_ChunkedEllpack,
- * but every thread also stores the local index of the partial result of its chunk
- * in shared memory, right after the partial results,
- * so the shared memory size must account for both arrays.
+ * It works the same way as \ref reduceSegments_ChunkedEllpack, but every
+ * thread also stores the local index of the partial result of its chunk
+ * in shared memory, right after the partial results, so the shared
+ * memory size must account for both arrays.
  */
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
@@ -280,12 +281,12 @@ reduceSegments_ChunkedEllpack_WithArgument(
 }
 
 /**
- * \brief Kernel reducing the ChunkedEllpack segments given explicitly by `segmentIndexes` with argument.
+ * \brief Kernel reducing the ChunkedEllpack segments given explicitly
+ * by `segmentIndexes` with argument.
  *
- * One thread is assigned to every entry of `segmentIndexes`
- * and it sequentially reduces all chunks of its segment
- * together with the local index of the partial result,
- * like \ref reduceSegments_ChunkedEllpack_WithIndexes.
+ * One thread is assigned to every entry of `segmentIndexes` and it sequentially
+ * reduces all chunks of its segment together with the local index of the
+ * partial result, like \ref reduceSegments_ChunkedEllpack_WithIndexes.
  */
 template<
    typename SegmentsView,

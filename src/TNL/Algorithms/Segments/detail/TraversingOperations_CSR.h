@@ -24,17 +24,16 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    /**
-    * \brief Resolves the `Default` mapping of `launchConfig` in place
-    * and rejects the mappings without a GPU traversal kernel.
+    * \brief Resolves the `Default` mapping of `launchConfig` in place and
+    * rejects the mappings without a GPU traversal kernel.
     *
-    * The `Default` mapping resolves to the `Uniform` mapping
-    * with a warp of threads per segment,
-    * the library-wide GPU default for CSR-based formats.
-    * CSR has no dedicated kernel for the `Adaptive` mapping
-    * (that strategy belongs to AdaptiveCSR, whose traversal is the CSR one),
-    * so it resolves to the `Default` mapping as well.
-    * The `Tiered` mapping supports at most 256 threads per segment,
-    * the block size of its kernels.
+    * The `Default` mapping resolves to the `Uniform` mapping with a warp of
+    * threads per segment, the library-wide GPU default for CSR-based formats.
+    * CSR has no dedicated kernel for the `Adaptive` mapping (that strategy
+    * belongs to AdaptiveCSR, whose traversal is the CSR one), so it
+    * resolves to the `Default` mapping as well.
+    * The `Tiered` mapping supports at most 256 threads per
+    * segment, the block size of its kernels.
     */
    static void
    resolveLaunchConfiguration( LaunchConfiguration& launchConfig )

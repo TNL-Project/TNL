@@ -17,24 +17,21 @@ namespace TNL::Algorithms::Segments::detail {
  * \brief Kernels for the AdaptiveCSR format.
  *
  * Each block of warps is dynamically assigned one of three strategies
- * depending on the sizes of the segments it covers,
- * as recorded in the block descriptors built ahead of the kernel launch:
+ * depending on the sizes of the segments it covers, as recorded in the block
+ * descriptors built ahead of the kernel launch:
  *
  * - `Type::STREAM`: several short segments handled together by a warp,
  *   using shared memory for coalesced loads.
  * - `Type::VECTOR`: one segment per warp.
- * - `Type::LONG`: a single, very long segment
- *   split across several warps of the block,
- *   whose partial results are combined through shared memory.
+ * - `Type::LONG`: a single, very long segment split across several warps of the
+ *   block, whose partial results are combined through shared memory.
  *
  * The `Type::LONG` case is conceptually similar to
- * \ref reduceSegments_CSR_Uniform_MultipleWarps
- * (also several warps cooperating on one segment via shared memory),
- * but here the number of warps assigned to a segment
- * is computed individually for each long segment
- * while building the block descriptors,
- * and the whole thread block is dedicated to that single segment,
- * as opposed to a fixed, compile-time thread count
+ * \ref reduceSegments_CSR_Uniform_MultipleWarps (also several warps
+ * cooperating on one segment via shared memory), but here the number of warps
+ * assigned to a segment is computed individually for each long segment while
+ * building the block descriptors, and the whole thread block is dedicated to
+ * that single segment, as opposed to a fixed, compile-time thread count
  * applied uniformly to a whole batch of segments.
  *
  * \see J. L. Greathouse and M. Daga,
@@ -43,7 +40,8 @@ namespace TNL::Algorithms::Segments::detail {
  *      in Proceedings of the International Conference for High Performance
  *      Computing, Networking, Storage and Analysis (SC '14), 2014.
  * \see M. Daga and J. L. Greathouse,
- *      "Structural Agnostic SpMV: Adapting CSR-Adaptive for Irregular Matrices,"
+ *      "Structural Agnostic SpMV:
+ *      Adapting CSR-Adaptive for Irregular Matrices,"
  *      in Proceedings of the IEEE 22nd International Conference
  *      on High Performance Computing (HiPC), 2015, pp. 64-74.
  */
@@ -186,10 +184,9 @@ reduceSegments_AdaptiveCSR(
 /**
  * \brief Kernel for the AdaptiveCSR format, reducing segments with argument.
  *
- * It uses the same three strategies as \ref reduceSegments_AdaptiveCSR,
- * but every thread also tracks the local index of its partial result
- * (e.g. the position of the maximum)
- * and the pairs of values and arguments are combined
+ * It uses the same three strategies as \ref reduceSegments_AdaptiveCSR, but
+ * every thread also tracks the local index of its partial result (e.g. the
+ * position of the maximum) and the pairs of values and arguments are combined
  * by warp-shuffle and shared-memory reductions with argument.
  */
 template<

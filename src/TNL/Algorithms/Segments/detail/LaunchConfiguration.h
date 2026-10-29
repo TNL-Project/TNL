@@ -12,12 +12,11 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Throws an exception if `launchConfig` requests
- * other than the `Default` thread mapping.
+ * \brief Throws an exception if `launchConfig` requests other
+ * than the `Default` thread mapping.
  *
- * This is used by the segments formats
- * which have a single native kernel for each operation
- * and thus cannot honor any other thread mapping.
+ * This is used by the segments formats which have a single native kernel for
+ * each operation and thus cannot honor any other thread mapping.
  */
 inline void
 checkDefaultThreadsToSegmentsMapping( const LaunchConfiguration& launchConfig, const std::string& segmentsName )
@@ -28,19 +27,19 @@ checkDefaultThreadsToSegmentsMapping( const LaunchConfiguration& launchConfig, c
 }
 
 /**
- * \brief Calls `function` with the threads per segment count
- * as a compile-time constant.
+ * \brief Calls `function` with the threads per segment
+ * count as a compile-time constant.
  *
- * The runtime count `threadsPerSegment` is looked up in `Counts`
- * and `function` is called with `std::integral_constant< int, Count >`
- * for the matching `Count`,
- * so that it can instantiate the kernel for that count.
+ * The runtime count `threadsPerSegment` is looked up in `Counts` and `function`
+ * is called with `std::integral_constant< int, Count >` for the matching
+ * `Count`, so that it can instantiate the kernel for that count.
  * A count which is not in `Counts` throws `std::invalid_argument`.
  *
  * \tparam Counts The supported threads per segment counts.
  * \param threadsPerSegment The threads per segment count to dispatch.
  * \param function The function to call.
- * \param segmentsName The name of the segments format used in the error message.
+ * \param segmentsName The name of the segments format
+ *        used in the error message.
  */
 template< int... Counts, typename Function >
 void
