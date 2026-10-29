@@ -334,7 +334,7 @@ reduceSegments_SlicedEllpack_Uniform_ColumnMajor_impl(
       //          +---------+
       /////
       const Index firstSliceInBlock =
-         ( ( blockIdx.x + gridIdx * Backend::getMaxGridXSize() ) * BlockSize ) / ( SliceSize * ThreadsPerSegment );
+         ( Backend::getGlobalBlockIdx_x( gridIdx ) * BlockSize ) / ( SliceSize * ThreadsPerSegment );
       const Index currentSegmentIdx =
          ( begin / SliceSize ) * SliceSize + firstSliceInBlock * SliceSize + threadIdx.x / ThreadsPerSegment;
 
