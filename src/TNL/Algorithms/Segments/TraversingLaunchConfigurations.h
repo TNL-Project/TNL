@@ -68,9 +68,7 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
    else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
       std::list< std::pair< LaunchConfiguration, std::string > > configurations;
       configurations.emplace_back( LaunchConfiguration(), "Default" );
-      // the column-major organization supports only one thread per segment in the Uniform mapping
-      const int maxUniformThreadsPerSegment = Segments::getOrganization() == ColumnMajorOrder ? 1 : 256;
-      for( int threadsPerSegment = 1; threadsPerSegment <= maxUniformThreadsPerSegment; threadsPerSegment *= 2 )
+      for( int threadsPerSegment = 1; threadsPerSegment <= 256; threadsPerSegment *= 2 )
          configurations.emplace_back(
             LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, threadsPerSegment ),
             std::to_string( threadsPerSegment ) + " TPS" );

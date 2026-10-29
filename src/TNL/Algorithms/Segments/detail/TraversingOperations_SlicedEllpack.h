@@ -122,8 +122,11 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {
             std::size_t threadsCount( 0 );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-               const std::size_t segmentsCount = end - begin;
-               const std::size_t slicesCount = roundUpDivision( segmentsCount, static_cast< std::size_t >( SliceSize ) );
+               // the column-major kernel starts at the first slice of the range, which need not be aligned with begin
+               const std::size_t firstSliceIdx = static_cast< std::size_t >( begin ) / SliceSize;
+               const std::size_t lastSliceIdx =
+                  roundUpDivision( static_cast< std::size_t >( end ), static_cast< std::size_t >( SliceSize ) );
+               const std::size_t slicesCount = lastSliceIdx - firstSliceIdx;
                threadsCount = slicesCount * static_cast< std::size_t >( SliceSize )
                             * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
