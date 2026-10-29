@@ -139,6 +139,8 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             launchConfig );
       }
       else {
+         if( end <= begin )
+            return;
          const int warpSize = Backend::getWarpSize( Backend::getDevice() );
          resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
