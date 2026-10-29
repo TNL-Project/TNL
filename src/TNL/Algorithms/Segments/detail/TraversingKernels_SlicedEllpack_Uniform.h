@@ -50,7 +50,7 @@ forElements_SlicedEllpack_Uniform(
       if( segmentIdx >= end )
          return;
 
-      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
+      const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       const Index sliceIdx = segmentIdx / SliceSize;
       const Index segmentInSliceIdx = segmentIdx % SliceSize;
@@ -145,7 +145,7 @@ forElements_SlicedEllpack_Uniform_WithIndexes(
    const Index sliceIdx = segmentIdx / SliceSize;
    const Index inSliceOffset = segmentIdx % SliceSize;
 
-   const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
+   const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
    const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
 
    if constexpr( Organization == RowMajorOrder ) {
@@ -208,7 +208,7 @@ forElements_SlicedEllpack_Uniform_If(
    if( segmentIdx >= end || ! condition( segmentIdx ) )
       return;
 
-   const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
+   const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
    const Index segmentSize = segments.getSegmentSize( segmentIdx );
 
    if constexpr( Organization == RowMajorOrder ) {
