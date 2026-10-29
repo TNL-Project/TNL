@@ -67,12 +67,10 @@ breadthFirstSearchParallel(
    Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > nextMarks( n, 0 );
-   // frontierOffsets, edgeFrontier, edgeFrontierScan: buffers of the top-down expand-contract mode
-   Containers::Vector< IndexType, DeviceType, IndexType > frontierOffsets;
-   Containers::Vector< IndexType, DeviceType, IndexType > edgeFrontier;
-   Containers::Vector< IndexType, DeviceType, IndexType > edgeFrontierScan;
+   // buffers of the top-down expand-contract mode
+   detail::ExpandContractBuffers< DeviceType, IndexType > expandContractBuffers;
    if( topDownMode == BFSTopDownMode::ExpandContract )
-      frontierOffsets.setSize( n );
+      expandContractBuffers.frontierOffsets.setSize( n );
    frontier.setElement( 0, start );
    IndexType frontierSize( 1 );
 
@@ -269,9 +267,7 @@ breadthFirstSearchParallel(
                graph,
                frontier,
                frontierSize,
-               frontierOffsets,
-               edgeFrontier,
-               edgeFrontierScan,
+               expandContractBuffers,
                [ = ] __cuda_callable__( IndexType sourceIdx, IndexType targetIdx ) mutable -> bool
                {
                   // NVCC forbids first-capture of variables inside if constexpr
@@ -540,9 +536,7 @@ breadthFirstSearchParallel(
                graph,
                frontier,
                frontierSize,
-               frontierOffsets,
-               edgeFrontier,
-               edgeFrontierScan,
+               expandContractBuffers,
                [ = ] __cuda_callable__( IndexType sourceIdx, IndexType targetIdx ) mutable -> bool
                {
                   // NVCC forbids first-capture of variables inside if constexpr
