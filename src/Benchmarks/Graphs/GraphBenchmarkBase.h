@@ -110,6 +110,9 @@ public:
       Benchmark::configSetup( config );
       config.addDelimiter( "Graph benchmark settings:" );
       config.addRequiredEntry< TNL::String >( "input-file", "Input file with the graph." );
+      config.addEntry< TNL::String >( "segments", "Segments used on GPU.", "all" );
+      config.addEntryEnum< TNL::String >( "all" );
+      config.addEntryEnum< TNL::String >( "csr" );
 #ifdef WITH_SORTED_SEGMENTS
       config.addEntry< bool >( "with-sorted-segments", "Run benchmark with sorted segments.", true );
 #endif
@@ -194,6 +197,10 @@ public:
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if( device == "cuda" || device == "hip" || device == "all" ) {
          runTNLBenchmarks< TNL::Devices::GPU, CSRSegments >( digraph, graph, smallest, largest, benchmark );
+      }
+      if( ( device == "cuda" || device == "hip" || device == "all" )
+          && parameters.getParameter< TNL::String >( "segments" ) == "all" )
+      {
          runTNLBenchmarks< TNL::Devices::GPU, EllpackSegments >( digraph, graph, smallest, largest, benchmark );
 
    #ifdef WITH_ROW_MAJOR_SLICED_ELLPACK

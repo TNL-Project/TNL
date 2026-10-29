@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include "GraphBenchmarkBase.h"
 #include "BoostGraph.h"
 #include "GunrockBenchmark.h"
@@ -34,6 +38,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          "bitmap-threshold", "Frontier fraction below which top-down bitmap mode is used (0 = disabled).", 0.0 );
       config.addEntry< double >(
          "bottomup-threshold", "Frontier fraction above which bottom-up mode is used (0 = disabled, undirected only).", 0.0 );
+      config.addEntry< bool >( "with-expand-contract", "Benchmark the top-down expand-contract mode.", true );
       config.addEntry< bool >( "with-predecessors", "Benchmark BFS with predecessor tracking.", false );
       config.addEntry< bool >( "with-visitor", "Benchmark BFS with a visitor callback.", false );
       config.addEntry< bool >( "deterministic", "Use deterministic predecessor selection (smallest source per layer).", false );
@@ -47,6 +52,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       withSemirings = this->parameters.template getParameter< bool >( "with-semirings" );
       bitmapThreshold = this->parameters.template getParameter< double >( "bitmap-threshold" );
       bottomUpThreshold = this->parameters.template getParameter< double >( "bottomup-threshold" );
+      withExpandContract = this->parameters.template getParameter< bool >( "with-expand-contract" );
       withPredecessors = this->parameters.template getParameter< bool >( "with-predecessors" );
       withVisitor = this->parameters.template getParameter< bool >( "with-visitor" );
       deterministic = this->parameters.template getParameter< bool >( "deterministic" );
@@ -119,6 +125,18 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 #endif  // HAVE_BOOST
    }
 
+   // Gunrock's load-balancing strategies, each run without (Gunrock's default) and with the filter operator.
+   static std::vector< std::tuple< typename GunrockBenchmark< Real, Index >::LoadBalance, std::string, bool > >
+   gunrockConfigurations()
+   {
+      std::vector< std::tuple< typename GunrockBenchmark< Real, Index >::LoadBalance, std::string, bool > > configurations;
+      for( const auto& [ loadBalance, tag ] : GunrockBenchmark< Real, Index >::loadBalanceConfigurations() ) {
+         configurations.emplace_back( loadBalance, tag, false );
+         configurations.emplace_back( loadBalance, tag + " filter", true );
+      }
+      return configurations;
+   }
+
    void
    runGunrockBFS(
       const HostDigraph& digraph,
@@ -144,14 +162,18 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       benchmark.setMetadataElement( { "kernel", "N/A" } );
 
       std::vector< Index > bfsDistances( digraph.getVertexCount() );
-      for( const auto& loadBalanceEntry : GunrockBenchmark< Real, Index >::loadBalanceConfigurations() ) {
-         const auto& loadBalance = loadBalanceEntry.first;
-         const auto& tag = loadBalanceEntry.second;
+      for( const auto& [ loadBalance, tag, withFilter ] : gunrockConfigurations() ) {
          benchmark.setMetadataElement( { "launch cfg.", tag } );
 
          try {
             gunrockBenchmark.breadthFirstSearch(
-               benchmark, gunrockDigraphHolder.graph, largestNode, digraph.getVertexCount(), bfsDistances, loadBalance );
+               benchmark,
+               gunrockDigraphHolder.graph,
+               largestNode,
+               digraph.getVertexCount(),
+               bfsDistances,
+               loadBalance,
+               withFilter );
          }
          catch( const std::exception& e ) {
             std::cerr << "Gunrock BFS on directed graph with load balance '" << tag << "' failed: " << e.what() << '\n';
@@ -169,7 +191,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
          // The block-mapped strategy is Gunrock's own default (used by its own
          // benchmarks and by our TNL-vs-Gunrock cross-checks below).
-         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped )
+         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped && ! withFilter )
             this->gunrockBfsDistancesDirected = gunrockDistances;
 
    #ifdef HAVE_BOOST
@@ -184,14 +206,18 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataElement( { "problem", "BFS undir" } );
 
-      for( const auto& loadBalanceEntry : GunrockBenchmark< Real, Index >::loadBalanceConfigurations() ) {
-         const auto& loadBalance = loadBalanceEntry.first;
-         const auto& tag = loadBalanceEntry.second;
+      for( const auto& [ loadBalance, tag, withFilter ] : gunrockConfigurations() ) {
          benchmark.setMetadataElement( { "launch cfg.", tag } );
 
          try {
             gunrockBenchmark.breadthFirstSearch(
-               benchmark, gunrockGraphHolder.graph, largestNode, graph.getVertexCount(), bfsDistances, loadBalance );
+               benchmark,
+               gunrockGraphHolder.graph,
+               largestNode,
+               graph.getVertexCount(),
+               bfsDistances,
+               loadBalance,
+               withFilter );
          }
          catch( const std::exception& e ) {
             std::cerr << "Gunrock BFS on undirected graph with load balance '" << tag << "' failed: " << e.what() << '\n';
@@ -207,7 +233,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
                   x = -1;
             } );
 
-         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped )
+         if( loadBalance == GunrockBenchmark< Real, Index >::LoadBalance::BlockMapped && ! withFilter )
             this->gunrockBfsDistancesUndirected = gunrockDistances;
 
    #ifdef HAVE_BOOST
@@ -241,6 +267,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
 
+      using TNL::Graphs::Algorithms::BFSTopDownMode;
       const auto runBFS = [ & ](
                              auto& g,
                              auto& dist,
@@ -248,24 +275,34 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
                              const auto& launchCfg,
                              const char* modeTag,
                              double bitmapThreshold,
-                             double bottomUpThreshold )
+                             double bottomUpThreshold,
+                             BFSTopDownMode topDownMode = BFSTopDownMode::Compact )
       {
          benchmark.setMetadataElement( { "mode", modeTag } );
-         auto bfs_lambda = [ &, launchCfg, bitmapThreshold, bottomUpThreshold ]() mutable
+         auto bfs_lambda = [ &, launchCfg, bitmapThreshold, bottomUpThreshold, topDownMode ]() mutable
          {
             NoOpVisitor visitor;
             if( withVisitor && withPredecessors )
                TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
-                  g, largestNode, visitor, dist, pred, deterministic, bitmapThreshold, bottomUpThreshold, launchCfg );
+                  g,
+                  largestNode,
+                  visitor,
+                  dist,
+                  pred,
+                  deterministic,
+                  bitmapThreshold,
+                  bottomUpThreshold,
+                  topDownMode,
+                  launchCfg );
             else if( withVisitor )
                TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor(
-                  g, largestNode, visitor, dist, bitmapThreshold, bottomUpThreshold, launchCfg );
+                  g, largestNode, visitor, dist, bitmapThreshold, bottomUpThreshold, topDownMode, launchCfg );
             else if( withPredecessors )
                TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors(
-                  g, largestNode, dist, pred, deterministic, bitmapThreshold, bottomUpThreshold, launchCfg );
+                  g, largestNode, dist, pred, deterministic, bitmapThreshold, bottomUpThreshold, topDownMode, launchCfg );
             else
                TNL::Graphs::Algorithms::breadthFirstSearch(
-                  g, largestNode, dist, bitmapThreshold, bottomUpThreshold, launchCfg );
+                  g, largestNode, dist, bitmapThreshold, bottomUpThreshold, topDownMode, launchCfg );
          };
          benchmark.time< Device >( "TNL", bfs_lambda );
       };
@@ -311,6 +348,19 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             }
 #endif
 
+            if( withExpandContract ) {
+               runBFS(
+                  digraph,
+                  bfsDistances,
+                  bfsPredecessors,
+                  launchConfig,
+                  "top-down expand-contract",
+                  0.0,
+                  0.0,
+                  BFSTopDownMode::ExpandContract );
+               checkMode( bfsDistances, compactDistances, "directed", "top-down expand-contract" );
+            }
+
             if( bitmapThreshold > 0.0 ) {
                runBFS( digraph, bfsDistances, bfsPredecessors, launchConfig, "top-down bitmap", bitmapThreshold, 0.0 );
                checkMode( bfsDistances, compactDistances, "directed", "top-down bitmap" );
@@ -346,6 +396,19 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
                this->errors++;
             }
 #endif
+
+            if( withExpandContract ) {
+               runBFS(
+                  graph,
+                  bfsDistances,
+                  bfsPredecessors,
+                  launchConfig,
+                  "top-down expand-contract",
+                  0.0,
+                  0.0,
+                  BFSTopDownMode::ExpandContract );
+               checkMode( bfsDistances, compactDistances, "undirected", "top-down expand-contract" );
+            }
 
             if( bitmapThreshold > 0.0 ) {
                runBFS( graph, bfsDistances, bfsPredecessors, launchConfig, "top-down bitmap", bitmapThreshold, 0.0 );
@@ -413,6 +476,7 @@ protected:
    bool withSemirings;
    double bitmapThreshold;
    double bottomUpThreshold;
+   bool withExpandContract;
    bool withPredecessors;
    bool withVisitor;
    bool deterministic;
