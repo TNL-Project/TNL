@@ -38,6 +38,7 @@ breadthFirstSearchParallel(
    bool deterministic,
    double bitmapThreshold,
    double bottomUpThreshold,
+   BFSTopDownMode topDownMode,
    const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using ValueType = typename Graph::ValueType;
@@ -66,6 +67,12 @@ breadthFirstSearchParallel(
    Containers::Vector< IndexType, DeviceType, IndexType > marksScan( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > frontier( n, 0 );
    Containers::Vector< IndexType, DeviceType, IndexType > nextMarks( n, 0 );
+   // frontierOffsets, edgeFrontier, edgeFrontierScan: buffers of the top-down expand-contract mode
+   Containers::Vector< IndexType, DeviceType, IndexType > frontierOffsets;
+   Containers::Vector< IndexType, DeviceType, IndexType > edgeFrontier;
+   Containers::Vector< IndexType, DeviceType, IndexType > edgeFrontierScan;
+   if( topDownMode == BFSTopDownMode::ExpandContract )
+      frontierOffsets.setSize( n );
    frontier.setElement( 0, start );
    IndexType frontierSize( 1 );
 
@@ -106,6 +113,8 @@ breadthFirstSearchParallel(
       }
 
       bool previousWasBitmap = false;
+      // marks do not hold the frontier after a top-down expand-contract iteration
+      bool marksAreStale = false;
       for( IndexType i = 0; i < n; i++ ) {
          const double frontierFraction = static_cast< double >( frontierSize ) / static_cast< double >( n );
 
@@ -117,6 +126,11 @@ breadthFirstSearchParallel(
          // When the frontier is small, skip the O(n) compactFrontier (prefix
          // scan + scatter) and instead scan all edges with a cheap marks check.
          const bool useTopDownBitmap = ! useBottomUp && bitmapThreshold > 0.0 && frontierFraction < bitmapThreshold;
+
+         if( ( useBottomUp || useTopDownBitmap ) && marksAreStale ) {
+            detail::frontierToMarks< DeviceType, IndexType >( frontier, frontierSize, marks );
+            marksAreStale = false;
+         }
 
          if( useBottomUp ) {
             auto marksView_bitmap = marks.getView();
@@ -245,6 +259,48 @@ breadthFirstSearchParallel(
             nextMarks = 0;
             previousWasBitmap = true;
          }
+         else if( topDownMode == BFSTopDownMode::ExpandContract ) {
+            if( previousWasBitmap ) {
+               frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+               previousWasBitmap = false;
+            }
+
+            frontierSize = detail::expandContractFrontier(
+               graph,
+               frontier,
+               frontierSize,
+               frontierOffsets,
+               edgeFrontier,
+               edgeFrontierScan,
+               [ = ] __cuda_callable__( IndexType sourceIdx, IndexType targetIdx ) mutable -> bool
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
+                  (void) atomicPredView;
+
+                  IndexType prev = -1;
+                  const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+
+                  if( i_am_winner )
+                     visitor( targetIdx, i + 1 );
+
+                  // Deterministic mode: see the top-down compact mode below.
+                  if constexpr( WithPredecessors ) {
+                     if( deterministic ) {
+                        if( i_am_winner || prev == i + 1 )
+                           atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                     }
+                     else if( i_am_winner ) {
+                        predecessorsView[ targetIdx ] = sourceIdx;
+                     }
+                  }
+                  return i_am_winner;
+               },
+               launchConfig );
+            marksAreStale = true;
+         }
          else {
             if( previousWasBitmap ) {
                frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
@@ -327,6 +383,8 @@ breadthFirstSearchParallel(
       auto distancesView = distances.getView();
 
       bool previousWasBitmap = false;
+      // marks do not hold the frontier after a top-down expand-contract iteration
+      bool marksAreStale = false;
       for( IndexType i = 0; i < n; i++ ) {
          const double frontierFraction = static_cast< double >( frontierSize ) / static_cast< double >( n );
 
@@ -338,6 +396,11 @@ breadthFirstSearchParallel(
          // When the frontier is small, skip the O(n) compactFrontier (prefix
          // scan + scatter) and instead scan all edges with a cheap marks check.
          const bool useTopDownBitmap = ! useBottomUp && bitmapThreshold > 0.0 && frontierFraction < bitmapThreshold;
+
+         if( ( useBottomUp || useTopDownBitmap ) && marksAreStale ) {
+            detail::frontierToMarks< DeviceType, IndexType >( frontier, frontierSize, marks );
+            marksAreStale = false;
+         }
 
          if( useBottomUp ) {
             auto marksView_bitmap = marks.getView();
@@ -467,6 +530,47 @@ breadthFirstSearchParallel(
             nextMarks = 0;
             previousWasBitmap = true;
          }
+         else if( topDownMode == BFSTopDownMode::ExpandContract ) {
+            if( previousWasBitmap ) {
+               frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
+               previousWasBitmap = false;
+            }
+
+            frontierSize = detail::expandContractFrontier(
+               graph,
+               frontier,
+               frontierSize,
+               frontierOffsets,
+               edgeFrontier,
+               edgeFrontierScan,
+               [ = ] __cuda_callable__( IndexType sourceIdx, IndexType targetIdx ) mutable -> bool
+               {
+                  // NVCC forbids first-capture of variables inside if constexpr
+                  // in extended lambdas.  These (void) casts force early capture.
+                  (void) deterministic;
+                  (void) predecessorsView;
+
+                  const IndexType old = atomicCAS( &distancesView[ targetIdx ], -1, i + 1 );
+                  const bool i_am_winner = ( old == -1 );
+
+                  if( i_am_winner )
+                     visitor( targetIdx, i + 1 );
+
+                  // Deterministic mode: see the top-down compact mode below.
+                  if constexpr( WithPredecessors ) {
+                     if( deterministic ) {
+                        if( i_am_winner || old == i + 1 )
+                           atomicMin( &predecessorsView[ targetIdx ], sourceIdx );
+                     }
+                     else if( i_am_winner ) {
+                        predecessorsView[ targetIdx ] = sourceIdx;
+                     }
+                  }
+                  return i_am_winner;
+               },
+               launchConfig );
+            marksAreStale = true;
+         }
          else {
             if( previousWasBitmap ) {
                frontierSize = detail::compactFrontier< DeviceType, IndexType >( marks, marksScan, frontier );
@@ -554,6 +658,7 @@ breadthFirstSearch_impl(
    bool deterministic,
    double bitmapThreshold,
    double bottomUpThreshold,
+   BFSTopDownMode topDownMode,
    const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    static_assert(
@@ -630,6 +735,7 @@ breadthFirstSearch_impl(
          deterministic,
          bitmapThreshold,
          bottomUpThreshold,
+         topDownMode,
          launchConfig );
    }
 }
@@ -642,6 +748,7 @@ breadthFirstSearch(
    Vector& distances,
    double bitmapThreshold,
    double bottomUpThreshold,
+   BFSTopDownMode topDownMode,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    Vector dummy;
@@ -654,6 +761,7 @@ breadthFirstSearch(
       false,
       bitmapThreshold,
       bottomUpThreshold,
+      topDownMode,
       launchConfig );
 }
 
@@ -666,6 +774,7 @@ breadthFirstSearchWithVisitor(
    Vector& distances,
    double bitmapThreshold,
    double bottomUpThreshold,
+   BFSTopDownMode topDownMode,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (vertex, distance)." );
@@ -679,6 +788,7 @@ breadthFirstSearchWithVisitor(
       false,
       bitmapThreshold,
       bottomUpThreshold,
+      topDownMode,
       launchConfig );
 }
 
@@ -692,6 +802,7 @@ breadthFirstSearchWithPredecessors(
    bool deterministic,
    double bitmapThreshold,
    double bottomUpThreshold,
+   BFSTopDownMode topDownMode,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    breadthFirstSearch_impl< true >(
@@ -703,6 +814,7 @@ breadthFirstSearchWithPredecessors(
       deterministic,
       bitmapThreshold,
       bottomUpThreshold,
+      topDownMode,
       launchConfig );
 }
 
@@ -717,6 +829,7 @@ breadthFirstSearchWithVisitorAndPredecessors(
    bool deterministic,
    double bitmapThreshold,
    double bottomUpThreshold,
+   BFSTopDownMode topDownMode,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    static_assert( detail::isBfsVisitor_v< Visitor, Graph >, "BFS visitor must accept (vertex, distance)." );
@@ -729,6 +842,7 @@ breadthFirstSearchWithVisitorAndPredecessors(
       deterministic,
       bitmapThreshold,
       bottomUpThreshold,
+      topDownMode,
       launchConfig );
 }
 

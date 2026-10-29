@@ -125,8 +125,8 @@ stronglyConnectedComponents_impl(
       if( pivot < 0 )
          return;
 
-      breadthFirstSearch( graph, pivot, forwardReachability, 0.0, 0.0, launchConfig );
-      breadthFirstSearch( reverseSubGraph, pivot, reverseReachability, 0.0, 0.0, launchConfig );
+      breadthFirstSearch( graph, pivot, forwardReachability, 0.0, 0.0, BFSTopDownMode::Compact, launchConfig );
+      breadthFirstSearch( reverseSubGraph, pivot, reverseReachability, 0.0, 0.0, BFSTopDownMode::Compact, launchConfig );
 
       const auto forwardReachabilityView = forwardReachability.getConstView();
       const auto reverseReachabilityView = reverseReachability.getConstView();
