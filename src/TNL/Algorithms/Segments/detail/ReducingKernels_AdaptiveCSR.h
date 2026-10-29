@@ -183,6 +183,15 @@ reduceSegments_AdaptiveCSR(
 #endif
 }
 
+/**
+ * \brief Kernel for the AdaptiveCSR format, reducing segments with argument.
+ *
+ * It uses the same three strategies as \ref reduceSegments_AdaptiveCSR,
+ * but every thread also tracks the local index of its partial result
+ * (e.g. the position of the maximum)
+ * and the pairs of values and arguments are combined
+ * by warp-shuffle and shared-memory reductions with argument.
+ */
 template<
    typename BlocksView,
    typename Offsets,

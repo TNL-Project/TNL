@@ -11,6 +11,17 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
+/**
+ * \brief Implementation of \ref reduceSegments_SlicedEllpack_Uniform
+ * for the row-major organization.
+ *
+ * `ThreadsPerSegment` consecutive threads are assigned to every segment.
+ * The elements of a segment are contiguous in memory,
+ * so the threads process them with stride `ThreadsPerSegment`
+ * and their partial results are combined by a warp-shuffle reduction.
+ * The grid starts at the first segment of the slice containing `begin`,
+ * so the threads of the segments before `begin` are inactive.
+ */
 template<
    int BlockSize,
    int ThreadsPerSegment,
@@ -84,7 +95,20 @@ reduceSegments_SlicedEllpack_Uniform_RowMajor_impl(
 #endif
 }
 
-// For this kernel we assume that Segments::getSliceSize() * ThreadsPerSegment >= WarpSize.
+/**
+ * \brief Implementation of \ref reduceSegments_SlicedEllpack_Uniform
+ * for the column-major organization.
+ *
+ * `SliceSize * ThreadsPerSegment` threads are assigned to every slice
+ * such that neighbouring threads process neighbouring segments,
+ * which gives coalesced accesses to the elements with the same local index.
+ * The partial results of a segment are combined by a strided warp-shuffle reduction
+ * if all threads of a slice are in one warp,
+ * otherwise they are first transposed through shared memory.
+ * It assumes that `SliceSize * ThreadsPerSegment` is at least the warp size,
+ * otherwise one warp would be split among several slices.
+ * See the comments in the code for a detailed description of the mapping.
+ */
 template<
    int BlockSize,
    int ThreadsPerSegment,
@@ -320,6 +344,22 @@ reduceSegments_SlicedEllpack_Uniform_ColumnMajor_impl(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing a contiguous range of SlicedEllpack segments.
+ *
+ * `ThreadsPerSegment` threads are assigned to every segment
+ * of the range [`begin`, `end`).
+ * All segments of a slice have the same size,
+ * so only the slice offsets and the slice segment sizes are read.
+ * The work is dispatched by the organization of the segments to
+ * \ref reduceSegments_SlicedEllpack_Uniform_RowMajor_impl or
+ * \ref reduceSegments_SlicedEllpack_Uniform_ColumnMajor_impl.
+ * `ThreadsPerSegment` must not exceed the warp size.
+ *
+ * See \ref reduceSegments_CSR_Uniform for the paper
+ * that inspired the uniform number of threads per segment.
+ */
 template<
    int BlockSize,
    int ThreadsPerSegment,
