@@ -213,9 +213,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+         resolveLaunchConfiguration( launchConfig );
          if( end <= begin )
             return;
-         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -538,9 +538,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+         resolveLaunchConfiguration( launchConfig );
          if( end <= begin )
             return;
-         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
