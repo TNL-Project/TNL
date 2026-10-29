@@ -130,14 +130,20 @@ struct GunrockBenchmark
       Index start,
       Index size,
       std::vector< Index >& distances,
-      LoadBalance loadBalance = LoadBalance::BlockMapped )
+      LoadBalance loadBalance = LoadBalance::BlockMapped,
+      bool withFilter = false )
    {
 #ifdef HAVE_GUNROCK
       thrust::device_vector< typename Graph::vertex_type > d_distances( size );
       thrust::device_vector< typename Graph::vertex_type > d_predecessors( size );
 
-      typename Graph::vertex_type source = start;
-      auto gunrockLoadBalance = toGunrockLoadBalance( loadBalance );
+      gunrock::options_t options;
+      options.advance_load_balance = toGunrockLoadBalance( loadBalance );
+      // Without the filter, the invalid vertices stay in the frontier and are skipped by the next advance
+      // (Gunrock's default).  With the filter, they are removed by the predicated filter (copy_if).
+      options.enable_filter = withFilter;
+      gunrock::bfs::param_t< typename Graph::vertex_type > param( start, options );
+      gunrock::bfs::result_t< typename Graph::vertex_type > result( d_distances.data().get(), d_predecessors.data().get() );
       auto bfs_gunrock = [ & ]() mutable
       {
          // A fresh context must be constructed on every call: benchmark.time()
@@ -146,7 +152,7 @@ struct GunrockBenchmark
          // across independent runs (matches gunrock::bfs::run's own default
          // argument, which likewise constructs a new context per call).
          auto context = std::shared_ptr< gunrock::gcuda::multi_context_t >( new gunrock::gcuda::multi_context_t( 0 ) );
-         gunrock::bfs::run( graph, source, d_distances.data().get(), d_predecessors.data().get(), context, gunrockLoadBalance );
+         gunrock::bfs::run( graph, param, result, context );
       };
       benchmark.time< TNL::Devices::GPU >( "Gunrock", bfs_gunrock );
       TNL_ASSERT_EQ( d_distances.size(), distances.size(), "Size mismatch in Gunrock BFS distances." );
@@ -168,14 +174,16 @@ struct GunrockBenchmark
       thrust::device_vector< ValueType > d_distances( size );
       thrust::device_vector< IndexType > d_predecessors( size );
 
-      typename Graph::vertex_type source = start;
-      auto gunrockLoadBalance = toGunrockLoadBalance( loadBalance );
+      gunrock::options_t options;
+      options.advance_load_balance = toGunrockLoadBalance( loadBalance );
+      gunrock::sssp::param_t< typename Graph::vertex_type > param( start, options );
+      gunrock::sssp::result_t< typename Graph::vertex_type, typename Graph::weight_type > result(
+         d_distances.data().get(), d_predecessors.data().get(), size );
       auto sssp_gunrock = [ & ]() mutable
       {
          // See breadthFirstSearch above: a fresh context per call is required.
          auto context = std::shared_ptr< gunrock::gcuda::multi_context_t >( new gunrock::gcuda::multi_context_t( 0 ) );
-         gunrock::sssp::run(
-            graph, source, d_distances.data().get(), d_predecessors.data().get(), context, gunrockLoadBalance );
+         gunrock::sssp::run( graph, param, result, context );
       };
       benchmark.time< TNL::Devices::GPU >( "Gunrock", sssp_gunrock );
       TNL_ASSERT_EQ( d_distances.size(), distances.size(), "Size mismatch in Gunrock SSSP distances." );
