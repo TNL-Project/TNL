@@ -143,6 +143,10 @@ TEST( SegmentsLaunchConfigurationTest, uniformLaunchConfigurationBySegmentSize )
    EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( segments, 16, 32 ).getThreadsPerSegmentCount(), 16 );
    EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( segments, 1, 4 ).getThreadsPerSegmentCount(), 4 );
 
+   // without the maximal count, it is the warp size on GPU and 32 on other devices
+   EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( segments ).getThreadsPerSegmentCount(), 8 );
+   EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( segments, 16 ).getThreadsPerSegmentCount(), 16 );
+
    const SegmentsType emptySegments;
    EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( emptySegments, 2, 32 ).getThreadsPerSegmentCount(), 2 );
 

@@ -4,8 +4,10 @@
 #pragma once
 
 #include <stdexcept>
+#include <type_traits>
 
 #include <TNL/Backend/LaunchHelpers.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Math.h>
 
 #include "LaunchConfiguration.h"
@@ -42,17 +44,13 @@ namespace TNL::Algorithms::Segments {
  *        which must be a positive power of two.
  * \param maxThreadsPerSegment The maximal threads per segment count,
  *        which must be a power of two not smaller than `minThreadsPerSegment`.
- *        The default value is the warp size of the current GPU.
  * \return The launch configuration.
  * \throws std::invalid_argument if the bounds are not powers of two or
  *         `minThreadsPerSegment` is larger than `maxThreadsPerSegment`.
  */
 template< typename Segments >
 [[nodiscard]] LaunchConfiguration
-uniformLaunchConfigurationBySegmentSize(
-   const Segments& segments,
-   int minThreadsPerSegment = 1,
-   int maxThreadsPerSegment = Backend::getWarpSize( Backend::getDevice() ) )
+uniformLaunchConfigurationBySegmentSize( const Segments& segments, int minThreadsPerSegment, int maxThreadsPerSegment )
 {
    using Index = typename Segments::IndexType;
 
@@ -69,6 +67,33 @@ uniformLaunchConfigurationBySegmentSize(
       threadsPerSegment *= 2;
    launchConfig.setThreadsPerSegmentCount( threadsPerSegment );
    return launchConfig;
+}
+
+/**
+ * \brief Creates a launch configuration with the `Uniform` mapping and the
+ * threads per segment count chosen by the average segment size.
+ *
+ * The maximal threads per segment count is the warp size of the current GPU
+ * for segments on GPU. For other devices, where the launch configuration is
+ * ignored, it is 32, so that no GPU runtime call is made.
+ * See the overload with `maxThreadsPerSegment` for details.
+ *
+ * \tparam Segments The type of the segments.
+ * \param segments The segments for which the launch configuration is created.
+ * \param minThreadsPerSegment The minimal threads per segment count,
+ *        which must be a positive power of two.
+ * \return The launch configuration.
+ * \throws std::invalid_argument if `minThreadsPerSegment` is not a power of two
+ *         or it is larger than the maximal threads per segment count.
+ */
+template< typename Segments >
+[[nodiscard]] LaunchConfiguration
+uniformLaunchConfigurationBySegmentSize( const Segments& segments, int minThreadsPerSegment = 1 )
+{
+   int maxThreadsPerSegment = 32;
+   if constexpr( std::is_same_v< typename Segments::DeviceType, Devices::GPU > )
+      maxThreadsPerSegment = Backend::getWarpSize( Backend::getDevice() );
+   return uniformLaunchConfigurationBySegmentSize( segments, minThreadsPerSegment, maxThreadsPerSegment );
 }
 
 }  // namespace TNL::Algorithms::Segments
