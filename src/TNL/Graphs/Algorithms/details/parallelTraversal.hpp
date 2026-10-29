@@ -3,15 +3,29 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <type_traits>
 
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Backend/Macros.h>
+#include <TNL/Containers/Array.h>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Graphs/SubGraph.h>
 #include <TNL/Graphs/traverse.h>
 #include <TNL/Matrices/MatrixBase.h>
+
+#if defined( __CUDACC__ )
+   #include <cub/device/device_scan.cuh>
+   #include <cub/device/device_select.cuh>
+#elif defined( __HIPCC__ )
+   #include <hipcub/device/device_scan.hpp>
+   #include <hipcub/device/device_select.hpp>
+#endif
 
 namespace TNL::Graphs::Algorithms::detail {
 
@@ -94,9 +108,166 @@ struct IsSubGraph< MaskedSubGraph< Graph_, EdgeFilter > > : std::true_type
 {};
 
 /**
+ * \brief Buffers of the top-down expand-contract step, reused across the BFS iterations.
+ */
+template< typename DeviceType, typename IndexType >
+struct ExpandContractBuffers
+{
+   //! \brief The first slot of each frontier vertex in the edge frontier, indexed by vertex (size n).
+   Containers::Vector< IndexType, DeviceType, IndexType > frontierOffsets;
+
+   //! \brief The segment sizes of the frontier vertices.
+   Containers::Vector< IndexType, DeviceType, IndexType > degrees;
+
+   //! \brief The edge frontier with one slot per edge of the frontier vertices.
+   Containers::Vector< IndexType, DeviceType, IndexType > edgeFrontier;
+
+   //! \brief Prefix sums of the segment sizes and, on host, of the valid slots.
+   Containers::Vector< IndexType, DeviceType, IndexType > scan;
+
+   //! \brief Temporary storage of the CUB/hipCUB algorithms.
+   Containers::Array< std::uint8_t, DeviceType, std::size_t > temporaryStorage;
+
+   //! \brief The number of selected slots written by the CUB/hipCUB select.
+   Containers::Array< IndexType, DeviceType, IndexType > selectedCount;
+};
+
+/**
+ * \brief Enlarges \e buffer to hold at least \e size elements.
+ *
+ * The buffer grows geometrically, but not over \e maxSize, so that the BFS iterations with growing
+ * frontiers do not reallocate it every time.
+ */
+template< typename Buffer, typename Index >
+void
+growBuffer( Buffer& buffer, Index size, Index maxSize )
+{
+   if( buffer.getSize() < size )
+      buffer.setSize( std::max( size, std::min( 2 * buffer.getSize(), maxSize ) ) );
+}
+
+//! \brief Predicate of the valid slots of the edge frontier.
+template< typename IndexType >
+struct IsValidSlot
+{
+   __cuda_callable__
+   bool
+   operator()( const IndexType& v ) const
+   {
+      return v != -1;
+   }
+};
+
+/**
+ * \brief Computes the inclusive prefix sum of the first \e size elements of \e input into \e output.
+ *
+ * On GPU, it uses the single-pass decoupled look-back scan from CUB/hipCUB and reuses the temporary
+ * storage in \e buffers.
+ */
+template< typename DeviceType, typename IndexType >
+void
+inclusiveSum(
+   ExpandContractBuffers< DeviceType, IndexType >& buffers,
+   const Containers::Vector< IndexType, DeviceType, IndexType >& input,
+   Containers::Vector< IndexType, DeviceType, IndexType >& output,
+   IndexType size )
+{
+#if defined( __CUDACC__ ) || defined( __HIPCC__ )
+   if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
+   #if defined( __HIPCC__ ) && ! defined( __CUDACC__ )
+      namespace cub = hipcub;
+   #endif
+      std::size_t bytes = 0;
+      TNL_BACKEND_SAFE_CALL( cub::DeviceScan::InclusiveSum( nullptr, bytes, input.getData(), output.getData(), size ) );
+      if( buffers.temporaryStorage.getSize() < bytes )
+         buffers.temporaryStorage.setSize( bytes );
+      bytes = buffers.temporaryStorage.getSize();
+      TNL_BACKEND_SAFE_CALL(
+         cub::DeviceScan::InclusiveSum(
+            static_cast< void* >( buffers.temporaryStorage.getData() ), bytes, input.getData(), output.getData(), size ) );
+      return;
+   }
+#endif
+   TNL::Algorithms::inclusiveScan( input, output, 0, size, 0 );
+}
+
+/**
+ * \brief Moves the valid slots of the first \e size elements of \e edgeFrontier densely into
+ * \e frontier and returns their number.
+ *
+ * On GPU, it uses the single-pass select from CUB/hipCUB.  Otherwise, the valid slots are flagged,
+ * the flags are scanned and the valid slots are scattered.
+ */
+template< typename DeviceType, typename IndexType >
+IndexType
+selectValidSlots(
+   ExpandContractBuffers< DeviceType, IndexType >& buffers,
+   IndexType size,
+   IndexType maxSize,
+   Containers::Vector< IndexType, DeviceType, IndexType >& frontier )
+{
+#if defined( __CUDACC__ ) || defined( __HIPCC__ )
+   if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
+   #if defined( __HIPCC__ ) && ! defined( __CUDACC__ )
+      namespace cub = hipcub;
+   #endif
+      (void) maxSize;
+      if( buffers.selectedCount.getSize() == 0 )
+         buffers.selectedCount.setSize( 1 );
+      std::size_t bytes = 0;
+      TNL_BACKEND_SAFE_CALL(
+         cub::DeviceSelect::If(
+            nullptr,
+            bytes,
+            buffers.edgeFrontier.getData(),
+            frontier.getData(),
+            buffers.selectedCount.getData(),
+            size,
+            IsValidSlot< IndexType >{} ) );
+      if( buffers.temporaryStorage.getSize() < bytes )
+         buffers.temporaryStorage.setSize( bytes );
+      bytes = buffers.temporaryStorage.getSize();
+      TNL_BACKEND_SAFE_CALL(
+         cub::DeviceSelect::If(
+            static_cast< void* >( buffers.temporaryStorage.getData() ),
+            bytes,
+            buffers.edgeFrontier.getData(),
+            frontier.getData(),
+            buffers.selectedCount.getData(),
+            size,
+            IsValidSlot< IndexType >{} ) );
+      return buffers.selectedCount.getElement( 0 );
+   }
+#endif
+   growBuffer( buffers.scan, size, maxSize );
+   const auto edgeFrontierView = buffers.edgeFrontier.getConstView();
+   auto scanView = buffers.scan.getView();
+   TNL::Algorithms::parallelFor< DeviceType >(
+      0,
+      size,
+      [ = ] __cuda_callable__( IndexType j ) mutable
+      {
+         scanView[ j ] = edgeFrontierView[ j ] != -1;
+      } );
+   TNL::Algorithms::inplaceInclusiveScan( buffers.scan, 0, size );
+   const IndexType selected = buffers.scan.getElement( size - 1 );
+   auto frontierView = frontier.getView();
+   TNL::Algorithms::parallelFor< DeviceType >(
+      0,
+      size,
+      [ = ] __cuda_callable__( IndexType j ) mutable
+      {
+         const IndexType v = edgeFrontierView[ j ];
+         if( v != -1 )
+            frontierView[ scanView[ j ] - 1 ] = v;
+      } );
+   return selected;
+}
+
+/**
  * \brief Performs one top-down expand-contract step on a sparse vertex frontier.
  *
- * Expand: each edge of the frontier vertices gets its own slot in \e edgeFrontier.  The slots of a
+ * Expand: each edge of the frontier vertices gets its own slot in the edge frontier.  The slots of a
  * frontier vertex start at the prefix sum of the segment sizes of the preceding frontier vertices.
  * The \e visit callable is evaluated for each edge and the slot receives the target vertex if it
  * returns \c true, or \c -1 otherwise.  Contract: the valid slots are compacted back into
@@ -104,16 +275,14 @@ struct IsSubGraph< MaskedSubGraph< Graph_, EdgeFilter > > : std::true_type
  * vertices.  This corresponds to the advance and filter operators of Gunrock and to the
  * expand-contract scheme of Merrill et al.
  *
- * \param graph           – the graph
- * \param frontier        – input and output vertex frontier (must have capacity for all vertices)
- * \param frontierSize    – the number of vertices in the input frontier
- * \param frontierOffsets – scratch vector of size n, receives the first slot of each frontier vertex
- * \param edgeFrontier    – scratch vector for the edge frontier (resized automatically)
- * \param scanBuffer      – scratch vector for the prefix sums (resized automatically)
- * \param visit           – callable `bool( IndexType source, IndexType target )`, returns \c true
- *                          when \e target enters the next frontier
- * \param launchConfig    – the configuration for launching the segments traversal
- * \return                – the number of vertices in the new frontier
+ * \param graph        – the graph
+ * \param frontier     – input and output vertex frontier (must have capacity for all vertices)
+ * \param frontierSize – the number of vertices in the input frontier
+ * \param buffers      – the buffers reused across the iterations, \e frontierOffsets must have size n
+ * \param visit        – callable `bool( IndexType source, IndexType target )`, returns \c true
+ *                       when \e target enters the next frontier
+ * \param launchConfig – the configuration for launching the segments traversal
+ * \return             – the number of vertices in the new frontier
  */
 template< typename Graph, typename Visit >
 typename Graph::IndexType
@@ -121,9 +290,7 @@ expandContractFrontier(
    const Graph& graph,
    Containers::Vector< typename Graph::IndexType, typename Graph::DeviceType, typename Graph::IndexType >& frontier,
    typename Graph::IndexType frontierSize,
-   Containers::Vector< typename Graph::IndexType, typename Graph::DeviceType, typename Graph::IndexType >& frontierOffsets,
-   Containers::Vector< typename Graph::IndexType, typename Graph::DeviceType, typename Graph::IndexType >& edgeFrontier,
-   Containers::Vector< typename Graph::IndexType, typename Graph::DeviceType, typename Graph::IndexType >& scanBuffer,
+   ExpandContractBuffers< typename Graph::DeviceType, typename Graph::IndexType >& buffers,
    Visit visit,
    const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
@@ -135,24 +302,28 @@ expandContractFrontier(
       return 0;
 
    // Expand: compute the slots of the frontier vertices in the edge frontier.
-   if( scanBuffer.getSize() < frontierSize )
-      scanBuffer.setSize( frontierSize );
    const auto adjacencyMatrixView = graph.getAdjacencyMatrix().getConstView();
+   const IndexType vertexCount = buffers.frontierOffsets.getSize();
+   // the edge frontier cannot be larger than the number of elements of the adjacency matrix
+   const IndexType maxEdgeFrontierSize = adjacencyMatrixView.getColumnIndexes().getSize();
+   growBuffer( buffers.degrees, frontierSize, vertexCount );
+   growBuffer( buffers.scan, frontierSize, std::max( vertexCount, maxEdgeFrontierSize ) );
    auto frontierView = frontier.getView();
-   auto scanView = scanBuffer.getView();
+   auto degreesView = buffers.degrees.getView();
    TNL::Algorithms::parallelFor< DeviceType >(
       0,
       frontierSize,
       [ = ] __cuda_callable__( IndexType k ) mutable
       {
-         scanView[ k ] = adjacencyMatrixView.getRowCapacity( frontierView[ k ] );
+         degreesView[ k ] = adjacencyMatrixView.getRowCapacity( frontierView[ k ] );
       } );
-   TNL::Algorithms::inplaceInclusiveScan( scanBuffer, 0, frontierSize );
-   const IndexType edgeFrontierSize = scanBuffer.getElement( frontierSize - 1 );
+   inclusiveSum( buffers, buffers.degrees, buffers.scan, frontierSize );
+   const IndexType edgeFrontierSize = buffers.scan.getElement( frontierSize - 1 );
    if( edgeFrontierSize == 0 )
       return 0;
 
-   auto offsetsView = frontierOffsets.getView();
+   auto offsetsView = buffers.frontierOffsets.getView();
+   const auto scanView = buffers.scan.getConstView();
    TNL::Algorithms::parallelFor< DeviceType >(
       0,
       frontierSize,
@@ -161,9 +332,8 @@ expandContractFrontier(
          offsetsView[ frontierView[ k ] ] = ( k == 0 ) ? 0 : scanView[ k - 1 ];
       } );
 
-   if( edgeFrontier.getSize() < edgeFrontierSize )
-      edgeFrontier.setSize( edgeFrontierSize );
-   auto edgeFrontierView = edgeFrontier.getView( 0, edgeFrontierSize );
+   growBuffer( buffers.edgeFrontier, edgeFrontierSize, maxEdgeFrontierSize );
+   auto edgeFrontierView = buffers.edgeFrontier.getView( 0, edgeFrontierSize );
    // The traversal of a subgraph skips the filtered edges, so their slots must be invalidated in advance.
    if constexpr( IsSubGraph< Graph >::value )
       edgeFrontierView = -1;
@@ -184,28 +354,7 @@ expandContractFrontier(
       launchConfig );
 
    // Contract: remove the invalid slots from the edge frontier.
-   if( scanBuffer.getSize() < edgeFrontierSize )
-      scanBuffer.setSize( edgeFrontierSize );
-   scanView.bind( scanBuffer.getView() );
-   TNL::Algorithms::parallelFor< DeviceType >(
-      0,
-      edgeFrontierSize,
-      [ = ] __cuda_callable__( IndexType j ) mutable
-      {
-         scanView[ j ] = edgeFrontierView[ j ] != -1;
-      } );
-   TNL::Algorithms::inplaceInclusiveScan( scanBuffer, 0, edgeFrontierSize );
-   const IndexType newFrontierSize = scanBuffer.getElement( edgeFrontierSize - 1 );
-   TNL::Algorithms::parallelFor< DeviceType >(
-      0,
-      edgeFrontierSize,
-      [ = ] __cuda_callable__( IndexType j ) mutable
-      {
-         const IndexType v = edgeFrontierView[ j ];
-         if( v != -1 )
-            frontierView[ scanView[ j ] - 1 ] = v;
-      } );
-   return newFrontierSize;
+   return selectValidSlots( buffers, edgeFrontierSize, maxEdgeFrontierSize, frontier );
 }
 
 }  // namespace TNL::Graphs::Algorithms::detail
