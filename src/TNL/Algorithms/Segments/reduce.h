@@ -828,7 +828,8 @@ template<
    typename Fetch,
    typename Reduction,
    typename ResultStorer,
-   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
 reduceSegmentsWithArgument(
    const Segments& segments,
@@ -870,7 +871,14 @@ reduceSegmentsWithArgument(
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename ResultStorer >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
 reduceSegmentsWithArgument(
    const Segments& segments,

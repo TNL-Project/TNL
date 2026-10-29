@@ -332,7 +332,8 @@ template<
    typename Fetch,
    typename Reduction,
    typename ResultStorer,
-   typename Value >
+   typename Value,
+   typename T >
 static void
 reduceSegmentsWithArgument(
    const Segments& segments,
@@ -355,7 +356,14 @@ reduceSegmentsWithArgument(
       launchConfig );
 }
 
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename ResultStorer >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename T >
 static void
 reduceSegmentsWithArgument(
    const Segments& segments,
