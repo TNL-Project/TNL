@@ -9,6 +9,29 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * traversing the segments given explicitly by `segmentIndexes`.
+ *
+ * All Ellpack segments have the same size,
+ * which is read once per block into shared memory.
+ *
+ * - For the row-major organization,
+ *   `threadsPerSegment` consecutive threads are assigned
+ *   to every entry of `segmentIndexes`
+ *   and they process the contiguous elements of the segment
+ *   with stride `threadsPerSegment`.
+ * - For the column-major organization,
+ *   the elements of a segment are strided by the segments count in memory,
+ *   so grouping the threads by segment would not give coalesced accesses.
+ *   Instead, every thread processes one element at a time
+ *   in a grid-stride loop over all elements of the given segments
+ *   (`totalThreadsCount` is the total number of threads in the grid),
+ *   and `threadsPerSegment` is not used.
+ *
+ * See \ref forElements_CSR_Uniform_WithIndexes for the paper
+ * that inspired the uniform number of threads per segment.
+ */
 template< typename SegmentsView, typename ArrayView, typename Index, typename Function, ElementsOrganization Organization >
 __global__
 void
@@ -71,6 +94,20 @@ forElements_Ellpack_Uniform_WithIndexes(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * traversing a contiguous range of segments that satisfy `condition`.
+ *
+ * It works the same way as \ref forElements_Ellpack_Uniform_WithIndexes,
+ * but for the segments of the range [`begin`, `end`)
+ * and the elements of the segments which do not satisfy `condition` are skipped.
+ * For the row-major organization, the whole group of threads of such segment returns,
+ * for the column-major organization, each thread checks the condition
+ * for the segment of its current element.
+ *
+ * This also implements the plain `forElements` (without a condition),
+ * which calls this kernel with a trivially-true `condition`.
+ */
 template<
    typename SegmentsView,
    typename Index,

@@ -204,6 +204,15 @@ reduceSegments_CSR_Uniform_MultipleWarps(
 
 // Reduction with segment indexes
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing the segments given explicitly by `segmentIndexes`.
+ *
+ * `ThreadsPerSegment` consecutive threads are assigned
+ * to every entry of `segmentIndexes`
+ * instead of every segment of a contiguous range;
+ * otherwise it works the same way as \ref reduceSegments_CSR_Uniform.
+ */
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -266,6 +275,15 @@ reduceSegments_CSR_Uniform_WithIndexes(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping spanning more than one warp,
+ * reducing the segments given explicitly by `segmentIndexes`.
+ *
+ * `ThreadsPerSegment` consecutive threads are assigned
+ * to every entry of `segmentIndexes`
+ * instead of every segment of a contiguous range;
+ * otherwise it works the same way as \ref reduceSegments_CSR_Uniform_MultipleWarps.
+ */
 template<
    int BlockSize,
    int ThreadsPerSegment,
@@ -343,6 +361,16 @@ reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes(
 
 // Reduction with argument
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing a contiguous range of segments with argument.
+ *
+ * Every thread also tracks the local index of its partial result
+ * (e.g. the position of the maximum)
+ * and the pairs of values and arguments are combined
+ * by a warp-shuffle reduction with argument;
+ * otherwise it works the same way as \ref reduceSegments_CSR_Uniform.
+ */
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -401,6 +429,16 @@ reduceSegments_CSR_Uniform_WithArgument(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping spanning more than one warp,
+ * reducing a contiguous range of segments with argument.
+ *
+ * Every thread also tracks the local index of its partial result
+ * (e.g. the position of the maximum)
+ * and the pairs of values and arguments are combined
+ * by a warp-shuffle reduction with argument;
+ * otherwise it works the same way as \ref reduceSegments_CSR_Uniform_MultipleWarps.
+ */
 template<
    int BlockSize,
    int ThreadsPerSegment,
@@ -487,6 +525,13 @@ reduceSegments_CSR_Uniform_MultipleWarps_WithArgument(
 
 // Reduction with segment indexes and argument
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing the segments given explicitly by `segmentIndexes` with argument.
+ *
+ * It combines \ref reduceSegments_CSR_Uniform_WithIndexes
+ * and \ref reduceSegments_CSR_Uniform_WithArgument.
+ */
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -547,6 +592,13 @@ reduceSegments_CSR_Uniform_WithIndexesAndArgument(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping spanning more than one warp,
+ * reducing the segments given explicitly by `segmentIndexes` with argument.
+ *
+ * It combines \ref reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes
+ * and \ref reduceSegments_CSR_Uniform_MultipleWarps_WithArgument.
+ */
 template<
    int BlockSize,
    int ThreadsPerSegment,
