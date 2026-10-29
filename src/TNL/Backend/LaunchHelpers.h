@@ -7,6 +7,7 @@
 #include <limits>       // std::numeric_limits
 #include <memory>       // std::unique_ptr
 #include <type_traits>  // std::remove_cv_t
+#include <vector>
 
 #include "Types.h"
 #include "Functions.h"
@@ -163,7 +164,9 @@ getMinWarpSize()
  * \brief Runtime query for the warp/wavefront size of a specific device.
  *
  * Use this for host-side launch configuration decisions (TPS selection, etc.).
- * For CUDA, always returns 32. For HIP, queries the runtime API.
+ * For CUDA, always returns 32. For HIP, queries the runtime API for all
+ * devices on the first call and returns the cached value afterwards, since
+ * it is called before every kernel launch of some algorithms.
  *
  * \param deviceId The device ID to query (default: current device).
  */
@@ -174,9 +177,16 @@ getWarpSize( int deviceId )
    (void) deviceId;
    return 32;
 #elif defined( __HIP__ )
-   int warpSize = 0;
-   TNL_BACKEND_SAFE_CALL( hipDeviceGetAttribute( &warpSize, hipDeviceAttributeWarpSize, deviceId ) );
-   return warpSize;
+   static const std::vector< int > warpSizes = []
+   {
+      std::vector< int > sizes( getDeviceCount() );
+      for( int i = 0; i < static_cast< int >( sizes.size() ); i++ )
+         TNL_BACKEND_SAFE_CALL( hipDeviceGetAttribute( &sizes[ i ], hipDeviceAttributeWarpSize, i ) );
+      return sizes;
+   }();
+   TNL_ASSERT_GE( deviceId, 0, "invalid device ID" );
+   TNL_ASSERT_LT( deviceId, static_cast< int >( warpSizes.size() ), "invalid device ID" );
+   return warpSizes[ deviceId ];
 #else
    (void) deviceId;
    return 32;
