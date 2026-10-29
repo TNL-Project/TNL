@@ -13,18 +13,7 @@
 #include <stdexcept>
 #include <gtest/gtest.h>
 
-template< typename Segments, bool isSorted = TNL::Algorithms::Segments::isSortedSegments_v< Segments > >
-struct HostSegmentsGetter
-{
-   using type = typename Segments::template Self< TNL::Devices::Host >;
-};
-
-template< typename Segments >
-struct HostSegmentsGetter< Segments, true >
-{
-   using type =
-      TNL::Algorithms::Segments::SortedSegments< typename Segments::EmbeddedSegmentsType::template Self< TNL::Devices::Host > >;
-};
+#include "HostSegmentsGetter.h"
 
 template< typename Segments >
 void
