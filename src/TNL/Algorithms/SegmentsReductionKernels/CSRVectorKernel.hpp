@@ -9,7 +9,7 @@
 
 #include "CSRScalarKernel.h"
 #include "CSRVectorKernel.h"
-#include "../Segments/detail/ReducingKernels_CSR.h"
+#include "../Segments/detail/ReducingKernels_CSR_Uniform.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
@@ -68,11 +68,10 @@ CSRVectorKernel< Index, Device >::reduceSegments(
       if( end <= begin )
          return;
 
-      using OffsetsView = typename SegmentsView::ConstOffsetsView;
-      OffsetsView offsets = segments.getOffsets();
-
-      const Index warpsCount = end - begin;
-      const std::size_t threadsCount = warpsCount * Backend::getWarpSize( Backend::getDevice() );
+      // one warp of the smallest warp size per segment
+      constexpr int ThreadsPerSegment = Backend::getMinWarpSize();
+      const auto segmentsView = segments.getConstView();
+      const std::size_t threadsCount = static_cast< std::size_t >( end - begin ) * ThreadsPerSegment;
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
@@ -80,9 +79,16 @@ CSRVectorKernel< Index, Device >::reduceSegments(
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( Index gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         constexpr auto kernel =
-            Segments::detail::reduceSegmentsCSRVectorKernel< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
-         Backend::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
+         constexpr auto kernel = Segments::detail::reduceSegments_CSR_Uniform<
+            ThreadsPerSegment,
+            std::decay_t< decltype( segmentsView ) >,
+            Index,
+            Fetch,
+            Reduction,
+            ResultKeeper,
+            Value >;
+         Backend::launchKernelAsync(
+            kernel, launch_config, gridIdx, segmentsView, begin, end, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );
    }
