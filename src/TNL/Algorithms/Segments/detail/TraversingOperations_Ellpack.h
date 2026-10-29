@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
+#include "LaunchConfiguration.h"
 #include "TraversingKernels_Ellpack_Uniform.h"
 #include "TraversingKernels_Ellpack_PerElement.h"
 #include "TraversingOperationsBase.h"

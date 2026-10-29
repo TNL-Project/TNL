@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
+#include "LaunchConfiguration.h"
 #include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
