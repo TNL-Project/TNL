@@ -1150,6 +1150,115 @@ TYPED_TEST( GraphTest, test_BFS_bitmap_visitor_called_once )
    test_BFS_bitmap_visitor_called_once_impl< typename TestFixture::GraphType >();
 }
 
+// Top-down expand-contract mode must give the same distances as the compact mode for all start
+// vertices, also when it is combined with the top-down bitmap mode.
+template< typename GraphType >
+void
+test_BFS_expandContract_distances_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+   using TNL::Graphs::Algorithms::BFSTopDownMode;
+
+   const auto graph = makeDirectedGraphA< GraphType >();
+
+   for( IndexType start = 0; start < graph.getVertexCount(); ++start ) {
+      VectorType distCompact, distExpandContract, distHybrid;
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distCompact );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distExpandContract, 0.0, 0.0, BFSTopDownMode::ExpandContract );
+      ASSERT_EQ( distExpandContract, distCompact ) << "start=" << start;
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start, distHybrid, 0.2, 0.0, BFSTopDownMode::ExpandContract );
+      ASSERT_EQ( distHybrid, distCompact ) << "start=" << start;
+   }
+}
+
+TYPED_TEST( GraphTest, test_BFS_expandContract_distances )
+{
+   test_BFS_expandContract_distances_impl< typename TestFixture::GraphType >();
+}
+
+// Top-down expand-contract mode on subgraphs, where the traversal skips the filtered edges.
+template< typename GraphType >
+void
+test_BFS_expandContract_subgraph_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+   using TNL::Graphs::Algorithms::BFSTopDownMode;
+
+   const auto graphA = makeDirectedGraphA< GraphType >();
+   const VectorType vertexIndexes( { 0, 1, 3, 4, 6, 7 } );
+   const auto blockEdge03 = [ = ] __cuda_callable__( IndexType source, IndexType target, typename GraphType::ValueType )
+   {
+      return ! ( source == 0 && target == 3 ) && ! ( source == 3 && target == 0 );
+   };
+
+   VectorType distCompact, distExpandContract;
+   const auto edgeSubgraph = TNL::Graphs::makeSubGraph( graphA, TNL::Graphs::edgeOnly, blockEdge03 );
+   TNL::Graphs::Algorithms::breadthFirstSearch( edgeSubgraph, 0, distCompact );
+   TNL::Graphs::Algorithms::breadthFirstSearch( edgeSubgraph, 0, distExpandContract, 0.0, 0.0, BFSTopDownMode::ExpandContract );
+   EXPECT_EQ( distExpandContract, distCompact );
+
+   const auto subgraph = TNL::Graphs::makeSubGraph( graphA, vertexIndexes, blockEdge03 );
+   TNL::Graphs::Algorithms::breadthFirstSearch( subgraph, 0, distCompact );
+   TNL::Graphs::Algorithms::breadthFirstSearch( subgraph, 0, distExpandContract, 0.0, 0.0, BFSTopDownMode::ExpandContract );
+   EXPECT_EQ( distExpandContract, distCompact );
+}
+
+TYPED_TEST( GraphTest, test_BFS_expandContract_subgraph )
+{
+   test_BFS_expandContract_subgraph_impl< typename TestFixture::GraphType >();
+}
+
+// Top-down expand-contract mode with deterministic predecessors and a visitor called exactly once per vertex.
+template< typename GraphType >
+void
+test_BFS_expandContract_predecessors_visitor_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+   using TNL::Graphs::Algorithms::BFSTopDownMode;
+
+   // clang-format off
+   //   0 → 1
+   //   0 → 2     (both 1 and 2 at distance 1; vertex 3 reachable from both)
+   //   1 → 3
+   //   2 → 3
+   GraphType graph(
+      4,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 3, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedPredecessors( { -1, 0, 0, 1 } );
+   const VectorType expectedDistances( { 0, 1, 1, 2 } );
+
+   VectorType visitCount( graph.getVertexCount(), 0 );
+   auto visitCountView = visitCount.getView();
+   auto visitor = [ = ] __cuda_callable__( IndexType vertex, IndexType distance ) mutable
+   {
+      (void) distance;
+      visitCountView[ vertex ] += 1;
+   };
+
+   VectorType distances, predecessors;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithVisitorAndPredecessors(
+      graph, 0, visitor, distances, predecessors, true, 0.0, 0.0, BFSTopDownMode::ExpandContract );
+
+   ASSERT_EQ( distances, expectedDistances );
+   ASSERT_EQ( predecessors, expectedPredecessors );
+   const VectorType expectedVisitCount( { 0, 1, 1, 1 } );
+   EXPECT_EQ( visitCount, expectedVisitCount );
+}
+
+TYPED_TEST( GraphTest, test_BFS_expandContract_predecessors_visitor )
+{
+   test_BFS_expandContract_predecessors_visitor_impl< typename TestFixture::GraphType >();
+}
+
 // ---------------------------------------------------------------------------
 // Undirected graph tests — bottom-up BFS direction optimization
 // ---------------------------------------------------------------------------
@@ -1407,6 +1516,47 @@ test_BFS_topdown_then_bottomup_impl()
 TYPED_TEST( GraphTestUndirected, test_BFS_topdown_then_bottomup )
 {
    test_BFS_topdown_then_bottomup_impl< typename TestFixture::GraphType >();
+}
+
+// The same graph as in test_BFS_topdown_then_bottomup with the top-down expand-contract mode,
+// which switches to bottom-up and back, so the frontier bitmap must be rebuilt from the sparse frontier.
+template< typename GraphType >
+void
+test_BFS_expandContract_then_bottomup_impl()
+{
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, typename GraphType::DeviceType, IndexType >;
+   using TNL::Graphs::Algorithms::BFSTopDownMode;
+
+   // clang-format off
+   GraphType graph(
+      10,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 }, { 1, 3, 1.0 }, { 1, 4, 1.0 }, { 1, 5, 1.0 }, { 1, 6, 1.0 }, { 1, 7, 1.0 }, { 1, 8, 1.0 },
+         { 8, 9, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedDistances( { 0, 1, 2, 2, 2, 2, 2, 2, 2, 3 } );
+
+   VectorType distances;
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, distances, 0.0, 0.3, BFSTopDownMode::ExpandContract );
+   EXPECT_EQ( distances, expectedDistances );
+
+   const VectorType expectedPredecessors( { -1, 0, 1, 1, 1, 1, 1, 1, 1, 8 } );
+   for( bool deterministic : { false, true } ) {
+      VectorType predecessors;
+      TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors(
+         graph, 0, distances, predecessors, deterministic, 0.0, 0.3, BFSTopDownMode::ExpandContract );
+      EXPECT_EQ( distances, expectedDistances ) << "deterministic=" << deterministic;
+      EXPECT_EQ( predecessors, expectedPredecessors ) << "deterministic=" << deterministic;
+   }
+}
+
+TYPED_TEST( GraphTestUndirected, test_BFS_expandContract_then_bottomup )
+{
+   test_BFS_expandContract_then_bottomup_impl< typename TestFixture::GraphType >();
 }
 
 #include "../../main.h"
