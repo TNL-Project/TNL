@@ -194,26 +194,36 @@ test_forElements()
          VectorType v( segments.getStorageSize(), 0 );
          HostVectorType host_v;
          auto v_view = v.getView();
-         TNL::Algorithms::Segments::forElements(
-            segments.getView(),
-            3,
-            segmentsCount - 3,
-            [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
-            {
-               v_view[ globalIdx ] = segmentIdx + localIdx;
-            },
-            launch_config );
+         // the range [ 20, segmentsCount - 20 ) touches more slices of the sliced formats
+         // than ( end - begin ) / slice size, which tests ranges not aligned with slices
+         for( const IndexType rangeMargin : { 3, 20 } ) {
+            SCOPED_TRACE(
+               "range = [ " + std::to_string( rangeMargin ) + ", segmentsCount - " + std::to_string( rangeMargin ) + " )" );
+            const IndexType begin = rangeMargin;
+            const IndexType end = segmentsCount - rangeMargin;
+            v = 0;
+            TNL::Algorithms::Segments::forElements(
+               segments.getView(),
+               begin,
+               end,
+               [ = ] __cuda_callable__(
+                  const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+               {
+                  v_view[ globalIdx ] = segmentIdx + localIdx;
+               },
+               launch_config );
 
-         host_v = v;
-         for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-            for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
-               if( segmentIdx >= 3 && segmentIdx < segmentsCount - 3 )
-                  EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
-                     << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                     << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
-               else
-                  EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], 0 ) << "segmentIdx = " << segmentIdx
-                     << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
+            host_v = v;
+            for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+               for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
+                  if( segmentIdx >= begin && segmentIdx < end )
+                     EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+                        << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
+                        << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
+                  else
+                     EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], 0 ) << "segmentIdx = " << segmentIdx
+                        << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
+            }
          }
 
          // Test when calling the lambda function without the local index
