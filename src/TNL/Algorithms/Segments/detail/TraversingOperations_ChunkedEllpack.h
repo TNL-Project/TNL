@@ -49,7 +49,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
       Function&& function,
       const LaunchConfiguration& launchConfig )
    {
-      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "ChunkedEllpack" );
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "ChunkedEllpack" );
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
       auto segmentToSliceMapping = segments.getSegmentToSliceMappingView();
@@ -125,7 +125,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
       Function&& function,
       const LaunchConfiguration& launchConfig )
    {
-      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "ChunkedEllpack" );
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "ChunkedEllpack" );
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
       auto segmentToSliceMapping = segments.getSegmentToSliceMappingView();

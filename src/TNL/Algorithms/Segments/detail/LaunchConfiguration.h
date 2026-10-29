@@ -8,22 +8,29 @@
 #include <type_traits>
 
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Devices/GPU.h>
 
 namespace TNL::Algorithms::Segments::detail {
 
 /**
  * \brief Throws an exception if `launchConfig` requests other
- * than the `Default` thread mapping.
+ * than the `Default` thread mapping on GPU.
  *
  * This is used by the segments formats which have a single native kernel for
  * each operation and thus cannot honor any other thread mapping.
+ * Like the other segments formats, they ignore the launch configuration on
+ * the host, so that the same configuration can be used for all formats.
  */
-inline void
+template< typename Device >
+void
 checkDefaultThreadsToSegmentsMapping( const LaunchConfiguration& launchConfig, const std::string& segmentsName )
 {
-   if( launchConfig.getThreadsToSegmentsMapping() != ThreadsToSegmentsMapping::Default )
-      throw std::invalid_argument(
-         "Unsupported threads to segments mapping for " + segmentsName + " segments. Only the Default mapping is supported." );
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+      if( launchConfig.getThreadsToSegmentsMapping() != ThreadsToSegmentsMapping::Default )
+         throw std::invalid_argument(
+            "Unsupported threads to segments mapping for " + segmentsName
+            + " segments. Only the Default mapping is supported." );
+   }
 }
 
 /**

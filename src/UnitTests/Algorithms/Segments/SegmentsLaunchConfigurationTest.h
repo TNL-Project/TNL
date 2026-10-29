@@ -153,7 +153,7 @@ TEST( SegmentsLaunchConfigurationTest, uniformLaunchConfigurationBySegmentSize )
 }
 
 // BiEllpack and ChunkedEllpack have a single native kernel for each operation,
-// so they reject any other than the Default mapping on all devices.
+// so they reject any other than the Default mapping on GPU.
 template< typename Segments >
 void
 test_DefaultOnly()
@@ -173,14 +173,18 @@ test_DefaultOnly()
 
 TEST( SegmentsLaunchConfigurationTest, BiEllpackRejectsNonDefaultMapping )
 {
-   test_DefaultOnly< RowMajorBiEllpack< Device, int > >();
-   test_DefaultOnly< ColumnMajorBiEllpack< Device, int > >();
+   if constexpr( isGPU ) {
+      test_DefaultOnly< RowMajorBiEllpack< Device, int > >();
+      test_DefaultOnly< ColumnMajorBiEllpack< Device, int > >();
+   }
 }
 
 TEST( SegmentsLaunchConfigurationTest, ChunkedEllpackRejectsNonDefaultMapping )
 {
-   test_DefaultOnly< RowMajorChunkedEllpack< Device, int > >();
-   test_DefaultOnly< ColumnMajorChunkedEllpack< Device, int > >();
+   if constexpr( isGPU ) {
+      test_DefaultOnly< RowMajorChunkedEllpack< Device, int > >();
+      test_DefaultOnly< ColumnMajorChunkedEllpack< Device, int > >();
+   }
 }
 
 // The other formats resolve the launch configuration only on GPUs,
