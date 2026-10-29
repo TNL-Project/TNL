@@ -140,6 +140,7 @@ reduceSegments_ChunkedEllpack_WithIndexes(
    Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
@@ -158,7 +159,7 @@ reduceSegments_ChunkedEllpack_WithIndexes(
    const Index chunkSize = segments.getSlicesView()[ sliceIdx ].chunkSize;
 
    const Index segmentSize = segmentChunksCount * chunkSize;
-   Value result = identity;
+   ReturnType result = identity;
    if( SegmentsView::getOrganization() == RowMajorOrder ) {
       Index begin = sliceOffset + firstChunkOfSegment * chunkSize;
       Index end = begin + segmentSize;
@@ -308,6 +309,7 @@ reduceSegments_ChunkedEllpack_WithIndexesAndArgument(
    Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
@@ -326,7 +328,7 @@ reduceSegments_ChunkedEllpack_WithIndexesAndArgument(
    const Index chunkSize = segments.getSlicesView()[ sliceIdx ].chunkSize;
 
    const Index segmentSize = segmentChunksCount * chunkSize;
-   Value result = identity;
+   ReturnType result = identity;
    Index argument = 0;
    if( SegmentsView::getOrganization() == RowMajorOrder ) {
       Index begin = sliceOffset + firstChunkOfSegment * chunkSize;
