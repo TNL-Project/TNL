@@ -41,6 +41,8 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const LaunchConfiguration& launchConfig )
    {
       detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
+      if( end <= begin )
+         return;
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
@@ -229,6 +231,8 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const LaunchConfiguration& launchConfig )
    {
       detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
+      if( end <= begin )
+         return;
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
