@@ -10,6 +10,7 @@
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
+#include <TNL/Algorithms/Segments/UniformLaunchConfiguration.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Containers/Vector.h>
@@ -125,6 +126,30 @@ TEST( SegmentsLaunchConfigurationTest, threadsPerSegmentCountMustBePowerOfTwo )
 
    EXPECT_THROW( LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 3 ), std::invalid_argument );
    EXPECT_THROW( LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 0 ), std::invalid_argument );
+}
+
+TEST( SegmentsLaunchConfigurationTest, uniformLaunchConfigurationBySegmentSize )
+{
+   using SegmentsType = CSR< Device, int >;
+   // 100 segments with 5 elements each
+   const SegmentsType segments = makeSegments< SegmentsType >();
+
+   LaunchConfiguration launchConfig = uniformLaunchConfigurationBySegmentSize( segments, 1, 32 );
+   EXPECT_EQ( launchConfig.getThreadsToSegmentsMapping(), ThreadsToSegmentsMapping::Uniform );
+   EXPECT_EQ( launchConfig.getThreadsPerSegmentCount(), 8 );
+   EXPECT_EQ( launchConfig.blockSize.x, 256u );
+
+   EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( segments, 8, 8 ).getThreadsPerSegmentCount(), 8 );
+   EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( segments, 16, 32 ).getThreadsPerSegmentCount(), 16 );
+   EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( segments, 1, 4 ).getThreadsPerSegmentCount(), 4 );
+
+   const SegmentsType emptySegments;
+   EXPECT_EQ( uniformLaunchConfigurationBySegmentSize( emptySegments, 2, 32 ).getThreadsPerSegmentCount(), 2 );
+
+   EXPECT_THROW( (void) uniformLaunchConfigurationBySegmentSize( segments, 0, 32 ), std::invalid_argument );
+   EXPECT_THROW( (void) uniformLaunchConfigurationBySegmentSize( segments, 3, 32 ), std::invalid_argument );
+   EXPECT_THROW( (void) uniformLaunchConfigurationBySegmentSize( segments, 1, 24 ), std::invalid_argument );
+   EXPECT_THROW( (void) uniformLaunchConfigurationBySegmentSize( segments, 8, 4 ), std::invalid_argument );
 }
 
 // BiEllpack and ChunkedEllpack have a single native kernel for each operation,

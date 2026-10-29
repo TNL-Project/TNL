@@ -5,6 +5,7 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
+#include <TNL/Algorithms/Segments/UniformLaunchConfiguration.h>
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Devices/Host.h>
@@ -67,6 +68,17 @@ SegmentsExample()
       std::cout << "   " << tag << ": " << sums << '\n';
    }
    //! [list]
+
+   //! [by segment size]
+   /***
+    * Choose the threads per segment count for the Uniform mapping by the average segment size,
+    * using from 2 up to 128 threads per segment.
+    */
+   const LaunchConfiguration bySize = uniformLaunchConfigurationBySegmentSize( segments, 2, 128 );
+   std::cout << "Threads per segment chosen by the segment size: " << bySize.getThreadsPerSegmentCount() << '\n';
+   reduceAllSegments( segments, fetch, TNL::Plus{}, store, bySize );
+   std::cout << "Segment sizes: " << sums << '\n';
+   //! [by segment size]
 
    //! [unsupported]
    /***
