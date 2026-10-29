@@ -345,8 +345,8 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      segmentIndexesView,
                      function );
                }
-               Backend::streamSynchronize( launchConfig.stream );
             }
+            Backend::streamSynchronize( launchConfig.stream );
          }
       }
       else {
