@@ -330,8 +330,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             storer( segmentIdx, argument, result, emptySegment );
          }
          else {
-            (void) sliceSegmentSizes;  // ignore warning due to unused capture - let the compiler
-                                       // optimize it out...
             const IndexType begin = sliceOffsets[ sliceIdx ] + segmentInSliceIdx;
             const IndexType end = sliceOffsets[ sliceIdx + 1 ];
 
@@ -341,7 +339,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                   detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
                   argument,
                   localIdx );
-            bool emptySegment = ( begin == end );
+            bool emptySegment = ( sliceSegmentSizes[ sliceIdx ] == 0 );
             storer( segmentIdx, argument, result, emptySegment );
          }
       };
@@ -401,8 +399,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }
          else {
-            (void) sliceSegmentSizes;  // ignore warning due to unused capture - let the compiler
-                                       // optimize it out...
             const IndexType begin = sliceOffsets[ sliceIdx ] + segmentInSliceIdx;
             const IndexType end = sliceOffsets[ sliceIdx + 1 ];
 
@@ -412,7 +408,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                   detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
                   argument,
                   localIdx );
-            bool emptySegment = ( begin == end );
+            bool emptySegment = ( sliceSegmentSizes[ sliceIdx ] == 0 );
             storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }
       };
