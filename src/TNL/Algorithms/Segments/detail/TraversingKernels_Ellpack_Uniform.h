@@ -52,7 +52,7 @@ forElements_Ellpack_Uniform_WithIndexes(
          return;
 
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
+      const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
@@ -135,7 +135,7 @@ forElements_Ellpack_Uniform_If(
       if( segmentIdx >= end || ! condition( segmentIdx ) )
          return;
 
-      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
+      const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;

@@ -51,6 +51,8 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
+         // the threads of one segment are spread over several blocks of the default size 256
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 512 ), "512 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 2 ), "PerElement 2 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
@@ -72,6 +74,8 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
          configurations.emplace_back(
             LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, threadsPerSegment ),
             std::to_string( threadsPerSegment ) + " TPS" );
+      // the threads of one segment are spread over several blocks of the default size 256
+      configurations.emplace_back( LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 512 ), "512 TPS" );
       // every block of 256 threads of the PerElement traversal processes whole slices
       for( int threadsPerSegment = 1; threadsPerSegment <= 32; threadsPerSegment *= 2 )
          if( 256 / threadsPerSegment >= Segments::getSliceSize() )
@@ -92,6 +96,8 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 64 ), "64 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 128 ), "128 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 256 ), "256 TPS" },
+         // the threads of one segment are spread over several blocks of the default size 256
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 512 ), "512 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 1 ), "PerElement 1 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 2 ), "PerElement 2 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
