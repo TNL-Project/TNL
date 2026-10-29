@@ -101,6 +101,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       Function&& function,
       LaunchConfiguration launchConfig )
    {
+      if constexpr( std::is_same_v< DeviceType, Devices::GPU > )
+         resolveLaunchConfiguration( launchConfig );
       if( end <= begin )
          return;
 
@@ -108,7 +110,6 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
-         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
@@ -355,10 +356,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+         resolveLaunchConfiguration( launchConfig );
          if( end <= begin )
             return;
-
-         resolveLaunchConfiguration( launchConfig );
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
