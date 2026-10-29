@@ -838,9 +838,8 @@ Not every segments format supports every mapping:
 A segments format throws `std::invalid_argument`
 when it does not support the requested mapping
 or the number of threads per segment.
-On the host, the launch configuration is ignored,
-except that BiEllpack and ChunkedEllpack reject mappings other than `Default`
-on all devices.
+On the host, the launch configuration is ignored by all formats,
+so the same configuration can be passed to any of them.
 
 The launch configuration is passed as the last parameter of a traversing function
 

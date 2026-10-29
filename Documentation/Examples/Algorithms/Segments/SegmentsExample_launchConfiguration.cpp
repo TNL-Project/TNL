@@ -82,7 +82,8 @@ SegmentsExample()
 
    //! [unsupported]
    /***
-    * BiEllpack segments support only the Default mapping.
+    * BiEllpack segments support only the Default mapping on GPU.
+    * On the host, the launch configuration is ignored.
     */
    BiEllpack< Device, int > biEllpack{ 1, 2, 3, 4, 5, 64, 300 };
    try {

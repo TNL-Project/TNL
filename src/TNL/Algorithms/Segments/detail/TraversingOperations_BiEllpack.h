@@ -61,7 +61,7 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
       Function&& function,
       const LaunchConfiguration& launchConfig )
    {
-      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "BiEllpack" );
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
       const auto groupPointersView = segments.getGroupPointersView();
       auto segmentIndexesView = segmentIndexes.getConstView();
@@ -117,7 +117,7 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
       Function&& function,
       const LaunchConfiguration& launchConfig )
    {
-      detail::checkDefaultThreadsToSegmentsMapping( launchConfig, "BiEllpack" );
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
       const auto groupPointersView = segments.getGroupPointersView();
       auto work =
