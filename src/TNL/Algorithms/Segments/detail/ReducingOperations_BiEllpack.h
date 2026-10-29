@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/Segments/BiEllpackView.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "LaunchConfiguration.h"
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_BiEllpack.h"
 #include "ReducingOperationsBase.h"

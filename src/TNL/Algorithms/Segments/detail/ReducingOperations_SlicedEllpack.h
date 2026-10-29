@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "LaunchConfiguration.h"
 #include "FetchLambdaAdapter.h"
 #include "ReducingOperationsBase.h"
 #include "ReducingKernels_SlicedEllpack_Uniform.h"

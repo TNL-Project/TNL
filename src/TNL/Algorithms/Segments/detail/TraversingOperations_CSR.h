@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "LaunchConfiguration.h"
 #include "CSRHostScheduling.h"
 #include "TraversingKernels_CSR_PerElement.h"
 #include "TraversingKernels_CSR_Tiered.h"

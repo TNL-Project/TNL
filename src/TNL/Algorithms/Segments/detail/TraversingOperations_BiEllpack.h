@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/BiEllpackView.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
+#include "LaunchConfiguration.h"
 #include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {

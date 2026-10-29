@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "LaunchConfiguration.h"
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_ChunkedEllpack.h"
 #include "ReducingOperationsBase.h"

@@ -7,7 +7,7 @@
 
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "LaunchConfiguration.h"
 #include <TNL/TypeTraits.h>
 #include "CSRHostScheduling.h"
 #include "FetchLambdaAdapter.h"
