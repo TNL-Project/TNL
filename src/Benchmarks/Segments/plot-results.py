@@ -71,8 +71,8 @@ threads_mappings_translation = {
     "Tiered 8 TPS": "Tiered 8",
     "Tiered 16 TPS": "Tiered 16",
     "Tiered 32 TPS": "Tiered 32",
-    "Light CSR": "Light CSR",
-    "Hybrid CSR": "Hybrid CSR",
+    "Uniform by size 2-warp TPS": "By size 2-warp",
+    "Uniform by size 2-128 TPS": "By size 2-128",
 }
 
 _DEVICE_ORDER = {"sequential": 0, "host": 1, "cuda": 2, "hip": 3}

@@ -33,7 +33,7 @@ namespace TNL::Algorithms::Segments::detail {
  * 2015 IEEE 26th International Conference on Application-specific Systems,
  * Architectures and Processors (ASAP), Toronto, ON, Canada, 2015, pp. 82-89.
  *
- * \see LaunchConfigurationSetter_LightCSR,
+ * \see uniformLaunchConfigurationBySegmentSize,
  * which selects `ThreadsPerSegment` for this kernel.
  */
 template<

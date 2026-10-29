@@ -858,6 +858,18 @@ They are useful for finding the best launch configuration for a particular probl
 
 \snippet Algorithms/Segments/SegmentsExample_launchConfiguration.cpp list
 
+For the `Uniform` mapping, a suitable number of threads per segment
+can be chosen by the function
+\ref TNL::Algorithms::Segments::uniformLaunchConfigurationBySegmentSize "uniformLaunchConfigurationBySegmentSize".
+It takes the smallest power of two which is not smaller than the average segment size
+and clamps it to the given minimal and maximal number of threads per segment
+(by default 1 and the warp size).
+With the warp size as the maximum, this is the heuristic of
+LightSpMV (Y. Liu and B. Schmidt, ASAP 2015);
+a larger maximum allows more than one warp to process each segment:
+
+\snippet Algorithms/Segments/SegmentsExample_launchConfiguration.cpp by segment size
+
 An unsupported launch configuration is reported by an exception:
 
 \snippet Algorithms/Segments/SegmentsExample_launchConfiguration.cpp unsupported

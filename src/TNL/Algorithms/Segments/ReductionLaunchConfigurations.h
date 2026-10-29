@@ -8,8 +8,7 @@
 #include <TNL/Algorithms/Segments/AdaptiveCSR.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
-#include <TNL/Algorithms/Segments/LaunchConfigurationSetter_LightCSR.h>
-#include <TNL/Algorithms/Segments/LaunchConfigurationSetter_HybridCSR.h>
+#include <TNL/Algorithms/Segments/UniformLaunchConfiguration.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -59,8 +58,8 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 8 ), "Tiered 8 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 16 ), "Tiered 16 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 32 ), "Tiered 32 TPS" },
-         { LaunchConfigurationSetter_LightCSR< Segments >::create( segments ), "Light CSR" },
-         { LaunchConfigurationSetter_HybridCSR< Segments >::create( segments ), "Hybrid CSR" }
+         { uniformLaunchConfigurationBySegmentSize( segments, 2 ), "Uniform by size 2-warp TPS" },
+         { uniformLaunchConfigurationBySegmentSize( segments, 2, 128 ), "Uniform by size 2-128 TPS" }
       };
    }
    else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
