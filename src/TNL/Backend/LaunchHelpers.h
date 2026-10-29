@@ -184,8 +184,8 @@ getWarpSize( int deviceId )
          TNL_BACKEND_SAFE_CALL( hipDeviceGetAttribute( &sizes[ i ], hipDeviceAttributeWarpSize, i ) );
       return sizes;
    }();
-   TNL_ASSERT_GE( deviceId, 0, "invalid device ID" );
-   TNL_ASSERT_LT( deviceId, static_cast< int >( warpSizes.size() ), "invalid device ID" );
+   if( deviceId < 0 || deviceId >= static_cast< int >( warpSizes.size() ) )
+      throw Exceptions::BackendRuntimeError( hipErrorInvalidDevice, __FILE__, __LINE__ );
    return warpSizes[ deviceId ];
 #else
    (void) deviceId;
