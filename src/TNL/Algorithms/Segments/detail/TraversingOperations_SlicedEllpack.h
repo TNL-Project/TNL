@@ -123,13 +123,19 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {
             std::size_t threadsCount( 0 );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
-               // the column-major kernel starts at the first slice of the range, which need not be aligned with begin
-               const std::size_t firstSliceIdx = static_cast< std::size_t >( begin ) / SliceSize;
-               const std::size_t lastSliceIdx =
-                  roundUpDivision( static_cast< std::size_t >( end ), static_cast< std::size_t >( SliceSize ) );
-               const std::size_t slicesCount = lastSliceIdx - firstSliceIdx;
-               threadsCount = slicesCount * static_cast< std::size_t >( SliceSize )
-                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+               if constexpr( Organization == RowMajorOrder ) {
+                  threadsCount = static_cast< std::size_t >( end - begin )
+                               * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+               }
+               else {
+                  // the column-major kernel starts at the first slice of the range, which need not be aligned with begin
+                  const std::size_t firstSliceIdx = static_cast< std::size_t >( begin ) / SliceSize;
+                  const std::size_t lastSliceIdx =
+                     roundUpDivision( static_cast< std::size_t >( end ), static_cast< std::size_t >( SliceSize ) );
+                  const std::size_t slicesCount = lastSliceIdx - firstSliceIdx;
+                  threadsCount = slicesCount * static_cast< std::size_t >( SliceSize )
+                               * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+               }
             }
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
                const IndexType firstSegmentIdx = ( begin / SliceSize ) * SliceSize;
