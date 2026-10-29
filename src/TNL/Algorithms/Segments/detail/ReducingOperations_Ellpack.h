@@ -22,10 +22,11 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    using IndexType = std::remove_const_t< Index >;
 
    /**
-    * \brief Resolves the `Default` mapping of `launchConfig` in place
-    * and rejects the mappings without a GPU reduction kernel.
+    * \brief Resolves the `Default` mapping of `launchConfig` in place and
+    * rejects the mappings without a GPU reduction kernel.
     *
-    * The `Default` mapping resolves to the `Uniform` mapping with one thread per segment.
+    * The `Default` mapping resolves to the `Uniform` mapping
+    * with one thread per segment.
     */
    static void
    resolveLaunchConfiguration( LaunchConfiguration& launchConfig )

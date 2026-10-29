@@ -12,12 +12,12 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Implementation of \ref reduceSegments_BiEllpack
- * for `fetch` taking the segment index, the local index and the global index.
+ * \brief Implementation of \ref reduceSegments_BiEllpack for `fetch` taking the
+ * segment index, the local index and the global index.
  *
- * One thread is assigned to every segment of the range [`begin`, `end`)
- * and it sequentially reduces the elements of its segment
- * in all groups of its strip it occupies.
+ * One thread is assigned to every segment of the range [`begin`,
+ * `end`) and it sequentially reduces the elements of its segment in
+ * all groups of its strip it occupies.
  */
 template<
    int BlockDim,
@@ -76,17 +76,18 @@ reduceSegments_BiEllpack_WithAllParameters_impl(
 }
 
 /**
- * \brief Implementation of \ref reduceSegments_BiEllpack
- * for `fetch` taking only the global index.
+ * \brief Implementation of \ref reduceSegments_BiEllpack for
+ * `fetch` taking only the global index.
  *
- * Every warp processes one strip;
- * the group pointers of the strips of the block are first loaded into shared memory.
- * In every group, each of the `groupHeight` threads reduces one row of the group.
- * For the row-major organization, a row is a contiguous part of one segment,
- * so the partial result can be accumulated directly.
- * For the column-major organization, the warp reads the group with coalesced accesses
- * and the partial results of the rows of the group
- * are combined by a reduction in shared memory.
+ * Every warp processes one strip; the group pointers of the strips of the
+ * block are first loaded into shared memory.
+ * In every group, each of the `groupHeight` threads
+ * reduces one row of the group.
+ * For the row-major organization, a row is a contiguous part of one segment, so
+ * the partial result can be accumulated directly.
+ * For the column-major organization, the warp reads the group with
+ * coalesced accesses and the partial results of the rows of the group are
+ * combined by a reduction in shared memory.
  * The results are finally reordered by the segments permutation.
  */
 template<
@@ -215,18 +216,17 @@ reduceSegments_BiEllpack_impl(
 /**
  * \brief Kernel reducing a contiguous range of BiEllpack segments.
  *
- * The segments are grouped into strips of `warpSize` segments
- * sorted by their sizes (see \ref TNL::Algorithms::Segments::BiEllpack),
- * and each strip is divided into `log2( warpSize ) + 1` groups
- * whose heights halve from `warpSize` to 1.
- * A segment consists of its elements in the first groups of its strip,
- * the number of which depends on its position within the sorted strip.
+ * The segments are grouped into strips of `warpSize` segments sorted
+ * by their sizes (see \ref TNL::Algorithms::Segments::BiEllpack), and
+ * each strip is divided into `log2( warpSize ) + 1` groups whose
+ * heights halve from `warpSize` to 1.
+ * A segment consists of its elements in the first groups of its strip, the
+ * number of which depends on its position within the sorted strip.
  *
- * It calls \ref reduceSegments_BiEllpack_impl,
- * which processes each strip by a warp,
- * if `fetch` takes only the global index,
- * and \ref reduceSegments_BiEllpack_WithAllParameters_impl,
- * which uses one thread per segment, otherwise.
+ * It calls \ref reduceSegments_BiEllpack_impl, which processes each
+ * strip by a warp, if `fetch` takes only the global index, and
+ * \ref reduceSegments_BiEllpack_WithAllParameters_impl, which uses
+ * one thread per segment, otherwise.
  */
 template<
    typename SegmentsView,
@@ -256,11 +256,12 @@ reduceSegments_BiEllpack(
 }
 
 /**
- * \brief Kernel reducing the BiEllpack segments given explicitly by `segmentIndexes`.
+ * \brief Kernel reducing the BiEllpack segments given
+ * explicitly by `segmentIndexes`.
  *
- * One thread is assigned to every entry of `segmentIndexes`
- * and it reduces the elements of its segment sequentially,
- * like \ref reduceSegments_BiEllpack_WithAllParameters_impl.
+ * One thread is assigned to every entry of `segmentIndexes` and it reduces the
+ * elements of its segment sequentially, like
+ * \ref reduceSegments_BiEllpack_WithAllParameters_impl.
  */
 template<
    typename SegmentsView,
@@ -328,10 +329,10 @@ reduceSegments_BiEllpack_WithIndexes(
 /**
  * \brief Implementation of \ref reduceSegments_BiEllpack_WithArgument.
  *
- * One thread is assigned to every segment of the range [`begin`, `end`)
- * and it sequentially reduces the elements of its segment
- * together with the local index of the partial result,
- * like \ref reduceSegments_BiEllpack_WithAllParameters_impl.
+ * One thread is assigned to every segment of the range [`begin`, `end`) and it
+ * sequentially reduces the elements of its segment together with the local
+ * index of the partial result, like
+ * \ref reduceSegments_BiEllpack_WithAllParameters_impl.
  */
 template<
    int BlockDim,
@@ -403,10 +404,11 @@ reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl(
 }
 
 /**
- * \brief Kernel reducing a contiguous range of BiEllpack segments with argument.
+ * \brief Kernel reducing a contiguous range of
+ * BiEllpack segments with argument.
  *
- * It always uses one thread per segment,
- * see \ref reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl.
+ * It always uses one thread per segment, see
+ * \ref reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl.
  */
 template<
    typename SegmentsView,
@@ -434,11 +436,12 @@ reduceSegments_BiEllpack_WithArgument(
 }
 
 /**
- * \brief Kernel reducing the BiEllpack segments given explicitly by `segmentIndexes` with argument.
+ * \brief Kernel reducing the BiEllpack segments given explicitly
+ * by `segmentIndexes` with argument.
  *
- * One thread is assigned to every entry of `segmentIndexes`
- * and it reduces the elements of its segment sequentially
- * together with the local index of the partial result.
+ * One thread is assigned to every entry of `segmentIndexes` and it
+ * reduces the elements of its segment sequentially together with the
+ * local index of the partial result.
  */
 template<
    typename SegmentsView,

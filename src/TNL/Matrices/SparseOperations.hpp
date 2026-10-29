@@ -23,16 +23,16 @@ namespace TNL::Matrices {
 namespace detail {
 
 /**
- * \brief Copies elements of the sparse matrix `B` to the sparse matrix `A`
- * allocated on a different device.
+ * \brief Copies elements of the sparse matrix `B` to the sparse matrix
+ * `A` allocated on a different device.
  *
- * The matrix `A` must already have the dimensions and row capacities set,
- * and all its column indexes must be set to the padding index.
- * The elements are transferred in chunks of rows packed into compact buffers,
- * so the amount of transferred data is proportional
- * to the number of matrix elements.
- * The size of the buffers is bounded by `chunkSize`
- * or by the length of the longest row.
+ * The matrix `A` must already have the dimensions and row capacities set, and
+ * all its column indexes must be set to the padding index.
+ * The elements are transferred in chunks of rows packed into
+ * compact buffers, so the amount of transferred data is
+ * proportional to the number of matrix elements.
+ * The size of the buffers is bounded by `chunkSize` or by
+ * the length of the longest row.
  * Zero elements of `B` are not copied.
  *
  * \tparam TargetMatrix The type of the target sparse matrix.
@@ -42,8 +42,8 @@ namespace detail {
  * \param B The source matrix.
  * \param generalToSymmetric If `true`, only the lower part of `B` is copied.
  * \param symmetricToGeneral If `true`, `B` stores the lower part
- *                           of a symmetric matrix
- *                           and the upper part of `A` is reconstructed from it.
+ *                           of a symmetric matrix and the upper part of `A`
+ *                           is reconstructed from it.
  * \param chunkSize The maximal number of elements transferred at once,
  *                  unless a row of `B` is longer.
  */

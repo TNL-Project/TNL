@@ -12,24 +12,22 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Kernel for the PerElement thread mapping,
- * traversing a contiguous range of segments.
+ * \brief Kernel for the PerElement thread mapping, traversing
+ * a contiguous range of segments.
  *
  * Every block processes `SegmentsPerBlock / SliceSize` consecutive slices.
- * The offsets of the slices (relative to the first element of the block)
- * and the segment sizes in the slices are stored in shared memory.
- * All elements of the block's slices
- * are divided evenly among the threads of the block
- * regardless of the segment boundaries;
- * each thread finds the slice its element belongs to
- * by a binary search in the slice offsets
- * and computes the segment and the local index within the slice directly,
- * since all segments in a slice have the same size.
- * Elements of the segments outside of the range [`begin`, `end`)
- * (in the first and the last slice) are skipped.
+ * The offsets of the slices (relative to the first element of the block) and
+ * the segment sizes in the slices are stored in shared memory.
+ * All elements of the block's slices are divided evenly among the threads of
+ * the block regardless of the segment boundaries; each thread finds the slice
+ * its element belongs to by a binary search in the slice offsets and computes
+ * the segment and the local index within the slice directly, since all
+ * segments in a slice have the same size.
+ * Elements of the segments outside of the range [`begin`, `end`) (in the
+ * first and the last slice) are skipped.
  *
- * See \ref forElements_CSR_PerElement
- * for the general idea of the PerElement mapping and the literature reference.
+ * See \ref forElements_CSR_PerElement for the general idea of the PerElement
+ * mapping and the literature reference.
  */
 template<
    typename SegmentsConstView,
@@ -135,23 +133,21 @@ forElements_SlicedEllpack_PerElement(
 }
 
 /**
- * \brief Kernel for the PerElement thread mapping,
- * traversing the segments given explicitly by `segmentIndexes`.
+ * \brief Kernel for the PerElement thread mapping, traversing the segments
+ * given explicitly by `segmentIndexes`.
  *
- * Every block processes `SegmentsPerBlock` consecutive entries
- * of `segmentIndexes`.
- * The local offsets of the segments within the block
- * are computed by a block-wide exclusive scan of their sizes,
- * their global offsets are stored separately in shared memory.
- * All elements of the block's segments
- * are then divided evenly among the threads of the block
- * and each thread finds the segment its element belongs to
+ * Every block processes `SegmentsPerBlock` consecutive
+ * entries of `segmentIndexes`.
+ * The local offsets of the segments within the block are computed by a
+ * block-wide exclusive scan of their sizes, their global offsets are
+ * stored separately in shared memory.
+ * All elements of the block's segments are then divided evenly among the
+ * threads of the block and each thread finds the segment its element belongs to
  * by a binary search in the local offsets.
  *
  * This is the same algorithm as
- * \ref forElements_CSR_PerElement_WithIndexes,
- * only the global index of an element
- * is computed according to the SlicedEllpack organization.
+ * \ref forElements_CSR_PerElement_WithIndexes, only the global index of an
+ * element is computed according to the SlicedEllpack organization.
  */
 template<
    typename SegmentsConstView,
@@ -255,23 +251,21 @@ forElements_SlicedEllpack_PerElement_WithIndexes(
 }
 
 /**
- * \brief Kernel for the PerElement thread mapping,
- * traversing the segments of a contiguous range that satisfy `condition`.
+ * \brief Kernel for the PerElement thread mapping, traversing the segments of a
+ * contiguous range that satisfy `condition`.
  *
- * Every block evaluates `condition` for `SegmentsPerBlock` consecutive segments
- * of the range [`begin`, `end`).
- * The segments satisfying the condition are compacted
- * using a block-wide inclusive scan of the condition values
- * and their local offsets are then computed
- * by an exclusive scan of their sizes.
- * All elements of the active segments
- * are divided evenly among the threads of the block
- * and each thread finds the segment its element belongs to
- * by a binary search.
+ * Every block evaluates `condition` for `SegmentsPerBlock` consecutive
+ * segments of the range [`begin`, `end`).
+ * The segments satisfying the condition are compacted using a block-wide
+ * inclusive scan of the condition values and their local offsets are then
+ * computed by an exclusive scan of their sizes.
+ * All elements of the active segments are divided evenly among the
+ * threads of the block and each thread finds the segment its
+ * element belongs to by a binary search.
  *
- * This is the same algorithm as \ref forElements_CSR_PerElement_If,
- * only the global index of an element
- * is computed according to the SlicedEllpack organization.
+ * This is the same algorithm as
+ * \ref forElements_CSR_PerElement_If, only the global index of an
+ * element is computed according to the SlicedEllpack organization.
  */
 template<
    typename SegmentsConstView,

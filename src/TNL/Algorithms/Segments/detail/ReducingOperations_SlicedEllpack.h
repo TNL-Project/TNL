@@ -32,10 +32,11 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
    /**
-    * \brief Resolves the `Default` mapping of `launchConfig` in place
-    * and rejects the mappings without a GPU reduction kernel.
+    * \brief Resolves the `Default` mapping of `launchConfig` in place and
+    * rejects the mappings without a GPU reduction kernel.
     *
-    * The `Default` mapping resolves to the `Uniform` mapping with one thread per segment.
+    * The `Default` mapping resolves to the `Uniform` mapping
+    * with one thread per segment.
     */
    static void
    resolveLaunchConfiguration( LaunchConfiguration& launchConfig )

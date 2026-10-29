@@ -11,24 +11,21 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Kernel for the PerElement thread mapping,
- * traversing a contiguous range of segments.
+ * \brief Kernel for the PerElement thread mapping, traversing
+ * a contiguous range of segments.
  *
- * Every block processes `SegmentsPerBlock` consecutive segments
- * of the range [`begin`, `end`)
- * and the elements of these segments
- * are divided evenly among the threads of the block.
- * Since all Ellpack segments have the same size,
- * the segment index and the local index of an element
- * are obtained by a division and a modulo.
- * For the row-major organization,
- * the consecutive threads process the consecutive elements of one segment;
- * for the column-major organization,
- * they process the elements with the same local index in consecutive segments,
- * so that the memory accesses are coalesced in both cases.
+ * Every block processes `SegmentsPerBlock` consecutive segments of the
+ * range [`begin`, `end`) and the elements of these segments are divided
+ * evenly among the threads of the block.
+ * Since all Ellpack segments have the same size, the segment index and the
+ * local index of an element are obtained by a division and a modulo.
+ * For the row-major organization, the consecutive threads process the
+ * consecutive elements of one segment; for the column-major organization, they
+ * process the elements with the same local index in consecutive segments, so
+ * that the memory accesses are coalesced in both cases.
  *
- * See \ref forElements_CSR_PerElement
- * for the general idea of the PerElement mapping.
+ * See \ref forElements_CSR_PerElement for the general
+ * idea of the PerElement mapping.
  */
 template<
    typename SegmentsView,
@@ -72,12 +69,11 @@ forElements_Ellpack_PerElement( Index gridIdx, SegmentsView segments, Index begi
 }
 
 /**
- * \brief Kernel for the PerElement thread mapping,
- * traversing the segments given explicitly by `segmentIndexes`.
+ * \brief Kernel for the PerElement thread mapping, traversing the segments
+ * given explicitly by `segmentIndexes`.
  *
- * It works the same way as \ref forElements_Ellpack_PerElement,
- * only every block processes `SegmentsPerBlock` consecutive entries
- * of `segmentIndexes`.
+ * It works the same way as \ref forElements_Ellpack_PerElement, only every
+ * block processes `SegmentsPerBlock` consecutive entries of `segmentIndexes`.
  */
 template<
    typename SegmentsConstView,
@@ -127,22 +123,20 @@ forElements_Ellpack_PerElement_WithIndexes(
 }
 
 /**
- * \brief Kernel for the PerElement thread mapping,
- * traversing the segments of a contiguous range that satisfy `condition`.
+ * \brief Kernel for the PerElement thread mapping, traversing the segments of a
+ * contiguous range that satisfy `condition`.
  *
- * Every block evaluates `condition` for `SegmentsPerBlock` consecutive segments
- * of the range [`begin`, `end`)
- * and compacts the indexes of the segments satisfying it into shared memory
- * using a block-wide inclusive scan of the condition values.
- * The elements of the active segments
- * are then divided evenly among the threads of the block;
- * since all segments have the same size,
- * the segment and the local index of each element
- * are obtained by a division and a modulo.
+ * Every block evaluates `condition` for `SegmentsPerBlock` consecutive
+ * segments of the range [`begin`, `end`) and compacts the indexes of
+ * the segments satisfying it into shared memory using a block-wide
+ * inclusive scan of the condition values.
+ * The elements of the active segments are then divided evenly among the threads
+ * of the block; since all segments have the same size, the segment and the
+ * local index of each element are obtained by a division and a modulo.
  * The template parameter `SliceSize` is not used.
  *
- * See \ref forElements_CSR_PerElement
- * for the general idea of the PerElement mapping.
+ * See \ref forElements_CSR_PerElement for the general
+ * idea of the PerElement mapping.
  */
 template<
    typename SegmentsView,

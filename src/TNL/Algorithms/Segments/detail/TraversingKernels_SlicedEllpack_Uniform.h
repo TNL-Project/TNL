@@ -10,29 +10,27 @@
 namespace TNL::Algorithms::Segments::detail {
 
 /**
- * \brief Kernel for the Uniform thread mapping,
- * traversing a contiguous range of segments.
+ * \brief Kernel for the Uniform thread mapping, traversing a
+ * contiguous range of segments.
  *
- * The same number of threads (`threadsPerSegment`)
- * is assigned to every segment in the range [`begin`, `end`).
- * All segments of a slice have the same size,
- * which is read from the slice segment sizes,
- * so no per-segment offsets are needed.
+ * The same number of threads (`threadsPerSegment`) is assigned to every
+ * segment in the range [`begin`, `end`).
+ * All segments of a slice have the same size, which is read from the slice
+ * segment sizes, so no per-segment offsets are needed.
  *
- * - For the row-major organization,
- *   the elements of a segment are contiguous in memory,
- *   so the threads of a segment process them with stride `threadsPerSegment`
- *   and neighbouring threads access neighbouring elements.
- * - For the column-major organization,
- *   the elements with the same local index of all segments of a slice are contiguous,
- *   so the `SliceSize * threadsPerSegment` threads assigned to a slice
- *   are mapped such that neighbouring threads process neighbouring segments
- *   and the memory accesses are coalesced across the segments.
- *   The grid starts at the first slice of the range,
- *   so the threads of the segments outside [`begin`, `end`) do nothing.
+ * - For the row-major organization, the elements of a segment are contiguous in
+ *   memory, so the threads of a segment process them with stride
+ *   `threadsPerSegment` and neighbouring threads access neighbouring elements.
+ * - For the column-major organization, the elements with the same local index
+ *   of all segments of a slice are contiguous, so the
+ *   `SliceSize * threadsPerSegment` threads assigned to a slice are mapped such
+ *   that neighbouring threads process neighbouring segments and the memory
+ *   accesses are coalesced across the segments.
+ *   The grid starts at the first slice of the range, so the threads of the
+ *   segments outside [`begin`, `end`) do nothing.
  *
- * See \ref forElements_CSR_Uniform_WithIndexes for the paper
- * that inspired the uniform number of threads per segment.
+ * See \ref forElements_CSR_Uniform_WithIndexes for the paper that inspired the
+ * uniform number of threads per segment.
  */
 template< typename SegmentsConstView, typename Index, typename Function, ElementsOrganization Organization, int SliceSize >
 __global__
@@ -109,16 +107,14 @@ forElements_SlicedEllpack_Uniform(
 }
 
 /**
- * \brief Kernel for the Uniform thread mapping,
- * traversing the segments given explicitly by `segmentIndexes`.
+ * \brief Kernel for the Uniform thread mapping, traversing the segments
+ * given explicitly by `segmentIndexes`.
  *
- * `threadsPerSegment` consecutive threads are assigned
- * to every entry of `segmentIndexes`.
- * Since the segments are arbitrary,
- * the threads are always grouped by segment,
- * also for the column-major organization,
- * where the threads of a segment access its elements
- * with stride `threadsPerSegment * SliceSize`.
+ * `threadsPerSegment` consecutive threads are assigned to
+ * every entry of `segmentIndexes`.
+ * Since the segments are arbitrary, the threads are always grouped by segment,
+ * also for the column-major organization, where the threads of a segment access
+ * its elements with stride `threadsPerSegment * SliceSize`.
  * See \ref forElements_SlicedEllpack_Uniform for the details of the format.
  */
 template<
@@ -178,14 +174,14 @@ forElements_SlicedEllpack_Uniform_WithIndexes(
 }
 
 /**
- * \brief Kernel for the Uniform thread mapping,
- * traversing a contiguous range of segments that satisfy `condition`.
+ * \brief Kernel for the Uniform thread mapping, traversing a contiguous
+ * range of segments that satisfy `condition`.
  *
- * `threadsPerSegment` consecutive threads are assigned
- * to every segment of the range [`begin`, `end`)
- * and they skip the segment if `condition` is not satisfied.
- * Like in \ref forElements_SlicedEllpack_Uniform_WithIndexes,
- * the threads are grouped by segment also for the column-major organization.
+ * `threadsPerSegment` consecutive threads are assigned to every
+ * segment of the range [`begin`, `end`) and they skip the segment
+ * if `condition` is not satisfied.
+ * Like in \ref forElements_SlicedEllpack_Uniform_WithIndexes, the threads are
+ * grouped by segment also for the column-major organization.
  * See \ref forElements_SlicedEllpack_Uniform for the details of the format.
  */
 template<

@@ -14,22 +14,21 @@ namespace TNL::Algorithms::Segments::detail {
  * \brief Device function implementing the Tiered thread mapping
  * for the traversal of CSR segments.
  *
- * Every thread of the block passes the segment it owns
- * (`segmentIdx`, valid only if `traverse_segment` is true).
- * The owned segments are then traversed in three tiers
- * according to their size:
+ * Every thread of the block passes the segment it owns (`segmentIdx`,
+ * valid only if `traverse_segment` is true).
+ * The owned segments are then traversed in three tiers according to their size:
  *
- * 1. Segments larger than the block are traversed one at a time
- *    by the whole block.
+ * 1. Segments larger than the block are traversed one
+ *    at a time by the whole block.
  *    The next such segment is picked via an atomic CAS on a shared variable.
- * 2. Segments larger than a warp but not larger than the block
- *    are registered in a shared queue via an atomic counter
- *    and the warps of the block take them from the queue one by one.
- * 3. Segments not larger than a warp
- *    are traversed sequentially by the thread that owns them.
+ * 2. Segments larger than a warp but not larger than the block are
+ *    registered in a shared queue via an atomic counter and the warps of the
+ *    block take them from the queue one by one.
+ * 3. Segments not larger than a warp are traversed
+ *    sequentially by the thread that owns them.
  *
- * See \ref reduceSegments_CSR_Tiered
- * for the reducing counterpart and the literature reference.
+ * See \ref reduceSegments_CSR_Tiered for the reducing
+ * counterpart and the literature reference.
  */
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __device__
@@ -142,15 +141,14 @@ forElements_CSR_Tiered_impl( const OffsetsView offsets, bool traverse_segment, c
 }
 
 /**
- * \brief Kernel for the Tiered thread mapping,
- * traversing a contiguous range of segments.
+ * \brief Kernel for the Tiered thread mapping, traversing a
+ * contiguous range of segments.
  *
- * Every block owns `BlockSize / threadsPerSegment` consecutive segments
- * of the range [`begin`, `end`),
- * each of them owned by one thread,
- * and the segments are traversed by \ref forElements_CSR_Tiered_impl.
- * The remaining threads of the block own no segment
- * and only help with the larger tiers.
+ * Every block owns `BlockSize / threadsPerSegment` consecutive segments of the
+ * range [`begin`, `end`), each of them owned by one thread, and the segments
+ * are traversed by \ref forElements_CSR_Tiered_impl.
+ * The remaining threads of the block own no segment and
+ * only help with the larger tiers.
  */
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __global__
@@ -173,13 +171,12 @@ forElements_CSR_Tiered(
 }
 
 /**
- * \brief Kernel for the Tiered thread mapping,
- * traversing the segments given explicitly by `segmentIndexes`.
+ * \brief Kernel for the Tiered thread mapping, traversing the segments
+ * given explicitly by `segmentIndexes`.
  *
- * Every block owns `BlockSize / threadsPerSegment` consecutive entries
- * of `segmentIndexes`,
- * each of them owned by one thread,
- * and the segments are traversed by \ref forElements_CSR_Tiered_impl.
+ * Every block owns `BlockSize / threadsPerSegment` consecutive entries of
+ * `segmentIndexes`, each of them owned by one thread, and the segments are
+ * traversed by \ref forElements_CSR_Tiered_impl.
  */
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int BlockSize = 256 >
 __global__
@@ -211,13 +208,12 @@ forElements_CSR_Tiered_WithIndexes(
 }
 
 /**
- * \brief Kernel for the Tiered thread mapping,
- * traversing the segments of a contiguous range that satisfy `condition`.
+ * \brief Kernel for the Tiered thread mapping, traversing the segments of a
+ * contiguous range that satisfy `condition`.
  *
- * Every block owns `BlockSize / threadsPerSegment` consecutive segments
- * of the range [`begin`, `end`),
- * each of them owned by one thread which evaluates `condition` for it;
- * only the segments satisfying the condition
+ * Every block owns `BlockSize / threadsPerSegment` consecutive segments of
+ * the range [`begin`, `end`), each of them owned by one thread which
+ * evaluates `condition` for it; only the segments satisfying the condition
  * are passed to \ref forElements_CSR_Tiered_impl.
  */
 template< typename OffsetsView, typename Index, typename Condition, typename Function, int BlockSize = 256 >
