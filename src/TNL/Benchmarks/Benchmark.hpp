@@ -24,8 +24,13 @@ Benchmark::configSetup( Config::ConfigDescription& config )
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
+   config.addEntry< int >( "loops", "Minimal number of iterations for every computation.", 10 );
+   config.addEntry< int >(
+      "min-loops", "Minimal number of iterations for every computation, overrides loops (0 to use loops).", 0 );
+   config.addEntry< int >( "max-loops", "Maximal number of iterations for every computation (0 for no limit).", 0 );
    config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
+   config.addEntry< double >(
+      "max-time", "Maximal real time in seconds for every computation (0 for no limit), takes precedence over minima.", 0.0 );
    config.addEntry< int >( "warmup-loops", "Number of warmup iterations before timing (0 to disable).", 1 );
    config.addEntry< double >( "warmup-min-time", "Minimal real time in seconds for warmup (0 to disable).", 0.0 );
    config.addEntry< int >( "verbose", "Verbose mode for terminal output, the higher number the more verbosity.", 1 );
@@ -35,8 +40,11 @@ Benchmark::configSetup( Config::ConfigDescription& config )
 void
 Benchmark::setup( const Config::ParameterContainer& parameters, const std::string& programName )
 {
-   this->loops = parameters.getParameter< int >( "loops" );
+   const int minLoops = parameters.getParameter< int >( "min-loops" );
+   this->minLoops = minLoops > 0 ? minLoops : parameters.getParameter< int >( "loops" );
+   this->maxLoops = parameters.getParameter< int >( "max-loops" );
    this->minTime = parameters.getParameter< double >( "min-time" );
+   this->maxTime = parameters.getParameter< double >( "max-time" );
    this->warmupLoops = parameters.getParameter< int >( "warmup-loops" );
    this->warmupMinTime = parameters.getParameter< double >( "warmup-min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
@@ -71,13 +79,31 @@ Benchmark::setup( const Config::ParameterContainer& parameters, const std::strin
 void
 Benchmark::setLoops( std::size_t loops )
 {
-   this->loops = loops;
+   setMinLoops( loops );
+}
+
+void
+Benchmark::setMinLoops( std::size_t minLoops )
+{
+   this->minLoops = minLoops;
+}
+
+void
+Benchmark::setMaxLoops( std::size_t maxLoops )
+{
+   this->maxLoops = maxLoops;
 }
 
 void
 Benchmark::setMinTime( double minTime )
 {
    this->minTime = minTime;
+}
+
+void
+Benchmark::setMaxTime( double maxTime )
+{
+   this->maxTime = maxTime;
 }
 
 void
@@ -141,7 +167,8 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
    std::string errorMessage;
    if( catchExceptions ) {
       try {
-         timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, monitor, result );
+         timeFunction< Device >(
+            compute, reset, minLoops, maxLoops, minTime, maxTime, warmupLoops, warmupMinTime, monitor, result );
       }
       catch( const std::exception& e ) {
          errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
@@ -149,7 +176,8 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
       }
    }
    else {
-      timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, monitor, result );
+      timeFunction< Device >(
+         compute, reset, minLoops, maxLoops, minTime, maxTime, warmupLoops, warmupMinTime, monitor, result );
    }
 
    result.setDerivedResults( datasetSize, operations_per_loop );

@@ -62,6 +62,9 @@ Run with a specific matrix size, in double precision, on the GPU:
 | `--output-mode <mode>` | Mode for opening the log file (`overwrite`, `append`) | `overwrite` |
 | `--loops <n>` | Number of iterations for every computation | `10` |
 | `--min-time <t>` | Minimal real time in seconds for every computation | `0.0` |
+| `--max-time <t>` | Maximal real time in seconds for every computation, longer computations are measured only once (0 for no limit) | `0.0` |
+| `--min-loops <n>` | Minimal number of iterations for every computation, overrides `--loops` (0 to use `--loops`) | `0` |
+| `--max-loops <n>` | Maximal number of iterations for every computation (0 for no limit) | `0` |
 | `--warmup-loops <n>` | Number of warmup iterations before timing (0 to disable) | `1` |
 | `--warmup-min-time <t>` | Minimal real time in seconds for warmup (0 to disable) | `0.0` |
 | `--verbose <n>` | Verbose mode for terminal output, the higher number the more verbosity | `1` |
