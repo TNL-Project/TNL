@@ -67,7 +67,7 @@ struct CudaHost
       // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gc00502b44e5f1bdc0b424487ebb08db0
       if( cudaMallocHost( (void**) &result, n * sizeof( value_type ), cudaHostAllocPortable | cudaHostAllocMapped )
           != cudaSuccess )
-         throw Exceptions::BackendBadAlloc();
+         throw Exceptions::BackendBadAlloc( n * sizeof( value_type ) );
       return result;
 #else
       throw Exceptions::BackendSupportMissing();

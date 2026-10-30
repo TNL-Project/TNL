@@ -60,7 +60,7 @@ struct Hip
 #ifdef __HIP__
       value_type* result = nullptr;
       if( hipMalloc( (void**) &result, n * sizeof( value_type ) ) != hipSuccess )
-         throw Exceptions::BackendBadAlloc();
+         throw Exceptions::BackendBadAlloc( n * sizeof( value_type ) );
       return result;
 #else
       throw Exceptions::BackendSupportMissing();
