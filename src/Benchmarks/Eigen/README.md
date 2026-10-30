@@ -84,6 +84,9 @@ All three benchmarks share the following options:
 | `--output-mode <mode>` | Log file mode (`overwrite` or `append`) | `overwrite` |
 | `--loops <n>` | Number of iterations for every computation | `10` |
 | `--min-time <t>` | Minimal real time in seconds for every computation | `0` |
+| `--max-time <t>` | Maximal real time in seconds for every computation, longer computations are measured only once (0 for no limit) | `0` |
+| `--min-loops <n>` | Minimal number of iterations for every computation, overrides `--loops` (0 to use `--loops`) | `0` |
+| `--max-loops <n>` | Maximal number of iterations for every computation (0 for no limit) | `0` |
 | `--warmup-loops <n>` | Number of warmup iterations before timing | `1` |
 | `--warmup-min-time <t>` | Minimal real time in seconds for warmup | `0` |
 | `--verbose <n>` | Verbosity of the terminal output | `1` |
