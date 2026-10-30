@@ -25,6 +25,7 @@ namespace TNL::Benchmarks {
  *
  * - Multiple iterations with automatic loop count determination
  * - Minimum runtime specification for statistical significance
+ * - Maximum runtime specification, so that long computations are not repeated
  * - Automatic warmup iteration before timing begins
  * - Configurable output logging
  * - Metadata tracking (device, operation, performer, etc.)
@@ -77,8 +78,11 @@ public:
     *
     * - `log-file`: Path to JSONL output file (default: `<program>.log`)
     * - `output-mode`: "append" or "overwrite"
-    * - `loops`: Number of iterations (default: 10)
+    * - `loops`: Minimum number of iterations (default: 10)
+    * - `min-loops`: Minimum number of iterations, overrides `loops` (default: 0, i.e. use `loops`)
+    * - `max-loops`: Maximum number of iterations (default: 0, i.e. no limit)
     * - `min-time`: Minimum runtime in seconds (default: 0.0)
+    * - `max-time`: Maximum runtime in seconds (default: 0.0, i.e. no limit)
     * - `warmup-loops`: Number of warmup iterations (default: 1)
     * - `warmup-min-time`: Minimum warmup runtime in seconds (default: 0.0)
     * - `verbose`: Verbosity level (default: 1)
@@ -108,21 +112,59 @@ public:
    /**
     * \brief Sets the number of iterations for each measurement.
     *
+    * The same as \ref setMinLoops.
+    *
     * \param loops Number of loops to execute
     */
    void
    setLoops( std::size_t loops );
 
    /**
+    * \brief Sets the minimum number of iterations for each measurement.
+    *
+    * The benchmark executes at least this number of iterations,
+    * unless it is stopped by the maximum number of iterations
+    * or by the maximum runtime.
+    *
+    * \param minLoops Minimum number of loops to execute
+    */
+   void
+   setMinLoops( std::size_t minLoops );
+
+   /**
+    * \brief Sets the maximum number of iterations for each measurement.
+    *
+    * \param maxLoops Maximum number of loops to execute (0 for no limit)
+    */
+   void
+   setMaxLoops( std::size_t maxLoops );
+
+   /**
     * \brief Sets the minimum runtime for measurements.
     *
     * If specified, the benchmark will continue iterating until at least this
-    * much real time has elapsed, regardless of the loop count.
+    * much real time has elapsed, regardless of the minimum loop count.
     *
     * \param minTime Minimum time in seconds
     */
    void
    setMinTime( double minTime );
+
+   /**
+    * \brief Sets the maximum runtime for measurements.
+    *
+    * If specified, the benchmark stops iterating as soon as this much real
+    * time has elapsed, regardless of the minimum loop count and the minimum
+    * runtime.
+    * At least one iteration is always executed.
+    * If a warmup iteration takes longer than the maximum runtime,
+    * it is used as the only timing sample.
+    * Hence long computations are executed only once.
+    *
+    * \param maxTime Maximum time in seconds (0 for no limit)
+    */
+   void
+   setMaxTime( double maxTime );
 
    /**
     * \brief Sets the number of warmup iterations.
@@ -325,7 +367,9 @@ protected:
    BenchmarkLoggers loggers;
    std::ofstream logFile;
 
-   std::size_t loops = 10;
+   std::size_t minLoops = 10;
+
+   std::size_t maxLoops = 0;
 
    std::size_t warmupLoops = 1;
 
@@ -334,6 +378,8 @@ protected:
    std::size_t operations_per_loop = 0;
 
    double minTime = 0.0;
+
+   double maxTime = 0.0;
 
    std::size_t datasetSize = 0;
 

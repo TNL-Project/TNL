@@ -11,6 +11,7 @@ add_subdirectory(Solvers)
 set(CPP_TESTS
     AllocatorsTest
     AssertTest
+    BenchmarksTest
     FileTest
     LaunchConfigurationTest
     base64Test
