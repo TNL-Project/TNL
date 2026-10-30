@@ -82,10 +82,11 @@ All three benchmarks share the following options:
 |--------|-------------|---------|
 | `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
 | `--output-mode <mode>` | Log file mode (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Number of iterations for every computation | `10` |
+| `--loops <n>` | Minimal number of iterations for every computation | `10` |
 | `--min-time <t>` | Minimal real time in seconds for every computation | `0` |
 | `--warmup-loops <n>` | Number of warmup iterations before timing | `1` |
 | `--warmup-min-time <t>` | Minimal real time in seconds for warmup | `0` |
+| `--force-warmup-loop <bool>` | Discard the warmup iterations even if they take at least `--min-time` (if `false`, such an iteration is used as a sample) | `true` |
 | `--verbose <n>` | Verbosity of the terminal output | `1` |
 | `--catch-exceptions <bool>` | Catch exceptions during timing | `true` |
 | `--precision <type>` | Precision of the arithmetics (`float`, `double`, `all`) | see below |

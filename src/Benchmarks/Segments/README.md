@@ -90,7 +90,7 @@ All executables support the following options:
 |--------|-------------|---------|
 | `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
 | `--output-mode <mode>` | Mode for opening the log file (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Number of iterations for every computation | `10` |
+| `--loops <n>` | Minimal number of iterations for every computation | `10` |
 | `--warmup-loops <n>` | Number of warmup iterations before timing (0 to disable) | `1` |
 | `--verbose <n>` | Verbosity of the terminal output, the higher the more verbose | `1` |
 | `--segments-setup <setup>` | Segments setup (`all`, `constant`, `linear`, `quadratic`) | `all` |

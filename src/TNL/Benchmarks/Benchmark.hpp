@@ -24,10 +24,14 @@ Benchmark::configSetup( Config::ConfigDescription& config )
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
+   config.addEntry< int >( "loops", "Minimal number of iterations for every computation.", 10 );
    config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
    config.addEntry< int >( "warmup-loops", "Number of warmup iterations before timing (0 to disable).", 1 );
    config.addEntry< double >( "warmup-min-time", "Minimal real time in seconds for warmup (0 to disable).", 0.0 );
+   config.addEntry< bool >(
+      "force-warmup-loop",
+      "Discard the warmup iterations even if they take at least min-time (if false, such an iteration is used as a sample).",
+      true );
    config.addEntry< int >( "verbose", "Verbose mode for terminal output, the higher number the more verbosity.", 1 );
    config.addEntry< bool >( "catch-exceptions", "Catch exceptions during timing.", true );
 }
@@ -39,6 +43,7 @@ Benchmark::setup( const Config::ParameterContainer& parameters, const std::strin
    this->minTime = parameters.getParameter< double >( "min-time" );
    this->warmupLoops = parameters.getParameter< int >( "warmup-loops" );
    this->warmupMinTime = parameters.getParameter< double >( "warmup-min-time" );
+   this->forceWarmupLoop = parameters.getParameter< bool >( "force-warmup-loop" );
    const int verbose = parameters.getParameter< int >( "verbose" );
    this->catchExceptions = parameters.getParameter< bool >( "catch-exceptions" );
 
@@ -93,6 +98,12 @@ Benchmark::setWarmupMinTime( double warmupMinTime )
 }
 
 inline void
+Benchmark::setForceWarmupLoop( bool forceWarmupLoop )
+{
+   this->forceWarmupLoop = forceWarmupLoop;
+}
+
+inline void
 Benchmark::setMetadataColumns( const MetadataColumns& metadata )
 {
    for( auto& logger : loggers )
@@ -141,7 +152,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
    std::string errorMessage;
    if( catchExceptions ) {
       try {
-         timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, monitor, result );
+         timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, forceWarmupLoop, monitor, result );
       }
       catch( const std::exception& e ) {
          errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
@@ -149,7 +160,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
       }
    }
    else {
-      timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, monitor, result );
+      timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, forceWarmupLoop, monitor, result );
    }
 
    result.setDerivedResults( datasetSize, operations_per_loop );

@@ -25,10 +25,22 @@ namespace TNL::Benchmarks {
  * - Multiple iterations with automatic loop count determination
  * - Minimum runtime specification for statistical significance
  * - Automatic warmup iteration before timing begins
+ * - Long computations used as their own warmup, so that they are not repeated
  * - Configurable output logging
  * - Metadata tracking (device, operation, performer, etc.)
  * - Bandwidth calculations
  * - CPU cycle counting (host devices only)
+ *
+ * \par Number of iterations
+ * The computation is repeated until both at least the given number of iterations
+ * was measured (\ref setLoops) and the measured time reached the minimum runtime
+ * (\ref setMinTime).
+ * Hence, with one loop and a positive minimum runtime,
+ * short computations are repeated many times and long computations are measured only once.
+ * The measurement is preceded by warmup iterations, which are normally discarded.
+ * When \ref setForceWarmupLoop is set to `false` and the minimum runtime is positive,
+ * a warmup iteration taking at least the minimum runtime is used as the first sample instead,
+ * so that long computations are not executed once more only to be discarded.
  *
  * Example usage:
  * \code
@@ -76,10 +88,11 @@ public:
     *
     * - `log-file`: Path to JSONL output file (default: `<program>.log`)
     * - `output-mode`: "append" or "overwrite"
-    * - `loops`: Number of iterations (default: 10)
+    * - `loops`: Minimum number of iterations (default: 10)
     * - `min-time`: Minimum runtime in seconds (default: 0.0)
     * - `warmup-loops`: Number of warmup iterations (default: 1)
     * - `warmup-min-time`: Minimum warmup runtime in seconds (default: 0.0)
+    * - `force-warmup-loop`: Discard warmup iterations even if they take at least `min-time` (default: true)
     * - `verbose`: Verbosity level (default: 1)
     * - `catch-exceptions`: Catch exceptions during timing (default: true)
     *
@@ -105,9 +118,12 @@ public:
    setup( const Config::ParameterContainer& parameters, const std::string& programName = "" );
 
    /**
-    * \brief Sets the number of iterations for each measurement.
+    * \brief Sets the minimum number of iterations for each measurement.
     *
-    * \param loops Number of loops to execute
+    * More iterations are executed if needed to reach the minimum runtime,
+    * see \ref setMinTime.
+    *
+    * \param loops Minimum number of loops to execute
     */
    void
    setLoops( std::size_t loops );
@@ -145,6 +161,20 @@ public:
     */
    void
    setWarmupMinTime( double warmupMinTime );
+
+   /**
+    * \brief Sets whether the warmup iterations are always discarded.
+    *
+    * If set to `false` and the minimum runtime (\ref setMinTime) is positive,
+    * a warmup iteration taking at least the minimum runtime ends the warmup
+    * and is used as the first timing sample.
+    * Such a computation is long enough that the effects compensated by the warmup are negligible,
+    * so it is not executed once more only to be discarded.
+    *
+    * \param forceWarmupLoop Whether the warmup iterations are always discarded (default: `true`)
+    */
+   void
+   setForceWarmupLoop( bool forceWarmupLoop );
 
    /**
     * \brief Sets metadata columns for all subsequent result rows.
@@ -200,9 +230,10 @@ public:
     * Executes the compute function multiple times, calling `reset()` before each
     * iteration. Results are logged through configured loggers.
     *
-    * One untimed warmup iteration (reset + compute) is performed automatically
+    * Untimed warmup iterations (reset + compute) are performed automatically
     * before the timed loop begins, to stabilize thermal and frequency states
-    * and amortize one-time costs such as CUDA JIT compilation.
+    * and amortize one-time costs such as CUDA JIT compilation
+    * (see \ref setWarmupLoops and \ref setForceWarmupLoop).
     *
     * \tparam Device Device type (e.g., \ref TNL::Devices::Host, \ref TNL::Devices::Cuda)
     * \tparam ResetFunction Callable that resets state before each iteration
@@ -329,6 +360,8 @@ protected:
    std::size_t warmupLoops = 1;
 
    double warmupMinTime = 0.0;
+
+   bool forceWarmupLoop = true;
 
    std::size_t operations_per_loop = 0;
 

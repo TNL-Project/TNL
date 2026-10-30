@@ -107,10 +107,11 @@ All three executables accept the general benchmark options listed below, togethe
 |--------|-------------|---------|
 | `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
 | `--output-mode <mode>` | Mode for opening the log file (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Number of iterations for every computation | `10` |
+| `--loops <n>` | Minimal number of iterations for every computation | `10` |
 | `--min-time <t>` | Minimal real time in seconds for every computation | `0.0` |
 | `--warmup-loops <n>` | Number of warmup iterations before timing (0 to disable) | `1` |
 | `--warmup-min-time <t>` | Minimal real time in seconds for warmup (0 to disable) | `0.0` |
+| `--force-warmup-loop <bool>` | Discard the warmup iterations even if they take at least `--min-time` (if `false`, such an iteration is used as a sample) | `true` |
 | `--verbose <n>` | Verbose mode for terminal output, higher is more verbose | `1` |
 | `--catch-exceptions <bool>` | Catch exceptions during timing | `true` |
 
