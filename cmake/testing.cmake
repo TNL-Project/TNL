@@ -26,6 +26,31 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
 endif()
 
+# number of OpenMP threads used by a single unit test
+# Tests are executed in parallel via `ctest -j`, so the per-test thread count is
+# kept small to avoid oversubscription of the CPU cores. Without this, every test
+# uses as many threads as there are cores (the OpenMP default) whenever
+# OMP_NUM_THREADS is not set in the environment of the ctest process.
+set(TNL_TEST_OMP_NUM_THREADS 4 CACHE STRING "Number of OpenMP threads used by unit tests")
+
+# function to add a plain unit test with a bounded number of OpenMP threads
+# usage: tnl_add_test(<name> <command> [<arg>...]) or tnl_add_test(NAME <name> COMMAND <command> [<arg>...])
+function(tnl_add_test)
+    add_test(${ARGN})
+
+    if(ARGV0 STREQUAL "NAME")
+        set(test_name ${ARGV1})
+    else()
+        set(test_name ${ARGV0})
+    endif()
+
+    # keep the environment of tests that configure it themselves (e.g. MPI tests)
+    get_test_property(${test_name} ENVIRONMENT test_environment)
+    if(NOT test_environment)
+        set_tests_properties(${test_name} PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=${TNL_TEST_OMP_NUM_THREADS}")
+    endif()
+endfunction()
+
 # function to simplify adding MPI tests
 # usage: tnl_add_mpi_test(NAME <name> NPROC <nproc> COMMAND <command> [<arg>...])
 function(tnl_add_mpi_test)
