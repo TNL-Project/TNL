@@ -58,8 +58,8 @@ stronglyConnectedComponentsExample()
       return ! ( src == 1 && tgt == 0 );
    };
    VectorType componentsEdge;
-   auto sgEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge10 );
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgEdge, componentsEdge );
+   auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge10 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphEdge, componentsEdge );
    std::cout << "SCC labels (edge 1->0 blocked): " << componentsEdge << "\n";
    //! [scc edge predicate]
 
@@ -69,8 +69,8 @@ stronglyConnectedComponentsExample()
     * Vertex 5 is inactive and gets label -1.
     */
    VectorType componentsInduced;
-   auto sgInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3, 4 } );
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgInduced, componentsInduced );
+   auto subgraphInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3, 4 } );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphInduced, componentsInduced );
    std::cout << "SCC labels (induced on {0,1,2,3,4}): " << componentsInduced << "\n";
    //! [scc induced]
 
@@ -79,8 +79,8 @@ stronglyConnectedComponentsExample()
     * Combined induced-subgraph + edge-predicate SCC.
     */
    VectorType componentsInducedEdge;
-   auto sgInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3, 4 }, blockEdge10 );
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgInducedEdge, componentsInducedEdge );
+   auto subgraphInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3, 4 }, blockEdge10 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphInducedEdge, componentsInducedEdge );
    std::cout << "SCC labels (induced on {0,1,2,3,4}, edge 1->0 blocked): " << componentsInducedEdge << "\n";
    //! [scc induced edge predicate]
 
@@ -89,13 +89,13 @@ stronglyConnectedComponentsExample()
     * Predicate-based SCC: activate only vertices with index < 5.
     * The vertex predicate (vertex) -> bool selects active vertices.
     */
-   auto activeLt5 = [] __cuda_callable__( IndexType vertex )
+   auto activeLessThan5 = [] __cuda_callable__( IndexType vertex )
    {
       return vertex < 5;
    };
    VectorType componentsIf;
-   auto sgIf = TNL::Graphs::makeSubGraph( graph, activeLt5 );
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgIf, componentsIf );
+   auto subgraphIf = TNL::Graphs::makeSubGraph( graph, activeLessThan5 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphIf, componentsIf );
    std::cout << "SCC labels (active if vertex < 5): " << componentsIf << "\n";
    //! [scc if]
 
@@ -104,8 +104,8 @@ stronglyConnectedComponentsExample()
     * Combined predicate + edge-predicate SCC.
     */
    VectorType componentsIfEdge;
-   auto sgIfEdge = TNL::Graphs::makeSubGraph( graph, activeLt5, blockEdge10 );
-   TNL::Graphs::Algorithms::stronglyConnectedComponents( sgIfEdge, componentsIfEdge );
+   auto subgraphIfEdge = TNL::Graphs::makeSubGraph( graph, activeLessThan5, blockEdge10 );
+   TNL::Graphs::Algorithms::stronglyConnectedComponents( subgraphIfEdge, componentsIfEdge );
    std::cout << "SCC labels (active if vertex < 5, edge 1->0 blocked): " << componentsIfEdge << "\n";
    //! [scc if edge predicate]
 }

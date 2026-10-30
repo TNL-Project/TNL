@@ -30,8 +30,8 @@ namespace TNL::Graphs::Algorithms {
  * To check a filtered subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it:
  * ```cpp
- * auto sg = makeSubGraph( graph, vertexPredicate, edgePredicate );
- * isTree( sg, start );
+ * auto subgraph = makeSubGraph( graph, vertexPredicate, edgePredicate );
+ * isTree( subgraph, start );
  * ```
  */
 // clang-format on

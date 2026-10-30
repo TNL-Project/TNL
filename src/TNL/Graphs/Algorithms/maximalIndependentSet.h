@@ -28,8 +28,8 @@ namespace TNL::Graphs::Algorithms {
  * To run MIS on a filtered subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it:
  * ```cpp
- * auto sg = makeSubGraph( graph, vertexPredicate, edgePredicate );
- * maximalIndependentSet( sg, independentSet );
+ * auto subgraph = makeSubGraph( graph, vertexPredicate, edgePredicate );
+ * maximalIndependentSet( subgraph, independentSet );
  * ```
  */
 // clang-format on

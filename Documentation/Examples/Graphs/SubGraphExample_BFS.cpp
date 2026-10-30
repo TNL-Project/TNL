@@ -27,7 +27,7 @@ bfsOnSubgraphExample()
    // clang-format on
 
    // Build a subgraph that excludes vertex 2 (and all edges incident to it)
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -35,8 +35,8 @@ bfsOnSubgraphExample()
       } );
 
    // Run BFS on the subgraph — vertices outside the subgraph keep distance -1
-   Vector distances( sg.getVertexCount(), -1 );
-   TNL::Graphs::Algorithms::breadthFirstSearch( sg, 0, distances );
+   Vector distances( subgraph.getVertexCount(), -1 );
+   TNL::Graphs::Algorithms::breadthFirstSearch( subgraph, 0, distances );
 
    std::cout << "Distances from vertex 0 on subgraph (vertex 2 excluded): ";
    for( IndexType i = 0; i < distances.getSize(); i++ )

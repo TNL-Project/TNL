@@ -17,8 +17,8 @@ namespace TNL::Graphs {
  * vertices are active. It is created by the indexed overloads of
  * \ref makeSubGraph "makeSubGraph":
  * ```cpp
- * auto sg = makeSubGraph( graph, vertexIndexes );              // mask from indexes
- * auto sg = makeSubGraph( graph, vertexIndexes, edgePredicate ); // mask + edge filter
+ * auto subgraph = makeSubGraph( graph, vertexIndexes );                // mask from indexes
+ * auto subgraph = makeSubGraph( graph, vertexIndexes, edgePredicate ); // mask + edge filter
  * ```
  *
  * MaskedSubGraph provides the same read-only interface as SubGraph

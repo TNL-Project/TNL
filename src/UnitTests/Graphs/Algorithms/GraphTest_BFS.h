@@ -831,17 +831,17 @@ test_BFS_predecessors_basic_impl()
       VectorType predecessors;
       TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, start, distances, predecessors );
 
-      // Check predecessor invariants: distances[pred[v]] == distances[v] - 1,
-      // and pred[v] == -1 for start and unreachable vertices.
+      // Check predecessor invariants: distances[predecessors[v]] == distances[v] - 1,
+      // and predecessors[v] == -1 for start and unreachable vertices.
       for( IndexType v = 0; v < graph.getVertexCount(); ++v ) {
          if( v == start || distances.getElement( v ) == -1 ) {
             EXPECT_EQ( predecessors.getElement( v ), -1 ) << "start=" << start << " v=" << v;
          }
          else {
-            IndexType pred = predecessors.getElement( v );
-            EXPECT_GE( pred, 0 ) << "start=" << start << " v=" << v;
-            EXPECT_EQ( distances.getElement( pred ), distances.getElement( v ) - 1 ) << "start=" << start << " v=" << v
-               << " pred=" << pred;
+            IndexType predecessor = predecessors.getElement( v );
+            EXPECT_GE( predecessor, 0 ) << "start=" << start << " v=" << v;
+            EXPECT_EQ( distances.getElement( predecessor ), distances.getElement( v ) - 1 ) << "start=" << start << " v=" << v
+               << " predecessor=" << predecessor;
          }
       }
    }
@@ -875,10 +875,10 @@ test_BFS_predecessors_deterministic_impl()
    // clang-format on
 
    // Expected deterministic predecessors from source 0:
-   //   pred[0] = -1 (start)
-   //   pred[1] = 0  (only edge to 1 is from 0)
-   //   pred[2] = 0  (only edge to 2 is from 0)
-   //   pred[3] = 1  (smallest source among {1, 2} that reaches 3)
+   //   predecessors[0] = -1 (start)
+   //   predecessors[1] = 0  (only edge to 1 is from 0)
+   //   predecessors[2] = 0  (only edge to 2 is from 0)
+   //   predecessors[3] = 1  (smallest source among {1, 2} that reaches 3)
    const VectorType expectedPredecessors( { -1, 0, 0, 1 } );
    const VectorType expectedDistances( { 0, 1, 1, 2 } );
 
@@ -1384,9 +1384,9 @@ test_BFS_bottomup_predecessors_deterministic_impl()
 
    const VectorType expectedDistances( { 0, 1, 1, 2 } );
    // Deterministic: smallest source wins. From vertex 0:
-   //   pred[1] = 0 (only edge to 1 is from 0)
-   //   pred[2] = 0 (only edge to 2 is from 0)
-   //   pred[3] = 1 (smallest among {1, 2})
+   //   predecessors[1] = 0 (only edge to 1 is from 0)
+   //   predecessors[2] = 0 (only edge to 2 is from 0)
+   //   predecessors[3] = 1 (smallest among {1, 2})
    const VectorType expectedPredecessors( { -1, 0, 0, 1 } );
 
    VectorType visitedDistances( graph.getVertexCount(), -1 );

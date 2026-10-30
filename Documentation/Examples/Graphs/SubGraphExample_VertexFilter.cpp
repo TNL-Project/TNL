@@ -24,17 +24,17 @@ vertexFilterExample()
    // clang-format on
 
    // Create a subgraph that excludes vertex 2
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
          return v != 2;
       } );
 
-   std::cout << "Vertex count: " << sg.getVertexCount() << "\n";
-   std::cout << "vertexExists(0): " << sg.vertexExists( 0 ) << "\n";
-   std::cout << "vertexExists(2): " << sg.vertexExists( 2 ) << "\n";
-   std::cout << "vertexExists(3): " << sg.vertexExists( 3 ) << "\n";
+   std::cout << "Vertex count: " << subgraph.getVertexCount() << "\n";
+   std::cout << "vertexExists(0): " << subgraph.vertexExists( 0 ) << "\n";
+   std::cout << "vertexExists(2): " << subgraph.vertexExists( 2 ) << "\n";
+   std::cout << "vertexExists(3): " << subgraph.vertexExists( 3 ) << "\n";
    //! [vertex filter]
 }
 

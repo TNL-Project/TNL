@@ -29,8 +29,8 @@ namespace TNL::Graphs::Algorithms {
  * To color a filtered subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it:
  * ```cpp
- * auto sg = makeSubGraph( graph, vertexPredicate, edgePredicate );
- * graphColoring( sg, colors );
+ * auto subgraph = makeSubGraph( graph, vertexPredicate, edgePredicate );
+ * graphColoring( subgraph, colors );
  * ```
  */
 // clang-format on

@@ -25,7 +25,7 @@ edgeFilterExample()
    // clang-format on
 
    // Create a subgraph that only keeps edges with weight <= 3
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
@@ -33,15 +33,15 @@ edgeFilterExample()
          return w <= 3;
       } );
 
-   std::cout << "edgeExists(0,1,1): " << sg.edgeExists( 0, 1, 1 ) << "\n";
-   std::cout << "edgeExists(0,2,2): " << sg.edgeExists( 0, 2, 2 ) << "\n";
-   std::cout << "edgeExists(2,3,4): " << sg.edgeExists( 2, 3, 4 ) << "\n";
-   std::cout << "edgeExists(3,4,5): " << sg.edgeExists( 3, 4, 5 ) << "\n";
+   std::cout << "edgeExists(0,1,1): " << subgraph.edgeExists( 0, 1, 1 ) << "\n";
+   std::cout << "edgeExists(0,2,2): " << subgraph.edgeExists( 0, 2, 2 ) << "\n";
+   std::cout << "edgeExists(2,3,4): " << subgraph.edgeExists( 2, 3, 4 ) << "\n";
+   std::cout << "edgeExists(3,4,5): " << subgraph.edgeExists( 3, 4, 5 ) << "\n";
    //! [edge filter]
 
    //! [both filters]
    // Create a subgraph with both vertex and edge filters
-   auto sg2 = TNL::Graphs::makeSubGraph(
+   auto subgraph2 = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -52,9 +52,9 @@ edgeFilterExample()
          return w <= 3;
       } );
 
-   std::cout << "Both filters - vertexExists(2): " << sg2.vertexExists( 2 ) << "\n";
-   std::cout << "Both filters - edgeExists(2,3,4): " << sg2.edgeExists( 2, 3, 4 ) << "\n";
-   std::cout << "Both filters - edgeExists(0,1,1): " << sg2.edgeExists( 0, 1, 1 ) << "\n";
+   std::cout << "Both filters - vertexExists(2): " << subgraph2.vertexExists( 2 ) << "\n";
+   std::cout << "Both filters - edgeExists(2,3,4): " << subgraph2.edgeExists( 2, 3, 4 ) << "\n";
+   std::cout << "Both filters - edgeExists(0,1,1): " << subgraph2.edgeExists( 0, 1, 1 ) << "\n";
    //! [both filters]
 }
 

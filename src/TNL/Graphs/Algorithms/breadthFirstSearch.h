@@ -89,8 +89,8 @@ namespace TNL::Graphs::Algorithms {
  * To run BFS on a filtered subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it:
  * ```cpp
- * auto sg = makeSubGraph( graph, vertexPredicate, edgePredicate );
- * breadthFirstSearch( sg, start, distances );
+ * auto subgraph = makeSubGraph( graph, vertexPredicate, edgePredicate );
+ * breadthFirstSearch( subgraph, start, distances );
  * ```
  */
 // clang-format on

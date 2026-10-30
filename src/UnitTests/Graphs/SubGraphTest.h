@@ -35,17 +35,17 @@ test_makeSubGraph_no_filter()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
-   EXPECT_EQ( sg.getVertexCount(), 5 );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
+   EXPECT_EQ( subgraph.getVertexCount(), 5 );
    // All vertices are active.
    for( IndexType v = 0; v < 5; ++v )
-      EXPECT_TRUE( sg.vertexExists( v ) );
+      EXPECT_TRUE( subgraph.vertexExists( v ) );
    // All edges are present (filter accepts all).
-   EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
    // edgeExists tests the edge filter only; it does NOT verify that the edge
    // is actually present in the adjacency matrix. With AcceptAllEdges, even
    // non-existent edges return true. Use forAllEdges + counter to verify
@@ -80,18 +80,18 @@ test_makeSubGraph_vertex_filter()
 {
    using IndexType = typename GraphType::IndexType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
          return v != 2;
       } );
-   EXPECT_EQ( sg.getVertexCount(), 5 );
-   EXPECT_TRUE( sg.vertexExists( 0 ) );
-   EXPECT_TRUE( sg.vertexExists( 1 ) );
-   EXPECT_FALSE( sg.vertexExists( 2 ) );
-   EXPECT_TRUE( sg.vertexExists( 3 ) );
-   EXPECT_TRUE( sg.vertexExists( 4 ) );
+   EXPECT_EQ( subgraph.getVertexCount(), 5 );
+   EXPECT_TRUE( subgraph.vertexExists( 0 ) );
+   EXPECT_TRUE( subgraph.vertexExists( 1 ) );
+   EXPECT_FALSE( subgraph.vertexExists( 2 ) );
+   EXPECT_TRUE( subgraph.vertexExists( 3 ) );
+   EXPECT_TRUE( subgraph.vertexExists( 4 ) );
 }
 
 TYPED_TEST( SubGraphTest, makeSubGraph_vertex_filter )
@@ -122,18 +122,18 @@ test_makeSubGraph_edge_filter()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
       {
          return w <= 3;
       } );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
-   EXPECT_FALSE( sg.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
-   EXPECT_FALSE( sg.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
+   EXPECT_FALSE( subgraph.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
+   EXPECT_FALSE( subgraph.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
 }
 
 TYPED_TEST( SubGraphTest, makeSubGraph_edge_filter )
@@ -164,7 +164,7 @@ test_makeSubGraph_both_filters()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -174,14 +174,14 @@ test_makeSubGraph_both_filters()
       {
          return w <= 3;
       } );
-   EXPECT_FALSE( sg.vertexExists( IndexType( 2 ) ) );
-   EXPECT_FALSE( sg.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
-   EXPECT_TRUE( sg.vertexExists( IndexType( 0 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
+   EXPECT_FALSE( subgraph.vertexExists( IndexType( 2 ) ) );
+   EXPECT_FALSE( subgraph.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
+   EXPECT_TRUE( subgraph.vertexExists( IndexType( 0 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
    // edge (0,2) passes the edge filter (w=2<=3) but target 2 is inactive -> edge does not exist
-   EXPECT_FALSE( sg.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
-   EXPECT_TRUE( sg.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
-   EXPECT_FALSE( sg.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
+   EXPECT_FALSE( subgraph.edgeExists( IndexType( 0 ), IndexType( 2 ), ValueType( 2 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
+   EXPECT_FALSE( subgraph.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
 }
 
 TYPED_TEST( SubGraphTest, makeSubGraph_both_filters )
@@ -199,14 +199,14 @@ test_makeSubGraph_indexed()
    using CounterVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
    IndexVectorType indexes{ 0, 1, 3, 4 };
-   auto sg = TNL::Graphs::makeSubGraph( graph, indexes );
-   EXPECT_EQ( sg.getVertexCount(), 5 );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph, indexes );
+   EXPECT_EQ( subgraph.getVertexCount(), 5 );
    // Edges between active vertices {0,1,3,4}: (0,1), (1,3), (3,4) => 3 edges.
    // Edge (0,2) is filtered because target 2 is inactive.
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
@@ -231,20 +231,20 @@ test_makeSubGraph_indexed_with_edge_filter()
    using CounterVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
    IndexVectorType indexes{ 0, 1, 3 };
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       indexes,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
       {
          return w <= 2;
       } );
-   EXPECT_EQ( sg.getVertexCount(), 5 );
+   EXPECT_EQ( subgraph.getVertexCount(), 5 );
    // vertices {0,1,3} active, edges with w<=2 between active: only (0,1,w=1).
    // Edge (0,2,w=2) is filtered because target 2 is inactive.
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
@@ -267,10 +267,10 @@ void
 test_interface()
 {
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
-   EXPECT_EQ( sg.getVertexCount(), 5 );
-   EXPECT_TRUE( sg.isDirected() );
-   EXPECT_FALSE( sg.isUndirected() );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
+   EXPECT_EQ( subgraph.getVertexCount(), 5 );
+   EXPECT_TRUE( subgraph.isDirected() );
+   EXPECT_FALSE( subgraph.isUndirected() );
 }
 
 TYPED_TEST( SubGraphTest, interface )
@@ -284,14 +284,14 @@ test_getView_getConstView()
 {
    using IndexType = typename GraphType::IndexType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
          return v != 2;
       } );
-   auto view = sg.getView();
-   auto constView = sg.getConstView();
+   auto view = subgraph.getView();
+   auto constView = subgraph.getConstView();
    EXPECT_EQ( view.getVertexCount(), 5 );
    EXPECT_EQ( constView.getVertexCount(), 5 );
    EXPECT_FALSE( view.vertexExists( 2 ) );
@@ -315,7 +315,7 @@ test_member_vertexExists()
 {
    using IndexType = typename GraphType::IndexType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -325,8 +325,8 @@ test_member_vertexExists()
    EXPECT_TRUE( graph.vertexExists( IndexType( 0 ) ) );
    EXPECT_TRUE( graph.vertexExists( IndexType( 2 ) ) );
    // SubGraph: delegates to filter
-   EXPECT_TRUE( sg.vertexExists( IndexType( 0 ) ) );
-   EXPECT_FALSE( sg.vertexExists( IndexType( 2 ) ) );
+   EXPECT_TRUE( subgraph.vertexExists( IndexType( 0 ) ) );
+   EXPECT_FALSE( subgraph.vertexExists( IndexType( 2 ) ) );
 }
 
 TYPED_TEST( SubGraphTest, member_vertexExists )
@@ -341,7 +341,7 @@ test_member_edgeExists()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
@@ -352,8 +352,8 @@ test_member_edgeExists()
    EXPECT_TRUE( graph.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
    EXPECT_TRUE( graph.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
    // SubGraph: delegates to filter
-   EXPECT_TRUE( sg.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
-   EXPECT_FALSE( sg.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 0 ), IndexType( 1 ), ValueType( 1 ) ) );
+   EXPECT_FALSE( subgraph.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
 }
 
 TYPED_TEST( SubGraphTest, member_edgeExists )
@@ -395,19 +395,19 @@ hasEdge( const Graph& g, Index src, Index tgt, Value w )
 // SubGraph view whose getVertexDegree is __cuda_callable__).
 template< typename SubGraphType, typename Index >
 typename SubGraphType::IndexType
-getVertexDegreeOnDevice( const SubGraphType& sg, Index vertexIdx )
+getVertexDegreeOnDevice( const SubGraphType& subgraph, Index vertexIdx )
 {
    using DeviceType = typename SubGraphType::DeviceType;
    using IndexType = typename SubGraphType::IndexType;
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( 1, -1 );
    auto resultView = result.getView();
-   auto sgView = sg.getConstView();
+   auto subgraphView = subgraph.getConstView();
    TNL::Algorithms::parallelFor< DeviceType >(
       vertexIdx,
       vertexIdx + 1,
       [ = ] __cuda_callable__( IndexType idx ) mutable
       {
-         resultView[ 0 ] = sgView.getVertexDegree( idx );
+         resultView[ 0 ] = subgraphView.getVertexDegree( idx );
       } );
    return result.getElement( 0 );
 }
@@ -421,9 +421,9 @@ test_materialize_no_filter()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
 
-   auto result = sg.materialize();
+   auto result = subgraph.materialize();
 
    EXPECT_EQ( result.getVertexCount(), 5 );
    // All edges preserved (no filter).
@@ -447,14 +447,14 @@ test_materialize_vertex_filter()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
          return v != 2;
       } );
 
-   auto result = sg.materialize();
+   auto result = subgraph.materialize();
 
    // Vertex count preserved (Variant A).
    EXPECT_EQ( result.getVertexCount(), 5 );
@@ -480,7 +480,7 @@ test_materialize_edge_filter()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
@@ -488,7 +488,7 @@ test_materialize_edge_filter()
          return w <= 3;
       } );
 
-   auto result = sg.materialize();
+   auto result = subgraph.materialize();
 
    EXPECT_EQ( result.getVertexCount(), 5 );
    // Edges with w<=3: (0,1), (0,2), (1,3) -> 3.
@@ -512,7 +512,7 @@ test_materialize_both_filters()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -523,7 +523,7 @@ test_materialize_both_filters()
          return w <= 3;
       } );
 
-   auto result = sg.materialize();
+   auto result = subgraph.materialize();
 
    EXPECT_EQ( result.getVertexCount(), 5 );
    // vertex 2 inactive -> edges touching it are filtered: (0,2) and (2,3).
@@ -551,9 +551,9 @@ test_materialize_masked()
    using IndexVectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
    IndexVectorType indexes{ 0, 1, 3, 4 };  // vertex 2 inactive
-   auto sg = TNL::Graphs::makeSubGraph( graph, indexes );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph, indexes );
 
-   auto result = sg.materialize();
+   auto result = subgraph.materialize();
 
    EXPECT_EQ( result.getVertexCount(), 5 );
    // vertex 2 inactive -> edges touching it are filtered: (0,2) and (2,3).
@@ -597,8 +597,8 @@ void
 test_materialize_member_function()
 {
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
-   auto result = sg.materialize();
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
+   auto result = subgraph.materialize();
    static_assert(
       std::is_same_v<
          decltype( result ),
@@ -636,12 +636,12 @@ void
 test_getVertexDegree_no_filter()
 {
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 2 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 1 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 1 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 0 ), 2 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 1 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 2 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 3 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_no_filter )
@@ -658,17 +658,17 @@ test_getVertexDegree_vertex_filter()
 {
    using IndexType = typename GraphType::IndexType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
          return v != 2;
       } );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 1 );  // edge to 2 filtered (target inactive)
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 0 );  // vertex itself inactive
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 1 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 0 ), 1 );  // edge to 2 filtered (target inactive)
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 1 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 2 ), 0 );  // vertex itself inactive
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 3 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_vertex_filter )
@@ -684,18 +684,18 @@ test_getVertexDegree_edge_filter()
    using IndexType = typename GraphType::IndexType;
    using ValueType = typename GraphType::ValueType;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
       {
          return w <= 3;
       } );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 2 );  // edges (0,1,1) and (0,2,2) pass
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );  // edge (1,3,3) passes
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 0 );  // edge (2,3,4) filtered out
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 0 );  // edge (3,4,5) filtered out
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 0 ), 2 );  // edges (0,1,1) and (0,2,2) pass
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 1 ), 1 );  // edge (1,3,3) passes
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 2 ), 0 );  // edge (2,3,4) filtered out
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 3 ), 0 );  // edge (3,4,5) filtered out
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_edge_filter )
@@ -714,12 +714,12 @@ test_getVertexDegree_masked()
    using IndexVectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
    IndexVectorType indexes{ 0, 1, 3, 4 };  // vertex 2 inactive
-   auto sg = TNL::Graphs::makeSubGraph( graph, indexes );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 0 ), 1 );  // edge to 2 filtered (target inactive)
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 1 ), 1 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 2 ), 0 );  // vertex itself inactive
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 3 ), 1 );
-   EXPECT_EQ( getVertexDegreeOnDevice( sg, 4 ), 0 );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph, indexes );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 0 ), 1 );  // edge to 2 filtered (target inactive)
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 1 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 2 ), 0 );  // vertex itself inactive
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 3 ), 1 );
+   EXPECT_EQ( getVertexDegreeOnDevice( subgraph, 4 ), 0 );
 }
 
 TYPED_TEST( SubGraphTest, getVertexDegree_masked )

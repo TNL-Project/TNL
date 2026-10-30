@@ -56,8 +56,8 @@ connectedComponentsExample()
       return ! ( src == 1 && tgt == 2 );
    };
    VectorType componentsEdge;
-   auto sgEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge12 );
-   TNL::Graphs::Algorithms::connectedComponents( sgEdge, componentsEdge );
+   auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge12 );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphEdge, componentsEdge );
    std::cout << "Components (edge 1->2 blocked): " << componentsEdge << "\n";
    //! [cc edge predicate]
 
@@ -67,8 +67,8 @@ connectedComponentsExample()
     * Vertex 2 is inactive and gets label -1.
     */
    VectorType componentsInduced;
-   auto sgInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 3, 4, 5 } );
-   TNL::Graphs::Algorithms::connectedComponents( sgInduced, componentsInduced );
+   auto subgraphInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 3, 4, 5 } );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphInduced, componentsInduced );
    std::cout << "Components (induced on {0,1,3,4,5}): " << componentsInduced << "\n";
    //! [cc induced]
 
@@ -77,8 +77,8 @@ connectedComponentsExample()
     * Combined induced-subgraph + edge-predicate CC.
     */
    VectorType componentsInducedEdge;
-   auto sgInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 3, 4, 5 }, blockEdge12 );
-   TNL::Graphs::Algorithms::connectedComponents( sgInducedEdge, componentsInducedEdge );
+   auto subgraphInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 3, 4, 5 }, blockEdge12 );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphInducedEdge, componentsInducedEdge );
    std::cout << "Components (induced on {0,1,3,4,5}, edge 1->2 blocked): " << componentsInducedEdge << "\n";
    //! [cc induced edge predicate]
 
@@ -87,13 +87,13 @@ connectedComponentsExample()
     * Predicate-based CC: activate only vertices with index != 2.
     * The vertex predicate (vertex) -> bool selects active vertices.
     */
-   auto activeNe2 = [] __cuda_callable__( IndexType vertex )
+   auto activeNotEqual2 = [] __cuda_callable__( IndexType vertex )
    {
       return vertex != 2;
    };
    VectorType componentsIf;
-   auto sgIf = TNL::Graphs::makeSubGraph( graph, activeNe2 );
-   TNL::Graphs::Algorithms::connectedComponents( sgIf, componentsIf );
+   auto subgraphIf = TNL::Graphs::makeSubGraph( graph, activeNotEqual2 );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphIf, componentsIf );
    std::cout << "Components (active if vertex != 2): " << componentsIf << "\n";
    //! [cc if]
 
@@ -102,8 +102,8 @@ connectedComponentsExample()
     * Combined predicate + edge-predicate CC.
     */
    VectorType componentsIfEdge;
-   auto sgIfEdge = TNL::Graphs::makeSubGraph( graph, activeNe2, blockEdge12 );
-   TNL::Graphs::Algorithms::connectedComponents( sgIfEdge, componentsIfEdge );
+   auto subgraphIfEdge = TNL::Graphs::makeSubGraph( graph, activeNotEqual2, blockEdge12 );
+   TNL::Graphs::Algorithms::connectedComponents( subgraphIfEdge, componentsIfEdge );
    std::cout << "Components (active if vertex != 2, edge 1->2 blocked): " << componentsIfEdge << "\n";
    //! [cc if edge predicate]
 }

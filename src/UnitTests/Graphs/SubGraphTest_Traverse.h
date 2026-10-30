@@ -29,11 +29,11 @@ test_forAllEdges_no_filter()
    using DeviceType = typename GraphType::DeviceType;
    using CounterVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
@@ -72,7 +72,7 @@ test_forAllEdges_vertex_filter()
    using DeviceType = typename GraphType::DeviceType;
    using CounterVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -81,7 +81,7 @@ test_forAllEdges_vertex_filter()
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
@@ -122,7 +122,7 @@ test_forAllEdges_edge_filter()
    using DeviceType = typename GraphType::DeviceType;
    using CounterVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
@@ -132,7 +132,7 @@ test_forAllEdges_edge_filter()
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
@@ -174,7 +174,7 @@ test_forAllEdges_both_filters()
    using DeviceType = typename GraphType::DeviceType;
    using CounterVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -187,7 +187,7 @@ test_forAllEdges_both_filters()
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< DeviceType >::add( counterView[ 0 ], 1 );
@@ -230,7 +230,7 @@ test_forAllEdgesIf()
    using DeviceType = typename GraphType::DeviceType;
    using CounterVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -244,7 +244,7 @@ test_forAllEdgesIf()
    auto counterView = counter.getView();
    // user condition: only process source vertices 0 and 1
    TNL::Graphs::forAllEdgesIf(
-      sg,
+      subgraph,
       [] __cuda_callable__( IndexType v )
       {
          return v <= 1;
@@ -292,7 +292,7 @@ test_forAllEdges_collect_targets()
    using DeviceType = typename GraphType::DeviceType;
    using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
@@ -303,7 +303,7 @@ test_forAllEdges_collect_targets()
    IndexVector targets( 5, -1 );
    auto targetsView = targets.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType src, IndexType, IndexType tgt, int ) mutable
       {
          targetsView[ tgt ] = src;
