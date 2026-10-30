@@ -180,6 +180,19 @@ workflow:
         SCCACHE_SKIP_CACHE_CHECK: "1"
     script:
         - *env_setup
+        # GPU test jobs need the device passed into the container, otherwise the tests fail with misleading errors
+        - if [[ ${USE_CUDA} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" ) ]]; then
+              nvidia-smi || {
+                  echo "ERROR, no NVIDIA GPU in the container, check the runner configuration";
+                  exit 1;
+              };
+          fi
+        - if [[ ${USE_HIP} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" ) ]]; then
+              /opt/rocm/bin/rocminfo >/dev/null || {
+                  echo "ERROR, no AMD GPU in the container, check the runner configuration";
+                  exit 1;
+              };
+          fi
         # Write access to the shared cache is limited to the upstream project. Fork pipelines
         # run in the fork, which never sees this project's CI/CD variables, so this guard is
         # defense in depth (group/instance-level credentials, fork MRs run in this project).
