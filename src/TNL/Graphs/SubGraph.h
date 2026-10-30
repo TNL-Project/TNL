@@ -40,12 +40,12 @@ namespace TNL::Graphs {
  *
  * Use \ref makeSubGraph factory functions to create SubGraph instances:
  * ```cpp
- * auto sg1 = makeSubGraph( graph );                                    // full graph
- * auto sg2 = makeSubGraph( graph, vertexPredicate );                   // vertex filter only
- * auto sg3 = makeSubGraph( graph, {}, edgePredicate );                 // edge filter only
- * auto sg4 = makeSubGraph( graph, vertexPredicate, edgePredicate );    // both filters
- * auto sg5 = makeSubGraph( graph, vertexIndexes );                     // vertex mask from indexes
- * auto sg6 = makeSubGraph( graph, vertexIndexes, edgePredicate );      // mask + edge filter
+ * auto subgraph1 = makeSubGraph( graph );                                    // full graph
+ * auto subgraph2 = makeSubGraph( graph, vertexPredicate );                   // vertex filter only
+ * auto subgraph3 = makeSubGraph( graph, {}, edgePredicate );                 // edge filter only
+ * auto subgraph4 = makeSubGraph( graph, vertexPredicate, edgePredicate );    // both filters
+ * auto subgraph5 = makeSubGraph( graph, vertexIndexes );                     // vertex mask from indexes
+ * auto subgraph6 = makeSubGraph( graph, vertexIndexes, edgePredicate );      // mask + edge filter
  * ```
  *
  * \par Example

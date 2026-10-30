@@ -29,8 +29,8 @@ namespace TNL::Graphs::Algorithms {
  * To run SCC on a filtered subgraph, construct a \ref SubGraph via
  * \ref makeSubGraph and pass it:
  * ```cpp
- * auto sg = makeSubGraph( graph, vertexPredicate, edgePredicate );
- * stronglyConnectedComponents( sg, components );
+ * auto subgraph = makeSubGraph( graph, vertexPredicate, edgePredicate );
+ * stronglyConnectedComponents( subgraph, components );
  * ```
  */
 // clang-format on

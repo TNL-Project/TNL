@@ -30,18 +30,18 @@ maskedSubGraphExample()
    // Create an MaskedSubGraph from a list of vertex indexes
    // Only vertices {0, 1, 3, 4} are active; vertex 2 and 5 are excluded
    IndexVector indexes{ 0, 1, 3, 4 };
-   auto sg = TNL::Graphs::makeSubGraph( graph, indexes );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph, indexes );
 
-   std::cout << "Vertex count: " << sg.getVertexCount() << "\n";
-   std::cout << "vertexExists(0): " << sg.vertexExists( 0 ) << "\n";
-   std::cout << "vertexExists(2): " << sg.vertexExists( 2 ) << "\n";
-   std::cout << "vertexExists(5): " << sg.vertexExists( 5 ) << "\n";
+   std::cout << "Vertex count: " << subgraph.getVertexCount() << "\n";
+   std::cout << "vertexExists(0): " << subgraph.vertexExists( 0 ) << "\n";
+   std::cout << "vertexExists(2): " << subgraph.vertexExists( 2 ) << "\n";
+   std::cout << "vertexExists(5): " << subgraph.vertexExists( 5 ) << "\n";
 
    // Traverse: only edges from active vertices are visited
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< Device >::add( counterView[ 0 ], 1 );
@@ -55,7 +55,7 @@ maskedSubGraphExample()
    using ValueType = typename GraphType::ValueType;
 
    // MaskedSubGraph with an additional edge filter (w <= 3)
-   auto sg2 = TNL::Graphs::makeSubGraph(
+   auto subgraph2 = TNL::Graphs::makeSubGraph(
       graph,
       indexes,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
@@ -66,7 +66,7 @@ maskedSubGraphExample()
    CounterVector counter2( 1, 0 );
    auto counter2View = counter2.getView();
    TNL::Graphs::forAllEdges(
-      sg2,
+      subgraph2,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< Device >::add( counter2View[ 0 ], 1 );

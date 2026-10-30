@@ -34,11 +34,11 @@ test_reduceAllVertices_no_filter()
    using DeviceType = typename GraphType::DeviceType;
    using ResultVector = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
    ResultVector result( 5, 0 );
    auto resultView = result.getView();
    TNL::Graphs::reduceAllVertices(
-      sg,
+      subgraph,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
       {
          return w;
@@ -89,7 +89,7 @@ test_reduceAllVertices_vertex_filter()
    using DeviceType = typename GraphType::DeviceType;
    using ResultVector = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -98,7 +98,7 @@ test_reduceAllVertices_vertex_filter()
    ResultVector result( 5, -1 );
    auto resultView = result.getView();
    TNL::Graphs::reduceAllVertices(
-      sg,
+      subgraph,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
       {
          return w;
@@ -149,7 +149,7 @@ test_reduceAllVertices_edge_filter()
    using DeviceType = typename GraphType::DeviceType;
    using ResultVector = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
@@ -159,7 +159,7 @@ test_reduceAllVertices_edge_filter()
    ResultVector result( 5, -1 );
    auto resultView = result.getView();
    TNL::Graphs::reduceAllVertices(
-      sg,
+      subgraph,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
       {
          return w;
@@ -196,11 +196,11 @@ test_reduceAllVertices_max_edge_weight()
    using DeviceType = typename GraphType::DeviceType;
    using ResultVector = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
    const auto graph = makeTestGraph< GraphType >();
-   auto sg = TNL::Graphs::makeSubGraph( graph );
+   auto subgraph = TNL::Graphs::makeSubGraph( graph );
    ResultVector result( 5, 0 );
    auto resultView = result.getView();
    TNL::Graphs::reduceAllVertices(
-      sg,
+      subgraph,
       [] __cuda_callable__( IndexType, IndexType, ValueType w )
       {
          return w;

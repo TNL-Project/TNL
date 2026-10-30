@@ -28,7 +28,7 @@ traverseExample()
    // clang-format on
 
    // SubGraph with vertex filter (exclude vertex 2) and edge filter (w <= 3)
-   auto sg = TNL::Graphs::makeSubGraph(
+   auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       [] __cuda_callable__( IndexType v )
       {
@@ -43,7 +43,7 @@ traverseExample()
    CounterVector counter( 1, 0 );
    auto counterView = counter.getView();
    TNL::Graphs::forAllEdges(
-      sg,
+      subgraph,
       [ = ] __cuda_callable__( IndexType, IndexType, IndexType, int ) mutable
       {
          TNL::Algorithms::AtomicOperations< Device >::add( counterView[ 0 ], 1 );

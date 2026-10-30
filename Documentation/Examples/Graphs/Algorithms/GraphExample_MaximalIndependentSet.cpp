@@ -55,8 +55,8 @@ maximalIndependentSetExample()
       return ! ( ( src == 2 && tgt == 3 ) || ( src == 3 && tgt == 2 ) );
    };
    VectorType independentSetEdge;
-   auto sgEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge23 );
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgEdge, independentSetEdge );
+   auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge23 );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphEdge, independentSetEdge );
    std::cout << "MIS mask (edge 2-3 blocked): " << independentSetEdge << "\n";
    //! [mis edge predicate]
 
@@ -66,8 +66,8 @@ maximalIndependentSetExample()
     * Vertex 4 is inactive and remains 0 in the output.
     */
    VectorType independentSetInduced;
-   auto sgInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 } );
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgInduced, independentSetInduced );
+   auto subgraphInduced = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 } );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphInduced, independentSetInduced );
    std::cout << "MIS mask (induced on {0,1,2,3}): " << independentSetInduced << "\n";
    //! [mis induced]
 
@@ -76,8 +76,8 @@ maximalIndependentSetExample()
     * Combined induced-subgraph + edge-predicate MIS.
     */
    VectorType independentSetInducedEdge;
-   auto sgInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 }, blockEdge23 );
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgInducedEdge, independentSetInducedEdge );
+   auto subgraphInducedEdge = TNL::Graphs::makeSubGraph( graph, VectorType{ 0, 1, 2, 3 }, blockEdge23 );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphInducedEdge, independentSetInducedEdge );
    std::cout << "MIS mask (induced on {0,1,2,3}, edge 2-3 blocked): " << independentSetInducedEdge << "\n";
    //! [mis induced edge predicate]
 
@@ -86,13 +86,13 @@ maximalIndependentSetExample()
     * Predicate-based MIS: activate only vertices with index <= 3.
     * The vertex predicate (vertex) -> bool selects active vertices.
     */
-   auto activeLe3 = [] __cuda_callable__( IndexType vertex )
+   auto activeLessOrEqual3 = [] __cuda_callable__( IndexType vertex )
    {
       return vertex <= 3;
    };
    VectorType independentSetIf;
-   auto sgIf = TNL::Graphs::makeSubGraph( graph, activeLe3 );
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgIf, independentSetIf );
+   auto subgraphIf = TNL::Graphs::makeSubGraph( graph, activeLessOrEqual3 );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphIf, independentSetIf );
    std::cout << "MIS mask (active if vertex <= 3): " << independentSetIf << "\n";
    //! [mis if]
 
@@ -101,8 +101,8 @@ maximalIndependentSetExample()
     * Combined predicate + edge-predicate MIS.
     */
    VectorType independentSetIfEdge;
-   auto sgIfEdge = TNL::Graphs::makeSubGraph( graph, activeLe3, blockEdge23 );
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgIfEdge, independentSetIfEdge );
+   auto subgraphIfEdge = TNL::Graphs::makeSubGraph( graph, activeLessOrEqual3, blockEdge23 );
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphIfEdge, independentSetIfEdge );
    std::cout << "MIS mask (active if vertex <= 3, edge 2-3 blocked): " << independentSetIfEdge << "\n";
    //! [mis if edge predicate]
 
@@ -112,9 +112,9 @@ maximalIndependentSetExample()
    /***
     * Verify that the computed mask is a valid maximal independent set.
     */
-   VectorType misForCheck;
-   TNL::Graphs::Algorithms::maximalIndependentSet( graph, misForCheck );
-   bool isValid = TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, misForCheck );
+   VectorType independentSetForCheck;
+   TNL::Graphs::Algorithms::maximalIndependentSet( graph, independentSetForCheck );
+   bool isValid = TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSetForCheck );
    std::cout << "isMaximalIndependentSet(graph, mis): " << ( isValid ? "true" : "false" ) << "\n";
    //! [is mis basic]
 
@@ -122,9 +122,9 @@ maximalIndependentSetExample()
    /***
     * Verify MIS with the same edge predicate used during computation.
     */
-   VectorType misForCheckEdge;
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgEdge, misForCheckEdge );
-   bool isValidEdge = TNL::Graphs::Algorithms::isMaximalIndependentSet( sgEdge, misForCheckEdge );
+   VectorType independentSetForCheckEdge;
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphEdge, independentSetForCheckEdge );
+   bool isValidEdge = TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphEdge, independentSetForCheckEdge );
    std::cout << "isMaximalIndependentSet(graph, block 2-3, mis): " << ( isValidEdge ? "true" : "false" ) << "\n";
    //! [is mis edge predicate]
 
@@ -132,9 +132,9 @@ maximalIndependentSetExample()
    /***
     * Verify MIS on the induced subgraph.
     */
-   VectorType misForCheckInduced;
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgInduced, misForCheckInduced );
-   bool isValidInduced = TNL::Graphs::Algorithms::isMaximalIndependentSet( sgInduced, misForCheckInduced );
+   VectorType independentSetForCheckInduced;
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphInduced, independentSetForCheckInduced );
+   bool isValidInduced = TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphInduced, independentSetForCheckInduced );
    std::cout << "isMaximalIndependentSet(graph, {0,1,2,3}, mis): " << ( isValidInduced ? "true" : "false" ) << "\n";
    //! [is mis induced]
 
@@ -142,9 +142,10 @@ maximalIndependentSetExample()
    /***
     * Verify induced-subgraph MIS with edge predicate.
     */
-   VectorType misForCheckInducedEdge;
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgInducedEdge, misForCheckInducedEdge );
-   bool isValidInducedEdge = TNL::Graphs::Algorithms::isMaximalIndependentSet( sgInducedEdge, misForCheckInducedEdge );
+   VectorType independentSetForCheckInducedEdge;
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphInducedEdge, independentSetForCheckInducedEdge );
+   bool isValidInducedEdge =
+      TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphInducedEdge, independentSetForCheckInducedEdge );
    std::cout << "isMaximalIndependentSet(graph, {0,1,2,3}, block 2-3, mis): " << ( isValidInducedEdge ? "true" : "false" )
              << "\n";
    //! [is mis induced edge predicate]
@@ -153,9 +154,9 @@ maximalIndependentSetExample()
    /***
     * Verify predicate-induced subgraph MIS.
     */
-   VectorType misForCheckIf;
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgIf, misForCheckIf );
-   bool isValidIf = TNL::Graphs::Algorithms::isMaximalIndependentSet( sgIf, misForCheckIf );
+   VectorType independentSetForCheckIf;
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphIf, independentSetForCheckIf );
+   bool isValidIf = TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphIf, independentSetForCheckIf );
    std::cout << "isMaximalIndependentSetIf(graph, vertex <= 3, mis): " << ( isValidIf ? "true" : "false" ) << "\n";
    //! [is mis if]
 
@@ -163,9 +164,9 @@ maximalIndependentSetExample()
    /***
     * Verify predicate + edge-predicate MIS.
     */
-   VectorType misForCheckIfEdge;
-   TNL::Graphs::Algorithms::maximalIndependentSet( sgIfEdge, misForCheckIfEdge );
-   bool isValidIfEdge = TNL::Graphs::Algorithms::isMaximalIndependentSet( sgIfEdge, misForCheckIfEdge );
+   VectorType independentSetForCheckIfEdge;
+   TNL::Graphs::Algorithms::maximalIndependentSet( subgraphIfEdge, independentSetForCheckIfEdge );
+   bool isValidIfEdge = TNL::Graphs::Algorithms::isMaximalIndependentSet( subgraphIfEdge, independentSetForCheckIfEdge );
    std::cout << "isMaximalIndependentSetIf(graph, vertex <= 3, block 2-3, mis): " << ( isValidIfEdge ? "true" : "false" )
              << "\n";
    //! [is mis if edge predicate]
