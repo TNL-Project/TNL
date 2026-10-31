@@ -1,3 +1,7 @@
+# interface target with the libraries and the compiler and linker flags for tests;
+# every test executable links this target, so that all tests are built in the same way
+add_library(TNL_tests INTERFACE)
+
 # include CTest only when the project is top-level (not when it is added to
 # the build tree of another project with add_subdirectory)
 if(PROJECT_IS_TOP_LEVEL)
@@ -11,18 +15,18 @@ if(PROJECT_IS_TOP_LEVEL)
         # fetch and build GoogleTest from source
         include(FetchGoogleTest)
     endif()
-    set(CXX_TESTS_FLAGS)
-    set(CUDA_TESTS_FLAGS)
-    set(HIP_TESTS_FLAGS)
-    set(TESTS_LIBRARIES GTest::gtest_main)
-    set(TESTS_LINKER_FLAGS "")
+    target_link_libraries(TNL_tests INTERFACE GTest::gtest_main)
 
     if(TNL_BUILD_COVERAGE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-        # set compiler flags needed for code coverage
-        set(CXX_TESTS_FLAGS ${CXX_TESTS_FLAGS} --coverage)
-        set(CUDA_TESTS_FLAGS ${CUDA_TESTS_FLAGS} -Xcompiler --coverage)
-        set(HIP_TESTS_FLAGS ${HIP_TESTS_FLAGS} --coverage)
-        set(TESTS_LINKER_FLAGS ${TESTS_LINKER_FLAGS} --coverage)
+        # set compiler and linker flags needed for code coverage
+        target_compile_options(
+            TNL_tests
+            INTERFACE
+                $<$<COMPILE_LANGUAGE:CXX>:--coverage>
+                "$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler;--coverage>"
+                $<$<COMPILE_LANGUAGE:HIP>:--coverage>
+        )
+        target_link_options(TNL_tests INTERFACE --coverage)
     endif()
 endif()
 
@@ -131,4 +135,109 @@ function(tnl_add_hip_mpi_test)
 
     # set the number of processes used by the test
     set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY PROCESSORS ${TNL_ADD_HIP_MPI_TEST_NPROC})
+endfunction()
+
+# function to add test executables built from the same sources for several backends
+# usage:
+#   tnl_add_test_executables(<name>
+#       SOURCES <source>...
+#       [CUDA_SOURCES <source>...] [HIP_SOURCES <source>...]
+#       [BACKENDS <backend>...] [SINGLE] [OPTIONAL_HOST]
+#       [MPI [NPROC <nproc>]]
+#       [LABELS <label>...]
+#       [COMPILE_DEFINITIONS <definition>...]
+#       [LINK_LIBRARIES <library>...]
+#       [CUDA_LINK_LIBRARIES <library>...] [HIP_LINK_LIBRARIES <library>...])
+# - adds the executables with tnl_add_backend_executables (see target_helpers.cmake),
+#   which is the non-test variant of this function
+# - the executables are linked to the TNL_tests target, which provides the
+#   compiler and linker flags for tests and the GTest libraries
+# - the executables are registered as tests in CTest and named <name> (host),
+#   <name>-cuda and <name>-hip (or just <name> with SINGLE)
+# - MPI enables MPI support and registers each test with NPROC processes
+#   (default: 4) and with 1 process (<target>_nodistr)
+# - LABELS are added to all registered tests
+function(tnl_add_test_executables name)
+    set(options MPI SINGLE OPTIONAL_HOST)
+    set(oneValueArgs NPROC)
+    set(multiValueArgs
+        LABELS
+        SOURCES
+        CUDA_SOURCES
+        HIP_SOURCES
+        BACKENDS
+        COMPILE_DEFINITIONS
+        LINK_LIBRARIES
+        CUDA_LINK_LIBRARIES
+        HIP_LINK_LIBRARIES
+    )
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "tnl_add_test_executables: unknown arguments for '${name}': ${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    if(ARG_MPI AND NOT TNL_BUILD_MPI)
+        return()
+    endif()
+
+    # forward the arguments of tnl_add_backend_executables
+    set(forward)
+    foreach(option IN ITEMS SINGLE OPTIONAL_HOST)
+        if(ARG_${option})
+            list(APPEND forward ${option})
+        endif()
+    endforeach()
+    foreach(
+        arg
+        IN
+        ITEMS SOURCES CUDA_SOURCES HIP_SOURCES BACKENDS CUDA_LINK_LIBRARIES HIP_LINK_LIBRARIES
+    )
+        if(ARG_${arg})
+            list(APPEND forward ${arg} ${ARG_${arg}})
+        endif()
+    endforeach()
+
+    if(NOT ARG_NPROC)
+        set(ARG_NPROC 4)
+    endif()
+
+    set(definitions ${ARG_COMPILE_DEFINITIONS})
+    set(libraries TNL_tests ${ARG_LINK_LIBRARIES})
+    if(ARG_MPI)
+        # enable MPI support in TNL
+        list(APPEND definitions HAVE_MPI)
+        # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+        list(APPEND libraries MPI::MPI_CXX)
+    endif()
+
+    tnl_add_backend_executables(
+        ${name}
+        ${forward}
+        COMPILE_DEFINITIONS ${definitions}
+        LINK_LIBRARIES ${libraries}
+        OUTPUT_TARGETS targets
+        OUTPUT_BACKENDS backends
+    )
+
+    foreach(target backend IN ZIP_LISTS targets backends)
+        set(command "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
+        if(ARG_MPI AND backend STREQUAL "HIP")
+            tnl_add_hip_mpi_test(NAME ${target} NPROC ${ARG_NPROC} COMMAND "${command}")
+            tnl_add_hip_mpi_test(NAME ${target}_nodistr NPROC 1 COMMAND "${command}")
+        elseif(ARG_MPI)
+            tnl_add_mpi_test(NAME ${target} NPROC ${ARG_NPROC} COMMAND "${command}")
+            tnl_add_mpi_test(NAME ${target}_nodistr NPROC 1 COMMAND "${command}")
+        elseif(backend STREQUAL "HIP")
+            tnl_add_hip_test(NAME ${target} COMMAND "${command}")
+        else()
+            tnl_add_test(NAME ${target} COMMAND "${command}")
+        endif()
+
+        if(ARG_LABELS)
+            foreach(test IN ITEMS ${target} ${target}_nodistr)
+                if(TEST ${test})
+                    set_property(TEST ${test} APPEND PROPERTY LABELS ${ARG_LABELS})
+                endif()
+            endforeach()
+        endif()
+    endforeach()
 endfunction()

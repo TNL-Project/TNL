@@ -1,35 +1,31 @@
 add_subdirectory(Ginkgo)
 add_subdirectory(Hypre)
 
-set(CPP_TARGETS tnl-optimize-ranks tnl-turbulence-generator)
-set(CUDA_TARGETS tnl-optimize-ranks-cuda tnl-turbulence-generator-cuda)
+# OPTIONAL_HOST skips building host-only targets in CUDA-enabled CI jobs
+tnl_add_backend_executables(
+    tnl-turbulence-generator
+    SOURCES tnl-turbulence-generator.cpp
+    BACKENDS HOST CUDA
+    OPTIONAL_HOST
+    OUTPUT_TARGETS targets
+)
 
-# skip building host-only targets in CUDA-enabled CI jobs
-if(TNL_BUILD_CPP_TARGETS)
-    foreach(target IN ITEMS ${CPP_TARGETS})
-        add_executable(${target} ${target}.cpp)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
-    endforeach()
-    install(TARGETS ${CPP_TARGETS} RUNTIME DESTINATION bin COMPONENT examples)
-endif()
-
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TARGETS})
-        add_executable(${target} ${target}.cu)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
-    endforeach()
-    install(TARGETS ${CUDA_TARGETS} RUNTIME DESTINATION bin COMPONENT examples)
-endif()
-
+set(MPI_OPTIONS)
 if(TNL_BUILD_MPI)
     # enable MPI support in TNL and add MPI to the targets:
     # https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-    if(TNL_BUILD_CPP_TARGETS)
-        target_compile_definitions(tnl-optimize-ranks PUBLIC "-DHAVE_MPI")
-        target_link_libraries(tnl-optimize-ranks PUBLIC MPI::MPI_CXX)
-    endif()
-    if(TNL_BUILD_CUDA)
-        target_compile_definitions(tnl-optimize-ranks-cuda PUBLIC "-DHAVE_MPI")
-        target_link_libraries(tnl-optimize-ranks-cuda PUBLIC MPI::MPI_CXX)
-    endif()
+    set(MPI_OPTIONS COMPILE_DEFINITIONS HAVE_MPI LINK_LIBRARIES MPI::MPI_CXX)
+endif()
+tnl_add_backend_executables(
+    tnl-optimize-ranks
+    SOURCES tnl-optimize-ranks.cpp
+    BACKENDS HOST CUDA
+    OPTIONAL_HOST
+    ${MPI_OPTIONS}
+    OUTPUT_TARGETS OPTIMIZE_RANKS_TARGETS
+)
+list(APPEND targets ${OPTIMIZE_RANKS_TARGETS})
+
+if(targets)
+    install(TARGETS ${targets} RUNTIME DESTINATION bin COMPONENT examples)
 endif()

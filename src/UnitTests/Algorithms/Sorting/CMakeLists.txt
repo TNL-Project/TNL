@@ -1,41 +1,26 @@
-set(COMMON_TESTS isSortedTest)
-set(CPP_TESTS BubbleSortTest)
-set(CUDA_TESTS SorterTest)
-set(HIP_TESTS SorterTest)
-if(TNL_BUILD_CUDA)
-    set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
-elseif(TNL_BUILD_HIP)
-    set(HIP_TESTS ${HIP_TESTS} ${COMMON_TESTS})
-else()
-    set(CPP_TESTS ${CPP_TESTS} ${COMMON_TESTS})
-endif()
-
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-endforeach()
+tnl_add_test_executables(BubbleSortTest SOURCES BubbleSortTest.cpp BACKENDS HOST)
 
 if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        find_package(CCCL REQUIRED)
-        target_link_libraries(${target} PUBLIC CCCL::CCCL)
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
+    find_package(CCCL REQUIRED)
 elseif(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        find_package(hipcub REQUIRED)
-        target_link_libraries(${target} PUBLIC hip::hipcub)
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
+    find_package(hipcub REQUIRED)
 endif()
+
+# built only for one backend (GPU if available)
+tnl_add_test_executables(
+    isSortedTest
+    SOURCES isSortedTest.h
+    BACKENDS CUDA HIP HOST
+    SINGLE
+    CUDA_LINK_LIBRARIES CCCL::CCCL
+    HIP_LINK_LIBRARIES hip::hipcub
+)
+
+tnl_add_test_executables(
+    SorterTest
+    SOURCES SorterTest.h
+    BACKENDS CUDA HIP
+    SINGLE
+    CUDA_LINK_LIBRARIES CCCL::CCCL
+    HIP_LINK_LIBRARIES hip::hipcub
+)

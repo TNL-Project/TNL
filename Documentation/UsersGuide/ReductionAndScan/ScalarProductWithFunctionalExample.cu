@@ -1,1 +1,0 @@
-ScalarProductWithFunctionalExample.cpp

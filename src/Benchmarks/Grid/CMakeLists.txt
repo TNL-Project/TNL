@@ -1,16 +1,13 @@
 set(GRID_DIMS 1 2 3)
 
+# built only for one backend (GPU if available)
 foreach(DIM IN ITEMS ${GRID_DIMS})
-    if(TNL_BUILD_CUDA)
-        add_executable(tnl-benchmark-grid-${DIM}D tnl-benchmark-grid.cu)
-        target_link_libraries(tnl-benchmark-grid-${DIM}D PUBLIC TNL::TNL)
-    elseif(TNL_BUILD_HIP)
-        add_executable(tnl-benchmark-grid-${DIM}D tnl-benchmark-grid.hip)
-        target_link_libraries(tnl-benchmark-grid-${DIM}D PUBLIC TNL::TNL)
-    else()
-        add_executable(tnl-benchmark-grid-${DIM}D tnl-benchmark-grid.cpp)
-        target_link_libraries(tnl-benchmark-grid-${DIM}D PUBLIC TNL::TNL)
-    endif()
-    target_compile_definitions(tnl-benchmark-grid-${DIM}D PUBLIC -DGRID_DIM=${DIM})
+    tnl_add_backend_executables(
+        tnl-benchmark-grid-${DIM}D
+        SOURCES tnl-benchmark-grid.h
+        BACKENDS CUDA HIP HOST
+        SINGLE
+        COMPILE_DEFINITIONS GRID_DIM=${DIM}
+    )
     install(TARGETS tnl-benchmark-grid-${DIM}D RUNTIME DESTINATION bin COMPONENT benchmarks)
 endforeach()

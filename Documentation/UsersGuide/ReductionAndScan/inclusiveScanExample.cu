@@ -1,1 +1,0 @@
-inclusiveScanExample.cpp

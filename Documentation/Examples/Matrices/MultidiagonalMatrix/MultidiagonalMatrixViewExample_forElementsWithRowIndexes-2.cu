@@ -1,1 +1,0 @@
-MultidiagonalMatrixViewExample_forElementsWithRowIndexes-2.cpp

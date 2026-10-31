@@ -1,48 +1,16 @@
-set(COMMON_TESTS)
-
-set(CPP_TESTS ComplexTest)
-
-set(CUDA_TESTS)
-
-if(TNL_BUILD_CUDA)
-    set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
-else()
-    set(CPP_TESTS ${CPP_TESTS} ${COMMON_TESTS})
-endif()
-
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-endforeach()
-
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
+tnl_add_test_executables(ComplexTest SOURCES ComplexTest.h BACKENDS HOST)
 
 if(HAVE_GMP)
     add_executable(MultiPrecisionTest MultiPrecisionTest.cpp ../MultiPrecision.cpp)
-    target_compile_options(MultiPrecisionTest PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(MultiPrecisionTest PUBLIC TNL::TNL ${TESTS_LIBRARIES} ${GMP_LIBRARIES})
-    target_link_options(MultiPrecisionTest PUBLIC ${TESTS_LINKER_FLAGS})
+    target_link_libraries(MultiPrecisionTest PUBLIC TNL::TNL ${GMP_LIBRARIES} TNL_tests)
     tnl_add_test(MultiPrecisionTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MultiPrecisionTest${CMAKE_EXECUTABLE_SUFFIX})
 endif(HAVE_GMP)
 
 # TODO: Fix the following tests
 #ADD_EXECUTABLE( QuadTest QuadTest.cpp )
-#TARGET_COMPILE_OPTIONS( QuadTest PUBLIC ${CXX_TESTS_FLAGS} )
-#TARGET_LINK_LIBRARIES( QuadTest PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
+#TARGET_LINK_LIBRARIES( QuadTest PUBLIC TNL::TNL TNL_tests )
 #ADD_TEST( QuadTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QuadTest${CMAKE_EXECUTABLE_SUFFIX} )
 
 #ADD_EXECUTABLE( DoubleTest DoubleTest.cpp )
-#TARGET_COMPILE_OPTIONS( DoubleTest PUBLIC ${CXX_TESTS_FLAGS} )
-#TARGET_LINK_LIBRARIES( DoubleTest PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
+#TARGET_LINK_LIBRARIES( DoubleTest PUBLIC TNL::TNL TNL_tests )
 #ADD_TEST( DoubleTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DoubleTest${CMAKE_EXECUTABLE_SUFFIX} )

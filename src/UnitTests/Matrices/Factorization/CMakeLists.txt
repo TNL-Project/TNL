@@ -1,11 +1,1 @@
-set(CPP_TESTS QRTest)
-
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    # add "Matrices" label to the test
-    set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
-endforeach()
+tnl_add_test_executables(QRTest SOURCES QRTest.cpp BACKENDS HOST LABELS Matrices)

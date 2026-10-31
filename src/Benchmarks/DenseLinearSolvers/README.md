@@ -21,11 +21,13 @@ the `--precision all` option.
 The benchmark is built as a single executable, `tnl-benchmark-dense-linear-solvers`, with the backend selected at
 compile time:
 
-| Build | Sources | Linked libraries |
-|-------|---------|------------------|
-| Host only | `tnl-benchmark-dense-linear-solvers.cpp` | `TNL::TNL` |
-| CUDA | `tnl-benchmark-dense-linear-solvers.cu` | `TNL::TNL`, `CUDA::cusolver` |
-| HIP | `tnl-benchmark-dense-linear-solvers.hip` | `TNL::TNL` |
+| Build | Linked libraries |
+|-------|------------------|
+| Host only | `TNL::TNL` |
+| CUDA | `TNL::TNL`, `CUDA::cusolver` |
+| HIP | `TNL::TNL` |
+
+The source is `tnl-benchmark-dense-linear-solvers.h` for all builds.
 
 ## Usage
 

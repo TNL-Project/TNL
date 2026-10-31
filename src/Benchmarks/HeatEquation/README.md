@@ -38,9 +38,9 @@ and the implementation as metadata, and the dataset size is set to the size of o
 
 ## Executable
 
-The build produces a single executable, `tnl-benchmark-heat-equation`, for all backends. CMake compiles it from
-`tnl-benchmark-heat-equation.cpp` for host-only builds, from `tnl-benchmark-heat-equation.cu` for CUDA builds,
-and from `tnl-benchmark-heat-equation.hip` for HIP builds.
+The build produces a single executable, `tnl-benchmark-heat-equation`, for all backends. CMake compiles
+`tnl-benchmark-heat-equation.h` with the host compiler for host-only builds, with the CUDA compiler for CUDA builds,
+and with the HIP compiler for HIP builds.
 
 ## Usage
 

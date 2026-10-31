@@ -3,9 +3,7 @@ set(CPP_TESTS MPICommTest MPIUtilsTest)
 if(TNL_BUILD_MPI)
     foreach(target IN ITEMS ${CPP_TESTS})
         add_executable(${target} ${target}.cpp)
-        target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
+        target_link_libraries(${target} PUBLIC TNL::TNL TNL_tests)
 
         # enable MPI support in TNL
         target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")

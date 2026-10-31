@@ -1,1 +1,0 @@
-UpdateAndResidueExample.cpp

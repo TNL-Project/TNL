@@ -1,1 +1,0 @@
-LambdaMatrixExample_Laplace.cpp

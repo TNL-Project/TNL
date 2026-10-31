@@ -1,18 +1,12 @@
 add_executable(DirectionsTest DirectionsTest.cpp)
-target_compile_options(DirectionsTest PUBLIC ${CXX_TESTS_FLAGS})
-target_link_libraries(DirectionsTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-target_link_options(DirectionsTest PUBLIC ${TESTS_LINKER_FLAGS})
+target_link_libraries(DirectionsTest PUBLIC TNL::TNL TNL_tests)
 
 add_executable(CopyEntitiesTest CopyEntitiesTest.cpp)
-target_compile_options(CopyEntitiesTest PUBLIC ${CXX_TESTS_FLAGS})
-target_link_libraries(CopyEntitiesTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-target_link_options(CopyEntitiesTest PUBLIC ${TESTS_LINKER_FLAGS})
+target_link_libraries(CopyEntitiesTest PUBLIC TNL::TNL TNL_tests)
 
 # TODO: Fix distributed grid.
 #ADD_EXECUTABLE( CutMeshFunctionTest CutMeshFunctionTest.cpp )
-#   TARGET_COMPILE_OPTIONS( CutMeshFunctionTest PUBLIC ${CXX_TESTS_FLAGS} )
-#   TARGET_LINK_LIBRARIES( CutMeshFunctionTest PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
-#   target_link_options( CutMeshFunctionTest PUBLIC ${TESTS_LINKER_FLAGS} )
+#   TARGET_LINK_LIBRARIES( CutMeshFunctionTest PUBLIC TNL::TNL TNL_tests )
 
 tnl_add_test(NAME DirectionsTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DirectionsTest${CMAKE_EXECUTABLE_SUFFIX})
 tnl_add_test(NAME CopyEntitiesTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CopyEntitiesTest${CMAKE_EXECUTABLE_SUFFIX})
@@ -21,42 +15,30 @@ tnl_add_test(NAME CopyEntitiesTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Cop
 if(TNL_BUILD_MPI)
     # TODO: Fix distributed grid.
     #ADD_EXECUTABLE( DistributedGridTest_1D DistributedGridTest_1D.cpp )
-    #TARGET_COMPILE_OPTIONS( DistributedGridTest_1D PUBLIC ${CXX_TESTS_FLAGS} )
-    #TARGET_LINK_LIBRARIES( DistributedGridTest_1D PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
-    #target_link_options( DistributedGridTest_1D PUBLIC ${TESTS_LINKER_FLAGS} )
+    #TARGET_LINK_LIBRARIES( DistributedGridTest_1D PUBLIC TNL::TNL TNL_tests )
 
     #ADD_EXECUTABLE( DistributedGridTest_2D DistributedGridTest_2D.cpp )
-    #TARGET_COMPILE_OPTIONS( DistributedGridTest_2D PUBLIC ${CXX_TESTS_FLAGS} )
-    #TARGET_LINK_LIBRARIES( DistributedGridTest_2D PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
-    #target_link_options( DistributedGridTest_2D PUBLIC ${TESTS_LINKER_FLAGS} )
+    #TARGET_LINK_LIBRARIES( DistributedGridTest_2D PUBLIC TNL::TNL TNL_tests )
 
     #ADD_EXECUTABLE( DistributedGridTest_3D DistributedGridTest_3D.cpp )
-    #TARGET_COMPILE_OPTIONS( DistributedGridTest_3D PUBLIC ${CXX_TESTS_FLAGS} )
-    #TARGET_LINK_LIBRARIES( DistributedGridTest_3D PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
-    #target_link_options( DistributedGridTest_3D PUBLIC ${TESTS_LINKER_FLAGS} )
+    #TARGET_LINK_LIBRARIES( DistributedGridTest_3D PUBLIC TNL::TNL TNL_tests )
 
     #ADD_EXECUTABLE( CutDistributedGridTest CutDistributedGridTest.cpp )
-    #TARGET_COMPILE_OPTIONS( CutDistributedGridTest PUBLIC ${CXX_TESTS_FLAGS} )
-    #TARGET_LINK_LIBRARIES( CutDistributedGridTest PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
-    #target_link_options( CutDistributedGridTest PUBLIC ${TESTS_LINKER_FLAGS} )
+    #TARGET_LINK_LIBRARIES( CutDistributedGridTest PUBLIC TNL::TNL TNL_tests )
 
     #ADD_EXECUTABLE( CutDistributedMeshFunctionTest CutDistributedMeshFunctionTest.cpp )
-    #TARGET_COMPILE_OPTIONS( CutDistributedMeshFunctionTest PUBLIC ${CXX_TESTS_FLAGS} )
-    #TARGET_LINK_LIBRARIES( CutDistributedMeshFunctionTest PUBLIC TNL::TNL ${TESTS_LIBRARIES} )
-    #target_link_options( CutDistributedMeshFunctionTest PUBLIC ${TESTS_LINKER_FLAGS} )
+    #TARGET_LINK_LIBRARIES( CutDistributedMeshFunctionTest PUBLIC TNL::TNL TNL_tests )
 
-    if(TNL_BUILD_CUDA)
-        add_executable(DistributedMeshTest DistributedMeshTest.cu)
-        target_compile_options(DistributedMeshTest PUBLIC ${CUDA_TESTS_FLAGS})
-    elseif(TNL_BUILD_HIP)
-        add_executable(DistributedMeshTest DistributedMeshTest.hip)
-        target_compile_options(DistributedMeshTest PUBLIC ${HIP_TESTS_FLAGS})
-    else()
-        add_executable(DistributedMeshTest DistributedMeshTest.cpp)
-        target_compile_options(DistributedMeshTest PUBLIC ${CXX_TESTS_FLAGS})
-    endif()
-    target_link_libraries(DistributedMeshTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(DistributedMeshTest PUBLIC ${TESTS_LINKER_FLAGS})
+    # built only for one backend (GPU if available), the tests are registered
+    # below with different numbers of processes, so they are not added with
+    # tnl_add_test_executables
+    tnl_add_backend_executables(
+        DistributedMeshTest
+        SOURCES DistributedMeshTest.h ../../main_mpi.h
+        BACKENDS CUDA HIP HOST
+        SINGLE
+        LINK_LIBRARIES TNL_tests
+    )
 
     # TODO: Fix distributed grid.
     #foreach( target IN ITEMS DistributedGridTest_1D DistributedGridTest_2D DistributedGridTest_3D CutDistributedGridTest DistributedMeshTest )

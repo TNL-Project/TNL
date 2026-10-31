@@ -1,152 +1,49 @@
-set(CPP_TESTS NDSubarrayTest StaticNDArrayTest SyncDirectionsTest)
-set(CUDA_TESTS StaticNDArrayTestCuda)
-set(HIP_TESTS StaticNDArrayTestHip)
-if(TNL_BUILD_CUDA)
-    set(CUDA_TESTS
-        ${CUDA_TESTS}
-        NDArrayTest
-        NDArrayReduce_1D_test
-        NDArrayReduce_2D_test
-        NDArrayReduce_3D_test
-        NDArrayReduce_4D_test
-        NDArrayReduce_5D_test
-        NDArrayReduce_6D_test
-        NDArrayReduce_7D_test
-    )
-elseif(TNL_BUILD_HIP)
-    set(HIP_TESTS
-        ${HIP_TESTS}
-        NDArrayTest
-        NDArrayReduce_1D_test
-        NDArrayReduce_2D_test
-        NDArrayReduce_3D_test
-        NDArrayReduce_4D_test
-        NDArrayReduce_5D_test
-        NDArrayReduce_6D_test
-        NDArrayReduce_7D_test
-    )
-else()
-    set(CPP_TESTS
-        ${CPP_TESTS}
-        NDArrayTest
-        NDArrayReduce_1D_test
-        NDArrayReduce_2D_test
-        NDArrayReduce_3D_test
-        NDArrayReduce_4D_test
-        NDArrayReduce_5D_test
-        NDArrayReduce_6D_test
-        NDArrayReduce_7D_test
-    )
-endif()
-
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+foreach(test IN ITEMS NDSubarrayTest SyncDirectionsTest)
+    tnl_add_test_executables(${test} SOURCES ${test}.cpp BACKENDS HOST)
 endforeach()
 
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
+# test with different sources for the host and GPU backends; the CUDA source is also used for HIP
+tnl_add_test_executables(
+    StaticNDArrayTest
+    SOURCES StaticNDArrayTest.cpp
+    CUDA_SOURCES StaticNDArrayTestCuda.cu
+    HIP_SOURCES StaticNDArrayTestCuda.cu
+)
 
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()
+# tests built only for one backend (GPU if available)
+set(COMMON_TESTS
+    NDArrayTest
+    NDArrayReduce_1D_test
+    NDArrayReduce_2D_test
+    NDArrayReduce_3D_test
+    NDArrayReduce_4D_test
+    NDArrayReduce_5D_test
+    NDArrayReduce_6D_test
+    NDArrayReduce_7D_test
+)
 
-if(TNL_BUILD_MPI)
-    set(MPI_TESTS
-        DistributedNDArray_1D_test
-        DistributedNDArray_semi1D_test
-        DistributedNDArrayOverlaps_1D_test
-        DistributedNDArrayOverlaps_semi1D_test
-        DistributedNDArray_2D_test
-        DistributedNDArrayOverlaps_2D_test
-        DistributedNDArray_3D_test
-        DistributedNDArrayOverlaps_3D_test
-    )
-    if(TNL_BUILD_CUDA)
-        foreach(target IN ITEMS ${MPI_TESTS})
-            add_executable(${target} ${target}.cu)
-            target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        endforeach()
-    elseif(TNL_BUILD_HIP)
-        foreach(target IN ITEMS ${MPI_TESTS})
-            add_executable(${target} ${target}.hip)
-            target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        endforeach()
+foreach(test IN ITEMS ${COMMON_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.h BACKENDS CUDA HIP HOST SINGLE)
+endforeach()
+
+set(MPI_TESTS
+    DistributedNDArray_1D_test
+    DistributedNDArray_semi1D_test
+    DistributedNDArrayOverlaps_1D_test
+    DistributedNDArrayOverlaps_semi1D_test
+    DistributedNDArray_2D_test
+    DistributedNDArrayOverlaps_2D_test
+    DistributedNDArray_3D_test
+    DistributedNDArrayOverlaps_3D_test
+)
+
+foreach(test IN ITEMS ${MPI_TESTS})
+    # 4 ranks are enough for 1D tests
+    if(${test} MATCHES "1D")
+        set(_nproc 4)
     else()
-        foreach(target IN ITEMS ${MPI_TESTS})
-            add_executable(${target} ${target}.cpp)
-            target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        endforeach()
+        set(_nproc 12)
     endif()
 
-    foreach(target IN ITEMS ${MPI_TESTS})
-        # enable MPI support in TNL
-        target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-        # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-        target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-    endforeach()
-
-    if(NOT TNL_BUILD_HIP)
-        foreach(target IN ITEMS ${MPI_TESTS})
-            # 4 ranks are enough for 1D tests
-            if(${target} MATCHES "1D")
-                set(_nproc 4)
-            else()
-                set(_nproc 12)
-            endif()
-
-            tnl_add_mpi_test(
-                NAME ${target}
-                NPROC ${_nproc}
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            tnl_add_mpi_test(
-                NAME ${target}_nodistr
-                NPROC 1
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-        endforeach()
-    else()
-        foreach(target IN ITEMS ${MPI_TESTS})
-            # 4 ranks are enough for 1D tests
-            if(${target} MATCHES "1D")
-                set(_nproc 4)
-            else()
-                set(_nproc 12)
-            endif()
-
-            tnl_add_hip_mpi_test(
-                NAME ${target}
-                NPROC ${_nproc}
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            tnl_add_hip_mpi_test(
-                NAME ${target}_nodistr
-                NPROC 1
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-        endforeach()
-    endif()
-endif()
+    tnl_add_test_executables(${test} MPI NPROC ${_nproc} SOURCES ${test}.h BACKENDS CUDA HIP HOST SINGLE)
+endforeach()

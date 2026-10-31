@@ -1,31 +1,6 @@
-set(CPP_TESTS GraphTest_BFS GraphTest_SSSP GraphTest_trees GraphTest_MST)
-set(CUDA_TESTS GraphTest_BFS_cuda GraphTest_SSSP_cuda GraphTest_trees_cuda) # TODO: fix and add GraphTest_MST_cuda
-set(HIP_TESTS GraphTest_BFS_hip GraphTest_SSSP_hip GraphTest_trees_hip) # TODO: fix and add GraphTest_MST_hip
-
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+foreach(test IN ITEMS GraphTest_BFS GraphTest_SSSP GraphTest_trees)
+    tnl_add_test_executables(${test} SOURCES ${test}.h)
 endforeach()
 
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
-
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()
+# TODO: fix and add the CUDA and HIP builds of GraphTest_MST
+tnl_add_test_executables(GraphTest_MST SOURCES GraphTest_MST.h BACKENDS HOST)

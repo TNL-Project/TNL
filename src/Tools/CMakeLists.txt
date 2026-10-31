@@ -10,18 +10,13 @@ set(MESH_TOOLS
     tnl-game-of-life
     tnl-reorder-mesh
     tnl-plot-mesh-ordering
-    tnl-test-distributed-mesh
 )
-set(CUDA_MESH_TOOLS)
-if(TNL_BUILD_CUDA)
-    set(CUDA_MESH_TOOLS ${CUDA_MESH_TOOLS} tnl-test-distributed-mesh)
-endif()
 
 # CGAL tools: will link to CGAL
 set(CGAL_TOOLS tnl-reorder-mesh tnl-plot-mesh-ordering)
 
 # MPI tools: will link to MPI
-set(MPI_TOOLS tnl-game-of-life tnl-test-distributed-mesh)
+set(MPI_TOOLS tnl-game-of-life)
 
 # skip building host-only targets in CUDA-enabled CI jobs
 if(NOT TNL_BUILD_CPP_TARGETS)
@@ -34,12 +29,17 @@ foreach(target IN ITEMS ${MESH_TOOLS})
     add_executable(${target} ${target}.cpp)
     target_link_libraries(${target} PUBLIC TNL::TNL)
 endforeach()
-foreach(target IN ITEMS ${CUDA_MESH_TOOLS})
-    add_executable(${target}-cuda ${target}.cu)
-    target_link_libraries(${target}-cuda PUBLIC TNL::TNL)
-    set(MESH_TOOLS ${MESH_TOOLS} ${target}-cuda)
-    set(MPI_TOOLS ${MPI_TOOLS} ${target}-cuda)
-endforeach()
+
+# mesh tool with MPI built also for CUDA
+tnl_add_backend_executables(
+    tnl-test-distributed-mesh
+    SOURCES tnl-test-distributed-mesh.h
+    BACKENDS HOST CUDA
+    OPTIONAL_HOST
+    OUTPUT_TARGETS DISTRIBUTED_MESH_TOOLS
+)
+list(APPEND MESH_TOOLS ${DISTRIBUTED_MESH_TOOLS})
+list(APPEND MPI_TOOLS ${DISTRIBUTED_MESH_TOOLS})
 
 find_package(ZLIB)
 find_package(tinyxml2)

@@ -35,9 +35,9 @@ One executable is built per grid dimension:
 | `tnl-benchmark-grid-2D` | 2D | `--x-dimension`, `--y-dimension` |
 | `tnl-benchmark-grid-3D` | 3D | `--x-dimension`, `--y-dimension`, `--z-dimension` |
 
-The executables are built from the same sources for all backends: the host build uses `tnl-benchmark-grid.cpp`,
-the CUDA build uses `tnl-benchmark-grid.cu`, and the HIP build uses `tnl-benchmark-grid.hip`. There are no separate
-executables for CUDA or HIP — the target names stay the same, only the compiled source differs.
+The executables are built from the same source `tnl-benchmark-grid.h` for all backends: the host build compiles it
+with the host compiler, the CUDA build with the CUDA compiler, and the HIP build with the HIP compiler. There are no
+separate executables for CUDA or HIP — the target names stay the same, only the compiler differs.
 
 ## Command-line options
 

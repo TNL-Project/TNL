@@ -1,1 +1,0 @@
-SegmentsExample_reduceSegments.cpp

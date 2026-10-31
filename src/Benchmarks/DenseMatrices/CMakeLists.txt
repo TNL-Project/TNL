@@ -3,34 +3,58 @@ option(USE_TENSOR_CORES "Enable to compile with Tensor Core support" OFF)
 
 # TNL Build CPP Targets
 if(TNL_BUILD_CPP_TARGETS)
-    add_executable(tnl-benchmark-dense-matrix-multiplication tnl-benchmark-dense-matrix-multiplication.cpp)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-multiplication
+        SOURCES tnl-benchmark-dense-matrix-multiplication.h
+        BACKENDS HOST
+        SINGLE
+    )
     set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-dense-matrix-multiplication)
 
-    add_executable(tnl-benchmark-dense-matrix-transposition tnl-benchmark-dense-matrix-transposition.cpp)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-transposition
+        SOURCES tnl-benchmark-dense-matrix-transposition.h
+        BACKENDS HOST
+        SINGLE
+    )
     set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-dense-matrix-transposition)
 
-    add_executable(tnl-benchmark-dense-matrix-vector-product tnl-benchmark-dense-matrix-vector-product.cpp)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-vector-product
+        SOURCES tnl-benchmark-dense-matrix-vector-product.h
+        BACKENDS HOST
+        SINGLE
+    )
     set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-dense-matrix-vector-product)
 endif()
 
 # TNL Build CUDA Targets
 if(TNL_BUILD_CUDA)
     find_package(CUDAToolkit REQUIRED)
-    add_executable(tnl-benchmark-dense-matrix-multiplication-cuda tnl-benchmark-dense-matrix-multiplication.cu)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-multiplication-cuda
+        SOURCES tnl-benchmark-dense-matrix-multiplication.h
+        BACKENDS CUDA
+        SINGLE
+    )
     target_include_directories(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
     target_link_libraries(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC CUDA::cublas)
 
-    add_executable(tnl-benchmark-dense-matrix-transposition-cuda tnl-benchmark-dense-matrix-transposition.cu)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-transposition-cuda
+        SOURCES tnl-benchmark-dense-matrix-transposition.h
+        BACKENDS CUDA
+        SINGLE
+    )
     target_include_directories(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
     target_link_libraries(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC CUDA::cublas)
 
-    add_executable(tnl-benchmark-dense-matrix-vector-product-cuda tnl-benchmark-dense-matrix-vector-product.cu)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-vector-product-cuda
+        SOURCES tnl-benchmark-dense-matrix-vector-product.h
+        BACKENDS CUDA
+        SINGLE
+    )
     target_include_directories(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
     target_link_libraries(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC CUDA::cublas)
 
@@ -72,17 +96,29 @@ if(TNL_BUILD_CUDA)
 endif()
 
 if(TNL_BUILD_HIP)
-    add_executable(tnl-benchmark-dense-matrix-multiplication-hip tnl-benchmark-dense-matrix-multiplication.hip)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication-hip PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-multiplication-hip
+        SOURCES tnl-benchmark-dense-matrix-multiplication.h
+        BACKENDS HIP
+        SINGLE
+    )
     find_package(HIPBLAS REQUIRED)
     target_link_libraries(tnl-benchmark-dense-matrix-multiplication-hip PUBLIC roc::hipblas)
 
-    add_executable(tnl-benchmark-dense-matrix-transposition-hip tnl-benchmark-dense-matrix-transposition.hip)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition-hip PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-transposition-hip
+        SOURCES tnl-benchmark-dense-matrix-transposition.h
+        BACKENDS HIP
+        SINGLE
+    )
     target_link_libraries(tnl-benchmark-dense-matrix-transposition-hip PUBLIC roc::hipblas)
 
-    add_executable(tnl-benchmark-dense-matrix-vector-product-hip tnl-benchmark-dense-matrix-vector-product.hip)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product-hip PUBLIC TNL::TNL)
+    tnl_add_backend_executables(
+        tnl-benchmark-dense-matrix-vector-product-hip
+        SOURCES tnl-benchmark-dense-matrix-vector-product.h
+        BACKENDS HIP
+        SINGLE
+    )
     target_link_libraries(tnl-benchmark-dense-matrix-vector-product-hip PUBLIC roc::hipblas)
 
     set(BENCHMARKS

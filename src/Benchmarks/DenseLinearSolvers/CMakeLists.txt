@@ -1,13 +1,14 @@
 if(TNL_BUILD_CUDA)
     find_package(CUDAToolkit REQUIRED)
-    add_executable(tnl-benchmark-dense-linear-solvers tnl-benchmark-dense-linear-solvers.cu)
-    target_link_libraries(tnl-benchmark-dense-linear-solvers PUBLIC TNL::TNL CUDA::cusolver)
-elseif(TNL_BUILD_HIP)
-    add_executable(tnl-benchmark-dense-linear-solvers tnl-benchmark-dense-linear-solvers.hip)
-    target_link_libraries(tnl-benchmark-dense-linear-solvers PUBLIC TNL::TNL)
-else()
-    add_executable(tnl-benchmark-dense-linear-solvers tnl-benchmark-dense-linear-solvers.cpp)
-    target_link_libraries(tnl-benchmark-dense-linear-solvers PUBLIC TNL::TNL)
 endif()
+
+# built only for one backend (GPU if available)
+tnl_add_backend_executables(
+    tnl-benchmark-dense-linear-solvers
+    SOURCES tnl-benchmark-dense-linear-solvers.h
+    BACKENDS CUDA HIP HOST
+    SINGLE
+    CUDA_LINK_LIBRARIES CUDA::cusolver
+)
 
 install(TARGETS tnl-benchmark-dense-linear-solvers RUNTIME DESTINATION bin COMPONENT benchmarks)

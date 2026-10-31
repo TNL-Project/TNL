@@ -49,8 +49,7 @@ if(TNL_BUILD_CUDA)
 
     foreach(bench IN LISTS GRAPH_BENCHMARKS)
         set(target tnl-benchmark-graphs-${bench}-cuda)
-        add_executable(${target} tnl-benchmark-graphs-${bench}.cu)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
+        tnl_add_backend_executables(${target} SOURCES tnl-benchmark-graphs-${bench}.h BACKENDS CUDA SINGLE)
 
         if(NOT bench STREQUAL "mst")
             target_compile_options(${target} PUBLIC ${GUNROCK_FLAGS})
@@ -82,8 +81,7 @@ if(TNL_BUILD_HIP)
 
     foreach(bench IN LISTS GRAPH_BENCHMARKS)
         set(target tnl-benchmark-graphs-${bench}-hip)
-        add_executable(${target} tnl-benchmark-graphs-${bench}.hip)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
+        tnl_add_backend_executables(${target} SOURCES tnl-benchmark-graphs-${bench}.h BACKENDS HIP SINGLE)
 
         if(Boost_GRAPH_FOUND)
             target_link_libraries(${target} PUBLIC Boost::graph)
@@ -100,8 +98,7 @@ set(GRAPH_BENCHMARK_TARGETS)
 
 foreach(bench IN LISTS GRAPH_BENCHMARKS)
     set(target tnl-benchmark-graphs-${bench})
-    add_executable(${target} tnl-benchmark-graphs-${bench}.cpp)
-    target_link_libraries(${target} PUBLIC TNL::TNL)
+    tnl_add_backend_executables(${target} SOURCES tnl-benchmark-graphs-${bench}.h BACKENDS HOST SINGLE)
 
     if(Boost_GRAPH_FOUND)
         target_link_libraries(${target} PUBLIC Boost::graph)

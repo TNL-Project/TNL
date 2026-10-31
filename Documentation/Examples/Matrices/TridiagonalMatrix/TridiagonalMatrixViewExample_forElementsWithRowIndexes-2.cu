@@ -1,1 +1,0 @@
-TridiagonalMatrixViewExample_forElementsWithRowIndexes-2.cpp

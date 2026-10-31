@@ -1,1 +1,0 @@
-DenseMatrixOperationsExample_getProduct.cpp

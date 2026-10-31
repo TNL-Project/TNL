@@ -1,31 +1,10 @@
-set(CPP_TESTS UniquePointerTest SharedPointerTest)
-set(CUDA_TESTS SharedPointerTestCuda DevicePointerTestCuda)
-set(HIP_TESTS SharedPointerTestHip DevicePointerTestHip)
+tnl_add_test_executables(UniquePointerTest SOURCES UniquePointerTest.cpp BACKENDS HOST)
 
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-endforeach()
-
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
-
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()
+# tests with different sources for each backend
+tnl_add_test_executables(
+    SharedPointerTest
+    SOURCES SharedPointerTest.cpp
+    CUDA_SOURCES SharedPointerTestCuda.cu
+    HIP_SOURCES SharedPointerTestHip.hip
+)
+tnl_add_test_executables(DevicePointerTest CUDA_SOURCES DevicePointerTestCuda.cu HIP_SOURCES DevicePointerTestHip.hip)

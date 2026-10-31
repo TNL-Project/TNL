@@ -1,6 +1,7 @@
 add_subdirectory(Segments)
 add_subdirectory(Sorting)
 
+# tests built only for one backend (GPU if available)
 set(COMMON_TESTS
     compressTest
     containsTest
@@ -9,140 +10,33 @@ set(COMMON_TESTS
     Reduction3DTest
 )
 
-set(CPP_TESTS
-    AtomicOperationsTest
+# tests built for all backends
+set(BACKEND_TESTS reduceTest scanTest)
+
+# tests with different sources for each backend: the CUDA and HIP variants
+# differ in the device types and in the workarounds for the GPU compilers
+set(SEPARATE_TESTS
     copyTest
     equalTest
     fillTest
     parallelForTest
-    reduceTest
-    scanTest
-    SegmentedScanTest
     staticForTest
     unrolledForTest
 )
-set(CUDA_TESTS
-    copyTestCuda
-    equalTestCuda
-    fillTestCuda
-    parallelForTestCuda
-    reduceTestCuda
-    scanTestCuda
-    staticForTestCuda
-    unrolledForTestCuda
-)
-set(HIP_TESTS
-    copyTestHip
-    equalTestHip
-    fillTestHip
-    parallelForTestHip
-    reduceTestHip
-    scanTestHip
-    staticForTestHip
-    unrolledForTestHip
-)
-if(TNL_BUILD_CUDA)
-    set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
-elseif(TNL_BUILD_HIP)
-    set(HIP_TESTS ${HIP_TESTS} ${COMMON_TESTS})
-else()
-    set(CPP_TESTS ${CPP_TESTS} ${COMMON_TESTS})
-endif()
 
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+foreach(test IN ITEMS ${COMMON_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.h BACKENDS CUDA HIP HOST SINGLE)
 endforeach()
 
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
+tnl_add_test_executables(AtomicOperationsTest SOURCES AtomicOperationsTest.cpp BACKENDS HOST)
+tnl_add_test_executables(SegmentedScanTest SOURCES SegmentedScanTest.h BACKENDS HOST)
 
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()
+foreach(test IN ITEMS ${BACKEND_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.h)
+endforeach()
 
-if(TNL_BUILD_MPI)
-    add_executable(distributedScanTest distributedScanTest.cpp)
-    target_compile_options(distributedScanTest PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(distributedScanTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(distributedScanTest PUBLIC ${TESTS_LINKER_FLAGS})
-    # enable MPI support in TNL
-    target_compile_definitions(distributedScanTest PUBLIC "-DHAVE_MPI")
-    # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-    target_link_libraries(distributedScanTest PUBLIC MPI::MPI_CXX)
+foreach(test IN ITEMS ${SEPARATE_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.cpp CUDA_SOURCES ${test}Cuda.cu HIP_SOURCES ${test}Hip.hip)
+endforeach()
 
-    if(TNL_BUILD_CUDA)
-        add_executable(distributedScanTestCuda distributedScanTestCuda.cu)
-        target_compile_options(distributedScanTestCuda PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(distributedScanTestCuda PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(distributedScanTestCuda PUBLIC ${TESTS_LINKER_FLAGS})
-        # enable MPI support in TNL
-        target_compile_definitions(distributedScanTestCuda PUBLIC "-DHAVE_MPI")
-        # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-        target_link_libraries(distributedScanTestCuda PUBLIC MPI::MPI_CXX)
-    endif()
-
-    if(TNL_BUILD_HIP)
-        add_executable(distributedScanTestHip distributedScanTestHip.hip)
-        target_compile_options(distributedScanTestHip PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(distributedScanTestHip PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(distributedScanTestHip PUBLIC ${TESTS_LINKER_FLAGS})
-        # enable MPI support in TNL
-        target_compile_definitions(distributedScanTestHip PUBLIC "-DHAVE_MPI")
-        # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-        target_link_libraries(distributedScanTestHip PUBLIC MPI::MPI_CXX)
-    endif()
-
-    tnl_add_mpi_test(
-        NAME distributedScanTest
-        NPROC 4
-        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}"
-    )
-    tnl_add_mpi_test(
-        NAME distributedScanTest_nodistr
-        NPROC 1
-        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTest${CMAKE_EXECUTABLE_SUFFIX}"
-    )
-
-    if(TNL_BUILD_CUDA)
-        tnl_add_mpi_test(
-            NAME distributedScanTestCuda
-            NPROC 4
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestCuda${CMAKE_EXECUTABLE_SUFFIX}"
-        )
-        tnl_add_mpi_test(
-            NAME distributedScanTestCuda_nodistr
-            NPROC 1
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestCuda${CMAKE_EXECUTABLE_SUFFIX}"
-        )
-    endif()
-
-    if(TNL_BUILD_HIP)
-        tnl_add_hip_mpi_test(
-            NAME distributedScanTestHip
-            NPROC 4
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestHip${CMAKE_EXECUTABLE_SUFFIX}"
-        )
-        tnl_add_hip_mpi_test(
-            NAME distributedScanTestHip_nodistr
-            NPROC 1
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/distributedScanTestHip${CMAKE_EXECUTABLE_SUFFIX}"
-        )
-    endif()
-endif()
+tnl_add_test_executables(distributedScanTest MPI SOURCES distributedScanTest.h)

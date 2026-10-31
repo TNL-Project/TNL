@@ -1,1 +1,0 @@
-MaximumNormExample.cpp

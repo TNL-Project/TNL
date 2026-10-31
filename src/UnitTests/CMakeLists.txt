@@ -8,11 +8,7 @@ add_subdirectory(MPI)
 add_subdirectory(Pointers)
 add_subdirectory(Solvers)
 
-set(CPP_TESTS
-    AllocatorsTest
-    AssertTest
-    FileTest
-    LaunchConfigurationTest
+set(HOST_TESTS
     base64Test
     CustomScalarTest
     DiscreteMathTest
@@ -23,48 +19,28 @@ set(CPP_TESTS
     TypeInfoTest
     TypeTraitsTest
 )
-set(CUDA_TESTS AllocatorsTestCuda AssertTestCuda FileTestCuda LaunchConfigurationTestCuda)
-set(HIP_TESTS AllocatorsTestHip AssertTestHip FileTestHip LaunchConfigurationTestHip)
 
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+foreach(test IN ITEMS ${HOST_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.cpp BACKENDS HOST)
 endforeach()
 
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
+tnl_add_test_executables(LaunchConfigurationTest SOURCES LaunchConfigurationTest.h main.h)
 
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()
+# tests with different sources for each backend
+foreach(test IN ITEMS AllocatorsTest AssertTest FileTest)
+    tnl_add_test_executables(${test} SOURCES ${test}.cpp CUDA_SOURCES ${test}Cuda.cu HIP_SOURCES ${test}Hip.hip)
+endforeach()
 
 # special test needing external library
 find_package(ZLIB)
 if(ZLIB_FOUND)
-    foreach(target IN ITEMS zlibCompressionTest)
-        add_executable(${target} ${target}.cpp)
-        target_compile_definitions(${target} PUBLIC "-DHAVE_ZLIB")
-        target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES} ZLIB::ZLIB)
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
+    tnl_add_test_executables(
+        zlibCompressionTest
+        SOURCES zlibCompressionTest.cpp
+        BACKENDS HOST
+        COMPILE_DEFINITIONS HAVE_ZLIB
+        LINK_LIBRARIES ZLIB::ZLIB
+    )
 endif()
 
 if(TNL_BUILD_MPI)
@@ -81,10 +57,8 @@ if(TNL_BUILD_MPI)
             target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
 
             target_compile_definitions(${target} PUBLIC "-DHAVE_HYPRE")
-            target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
             target_include_directories(${target} SYSTEM PUBLIC ${HYPRE_INCLUDE_DIRS})
-            target_link_libraries(${target} PUBLIC ${TESTS_LIBRARIES} ${HYPRE_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
+            target_link_libraries(${target} PUBLIC ${HYPRE_LIBRARIES} TNL_tests)
 
             tnl_add_mpi_test(
                 NAME ${target}

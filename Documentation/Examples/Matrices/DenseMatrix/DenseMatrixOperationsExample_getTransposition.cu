@@ -1,1 +1,0 @@
-DenseMatrixOperationsExample_getTransposition.cpp

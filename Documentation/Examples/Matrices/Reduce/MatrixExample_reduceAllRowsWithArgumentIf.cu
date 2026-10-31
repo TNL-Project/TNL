@@ -1,1 +1,0 @@
-MatrixExample_reduceAllRowsWithArgumentIf.cpp
