@@ -164,8 +164,9 @@ getMinWarpSize()
  * \brief Runtime query for the warp/wavefront size of a specific device.
  *
  * Use this for host-side launch configuration decisions (TPS selection, etc.).
- * For CUDA, always returns 32. For HIP, queries the runtime API for all
- * devices on the first call and returns the cached value afterwards.
+ * For CUDA, always returns 32.
+ * For HIP, queries the runtime API for all devices on the first call
+ * and returns the cached value afterwards.
  *
  * \param deviceId The device ID to query (default: current device).
  */

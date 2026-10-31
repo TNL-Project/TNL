@@ -27,16 +27,18 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
    /**
-    * \brief Resolves the `Default` mapping of `launchConfig` in place and
-    * rejects the mappings without a GPU reduction kernel.
+    * \brief Resolves the `Default` mapping of `launchConfig` in place
+    * and rejects the mappings without a GPU reduction kernel.
     *
-    * The `Default` mapping resolves to the `Uniform` mapping with a warp of
-    * threads per segment, the library-wide GPU default for CSR-based formats.
-    * CSR has no dedicated kernel for the `Adaptive` mapping (that strategy
-    * belongs to AdaptiveCSR, which falls back to CSR when its kernel cannot be
-    * used), so it resolves to the `Default` mapping as well.
-    * The `Tiered` mapping supports at most 256 threads per
-    * segment, the block size of its kernels.
+    * The `Default` mapping resolves to the `Uniform` mapping
+    * with a warp of threads per segment,
+    * the library-wide GPU default for CSR-based formats.
+    * CSR has no dedicated kernel for the `Adaptive` mapping
+    * (that strategy belongs to AdaptiveCSR,
+    * which falls back to CSR when its kernel cannot be used),
+    * so it resolves to the `Default` mapping as well.
+    * The `Tiered` mapping supports at most 256 threads per segment,
+    * the block size of its kernels.
     */
    static void
    resolveLaunchConfiguration( LaunchConfiguration& launchConfig )
@@ -62,15 +64,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    }
 
    /**
-    * \brief Launches the `Uniform` reduction kernel for `threadsPerSegment`
-    * threads per segment.
+    * \brief Launches the `Uniform` reduction kernel
+    * for `threadsPerSegment` threads per segment.
     *
-    * `singleWarpKernel` and `multipleWarpsKernel` return the kernel for the
-    * threads per segment count given as `std::integral_constant`, and `launch`
-    * launches the returned kernel.
-    * The single-warp kernel is used when the threads of a segment fit into one
-    * warp of the current device, i.e. also for 64 threads per segment on AMD
-    * GPUs with 64-wide wavefronts, the multiple-warps kernel otherwise.
+    * `singleWarpKernel` and `multipleWarpsKernel` return the kernel
+    * for the threads per segment count given as `std::integral_constant`,
+    * and `launch` launches the returned kernel.
+    * The single-warp kernel is used
+    * when the threads of a segment fit into one warp of the current device,
+    * i.e. also for 64 threads per segment on AMD GPUs with 64-wide wavefronts,
+    * the multiple-warps kernel otherwise.
     */
    template< typename SingleWarpKernel, typename MultipleWarpsKernel, typename Launch >
    static void
