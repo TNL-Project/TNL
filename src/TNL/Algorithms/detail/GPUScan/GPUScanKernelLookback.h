@@ -73,6 +73,21 @@ enum class LookbackStatus : std::uint8_t
    Prefix = 2,     // block has published its complete prefix
 };
 
+/* Mapping of the lookback (Phase 5 of GPUScanKernelLookback) to the threads
+ * of the block.
+ *
+ * - Thread: thread 0 walks the preceding tiles one by one.
+ * - Warp: the first warp inspects a window of warpSize preceding tiles at
+ *   once (one tile per lane), finds the nearest tile with a published prefix
+ *   by a ballot, and reduces the window up to this tile by warp shuffles.
+ *   This is the variant described by Merrill and Garland and used in CUB.
+ */
+enum class LookbackStrategy : std::uint8_t
+{
+   Thread,
+   Warp,
+};
+
 // The largest epoch which fits into the status word together with the flag.
 constexpr unsigned int maxLookbackEpoch = ~0u >> 2;
 
@@ -157,12 +172,128 @@ loadVolatile( const T& ref )
    }
 }
 
+// Warp shuffle down which supports also the value types that are bitwise
+// copyable, but not trivially copyable (see loadVolatile).
+template< typename T >
+__device__
+T
+warpShuffleDown( const T& value, int delta )
+{
+   if constexpr( std::is_trivially_copyable_v< T > )
+      return Backend::warp_shuffle_down( value, delta );
+   else {
+      static_assert(
+         sizeof( T ) % sizeof( int ) == 0,
+         "warpShuffleDown supports only trivially copyable types and types whose size is a multiple of sizeof(int)" );
+      constexpr int words = sizeof( T ) / sizeof( int );
+      alignas( T ) int buffer[ words ];
+      memcpy( buffer, static_cast< const void* >( &value ), sizeof( T ) );
+      #pragma unroll
+      for( int i = 0; i < words; i++ )
+         buffer[ i ] = Backend::warp_shuffle_down( buffer[ i ], delta );
+      T result;
+      memcpy( static_cast< void* >( &result ), buffer, sizeof( T ) );
+      return result;
+   }
+}
+
+// Returns the mask of the lanes of the calling warp for which the predicate
+// is true. All lanes of the warp must call it.
+__device__
+inline std::uint64_t
+warpBallot( bool predicate )
+{
+   #if defined( __HIP__ )
+   return __ballot( predicate );
+   #else
+   return __ballot_sync( Backend::getWarpFullMask(), predicate );
+   #endif
+}
+
+/* Phase 5 of GPUScanKernelLookback with LookbackStrategy::Warp. It must be
+ * called by all lanes of the first warp of the block. Returns the exclusive
+ * prefix of the tile (the reduction of all preceding tiles) in lane 0; the
+ * return value of the other lanes is undefined.
+ */
+template< typename ValueType, typename Reduction >
+__device__
+ValueType
+warpLookback(
+   const Reduction& reduction,
+   ValueType identity,
+   ValueType blockAggregate,
+   LookbackState< ValueType >* states,
+   unsigned int tileIdx,
+   unsigned int epoch )
+{
+   constexpr int warpSize = Backend::getWarpSize();
+   const int lane = threadIdx.x;
+   const unsigned int aggregateStatus = makeLookbackStatus( epoch, LookbackStatus::Aggregate );
+   const unsigned int prefixStatus = makeLookbackStatus( epoch, LookbackStatus::Prefix );
+
+   // 5a: publish the block aggregate
+   if( lane == 0 ) {
+      states[ tileIdx ].aggregate = blockAggregate;
+      __threadfence();
+      atomicExch( &states[ tileIdx ].status, aggregateStatus );
+   }
+
+   // The prefix is accumulated in lane 0, the other lanes only help with the
+   // windows.
+   ValueType prefix = identity;
+
+   // 5b: inspect the windows of warpSize preceding tiles from right to left,
+   // lane 0 takes the nearest tile of the window. The tiles before the first
+   // one behave as if they published the identity as their prefix.
+   for( long windowEnd = tileIdx; windowEnd > 0; windowEnd -= warpSize ) {
+      const long pred = windowEnd - 1 - lane;
+      ValueType value = identity;
+      bool hasPrefix = true;
+      if( pred >= 0 ) {
+         unsigned int status;
+         do {
+            status = loadAcquire( &states[ pred ].status );
+         } while( status != aggregateStatus && status != prefixStatus );
+         hasPrefix = status == prefixStatus;
+         value = hasPrefix ? loadVolatile( states[ pred ].prefix ) : loadVolatile( states[ pred ].aggregate );
+      }
+
+      // only the tiles up to the nearest one with a prefix are reduced
+      const std::uint64_t prefixMask = warpBallot( hasPrefix );
+      const int stopLane = prefixMask != 0 ? __ffsll( static_cast< long long >( prefixMask ) ) - 1 : warpSize - 1;
+      if( lane > stopLane )
+         value = identity;
+
+      // reduction of the window preserving the order of the tiles: the tiles
+      // of the higher lanes precede the tiles of the lower lanes
+      #pragma unroll
+      for( int offset = 1; offset < warpSize; offset *= 2 ) {
+         const ValueType other = warpShuffleDown( value, offset );
+         if( lane + offset < warpSize )
+            value = reduction( other, value );
+      }
+      prefix = reduction( value, prefix );
+
+      if( prefixMask != 0 )
+         break;
+   }
+
+   // 5c: publish the inclusive prefix
+   if( lane == 0 ) {
+      states[ tileIdx ].prefix = reduction( prefix, blockAggregate );
+      __threadfence();
+      atomicExch( &states[ tileIdx ].status, prefixStatus );
+   }
+   return prefix;
+}
+
 #endif
 
 template<
    ScanType scanType,
    int blockSize,
    int valuesPerThread,
+   LookbackStrategy lookbackStrategy,
    typename InputView,
    typename OutputView,
    typename Reduction,
@@ -231,8 +362,16 @@ GPUScanKernelLookback(
       sharedAggregate = reduction( exclusivePrefix, chunkSum );
    __syncthreads();
 
+   // Phase 5: decoupled lookback - performed by the first warp, see warpLookback.
+   if constexpr( lookbackStrategy == LookbackStrategy::Warp ) {
+      if( threadIdx.x < Backend::getWarpSize() ) {
+         const ValueType prefix = warpLookback( reduction, identity, sharedAggregate, states, tileIdx, epoch );
+         if( threadIdx.x == 0 )
+            sharedPrefix = prefix;
+      }
+   }
    // Phase 5: decoupled lookback - performed by thread 0 only.
-   if( threadIdx.x == 0 ) {
+   else if( threadIdx.x == 0 ) {
       ValueType blockAggregate = sharedAggregate;
       const unsigned int aggregateStatus = makeLookbackStatus( epoch, LookbackStatus::Aggregate );
       const unsigned int prefixStatus = makeLookbackStatus( epoch, LookbackStatus::Prefix );

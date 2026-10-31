@@ -45,6 +45,7 @@
 namespace TNL::Benchmarks::Scan {
 
 using Algorithms::detail::GPUScanKernelLauncher;
+using Algorithms::detail::LookbackStrategy;
 using Algorithms::detail::ScanPhaseType;
 using Algorithms::detail::ScanType;
 
@@ -106,7 +107,8 @@ public:
      variants( parameters.getList< std::string >( "variants" ) ),
      libraries( parameters.getList< std::string >( "libraries" ) ),
      gpuKernels( parameters.getList< std::string >( "gpu-kernels" ) ),
-     valuesPerThread( parameters.getList< int >( "values-per-thread" ) )
+     valuesPerThread( parameters.getList< int >( "values-per-thread" ) ),
+     blockSizes( parameters.getList< int >( "block-sizes" ) )
    {}
 
    void
@@ -123,6 +125,7 @@ public:
                { "value type", getType< Value >() },
                { "size", std::to_string( size ) },
                { "values per thread", "default" },
+               { "block size", "default" },
             } ) );
 
       if( isSelected( variants, "inplace" ) )
@@ -262,12 +265,24 @@ protected:
       }
    }
 
-   // Measures the computation and compares the result with the reference.
+   // Measures the computation and compares the result with the reference. The
+   // block size is "-" for the other libraries (valuesPerThread "-") and
+   // "default" for the TNL scans unless it is given explicitly.
    template< typename Reset, typename Compute >
    void
-   time( Reset& reset, const std::string& performer, const std::string& valuesPerThread, Compute& compute, VectorType& result )
+   time(
+      Reset& reset,
+      const std::string& performer,
+      const std::string& valuesPerThread,
+      Compute& compute,
+      VectorType& result,
+      const std::string& blockSize = "" )
    {
       benchmark.setMetadataElement( { "values per thread", valuesPerThread } );
+      if( ! blockSize.empty() )
+         benchmark.setMetadataElement( { "block size", blockSize } );
+      else
+         benchmark.setMetadataElement( { "block size", valuesPerThread == "-" ? "-" : "default" } );
       benchmark.time< Device >( reset, performer, compute );
       verify( performer, valuesPerThread, result );
    }
@@ -427,16 +442,10 @@ protected:
          a.setValue( Value( 1 ) );
       };
 
-      if( isSelected( gpuKernels, "lookback" ) ) {
-         // valuesPerThread of the other scan kernels is not used by performLookback
-         using Launcher =
-            GPUScanKernelLauncher< Type, ScanPhaseType::WriteInSecondPhase, Value, blockSize, 7, kernelValuesPerThread >;
-         auto compute = [ this ]()
-         {
-            Launcher::performLookback( a, a, 0, size, 0, TNL::Plus{}, Value( 0 ) );
-         };
-         time( reset, "TNL lookback", valuesPerThreadString, compute, a );
-      }
+      if( isSelected( gpuKernels, "lookback" ) )
+         benchmarkLookback< kernelValuesPerThread, LookbackStrategy::Thread >( "TNL lookback", BlockSizeList{} );
+      if( isSelected( gpuKernels, "lookback-warp" ) )
+         benchmarkLookback< kernelValuesPerThread, LookbackStrategy::Warp >( "TNL lookback-warp", BlockSizeList{} );
       if( isSelected( gpuKernels, "scan-then-propagate" ) ) {
          using Launcher =
             GPUScanKernelLauncher< Type, ScanPhaseType::WriteInFirstPhase, Value, blockSize, kernelValuesPerThread >;
@@ -457,6 +466,49 @@ protected:
       }
    }
 
+   // the lookback kernel for all selected block sizes
+   template< int kernelValuesPerThread, LookbackStrategy strategy, int... BlockSizes >
+   void
+   benchmarkLookback( const std::string& performer, std::integer_sequence< int, BlockSizes... > )
+   {
+      ( benchmarkLookback< kernelValuesPerThread, strategy, BlockSizes >( performer ), ... );
+   }
+
+   template< int kernelValuesPerThread, LookbackStrategy strategy, int blockSize >
+   void
+   benchmarkLookback( const std::string& performer )
+   {
+      // the tile must fit into the static shared memory (48 kB) together with
+      // the storage of the block scan, and the block must contain at least
+      // one full warp of any GPU
+      constexpr bool fitsSharedMemory =
+         static_cast< std::size_t >( blockSize ) * kernelValuesPerThread * sizeof( Value ) <= 40 * 1024;
+      if constexpr( fitsSharedMemory && blockSize >= Backend::getMaxWarpSize() ) {
+         if( std::find( blockSizes.begin(), blockSizes.end(), blockSize ) == blockSizes.end() )
+            return;
+         auto reset = [ this ]()
+         {
+            a.setValue( Value( 1 ) );
+         };
+         // the block size and values per thread of the other scan kernels are
+         // not used by performLookback
+         using Launcher = GPUScanKernelLauncher<
+            Type,
+            ScanPhaseType::WriteInSecondPhase,
+            Value,
+            defaultBlockSize< Value >,
+            7,
+            blockSize,
+            kernelValuesPerThread,
+            strategy >;
+         auto compute = [ this ]()
+         {
+            Launcher::performLookback( a, a, 0, size, 0, TNL::Plus{}, Value( 0 ) );
+         };
+         time( reset, performer, std::to_string( kernelValuesPerThread ), compute, a, std::to_string( blockSize ) );
+      }
+   }
+
    // the two-phase scan, which is used by the launcher when the input does
    // not fit into one grid
    template< typename Launcher >
@@ -474,6 +526,7 @@ protected:
    const std::vector< std::string > libraries;
    const std::vector< std::string > gpuKernels;
    const std::vector< int > valuesPerThread;
+   const std::vector< int > blockSizes;
    int size = 0;
    std::string operation;
    int inputValue = 1;

@@ -13,7 +13,13 @@ namespace TNL::Benchmarks::Scan {
 
 // Values per thread of the explicitly selected GPU scan kernels compiled into
 // the benchmark. They must be odd, see GPUTileScan.
-using ValuesPerThreadList = std::integer_sequence< int, 7, 9, 11, 13, 15, 17, 19 >;
+using ValuesPerThreadList = std::integer_sequence< int, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31 >;
+
+// Block sizes of the explicitly selected lookback kernels compiled into the
+// benchmark. The other kernels use the default block size of the launcher.
+// The combinations whose tile does not fit into the static shared memory are
+// skipped, see ScanBenchmark::benchmarkLookback.
+using BlockSizeList = std::integer_sequence< int, 64, 128, 256, 512, 1024 >;
 
 template< int... Values >
 std::vector< int >
