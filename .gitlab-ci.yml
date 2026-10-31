@@ -43,9 +43,16 @@ workflow:
     BUILD_COVERAGE: "no"
     BUILD_DOC: "no"  # only used in the "documentation" job
     # toolchain flags defaults
-    CMAKE_CXX_FLAGS: ""
+    # The runners mix hosts with and without AVX-512, so compile for the common baseline
+    # (x86-64-v3, i.e. AVX2). Host-specific objects would otherwise end up in the shared
+    # sccache and crash with SIGILL on a host with fewer instruction set extensions: nvhpc
+    # targets the local CPU by default, and TNL_USE_MARCH_NATIVE_FLAG would add -march=native
+    # to Release builds if it was ever enabled.
+    TNL_USE_MARCH_NATIVE_FLAG: "no"
+    CMAKE_C_FLAGS: "-march=x86-64-v3"
+    CMAKE_CXX_FLAGS: "-march=x86-64-v3"
     CMAKE_CUDA_FLAGS: ""
-    CMAKE_HIP_FLAGS: ""
+    CMAKE_HIP_FLAGS: "-march=x86-64-v3"
     CMAKE_EXE_LINKER_FLAGS: ""
     CMAKE_SHARED_LINKER_FLAGS: ""
     # avoid Open MPI abort on dual-accelerator hosts (both CUDA and ROCm detected)
@@ -68,6 +75,8 @@ workflow:
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
+        # nvcc does not accept -march itself, so forward it to the host compiler
+        CMAKE_CUDA_FLAGS: "-Xcompiler=-march=x86-64-v3"
         # CUDA builds run on runners with GPU passthrough
         OMPI_MCA_accelerator: "cuda"
 
@@ -81,6 +90,9 @@ workflow:
         CC: nvc
         CUDACXX: nvcc
         CUDAHOSTCXX: nvc++
+        # nvcc does not accept -march itself, so forward it to the nvc++ host compiler;
+        # nvc++ otherwise targets the CPU of the machine that compiles the code
+        CMAKE_CUDA_FLAGS: "-Xcompiler=-march=x86-64-v3"
         # CUDA builds run on runners with GPU passthrough
         OMPI_MCA_accelerator: "cuda"
 
@@ -93,7 +105,7 @@ workflow:
         CC: clang
         CUDAHOSTCXX: clang++
         # also use LLVM's libc++ instead of GCC's libstdc++ (which is used by default)
-        CMAKE_CXX_FLAGS: "-stdlib=libc++"
+        CMAKE_CXX_FLAGS: "-stdlib=libc++ -march=x86-64-v3"
         # use the LLVM linker and link to libc++
         CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld -lc++ -lc++abi"
         CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld -lc++ -lc++abi"
@@ -109,8 +121,8 @@ workflow:
         CUDACXX: clang++
         CUDAHOSTCXX: clang++
         # CUDA does not support libc++ on x86 systems
-        CMAKE_CUDA_FLAGS: "-stdlib=libstdc++"
-        CMAKE_CXX_FLAGS: "-stdlib=libstdc++ -Wno-error=pass-failed"
+        CMAKE_CUDA_FLAGS: "-stdlib=libstdc++ -march=x86-64-v3"
+        CMAKE_CXX_FLAGS: "-stdlib=libstdc++ -Wno-error=pass-failed -march=x86-64-v3"
         CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld -lomp"
         CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld -lomp"
         USE_CUDA: "yes"
@@ -220,6 +232,7 @@ workflow:
         - cmake -B "./build/$CI_JOB_NAME_SLUG" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
                 -DCMAKE_INSTALL_PREFIX="$(pwd)/install_prefix/$CI_JOB_NAME_SLUG"
+                -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}"
                 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}"
                 -DCMAKE_CUDA_FLAGS="${CMAKE_CUDA_FLAGS}"
                 -DCMAKE_HIP_FLAGS="${CMAKE_HIP_FLAGS}"
@@ -229,6 +242,7 @@ workflow:
                 -DTNL_USE_MPI=${USE_MPI}
                 -DTNL_USE_CUDA=${USE_CUDA}
                 -DTNL_USE_HIP=${USE_HIP}
+                -DTNL_USE_MARCH_NATIVE_FLAG=${TNL_USE_MARCH_NATIVE_FLAG}
                 -DTNL_BUILD_COVERAGE=${BUILD_COVERAGE}
                 -DTNL_USE_CI_FLAGS=yes
         # build the given targets
@@ -422,7 +436,7 @@ alpine:
         CXX: g++
         CC: gcc
         # avoid spurious error due to Alpine's GCC
-        CMAKE_CXX_FLAGS: "-Wno-error=array-bounds"
+        CMAKE_CXX_FLAGS: "-Wno-error=array-bounds -march=x86-64-v3"
 
 debian:
     stage: build:host
@@ -450,6 +464,8 @@ debian:
           fi
     extends:
         - .build_template
+    variables:
+        <<: *default_cmake_flags
     parallel:
         matrix:
             - MATRIX_TARGET:
