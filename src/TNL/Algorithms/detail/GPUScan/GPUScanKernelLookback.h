@@ -7,15 +7,47 @@
  *
  * Each CUDA block loads its tile of blockSize * valuesPerThread elements into
  * shared memory, computes the per-thread chunk sums and their block-wide scan,
- * and publishes the block aggregate in the LookbackState array. Thread 0 then
- * walks the states of the preceding blocks from right to left, accumulating
- * their aggregates until it reaches a block which has already published its
- * complete prefix. The block publishes its own prefix, so that the succeeding
- * blocks can stop their walk early, and finally scans the tile with the prefix
- * as the initial value and writes the result to the output. The whole scan is
- * done by one kernel launch. The tiles are assigned to the blocks dynamically
- * via an atomic counter in the order in which the blocks start, so that the
- * lookback does not depend on the order in which the blocks are scheduled.
+ * and publishes the block aggregate in the LookbackState array. The block then
+ * looks back at the states of the preceding blocks from right to left,
+ * accumulating their aggregates until it reaches a block which has already
+ * published its complete prefix. The block publishes its own prefix, so that
+ * the succeeding blocks can stop their lookback early, and finally scans the
+ * tile with the prefix as the initial value and writes the result to the
+ * output. The whole scan is done by one kernel launch. The tiles are assigned
+ * to the blocks dynamically via an atomic counter in the order in which the
+ * blocks start, so that the lookback does not depend on the order in which
+ * the blocks are scheduled.
+ *
+ * The lookback is performed in one of two ways (see LookbackStrategy):
+ *
+ * - Thread: thread 0 inspects the preceding tiles one by one. Each step waits
+ *   for one load from the L2 cache, so a lookback over k tiles takes k
+ *   sequential load latencies.
+ * - Warp: the first warp inspects a window of warpSize preceding tiles at
+ *   once, lane i takes the tile tileIdx - 1 - i (the paragraph "Parallelized
+ *   look-back" of the reference below). Each lane waits for the state of its
+ *   tile and loads its prefix or aggregate. A ballot over the lanes whose tile
+ *   has a prefix finds the nearest such tile (the lowest set bit), the values
+ *   of the farther tiles are replaced by the identity (they are included in
+ *   that prefix), and the window is reduced by warp shuffles. The reduction
+ *   preserves the order of the tiles (the higher lanes hold the preceding
+ *   tiles), so the reduction does not have to be commutative. This replaces
+ *   the segmented reduction of the paper. If no tile of the window has a
+ *   prefix, the window is moved warpSize tiles back. A lookback over k tiles
+ *   takes about k / warpSize load latencies, but each window loads warpSize
+ *   states and waits until all of them are valid, even when the nearest tile
+ *   already has a prefix.
+ *
+ * The length of the lookback grows with the number of tiles processed
+ * concurrently, i.e. with the number of multiprocessors. Measured on seven
+ * GPUs, the warp lookback is 20-35 % faster on large GPUs (A100, RTX 5080),
+ * 8-20 % on the RX 7900 GRE and a few percent on small GPUs (RTX 2070 Super,
+ * RTX 3060). On the RTX 3060, the thread lookback is even 3-8 % faster for
+ * 8- and 16-byte value types, where the states of the whole window take
+ * 1-1.5 kB. The paper considers the extra work of the parallel lookback
+ * often negligible, but it pays off only when the lookback is long. The warp
+ * lookback is the default (see GPUScanLookbackDefaults in GPUScan.h), the
+ * thread lookback is used for blocks smaller than a warp.
  *
  * Usage (see GPUScanKernelLauncher in GPUScan.h): the complete scan in
  * GPUScanKernelLauncher::perform when the input is larger than one tile and
@@ -36,8 +68,8 @@
  * mutex which is held until the synchronously launched kernel finishes.
  *
  * Reference:
- * D. Merrill, M. Garland, "Single-pass Parallel Prefix Sum with Decoupled
- * Lookback", NVIDIA Technical Report NVR-2016-002, 2016.
+ * D. Merrill, M. Garland, "Single-pass Parallel Prefix Scan with Decoupled
+ * Look-back", NVIDIA Technical Report NVR-2016-002, 2016.
  * https://research.nvidia.com/publication/2016-03_Single-pass-Parallel-Prefix-Sum-Decoupled-Lookback
  */
 
@@ -74,13 +106,14 @@ enum class LookbackStatus : std::uint8_t
 };
 
 /* Mapping of the lookback (Phase 5 of GPUScanKernelLookback) to the threads
- * of the block.
+ * of the block, see the description at the top of this file.
  *
  * - Thread: thread 0 walks the preceding tiles one by one.
  * - Warp: the first warp inspects a window of warpSize preceding tiles at
  *   once (one tile per lane), finds the nearest tile with a published prefix
  *   by a ballot, and reduces the window up to this tile by warp shuffles.
- *   This is the variant described by Merrill and Garland and used in CUB.
+ *   This is the parallelized lookback described by Merrill and Garland and
+ *   used in CUB. It requires the block size to be at least warpSize.
  */
 enum class LookbackStrategy : std::uint8_t
 {
