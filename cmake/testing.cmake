@@ -76,9 +76,10 @@ function(tnl_add_mpi_test)
     set_property(TEST ${ADD_TEST_MPI_NAME} PROPERTY PROCESSORS ${ADD_TEST_MPI_NPROC})
 endfunction()
 
-# function to add a HIP test with RUN_SERIAL property
-# Parallel execution of HIP tests oversubscribes the GPU hardware queues,
-# causing amdgpu kernel warnings and potential lockups on AMD GPUs.
+# function to add a HIP test that holds the GPU resource lock
+# Parallel execution of GPU tests oversubscribes the GPU hardware queues,
+# causing amdgpu kernel warnings and potential lockups on AMD GPUs, so all
+# tests that use a GPU take the same resource lock and never run concurrently.
 # usage: tnl_add_hip_test(NAME <name> COMMAND <command> [<arg>...])
 function(tnl_add_hip_test)
     set(options)
@@ -86,10 +87,11 @@ function(tnl_add_hip_test)
     set(multiValueArgs COMMAND)
     cmake_parse_arguments(TNL_ADD_HIP_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    add_test(NAME ${TNL_ADD_HIP_TEST_NAME} COMMAND ${TNL_ADD_HIP_TEST_COMMAND})
+    # also bounds the number of OpenMP threads used by the test
+    tnl_add_test(NAME ${TNL_ADD_HIP_TEST_NAME} COMMAND ${TNL_ADD_HIP_TEST_COMMAND})
 
-    # serialize HIP tests to avoid GPU queue oversubscription
-    set_property(TEST ${TNL_ADD_HIP_TEST_NAME} PROPERTY RUN_SERIAL TRUE)
+    # serialize GPU tests to avoid oversubscription of the GPU hardware queues
+    set_property(TEST ${TNL_ADD_HIP_TEST_NAME} PROPERTY RESOURCE_LOCK gpu)
 
     # add "HIP" label to the test for ctest filtering
     set_property(TEST ${TNL_ADD_HIP_TEST_NAME} PROPERTY LABELS HIP)
@@ -121,8 +123,8 @@ function(tnl_add_hip_mpi_test)
     # set OMP_NUM_THREADS=1 to disable OpenMP for MPI tests
     set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY ENVIRONMENT "OMP_NUM_THREADS=1")
 
-    # serialize HIP tests to avoid GPU queue oversubscription
-    set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY RUN_SERIAL TRUE)
+    # serialize GPU tests to avoid oversubscription of the GPU hardware queues
+    set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY RESOURCE_LOCK gpu)
 
     # add labels for filtering
     set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY LABELS "HIP;MPI")
