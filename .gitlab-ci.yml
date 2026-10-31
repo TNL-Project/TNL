@@ -435,8 +435,10 @@ alpine:
         <<: *default_cmake_flags
         CXX: g++
         CC: gcc
-        # avoid spurious error due to Alpine's GCC
-        CMAKE_CXX_FLAGS: "-Wno-error=array-bounds -march=x86-64-v3"
+        # avoid spurious errors due to Alpine's GCC: -Warray-bounds is a known false positive,
+        # and -Wfree-nonheap-object fires in the Array copy in EntitySeedEq at -O3 with
+        # -march=x86-64-v3, although the same code compiles in the glibc-based GCC jobs
+        CMAKE_CXX_FLAGS: "-Wno-error=array-bounds -Wno-error=free-nonheap-object -march=x86-64-v3"
 
 debian:
     stage: build:host
