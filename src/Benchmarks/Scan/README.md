@@ -22,7 +22,8 @@ The following implementations (performers) are measured:
 | Performer | Description | Devices | `values per thread` |
 |-----------|-------------|---------|---------------------|
 | `TNL` | The public API (`Algorithms::inplaceInclusiveScan`, `inclusiveScan`, etc.) | all | `default` |
-| `TNL lookback` | The single-pass kernel with decoupled lookback (`GPUScanKernelLookback`) | GPU, `inplace` only | number |
+| `TNL lookback` | The single-pass kernel with decoupled lookback (`GPUScanKernelLookback`) performed by one thread of the block (`LookbackStrategy::Thread`) | GPU, `inplace` only | number |
+| `TNL lookback-warp` | The same kernel with the lookback performed by the first warp of the block (`LookbackStrategy::Warp`) | GPU, `inplace` only | number |
 | `TNL scan-then-propagate` | The two-phase scan with `ScanPhaseType::WriteInFirstPhase` (`GPUScanKernelIndependentTiles` and `GPUScanKernelUniformShift`) | GPU, `inplace` only | number |
 | `TNL reduce-then-scan` | The two-phase scan with `ScanPhaseType::WriteInSecondPhase` (`GPUScanKernelUpsweep` and `GPUScanKernelDownsweep`) | GPU, `inplace` only | number |
 | `std::partial_sum` | C++ standard library, inclusive scan only | sequential | `-` |
@@ -36,12 +37,16 @@ The other libraries are measured only for the arithmetic value types and only in
 and `1-vector` variants. The Thrust host algorithms are reported on the `host` device when the
 Thrust host backend is parallel (TBB or OpenMP), otherwise on the `sequential` device.
 
-The explicitly selected GPU kernels use the default block size of the launcher, which is
-`256 * 4 / sizeof(value type)` (i.e. 1 kB of values per value of each thread), and the given
-number of values per thread. The number of values per thread is a template parameter, so the
-benchmark contains a fixed set of values: 7, 9, 11, 13, 15, 17, 19 (see `ValuesPerThreadList` in
-`scan-common.h`; the values must be odd to avoid shared memory bank conflicts). The two-phase
-kernels are measured even for the sizes where the launcher would select the lookback kernel.
+The explicitly selected two-phase GPU kernels use the default block size of the launcher, which
+is `256 * 4 / sizeof(value type)` (i.e. 1 kB of values per value of each thread), and the given
+number of values per thread. The lookback kernels are measured for each of the given block sizes
+(`--block-sizes`), which is logged in the `block size` column; the combinations whose tile does not
+fit into 40 kB of shared memory or whose block is smaller than a warp are skipped. The number of
+values per thread and the block size are template parameters, so the benchmark contains a fixed
+set of values: 7, 9, ..., 31 values per thread (see `ValuesPerThreadList` in `scan-common.h`; the
+values must be odd to avoid shared memory bank conflicts) and the block sizes 64, 128, 256, 512,
+1024 (see `BlockSizeList`). The two-phase kernels are measured even for the sizes where the
+launcher would select the lookback kernel.
 
 The result of each measurement is compared with a reference computed sequentially on the host,
 and a mismatch is reported on the standard error output. For floating-point types, the
@@ -68,13 +73,15 @@ The benchmark-specific options are:
 | `--scan-type <type>` | `inclusive`, `exclusive`, or `all` | `all` |
 | `--variants <list>` | `inplace`, `1-vector`, `2-vectors`, `3-vectors`, or `all` | `all` |
 | `--libraries <list>` | `tnl`, `std`, `thrust`, `cub` (CUB or hipCUB), `rocprim`, or `all` | `all` |
-| `--gpu-kernels <list>` | `default` (the public API), `lookback`, `scan-then-propagate`, `reduce-then-scan`, or `all` | `default` |
-| `--values-per-thread <list>` | Values per thread of the explicitly selected GPU kernels | `7 9 11 13 15 17 19` |
+| `--gpu-kernels <list>` | `default` (the public API), `lookback`, `lookback-warp`, `scan-then-propagate`, `reduce-then-scan`, or `all` | `default` |
+| `--values-per-thread <list>` | Values per thread of the explicitly selected GPU kernels | `7 9 ... 31` |
+| `--block-sizes <list>` | Block sizes of the explicitly selected lookback kernels | `64 128 256 512 1024` |
 | `--min-size <n>` | Minimum size of the scanned arrays | `100000` |
 | `--max-size <n>` | Maximum size of the scanned arrays | `25600000` |
 | `--size-step-factor <n>` | Each following size is `size-step-factor * previous size` | `4` |
 
-The values of `--values-per-thread` must be among the compiled values listed above. In addition,
+The values of `--values-per-thread` and `--block-sizes` must be among the compiled values listed
+above. In addition,
 the common benchmark settings (e.g. `--loops`, `--log-file`, `--verbose`) and the device settings
 (`--openmp-enabled`, `--openmp-max-threads` and `--cuda-device` or `--hip-device`) are
 available. The number of threads of the host scan is set by `--openmp-max-threads`.

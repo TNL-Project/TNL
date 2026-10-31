@@ -107,11 +107,16 @@ configSetup( Config::ConfigDescription& config )
       { "default" } );
    config.addEntryEnum( "default" );
    config.addEntryEnum( "lookback" );
+   config.addEntryEnum( "lookback-warp" );
    config.addEntryEnum( "scan-then-propagate" );
    config.addEntryEnum( "reduce-then-scan" );
    config.addEntryEnum( "all" );
    config.addList< int >(
       "values-per-thread", "Values per thread of the explicitly selected GPU kernels.", toVector( ValuesPerThreadList{} ) );
+   config.addList< int >(
+      "block-sizes",
+      "Block sizes of the explicitly selected lookback kernels. The other kernels use the default block size.",
+      toVector( BlockSizeList{} ) );
    config.addEntry< int >( "min-size", "Minimum size of the scanned arrays.", 100000 );
    config.addEntry< int >( "max-size", "Maximum size of the scanned arrays.", 25600000 );
    config.addEntry< int >(
@@ -141,6 +146,8 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
    }
    if( ! checkCompiledValues( parameters, "values-per-thread", toVector( ValuesPerThreadList{} ) ) )
+      return EXIT_FAILURE;
+   if( ! checkCompiledValues( parameters, "block-sizes", toVector( BlockSizeList{} ) ) )
       return EXIT_FAILURE;
 
    if( ! Devices::Host::setup( parameters ) || ! Devices::GPU::setup( parameters ) )

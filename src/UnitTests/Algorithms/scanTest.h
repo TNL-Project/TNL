@@ -1399,6 +1399,79 @@ TEST( ScanStaticVectorTest, lookback_kernel_16_byte_value_type )
       EXPECT_EQ( result, inclusive_host ) << "in-place inclusive scan with offset " << offset;
    }
 }
+
+// Test of both lookback strategies with small tiles, so that there are many
+// more tiles than lanes in a warp and the warp lookback has to inspect several
+// windows of the preceding tiles. The thread lookback is not used by default,
+// so it is tested here explicitly.
+template< typename ValueType, ScanType scanType, LookbackStrategy strategy >
+void
+testLookbackStrategy()
+{
+   using DeviceType = Devices::GPU;
+   using IndexType = int;
+   using HostArrayType = Array< ValueType, Devices::Sequential, IndexType >;
+   using Launcher = GPUScanKernelLauncher<
+      scanType,
+      ScanPhaseType::WriteInSecondPhase,
+      ValueType,
+      GPUScanLookbackDefaults< ValueType >::blockSize,
+      7,
+      Backend::getMaxWarpSize(),
+      3,
+      strategy >;
+
+   for( const IndexType size : { 100, 10007, 100003 } ) {
+      HostArrayType input_host( size );
+      for( IndexType i = 0; i < size; i++ )
+         input_host[ i ] = ValueType( i % 7 );
+      HostArrayType expected_host;
+      expected_host = input_host;
+      if constexpr( scanType == ScanType::Inclusive )
+         inplaceInclusiveScan( expected_host, 0, size, std::plus<>{}, ValueType( 0 ) );
+      else
+         inplaceExclusiveScan( expected_host, 0, size, std::plus<>{}, ValueType( 0 ) );
+
+      Array< ValueType, DeviceType, IndexType > input;
+      Array< ValueType, DeviceType, IndexType > output( size );
+      input = input_host;
+      HostArrayType result;
+
+      // the scan is repeated to check that the states of the previous scan are not used
+      for( int repetition = 0; repetition < 3; repetition++ ) {
+         output.setValue( ValueType( -1 ) );
+         Launcher::performLookback( input, output, 0, size, 0, std::plus<>{}, ValueType( 0 ) );
+         result = output;
+         EXPECT_EQ( result, expected_host ) << "size " << size << ", repetition " << repetition;
+      }
+   }
+}
+
+TEST( ScanLookbackStrategyTest, thread_int )
+{
+   testLookbackStrategy< int, ScanType::Inclusive, LookbackStrategy::Thread >();
+   testLookbackStrategy< int, ScanType::Exclusive, LookbackStrategy::Thread >();
+}
+
+TEST( ScanLookbackStrategyTest, warp_int )
+{
+   testLookbackStrategy< int, ScanType::Inclusive, LookbackStrategy::Warp >();
+   testLookbackStrategy< int, ScanType::Exclusive, LookbackStrategy::Warp >();
+}
+
+TEST( ScanLookbackStrategyTest, thread_static_vector )
+{
+   using ValueType = StaticVector< 2, double >;
+   testLookbackStrategy< ValueType, ScanType::Inclusive, LookbackStrategy::Thread >();
+   testLookbackStrategy< ValueType, ScanType::Exclusive, LookbackStrategy::Thread >();
+}
+
+TEST( ScanLookbackStrategyTest, warp_static_vector )
+{
+   using ValueType = StaticVector< 2, double >;
+   testLookbackStrategy< ValueType, ScanType::Inclusive, LookbackStrategy::Warp >();
+   testLookbackStrategy< ValueType, ScanType::Exclusive, LookbackStrategy::Warp >();
+}
 #endif
 
 #include "../main.h"
