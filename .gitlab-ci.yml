@@ -189,6 +189,8 @@ workflow:
         # fails the server startup, and a failed write probe silently downgrades the cache to
         # read-only, so trust the configured rw_mode instead
         SCCACHE_SKIP_CACHE_CHECK: "1"
+        # TEMPORARY DEBUG FOR CACHE ERRORS
+        SCCACHE_LOG: sccache=debug
     script:
         - *env_setup
         # GPU test jobs need the device passed into the container, otherwise the tests fail with misleading errors
