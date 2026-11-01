@@ -15,6 +15,7 @@ set(CPP_TESTS
     SegmentsTest_SortedEllpack
     SegmentsTest_SortedSlicedEllpack
     GrowingSegmentsTest
+    SegmentsLaunchConfigurationTest
 )
 
 set(CUDA_TESTS
@@ -31,6 +32,7 @@ set(CUDA_TESTS
     SegmentsTest_SortedEllpack_cuda
     SegmentsTest_SortedSlicedEllpack_cuda
     GrowingSegmentsTest_cuda
+    SegmentsLaunchConfigurationTest_cuda
 )
 
 set(HIP_TESTS
@@ -47,6 +49,7 @@ set(HIP_TESTS
     SegmentsTest_SortedEllpack_hip
     SegmentsTest_SortedSlicedEllpack_hip
     GrowingSegmentsTest_hip
+    SegmentsLaunchConfigurationTest_hip
 )
 
 foreach(target IN ITEMS ${CPP_TESTS})

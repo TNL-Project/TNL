@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
+#include "LaunchConfiguration.h"
 #include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
@@ -48,6 +49,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
       Function&& function,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "ChunkedEllpack" );
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
       auto segmentToSliceMapping = segments.getSegmentToSliceMappingView();
@@ -123,6 +125,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
       Function&& function,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "ChunkedEllpack" );
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
       auto segmentToSliceMapping = segments.getSegmentToSliceMappingView();

@@ -11,6 +11,14 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
+/**
+ * \brief Implementation of \ref reduceSegments_BiEllpack
+ * for `fetch` taking the segment index, the local index and the global index.
+ *
+ * One thread is assigned to every segment of the range [`begin`, `end`)
+ * and it sequentially reduces the elements of its segment
+ * in all groups of its strip it occupies.
+ */
 template<
    int BlockDim,
    typename SegmentsView,
@@ -21,7 +29,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsKernelWithAllParameters(
+reduceSegments_BiEllpack_WithAllParameters_impl(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -67,6 +75,21 @@ reduceSegmentsKernelWithAllParameters(
 #endif
 }
 
+/**
+ * \brief Implementation of \ref reduceSegments_BiEllpack
+ * for `fetch` taking only the global index.
+ *
+ * Every warp processes one strip;
+ * the group pointers of the strips of the block are first loaded into shared memory.
+ * In every group, each of the `groupHeight` threads reduces one row of the group.
+ * For the row-major organization, a row is a contiguous part of one segment,
+ * so the partial result can be accumulated directly.
+ * For the column-major organization,
+ * the warp reads the group with coalesced accesses
+ * and the partial results of the rows of the group
+ * are combined by a reduction in shared memory.
+ * The results are finally reordered by the segments permutation.
+ */
 template<
    int BlockDim,
    typename SegmentsView,
@@ -77,7 +100,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsKernel(
+reduceSegments_BiEllpack_impl(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -190,6 +213,21 @@ reduceSegmentsKernel(
 #endif
 }
 
+/**
+ * \brief Kernel reducing a contiguous range of BiEllpack segments.
+ *
+ * The segments are grouped into strips of `warpSize` segments sorted
+ * by their sizes (see \ref TNL::Algorithms::Segments::BiEllpack),
+ * and each strip is divided into `log2( warpSize ) + 1` groups
+ * whose heights halve from `warpSize` to 1.
+ * A segment consists of its elements in the first groups of its strip,
+ * the number of which depends on its position within the sorted strip.
+ *
+ * It calls \ref reduceSegments_BiEllpack_impl,
+ * which processes each strip by a warp, if `fetch` takes only the global index,
+ * and \ref reduceSegments_BiEllpack_WithAllParameters_impl,
+ * which uses one thread per segment, otherwise.
+ */
 template<
    typename SegmentsView,
    typename Index,
@@ -200,7 +238,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernel(
+reduceSegments_BiEllpack(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -211,11 +249,20 @@ BiEllpackReduceSegmentsKernel(
    Value identity )
 {
    if constexpr( callableArgumentCount< Fetch >() == 3 )
-      reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
+      reduceSegments_BiEllpack_WithAllParameters_impl< BlockDim >(
+         segments, gridIdx, begin, end, fetch, reduction, storer, identity );
    else
-      reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
+      reduceSegments_BiEllpack_impl< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
+/**
+ * \brief Kernel reducing the BiEllpack segments given explicitly
+ * by `segmentIndexes`.
+ *
+ * One thread is assigned to every entry of `segmentIndexes`
+ * and it reduces the elements of its segment sequentially,
+ * like \ref reduceSegments_BiEllpack_WithAllParameters_impl.
+ */
 template<
    typename SegmentsView,
    typename ArrayView,
@@ -227,7 +274,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithIndexes(
+reduceSegments_BiEllpack_WithIndexes(
    SegmentsView segments,
    ArrayView segmentIndexes,
    Index gridIdx,
@@ -279,6 +326,14 @@ BiEllpackReduceSegmentsKernelWithIndexes(
 #endif
 }
 
+/**
+ * \brief Implementation of \ref reduceSegments_BiEllpack_WithArgument.
+ *
+ * One thread is assigned to every segment of the range [`begin`, `end`)
+ * and it sequentially reduces the elements of its segment together
+ * with the local index of the partial result,
+ * like \ref reduceSegments_BiEllpack_WithAllParameters_impl.
+ */
 template<
    int BlockDim,
    typename SegmentsView,
@@ -289,7 +344,7 @@ template<
    typename Value >
 __device__
 void
-reduceSegmentsKernelWithAllParametersWithArgument(
+reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -348,6 +403,12 @@ reduceSegmentsKernelWithAllParametersWithArgument(
 #endif
 }
 
+/**
+ * \brief Kernel reducing a contiguous range of BiEllpack segments with argument.
+ *
+ * It always uses one thread per segment,
+ * see \ref reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl.
+ */
 template<
    typename SegmentsView,
    typename Index,
@@ -358,7 +419,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithArgument(
+reduceSegments_BiEllpack_WithArgument(
    SegmentsView segments,
    Index gridIdx,
    Index begin,
@@ -369,10 +430,18 @@ BiEllpackReduceSegmentsKernelWithArgument(
    Value identity )
 {
    //Currently we do not have specialized kernel for short fetch with argument
-   reduceSegmentsKernelWithAllParametersWithArgument< BlockDim >(
+   reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl< BlockDim >(
       segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
+/**
+ * \brief Kernel reducing the BiEllpack segments given explicitly
+ * by `segmentIndexes` with argument.
+ *
+ * One thread is assigned to every entry of `segmentIndexes`
+ * and it reduces the elements of its segment sequentially together
+ * with the local index of the partial result.
+ */
 template<
    typename SegmentsView,
    typename ArrayView,
@@ -384,7 +453,7 @@ template<
    int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithIndexesAndArgument(
+reduceSegments_BiEllpack_WithIndexesAndArgument(
    SegmentsView segments,
    ArrayView segmentIndexes,
    Index gridIdx,

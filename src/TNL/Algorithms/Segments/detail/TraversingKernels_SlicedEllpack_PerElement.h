@@ -7,19 +7,40 @@
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 #include <TNL/Algorithms/find.h>
 #include <TNL/Backend/LaunchHelpers.h>
+#include <TNL/TypeTraits.h>
 
 namespace TNL::Algorithms::Segments::detail {
 
+/**
+ * \brief Kernel for the PerElement thread mapping,
+ * traversing a contiguous range of segments.
+ *
+ * Every block processes `SegmentsPerBlock / SliceSize` consecutive slices.
+ * The offsets of the slices (relative to the first element of the block)
+ * and the segment sizes in the slices are stored in shared memory.
+ * All elements of the block's slices are divided evenly
+ * among the threads of the block regardless of the segment boundaries;
+ * each thread finds the slice its element belongs to
+ * by a binary search in the slice offsets
+ * and computes the segment and the local index within the slice directly,
+ * since all segments in a slice have the same size.
+ * Elements of the segments outside of the range [`begin`, `end`)
+ * (in the first and the last slice) are skipped.
+ *
+ * See \ref forElements_CSR_PerElement
+ * for the general idea of the PerElement mapping and the literature reference.
+ */
 template<
    typename SegmentsConstView,
    typename Index,
    typename Function,
    ElementsOrganization Organization,
    int SliceSize,
+   int SegmentsPerBlock = 256,
    int BlockSize = 256 >
 __global__
 void
-forElementsBlockMergeKernel_SlicedEllpack(
+forElements_SlicedEllpack_PerElement(
    const Index gridIdx,
    const SegmentsConstView segments,
    Index begin,
@@ -27,9 +48,12 @@ forElementsBlockMergeKernel_SlicedEllpack(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   static_assert( SegmentsPerBlock <= BlockSize, "Every segment of the block must have its own thread." );
+   static_assert( SegmentsPerBlock % SliceSize == 0, "The block must process whole slices." );
+   constexpr int SlicesPerBlock = SegmentsPerBlock / SliceSize;
 
-   __shared__ Index shared_offsets[ BlockSize / SliceSize + 1 ];
-   __shared__ Index shared_segments_size[ BlockSize / SliceSize ];
+   __shared__ Index shared_offsets[ SlicesPerBlock + 1 ];
+   __shared__ Index shared_segments_size[ SlicesPerBlock ];
 
    __shared__ Index firstSliceIdx;              // the slice corresponding to the segment with index `begin`
    __shared__ Index lastSliceIdx;               // the slice corresponding to the segment with index `end - 1`
@@ -46,18 +70,18 @@ forElementsBlockMergeKernel_SlicedEllpack(
    }
    __syncthreads();
 
-   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
    const Index segmentInSliceIdx = segmentIdx % SliceSize;
    const Index sliceIdx = segmentIdx / SliceSize;
    if( threadIdx.x == 0 ) {
       firstSegmentInBlock = segmentIdx;
       firstSliceInBlockIdx = firstSegmentInBlock / SliceSize;
       firstSegmentInBlockOffset = segments.getGlobalIndex( firstSegmentInBlock, 0 );  // segmentIdx
-      slicesInBlockCount = min( lastSliceIdx - firstSliceInBlockIdx + 1, BlockSize / SliceSize );
+      slicesInBlockCount = min( lastSliceIdx - firstSliceInBlockIdx + 1, SlicesPerBlock );
    }
    __syncthreads();
 
-   if( segmentInSliceIdx == 0 && segmentIdx < end ) {
+   if( threadIdx.x < SegmentsPerBlock && segmentInSliceIdx == 0 && segmentIdx < end ) {
       shared_offsets[ sliceIdx - firstSliceInBlockIdx ] = segments.getGlobalIndex( segmentIdx, 0 ) - firstSegmentInBlockOffset;
       shared_segments_size[ sliceIdx - firstSliceInBlockIdx ] = segments.getSliceSegmentSizesView()[ sliceIdx ];
    }
@@ -109,136 +133,23 @@ forElementsBlockMergeKernel_SlicedEllpack(
 #endif
 }
 
-template< typename SegmentsConstView, typename Index, typename Function, ElementsOrganization Organization, int SliceSize >
-__global__
-void
-forElementsKernel_SlicedEllpack(
-   const Index gridIdx,
-   const Index threadsPerSegment,
-   const SegmentsConstView segments,
-   Index begin,
-   Index end,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-      if( segmentIdx >= end )
-         return;
-
-      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
-
-      const Index sliceIdx = segmentIdx / SliceSize;
-      const Index segmentInSliceIdx = segmentIdx % SliceSize;
-      const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
-
-      const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-      const Index endIdx = beginIdx + segmentSize;
-      TNL_ASSERT_EQ( beginIdx, segments.getGlobalIndex( segmentIdx, 0 ), "" );
-
-      Index localIdx = laneIdx;
-      for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
-         TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
-         TNL_ASSERT_LT( globalIdx, endIdx, "" );
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( callableArgumentCount< Function >() == 3 )
-            function( segmentIdx, localIdx, globalIdx );
-         else
-            function( segmentIdx, globalIdx );
-         localIdx += threadsPerSegment;
-      }
-   }
-   else {  // ColumnMajorOrder
-      const Index firstSliceIdx = begin / SliceSize;
-      const Index sliceIdx = firstSliceIdx + Backend::getGlobalThreadIdx_x( gridIdx ) / ( SliceSize * threadsPerSegment );
-      const Index inSliceIdx = Backend::getGlobalThreadIdx_x( gridIdx ) % ( SliceSize * threadsPerSegment );
-      const Index inSliceSegmentIdx = inSliceIdx % SliceSize;
-      const Index segmentIdx = sliceIdx * SliceSize + inSliceSegmentIdx;
-
-      if( segmentIdx < begin || segmentIdx >= end )
-         return;
-
-      TNL_ASSERT_LT( sliceIdx, segments.getSliceSegmentSizesView().getSize(), "" );
-      TNL_ASSERT_LT( inSliceSegmentIdx, SliceSize, "" );
-      TNL_ASSERT_LT( segmentIdx, segments.getSegmentCount(), "" );
-      Index localIdx = inSliceIdx / SliceSize;
-
-      const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + inSliceSegmentIdx + localIdx * SliceSize;
-      const Index endIdx = segments.getSliceOffsetsView()[ sliceIdx + 1 ];
-      TNL_ASSERT_LE( endIdx, segments.getStorageSize(), "" );  // equality is for the case when both values equal 0
-
-      const Index step = threadsPerSegment * SliceSize;
-      for( Index globalIdx = beginIdx; globalIdx < endIdx; globalIdx += step ) {
-         TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
-         TNL_ASSERT_LT( globalIdx, endIdx, "" );
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( callableArgumentCount< Function >() == 3 )
-            function( segmentIdx, localIdx, globalIdx );
-         else
-            function( segmentIdx, globalIdx );
-         localIdx += threadsPerSegment;
-      }
-   }
-#endif
-}
-
-template<
-   typename SegmentsConstView,
-   typename ArrayView,
-   typename Index,
-   typename Function,
-   ElementsOrganization Organization,
-   int SliceSize >
-__global__
-void
-forElementsWithSegmentIndexesKernel_SlicedEllpack(
-   const Index gridIdx,
-   const Index threadsPerSegment,
-   const SegmentsConstView segments,
-   const ArrayView segmentIndexes,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-   if( idx >= segmentIndexes.getSize() )
-      return;
-   TNL_ASSERT_GE( idx, 0, "" );
-   TNL_ASSERT_LT( idx, segmentIndexes.getSize(), "" );
-   const Index segmentIdx = segmentIndexes[ idx ];
-   TNL_ASSERT_GE( segmentIdx, 0, "Wrong index segment index - smaller that 0." );
-   TNL_ASSERT_LT( segmentIdx, segments.getSegmentCount(), "Wrong index segment index - larger that the number of indexes." );
-   const Index sliceIdx = segmentIdx / SliceSize;
-   const Index inSliceOffset = segmentIdx % SliceSize;
-
-   const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
-   const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
-
-   if constexpr( Organization == RowMajorOrder ) {
-      Index globalIdx = segments.getSliceOffsetsView()[ sliceIdx ] + inSliceOffset * segmentSize + laneIdx;
-      for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( callableArgumentCount< Function >() == 3 )
-            function( segmentIdx, localIdx, globalIdx );
-         else
-            function( segmentIdx, globalIdx );
-         globalIdx += threadsPerSegment;
-      }
-   }
-   else {
-      Index globalIdx = segments.getSliceOffsetsView()[ sliceIdx ] + inSliceOffset + laneIdx * SliceSize;
-      for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( callableArgumentCount< Function >() == 3 )
-            function( segmentIdx, localIdx, globalIdx );
-         else
-            function( segmentIdx, globalIdx );
-         globalIdx += threadsPerSegment * SliceSize;
-      }
-   }
-#endif
-}
-
+/**
+ * \brief Kernel for the PerElement thread mapping,
+ * traversing the segments given explicitly by `segmentIndexes`.
+ *
+ * Every block processes `SegmentsPerBlock` consecutive entries of `segmentIndexes`.
+ * The local offsets of the segments within the block are computed
+ * by a block-wide exclusive scan of their sizes,
+ * their global offsets are stored separately in shared memory.
+ * All elements of the block's segments are then divided evenly
+ * among the threads of the block
+ * and each thread finds the segment its element belongs to
+ * by a binary search in the local offsets.
+ *
+ * This is the same algorithm as \ref forElements_CSR_PerElement_WithIndexes,
+ * only the global index of an element
+ * is computed according to the SlicedEllpack organization.
+ */
 template<
    typename SegmentsConstView,
    typename ArrayView,
@@ -250,7 +161,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack(
+forElements_SlicedEllpack_PerElement_WithIndexes(
    const Index gridIdx,
    const SegmentsConstView segments,
    const ArrayView segmentIndexes,
@@ -266,7 +177,8 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack(
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
    const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
-   const Index last_local_segment_idx = min( SegmentsPerBlock, segmentIndexes.getSize() - blockIdx.x * SegmentsPerBlock );
+   const Index last_local_segment_idx =
+      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
@@ -339,73 +251,23 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack(
 #endif
 }
 
-template<
-   typename SegmentsConstView,
-   typename Index,
-   typename Condition,
-   typename Function,
-   ElementsOrganization Organization,
-   int SliceSize,
-   int BlockSize = 256 >
-__global__
-void
-forElementsIfKernel_SlicedEllpack(
-   const Index gridIdx,
-   const Index threadsPerSegment,
-   const SegmentsConstView segments,
-   Index begin,
-   Index end,
-   Condition condition,
-   Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-   if( segmentIdx >= end || ! condition( segmentIdx ) )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
-   const Index segmentSize = segments.getSegmentSize( segmentIdx );
-
-   if constexpr( Organization == RowMajorOrder ) {
-      Index globalIdx = segments.getGlobalIndex( segmentIdx, 0 );
-      const Index endIdx = globalIdx + segmentSize;
-      globalIdx += laneIdx;
-      if constexpr( callableArgumentCount< Function >() == 3 ) {
-         Index localIdx = laneIdx;
-         for( ; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
-            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx += threadsPerSegment;
-         }
-      }
-      else {  // callableArgumentCount< Function >() == 2
-         for( ; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
-            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            function( segmentIdx, globalIdx );
-         }
-      }
-   }
-   else {  // Organization == ColumnMajorOrder
-      Index globalIdx = segments.getGlobalIndex( segmentIdx, laneIdx );
-      const Index endIdx = segments.getGlobalIndex( segmentIdx, segmentSize );
-      if constexpr( callableArgumentCount< Function >() == 3 ) {
-         Index localIdx = laneIdx;
-         for( ; globalIdx < endIdx; globalIdx += SliceSize * threadsPerSegment ) {
-            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx += threadsPerSegment;
-         }
-      }
-      else {
-         for( ; globalIdx < endIdx; globalIdx += SliceSize * threadsPerSegment ) {
-            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            function( segmentIdx, globalIdx );
-         }
-      }
-   }
-#endif
-}
-
+/**
+ * \brief Kernel for the PerElement thread mapping,
+ * traversing the segments of a contiguous range that satisfy `condition`.
+ *
+ * Every block evaluates `condition`
+ * for `SegmentsPerBlock` consecutive segments of the range [`begin`, `end`).
+ * The segments satisfying the condition are compacted
+ * using a block-wide inclusive scan of the condition values
+ * and their local offsets are then computed by an exclusive scan of their sizes.
+ * All elements of the active segments are divided evenly
+ * among the threads of the block
+ * and each thread finds the segment its element belongs to by a binary search.
+ *
+ * This is the same algorithm as \ref forElements_CSR_PerElement_If,
+ * only the global index of an element
+ * is computed according to the SlicedEllpack organization.
+ */
 template<
    typename SegmentsConstView,
    typename Index,
@@ -417,7 +279,7 @@ template<
    int BlockSize = 256 >
 __global__
 void
-forElementsIfBlockMergeKernel_SlicedEllpack(
+forElements_SlicedEllpack_PerElement_If(
    const Index gridIdx,
    const SegmentsConstView segments,
    const Index begin,
@@ -467,7 +329,7 @@ forElementsIfBlockMergeKernel_SlicedEllpack(
    __shared__ Index activeSegmentsCount;
    if( threadIdx.x == 0 )
       activeSegmentsCount = conditions[ SegmentsPerBlock - 1 ];
-   const Index prevConditions = ( threadIdx.x == 0 ) ? 0 : conditions[ threadIdx.x - 1 ];
+   const Index prevConditions = ( threadIdx.x == 0 || threadIdx.x > SegmentsPerBlock ) ? 0 : conditions[ threadIdx.x - 1 ];
    if( threadIdx.x < SegmentsPerBlock && conditions[ threadIdx.x ] != prevConditions ) {
       shared_segment_indexes[ conditions[ threadIdx.x ] - 1 ] = segmentIdx;
       shared_global_offsets[ conditions[ threadIdx.x ] - 1 ] =
@@ -476,7 +338,8 @@ forElementsIfBlockMergeKernel_SlicedEllpack(
    }
    __syncthreads();
 
-   Index segmentSize = shared_offsets[ threadIdx.x ];
+   // the threads beyond the segments of the block contribute nothing to the scan
+   const Index segmentSize = ( threadIdx.x <= SegmentsPerBlock ) ? shared_offsets[ threadIdx.x ] : 0;
    const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, exclusive_scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
@@ -494,7 +357,7 @@ forElementsIfBlockMergeKernel_SlicedEllpack(
 
    const Index last_idx = shared_offsets[ activeSegmentsCount ];
    if( activeSegmentsCount > 0 )
-      TNL_ASSERT_LE( last_idx, segments.getStorageSize() - shared_segment_indexes[ 0 ], "" );
+      TNL_ASSERT_LE( last_idx, segments.getStorageSize() - shared_global_offsets[ 0 ], "" );
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {

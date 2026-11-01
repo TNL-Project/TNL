@@ -12,6 +12,8 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
+#include "../HostSegmentsGetter.h"
+
 template< typename Segments >
 void
 test_forElements_EmptySegments()
@@ -73,6 +75,8 @@ test_forElements_EqualSizes()
    VectorType segmentsSizes( segmentsCount );
    segmentsSizes = segmentSize;
    Segments segments( segmentsSizes );
+   typename HostSegmentsGetter< Segments >::type hostSegments;
+   hostSegments = segments;
 
    for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
    {
@@ -92,9 +96,9 @@ test_forElements_EqualSizes()
       host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
          for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ )
-            EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+            EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-               << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
       }
 
       // Test with segments view and just part of segments
@@ -113,11 +117,11 @@ test_forElements_EqualSizes()
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
          for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ )
             if( segmentIdx >= 3 && segmentIdx < segmentsCount - 3 )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                   << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
             else
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], 0 );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], 0 );
       }
    }
 }
@@ -145,6 +149,9 @@ test_forElements()
          } );
 
       Segments segments( segmentsSizes );
+      typename HostSegmentsGetter< Segments >::type hostSegments;
+      hostSegments = segments;
+      const TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostSegmentsSizes( segmentsSizes );
 
       for( const auto& [ launch_config, tag ] :
            TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
@@ -169,17 +176,17 @@ test_forElements()
          host_localIdx_v = localIdx_v;
          host_globalIdx_v = globalIdx_v;
          for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-            for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
-               EXPECT_EQ( host_localIdx_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], localIdx )
+            for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
+               EXPECT_EQ( host_localIdx_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], localIdx )
                   << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx )
-                  << " segment size = " << segments.getSegmentSize( segmentIdx );
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx )
+                  << " segment size = " << hostSegments.getSegmentSize( segmentIdx );
                EXPECT_EQ(
-                  host_globalIdx_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ],
-                  segments.getGlobalIndex( segmentIdx, localIdx ) )
+                  host_globalIdx_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ],
+                  hostSegments.getGlobalIndex( segmentIdx, localIdx ) )
                   << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx )
-                  << " segment size = " << segments.getSegmentSize( segmentIdx );
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx )
+                  << " segment size = " << hostSegments.getSegmentSize( segmentIdx );
             }
          }
 
@@ -187,26 +194,36 @@ test_forElements()
          VectorType v( segments.getStorageSize(), 0 );
          HostVectorType host_v;
          auto v_view = v.getView();
-         TNL::Algorithms::Segments::forElements(
-            segments.getView(),
-            3,
-            segmentsCount - 3,
-            [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
-            {
-               v_view[ globalIdx ] = segmentIdx + localIdx;
-            },
-            launch_config );
+         // the range [ 20, segmentsCount - 20 ) touches more slices of the sliced formats
+         // than ( end - begin ) / slice size, which tests ranges not aligned with slices
+         for( const IndexType rangeMargin : { 3, 20 } ) {
+            SCOPED_TRACE(
+               "range = [ " + std::to_string( rangeMargin ) + ", segmentsCount - " + std::to_string( rangeMargin ) + " )" );
+            const IndexType begin = rangeMargin;
+            const IndexType end = segmentsCount - rangeMargin;
+            v = 0;
+            TNL::Algorithms::Segments::forElements(
+               segments.getView(),
+               begin,
+               end,
+               [ = ] __cuda_callable__(
+                  const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+               {
+                  v_view[ globalIdx ] = segmentIdx + localIdx;
+               },
+               launch_config );
 
-         host_v = v;
-         for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-            for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
-               if( segmentIdx >= 3 && segmentIdx < segmentsCount - 3 )
-                  EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
-                     << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                     << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
-               else
-                  EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], 0 ) << "segmentIdx = " << segmentIdx
-                     << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+            host_v = v;
+            for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+               for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
+                  if( segmentIdx >= begin && segmentIdx < end )
+                     EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+                        << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
+                        << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
+                  else
+                     EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], 0 ) << "segmentIdx = " << segmentIdx
+                        << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
+            }
          }
 
          // Test when calling the lambda function without the local index
@@ -220,9 +237,10 @@ test_forElements()
 
          host_v = v;
          for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-            for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx ) << "segmentIdx = " << segmentIdx
-                  << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+            for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx )
+                  << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
    }
@@ -230,7 +248,7 @@ test_forElements()
 
 // Segments longer than the block size (256 threads), longer than the warp size and
 // shorter than the warp size are traversed differently by some launch configurations,
-// e.g. the dynamic grouping of CSR. Each element must be visited exactly once, with the
+// e.g. the Tiered mapping of CSR. Each element must be visited exactly once, with the
 // index of its own segment and its local index.
 template< typename Segments >
 void
@@ -249,6 +267,8 @@ test_forElements_LongSegments()
    const VectorType segmentsSizes( hostSegmentsSizes );
 
    Segments segments( segmentsSizes );
+   typename HostSegmentsGetter< Segments >::type hostSegments;
+   hostSegments = segments;
 
    for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
    {
@@ -275,7 +295,7 @@ test_forElements_LongSegments()
       const HostVectorType host_localIdx_v( localIdx_v );
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
          for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
-            const IndexType globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
+            const IndexType globalIdx = hostSegments.getGlobalIndex( segmentIdx, localIdx );
             ASSERT_EQ( host_visits_v[ globalIdx ], 1 ) << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
             ASSERT_EQ( host_segmentIdx_v[ globalIdx ], segmentIdx ) << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
             ASSERT_EQ( host_localIdx_v[ globalIdx ], localIdx ) << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
@@ -304,6 +324,9 @@ test_forElementsIf()
       } );
 
    Segments segments( segmentsSizes );
+   typename HostSegmentsGetter< Segments >::type hostSegments;
+   hostSegments = segments;
+   const TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostSegmentsSizes( segmentsSizes );
 
    for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
    {
@@ -326,14 +349,14 @@ test_forElementsIf()
 
       host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
             if( segmentIdx % 2 == 0 )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                   << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
             else
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "segmentIdx = " << segmentIdx
-                  << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "segmentIdx = " << segmentIdx
+                  << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
 
@@ -353,15 +376,15 @@ test_forElementsIf()
 
       host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
             if( segmentIdx % 2 == 0 )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                   << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
 
             else
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "segmentIdx = " << segmentIdx
-                  << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "segmentIdx = " << segmentIdx
+                  << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
 
@@ -383,15 +406,15 @@ test_forElementsIf()
 
       host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
             if( segmentIdx % 2 == 0 )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                   << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
 
             else
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "segmentIdx = " << segmentIdx
-                  << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "segmentIdx = " << segmentIdx
+                  << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
    }
@@ -481,6 +504,9 @@ test_forElementsWithSegmentIndexes()
       } );
 
    Segments segments( segmentsSizes );
+   typename HostSegmentsGetter< Segments >::type hostSegments;
+   hostSegments = segments;
+   const TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostSegmentsSizes( segmentsSizes );
 
    for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
    {
@@ -508,14 +534,14 @@ test_forElementsWithSegmentIndexes()
 
       host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
             if( segmentIdx % 2 == 0 )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                   << "Segment index = " << segmentIdx << " localIdx = " << localIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
             else
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "Segment index = " << segmentIdx
-                  << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "Segment index = " << segmentIdx
+                  << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
 
@@ -532,13 +558,13 @@ test_forElementsWithSegmentIndexes()
 
       host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
             if( segmentIdx % 2 == 0 )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
-                  << "Segment index = " << segmentIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+                  << "Segment index = " << segmentIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
             else
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "Segment index = " << segmentIdx
-                  << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], -1 ) << "Segment index = " << segmentIdx
+                  << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
 
@@ -555,13 +581,13 @@ test_forElementsWithSegmentIndexes()
 
       host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
             if( segmentIdx % 2 == 0 )
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx )
-                  << "globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx )
+                  << "globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
             else
-               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], -1 )
-                  << "globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], -1 )
+                  << "globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
    }
@@ -588,6 +614,9 @@ test_forSegments()
       } );
 
    Segments segments( segmentsSizes );
+   typename HostSegmentsGetter< Segments >::type hostSegments;
+   hostSegments = segments;
+   const TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostSegmentsSizes( segmentsSizes );
 
    VectorType v( segments.getStorageSize() );
    HostVectorType host_v;
@@ -604,10 +633,10 @@ test_forSegments()
 
    host_v = v;
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
-      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
-         EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+      for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
+         EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
             << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-            << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+            << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
       }
 
    // Test with segments view
@@ -624,8 +653,8 @@ test_forSegments()
 
    host_v = v;
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
-         EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx );
+      for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
+         EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx );
    }
 }
 template< typename Segments >
@@ -649,6 +678,9 @@ test_forSegmentsWithIndexes()
       } );
 
    Segments segments( segmentsSizes );
+   typename HostSegmentsGetter< Segments >::type hostSegments;
+   hostSegments = segments;
+   const TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostSegmentsSizes( segmentsSizes );
 
    VectorType v( segments.getStorageSize() );
    HostVectorType host_v;
@@ -674,14 +706,14 @@ test_forSegmentsWithIndexes()
       } );
    host_v = v;
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ ) {
          if( segmentIdx % 2 == 0 )
-            EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+            EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-               << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
          else
-            EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], 0 ) << "segmentIdx = " << segmentIdx
-               << " localIdx = " << localIdx << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+            EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], 0 ) << "segmentIdx = " << segmentIdx
+               << " localIdx = " << localIdx << " globalIdx = " << hostSegments.getGlobalIndex( segmentIdx, localIdx );
       }
    }
 }
@@ -747,6 +779,9 @@ test_forSegmentsSequential()
       } );
 
    Segments segments( segmentsSizes );
+   typename HostSegmentsGetter< Segments >::type hostSegments;
+   hostSegments = segments;
+   const TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType > hostSegmentsSizes( segmentsSizes );
 
    VectorType v( segments.getStorageSize() );
    HostVectorType host_v;
@@ -765,7 +800,7 @@ test_forSegmentsSequential()
 
    host_v = v;
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
-         EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx );
+      for( IndexType localIdx = 0; localIdx < hostSegmentsSizes[ segmentIdx ]; localIdx++ )
+         EXPECT_EQ( host_v[ hostSegments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx );
    }
 }

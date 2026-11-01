@@ -9,6 +9,27 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing a contiguous range of segments of Ellpack segments
+ * with the row-major organization.
+ *
+ * `ThreadsPerSegment` consecutive threads are assigned
+ * to every segment of the range [`begin`, `end`).
+ * All segments have the same size,
+ * so the global index of the first element of a segment
+ * is just `segmentIdx * segmentSize`
+ * and no offsets have to be read.
+ * The threads of a segment process its contiguous elements
+ * with stride `ThreadsPerSegment`
+ * and their partial results are combined by a warp-shuffle reduction,
+ * so `ThreadsPerSegment` must not exceed the warp size.
+ * The column-major organization does not use this kernel,
+ * since the elements of a segment are not contiguous there.
+ *
+ * See \ref reduceSegments_CSR_Uniform for the paper
+ * that inspired the uniform number of threads per segment.
+ */
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -20,7 +41,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernel(
+reduceSegments_Ellpack_Uniform(
    int gridIdx,
    const Segments segments,
    IndexBegin begin,
@@ -72,6 +93,15 @@ EllpackCudaReductionKernel(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing the segments given explicitly by `segmentIndexes`
+ * of Ellpack segments with the row-major organization.
+ *
+ * `ThreadsPerSegment` consecutive threads are assigned
+ * to every entry of `segmentIndexes`;
+ * otherwise it works the same way as \ref reduceSegments_Ellpack_Uniform.
+ */
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -82,7 +112,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithSegmentIndexes(
+reduceSegments_Ellpack_Uniform_WithIndexes(
    int gridIdx,
    const Segments segments,
    const ArrayView segmentIndexes,
@@ -137,6 +167,17 @@ EllpackCudaReductionKernelWithSegmentIndexes(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing a contiguous range of segments with argument of Ellpack segments
+ * with the row-major organization.
+ *
+ * It works the same way as \ref reduceSegments_Ellpack_Uniform,
+ * but every thread also tracks the local index of its partial result
+ * (e.g. the position of the maximum)
+ * and the pairs of values and arguments are combined
+ * by a warp-shuffle reduction with argument.
+ */
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -148,7 +189,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithArgument(
+reduceSegments_Ellpack_Uniform_WithArgument(
    int gridIdx,
    const Segments segments,
    IndexBegin begin,
@@ -204,6 +245,14 @@ EllpackCudaReductionKernelWithArgument(
 #endif
 }
 
+/**
+ * \brief Kernel for the Uniform thread mapping,
+ * reducing the segments given explicitly by `segmentIndexes`
+ * with argument of Ellpack segments with the row-major organization.
+ *
+ * It combines \ref reduceSegments_Ellpack_Uniform_WithIndexes
+ * and \ref reduceSegments_Ellpack_Uniform_WithArgument.
+ */
 template<
    int ThreadsPerSegment,
    typename Segments,
@@ -214,7 +263,7 @@ template<
    typename Value >
 __global__
 void
-EllpackCudaReductionKernelWithSegmentIndexesAndArgument(
+reduceSegments_Ellpack_Uniform_WithIndexesAndArgument(
    int gridIdx,
    const Segments segments,
    const ArrayView segmentIndexes,

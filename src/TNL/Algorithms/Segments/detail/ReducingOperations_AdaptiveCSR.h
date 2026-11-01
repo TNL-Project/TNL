@@ -43,18 +43,19 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The precomputed adaptive blocks cover the whole matrix, so they cannot be used
-         // to restrict the reduction to a sub-range of segments. Fall back to the plain
-         // CSR kernels, which respect begin/end, whenever a sub-range is requested.
-         int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         if( valueSizeLog >= segments.MaxValueSizeLog() || begin != 0 || end != segments.getSegmentCount() ) {
+         const bool isNativeMapping = launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive
+                                   || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default;
+         const int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
+         const bool canUseAdaptiveKernel =
+            isNativeMapping && valueSizeLog < segments.MaxValueSizeLog() && begin == 0 && end == segments.getSegmentCount();
+         if( ! canUseAdaptiveKernel ) {
             ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
          }
 
          using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
          Backend::LaunchConfiguration launch_config;
-         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
          constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
          // Fill blocks
@@ -76,7 +77,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
             using BlocksView = typename SegmentsViewType::BlocksView;
 
-            constexpr auto kernel = reduceSegmentsCSRAdaptiveKernel<
+            constexpr auto kernel = reduceSegments_AdaptiveCSR<
                BlocksView,
                OffsetsView,
                IndexType,
@@ -113,11 +114,12 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
-         // The precomputed adaptive blocks cover the whole matrix, so they cannot be used
-         // to restrict the reduction to a sub-range of segments. Fall back to the plain
-         // CSR kernels, which respect begin/end, whenever a sub-range is requested.
-         int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
-         if( valueSizeLog >= segments.MaxValueSizeLog() || begin != 0 || end != segments.getSegmentCount() ) {
+         const bool isNativeMapping = launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive
+                                   || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default;
+         const int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
+         const bool canUseAdaptiveKernel =
+            isNativeMapping && valueSizeLog < segments.MaxValueSizeLog() && begin == 0 && end == segments.getSegmentCount();
+         if( ! canUseAdaptiveKernel ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
                segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
@@ -125,7 +127,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
 
          using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
          Backend::LaunchConfiguration launch_config;
-         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+         launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
          constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
          // Fill blocks
@@ -147,7 +149,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
             using BlocksView = typename SegmentsViewType::BlocksView;
 
-            constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument<
+            constexpr auto kernel = reduceSegments_AdaptiveCSR_WithArgument<
                BlocksView,
                OffsetsView,
                IndexType,

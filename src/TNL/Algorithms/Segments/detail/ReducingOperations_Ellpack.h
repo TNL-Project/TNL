@@ -5,9 +5,9 @@
 
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "LaunchConfiguration.h"
 #include "FetchLambdaAdapter.h"
-#include "ReducingKernels_Ellpack.h"
+#include "ReducingKernels_Ellpack_Uniform.h"
 #include "ReducingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
@@ -20,6 +20,28 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    using ConstViewType = typename SegmentsViewType::ConstViewType;
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
+
+   /**
+    * \brief Resolves the `Default` mapping of `launchConfig` in place
+    * and rejects the mappings without a GPU reduction kernel.
+    *
+    * The `Default` mapping resolves to the `Uniform` mapping
+    * with one thread per segment.
+    */
+   static void
+   resolveLaunchConfiguration( LaunchConfiguration& launchConfig )
+   {
+      switch( launchConfig.getThreadsToSegmentsMapping() ) {
+         case ThreadsToSegmentsMapping::Default:
+            launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Uniform );
+            launchConfig.setThreadsPerSegmentCount( 1 );
+            break;
+         case ThreadsToSegmentsMapping::Uniform:
+            break;
+         default:
+            throw std::invalid_argument( "Unsupported threads to segments mapping for the reduction of Ellpack segments." );
+      }
+   }
 
    template<
       typename IndexBegin,
@@ -38,11 +60,12 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
          if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+            resolveLaunchConfiguration( launchConfig );
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( end <= begin )
                return;
@@ -61,113 +84,31 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
                }
             };
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-               constexpr auto kernel1 = EllpackCudaReductionKernel<
-                  1,
-                  ConstViewType,
-                  IndexBegin,
-                  IndexEnd,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  ReturnType >;
-               constexpr auto kernel2 = EllpackCudaReductionKernel<
-                  2,
-                  ConstViewType,
-                  IndexBegin,
-                  IndexEnd,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  ReturnType >;
-               constexpr auto kernel4 = EllpackCudaReductionKernel<
-                  4,
-                  ConstViewType,
-                  IndexBegin,
-                  IndexEnd,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  ReturnType >;
-               constexpr auto kernel8 = EllpackCudaReductionKernel<
-                  8,
-                  ConstViewType,
-                  IndexBegin,
-                  IndexEnd,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  ReturnType >;
-               constexpr auto kernel16 = EllpackCudaReductionKernel<
-                  16,
-                  ConstViewType,
-                  IndexBegin,
-                  IndexEnd,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  ReturnType >;
-               constexpr auto kernel32 = EllpackCudaReductionKernel<
-                  32,
-                  ConstViewType,
-                  IndexBegin,
-                  IndexEnd,
-                  std::remove_reference_t< Fetch >,
-                  std::remove_reference_t< Reduction >,
-                  std::remove_reference_t< ResultStorer >,
-                  ReturnType >;
-
-               switch( launchConfig.getThreadsPerSegmentCount() ) {
-                  case 1:
-                     launch( kernel1 );
-                     break;
-                  case 2:
-                     launch( kernel2 );
-                     break;
-                  case 4:
-                     launch( kernel4 );
-                     break;
-                  case 8:
-                     launch( kernel8 );
-                     break;
-                  case 16:
-                     launch( kernel16 );
-                     break;
-                  case 32:
-                     launch( kernel32 );
-                     break;
-                  case 64:
-                     if constexpr( Backend::getMaxWarpSize() == 64 ) {
-                        if( warpSize == 32 )
-                           throw std::invalid_argument(
-                              "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                              + std::to_string( warpSize ) + "." );
-                        constexpr auto kernel64 = EllpackCudaReductionKernel<
-                           64,
-                           ConstViewType,
-                           IndexBegin,
-                           IndexEnd,
-                           std::remove_reference_t< Fetch >,
-                           std::remove_reference_t< Reduction >,
-                           std::remove_reference_t< ResultStorer >,
-                           ReturnType >;
-                        launch( kernel64 );
+            dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+               launchConfig.getThreadsPerSegmentCount(),
+               [ & ]( auto threadsPerSegment )
+               {
+                  constexpr int TPS = decltype( threadsPerSegment )::value;
+                  if constexpr( TPS <= Backend::getMaxWarpSize() ) {
+                     if( TPS <= warpSize ) {
+                        launch(
+                           reduceSegments_Ellpack_Uniform<
+                              TPS,
+                              ConstViewType,
+                              IndexBegin,
+                              IndexEnd,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              ReturnType > );
+                        return;
                      }
-                     else {
-                        throw std::invalid_argument(
-                           "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                           + std::to_string( warpSize ) + "." );
-                     }
-                     break;
-                  default:
-                     throw std::invalid_argument(
-                        "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                        + " ) count for Ellpack segments." );
-               }
-            }
-            else {
-               throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
-            }
+                  }
+                  throw std::invalid_argument(
+                     "Unsupported threads per segment count ( " + std::to_string( TPS )
+                     + " ) for Ellpack segments on GPU with warp size " + std::to_string( warpSize ) + "." );
+               },
+               "Ellpack" );
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -186,6 +127,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
@@ -216,13 +161,14 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       auto segmentIndexes_view = segmentIndexes.getConstView();
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
          if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+            resolveLaunchConfiguration( launchConfig );
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( segmentIndexes.getSize() == 0 )
                return;
@@ -249,100 +195,30 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      identity );
                }
             };
-            constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexes<
-               1,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexes<
-               2,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexes<
-               4,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexes<
-               8,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexes<
-               16,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexes<
-               32,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            switch( launchConfig.getThreadsPerSegmentCount() ) {
-               case 1:
-                  launch( kernel1 );
-                  break;
-               case 2:
-                  launch( kernel2 );
-                  break;
-               case 4:
-                  launch( kernel4 );
-                  break;
-               case 8:
-                  launch( kernel8 );
-                  break;
-               case 16:
-                  launch( kernel16 );
-                  break;
-               case 32:
-                  launch( kernel32 );
-                  break;
-               case 64:
-                  if constexpr( Backend::getMaxWarpSize() == 64 ) {
-                     if( warpSize == 32 )
-                        throw std::invalid_argument(
-                           "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                           + std::to_string( warpSize ) + "." );
-                     constexpr auto kernel64 = EllpackCudaReductionKernelWithSegmentIndexes<
-                        64,
-                        ConstViewType,
-                        ArrayView,
-                        std::remove_reference_t< Fetch >,
-                        std::remove_reference_t< Reduction >,
-                        std::remove_reference_t< ResultStorer >,
-                        ReturnType >;
-                     launch( kernel64 );
+            dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+               launchConfig.getThreadsPerSegmentCount(),
+               [ & ]( auto threadsPerSegment )
+               {
+                  constexpr int TPS = decltype( threadsPerSegment )::value;
+                  if constexpr( TPS <= Backend::getMaxWarpSize() ) {
+                     if( TPS <= warpSize ) {
+                        launch(
+                           reduceSegments_Ellpack_Uniform_WithIndexes<
+                              TPS,
+                              ConstViewType,
+                              ArrayView,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              ReturnType > );
+                        return;
+                     }
                   }
-                  else {
-                     throw std::invalid_argument(
-                        "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                        + std::to_string( warpSize ) + "." );
-                  }
-                  break;
-               default:
                   throw std::invalid_argument(
-                     "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                     + " ) count for Ellpack segments." );
-            }
+                     "Unsupported threads per segment count ( " + std::to_string( TPS )
+                     + " ) for Ellpack segments on GPU with warp size " + std::to_string( warpSize ) + "." );
+               },
+               "Ellpack" );
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -363,6 +239,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx_idx ) mutable
@@ -398,11 +278,12 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
          if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+            resolveLaunchConfiguration( launchConfig );
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( end <= begin )
                return;
@@ -421,107 +302,31 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      kernel, launch_config, gridIdx, segments, begin, end, fetch, reduction, storer, identity );
                }
             };
-            constexpr auto kernel1 = EllpackCudaReductionKernelWithArgument<
-               1,
-               ConstViewType,
-               IndexBegin,
-               IndexEnd,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel2 = EllpackCudaReductionKernelWithArgument<
-               2,
-               ConstViewType,
-               IndexBegin,
-               IndexEnd,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel4 = EllpackCudaReductionKernelWithArgument<
-               4,
-               ConstViewType,
-               IndexBegin,
-               IndexEnd,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel8 = EllpackCudaReductionKernelWithArgument<
-               8,
-               ConstViewType,
-               IndexBegin,
-               IndexEnd,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel16 = EllpackCudaReductionKernelWithArgument<
-               16,
-               ConstViewType,
-               IndexBegin,
-               IndexEnd,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel32 = EllpackCudaReductionKernelWithArgument<
-               32,
-               ConstViewType,
-               IndexBegin,
-               IndexEnd,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            switch( launchConfig.getThreadsPerSegmentCount() ) {
-               case 1:
-                  launch( kernel1 );
-                  break;
-               case 2:
-                  launch( kernel2 );
-                  break;
-               case 4:
-                  launch( kernel4 );
-                  break;
-               case 8:
-                  launch( kernel8 );
-                  break;
-               case 16:
-                  launch( kernel16 );
-                  break;
-               case 32:
-                  launch( kernel32 );
-                  break;
-               case 64:
-                  if constexpr( Backend::getMaxWarpSize() == 64 ) {
-                     if( warpSize == 32 )
-                        throw std::invalid_argument(
-                           "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                           + std::to_string( warpSize ) + "." );
-                     constexpr auto kernel64 = EllpackCudaReductionKernelWithArgument<
-                        64,
-                        ConstViewType,
-                        IndexBegin,
-                        IndexEnd,
-                        std::remove_reference_t< Fetch >,
-                        std::remove_reference_t< Reduction >,
-                        std::remove_reference_t< ResultStorer >,
-                        ReturnType >;
-                     launch( kernel64 );
+            dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+               launchConfig.getThreadsPerSegmentCount(),
+               [ & ]( auto threadsPerSegment )
+               {
+                  constexpr int TPS = decltype( threadsPerSegment )::value;
+                  if constexpr( TPS <= Backend::getMaxWarpSize() ) {
+                     if( TPS <= warpSize ) {
+                        launch(
+                           reduceSegments_Ellpack_Uniform_WithArgument<
+                              TPS,
+                              ConstViewType,
+                              IndexBegin,
+                              IndexEnd,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              ReturnType > );
+                        return;
+                     }
                   }
-                  else {
-                     throw std::invalid_argument(
-                        "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                        + std::to_string( warpSize ) + "." );
-                  }
-                  break;
-               default:
                   throw std::invalid_argument(
-                     "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                     + " ) count for Ellpack segments." );
-            }
+                     "Unsupported threads per segment count ( " + std::to_string( TPS )
+                     + " ) for Ellpack segments on GPU with warp size " + std::to_string( warpSize ) + "." );
+               },
+               "Ellpack" );
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -545,6 +350,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
@@ -581,13 +390,14 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       Reduction&& reduction,
       ResultStorer&& storer,
       const Value& identity,
-      const LaunchConfiguration& launchConfig )
+      LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       auto segmentIndexes_view = segmentIndexes.getConstView();
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
          if constexpr( std::is_same_v< Device, Devices::GPU > ) {
+            resolveLaunchConfiguration( launchConfig );
             const int warpSize = Backend::getWarpSize( Backend::getDevice() );
             if( segmentIndexes.getSize() == 0 )
                return;
@@ -614,100 +424,30 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      identity );
                }
             };
-            constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
-               1,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
-               2,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
-               4,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
-               8,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
-               16,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
-               32,
-               ConstViewType,
-               ArrayView,
-               std::remove_reference_t< Fetch >,
-               std::remove_reference_t< Reduction >,
-               std::remove_reference_t< ResultStorer >,
-               ReturnType >;
-            switch( launchConfig.getThreadsPerSegmentCount() ) {
-               case 1:
-                  launch( kernel1 );
-                  break;
-               case 2:
-                  launch( kernel2 );
-                  break;
-               case 4:
-                  launch( kernel4 );
-                  break;
-               case 8:
-                  launch( kernel8 );
-                  break;
-               case 16:
-                  launch( kernel16 );
-                  break;
-               case 32:
-                  launch( kernel32 );
-                  break;
-               case 64:
-                  if constexpr( Backend::getMaxWarpSize() == 64 ) {
-                     if( warpSize == 32 )
-                        throw std::invalid_argument(
-                           "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                           + std::to_string( warpSize ) + "." );
-                     constexpr auto kernel64 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument<
-                        64,
-                        ConstViewType,
-                        ArrayView,
-                        std::remove_reference_t< Fetch >,
-                        std::remove_reference_t< Reduction >,
-                        std::remove_reference_t< ResultStorer >,
-                        ReturnType >;
-                     launch( kernel64 );
+            dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
+               launchConfig.getThreadsPerSegmentCount(),
+               [ & ]( auto threadsPerSegment )
+               {
+                  constexpr int TPS = decltype( threadsPerSegment )::value;
+                  if constexpr( TPS <= Backend::getMaxWarpSize() ) {
+                     if( TPS <= warpSize ) {
+                        launch(
+                           reduceSegments_Ellpack_Uniform_WithIndexesAndArgument<
+                              TPS,
+                              ConstViewType,
+                              ArrayView,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              ReturnType > );
+                        return;
+                     }
                   }
-                  else {
-                     throw std::invalid_argument(
-                        "Unsupported threads per segment ( 64 ) for Ellpack segments on GPU with warp size "
-                        + std::to_string( warpSize ) + "." );
-                  }
-                  break;
-               default:
                   throw std::invalid_argument(
-                     "Unsupported threads per segment ( " + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                     + " ) count for Ellpack segments." );
-            }
+                     "Unsupported threads per segment count ( " + std::to_string( TPS )
+                     + " ) for Ellpack segments on GPU with warp size " + std::to_string( warpSize ) + "." );
+               },
+               "Ellpack" );
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -733,6 +473,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {  // ColumnMajorOrder
+         // There is a single kernel for the column-major organization,
+         // so the launch configuration is only checked for an unsupported mapping.
+         if constexpr( std::is_same_v< Device, Devices::GPU > )
+            resolveLaunchConfiguration( launchConfig );
          const IndexType storageSize = segments.getStorageSize();
          const IndexType alignedSize = segments.getAlignedSize();
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx_idx ) mutable

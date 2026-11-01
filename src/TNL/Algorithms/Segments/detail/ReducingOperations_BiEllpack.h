@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/Segments/BiEllpackView.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "LaunchConfiguration.h"
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_BiEllpack.h"
 #include "ReducingOperationsBase.h"
@@ -40,6 +40,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
+      if( end <= begin )
+         return;
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
@@ -84,17 +87,18 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
          launch_config.blockSize.x = BlockDim;
          const IndexType stripsCount = roundUpDivision(
             static_cast< IndexType >( end - begin ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks = roundUpDivision(
+         const IndexType blocksCount = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernel<
+            constexpr auto kernel = reduceSegments_BiEllpack<
                ConstSegmentsView,
                IndexType,
                std::remove_reference_t< Fetch >,
@@ -125,6 +129,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -172,17 +177,18 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
          launch_config.blockSize.x = BlockDim;
          const IndexType stripsCount = roundUpDivision(
             static_cast< IndexType >( segmentIndexes.getSize() ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks = roundUpDivision(
+         const IndexType blocksCount = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexes<
+            constexpr auto kernel = reduceSegments_BiEllpack_WithIndexes<
                ConstSegmentsView,
                ArrayView,
                IndexType,
@@ -224,6 +230,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
+      if( end <= begin )
+         return;
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
@@ -274,17 +283,18 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
          launch_config.blockSize.x = BlockDim;
          const IndexType stripsCount = roundUpDivision(
             static_cast< IndexType >( end - begin ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks = roundUpDivision(
+         const IndexType blocksCount = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithArgument<
+            constexpr auto kernel = reduceSegments_BiEllpack_WithArgument<
                ConstSegmentsView,
                IndexType,
                std::remove_reference_t< Fetch >,
@@ -315,6 +325,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
+      detail::checkDefaultThreadsToSegmentsMapping< DeviceType >( launchConfig, "BiEllpack" );
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -368,17 +379,18 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization, WarpSize 
          launch_config.blockSize.x = BlockDim;
          const IndexType stripsCount = roundUpDivision(
             static_cast< IndexType >( segmentIndexes.getSize() ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks = roundUpDivision(
+         const IndexType blocksCount = roundUpDivision(
             static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
             static_cast< IndexType >( launch_config.blockSize.x ) );
-         const std::size_t cudaGrids = roundUpDivision( static_cast< std::size_t >( cudaBlocks ), Backend::getMaxGridXSize() );
+         const std::size_t gridsCount =
+            roundUpDivision( static_cast< std::size_t >( blocksCount ), Backend::getMaxGridXSize() );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
-         for( std::size_t gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+         for( std::size_t gridIdx = 0; gridIdx < gridsCount; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, gridIdx, Backend::getMaxGridXSize() );
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexesAndArgument<
+            constexpr auto kernel = reduceSegments_BiEllpack_WithIndexesAndArgument<
                ConstSegmentsView,
                ArrayView,
                IndexType,

@@ -23,8 +23,8 @@ namespace TNL::Matrices {
 namespace detail {
 
 /**
- * \brief Copies elements of the sparse matrix `B` to the sparse matrix `A`
- * allocated on a different device.
+ * \brief Copies elements of the sparse matrix `B`
+ * to the sparse matrix `A` allocated on a different device.
  *
  * The matrix `A` must already have the dimensions and row capacities set,
  * and all its column indexes must be set to the padding index.
@@ -41,8 +41,8 @@ namespace detail {
  * \param A The target matrix.
  * \param B The source matrix.
  * \param generalToSymmetric If `true`, only the lower part of `B` is copied.
- * \param symmetricToGeneral If `true`, `B` stores the lower part
- *                           of a symmetric matrix
+ * \param symmetricToGeneral If `true`,
+ *                           `B` stores the lower part of a symmetric matrix
  *                           and the upper part of `A` is reconstructed from it.
  * \param chunkSize The maximal number of elements transferred at once,
  *                  unless a row of `B` is longer.

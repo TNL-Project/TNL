@@ -71,7 +71,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments(
    else {
       using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       Backend::LaunchConfiguration launch_config;
-      launch_config.blockSize.x = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+      launch_config.blockSize.x = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::BlockSize();
       constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
       // Fill blocks
@@ -93,7 +93,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments(
          OffsetsView offsets = segments.getOffsets();
 
          constexpr auto kernel = Segments::detail::
-            reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
+            reduceSegments_AdaptiveCSR< BlocksView, OffsetsView, Index, Fetch, Reduction, ResultKeeper, Value >;
          Backend::launchKernelAsync( kernel, launch_config, blocks, gridIdx, offsets, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );
