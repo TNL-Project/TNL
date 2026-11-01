@@ -43,9 +43,16 @@ workflow:
     BUILD_COVERAGE: "no"
     BUILD_DOC: "no"  # only used in the "documentation" job
     # toolchain flags defaults
-    CMAKE_CXX_FLAGS: ""
+    # The runners mix hosts with and without AVX-512, so compile for the common baseline
+    # (x86-64-v3, i.e. AVX2). Host-specific objects would otherwise end up in the shared
+    # sccache and crash with SIGILL on a host with fewer instruction set extensions: nvhpc
+    # targets the local CPU by default, and TNL_USE_MARCH_NATIVE_FLAG would add -march=native
+    # to Release builds if it was ever enabled.
+    TNL_USE_MARCH_NATIVE_FLAG: "no"
+    CMAKE_C_FLAGS: "-march=x86-64-v3"
+    CMAKE_CXX_FLAGS: "-march=x86-64-v3"
     CMAKE_CUDA_FLAGS: ""
-    CMAKE_HIP_FLAGS: ""
+    CMAKE_HIP_FLAGS: "-march=x86-64-v3"
     CMAKE_EXE_LINKER_FLAGS: ""
     CMAKE_SHARED_LINKER_FLAGS: ""
     # avoid Open MPI abort on dual-accelerator hosts (both CUDA and ROCm detected)
@@ -68,6 +75,8 @@ workflow:
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
+        # nvcc does not accept -march itself, so forward it to the host compiler
+        CMAKE_CUDA_FLAGS: "-Xcompiler=-march=x86-64-v3"
         # CUDA builds run on runners with GPU passthrough
         OMPI_MCA_accelerator: "cuda"
 
@@ -81,6 +90,9 @@ workflow:
         CC: nvc
         CUDACXX: nvcc
         CUDAHOSTCXX: nvc++
+        # nvcc does not accept -march itself, so forward it to the nvc++ host compiler;
+        # nvc++ otherwise targets the CPU of the machine that compiles the code
+        CMAKE_CUDA_FLAGS: "-Xcompiler=-march=x86-64-v3"
         # CUDA builds run on runners with GPU passthrough
         OMPI_MCA_accelerator: "cuda"
 
@@ -93,7 +105,7 @@ workflow:
         CC: clang
         CUDAHOSTCXX: clang++
         # also use LLVM's libc++ instead of GCC's libstdc++ (which is used by default)
-        CMAKE_CXX_FLAGS: "-stdlib=libc++"
+        CMAKE_CXX_FLAGS: "-stdlib=libc++ -march=x86-64-v3"
         # use the LLVM linker and link to libc++
         CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld -lc++ -lc++abi"
         CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld -lc++ -lc++abi"
@@ -109,8 +121,8 @@ workflow:
         CUDACXX: clang++
         CUDAHOSTCXX: clang++
         # CUDA does not support libc++ on x86 systems
-        CMAKE_CUDA_FLAGS: "-stdlib=libstdc++"
-        CMAKE_CXX_FLAGS: "-stdlib=libstdc++ -Wno-error=pass-failed"
+        CMAKE_CUDA_FLAGS: "-stdlib=libstdc++ -march=x86-64-v3"
+        CMAKE_CXX_FLAGS: "-stdlib=libstdc++ -Wno-error=pass-failed -march=x86-64-v3"
         CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld -lomp"
         CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld -lomp"
         USE_CUDA: "yes"
@@ -150,7 +162,6 @@ workflow:
     - export NUM_CORES=$(grep "core id" /proc/cpuinfo | sort -u | wc -l)
     - export CTEST_OUTPUT_ON_FAILURE=1
     - export CTEST_PARALLEL_LEVEL=4
-    - export OMP_NUM_THREADS=4
     # running as root does not matter inside Docker containers
     - export OMPI_ALLOW_RUN_AS_ROOT=1
     - export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
@@ -159,8 +170,55 @@ workflow:
 .build_template:
     # don't wait for jobs in previous stages to complete before starting this job
     needs: []
+    variables:
+        # sccache rewrites paths below this base to relative form before hashing, so the same
+        # job hits the same entries on a different runner, node or fork checkout.
+        # The build directory must stay inside this base (build/$CI_JOB_NAME_SLUG) - a build
+        # outside of $CI_PROJECT_DIR would hash its absolute paths verbatim and silently
+        # never hit the cache.
+        SCCACHE_BASEDIRS: "${CI_PROJECT_DIR}"
+        # namespaces the shared S3 bucket and keeps TNL entries apart from other projects;
+        # the bucket itself is configured with CI/CD variables in the project settings
+        # (SCCACHE_BUCKET, SCCACHE_ENDPOINT, SCCACHE_REGION, SCCACHE_S3_USE_SSL and the
+        # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY credentials)
+        SCCACHE_S3_KEY_PREFIX: "tnl/"
+        # by default the daemon shuts itself down after 10 idle minutes, which can happen
+        # between compiles of a long build
+        SCCACHE_IDLE_TIMEOUT: "0"
+        # the capability check reads and writes .sccache_check in the bucket: a throttled backend
+        # fails the server startup, and a failed write probe silently downgrades the cache to
+        # read-only, so trust the configured rw_mode instead
+        SCCACHE_SKIP_CACHE_CHECK: "1"
     script:
         - *env_setup
+        # GPU test jobs need the device passed into the container, otherwise the tests fail with misleading errors
+        - if [[ ${USE_CUDA} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" ) ]]; then
+              nvidia-smi || {
+                  echo "ERROR, no NVIDIA GPU in the container, check the runner configuration";
+                  exit 1;
+              };
+          fi
+        - if [[ ${USE_HIP} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" ) ]]; then
+              /opt/rocm/bin/rocminfo >/dev/null || {
+                  echo "ERROR, no AMD GPU in the container, check the runner configuration";
+                  exit 1;
+              };
+          fi
+        # Write access to the shared cache is limited to the upstream project. Fork pipelines
+        # run in the fork, which never sees this project's CI/CD variables, so this guard is
+        # defense in depth (group/instance-level credentials, fork MRs run in this project).
+        # The path below must be kept in sync: after a rename it silently degrades to
+        # read-only and the cache stops warming.
+        - if [[ "${CI_PROJECT_PATH}" != "tnl-project/tnl" || ( -n "${CI_MERGE_REQUEST_SOURCE_PROJECT_PATH:-}" && "${CI_MERGE_REQUEST_SOURCE_PROJECT_PATH}" != "${CI_PROJECT_PATH}" ) ]]; then
+              export SCCACHE_S3_RW_MODE="READ_ONLY";
+          fi
+        # cmake enables the compiler launcher by itself when sccache is found, see
+        # cmake/sccache.cmake, so this only warns about images that do not ship it
+        - if command -v sccache >/dev/null 2>&1; then
+              sccache --zero-stats || echo "WARNING, sccache --zero-stats failed, the cache may be misconfigured";
+          else
+              echo "WARNING, sccache not found in this image, building without the compiler cache";
+          fi
         # handle the $MATRIX_TARGET variable from .matrix_template
         - if [[ ${MATRIX_TARGET} == "tests" ]]; then
                 BUILD_TARGETS=("non-matrix-tests");
@@ -174,6 +232,7 @@ workflow:
         - cmake -B "./build/$CI_JOB_NAME_SLUG" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
                 -DCMAKE_INSTALL_PREFIX="$(pwd)/install_prefix/$CI_JOB_NAME_SLUG"
+                -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}"
                 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}"
                 -DCMAKE_CUDA_FLAGS="${CMAKE_CUDA_FLAGS}"
                 -DCMAKE_HIP_FLAGS="${CMAKE_HIP_FLAGS}"
@@ -183,10 +242,14 @@ workflow:
                 -DTNL_USE_MPI=${USE_MPI}
                 -DTNL_USE_CUDA=${USE_CUDA}
                 -DTNL_USE_HIP=${USE_HIP}
+                -DTNL_USE_MARCH_NATIVE_FLAG=${TNL_USE_MARCH_NATIVE_FLAG}
                 -DTNL_BUILD_COVERAGE=${BUILD_COVERAGE}
                 -DTNL_USE_CI_FLAGS=yes
         # build the given targets
         - cmake --build "./build/$CI_JOB_NAME_SLUG" --parallel ${NUM_CORES} --target "${BUILD_TARGETS[@]}"
+        # the daemon is reaped together with the rest of the script section, so the stats have
+        # to be printed here and not in after_script
+        - if command -v sccache >/dev/null 2>&1; then sccache --show-stats; fi
         # we have ctest options set in the preset, but ctest does not allow to override the build directory
         # https://gitlab.kitware.com/cmake/cmake/-/issues/23982
         - "sed 's|\"binaryDir\": \"${sourceDir}/build\",|\"binaryDir\": \"${sourceDir}\",|' CMakePresets.json > \"./build/$CI_JOB_NAME_SLUG/CMakePresets.json\""
@@ -372,8 +435,10 @@ alpine:
         <<: *default_cmake_flags
         CXX: g++
         CC: gcc
-        # avoid spurious error due to Alpine's GCC
-        CMAKE_CXX_FLAGS: "-Wno-error=array-bounds"
+        # avoid spurious errors due to Alpine's GCC: -Warray-bounds is a known false positive,
+        # and -Wfree-nonheap-object fires in the Array copy in EntitySeedEq at -O3 with
+        # -march=x86-64-v3, although the same code compiles in the glibc-based GCC jobs
+        CMAKE_CXX_FLAGS: "-Wno-error=array-bounds -Wno-error=free-nonheap-object -march=x86-64-v3"
 
 debian:
     stage: build:host
@@ -401,6 +466,8 @@ debian:
           fi
     extends:
         - .build_template
+    variables:
+        <<: *default_cmake_flags
     parallel:
         matrix:
             - MATRIX_TARGET:

@@ -26,6 +26,31 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
 endif()
 
+# number of OpenMP threads used by a single unit test
+# Tests are executed in parallel via `ctest -j`, so the per-test thread count is
+# kept small to avoid oversubscription of the CPU cores. Without this, every test
+# uses as many threads as there are cores (the OpenMP default) whenever
+# OMP_NUM_THREADS is not set in the environment of the ctest process.
+set(TNL_TEST_OMP_NUM_THREADS 4 CACHE STRING "Number of OpenMP threads used by unit tests")
+
+# function to add a plain unit test with a bounded number of OpenMP threads
+# usage: tnl_add_test(<name> <command> [<arg>...]) or tnl_add_test(NAME <name> COMMAND <command> [<arg>...])
+function(tnl_add_test)
+    add_test(${ARGN})
+
+    if(ARGV0 STREQUAL "NAME")
+        set(test_name ${ARGV1})
+    else()
+        set(test_name ${ARGV0})
+    endif()
+
+    # keep the environment of tests that configure it themselves (e.g. MPI tests)
+    get_test_property(${test_name} ENVIRONMENT test_environment)
+    if(NOT test_environment)
+        set_tests_properties(${test_name} PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=${TNL_TEST_OMP_NUM_THREADS}")
+    endif()
+endfunction()
+
 # function to simplify adding MPI tests
 # usage: tnl_add_mpi_test(NAME <name> NPROC <nproc> COMMAND <command> [<arg>...])
 function(tnl_add_mpi_test)
@@ -51,9 +76,10 @@ function(tnl_add_mpi_test)
     set_property(TEST ${ADD_TEST_MPI_NAME} PROPERTY PROCESSORS ${ADD_TEST_MPI_NPROC})
 endfunction()
 
-# function to add a HIP test with RUN_SERIAL property
-# Parallel execution of HIP tests oversubscribes the GPU hardware queues,
-# causing amdgpu kernel warnings and potential lockups on AMD GPUs.
+# function to add a HIP test that holds the GPU resource lock
+# Parallel execution of GPU tests oversubscribes the GPU hardware queues,
+# causing amdgpu kernel warnings and potential lockups on AMD GPUs, so all
+# tests that use a GPU take the same resource lock and never run concurrently.
 # usage: tnl_add_hip_test(NAME <name> COMMAND <command> [<arg>...])
 function(tnl_add_hip_test)
     set(options)
@@ -61,10 +87,11 @@ function(tnl_add_hip_test)
     set(multiValueArgs COMMAND)
     cmake_parse_arguments(TNL_ADD_HIP_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    add_test(NAME ${TNL_ADD_HIP_TEST_NAME} COMMAND ${TNL_ADD_HIP_TEST_COMMAND})
+    # also bounds the number of OpenMP threads used by the test
+    tnl_add_test(NAME ${TNL_ADD_HIP_TEST_NAME} COMMAND ${TNL_ADD_HIP_TEST_COMMAND})
 
-    # serialize HIP tests to avoid GPU queue oversubscription
-    set_property(TEST ${TNL_ADD_HIP_TEST_NAME} PROPERTY RUN_SERIAL TRUE)
+    # serialize GPU tests to avoid oversubscription of the GPU hardware queues
+    set_property(TEST ${TNL_ADD_HIP_TEST_NAME} PROPERTY RESOURCE_LOCK gpu)
 
     # add "HIP" label to the test for ctest filtering
     set_property(TEST ${TNL_ADD_HIP_TEST_NAME} PROPERTY LABELS HIP)
@@ -96,8 +123,8 @@ function(tnl_add_hip_mpi_test)
     # set OMP_NUM_THREADS=1 to disable OpenMP for MPI tests
     set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY ENVIRONMENT "OMP_NUM_THREADS=1")
 
-    # serialize HIP tests to avoid GPU queue oversubscription
-    set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY RUN_SERIAL TRUE)
+    # serialize GPU tests to avoid oversubscription of the GPU hardware queues
+    set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY RESOURCE_LOCK gpu)
 
     # add labels for filtering
     set_property(TEST ${TNL_ADD_HIP_MPI_TEST_NAME} PROPERTY LABELS "HIP;MPI")

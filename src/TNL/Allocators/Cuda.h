@@ -60,7 +60,7 @@ struct Cuda
 #ifdef __CUDACC__
       value_type* result = nullptr;
       if( cudaMalloc( (void**) &result, n * sizeof( value_type ) ) != cudaSuccess )
-         throw Exceptions::BackendBadAlloc();
+         throw Exceptions::BackendBadAlloc( n * sizeof( value_type ) );
       return result;
 #else
       throw Exceptions::BackendSupportMissing();

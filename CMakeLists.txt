@@ -15,6 +15,7 @@ option(TNL_USE_CUDA "Build with CUDA support" ON)
 option(TNL_USE_HIP "Build with HIP support" ON)
 option(TNL_USE_OPENMP "Build with OpenMP support" ON)
 option(TNL_USE_MPI "Build with MPI support" ON)
+option(TNL_USE_SCCACHE "Use sccache as the compiler launcher when it is installed" ON)
 option(TNL_USE_GMP "Build with GMP support" OFF)
 option(TNL_USE_SYSTEM_GTEST "Use GTest installed in the local system and do not download the latest version" OFF)
 option(TNL_USE_CI_FLAGS "Add additional compiler flags like -Werror that are enforced in CI builds" OFF)
@@ -81,6 +82,9 @@ target_compile_features(TNL INTERFACE cxx_std_17)
 
 # set C++ compiler flags
 include(cmake/cxx_flags.cmake)
+
+# enable the compiler cache if sccache is available
+include(cmake/sccache.cmake)
 
 # configure the project for testing with CTest/CDash
 include(testing)
@@ -292,6 +296,7 @@ if(PROJECT_IS_TOP_LEVEL)
     message("   CMAKE_HIP_ARCHITECTURES = ${CMAKE_HIP_ARCHITECTURES}")
     message("   TNL_USE_OPENMP = ${TNL_USE_OPENMP}")
     message("   TNL_USE_MPI = ${TNL_USE_MPI}")
+    message("   TNL_USE_SCCACHE = ${TNL_USE_SCCACHE}")
     message("   TNL_USE_GMP = ${TNL_USE_GMP}")
     message("   TNL_USE_SYSTEM_GTEST = ${TNL_USE_SYSTEM_GTEST}")
     message("   TNL_BUILD_COVERAGE = ${TNL_BUILD_COVERAGE}")

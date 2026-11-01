@@ -217,9 +217,6 @@
         },
         "timeout": 300,
         "stopOnFailure": false
-      },
-      "environment": {
-        "OMP_NUM_THREADS": "4"
       }
     },
     {

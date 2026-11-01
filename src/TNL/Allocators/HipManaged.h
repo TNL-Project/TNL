@@ -61,7 +61,7 @@ struct HipManaged
 #ifdef __HIP__
       value_type* result = nullptr;
       if( hipMallocManaged( &result, n * sizeof( value_type ) ) != hipSuccess )
-         throw Exceptions::BackendBadAlloc();
+         throw Exceptions::BackendBadAlloc( n * sizeof( value_type ) );
       return result;
 #else
       throw Exceptions::BackendSupportMissing();
