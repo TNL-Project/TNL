@@ -186,10 +186,10 @@ just check-format       # Code formatting (clang-format, ruff, gersemi)
 just check-recipes      # justfile shell scripts
 just check-shellcheck   # Shell scripts
 just check-python       # Python (ruff)
-just check-clang-tidy   # C++ (clang-tidy)
+just check-clangd-tidy  # C++ (clangd-tidy)
 ```
 
-**Note**: clang-tidy requires a non-CUDA build in Debug mode.
+**Note**: clangd-tidy lints all library headers and sources via compile_commands.json (the check configuration lives in `.clangd`, the same file used by the clangd language server). The recipe configures the build directory automatically if needed.
 
 ## Running CI jobs locally
 

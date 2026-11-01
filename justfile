@@ -85,7 +85,7 @@ clean:
     rm -frv "$BUILD_DIR"
 
 # Runs all checks
-check: check-typos check-format check-recipes check-shellcheck check-python check-clang-tidy
+check: check-typos check-format check-recipes check-shellcheck check-python check-clangd-tidy
 
 # Checks for common spelling mistakes using typos
 check-typos:
@@ -120,8 +120,10 @@ _check-recipe recipe:
 # Checks all justfile recipes with inline bash for shell issues using shellcheck
 check-recipes:
     just _check-recipe '_ensure-command command'
+    just _check-recipe '_ensure-compile-commands-json'
     just _check-recipe 'check-shellcheck'
     just _check-recipe 'configure'
+    just _check-recipe 'check-clangd-tidy'
     just _check-recipe 'install'
     just _check-recipe 'create-gitlab-release'
     just _check-recipe 'release'
@@ -156,34 +158,63 @@ check-python:
     #just _ensure-command mypy
     #mypy
 
-# Checks the code using clang-tidy
-check-clang-tidy +target_paths="Documentation/.* src/Benchmarks/.* src/Examples/.* src/Tools/.*":
+# Lints all library headers and other sources with clangd-tidy (via compile_commands.json)
+check-clangd-tidy:
     #!/usr/bin/env bash
     set -euo pipefail
 
+    just _ensure-command clangd-tidy python3
     just _ensure-compile-commands-json
 
-    # check that the preset does not involve the CUDA toolchain
-    use_cuda=$(grep TNL_USE_CUDA:BOOL= "$BUILD_DIR"/CMakeCache.txt | cut -d'=' -f2)
-    if [[ "$use_cuda" =~ ^(ON|YES|TRUE|1)$ ]]; then
-        echo "clang-tidy check is not supported with CUDA. Reconfigure with TNL_USE_CUDA=OFF and try again." >&2
-        return 1
+    root="$(pwd -P)/"
+    # absolute form of $BUILD_DIR (which may be relative, e.g. in CI jobs) used to
+    # filter out the files generated inside the build directory
+    build_root="$(cd "$BUILD_DIR" && pwd -P)/"
+    # all file paths are canonicalized (symlinks resolved): clangd resolves symlinks
+    # when looking up compile commands, so a symlink and its target (e.g. the
+    # Documentation .cu symlinks to the .cpp examples) would collapse into one
+    # document and clangd-tidy would hang waiting for diagnostics of the other file
+    # Documentation example headers are linted in the header pass although they
+    # have no compile_commands.json entries: per the documentation convention,
+    # the example code lives in *.h files while the *.cpp and *.cu files are
+    # one-line include wrappers, so clangd infers the compile command from a
+    # sibling file (and .clangd switches them to CUDA mode)
+    mapfile -t headers < <(python3 -c "import json, os, glob; files = {e['file'] for e in json.load(open('$build_root/compile_commands.json'))}; doc = {os.path.realpath(f) for f in glob.glob('$root/Documentation/**/*.h', recursive=True)}; print(*sorted({os.path.realpath(f) for f in files if '/src/TNL/' in f} | doc), sep='\n')")
+    mapfile -t sources < <(python3 -c "import json, os, glob; files = {e['file'] for e in json.load(open('$build_root/compile_commands.json'))}; doc = {os.path.realpath(f) for f in glob.glob('$root/Documentation/**/*.h', recursive=True)}; print(*sorted({os.path.realpath(f) for f in files if f.endswith(('.cu', '.cpp')) and f.startswith('$root') and not f.startswith('$build_root')} - doc), sep='\n')")
+    # clangd-tidy runs a single clangd server for all given files and keeps the preamble of every
+    # opened document in memory, so one invocation over the whole list grows to tens of GiB and gets
+    # OOM-killed on CI runners (the crash surfaces as "ValueError: Invalid header end"). Linting in
+    # batches starts a fresh clangd per batch and bounds the peak memory at ~9 GiB; the batch size
+    # can be tuned with CLANGD_TIDY_BATCH_SIZE.
+    batch_size="${CLANGD_TIDY_BATCH_SIZE:-50}"
+    jobs_sources=$(( $(nproc) > 8 ? 8 : $(nproc) ))
+    status=0
+    lint_batches() {
+        local label="$1"
+        local jobs="$2"
+        shift 2
+        local -a files=( "$@" )
+        local -a batch
+        local i
+        for(( i = 0; i < ${#files[@]}; i += batch_size )); do
+            batch=( "${files[@]:i:batch_size}" )
+            # --fail-on-severity hint, not warn: clangd publishes clang-tidy modernize-* diagnostics as LSP Hints,
+            # because it tags them Deprecated and downgrades deprecated warnings to Remarks
+            # (llvm-project bb1b0e61cda6 and a59b24be47ed; intentional, see https://github.com/clangd/clangd/issues/1937),
+            # so the "warn" threshold silently exempts every such finding, e.g. modernize-avoid-c-style-cast.
+            # clangd-tidy forwards clangd's severities verbatim and defaults to "hint" itself.
+            if ! clangd-tidy -p "$BUILD_DIR" -j "$jobs" --fail-on-severity hint {{ color_always }} "${batch[@]}"; then
+                printf "clangd-tidy failed for %s[%d..%d]\n" "$label" "$i" "$(( i + ${#batch[@]} - 1 ))" >&2
+                status=1
+            fi
+        done
+    }
+    lint_batches headers "$(nproc)" "${headers[@]}"
+    lint_batches sources "$jobs_sources" "${sources[@]}"
+    if (( status == 0 )); then
+        echo "clangd-tidy lint clean (${#headers[@]} headers, ${#sources[@]} sources)"
     fi
-
-    # check that the build type is Debug
-    build_type=$(grep CMAKE_BUILD_TYPE:STRING= "$BUILD_DIR"/CMakeCache.txt | cut -d'=' -f2)
-    if [[ "$build_type" != "Debug" ]]; then
-        echo "clang-tidy should be run only in Debug build. Reconfigure with CMAKE_BUILD_TYPE=Debug and try again." >&2
-        return 1
-    fi
-
-    # run-clang-tidy is weird compared to run-clang-format.py:
-    # - clang-tidy is not executed on header files, but on source files
-    # - the positional arguments are regexes filtering sources from the compile_commands.json
-    # - the -header-filter option (or HeaderFilterRegex in the config) allows to filter header files
-    # - "build/.*" must be excluded on run-clang-tidy command line as it
-    #   includes targets generated by CMake's FetchContent module
-    run-clang-tidy -quiet -p "$BUILD_DIR" {{ target_paths }}
+    exit "$status"
 
 # Ensures that one or more required commands are installed
 _ensure-command +command:
@@ -205,9 +236,15 @@ _ensure-cmake-configured:
 
 # Ensures that the compile_commands.json file exists
 _ensure-compile-commands-json:
-    # for some reason cmake creates compile_commands.json only on the second run
-    test -f "$BUILD_DIR"/compile_commands.json || just configure
-    test -f "$BUILD_DIR"/compile_commands.json || just configure
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    just _ensure-command cmake
+    just _ensure-cmake-configured
+
+    if [[ ! -f "$BUILD_DIR"/compile_commands.json ]]; then
+        cmake -B "$BUILD_DIR" -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    fi
 
 # Gets the current version of the project from the CMakeLists.txt file
 get-current-version:

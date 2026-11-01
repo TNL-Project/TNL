@@ -278,13 +278,15 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_DEBUG_POSTFIX "-dbg") # suffix for libraries
 endif()
 
+# export compile_commands.json so it can be used by Clang tools
+# https://clang.llvm.org/docs/JSONCompilationDatabase.html
+# (this must happen before add_subdirectory(src) so that src/CMakeLists.txt can
+# use it as a condition when generating entries for the library headers)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+
 # Add all subdirectories
 add_subdirectory(src)
 add_subdirectory(Documentation)
-
-# export compile_commands.json so it can be used by Clang tools
-# https://clang.llvm.org/docs/JSONCompilationDatabase.html
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 if(PROJECT_IS_TOP_LEVEL)
     # Print custom build options

@@ -6,6 +6,27 @@ install(CODE "file( REMOVE_RECURSE \"${CMAKE_INSTALL_FULL_INCLUDEDIR}/TNL/\" )" 
 install(CODE "message( \"-- Installing include directory: ${CMAKE_INSTALL_FULL_INCLUDEDIR}/TNL/\")" COMPONENT headers)
 install(DIRECTORY TNL TYPE INCLUDE COMPONENT headers MESSAGE_NEVER FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
+# clangd support: compile_commands.json only lists translation units, so clangd would
+# infer a bogus compile command for every library header (wrong include paths, wrong
+# C++ standard). Emit a real entry per header via an OBJECT library that is never
+# built. The .clangd config overrides the language to CUDA for these entries, so that
+# clangd checks the device code guarded by __CUDACC__ in the headers.
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    file(GLOB_RECURSE tnl_clangd_headers CONFIGURE_DEPENDS "TNL/*.h" "TNL/*.hpp")
+    # skip vendored code
+    list(FILTER tnl_clangd_headers EXCLUDE REGEX "TNL/3rdparty/")
+    add_library(tnl_clangd_headers OBJECT EXCLUDE_FROM_ALL ${tnl_clangd_headers})
+    # compile the entries with the same toolchain and flags as the real code
+    if(CMAKE_CUDA_COMPILER)
+        set_source_files_properties(${tnl_clangd_headers} PROPERTIES LANGUAGE CUDA)
+    elseif(CMAKE_HIP_COMPILER)
+        set_source_files_properties(${tnl_clangd_headers} PROPERTIES LANGUAGE HIP)
+    else()
+        set_source_files_properties(${tnl_clangd_headers} PROPERTIES LANGUAGE CXX)
+    endif()
+    target_link_libraries(tnl_clangd_headers PRIVATE TNL)
+endif()
+
 # add all subdirectories
 add_subdirectory(Python)
 add_subdirectory(Benchmarks)
