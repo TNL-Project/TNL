@@ -36,97 +36,6 @@ maskedInactiveColor()
    return static_cast< ColorType >( -1 );
 }
 
-template< typename Graph, typename Vector >
-bool
-isProperlyColoredOnActiveVertices(
-   const Graph& graph,
-   const Vector& colors,
-   const typename Vector::ValueType minimumColor,
-   const typename Vector::ValueType inactiveColor,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert( ! Graph::isDirected(), "Graph coloring requires an undirected graph." );
-
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using ColorType = typename Vector::ValueType;
-
-   const IndexType verticesCount = graph.getVertexCount();
-   if( colors.getSize() != verticesCount )
-      return false;
-   if( verticesCount == 0 )
-      return true;
-
-   const auto graphView = graph.getConstView();
-   const auto colorsView = colors.getConstView();
-
-   return TNL::Algorithms::reduce< DeviceType >(
-      0,
-      verticesCount,
-      [ = ] __cuda_callable__( IndexType vertex ) -> bool
-      {
-         const bool active = graphView.vertexExists( vertex );
-         const ColorType color = colorsView[ vertex ];
-         if( ! active )
-            return color == inactiveColor;
-
-         if( color < minimumColor )
-            return false;
-
-         const auto vertexView = graphView.getVertex( vertex );
-         for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
-            const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-            if( ! graphView.vertexExists( neighbor ) )
-               continue;
-
-            const auto weight = vertexView.getEdgeWeight( localIdx );
-            if( ! graphView.edgeExists( vertex, neighbor, weight ) )
-               continue;
-
-            if( colorsView[ neighbor ] == color )
-               return false;
-         }
-
-         return true;
-      },
-      LogicalAnd{} );
-}
-
-// Convert 1-based colors to 0-based by subtracting 1 from each active vertex.
-// Internally, colors start at 1 (0 means "uncolored"); this function shifts
-// them down so the final result uses 0, 1, 2, ...
-template< typename Graph, typename Vector >
-void
-finalizeZeroBasedColoringOnActiveVertices(
-   const Graph& graph,
-   Vector& colors,
-   const typename Vector::ValueType inactiveColor,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   TNL_ASSERT_TRUE(
-      isProperlyColoredOnActiveVertices(
-         graph, colors, static_cast< typename Vector::ValueType >( 1 ), inactiveColor, launchConfig ),
-      "Internal graph coloring must be proper before conversion to zero-based labels." );
-
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-
-   const IndexType verticesCount = graph.getVertexCount();
-   if( verticesCount == 0 )
-      return;
-
-   const auto graphView = graph.getConstView();
-   auto colorsView = colors.getView();
-   TNL::Algorithms::parallelFor< DeviceType >(
-      0,
-      verticesCount,
-      [ = ] __cuda_callable__( IndexType vertex ) mutable
-      {
-         if( graphView.vertexExists( vertex ) )
-            colorsView[ vertex ] -= static_cast< typename Vector::ValueType >( 1 );
-      } );
-}
-
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 bool
 isProperlyColoredOnActiveVerticesWithPredicates(
@@ -185,6 +94,9 @@ isProperlyColoredOnActiveVerticesWithPredicates(
       LogicalAnd{} );
 }
 
+// Convert 1-based colors to 0-based by subtracting 1 from each active vertex.
+// Internally, colors start at 1 (0 means "uncolored"); this function shifts
+// them down so the final result uses 0, 1, 2, ...
 template< typename Graph, typename VertexPredicate, typename Vector, typename EdgePredicate >
 void
 finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
@@ -222,6 +134,62 @@ finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
          if( vertexPredicate( vertex ) )
             colorsView[ vertex ] -= static_cast< typename Vector::ValueType >( 1 );
       } );
+}
+
+template< typename Graph, typename Vector >
+bool
+isProperlyColoredOnActiveVertices(
+   const Graph& graph,
+   const Vector& colors,
+   const typename Vector::ValueType minimumColor,
+   const typename Vector::ValueType inactiveColor,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Graph::IndexType;
+   using ValueType = typename Graph::ValueType;
+
+   const auto graphView = graph.getConstView();
+   return isProperlyColoredOnActiveVerticesWithPredicates(
+      graph,
+      [ = ] __cuda_callable__( IndexType vertex )
+      {
+         return graphView.vertexExists( vertex );
+      },
+      colors,
+      minimumColor,
+      inactiveColor,
+      [ = ] __cuda_callable__( IndexType source, IndexType target, const ValueType& weight )
+      {
+         return graphView.edgeExists( source, target, weight );
+      },
+      launchConfig );
+}
+
+template< typename Graph, typename Vector >
+void
+finalizeZeroBasedColoringOnActiveVertices(
+   const Graph& graph,
+   Vector& colors,
+   const typename Vector::ValueType inactiveColor,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Graph::IndexType;
+   using ValueType = typename Graph::ValueType;
+
+   const auto graphView = graph.getConstView();
+   finalizeZeroBasedColoringOnActiveVerticesWithPredicates(
+      graph,
+      [ = ] __cuda_callable__( IndexType vertex )
+      {
+         return graphView.vertexExists( vertex );
+      },
+      colors,
+      inactiveColor,
+      [ = ] __cuda_callable__( IndexType source, IndexType target, const ValueType& weight )
+      {
+         return graphView.edgeExists( source, target, weight );
+      },
+      launchConfig );
 }
 
 // Sequential greedy coloring: process vertices in index order, assign each
