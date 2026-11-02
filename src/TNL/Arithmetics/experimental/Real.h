@@ -513,7 +513,7 @@ operator<<( std::ostream& str, const Real< T >& v )
    return str;
 }
 
-typedef Real< float > tnlFloat;
-typedef Real< double > tnlDouble;
+using tnlFloat = Real< float >;
+using tnlDouble = Real< double >;
 
 }  // namespace TNL::Arithmetics::experimental

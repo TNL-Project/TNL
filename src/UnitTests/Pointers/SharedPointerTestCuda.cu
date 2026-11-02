@@ -11,7 +11,7 @@ using namespace TNL;
 
 TEST( SharedPointerTestCuda, ConstructorTest )
 {
-   typedef TNL::Containers::StaticArray< 2, int > TestType;
+   using TestType = TNL::Containers::StaticArray< 2, int >;
    Pointers::SharedPointer< TestType, Devices::Cuda > ptr1;
 
    ptr1->x() = 0;
@@ -30,7 +30,7 @@ TEST( SharedPointerTestCuda, ConstructorTest )
 
 TEST( SharedPointerCudaTest, getDataTest )
 {
-   typedef TNL::Containers::StaticArray< 2, int > TestType;
+   using TestType = TNL::Containers::StaticArray< 2, int >;
    Pointers::SharedPointer< TestType, Devices::Cuda > ptr1( 1, 2 );
 
    Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
@@ -64,7 +64,7 @@ copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, De
 
 TEST( SharedPointerCudaTest, getDataArrayTest )
 {
-   typedef TNL::Containers::Array< int, Devices::Cuda > TestType;
+   using TestType = TNL::Containers::Array< int, Devices::Cuda >;
    Pointers::SharedPointer< TestType > ptr;
 
    ptr->setSize( 2 );

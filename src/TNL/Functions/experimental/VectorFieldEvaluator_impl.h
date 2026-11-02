@@ -113,11 +113,11 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateEntities(
    static_assert(
       std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >, "expected a smart pointer" );
 
-   typedef typename MeshType::template EntityType< OutVectorField::getEntitiesDimension() > MeshEntityType;
-   typedef VectorFieldEvaluatorAssignmentEntitiesProcessor< MeshType, TraverserUserData > AssignmentEntitiesProcessor;
-   typedef VectorFieldEvaluatorAdditionEntitiesProcessor< MeshType, TraverserUserData > AdditionEntitiesProcessor;
+   using MeshEntityType = typename MeshType::template EntityType< OutVectorField::getEntitiesDimension() >;
+   using AssignmentEntitiesProcessor = VectorFieldEvaluatorAssignmentEntitiesProcessor< MeshType, TraverserUserData >;
+   using AdditionEntitiesProcessor = VectorFieldEvaluatorAdditionEntitiesProcessor< MeshType, TraverserUserData >;
    // typedef typename OutVectorField::MeshPointer OutMeshPointer;
-   typedef Pointers::SharedPointer< TraverserUserData, DeviceType > TraverserUserDataPointer;
+   using TraverserUserDataPointer = Pointers::SharedPointer< TraverserUserData, DeviceType >;
 
    SharedPointer< TraverserUserData, DeviceType > userData(
       &function.template getData< DeviceType >(),
