@@ -176,9 +176,11 @@ public:
     * \param target The target vertex index.
     * \param weight The edge weight.
     * \return \c true if both endpoints are in the mask and the edge passes the edge filter.
+    *
+    * This method reads the mask element by element, so it is host-only. Use the
+    * view returned by \ref getConstView in device code.
     */
-   [[nodiscard]] __cuda_callable__
-   bool
+   [[nodiscard]] bool
    edgeExists( IndexType source, IndexType target, const ValueType& weight ) const;
 
    //! \brief Returns the edge filter.
