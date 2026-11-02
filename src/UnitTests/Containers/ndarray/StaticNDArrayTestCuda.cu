@@ -23,7 +23,8 @@ expect_identity( const ArrayView& a )
 void
 __test_SetThroughView()
 {
-   constexpr int I = 3, J = 5;
+   constexpr int I = 3;
+   constexpr int J = 5;
    using ViewType = StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
    NDArray< int, SizesHolder< int, I, J >, std::make_index_sequence< 2 >, TNL::Devices::Cuda > a;
    a.setSizes( 0, 0 );
@@ -50,7 +51,8 @@ TEST( StaticNDArrayTestCuda, SetThroughView )
 void
 __test_CopyFromArray()
 {
-   constexpr int I = 3, J = 5;
+   constexpr int I = 3;
+   constexpr int J = 5;
    using ViewType = StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
    NDArray< int, SizesHolder< int, I, J >, std::make_index_sequence< 2 >, TNL::Devices::Cuda > a;
    a.setSizes( 0, 0 );

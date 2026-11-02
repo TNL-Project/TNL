@@ -527,7 +527,10 @@ void
 twoProd( T a, T b, T* p, T* e )
 {
    *p = a * b;
-   T a_hi, a_lo, b_hi, b_lo;
+   T a_hi;
+   T a_lo;
+   T b_hi;
+   T b_lo;
    split( a, &a_hi, &a_lo );
    split( b, &b_hi, &b_lo );
    *e = ( ( a_hi * b_hi - *p ) + a_hi * b_lo + a_lo * b_hi ) + a_lo * b_lo;

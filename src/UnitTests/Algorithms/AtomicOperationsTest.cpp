@@ -140,7 +140,8 @@ TEST( AtomicOperationsHostCAS, ParallelCASIncrement )
    #pragma omp parallel num_threads( numThreads )
    {
       for( int i = 0; i < incrementsPerThread; i++ ) {
-         int old, expected;
+         int old;
+         int expected;
          do {
             expected = counter;
             old = AtomicOperations< Devices::Host >::CAS( counter, expected, expected + 1 );

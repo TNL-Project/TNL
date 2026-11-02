@@ -107,7 +107,8 @@ forElements_SlicedEllpack_PerElement(
          const Index local_segmentIdx = local_sliceIdx * SliceSize + inSliceIdx / shared_segments_size[ local_sliceIdx ];
 
          const Index globalIdx = firstSegmentInBlockOffset + idx;
-         Index localIdx, currentSegmentIdx;
+         Index localIdx;
+         Index currentSegmentIdx;
          if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
             localIdx = inSliceIdx % shared_segments_size[ local_sliceIdx ];
             currentSegmentIdx = firstSegmentInBlock + local_segmentIdx;
