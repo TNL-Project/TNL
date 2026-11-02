@@ -67,10 +67,10 @@ protected:
 
       // reset the numbers of grids checked in checkResult
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount() = -1;
-         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount() = -1;
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() = -1;
-         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() = -1;
+         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount() = -1;
+         GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount() = -1;
+         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() = -1;
+         GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() = -1;
       }
    }
 
@@ -83,8 +83,8 @@ protected:
          if( array.getSize() > 256 ) {
             // we don't care which kernel launcher was actually used
             const auto gridsCount = TNL::max(
-               CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-               CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+               GPUScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
+               GPUScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
             EXPECT_GT( gridsCount, 1 );
          }
       }
@@ -842,10 +842,10 @@ TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
    // The fixture constrains maxGridSize to 3, which would route to the
    // three-phase path. Reset it so the lookback kernel is selected.
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
    }
 
    // Choose size large enough to span multiple blocks with the default
@@ -903,8 +903,8 @@ TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
    // Verify that the lookback kernel was actually used (gridsCount == 1)
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
       const auto gridsCount = TNL::max(
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
+         GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
       EXPECT_EQ( gridsCount, 1 );
    }
 }
@@ -921,10 +921,10 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_begin )
    using DeviceType = typename TestFixture::DeviceType;
 
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
+      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
    }
 
    // begin=3 breaks 16-byte alignment for double (3*8=24) and int (3*4=12).

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
-#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScanKernel.h>
 #include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 
@@ -163,9 +163,9 @@ forElements_Ellpack_PerElement_If(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using InclusiveCudaScan =
-      Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Inclusive, BlockSize, Plus, Index >;
-   using InclusiveScanStorage = typename InclusiveCudaScan::Storage;  // TODO: Storage should not depend on the scan type
+   using InclusiveGPUScan =
+      Algorithms::detail::GPUBlockScanShfl< Algorithms::detail::ScanType::Inclusive, BlockSize, Plus, Index >;
+   using InclusiveScanStorage = typename InclusiveGPUScan::Storage;  // TODO: Storage should not depend on the scan type
 
    __shared__ InclusiveScanStorage inclusive_scan_storage;
    __shared__ Index conditions[ SegmentsPerBlock ];
@@ -188,7 +188,7 @@ forElements_Ellpack_PerElement_If(
    __syncthreads();
 
    const Index v1 =
-      InclusiveCudaScan::scan( Plus(), static_cast< Index >( 0 ), conditionValue, threadIdx.x, inclusive_scan_storage );
+      InclusiveGPUScan::scan( Plus(), static_cast< Index >( 0 ), conditionValue, threadIdx.x, inclusive_scan_storage );
    if( threadIdx.x < SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    __syncthreads();
