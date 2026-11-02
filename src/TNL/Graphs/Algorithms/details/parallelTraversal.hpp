@@ -310,12 +310,16 @@ expandContractFrontier(
    growBuffer( buffers.scan, frontierSize, std::max( vertexCount, maxEdgeFrontierSize ) );
    auto frontierView = frontier.getView();
    auto degreesView = buffers.degrees.getView();
+   // The traversal of the adjacency matrix skips the elements with local index not smaller than
+   // the number of columns, so the slots are limited to them and each of them is visited.
+   const IndexType columns = adjacencyMatrixView.getColumns();
    TNL::Algorithms::parallelFor< DeviceType >(
       0,
       frontierSize,
       [ = ] __cuda_callable__( IndexType k ) mutable
       {
-         degreesView[ k ] = adjacencyMatrixView.getRowCapacity( frontierView[ k ] );
+         const IndexType capacity = adjacencyMatrixView.getRowCapacity( frontierView[ k ] );
+         degreesView[ k ] = capacity < columns ? capacity : columns;
       } );
    inclusiveSum( buffers, buffers.degrees, buffers.scan, frontierSize );
    const IndexType edgeFrontierSize = buffers.scan.getElement( frontierSize - 1 );
