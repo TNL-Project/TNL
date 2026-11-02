@@ -45,25 +45,25 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
       }
       else if( entryType == "integer" ) {
          const auto v = value.AsT< Integer >();
-         const ConfigEntry< Integer >& entry = dynamic_cast< const ConfigEntry< Integer >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< Integer >& >( *entryBase );
          checkEnumValues( entry, name, v );
          parameters.addParameter< Integer >( name, v );
       }
       else if( entryType == "unsigned integer" ) {
          const auto v = value.AsT< UnsignedInteger >();
-         const ConfigEntry< UnsignedInteger >& entry = dynamic_cast< const ConfigEntry< UnsignedInteger >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< UnsignedInteger >& >( *entryBase );
          checkEnumValues( entry, name, v );
          parameters.addParameter< UnsignedInteger >( name, v );
       }
       else if( entryType == "real" ) {
          const auto v = value.AsDouble();
-         const ConfigEntry< double >& entry = dynamic_cast< const ConfigEntry< double >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< double >& >( *entryBase );
          checkEnumValues( entry, name, v );
          parameters.addParameter< double >( name, v );
       }
       else if( entryType == "string" ) {
          const auto v = value.AsString();
-         const ConfigEntry< std::string >& entry = dynamic_cast< const ConfigEntry< std::string >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< std::string >& >( *entryBase );
          checkEnumValues( entry, name, v );
          parameters.addParameter< std::string >( name, v );
          continue;
@@ -74,25 +74,25 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
       }
       else if( entryType == "list of integer" ) {
          const auto list = value.AsArray().ToVector< Integer >();
-         const ConfigEntry< Integer >& entry = dynamic_cast< const ConfigEntry< Integer >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< Integer >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< Integer >( name, list );
       }
       else if( entryType == "list of unsigned integer" ) {
          const auto list = value.AsArray().ToVector< UnsignedInteger >();
-         const ConfigEntry< UnsignedInteger >& entry = dynamic_cast< const ConfigEntry< UnsignedInteger >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< UnsignedInteger >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< UnsignedInteger >( name, list );
       }
       else if( entryType == "list of real" ) {
          const auto list = value.AsArray().ToVector< double >();
-         const ConfigEntry< double >& entry = dynamic_cast< const ConfigEntry< double >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< double >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< double >( name, list );
       }
       else if( entryType == "list of string" ) {
          const auto list = value.AsArray().ToVector< std::string >();
-         const ConfigEntry< std::string >& entry = dynamic_cast< const ConfigEntry< std::string >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntry< std::string >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< std::string >( name, list );
       }
