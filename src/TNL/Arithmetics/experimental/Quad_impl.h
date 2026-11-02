@@ -268,10 +268,7 @@ template< class T >
 bool
 Quad< T >::operator==( const Quad< T >& rhs ) const
 {
-   if( data[ 0 ] == rhs[ 0 ] && data[ 1 ] == rhs[ 1 ] && data[ 2 ] == rhs[ 2 ] && data[ 3 ] == rhs[ 3 ] ) {
-      return true;
-   }
-   return false;
+   return data[ 0 ] == rhs[ 0 ] && data[ 1 ] == rhs[ 1 ] && data[ 2 ] == rhs[ 2 ] && data[ 3 ] == rhs[ 3 ];
 }
 
 template< class T >
@@ -287,10 +284,7 @@ Quad< T >::operator<( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] < 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] < 0.;
 }
 
 template< class T >
@@ -299,10 +293,7 @@ Quad< T >::operator>( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] > 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] > 0.;
 }
 
 template< class T >
@@ -311,10 +302,7 @@ Quad< T >::operator>=( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] >= 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] >= 0.;
 }
 
 template< class T >
@@ -323,10 +311,7 @@ Quad< T >::operator<=( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] <= 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] <= 0.;
 }
 
 template< class T >
