@@ -18,7 +18,7 @@ public:
    T data[ 2 ];
 
    Double();
-   Double( const Double< T >& value );
+   Double( const Double< T >& other );
    explicit Double( const T& value );
    explicit Double( int value );
 
