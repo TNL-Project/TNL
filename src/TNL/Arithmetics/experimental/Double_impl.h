@@ -39,16 +39,16 @@ Double< T >::Double( int value )
 template< class T >
 Double< T >::Double( const Double< T >& other )
 {
-   data[ 0 ] = other[ 0 ];
-   data[ 1 ] = other[ 1 ];
+   data[ 0 ] = other.data[ 0 ];
+   data[ 1 ] = other.data[ 1 ];
 }
 
 template< class T >
 Double< T >&
 Double< T >::operator=( const Double< T >& rhs )
 {
-   data[ 0 ] = rhs[ 0 ];
-   data[ 1 ] = rhs[ 1 ];
+   data[ 0 ] = rhs.data[ 0 ];
+   data[ 1 ] = rhs.data[ 1 ];
    return *this;
 }
 
@@ -58,7 +58,7 @@ Double< T >::operator+( const Double< T >& rhs ) const
 {
    Double< T > lhs( *this );
    lhs += rhs;
-   return qd;
+   return lhs;
 }
 
 template< class T >
@@ -66,8 +66,8 @@ Double< T >
 Double< T >::operator-( const Double< T >& rhs ) const
 {
    Double< T > lhs( *this );
-   lhs += rhs;
-   return qd;
+   lhs -= rhs;
+   return lhs;
 }
 
 template< class T >
@@ -76,7 +76,7 @@ Double< T >::operator*( const Double< T >& rhs ) const
 {
    Double< T > lhs( *this );
    lhs *= rhs;
-   return qd;
+   return lhs;
 }
 
 template< class T >
@@ -85,7 +85,7 @@ Double< T >::operator/( const Double< T >& rhs ) const
 {
    Double< T > lhs( *this );
    lhs /= rhs;
-   return qd;
+   return lhs;
 }
 
 /*
