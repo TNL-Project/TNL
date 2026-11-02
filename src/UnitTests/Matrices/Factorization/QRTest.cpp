@@ -11,7 +11,7 @@ using namespace TNL::Matrices::Factorization::QR;
 
 template< typename MatrixType >
 void
-test_orthogonal( const MatrixType matrix )
+test_orthogonal( const MatrixType& matrix )
 {
    static_assert(
       MatrixType::getOrganization() == Algorithms::Segments::ColumnMajorOrder,
@@ -39,7 +39,7 @@ test_orthogonal( const MatrixType matrix )
 
 template< typename MatrixType >
 void
-test_upper_triangular( const MatrixType matrix )
+test_upper_triangular( const MatrixType& matrix )
 {
    using IndexType = typename MatrixType::IndexType;
 
@@ -52,7 +52,7 @@ test_upper_triangular( const MatrixType matrix )
 
 template< typename MatrixType >
 void
-test_QR_factorization( const MatrixType A, const MatrixType Q, const MatrixType R )
+test_QR_factorization( const MatrixType& A, const MatrixType& Q, const MatrixType& R )
 {
    using RealType = typename MatrixType::RealType;
 

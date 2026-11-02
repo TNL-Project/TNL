@@ -55,7 +55,7 @@ copyArrayKernel( const TNL::Containers::Array< int, Devices::Cuda >* inArray, in
 
 __global__
 void
-copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, Devices::Cuda > > inArray, int* outArray )
+copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, Devices::Cuda > >& inArray, int* outArray )
 {
    if( threadIdx.x < 2 ) {
       outArray[ threadIdx.x ] = ( *inArray )[ threadIdx.x ];
