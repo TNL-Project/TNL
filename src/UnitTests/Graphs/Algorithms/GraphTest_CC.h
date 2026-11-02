@@ -157,6 +157,36 @@ TYPED_TEST( GraphTest, test_CC_small )
    ASSERT_EQ( components, expected );
 }
 
+TYPED_TEST( GraphTest, test_CC_directed )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using IndexType = typename MatrixType::IndexType;
+   using DirectedGraphType =
+      TNL::Graphs::Graph< typename MatrixType::RealType, DeviceType, IndexType, TNL::Graphs::DirectedGraph >;
+   using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // Edges point only towards smaller vertices, so the weakly connected components
+   // can be found only by following the edges in both directions.
+   // clang-format off
+   const DirectedGraphType graph(
+      7,
+      {
+         { 1, 0, 1.0 },
+         { 2, 1, 1.0 },
+         { 4, 3, 1.0 },
+         { 6, 3, 1.0 },
+         { 6, 5, 1.0 },
+      } );
+   // clang-format on
+   ComponentsType components;
+
+   TNL::Graphs::Algorithms::connectedComponents( graph, components );
+
+   ComponentsType expected( { 0, 0, 0, 3, 3, 3, 3 } );
+   ASSERT_EQ( components, expected );
+}
+
 TYPED_TEST( GraphTest, test_CC_medium )
 {
    using GraphType = typename TestFixture::GraphType;

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <queue>
 #include <type_traits>
 
 #include <TNL/Algorithms/parallelFor.h>
@@ -20,35 +19,24 @@
 
 namespace TNL::Graphs::Algorithms {
 
-template< typename Index, typename VisitedView, typename ComponentsView, typename GraphView >
-void
-enqueueComponentVertex(
-   const Index componentLabel,
-   const Index vertex,
-   VisitedView visited,
-   ComponentsView components,
-   std::queue< Index >& queue,
-   const GraphView& graphView )
+template< typename Index, typename ParentView >
+Index
+findComponentRoot( ParentView parent, Index vertex )
 {
-   if( ! graphView.vertexExists( vertex ) )
-      return;
-   if( visited[ vertex ] )
-      return;
-
-   visited[ vertex ] = 1;
-   components[ vertex ] = componentLabel;
-   queue.push( vertex );
+   // Path halving keeps the trees shallow without recursion.
+   while( parent[ vertex ] != vertex ) {
+      parent[ vertex ] = parent[ parent[ vertex ] ];
+      vertex = parent[ vertex ];
+   }
+   return vertex;
 }
 
 template< typename Graph, typename Vector >
 void
 connectedComponentsSequential( const Graph& graph, Vector& components )
 {
-   using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
    using ValueType = typename Graph::ValueType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-   using AdjacencyMatrixType = typename Graph::AdjacencyMatrixType;
 
    const IndexType verticesCount = graph.getVertexCount();
    components.setSize( verticesCount );
@@ -57,65 +45,39 @@ connectedComponentsSequential( const Graph& graph, Vector& components )
 
    const auto graphView = graph.getConstView();
    const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
-   IndexVector visited( verticesCount, 0 );
-   auto visitedView = visited.getView();
    auto componentsView = components.getView();
-   components = static_cast< IndexType >( -1 );
+   for( IndexType vertex = 0; vertex < verticesCount; vertex++ )
+      componentsView[ vertex ] = graphView.vertexExists( vertex ) ? vertex : static_cast< IndexType >( -1 );
 
-   // BFS from each unvisited active vertex.  CC treats the graph as
-   // undirected, so we must traverse both outgoing and incoming edges.
-   for( IndexType componentLabel = 0; componentLabel < verticesCount; componentLabel++ ) {
-      if( ! graphView.vertexExists( componentLabel ) )
+   // Union-find over the stored edges.  CC treats the graph as undirected, so each
+   // stored edge joins both endpoints regardless of its direction.  This also covers
+   // symmetric matrices, which store only the lower triangle.  The smaller root
+   // always becomes the parent, so each root is the smallest vertex of its component.
+   for( IndexType sourceIdx = 0; sourceIdx < verticesCount; sourceIdx++ ) {
+      if( componentsView[ sourceIdx ] == static_cast< IndexType >( -1 ) )
          continue;
-      if( visitedView[ componentLabel ] )
-         continue;
-
-      std::queue< IndexType > queue;
-      enqueueComponentVertex( componentLabel, componentLabel, visitedView, componentsView, queue, graphView );
-
-      while( ! queue.empty() ) {
-         const IndexType currentVertex = queue.front();
-         queue.pop();
-
-         // Forward edges: currentVertex -> neighbor
-         const auto currentRow = adjacencyMatrix.getRow( currentVertex );
-         for( IndexType localIdx = 0; localIdx < currentRow.getSize(); localIdx++ ) {
-            const IndexType neighbor = currentRow.getColumnIndex( localIdx );
-            if( neighbor == Matrices::paddingIndex< IndexType > )
-               continue;
-            const ValueType weight = currentRow.getValue( localIdx );
-            if( ! graphView.edgeExists( currentVertex, neighbor, weight ) )
-               continue;
-            enqueueComponentVertex( componentLabel, neighbor, visitedView, componentsView, queue, graphView );
-         }
-
-         // Reverse edges: rowIdx -> currentVertex.
-         // Symmetric matrices store only the lower triangle, so getRow(current)
-         // misses neighbors j > current.  We must scan all rows to find edges
-         // pointing TO the current vertex (O(n) per dequeue).  Non-symmetric
-         // matrices already store both directions, so this scan is skipped.
-         if constexpr( AdjacencyMatrixType::isSymmetric() ) {
-            for( IndexType rowIdx = 0; rowIdx < verticesCount; rowIdx++ ) {
-               if( rowIdx == currentVertex )
-                  continue;
-
-               const auto row = adjacencyMatrix.getRow( rowIdx );
-               for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
-                  const IndexType target = row.getColumnIndex( localIdx );
-                  if( target == Matrices::paddingIndex< IndexType > )
-                     continue;
-                  if( target == currentVertex ) {
-                     const ValueType weight = row.getValue( localIdx );
-                     if( ! graphView.edgeExists( rowIdx, currentVertex, weight ) )
-                        break;
-                     enqueueComponentVertex( componentLabel, rowIdx, visitedView, componentsView, queue, graphView );
-                     break;
-                  }
-               }
-            }
-         }
+      const auto row = adjacencyMatrix.getRow( sourceIdx );
+      for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+         const IndexType targetIdx = row.getColumnIndex( localIdx );
+         if( targetIdx == Matrices::paddingIndex< IndexType > )
+            continue;
+         if( componentsView[ targetIdx ] == static_cast< IndexType >( -1 ) )
+            continue;
+         const ValueType weight = row.getValue( localIdx );
+         if( ! graphView.edgeExists( sourceIdx, targetIdx, weight ) )
+            continue;
+         const IndexType sourceRoot = findComponentRoot( componentsView, sourceIdx );
+         const IndexType targetRoot = findComponentRoot( componentsView, targetIdx );
+         if( sourceRoot < targetRoot )
+            componentsView[ targetRoot ] = sourceRoot;
+         else if( targetRoot < sourceRoot )
+            componentsView[ sourceRoot ] = targetRoot;
       }
    }
+
+   for( IndexType vertex = 0; vertex < verticesCount; vertex++ )
+      if( componentsView[ vertex ] != static_cast< IndexType >( -1 ) )
+         componentsView[ vertex ] = findComponentRoot( componentsView, vertex );
 }
 
 template< typename Graph, typename Vector >
