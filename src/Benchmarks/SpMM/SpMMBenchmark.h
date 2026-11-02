@@ -9,6 +9,7 @@
 #include <functional>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -16,12 +17,18 @@
 #include <vector>
 
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Algorithms/Segments/AdaptiveCSR.h>
+#include <TNL/Algorithms/Segments/Ellpack.h>
+#include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
+#include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Matrices/DenseMatrixView.h>
 #include <TNL/Matrices/MatrixReader.h>
+#include <TNL/Matrices/SparseDenseOperations.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/TypeInfo.h>
 
@@ -392,7 +399,57 @@ getSortedRowOrder( const Matrix& matrix, typename Matrix::IndexType window )
    return result;
 }
 
+/**
+ * \brief Returns the numbers of elements of the Ellpack and SlicedEllpack
+ * formats of the matrix including the padding elements.
+ *
+ * \param alignment is the alignment of the number of rows of Ellpack.
+ * \param sliceSize is the number of rows of a slice of SlicedEllpack.
+ */
+template< typename Matrix >
+std::pair< std::size_t, std::size_t >
+getPaddedSizes( const Matrix& matrix, typename Matrix::IndexType alignment, typename Matrix::IndexType sliceSize )
+{
+   using Index = typename Matrix::IndexType;
+   const Index rows = matrix.getRows();
+   const auto offsets = matrix.getSegments().getOffsets().getConstView();
+   std::size_t maxRowLength = 0;
+   std::size_t slicedEllpackSize = 0;
+   for( Index first = 0; first < rows; first += sliceSize ) {
+      std::size_t sliceMax = 0;
+      for( Index row = first; row < std::min( first + sliceSize, rows ); row++ )
+         sliceMax = std::max( sliceMax, std::size_t( offsets[ row + 1 ] - offsets[ row ] ) );
+      maxRowLength = std::max( maxRowLength, sliceMax );
+      slicedEllpackSize += sliceMax * sliceSize;
+   }
+   const std::size_t alignedRows = ( rows + alignment - 1 ) / alignment * alignment;
+   return { alignedRows * maxRowLength, slicedEllpackSize };
+}
+
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+
+template< typename Device, typename Index, typename IndexAllocator >
+using EllpackSegments = Algorithms::Segments::Ellpack< Device, Index, IndexAllocator >;
+
+template< typename Device, typename Index, typename IndexAllocator >
+using SlicedEllpackSegments = Algorithms::Segments::SlicedEllpack< Device, Index, IndexAllocator >;
+
+/**
+ * \brief The sparse matrix in the other formats than CSR benchmarked by the TNL SpMM.
+ *
+ * A format is empty when it is not selected by the `segments-formats` parameter or
+ * when its padding would be too large.
+ */
+template< typename Real, typename Index >
+struct SegmentsFormats
+{
+   template< template< typename, typename, typename > class Segments >
+   using Matrix = Matrices::SparseMatrix< Real, Devices::GPU, Index, Matrices::GeneralMatrix, Segments >;
+
+   std::optional< Matrix< Algorithms::Segments::AdaptiveCSR > > adaptiveCSR;
+   std::optional< Matrix< EllpackSegments > > ellpack;
+   std::optional< Matrix< SlicedEllpackSegments > > slicedEllpack;
+};
 
 /**
  * \brief Device data of the row bins for the Binned kernel.
@@ -509,14 +566,17 @@ benchmarkGPU(
    const Matrices::SparseMatrix< Real, Devices::GPU, Index >& matrix,
    const Containers::Vector< Index, Devices::GPU, Index >& sortedRowOrder,
    const std::vector< std::pair< std::string, RowBinsData< Index > > >& rowBins,
+   const SegmentsFormats< Real, Index >& formats,
    const SpMMProblem< Real, Index >& problem )
 {
    using GPUVector = Containers::Vector< Real, Devices::GPU, Index >;
 
    const auto kernels = parameters.getList< std::string >( "kernels" );
+   const auto segmentsFormats = parameters.getList< std::string >( "segments-formats" );
    const auto& rowOrderParameter = parameters.getParameter< std::string >( "row-order" );
 
-   const GPUVector B( problem.makeB() );
+   // B is not modified, it is not const only for the DenseMatrixView used by the TNL SpMM
+   GPUVector B( problem.makeB() );
    GPUVector C( problem.rows * problem.k );
    const auto A = getCSRArrays( matrix );
    const auto arrayB = getDenseArray< Real >( B, problem.columns, problem.k, problem.leadingDimensionB() );
@@ -566,6 +626,56 @@ benchmarkGPU(
       runKSpMV( LaunchConfiguration{}, "Default" );
       for( int TPS : { 1, 2, 4, 8, 16, 32 } )
          runKSpMV( LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, TPS ), "Uniform TPS=" + std::to_string( TPS ) );
+   }
+
+   // the generic SpMM of TNL based on the multireduction in the segments of the sparse matrix
+   if( isSelected( kernels, "segments" ) ) {
+      using Algorithms::Segments::LaunchConfiguration;
+      // runs the product with the sparse matrix in the given format, tiles of at most MaxTileSize columns
+      // and all launch configurations of its segments, or only the Default one
+      auto runSegments = [ & ]( const std::string& performer, const auto& sparseMatrix, auto maxTileSize, bool defaultOnly )
+      {
+         constexpr int MaxTileSize = decltype( maxTileSize )::value;
+         auto launchConfigs = Algorithms::Segments::reductionLaunchConfigurations( sparseMatrix.getSegments() );
+         if( defaultOnly )
+            launchConfigs.resize( 1 );
+         for( const auto& entry : launchConfigs ) {
+            const LaunchConfiguration& launchConfig = entry.first;
+            auto compute = [ & ]()
+            {
+               auto multiply = [ & ]( auto organization )
+               {
+                  constexpr auto Organization = decltype( organization )::value;
+                  using DenseView = Matrices::DenseMatrixView< Real, Devices::GPU, Index, Organization >;
+                  const DenseView viewB( problem.columns, problem.k, B.getView() );
+                  DenseView viewC( problem.rows, problem.k, C.getView() );
+                  Matrices::sparseDenseMatrixProduct< MaxTileSize >(
+                     sparseMatrix, viewB, viewC, Real( 1 ), Real( 0 ), launchConfig );
+               };
+               if( problem.rowMajor )
+                  multiply(
+                     std::integral_constant< Algorithms::Segments::ElementsOrganization, Algorithms::Segments::RowMajorOrder >{} );
+               else
+                  multiply(
+                     std::integral_constant<
+                        Algorithms::Segments::ElementsOrganization,
+                        Algorithms::Segments::ColumnMajorOrder >{} );
+            };
+            run( performer, entry.second, compute );
+         }
+      };
+      using DefaultTileSize = std::integral_constant< int, 16 >;
+      if( isSelected( segmentsFormats, "csr" ) )
+         runSegments( "TNL SpMM", matrix, DefaultTileSize{}, false );
+      // The adaptive kernel supports values of at most 32 bytes, the larger tiles would fall back to the CSR kernels.
+      // The other launch configurations of AdaptiveCSR are the same as those of CSR.
+      if( formats.adaptiveCSR )
+         runSegments(
+            "TNL SpMM AdaptiveCSR", *formats.adaptiveCSR, std::integral_constant< int, 32 / sizeof( Real ) >{}, true );
+      if( formats.ellpack )
+         runSegments( "TNL SpMM Ellpack", *formats.ellpack, DefaultTileSize{}, false );
+      if( formats.slicedEllpack )
+         runSegments( "TNL SpMM SlicedEllpack", *formats.slicedEllpack, DefaultTileSize{}, false );
    }
 
    for( const auto& entry : orderedA ) {
@@ -772,6 +882,7 @@ benchmarkMatrix(
    Matrices::SparseMatrix< Real, Devices::GPU, Index > gpuMatrix;
    Containers::Vector< Index, Devices::GPU, Index > sortedRowOrder;
    std::vector< std::pair< std::string, RowBinsData< Index > > > rowBins;
+   SegmentsFormats< Real, Index > formats;
    if( device == "cuda" || device == "hip" || device == "all" ) {
       gpuMatrix = hostMatrix;
       sortedRowOrder = getSortedRowOrder( hostMatrix, Index( parameters.getParameter< int >( "sorting-window" ) ) );
@@ -780,6 +891,25 @@ benchmarkMatrix(
          rowBins.emplace_back(
             "E=" + std::to_string( elementsPerThread ) + " P=" + std::to_string( pieceSize ),
             RowBinsData< Index >( hostMatrix, elementsPerThread, pieceSize ) );
+
+      // the other formats for the TNL SpMM, the formats with padding are skipped when it is too large
+      const auto segmentsFormats = parameters.getList< std::string >( "segments-formats" );
+      const double maxPadding = parameters.getParameter< double >( "max-padding-ratio" ) * nonzeros;
+      const auto [ ellpackSize, slicedEllpackSize ] = getPaddedSizes( hostMatrix, Index( 32 ), Index( 32 ) );
+      if( isSelected( segmentsFormats, "adaptive-csr" ) )
+         formats.adaptiveCSR.emplace() = gpuMatrix;
+      if( isSelected( segmentsFormats, "ellpack" ) ) {
+         if( ellpackSize <= maxPadding )
+            formats.ellpack.emplace() = gpuMatrix;
+         else
+            std::cout << "Skipping Ellpack, it would have " << ellpackSize << " elements\n";
+      }
+      if( isSelected( segmentsFormats, "sliced-ellpack" ) ) {
+         if( slicedEllpackSize <= maxPadding )
+            formats.slicedEllpack.emplace() = gpuMatrix;
+         else
+            std::cout << "Skipping SlicedEllpack, it would have " << slicedEllpackSize << " elements\n";
+      }
    }
 #endif
 
@@ -830,7 +960,7 @@ benchmarkMatrix(
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
          if( device == "cuda" || device == "hip" || device == "all" )
-            benchmarkGPU( benchmark, parameters, gpuMatrix, sortedRowOrder, rowBins, problem );
+            benchmarkGPU( benchmark, parameters, gpuMatrix, sortedRowOrder, rowBins, formats, problem );
 #endif
       }
    }

@@ -21,6 +21,19 @@ generic SpMM implementation based on TNL segments.
 - **TNL k-SpMV** – `k` calls of `SparseMatrix::vectorProduct` on the columns
   of `B` (column-major layout only). This is the baseline that the fused
   kernels must beat.
+- **TNL SpMM** – the generic `TNL::Matrices::sparseDenseMatrixProduct`, which
+  computes each tile of at most 16 columns of `C` by one multireduction in the
+  segments of `A` (`TNL::Algorithms::Segments::multiReduceAllSegments`). It is
+  measured with `A` in the CSR format (`TNL SpMM`) and with all launch
+  configurations of its segments (Uniform with `TPS` 1–128 and Tiered).
+  Selected by `--segments-formats`, it is also measured with `A` in other
+  formats:
+  - `TNL SpMM AdaptiveCSR` – the native adaptive kernel only, with tiles of at
+    most 32 bytes (8 columns in single precision), since the adaptive kernel
+    does not support larger values.
+  - `TNL SpMM Ellpack` and `TNL SpMM SlicedEllpack` – all launch
+    configurations of the segments. A format is skipped when it would have more
+    elements than `--max-padding-ratio` times the number of nonzeros.
 - **RowGroup** – a group of `TPR` threads processes one row of `A` and every
   thread accumulates a tile of `K` columns of `C` in registers. Every element
   of `A` is loaded once per tile.
@@ -106,8 +119,12 @@ Important parameters:
 - `--grid-size-2d`, `--grid-size-3d` – grid size of the generated matrices.
 - `--dense-columns` – list of the numbers of columns `k` of the dense matrix.
 - `--dense-layout` – `row-major`, `column-major` or `all`.
-- `--kernels` – list of the benchmarked implementations: `k-spmv`,
+- `--kernels` – list of the benchmarked implementations: `k-spmv`, `segments`,
   `row-group`, `lanes-over-columns`, `nnz-split`, `binned`, `vendor` or `all`.
+- `--segments-formats` – formats of `A` for the TNL SpMM: `csr`, `adaptive-csr`,
+  `ellpack`, `sliced-ellpack` or `all`.
+- `--max-padding-ratio` – the maximal ratio of the number of elements of
+  Ellpack and SlicedEllpack including the padding to the number of nonzeros.
 - `--row-order` – `natural`, `sorted` or `all`.
 - `--sorting-window` – number of consecutive rows sorted together for the
   `sorted` row order, `0` means all rows.

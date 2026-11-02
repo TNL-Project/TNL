@@ -33,9 +33,18 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "all" );
    config.addList< std::string >(
       "kernels",
-      "Benchmarked implementations: k-spmv, row-group, lanes-over-columns, nnz-split, binned, vendor (cuSPARSE or hipSPARSE) "
+      "Benchmarked implementations: k-spmv, segments (TNL SpMM), row-group, lanes-over-columns, nnz-split, binned, vendor "
+      "(cuSPARSE or hipSPARSE) "
       "or all.",
       { "all" } );
+   config.addList< std::string >(
+      "segments-formats",
+      "Formats of the sparse matrix for the TNL SpMM: csr, adaptive-csr, ellpack, sliced-ellpack or all.",
+      { "all" } );
+   config.addEntry< double >(
+      "max-padding-ratio",
+      "Ellpack and SlicedEllpack are skipped when they would have more elements than this multiple of the nonzeros.",
+      10.0 );
    config.addEntry< std::string >(
       "row-order", "Order in which the RowGroup and LanesOverColumns kernels process the rows.", "all" );
    config.addEntryEnum( "natural" );
