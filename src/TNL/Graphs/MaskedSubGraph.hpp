@@ -116,8 +116,7 @@ MaskedSubGraph< Graph_, EdgeFilter >::vertexExists( IndexType vertex ) const
 }
 
 template< typename Graph_, typename EdgeFilter >
-[[nodiscard]] __cuda_callable__
-bool
+[[nodiscard]] bool
 MaskedSubGraph< Graph_, EdgeFilter >::edgeExists( IndexType source, IndexType target, const ValueType& weight ) const
 {
    return vertexExists( source ) && vertexExists( target ) && edgeFilter_( source, target, weight );
