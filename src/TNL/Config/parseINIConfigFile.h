@@ -19,7 +19,7 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
    ParameterContainer parameters;
 
    INI::File file;
-   if( ! file.Load( configPath ) )
+   if( file.Load( configPath ) == 0 )
       throw std::runtime_error( file.LastResult().GetErrorDesc() );
 
    // aggregated sets

@@ -89,19 +89,19 @@ public:
          one_changed,
          all_converged );
 
-      if( ! solver_monitor )
+      if( solver_monitor == nullptr )
          return;
 
       // Set current iteration number
       solver_monitor->setIterations( num_iterations );
 
       // If the solver shares a residual norm, log its value
-      if( tau ) {
+      if( tau != nullptr ) {
          auto norm = gko::as< gko::matrix::Dense< ValueType > >( tau );
          solver_monitor->setResidue( get_first_element( gko::lend( norm ) ) );
       }
       // Otherwise, if the solver shares the implicit squared residual norm, log its value
-      else if( implicit_tau_sq ) {
+      else if( implicit_tau_sq != nullptr ) {
          auto sq_norm = gko::as< gko::matrix::Dense< ValueType > >( implicit_tau_sq );
          solver_monitor->setResidue( std::sqrt( std::abs( get_first_element( gko::lend( sq_norm ) ) ) ) );
       }
@@ -129,14 +129,14 @@ public:
       gko::log::Convergence< ValueType >::on_criterion_check_completed(
          criterion, num_iterations, r, tau, x, stopping_id, set_finalized, status, one_changed, all_converged );
 
-      if( ! solver_monitor )
+      if( solver_monitor == nullptr )
          return;
 
       // Set current iteration number
       solver_monitor->setIterations( num_iterations );
 
       // If the solver shares a residual norm, log its value
-      if( tau ) {
+      if( tau != nullptr ) {
          auto norm = gko::as< gko::matrix::Dense< ValueType > >( tau );
          solver_monitor->setResidue( get_first_element( gko::lend( norm ) ) );
       }
