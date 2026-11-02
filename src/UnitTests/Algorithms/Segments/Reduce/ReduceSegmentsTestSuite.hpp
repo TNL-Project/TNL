@@ -55,6 +55,11 @@ TYPED_TEST_P( ReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments
    test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST_P( ReduceSegmentsTest, multiReduceAllSegments )
+{
+   test_multiReduceAllSegments< typename TestFixture::SegmentsType >();
+}
+
 // Register all test cases
 REGISTER_TYPED_TEST_SUITE_P(
    ReduceSegmentsTest,
@@ -67,4 +72,5 @@ REGISTER_TYPED_TEST_SUITE_P(
    reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments,
    reduceSegmentsWithSegmentIndexes_IdentityOfOtherType,
    reduceSegmentsIf_MaximumInSegments,
-   reduceSegmentsWithArgumentIf_MaximumInSegments );
+   reduceSegmentsWithArgumentIf_MaximumInSegments,
+   multiReduceAllSegments );

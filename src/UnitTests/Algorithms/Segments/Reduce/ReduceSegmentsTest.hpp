@@ -4,6 +4,7 @@
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
+#include <TNL/Algorithms/Segments/multiReduce.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
 #include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
 #include <TNL/Math.h>
@@ -1054,5 +1055,95 @@ test_reduce_ProductOfSums()
          reduce( segments, 2, 8, segmentFetch, TNL::Plus{}, finalFetch, TNL::Multiplies{}, launch_config );
       ValueType expectedResult2 = TNL::product( resultVector.getView( 2, 8 ) );
       EXPECT_NEAR( result2, expectedResult2, 1e-10 );
+   }
+}
+
+// The element with the local index l has the value l + 1 and the reduction j fetches (j + 1) * (l + 1).
+// The sum of the reduction j over a segment of size n is thus (j + 1) * n * (n + 1) / 2, its maximum
+// is (j + 1) * n. The segments are long, short and empty as in test_reduceSegments_LongSegments.
+template< typename Segments >
+void
+test_multiReduceAllSegments()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
+
+   const IndexType segmentsCount = 300;
+   const HostVectorType sizesPattern{ 600, 7, 100, 0, 300, 33, 257, 32 };
+   HostVectorType hostSegmentsSizes( segmentsCount );
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
+      hostSegmentsSizes[ segmentIdx ] = sizesPattern[ segmentIdx % sizesPattern.getSize() ];
+   const VectorType segmentsSizes( hostSegmentsSizes );
+
+   Segments segments( segmentsSizes );
+
+   // padding elements, if any, keep the value -1
+   VectorType v( segments.getStorageSize(), -1 );
+   auto view = v.getView();
+   const auto sizesView = segmentsSizes.getConstView();
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         if( localIdx < sizesView[ segmentIdx ] )
+            view[ globalIdx ] = localIdx + 1;
+      } );
+   const auto v_view = v.getConstView();
+
+   constexpr int sumsCount = 3;
+   constexpr int maximaCount = 4;
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      // sums with the brief fetch and the identity given by the function object
+      VectorType sums( segmentsCount * sumsCount, -1 );
+      auto sums_view = sums.getView();
+      TNL::Algorithms::Segments::multiReduceAllSegments< sumsCount >(
+         segments,
+         [ = ] __cuda_callable__( IndexType globalIdx, int j ) -> IndexType
+         {
+            return v_view[ globalIdx ] > 0 ? ( j + 1 ) * v_view[ globalIdx ] : 0;
+         },
+         TNL::Plus{},
+         [ = ] __cuda_callable__( IndexType segmentIdx, int j, IndexType value ) mutable
+         {
+            sums_view[ segmentIdx * sumsCount + j ] = value;
+         },
+         launch_config );
+
+      // maxima with the full fetch, a lambda reduction and an explicit identity; the value is fetched
+      // only if the local index matches the global index, so a wrong local index makes the maximum smaller
+      VectorType maxima( segmentsCount * maximaCount, -1 );
+      auto maxima_view = maxima.getView();
+      TNL::Algorithms::Segments::multiReduceAllSegments< maximaCount >(
+         segments,
+         [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, int j ) -> IndexType
+         {
+            return v_view[ globalIdx ] == localIdx + 1 ? ( j + 1 ) * v_view[ globalIdx ] : 0;
+         },
+         [] __cuda_callable__( IndexType a, IndexType b ) -> IndexType
+         {
+            return TNL::max( a, b );
+         },
+         [ = ] __cuda_callable__( IndexType segmentIdx, int j, IndexType value ) mutable
+         {
+            maxima_view[ segmentIdx * maximaCount + j ] = value;
+         },
+         IndexType( 0 ),
+         launch_config );
+
+      const HostVectorType hostSums( sums );
+      const HostVectorType hostMaxima( maxima );
+      for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+         const IndexType size = hostSegmentsSizes[ segmentIdx ];
+         for( int j = 0; j < sumsCount; j++ )
+            EXPECT_EQ( hostSums[ segmentIdx * sumsCount + j ], ( j + 1 ) * size * ( size + 1 ) / 2 )
+               << "segmentIdx = " << segmentIdx << ", j = " << j;
+         for( int j = 0; j < maximaCount; j++ )
+            EXPECT_EQ( hostMaxima[ segmentIdx * maximaCount + j ], ( j + 1 ) * size ) << "segmentIdx = " << segmentIdx
+               << ", j = " << j;
+      }
    }
 }
