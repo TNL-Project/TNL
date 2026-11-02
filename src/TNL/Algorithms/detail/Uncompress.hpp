@@ -4,9 +4,11 @@
 #pragma once
 
 #include <stdexcept>
+#include <type_traits>
 
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Functional.h>
 
 #include "../uncompress.h"
@@ -22,6 +24,9 @@ namespace TNL::Algorithms::detail {
  * Both validation (runtime throw on out-of-range index) and the actual write
  * are performed in a single parallel reduction pass to avoid redundant
  * memory traversal.
+ *
+ * If the index vector and the mask live on different devices, the indexes are
+ * copied to the device of the mask first.
  */
 template< typename IndexVector, typename MaskVector >
 void
@@ -30,6 +35,14 @@ uncompress_impl( const IndexVector& indexVector, MaskVector& maskVector, typenam
    using Device = typename IndexVector::DeviceType;
    using Index = typename IndexVector::IndexType;
    using MaskValue = typename MaskVector::ValueType;
+   using MaskDevice = typename MaskVector::DeviceType;
+
+   if constexpr( ! std::is_same_v< Device, MaskDevice > ) {
+      Containers::Vector< typename IndexVector::ValueType, MaskDevice, Index > indexes;
+      indexes = indexVector;
+      uncompress_impl( indexes, maskVector, maskSize );
+      return;
+   }
 
    const Index n = static_cast< Index >( indexVector.getSize() );
 
