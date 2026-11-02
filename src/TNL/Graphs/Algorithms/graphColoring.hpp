@@ -76,8 +76,11 @@ isProperlyColoredOnActiveVerticesWithPredicates(
             return false;
 
          const auto vertexView = graphView.getVertex( vertex );
-         for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < vertexView.getSize(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+            // skip the padding elements and self-loops
+            if( neighbor == Matrices::paddingIndex< IndexType > || neighbor == vertex )
+               continue;
             if( ! vertexPredicate( neighbor ) )
                continue;
 
@@ -222,8 +225,11 @@ graphColoringOnActiveVerticesSequential(
       while( true ) {
          bool blocked = false;
 
-         for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < vertexView.getSize(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+            // skip the padding elements and self-loops
+            if( neighbor == Matrices::paddingIndex< IndexType > || neighbor == vertex )
+               continue;
             if( ! graphView.vertexExists( neighbor ) )
                continue;
 
@@ -341,8 +347,11 @@ graphColoringOnActiveVertices(
                bool blocked = false;
                const auto vertexView = graphView.getVertex( vertex );
 
-               for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+               for( IndexType localIdx = 0; localIdx < vertexView.getSize(); localIdx++ ) {
                   const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+                  // skip the padding elements and self-loops
+                  if( neighbor == Matrices::paddingIndex< IndexType > || neighbor == vertex )
+                     continue;
                   if( ! graphView.vertexExists( neighbor ) )
                      continue;
 
@@ -387,8 +396,11 @@ graphColoringOnActiveVertices(
             bool keep = true;
             const auto vertexView = graphView.getVertex( vertex );
 
-            for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+            for( IndexType localIdx = 0; localIdx < vertexView.getSize(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+               // skip the padding elements and self-loops
+               if( neighbor == Matrices::paddingIndex< IndexType > || neighbor == vertex )
+                  continue;
                if( ! graphView.vertexExists( neighbor ) )
                   continue;
 

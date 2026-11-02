@@ -113,6 +113,28 @@ TYPED_TEST( GraphTest, test_isMaximalIndependentSet_empty )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
 }
 
+TYPED_TEST( GraphTest, test_isMaximalIndependentSet_selfLoop )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using MISVectorType = MISVector< GraphType >;
+
+   // Self-loops do not prevent a vertex from being in the independent set.
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      4,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 2, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+   const MISVectorType independentSet( { 1, 0, 1, 0 } );
+
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isMaximalIndependentSet( graph, independentSet ) );
+   expectComputedMISIsValid( graph );
+}
+
 TYPED_TEST( GraphTest, test_isMaximalIndependentSet_star_true )
 {
    using GraphType = typename TestFixture::GraphType;
