@@ -115,6 +115,35 @@ TYPED_TEST( UncompressTest, fill_overload )
 }
 
 // ---------------------------------------------------------------------------
+// Indices on the host, mask on the device of the tested vector type.
+// ---------------------------------------------------------------------------
+
+template< typename VectorType >
+void
+UncompressTest_host_indices()
+{
+   using IndexType = typename VectorType::IndexType;
+   using HostVectorType = Vector< typename VectorType::ValueType, Devices::Host, IndexType >;
+
+   HostVectorType indices{ 0, 5, 7, 8 };
+   VectorType mask;
+   uncompress( indices, mask, IndexType( 11 ) );
+
+   ASSERT_EQ( mask.getSize(), IndexType( 11 ) );
+   EXPECT_EQ( mask.getElement( 0 ), 1 );
+   EXPECT_EQ( mask.getElement( 5 ), 1 );
+   EXPECT_EQ( mask.getElement( 7 ), 1 );
+   EXPECT_EQ( mask.getElement( 8 ), 1 );
+   EXPECT_EQ( mask.getElement( 1 ), 0 );
+   EXPECT_EQ( mask.getElement( 9 ), 0 );
+}
+
+TYPED_TEST( UncompressTest, host_indices )
+{
+   UncompressTest_host_indices< typename TestFixture::VectorType >();
+}
+
+// ---------------------------------------------------------------------------
 // Auto-detect mask size: maskSize == 0, max(indices) + 1 = 9.
 // ---------------------------------------------------------------------------
 
