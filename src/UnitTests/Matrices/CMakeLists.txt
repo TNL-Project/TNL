@@ -27,6 +27,12 @@ set(COMMON_TESTS
     SparseMatrixVectorProductTest_SlicedEllpack
     SparseMatrixVectorProductTest_ChunkedEllpack
     SparseMatrixVectorProductTest_BiEllpack
+    SparseDenseMatrixProductTest_CSR
+    SparseDenseMatrixProductTest_AdaptiveCSR
+    SparseDenseMatrixProductTest_Ellpack
+    SparseDenseMatrixProductTest_SlicedEllpack
+    SparseDenseMatrixProductTest_ChunkedEllpack
+    SparseDenseMatrixProductTest_BiEllpack
     SparseMatrixCopyTest
     BinarySparseMatrixTest_CSR
     BinarySparseMatrixTest_AdaptiveCSR

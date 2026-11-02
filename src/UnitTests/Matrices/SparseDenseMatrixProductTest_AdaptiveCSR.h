@@ -1,0 +1,35 @@
+#include <TNL/Algorithms/Segments/AdaptiveCSR.h>
+#include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Arithmetics/Complex.h>
+
+#include <gtest/gtest.h>
+
+template< typename Real, typename Device, typename Index >
+struct TestMatrixType
+{
+   using MatrixType =
+      TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::AdaptiveCSR >;
+};
+
+// types for which MatrixTest is instantiated
+using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TestMatrixType< int, TNL::Devices::Host, int >,
+   TestMatrixType< float, TNL::Devices::Host, int >,
+   TestMatrixType< double, TNL::Devices::Host, long >,
+   TestMatrixType< std::complex< float >, TNL::Devices::Host, long >
+#elif defined( __CUDACC__ )
+   TestMatrixType< int, TNL::Devices::Cuda, int >,
+   TestMatrixType< float, TNL::Devices::Cuda, int >,
+   TestMatrixType< double, TNL::Devices::Cuda, long >,
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+   TestMatrixType< int, TNL::Devices::Hip, int >,
+   TestMatrixType< float, TNL::Devices::Hip, int >,
+   TestMatrixType< double, TNL::Devices::Hip, long >,
+   TestMatrixType< TNL::Arithmetics::Complex< float >, TNL::Devices::Hip, long >
+#endif
+   >;
+
+#include "SparseDenseMatrixProductTest.h"
+#include "../main.h"
