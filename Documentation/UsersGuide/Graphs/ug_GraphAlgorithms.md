@@ -104,7 +104,7 @@ inactive vertices:
 | Trees          | return `bool`, no output vector                   | N/A                                     |
 
 
-## Breadth-First Search
+## Breadth-first search
 
 [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search) (BFS) explores a graph
 level by level starting from a source vertex. TNL implements a level-synchronous BFS in which the
@@ -175,7 +175,7 @@ The output looks as follows:
 \include GraphExample_BFS.out
 
 
-## Single-Source Shortest Path
+## Single-source shortest path
 
 The [single-source shortest path](https://en.wikipedia.org/wiki/Shortest_path_problem) (SSSP) problem
 asks for the shortest-path distances from a given source vertex to all other vertices. TNL uses
@@ -222,7 +222,7 @@ The output looks as follows:
 \include GraphExample_SSSP.out
 
 
-## Connected Components
+## Connected components
 
 [Connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) label each vertex with
 the identifier of the component it belongs to. TNL treats the graph as undirected, so for directed
@@ -267,7 +267,7 @@ The output looks as follows:
 \include GraphExample_ConnectedComponents.out
 
 
-## Strongly Connected Components
+## Strongly connected components
 
 [Strongly connected components](https://en.wikipedia.org/wiki/Strongly_connected_component) (SCC)
 partition a directed graph into maximal subgraphs in which every vertex is reachable from every other
@@ -313,7 +313,7 @@ The output looks as follows:
 \include GraphExample_StronglyConnectedComponents.out
 
 
-## Tree Recognition
+## Tree recognition
 
 TNL provides three functions for recognising [trees and forests](https://en.wikipedia.org/wiki/Tree_(graph_theory))
 in undirected graphs:
@@ -417,7 +417,7 @@ The output looks as follows:
 \include GraphExample_Trees.out
 
 
-## Maximal Independent Set
+## Maximal independent set
 
 A [maximal independent set](https://en.wikipedia.org/wiki/Maximal_independent_set) (MIS) is a set of
 vertices no two of which are adjacent, and to which no further vertex can be added without breaking
@@ -492,7 +492,7 @@ The output looks as follows:
 \include GraphExample_MaximalIndependentSet.out
 
 
-## Graph Coloring
+## Graph coloring
 
 [Graph coloring](https://en.wikipedia.org/wiki/Graph_coloring) assigns colors to vertices so that no
 two adjacent vertices share the same color. TNL offers two strategies:
@@ -595,7 +595,7 @@ The output looks as follows:
 \include GraphExample_GraphColoring.out
 
 
-## Further Reading
+## Further reading
 
 - \ref TNL::Graphs::Algorithms::breadthFirstSearch - Breadth-first search
 - \ref TNL::Graphs::Algorithms::breadthFirstSearchWithVisitor - BFS with a visitor callable

@@ -1,4 +1,4 @@
-# Graph algorithm examples architecture
+# Graph Algorithm Examples Architecture
 
 This document describes the conventions for the example programs in
 `Documentation/Examples/Graphs/Algorithms/`.  Each algorithm (BFS, SSSP, CC,
