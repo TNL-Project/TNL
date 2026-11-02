@@ -8,7 +8,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/reduce.h>
 #include "reduce.h"
-#include "detail/ReducingOperations.h"
+#include "detail/ReducingOperations.h"  // IWYU pragma: keep
 
 namespace TNL::Algorithms::Segments {
 

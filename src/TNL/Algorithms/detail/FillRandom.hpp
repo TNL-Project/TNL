@@ -4,7 +4,7 @@
 #pragma once
 
 #include "TNL/Devices/Sequential.h"
-#include "TNL/Exceptions/NotImplementedError.h"
+#include "TNL/Exceptions/NotImplementedError.h"  // IWYU pragma: keep
 #include <random>
 #include <type_traits>
 #ifdef __CUDACC__

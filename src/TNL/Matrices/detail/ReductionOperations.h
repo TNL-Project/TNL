@@ -11,9 +11,9 @@ struct ReductionOperations
 
 }  // namespace TNL::Matrices::detail
 
-#include "ReductionOperationsBase.h"
-#include "ReductionOperations_DenseMatrixView.h"
-#include "ReductionOperations_SparseMatrixView.h"
-#include "ReductionOperations_TridiagonalMatrixView.h"
-#include "ReductionOperations_MultidiagonalMatrixView.h"
-#include "ReductionOperations_LambdaMatrix.h"
+#include "ReductionOperationsBase.h"                      // IWYU pragma: keep
+#include "ReductionOperations_DenseMatrixView.h"          // IWYU pragma: keep
+#include "ReductionOperations_SparseMatrixView.h"         // IWYU pragma: keep
+#include "ReductionOperations_TridiagonalMatrixView.h"    // IWYU pragma: keep
+#include "ReductionOperations_MultidiagonalMatrixView.h"  // IWYU pragma: keep
+#include "ReductionOperations_LambdaMatrix.h"             // IWYU pragma: keep

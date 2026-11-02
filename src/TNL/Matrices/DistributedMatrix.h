@@ -213,4 +213,4 @@ protected:
 
 }  // namespace TNL::Matrices
 
-#include "DistributedMatrix_impl.h"
+#include "DistributedMatrix_impl.h"  // IWYU pragma: keep

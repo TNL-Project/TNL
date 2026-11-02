@@ -1,1 +1,1 @@
-#include "SparseMatrixTraverseTest_Ellpack.h"
+#include "SparseMatrixTraverseTest_Ellpack.h"  // IWYU pragma: keep

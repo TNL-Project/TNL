@@ -6,4 +6,4 @@ using ODEMethod = TNL::Solvers::ODE::Methods::Fehlberg5<>;
 
 constexpr double expected_eoc = 5.0;
 
-#include "ODEStaticSolverTest.h"
+#include "ODEStaticSolverTest.h"  // IWYU pragma: keep

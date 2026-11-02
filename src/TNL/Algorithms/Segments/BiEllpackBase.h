@@ -259,4 +259,4 @@ protected:
 }  // namespace TNL::Algorithms::Segments
 
 #include "BiEllpackBase.hpp"
-#include "print.h"
+#include "print.h"  // IWYU pragma: keep

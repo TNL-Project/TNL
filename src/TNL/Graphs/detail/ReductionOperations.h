@@ -11,4 +11,4 @@ struct ReductionOperations
 
 }  // namespace TNL::Graphs::detail
 
-#include "ReductionOperations_GraphView.h"
+#include "ReductionOperations_GraphView.h"  // IWYU pragma: keep

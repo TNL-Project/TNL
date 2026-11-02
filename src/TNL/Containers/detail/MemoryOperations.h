@@ -110,6 +110,6 @@ struct MemoryOperations< Devices::Cuda >
 
 }  // namespace TNL::Containers::detail
 
-#include "MemoryOperationsSequential.hpp"
-#include "MemoryOperationsHost.hpp"
-#include "MemoryOperationsCuda.hpp"
+#include "MemoryOperationsSequential.hpp"  // IWYU pragma: keep
+#include "MemoryOperationsHost.hpp"        // IWYU pragma: keep
+#include "MemoryOperationsCuda.hpp"        // IWYU pragma: keep

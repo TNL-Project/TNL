@@ -7,7 +7,7 @@
 #include <limits>       // std::numeric_limits
 #include <memory>       // std::unique_ptr
 #include <type_traits>  // std::remove_cv_t
-#include <vector>
+#include <vector>       // IWYU pragma: keep
 
 #include "Types.h"
 #include "Functions.h"

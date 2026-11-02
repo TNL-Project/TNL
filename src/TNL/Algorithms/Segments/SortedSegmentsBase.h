@@ -223,4 +223,4 @@ protected:
 }  // namespace TNL::Algorithms::Segments
 
 #include "SortedSegmentsBase.hpp"
-#include "print.h"
+#include "print.h"  // IWYU pragma: keep

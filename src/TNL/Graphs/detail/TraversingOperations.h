@@ -11,4 +11,4 @@ struct TraversingOperations
 
 }  // namespace TNL::Graphs::detail
 
-#include "TraversingOperations_GraphView.h"
+#include "TraversingOperations_GraphView.h"  // IWYU pragma: keep

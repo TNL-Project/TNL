@@ -6,4 +6,4 @@ using ODEMethod = TNL::Solvers::ODE::Methods::BogackiShampin<>;
 
 constexpr double expected_eoc = 2.0;
 
-#include "ODEStaticSolverTest.h"
+#include "ODEStaticSolverTest.h"  // IWYU pragma: keep

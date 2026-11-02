@@ -221,4 +221,4 @@ protected:
 }  // namespace TNL::Algorithms::Segments
 
 #include "EllpackBase.hpp"
-#include "print.h"
+#include "print.h"  // IWYU pragma: keep

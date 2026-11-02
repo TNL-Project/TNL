@@ -303,4 +303,4 @@ protected:
 }  // namespace TNL::Algorithms::Segments
 
 #include "CSRBase.hpp"
-#include "print.h"
+#include "print.h"  // IWYU pragma: keep

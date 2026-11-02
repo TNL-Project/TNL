@@ -13,13 +13,13 @@
  * the header inclusion.
  */
 
-#include "MPI/DummyDefs.h"
-#include "MPI/getDataType.h"
-#include "MPI/Profiling.h"
-#include "MPI/Wrappers.h"
-#include "MPI/Utils.h"
-#include "MPI/Comm.h"
-#include "MPI/ScopedInitializer.h"
-#include "MPI/Config.h"
-#include "MPI/Print.h"
-#include "MPI/optimizeRanks.h"
+#include "MPI/DummyDefs.h"          // IWYU pragma: keep
+#include "MPI/getDataType.h"        // IWYU pragma: keep
+#include "MPI/Profiling.h"          // IWYU pragma: keep
+#include "MPI/Wrappers.h"           // IWYU pragma: keep
+#include "MPI/Utils.h"              // IWYU pragma: keep
+#include "MPI/Comm.h"               // IWYU pragma: keep
+#include "MPI/ScopedInitializer.h"  // IWYU pragma: keep
+#include "MPI/Config.h"             // IWYU pragma: keep
+#include "MPI/Print.h"              // IWYU pragma: keep
+#include "MPI/optimizeRanks.h"      // IWYU pragma: keep

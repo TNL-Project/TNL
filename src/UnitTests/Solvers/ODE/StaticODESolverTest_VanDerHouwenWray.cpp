@@ -6,4 +6,4 @@ using ODEMethod = TNL::Solvers::ODE::Methods::VanDerHouwenWray<>;
 
 constexpr double expected_eoc = 3.0;
 
-#include "ODEStaticSolverTest.h"
+#include "ODEStaticSolverTest.h"  // IWYU pragma: keep

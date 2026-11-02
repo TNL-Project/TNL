@@ -1,7 +1,7 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <random>
+#include <random>  // IWYU pragma: keep
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Meshes/TypeResolver/resolveDistributedMeshType.h>

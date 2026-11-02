@@ -150,4 +150,4 @@ public:
 
 }  // namespace TNL::Functions::experimental
 
-#include "VectorFieldGnuplotWriter_impl.h"
+#include "VectorFieldGnuplotWriter_impl.h"  // IWYU pragma: keep
