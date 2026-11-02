@@ -190,14 +190,17 @@ struct SharedMemory< T, 64 >
 };
 #endif
 
+// The shared memory array is selected by the alignment of T, so that also aggregates
+// (e.g. complex numbers or arrays of several values) of any size can be stored.
 template< typename T >
 __device__
 T*
 getSharedMemory()
 {
    static_assert(
-      sizeof( T ) == 1 || sizeof( T ) == 2 || sizeof( T ) == 4 || sizeof( T ) == 8, "Requested type has unsupported size." );
-   return SharedMemory< T >{};
+      alignof( T ) == 1 || alignof( T ) == 2 || alignof( T ) == 4 || alignof( T ) == 8,
+      "Requested type has unsupported alignment." );
+   return SharedMemory< T, CHAR_BIT * alignof( T ) >{};
 }
 
 // helper functions for indexing shared memory
