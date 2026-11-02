@@ -130,9 +130,18 @@ public:
     * \brief Constructs a SubGraph from a graph view and two filters.
     *
     * This constructor is used internally by \ref MaskedSubGraph to construct
-    * a SubGraph without access to the original Graph object.
+    * a SubGraph without access to the original Graph object.  It is disabled
+    * when the graph type is the constant graph view itself, because the
+    * constructor taking the graph covers that case.
     */
-   SubGraph( ConstGraphView graphView, VertexFilter vertexFilter, EdgeFilter edgeFilter );
+   template<
+      typename View,
+      std::enable_if_t< std::is_same_v< View, ConstGraphView > && ! std::is_same_v< View, GraphType >, bool > = true >
+   SubGraph( View graphView, VertexFilter vertexFilter, EdgeFilter edgeFilter )
+   : graphView_( std::move( graphView ) ),
+     vertexFilter_( std::move( vertexFilter ) ),
+     edgeFilter_( std::move( edgeFilter ) )
+   {}
 
    //! \brief Copy constructor (needed for getView / getConstView).
    SubGraph( const SubGraph& ) = default;

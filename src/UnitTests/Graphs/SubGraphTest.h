@@ -136,6 +136,32 @@ test_makeSubGraph_edge_filter()
    EXPECT_FALSE( subgraph.edgeExists( IndexType( 3 ), IndexType( 4 ), ValueType( 5 ) ) );
 }
 
+// The same edge filter applied to a constant view of the graph.
+template< typename GraphType >
+void
+test_makeSubGraph_graph_view()
+{
+   using IndexType = typename GraphType::IndexType;
+   using ValueType = typename GraphType::ValueType;
+   const auto graph = makeTestGraph< GraphType >();
+   const auto graphView = graph.getConstView();
+   auto subgraph = TNL::Graphs::makeSubGraph(
+      graphView,
+      TNL::Graphs::edgeOnly,
+      [] __cuda_callable__( IndexType, IndexType, ValueType w )
+      {
+         return w <= 3;
+      } );
+   EXPECT_EQ( subgraph.getVertexCount(), graph.getVertexCount() );
+   EXPECT_TRUE( subgraph.edgeExists( IndexType( 1 ), IndexType( 3 ), ValueType( 3 ) ) );
+   EXPECT_FALSE( subgraph.edgeExists( IndexType( 2 ), IndexType( 3 ), ValueType( 4 ) ) );
+}
+
+TYPED_TEST( SubGraphTest, makeSubGraph_graph_view )
+{
+   test_makeSubGraph_graph_view< typename TestFixture::GraphType >();
+}
+
 TYPED_TEST( SubGraphTest, makeSubGraph_edge_filter )
 {
    test_makeSubGraph_edge_filter< typename TestFixture::GraphType >();
