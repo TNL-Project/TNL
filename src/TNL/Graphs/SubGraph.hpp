@@ -111,16 +111,6 @@ SubGraph< Graph_, VertexFilter, EdgeFilter >::SubGraph(
   edgeFilter_( std::move( edgeFilter ) )
 {}
 
-template< typename Graph_, typename VertexFilter, typename EdgeFilter >
-SubGraph< Graph_, VertexFilter, EdgeFilter >::SubGraph(
-   ConstGraphView graphView,
-   VertexFilter vertexFilter,
-   EdgeFilter edgeFilter )
-: graphView_( std::move( graphView ) ),
-  vertexFilter_( std::move( vertexFilter ) ),
-  edgeFilter_( std::move( edgeFilter ) )
-{}
-
 // ---------------------------------------------------------------------------
 // SubGraph methods
 // ---------------------------------------------------------------------------
