@@ -44,159 +44,6 @@ maximalIndependentSetPriority( Index vertex, Index roundSeed, Index iteration )
 }
 
 template< typename Graph, typename Vector >
-void
-maximalIndependentSetOnActiveVertices(
-   const Graph& graph,
-   Vector& independentSet,
-   typename Graph::IndexType roundSeed,
-   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
-{
-   static_assert( ! Graph::isDirected(), "Maximal independent set requires an undirected graph." );
-   static_assert(
-      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
-      "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
-      "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
-
-   // Deterministic Luby-style MIS on the induced subgraph given by vertexPredicate and edgePredicate:
-   // each round keeps local priority winners, adds them to the MIS, and removes
-   // both the winners and their active neighbors from further competition.
-
-   using DeviceType = typename Graph::DeviceType;
-   using IndexType = typename Graph::IndexType;
-   using SetValueType = typename Vector::ValueType;
-   using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   const IndexType verticesCount = graph.getVertexCount();
-   if( verticesCount == 0 ) {
-      independentSet.setSize( 0 );
-      return;
-   }
-
-   independentSet.setSize( verticesCount );
-   independentSet = static_cast< SetValueType >( 0 );
-
-   const auto graphView = graph.getConstView();
-
-   IndexVector available( verticesCount, 0 );
-   IndexVector candidates( verticesCount, 0 );
-   IndexVector blocked( verticesCount, 0 );
-
-   {
-      auto availableView = available.getView();
-      TNL::Algorithms::parallelFor< DeviceType >(
-         0,
-         verticesCount,
-         [ = ] __cuda_callable__( IndexType vertex ) mutable
-         {
-            availableView[ vertex ] = graphView.vertexExists( vertex ) ? 1 : 0;
-         } );
-   }
-
-   IndexType iteration = 0;
-
-   while( true ) {
-      const auto availableView = available.getConstView();
-      const IndexType activeCount = sum( available );
-
-      if( activeCount == 0 )
-         return;
-
-      auto candidatesView = candidates.getView();
-      const IndexType iterationRound = iteration;
-
-      TNL::Algorithms::parallelFor< DeviceType >(
-         0,
-         verticesCount,
-         [ = ] __cuda_callable__( IndexType vertex ) mutable
-         {
-            if( ! availableView[ vertex ] ) {
-               candidatesView[ vertex ] = 0;
-               return;
-            }
-
-            const auto priority = maximalIndependentSetPriority( vertex, roundSeed, iterationRound );
-            bool wins = true;
-            const auto vertexView = graphView.getVertex( vertex );
-
-            for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
-               const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-               if( ! availableView[ neighbor ] )
-                  continue;
-
-               const auto weight = vertexView.getEdgeWeight( localIdx );
-               if( ! graphView.edgeExists( vertex, neighbor, weight ) )
-                  continue;
-
-               const auto neighborPriority = maximalIndependentSetPriority( neighbor, roundSeed, iterationRound );
-               if( neighborPriority > priority || ( neighborPriority == priority && neighbor < vertex ) ) {
-                  wins = false;
-                  break;
-               }
-            }
-
-            candidatesView[ vertex ] = wins ? 1 : 0;
-         } );
-
-      const auto candidatesConstView = candidates.getConstView();
-      const IndexType selectedThisIteration = sum( candidates );
-
-      if( selectedThisIteration == 0 )
-         throw std::logic_error( "Maximal independent set made no progress in a Luby round." );
-
-      auto blockedView = blocked.getView();
-      TNL::Algorithms::parallelFor< DeviceType >(
-         0,
-         verticesCount,
-         [ = ] __cuda_callable__( IndexType vertex ) mutable
-         {
-            if( ! availableView[ vertex ] ) {
-               blockedView[ vertex ] = 1;
-               return;
-            }
-
-            if( candidatesConstView[ vertex ] ) {
-               blockedView[ vertex ] = 1;
-               return;
-            }
-
-            const auto vertexView = graphView.getVertex( vertex );
-            for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
-               const IndexType neighbor = vertexView.getTargetIndex( localIdx );
-               if( ! availableView[ neighbor ] )
-                  continue;
-
-               const auto weight = vertexView.getEdgeWeight( localIdx );
-               if( ! graphView.edgeExists( vertex, neighbor, weight ) )
-                  continue;
-
-               if( candidatesConstView[ neighbor ] ) {
-                  blockedView[ vertex ] = 1;
-                  return;
-               }
-            }
-
-            blockedView[ vertex ] = 0;
-         } );
-
-      const auto blockedConstView = blocked.getConstView();
-      auto independentSetView = independentSet.getView();
-      auto availableMutableView = available.getView();
-      TNL::Algorithms::parallelFor< DeviceType >(
-         0,
-         verticesCount,
-         [ = ] __cuda_callable__( IndexType vertex ) mutable
-         {
-            if( candidatesConstView[ vertex ] )
-               independentSetView[ vertex ] = static_cast< SetValueType >( 1 );
-
-            availableMutableView[ vertex ] = ( availableMutableView[ vertex ] && ! blockedConstView[ vertex ] ) ? 1 : 0;
-         } );
-
-      iteration++;
-   }
-}
-
-template< typename Graph, typename Vector >
 bool
 isMaximalIndependentSetOnActiveVertices(
    const Graph& graph,
@@ -273,6 +120,10 @@ maximalIndependentSetOnActiveVerticesWithPredicates(
       ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
       "Maximal independent set requires a general (non-symmetric) adjacency matrix. "
       "SymmetricMatrix stores only the lower triangle, so vertices cannot see all neighbors." );
+
+   // Deterministic Luby-style MIS on the induced subgraph given by vertexPredicate and edgePredicate:
+   // each round keeps local priority winners, adds them to the MIS, and removes
+   // both the winners and their active neighbors from further competition.
 
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
@@ -407,6 +258,33 @@ maximalIndependentSetOnActiveVerticesWithPredicates(
 
       iteration++;
    }
+}
+
+template< typename Graph, typename Vector >
+void
+maximalIndependentSetOnActiveVertices(
+   const Graph& graph,
+   Vector& independentSet,
+   typename Graph::IndexType roundSeed,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Graph::IndexType;
+   using ValueType = typename Graph::ValueType;
+
+   const auto graphView = graph.getConstView();
+   maximalIndependentSetOnActiveVerticesWithPredicates(
+      graph,
+      [ = ] __cuda_callable__( IndexType vertex )
+      {
+         return graphView.vertexExists( vertex );
+      },
+      independentSet,
+      roundSeed,
+      [ = ] __cuda_callable__( IndexType source, IndexType target, const ValueType& weight )
+      {
+         return graphView.edgeExists( source, target, weight );
+      },
+      launchConfig );
 }
 
 }  // namespace detail
