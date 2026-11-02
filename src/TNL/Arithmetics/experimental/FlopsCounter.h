@@ -18,7 +18,7 @@ class tnlFlopsCounter
    long int functions_flops;
 
 public:
-   tnlFlopsCounter() {}
+   tnlFlopsCounter() = default;
 
    void
    recordAdding( const int ops = 1 )

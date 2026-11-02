@@ -104,7 +104,7 @@ public:
          FunctionType::configSetup( config, prefix + convertToString( i ) + "-" );
    }
 
-   VectorField() {}
+   VectorField() = default;
 
    VectorField( const MeshPointer& meshPointer )
    {
@@ -325,7 +325,7 @@ public:
          FunctionType::configSetup( config, prefix + convertToString( i ) + "-" );
    }
 
-   VectorField() {}
+   VectorField() = default;
 
    VectorField( const MeshPointer& meshPointer )
    {
