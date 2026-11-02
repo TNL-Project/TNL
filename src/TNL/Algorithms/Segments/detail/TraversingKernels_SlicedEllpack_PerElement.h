@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
-#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScanKernel.h>
 #include <TNL/Algorithms/find.h>
 #include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
@@ -169,8 +169,8 @@ forElements_SlicedEllpack_PerElement_WithIndexes(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using CudaScan = Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Exclusive, BlockSize, Plus, Index >;
-   using ScanStorage = typename CudaScan::Storage;
+   using GPUScan = Algorithms::detail::GPUBlockScanShfl< Algorithms::detail::ScanType::Exclusive, BlockSize, Plus, Index >;
+   using ScanStorage = typename GPUScan::Storage;
 
    __shared__ ScanStorage scan_storage;
    __shared__ Index shared_offsets[ SegmentsPerBlock + 1 ];
@@ -196,7 +196,7 @@ forElements_SlicedEllpack_PerElement_WithIndexes(
       TNL_ASSERT_LT( seg_idx, segments.getSegmentCount(), "Wrong index of segment index - larger that the number of indexes." );
       value = segments.getSegmentSize( seg_idx );
    }
-   const Index v = CudaScan::scan( Plus(), static_cast< Index >( 0 ), value, threadIdx.x, scan_storage );
+   const Index v = GPUScan::scan( Plus(), static_cast< Index >( 0 ), value, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v;
 
@@ -289,12 +289,12 @@ forElements_SlicedEllpack_PerElement_If(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using InclusiveCudaScan =
-      Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Inclusive, BlockSize, Plus, Index >;
-   using ExclusiveCudaScan =
-      Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Exclusive, BlockSize, Plus, Index >;
-   using InclusiveScanStorage = typename InclusiveCudaScan::Storage;  // TODO: Storage should not depend on the scan type
-   using ExclusiveScanStorage = typename ExclusiveCudaScan::Storage;
+   using InclusiveGPUScan =
+      Algorithms::detail::GPUBlockScanShfl< Algorithms::detail::ScanType::Inclusive, BlockSize, Plus, Index >;
+   using ExclusiveGPUScan =
+      Algorithms::detail::GPUBlockScanShfl< Algorithms::detail::ScanType::Exclusive, BlockSize, Plus, Index >;
+   using InclusiveScanStorage = typename InclusiveGPUScan::Storage;  // TODO: Storage should not depend on the scan type
+   using ExclusiveScanStorage = typename ExclusiveGPUScan::Storage;
 
    __shared__ InclusiveScanStorage inclusive_scan_storage;
    __shared__ ExclusiveScanStorage exclusive_scan_storage;
@@ -323,7 +323,7 @@ forElements_SlicedEllpack_PerElement_If(
    __syncthreads();
 
    const Index v1 =
-      InclusiveCudaScan::scan( Plus(), static_cast< Index >( 0 ), conditionValue, threadIdx.x, inclusive_scan_storage );
+      InclusiveGPUScan::scan( Plus(), static_cast< Index >( 0 ), conditionValue, threadIdx.x, inclusive_scan_storage );
    if( threadIdx.x < SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    __syncthreads();
@@ -343,7 +343,7 @@ forElements_SlicedEllpack_PerElement_If(
    // the threads beyond the segments of the block contribute nothing to the scan
    const Index segmentSize = ( threadIdx.x <= SegmentsPerBlock ) ? shared_offsets[ threadIdx.x ] : 0;
    const Index v2 =
-      ExclusiveCudaScan::scan( Plus(), static_cast< Index >( 0 ), segmentSize, threadIdx.x, exclusive_scan_storage );
+      ExclusiveGPUScan::scan( Plus(), static_cast< Index >( 0 ), segmentSize, threadIdx.x, exclusive_scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
 

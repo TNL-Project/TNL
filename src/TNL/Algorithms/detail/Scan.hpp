@@ -6,7 +6,7 @@
 #include <utility>  // std::forward
 
 #include "Scan.h"
-#include "CudaScanKernel.h"
+#include "GPUScanKernel.h"
 
 #include <TNL/Assert.h>
 #include <TNL/Containers/Array.h>
@@ -329,7 +329,7 @@ Scan< Devices::Cuda, Type, PhaseType >::perform(
    if( end <= begin )
       return;
 
-   detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::perform(
+   detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::perform(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 }
 
@@ -351,7 +351,7 @@ Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase(
       return block_results;
    }
 
-   return detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performFirstPhase(
+   return detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performFirstPhase(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 }
 
@@ -372,7 +372,7 @@ Scan< Devices::Cuda, Type, PhaseType >::performSecondPhase(
    if( end <= begin )
       return;
 
-   detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performSecondPhase(
+   detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performSecondPhase(
       input, output, blockShifts, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, shift );
 }
 
