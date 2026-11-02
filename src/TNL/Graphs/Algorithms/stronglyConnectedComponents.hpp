@@ -22,16 +22,89 @@
 namespace TNL::Graphs::Algorithms {
 
 /**
+ * \brief Builds an owning graph containing the edges of \e graph which survive its filters.
+ *
+ * The edges are iterated with forAllEdges, which applies the vertex and edge
+ * filters for SubGraph inputs.  This avoids needing an owning copy of the
+ * adjacency matrix for getTransposition (which fails on views).
+ *
+ * \tparam Reverse  If \c true, the edges are added in the reverse direction.
+ */
+template< typename Graph >
+using FilteredGraph = TNL::Graphs::
+   Graph< typename Graph::ValueType, typename Graph::DeviceType, typename Graph::IndexType, typename Graph::GraphOrientation >;
+
+template< bool Reverse, typename Graph >
+FilteredGraph< Graph >
+buildFilteredGraph( const Graph& graph, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+{
+   using DeviceType = typename Graph::DeviceType;
+   using IndexType = typename Graph::IndexType;
+   using ValueType = typename Graph::ValueType;
+   using OwningGraph = FilteredGraph< Graph >;
+   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   const IndexType verticesCount = graph.getVertexCount();
+   IndexVector capacities( verticesCount, 0 );
+   auto capacitiesView = capacities.getView();
+   forAllEdges(
+      graph,
+      [ = ] __cuda_callable__( IndexType src, IndexType, IndexType tgt, const ValueType& ) mutable
+      {
+         if( tgt == Matrices::paddingIndex< IndexType > )
+            return;
+         const IndexType row = Reverse ? tgt : src;
+         TNL::Algorithms::AtomicOperations< DeviceType >::add( capacitiesView[ row ], 1 );
+      },
+      launchConfig );
+
+   OwningGraph filteredGraph( verticesCount );
+   filteredGraph.setEdgeCounts( capacities );
+
+   IndexVector slots( verticesCount, 0 );
+   auto slotView = slots.getView();
+   auto matrixView = filteredGraph.getAdjacencyMatrix().getView();
+   forAllEdges(
+      graph,
+      [ = ] __cuda_callable__( IndexType src, IndexType, IndexType tgt, const ValueType& w ) mutable
+      {
+         if( tgt == Matrices::paddingIndex< IndexType > )
+            return;
+         const IndexType rowIdx = Reverse ? tgt : src;
+         const IndexType column = Reverse ? src : tgt;
+         auto row = matrixView.getRow( rowIdx );
+         const IndexType idx = TNL::Algorithms::AtomicOperations< DeviceType >::add( slotView[ rowIdx ], 1 );
+         row.setElement( idx, column, w );
+      },
+      launchConfig );
+
+   return filteredGraph;
+}
+
+//! \brief Vertex filter accepting the vertices which are not assigned to any component yet.
+template< typename ComponentsView >
+struct UnassignedVertexFilter
+{
+   ComponentsView components;
+
+   [[nodiscard]] __cuda_callable__
+   bool
+   operator()( typename ComponentsView::IndexType vertex ) const
+   {
+      return components[ vertex ] == 0;
+   }
+};
+
+/**
  * \brief SCC implementation operating on any graph-like type.
  *
  * Pivot-based SCC: in each round, pick an unassigned vertex as pivot, run
  * forward BFS on the original graph and backward BFS on the reverse graph.
  * Vertices reachable in BOTH directions form one strongly connected component.
  *
- * The reverse graph is built by iterating the forward graph's edges with
- * forAllEdges (which applies vertex and edge filters for SubGraph inputs) and
- * adding them in reverse direction.  This avoids needing an owning copy of
- * the adjacency matrix for getTransposition (which fails on views).
+ * Both BFS runs are restricted to the unassigned vertices: every path between
+ * two vertices of one SCC stays inside that SCC, so the vertices assigned in
+ * the previous rounds cannot contribute to the current component.
  *
  * \tparam Graph     Graph, SubGraph, MaskedSubGraph, or GraphView.
  * \tparam Vector    Output vector type for component labels.
@@ -48,8 +121,6 @@ stronglyConnectedComponents_impl(
    static_assert( Graph::isDirected(), "SCC requires a directed graph." );
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
-   using ValueType = typename Graph::ValueType;
-   using GraphOrientation = typename Graph::GraphOrientation;
 
    const IndexType verticesCount = graph.getVertexCount();
    components.setSize( verticesCount );
@@ -66,46 +137,24 @@ stronglyConnectedComponents_impl(
          componentsView[ vertex ] = vertexPredicateCopy( vertex ) ? 0 : static_cast< IndexType >( -1 );
       } );
 
-   // Build the reverse graph by iterating the forward graph's edges.
-   // For SubGraph inputs, forAllEdges applies vertex and edge filters
-   // transparently, so only surviving edges are added to the reverse graph.
-   using OwningGraph = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, GraphOrientation >;
-   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   // The filter of the unassigned vertices.  Inactive vertices are marked by -1,
+   // so they are excluded as well.  A named functor keeps the SubGraph types
+   // short, a lambda here makes the device compilation several times slower.
+   const UnassignedVertexFilter< decltype( componentsView ) > unassigned{ componentsView };
 
-   IndexVector reverseCapacities( verticesCount, 0 );
-   auto revCapView = reverseCapacities.getView();
-   forAllEdges(
-      graph,
-      [ = ] __cuda_callable__( IndexType, IndexType, IndexType tgt, const ValueType& ) mutable
-      {
-         if( tgt == Matrices::paddingIndex< IndexType > )
-            return;
-         TNL::Algorithms::AtomicOperations< DeviceType >::add( revCapView[ tgt ], 1 );
-      },
-      launchConfig );
+   // The reverse graph contains only the edges surviving the filters of the input graph.
+   const auto reverseGraph = buildFilteredGraph< true >( graph, launchConfig );
+   auto reverseSubGraph = makeSubGraph( reverseGraph, unassigned );
 
-   OwningGraph reverseGraph( verticesCount );
-   reverseGraph.setEdgeCounts( reverseCapacities );
-
-   IndexVector slots( verticesCount, 0 );
-   auto slotView = slots.getView();
-   auto revMatrixView = reverseGraph.getAdjacencyMatrix().getView();
-   forAllEdges(
-      graph,
-      [ = ] __cuda_callable__( IndexType src, IndexType, IndexType tgt, const ValueType& w ) mutable
-      {
-         if( tgt == Matrices::paddingIndex< IndexType > )
-            return;
-         auto row = revMatrixView.getRow( tgt );
-         const IndexType idx = TNL::Algorithms::AtomicOperations< DeviceType >::add( slotView[ tgt ], 1 );
-         row.setElement( idx, src, w );
-      },
-      launchConfig );
-
-   // The reverse graph already contains only filtered edges (forAllEdges
-   // applied the filters).  The reverse SubGraph only needs the vertex filter
-   // to prevent BFS from visiting inactive vertices.
-   auto reverseSubGraph = makeSubGraph( reverseGraph, vertexPredicate );
+   // A SubGraph cannot be filtered again, so its surviving edges are copied as well.
+   const auto forwardGraph = [ & ]
+   {
+      if constexpr( detail::IsSubGraph< Graph >::value )
+         return buildFilteredGraph< false >( graph, launchConfig );
+      else
+         return graph.getConstView();
+   }();
+   auto forwardSubGraph = makeSubGraph( forwardGraph, unassigned );
 
    Vector forwardReachability( verticesCount );
    Vector reverseReachability( verticesCount );
@@ -124,7 +173,7 @@ stronglyConnectedComponents_impl(
       if( pivot < 0 )
          return;
 
-      breadthFirstSearch( graph, pivot, forwardReachability, 0.0, 0.0, BFSTopDownMode::Compact, launchConfig );
+      breadthFirstSearch( forwardSubGraph, pivot, forwardReachability, 0.0, 0.0, BFSTopDownMode::Compact, launchConfig );
       breadthFirstSearch( reverseSubGraph, pivot, reverseReachability, 0.0, 0.0, BFSTopDownMode::Compact, launchConfig );
 
       const auto forwardReachabilityView = forwardReachability.getConstView();
