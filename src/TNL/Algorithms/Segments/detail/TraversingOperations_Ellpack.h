@@ -122,12 +122,12 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
                launchConfig.blockSize.x = 256;
 
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
-            const std::size_t totalThreadsCount = static_cast< std::size_t >( blocksCount.x ) * launchConfig.blockSize.x;
-            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
+            const std::size_t blocksCount =
+               max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launchConfig.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launchConfig.blockSize.x );
+            const std::size_t totalThreadsCount = blocksCount * launchConfig.blockSize.x;
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launchConfig.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   auto condition = [] __cuda_callable__( IndexType )
                   {
@@ -142,7 +142,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
-                     gridIdx,
+                     blockOffset,
                      totalThreadsCount,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments,
@@ -162,7 +162,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                            std::remove_reference_t< Function >,
                            Organization,
                            256 / decltype( threadsPerSegment )::value >;
-                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+                        Backend::launchKernelAsync( kernel, launchConfig, blockOffset, segments, begin, end, function );
                      },
                      "Ellpack" );
                }
@@ -246,12 +246,12 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement )
                launchConfig.blockSize.x = 256;
 
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
-            const std::size_t totalThreadsCount = static_cast< std::size_t >( blocksCount.x ) * launchConfig.blockSize.x;
-            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
+            const std::size_t blocksCount =
+               max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launchConfig.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launchConfig.blockSize.x );
+            const std::size_t totalThreadsCount = blocksCount * launchConfig.blockSize.x;
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launchConfig.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = forElements_Ellpack_Uniform_WithIndexes<
                      ViewType,
@@ -262,7 +262,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
-                     gridIdx,
+                     blockOffset,
                      totalThreadsCount,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments,
@@ -281,7 +281,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                            std::remove_reference_t< Function >,
                            Organization,
                            256 / decltype( threadsPerSegment )::value >;
-                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
+                        Backend::launchKernelAsync( kernel, launchConfig, blockOffset, segments, segmentIndexesView, function );
                      },
                      "Ellpack" );
                }
@@ -371,12 +371,12 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-            const std::size_t totalThreadsCount = static_cast< std::size_t >( blocksCount.x ) * launch_config.blockSize.x;
-            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+            const std::size_t blocksCount =
+               max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+            const std::size_t totalThreadsCount = blocksCount * launch_config.blockSize.x;
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
 
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = forElements_Ellpack_Uniform_If<
@@ -388,7 +388,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      totalThreadsCount,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments,
@@ -410,7 +410,8 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                            Organization,
                            256,  // SliceSize, not used
                            256 / decltype( threadsPerSegment )::value >;
-                        Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
+                        Backend::launchKernelAsync(
+                           kernel, launch_config, blockOffset, segments, begin, end, condition, function );
                      },
                      "Ellpack" );
                }

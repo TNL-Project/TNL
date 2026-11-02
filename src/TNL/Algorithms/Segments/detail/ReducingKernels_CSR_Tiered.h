@@ -65,7 +65,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Tiered(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    Index begin,
@@ -83,9 +83,10 @@ reduceSegments_CSR_Tiered(
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx = threadIdx.x < ( BlockSize / threadsPerSegment )
-                             ? begin + Backend::getGlobalBlockIdx_x( gridIdx ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-                             : none_scheduled;
+   const Index segmentIdx =
+      threadIdx.x < ( BlockSize / threadsPerSegment )
+         ? begin + Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         : none_scheduled;
    bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
@@ -238,7 +239,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Tiered_WithIndexes(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    const ArrayView segmentIndexes,
@@ -256,7 +257,7 @@ reduceSegments_CSR_Tiered_WithIndexes(
    const auto& offsets = segments.getOffsets();
 
    const Index segmentIdx_idx = threadIdx.x < ( BlockSize / threadsPerSegment )
-                                 ? Backend::getGlobalBlockIdx_x( gridIdx ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+                                 ? Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
                                  : none_scheduled;
    bool reduce_segment = ( segmentIdx_idx < segmentIndexes.getSize() && threadIdx.x < BlockSize / threadsPerSegment );
 
@@ -416,7 +417,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Tiered_WithArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    Index begin,
@@ -434,9 +435,10 @@ reduceSegments_CSR_Tiered_WithArgument(
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx = threadIdx.x < ( BlockSize / threadsPerSegment )
-                             ? begin + Backend::getGlobalBlockIdx_x( gridIdx ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-                             : none_scheduled;
+   const Index segmentIdx =
+      threadIdx.x < ( BlockSize / threadsPerSegment )
+         ? begin + Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         : none_scheduled;
    bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
@@ -589,7 +591,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Tiered_WithIndexesAndArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const Segments segments,
    const ArrayView segmentIndexes,
@@ -607,7 +609,7 @@ reduceSegments_CSR_Tiered_WithIndexesAndArgument(
    const auto& offsets = segments.getOffsets();
 
    const Index segmentIdx_idx = threadIdx.x < ( BlockSize / threadsPerSegment )
-                                 ? Backend::getGlobalBlockIdx_x( gridIdx ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+                                 ? Backend::getGlobalBlockIdx_x( blockOffset ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
                                  : none_scheduled;
    bool reduce_segment = ( segmentIdx_idx < segmentIndexes.getSize() && threadIdx.x < BlockSize / threadsPerSegment );
 

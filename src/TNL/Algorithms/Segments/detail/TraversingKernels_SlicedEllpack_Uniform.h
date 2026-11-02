@@ -38,7 +38,7 @@ template< typename SegmentsConstView, typename Index, typename Function, Element
 __global__
 void
 forElements_SlicedEllpack_Uniform(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
    Index begin,
@@ -48,11 +48,11 @@ forElements_SlicedEllpack_Uniform(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
    if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
       if( segmentIdx >= end )
          return;
 
-      const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
+      const Index laneIdx = Backend::getGlobalThreadIdx_x( blockOffset ) & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       const Index sliceIdx = segmentIdx / SliceSize;
       const Index segmentInSliceIdx = segmentIdx % SliceSize;
@@ -76,8 +76,8 @@ forElements_SlicedEllpack_Uniform(
    }
    else {  // ColumnMajorOrder
       const Index firstSliceIdx = begin / SliceSize;
-      const Index sliceIdx = firstSliceIdx + Backend::getGlobalThreadIdx_x( gridIdx ) / ( SliceSize * threadsPerSegment );
-      const Index inSliceIdx = Backend::getGlobalThreadIdx_x( gridIdx ) % ( SliceSize * threadsPerSegment );
+      const Index sliceIdx = firstSliceIdx + Backend::getGlobalThreadIdx_x( blockOffset ) / ( SliceSize * threadsPerSegment );
+      const Index inSliceIdx = Backend::getGlobalThreadIdx_x( blockOffset ) % ( SliceSize * threadsPerSegment );
       const Index inSliceSegmentIdx = inSliceIdx % SliceSize;
       const Index segmentIdx = sliceIdx * SliceSize + inSliceSegmentIdx;
 
@@ -130,14 +130,14 @@ template<
 __global__
 void
 forElements_SlicedEllpack_Uniform_WithIndexes(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
    const ArrayView segmentIndexes,
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index idx = Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_GE( idx, 0, "" );
@@ -148,7 +148,7 @@ forElements_SlicedEllpack_Uniform_WithIndexes(
    const Index sliceIdx = segmentIdx / SliceSize;
    const Index inSliceOffset = segmentIdx % SliceSize;
 
-   const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
+   const Index laneIdx = Backend::getGlobalThreadIdx_x( blockOffset ) & ( threadsPerSegment - 1 );  // & is cheaper than %
    const Index segmentSize = segments.getSliceSegmentSizesView()[ sliceIdx ];
 
    if constexpr( Organization == RowMajorOrder ) {
@@ -198,7 +198,7 @@ template<
 __global__
 void
 forElements_SlicedEllpack_Uniform_If(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const SegmentsConstView segments,
    Index begin,
@@ -207,11 +207,11 @@ forElements_SlicedEllpack_Uniform_If(
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( segmentIdx >= end || ! condition( segmentIdx ) )
       return;
 
-   const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
+   const Index laneIdx = Backend::getGlobalThreadIdx_x( blockOffset ) & ( threadsPerSegment - 1 );  // & is cheaper than %
    const Index segmentSize = segments.getSegmentSize( segmentIdx );
 
    if constexpr( Organization == RowMajorOrder ) {

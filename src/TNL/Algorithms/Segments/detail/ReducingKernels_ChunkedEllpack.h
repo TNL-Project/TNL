@@ -31,7 +31,7 @@ __global__
 void
 reduceSegments_ChunkedEllpack(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -45,7 +45,7 @@ reduceSegments_ChunkedEllpack(
    const Index firstSlice = segments.getSegmentToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getSegmentToSliceMappingView()[ end - 1 ];
 
-   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
+   const Index sliceIdx = firstSlice + Backend::getGlobalBlockIdx_x( blockOffset );
    if( sliceIdx > lastSlice )
       return;
 
@@ -135,7 +135,7 @@ void
 reduceSegments_ChunkedEllpack_WithIndexes(
    SegmentsView segments,
    ArrayView segmentIndexes,
-   Index gridIdx,
+   std::size_t blockOffset,
    Fetch fetch,
    Reduction reduction,
    ResultStorer storer,
@@ -143,7 +143,7 @@ reduceSegments_ChunkedEllpack_WithIndexes(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index segmentIdx_idx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
@@ -197,7 +197,7 @@ __global__
 void
 reduceSegments_ChunkedEllpack_WithArgument(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -211,7 +211,7 @@ reduceSegments_ChunkedEllpack_WithArgument(
    const Index firstSlice = segments.getSegmentToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getSegmentToSliceMappingView()[ end - 1 ];
 
-   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
+   const Index sliceIdx = firstSlice + Backend::getGlobalBlockIdx_x( blockOffset );
    if( sliceIdx > lastSlice )
       return;
 
@@ -305,7 +305,7 @@ void
 reduceSegments_ChunkedEllpack_WithIndexesAndArgument(
    SegmentsView segments,
    ArrayView segmentIndexes,
-   Index gridIdx,
+   std::size_t blockOffset,
    Fetch fetch,
    Reduction reduction,
    ResultStorer storer,
@@ -313,7 +313,7 @@ reduceSegments_ChunkedEllpack_WithIndexesAndArgument(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index segmentIdx_idx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );

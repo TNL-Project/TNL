@@ -31,7 +31,7 @@ __device__
 void
 reduceSegments_BiEllpack_WithAllParameters_impl(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -41,7 +41,7 @@ reduceSegments_BiEllpack_WithAllParameters_impl(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   const Index segmentIdx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x + begin;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -102,7 +102,7 @@ __device__
 void
 reduceSegments_BiEllpack_impl(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -112,7 +112,7 @@ reduceSegments_BiEllpack_impl(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   Index segmentIdx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x + begin;
 
    const Index strip = segmentIdx >> SegmentsView::getLogWarpSize();
    const Index warpStart = strip << SegmentsView::getLogWarpSize();
@@ -240,7 +240,7 @@ __global__
 void
 reduceSegments_BiEllpack(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -250,9 +250,9 @@ reduceSegments_BiEllpack(
 {
    if constexpr( callableArgumentCount< Fetch >() == 3 )
       reduceSegments_BiEllpack_WithAllParameters_impl< BlockDim >(
-         segments, gridIdx, begin, end, fetch, reduction, storer, identity );
+         segments, blockOffset, begin, end, fetch, reduction, storer, identity );
    else
-      reduceSegments_BiEllpack_impl< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
+      reduceSegments_BiEllpack_impl< BlockDim >( segments, blockOffset, begin, end, fetch, reduction, storer, identity );
 }
 
 /**
@@ -277,7 +277,7 @@ void
 reduceSegments_BiEllpack_WithIndexes(
    SegmentsView segments,
    ArrayView segmentIndexes,
-   Index gridIdx,
+   std::size_t blockOffset,
    Fetch fetch,
    Reduction reduction,
    ResultStorer storer,
@@ -285,7 +285,7 @@ reduceSegments_BiEllpack_WithIndexes(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index segmentIdx_idx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -346,7 +346,7 @@ __device__
 void
 reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -356,7 +356,7 @@ reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   const Index segmentIdx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x + begin;
    const bool active = ( segmentIdx < end );
 
    Index argument = 0;
@@ -421,7 +421,7 @@ __global__
 void
 reduceSegments_BiEllpack_WithArgument(
    SegmentsView segments,
-   Index gridIdx,
+   std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -431,7 +431,7 @@ reduceSegments_BiEllpack_WithArgument(
 {
    //Currently we do not have specialized kernel for short fetch with argument
    reduceSegments_BiEllpack_WithAllParameters_WithArgument_impl< BlockDim >(
-      segments, gridIdx, begin, end, fetch, reduction, storer, identity );
+      segments, blockOffset, begin, end, fetch, reduction, storer, identity );
 }
 
 /**
@@ -456,7 +456,7 @@ void
 reduceSegments_BiEllpack_WithIndexesAndArgument(
    SegmentsView segments,
    ArrayView segmentIndexes,
-   Index gridIdx,
+   std::size_t blockOffset,
    Fetch fetch,
    Reduction reduction,
    ResultStorer storer,
@@ -464,7 +464,7 @@ reduceSegments_BiEllpack_WithIndexesAndArgument(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index segmentIdx_idx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;

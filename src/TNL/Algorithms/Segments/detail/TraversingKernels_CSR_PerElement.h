@@ -47,7 +47,7 @@ template< typename OffsetsView, typename Index, typename Function, int SegmentsP
 __global__
 void
 forElements_CSR_PerElement(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const OffsetsView offsets,
    const Index begin,
    const Index end,
@@ -57,7 +57,7 @@ forElements_CSR_PerElement(
    static_assert( SegmentsPerBlock <= BlockSize, "Every segment of the block must have its own thread." );
 
    __shared__ Index shared_offsets[ SegmentsPerBlock + 1 ];
-   const Index first_segment_in_block = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock;
+   const Index first_segment_in_block = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock;
    const Index last_segment_in_block = min( end, first_segment_in_block + SegmentsPerBlock );
    const Index segments_in_block = last_segment_in_block - first_segment_in_block;
    if( segments_in_block <= 0 )
@@ -114,7 +114,7 @@ template< typename OffsetsView, typename ArrayView, typename Index, typename Fun
 __global__
 void
 forElements_CSR_PerElement_WithIndexes(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
    Function function )
@@ -128,9 +128,9 @@ forElements_CSR_PerElement_WithIndexes(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx =
-      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock );
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       shared_segment_indexes[ threadIdx.x ] = segmentIndexes[ segmentIdx_ptr ];
@@ -218,7 +218,7 @@ template< typename OffsetsView, typename Index, typename Condition, typename Fun
 __global__
 void
 forElements_CSR_PerElement_If(
-   Index gridIdx,
+   std::size_t blockOffset,
    OffsetsView offsets,
    const Index begin,
    const Index end,
@@ -238,9 +238,9 @@ forElements_CSR_PerElement_If(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx =
-      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock );
    Index conditionValue = 0;
    if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );
