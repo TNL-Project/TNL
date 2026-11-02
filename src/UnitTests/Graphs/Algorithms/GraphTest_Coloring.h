@@ -424,6 +424,30 @@ TYPED_TEST( GraphTest, test_graphColoring_empty )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, colors ) );
 }
 
+TYPED_TEST( GraphTest, test_graphColoring_selfLoop )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   // Self-loops do not constrain the coloring.
+   // clang-format off
+   const GraphType graph = makeUndirectedGraph< GraphType >(
+      4,
+      {
+         { 0, 1, 1.0 },
+         { 1, 2, 1.0 },
+         { 2, 2, 1.0 },
+         { 2, 3, 1.0 },
+      } );
+   // clang-format on
+
+   expectComputedColoringIsProper( graph );
+   expectComputedLubyColoringIsProper( graph );
+
+   const ColorsType colors( { 0, 1, 0, 1 } );
+   EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, colors ) );
+}
+
 TYPED_TEST( GraphTest, test_graphColoring_star )
 {
    using GraphType = typename TestFixture::GraphType;

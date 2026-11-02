@@ -80,8 +80,11 @@ isMaximalIndependentSetOnActiveVertices(
 
          bool hasSelectedNeighbor = false;
          const auto vertexView = graphView.getVertex( vertex );
-         for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+         for( IndexType localIdx = 0; localIdx < vertexView.getSize(); localIdx++ ) {
             const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+            // skip the padding elements and self-loops
+            if( neighbor == Matrices::paddingIndex< IndexType > || neighbor == vertex )
+               continue;
             if( ! graphView.vertexExists( neighbor ) )
                continue;
 
@@ -182,8 +185,11 @@ maximalIndependentSetOnActiveVerticesWithPredicates(
             bool wins = true;
             const auto vertexView = graphView.getVertex( vertex );
 
-            for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+            for( IndexType localIdx = 0; localIdx < vertexView.getSize(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+               // skip the padding elements and self-loops
+               if( neighbor == Matrices::paddingIndex< IndexType > || neighbor == vertex )
+                  continue;
                if( ! availableView[ neighbor ] )
                   continue;
 
@@ -224,8 +230,11 @@ maximalIndependentSetOnActiveVerticesWithPredicates(
             }
 
             const auto vertexView = graphView.getVertex( vertex );
-            for( IndexType localIdx = 0; localIdx < vertexView.getDegree(); localIdx++ ) {
+            for( IndexType localIdx = 0; localIdx < vertexView.getSize(); localIdx++ ) {
                const IndexType neighbor = vertexView.getTargetIndex( localIdx );
+               // skip the padding elements and self-loops
+               if( neighbor == Matrices::paddingIndex< IndexType > || neighbor == vertex )
+                  continue;
                if( ! availableView[ neighbor ] )
                   continue;
 
