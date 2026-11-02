@@ -4,9 +4,8 @@
 #pragma once
 
 #include <TNL/Assert.h>
-#include <TNL/Pointers/DevicePointer.h>
+#include <TNL/Exceptions/NotImplementedError.h>
 #include "MeshFunction.h"
-#include "MeshFunctionEvaluator.h"
 #include "MeshFunctionNormGetter.h"
 #include "MeshFunctionIO.h"
 
@@ -194,10 +193,7 @@ template< typename Function >
 MeshFunction< Mesh, MeshEntityDimension, Real >&
 MeshFunction< Mesh, MeshEntityDimension, Real >::operator=( const Function& f )
 {
-   Pointers::DevicePointer< MeshFunction > thisDevicePtr( *this );
-   Pointers::DevicePointer< std::add_const_t< Function > > fDevicePtr( f );
-   MeshFunctionEvaluator< MeshFunction, Function >::evaluate( thisDevicePtr, fDevicePtr );
-   return *this;
+   throw Exceptions::NotImplementedError( "MeshFunction evaluation is not implemented with the current Grid implementation" );
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
@@ -205,10 +201,7 @@ template< typename Function >
 MeshFunction< Mesh, MeshEntityDimension, Real >&
 MeshFunction< Mesh, MeshEntityDimension, Real >::operator+=( const Function& f )
 {
-   Pointers::DevicePointer< MeshFunction > thisDevicePtr( *this );
-   Pointers::DevicePointer< std::add_const_t< Function > > fDevicePtr( f );
-   MeshFunctionEvaluator< MeshFunction, Function >::evaluate( thisDevicePtr, fDevicePtr, (RealType) 1.0, (RealType) 1.0 );
-   return *this;
+   throw Exceptions::NotImplementedError( "MeshFunction evaluation is not implemented with the current Grid implementation" );
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
@@ -216,10 +209,7 @@ template< typename Function >
 MeshFunction< Mesh, MeshEntityDimension, Real >&
 MeshFunction< Mesh, MeshEntityDimension, Real >::operator-=( const Function& f )
 {
-   Pointers::DevicePointer< MeshFunction > thisDevicePtr( *this );
-   Pointers::DevicePointer< std::add_const_t< Function > > fDevicePtr( f );
-   MeshFunctionEvaluator< MeshFunction, Function >::evaluate( thisDevicePtr, fDevicePtr, (RealType) 1.0, (RealType) -1.0 );
-   return *this;
+   throw Exceptions::NotImplementedError( "MeshFunction evaluation is not implemented with the current Grid implementation" );
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
