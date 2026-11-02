@@ -362,7 +362,7 @@ operator>( const T& v1, const Real< T >& v2 )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 fabs( const Real< T >& v )
 {
    tnl_flops_counter.recordFunction();
@@ -370,7 +370,7 @@ fabs( const Real< T >& v )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 sqrt( const Real< T >& v )
 {
    tnl_flops_counter.recordFunction();
@@ -378,7 +378,7 @@ sqrt( const Real< T >& v )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 pow( const Real< T >& x, const Real< T >& exp )
 {
    tnl_flops_counter.recordFunction();
@@ -386,7 +386,7 @@ pow( const Real< T >& x, const Real< T >& exp )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 pow( const Real< T >& x, const T& exp )
 {
    tnl_flops_counter.recordFunction();
@@ -394,7 +394,7 @@ pow( const Real< T >& x, const T& exp )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 cos( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -402,7 +402,7 @@ cos( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 sin( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -410,7 +410,7 @@ sin( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 tan( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -418,7 +418,7 @@ tan( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 acos( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -426,7 +426,7 @@ acos( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 asin( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -434,7 +434,7 @@ asin( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 atan( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -442,7 +442,7 @@ atan( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 atan2( const Real< T >& x, const Real< T >& exp )
 {
    tnl_flops_counter.recordFunction();
@@ -450,7 +450,7 @@ atan2( const Real< T >& x, const Real< T >& exp )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 atan2( const Real< T >& x, const T& exp )
 {
    tnl_flops_counter.recordFunction();
@@ -458,7 +458,7 @@ atan2( const Real< T >& x, const T& exp )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 cosh( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -466,7 +466,7 @@ cosh( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 sinh( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -474,7 +474,7 @@ sinh( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 tanh( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -482,7 +482,7 @@ tanh( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 exp( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -490,7 +490,7 @@ exp( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 log( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
@@ -498,7 +498,7 @@ log( const Real< T >& x )
 }
 
 template< class T >
-const Real< T >
+Real< T >
 log10( const Real< T >& x )
 {
    tnl_flops_counter.recordFunction();
