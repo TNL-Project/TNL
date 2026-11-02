@@ -17,23 +17,23 @@ TEST( MatrixTypeTraitsTest, is_matrix_v )
 
    using DenseMatrix = DenseMatrix< float, TNL::Devices::Host, int >;
    static_assert( is_matrix_v< DenseMatrix > );
-   static_assert( is_matrix_v< typename DenseMatrix::ViewType > );
-   static_assert( is_matrix_v< typename DenseMatrix::ConstViewType > );
+   static_assert( is_matrix_v< DenseMatrix::ViewType > );
+   static_assert( is_matrix_v< DenseMatrix::ConstViewType > );
 
    using CSR = SparseMatrix< float, TNL::Devices::Host, int, GeneralMatrix, TNL::Algorithms::Segments::CSR >;
    static_assert( is_matrix_v< CSR > );
-   static_assert( is_matrix_v< typename CSR::ViewType > );
-   static_assert( is_matrix_v< typename CSR::ConstViewType > );
+   static_assert( is_matrix_v< CSR::ViewType > );
+   static_assert( is_matrix_v< CSR::ConstViewType > );
 
    using Multidiagonal = MultidiagonalMatrix< float, TNL::Devices::Host, int >;
    static_assert( is_matrix_v< Multidiagonal > );
-   static_assert( is_matrix_v< typename Multidiagonal::ViewType > );
-   static_assert( is_matrix_v< typename Multidiagonal::ConstViewType > );
+   static_assert( is_matrix_v< Multidiagonal::ViewType > );
+   static_assert( is_matrix_v< Multidiagonal::ConstViewType > );
 
    using Tridiagonal = TridiagonalMatrix< float, TNL::Devices::Host, int >;
    static_assert( is_matrix_v< Tridiagonal > );
-   static_assert( is_matrix_v< typename Tridiagonal::ViewType > );
-   static_assert( is_matrix_v< typename Tridiagonal::ConstViewType > );
+   static_assert( is_matrix_v< Tridiagonal::ViewType > );
+   static_assert( is_matrix_v< Tridiagonal::ConstViewType > );
 
    [[maybe_unused]] auto matrixElements =
       []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
@@ -53,23 +53,23 @@ TEST( MatrixTypeTraitsTest, is_dense_matrix_v )
 
    using DenseMatrix = DenseMatrix< float, TNL::Devices::Host, int >;
    static_assert( is_dense_matrix_v< DenseMatrix > );
-   static_assert( is_dense_matrix_v< typename DenseMatrix::ViewType > );
-   static_assert( is_dense_matrix_v< typename DenseMatrix::ConstViewType > );
+   static_assert( is_dense_matrix_v< DenseMatrix::ViewType > );
+   static_assert( is_dense_matrix_v< DenseMatrix::ConstViewType > );
 
    using CSR = SparseMatrix< float, TNL::Devices::Host, int, GeneralMatrix, TNL::Algorithms::Segments::CSR >;
    static_assert( ! is_dense_matrix_v< CSR > );
-   static_assert( ! is_dense_matrix_v< typename CSR::ViewType > );
-   static_assert( ! is_dense_matrix_v< typename CSR::ConstViewType > );
+   static_assert( ! is_dense_matrix_v< CSR::ViewType > );
+   static_assert( ! is_dense_matrix_v< CSR::ConstViewType > );
 
    using Multidiagonal = MultidiagonalMatrix< float, TNL::Devices::Host, int >;
    static_assert( ! is_dense_matrix_v< Multidiagonal > );
-   static_assert( ! is_dense_matrix_v< typename Multidiagonal::ViewType > );
-   static_assert( ! is_dense_matrix_v< typename Multidiagonal::ConstViewType > );
+   static_assert( ! is_dense_matrix_v< Multidiagonal::ViewType > );
+   static_assert( ! is_dense_matrix_v< Multidiagonal::ConstViewType > );
 
    using Tridiagonal = TridiagonalMatrix< float, TNL::Devices::Host, int >;
    static_assert( ! is_dense_matrix_v< Tridiagonal > );
-   static_assert( ! is_dense_matrix_v< typename Tridiagonal::ViewType > );
-   static_assert( ! is_dense_matrix_v< typename Tridiagonal::ConstViewType > );
+   static_assert( ! is_dense_matrix_v< Tridiagonal::ViewType > );
+   static_assert( ! is_dense_matrix_v< Tridiagonal::ConstViewType > );
 
    [[maybe_unused]] auto matrixElements =
       []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};
@@ -89,23 +89,23 @@ TEST( MatrixTypeTraitsTest, is_sparse_csr_matrix_v )
 
    using DenseMatrix = DenseMatrix< float, TNL::Devices::Host, int >;
    static_assert( ! is_sparse_csr_matrix_v< DenseMatrix > );
-   static_assert( ! is_sparse_csr_matrix_v< typename DenseMatrix::ViewType > );
-   static_assert( ! is_sparse_csr_matrix_v< typename DenseMatrix::ConstViewType > );
+   static_assert( ! is_sparse_csr_matrix_v< DenseMatrix::ViewType > );
+   static_assert( ! is_sparse_csr_matrix_v< DenseMatrix::ConstViewType > );
 
    using CSR = SparseMatrix< float, TNL::Devices::Host, int, GeneralMatrix, TNL::Algorithms::Segments::CSR >;
    static_assert( is_sparse_csr_matrix_v< CSR > );
-   static_assert( is_sparse_csr_matrix_v< typename CSR::ViewType > );
-   static_assert( is_sparse_csr_matrix_v< typename CSR::ConstViewType > );
+   static_assert( is_sparse_csr_matrix_v< CSR::ViewType > );
+   static_assert( is_sparse_csr_matrix_v< CSR::ConstViewType > );
 
    using Multidiagonal = MultidiagonalMatrix< float, TNL::Devices::Host, int >;
    static_assert( ! is_sparse_csr_matrix_v< Multidiagonal > );
-   static_assert( ! is_sparse_csr_matrix_v< typename Multidiagonal::ViewType > );
-   static_assert( ! is_sparse_csr_matrix_v< typename Multidiagonal::ConstViewType > );
+   static_assert( ! is_sparse_csr_matrix_v< Multidiagonal::ViewType > );
+   static_assert( ! is_sparse_csr_matrix_v< Multidiagonal::ConstViewType > );
 
    using Tridiagonal = TridiagonalMatrix< float, TNL::Devices::Host, int >;
    static_assert( ! is_sparse_csr_matrix_v< Tridiagonal > );
-   static_assert( ! is_sparse_csr_matrix_v< typename Tridiagonal::ViewType > );
-   static_assert( ! is_sparse_csr_matrix_v< typename Tridiagonal::ConstViewType > );
+   static_assert( ! is_sparse_csr_matrix_v< Tridiagonal::ViewType > );
+   static_assert( ! is_sparse_csr_matrix_v< Tridiagonal::ConstViewType > );
 
    [[maybe_unused]] auto matrixElements =
       []( int rows, int columns, int rowIdx, int localIdx, int& columnIdx, float& value ) {};

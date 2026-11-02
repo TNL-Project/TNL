@@ -24,7 +24,7 @@ void
 __test_SetThroughView()
 {
    constexpr int I = 3, J = 5;
-   using ViewType = typename StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
+   using ViewType = StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
    NDArray< int, SizesHolder< int, I, J >, std::make_index_sequence< 2 >, TNL::Devices::Cuda > a;
    a.setSizes( 0, 0 );
    ViewType a_view( a.getData(), SizesHolder< int, I, J >{} );
@@ -51,7 +51,7 @@ void
 __test_CopyFromArray()
 {
    constexpr int I = 3, J = 5;
-   using ViewType = typename StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
+   using ViewType = StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
    NDArray< int, SizesHolder< int, I, J >, std::make_index_sequence< 2 >, TNL::Devices::Cuda > a;
    a.setSizes( 0, 0 );
    ViewType a_view( a.getData(), SizesHolder< int, I, J >{} );

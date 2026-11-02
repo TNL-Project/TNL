@@ -27,32 +27,32 @@ TEST( NDArraySubarrayTest, StaticAsserts )
    using Permutation = std::integer_sequence< std::size_t, 5, 3, 1, 4, 2, 6, 0 >;
    {
       using Dimensions = std::integer_sequence< std::size_t, 3, 4, 6 >;
-      using Subpermutation = typename SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
+      using Subpermutation = SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
       check_permutation< Subpermutation, std::integer_sequence< std::size_t, 0, 1, 2 > >();
    }
    {
       using Dimensions = std::integer_sequence< std::size_t, 1, 4, 2 >;
-      using Subpermutation = typename SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
+      using Subpermutation = SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
       check_permutation< Subpermutation, std::integer_sequence< std::size_t, 0, 2, 1 > >();
    }
    {
       using Dimensions = std::integer_sequence< std::size_t, 5, 1, 6 >;
-      using Subpermutation = typename SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
+      using Subpermutation = SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
       check_permutation< Subpermutation, std::integer_sequence< std::size_t, 1, 0, 2 > >();
    }
    {
       using Dimensions = std::integer_sequence< std::size_t, 5, 1, 2 >;
-      using Subpermutation = typename SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
+      using Subpermutation = SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
       check_permutation< Subpermutation, std::integer_sequence< std::size_t, 2, 0, 1 > >();
    }
    {
       using Dimensions = std::integer_sequence< std::size_t, 2, 3, 4 >;
-      using Subpermutation = typename SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
+      using Subpermutation = SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
       check_permutation< Subpermutation, std::integer_sequence< std::size_t, 1, 2, 0 > >();
    }
    {
       using Dimensions = std::integer_sequence< std::size_t, 0, 1, 5 >;
-      using Subpermutation = typename SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
+      using Subpermutation = SubpermutationGetter< Dimensions, Permutation >::Subpermutation;
       check_permutation< Subpermutation, std::integer_sequence< std::size_t, 2, 1, 0 > >();
    }
 
