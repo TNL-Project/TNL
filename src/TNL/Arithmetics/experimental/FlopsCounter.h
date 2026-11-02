@@ -60,7 +60,7 @@ public:
       compute_flops = false;
    }
 
-   long int
+   [[nodiscard]] long int
    getFlops() const
    {
       return adding_flops + multiplying_flops + dividing_flops + functions_flops;

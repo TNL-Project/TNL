@@ -212,7 +212,7 @@ public:
       return v;
    }
 
-   bool
+   [[nodiscard]] bool
    write( const std::string& functionName, const std::string& fileName, const std::string& fileFormat = "auto" ) const
    {
       std::fstream file;
@@ -469,7 +469,7 @@ public:
       return v;
    }
 
-   bool
+   [[nodiscard]] bool
    write( const std::string& functionName, const std::string& fileName, const std::string& fileFormat = "auto" ) const
    {
       std::fstream file;
