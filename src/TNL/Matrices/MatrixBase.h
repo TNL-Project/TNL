@@ -35,7 +35,7 @@ enum class MatrixElementsEncoding : std::uint8_t
    Complete,        //!<  All elements of the matrix are provided.
    SymmetricLower,  //!<  Only lower part of the matrix is provided.
    SymmetricUpper,  //!<  Only upper part of the matrix is provided.
-   SymmetricMixed   //!<  For each couple of non-zero elements a_ij and a_ji, at least one is provided. It is handy for example
+   SymmetricMixed,  //!<  For each couple of non-zero elements a_ij and a_ji, at least one is provided. It is handy for example
                     //!<  for adjacency matrices of undirected graphs.
 };
 
@@ -50,7 +50,7 @@ enum class MatrixElementsDuplicates : std::uint8_t
    Error,     //!<  Throw an exception.
    KeepLast,  //!<  Use the value which appears last in the input data.
    Sum,       //!<  Use the sum of all values at the same position.
-   Average    //!<  Use the average of all values at the same position.
+   Average,   //!<  Use the average of all values at the same position.
 };
 
 /**

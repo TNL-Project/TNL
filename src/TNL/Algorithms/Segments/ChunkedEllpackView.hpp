@@ -58,16 +58,18 @@ __cuda_callable__
 typename ChunkedEllpackView< Device, Index, Organization >::ViewType
 ChunkedEllpackView< Device, Index, Organization >::getView()
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getNumberOfSlices(),
-            this->getChunksInSlice(),
-            this->getDesiredChunkSize(),
-            this->getSegmentToChunkMappingView(),
-            this->getSegmentToSliceMappingView(),
-            this->getChunksToSegmentsMappingView(),
-            this->getSegmentPointersView(),
-            this->getSlicesView() };
+   return {
+      this->getElementCount(),
+      this->getStorageSize(),
+      this->getNumberOfSlices(),
+      this->getChunksInSlice(),
+      this->getDesiredChunkSize(),
+      this->getSegmentToChunkMappingView(),
+      this->getSegmentToSliceMappingView(),
+      this->getChunksToSegmentsMappingView(),
+      this->getSegmentPointersView(),
+      this->getSlicesView(),
+   };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -75,16 +77,18 @@ __cuda_callable__
 auto
 ChunkedEllpackView< Device, Index, Organization >::getConstView() const -> ConstViewType
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getNumberOfSlices(),
-            this->getChunksInSlice(),
-            this->getDesiredChunkSize(),
-            this->getSegmentToChunkMappingView(),
-            this->getSegmentToSliceMappingView(),
-            this->getChunksToSegmentsMappingView(),
-            this->getSegmentPointersView(),
-            this->getSlicesView() };
+   return {
+      this->getElementCount(),
+      this->getStorageSize(),
+      this->getNumberOfSlices(),
+      this->getChunksInSlice(),
+      this->getDesiredChunkSize(),
+      this->getSegmentToChunkMappingView(),
+      this->getSegmentToSliceMappingView(),
+      this->getChunksToSegmentsMappingView(),
+      this->getSegmentPointersView(),
+      this->getSlicesView(),
+   };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >

@@ -70,7 +70,7 @@ enum Directions3D : std::uint8_t
    ZpYmXp = 22,
    ZpYpXz = 23,
    ZpYpXm = 24,
-   ZpYpXp = 25
+   ZpYpXp = 25,
 };
 
 class Directions

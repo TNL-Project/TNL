@@ -15,7 +15,7 @@ enum class Type : std::uint8_t
    /* LONG = 0!!! Non zero value rewrites index[1] */
    LONG = 0,
    STREAM = 1,
-   VECTOR = 2
+   VECTOR = 2,
 };
 
 // #define CSR_ADAPTIVE_UNION

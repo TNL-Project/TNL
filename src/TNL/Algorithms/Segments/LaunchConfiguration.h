@@ -46,7 +46,7 @@ enum class ThreadsToSegmentsMapping : std::uint8_t
    //! \brief The adaptive kernel of AdaptiveCSR,
    //! which assigns the segments to the blocks in advance.
    //! CSR, which has no adaptive kernel, resolves it to the Default mapping.
-   Adaptive
+   Adaptive,
 };
 
 /**

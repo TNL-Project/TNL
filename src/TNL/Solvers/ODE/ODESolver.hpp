@@ -122,7 +122,7 @@ ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u, RHSFunc
 
    auto updateSolutionAndResidue = [ & ]()
    {
-      residue = addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+      residue = addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus(), 0.0 )
               / ( currentTau * u.getSize() );
 
       // Go to the next time step with the step size used in the update
@@ -286,7 +286,7 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u, RHSFu
 
    auto updateSolutionAndResidue = [ & ]()
    {
-      residue = addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+      residue = addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus(), 0.0 )
               / ( currentTau * u.getSize() );
 
       // Go to the next time step with the step size used in the update

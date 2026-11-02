@@ -11,12 +11,14 @@ getRowExample()
    const int matrixSize = 5;
    using MatrixType = TNL::Matrices::TridiagonalMatrix< double, Device >;
    MatrixType matrix(
-      matrixSize,           // number of matrix columns
-      { { 0.0, 2.0, 1.0 },  // matrix elements
-        { 0.0, 2.0, 1.0 },
-        { 3.0, 2.0, 1.0 },
-        { 3.0, 2.0, 1.0 },
-        { 0.0, 2.0, 1.0 } } );
+      matrixSize,  // number of matrix columns
+      {
+         { 0.0, 2.0, 1.0 },  // matrix elements
+         { 0.0, 2.0, 1.0 },
+         { 3.0, 2.0, 1.0 },
+         { 3.0, 2.0, 1.0 },
+         { 0.0, 2.0, 1.0 },
+      } );
    auto view = matrix.getView();
 
    /***

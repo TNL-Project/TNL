@@ -40,7 +40,7 @@ struct BogackiShampin
          std::array< Value, Stages >{     0.0,     0.0, 0.0,     0.0 },
          std::array< Value, Stages >{ 1.0/2.0,     0.0, 0.0,     0.0 },
          std::array< Value, Stages >{     0.0, 3.0/4.0, 0.0,     0.0 },
-         std::array< Value, Stages >{ 2.0/9.0, 1.0/3.0, 4.0/9.0, 0.0 }
+         std::array< Value, Stages >{ 2.0/9.0, 1.0/3.0, 4.0/9.0, 0.0 },
       };
       // clang-format on
       return k_coefficients[ stage ][ i ];

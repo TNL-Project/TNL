@@ -128,32 +128,36 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ViewType
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getView()
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getNumberOfSlices(),
-            this->getChunksInSlice(),
-            this->getDesiredChunkSize(),
-            this->getSegmentToChunkMappingView(),
-            this->getSegmentToSliceMappingView(),
-            this->getChunksToSegmentsMappingView(),
-            this->getSegmentPointersView(),
-            this->getSlicesView() };
+   return {
+      this->getElementCount(),
+      this->getStorageSize(),
+      this->getNumberOfSlices(),
+      this->getChunksInSlice(),
+      this->getDesiredChunkSize(),
+      this->getSegmentToChunkMappingView(),
+      this->getSegmentToSliceMappingView(),
+      this->getChunksToSegmentsMappingView(),
+      this->getSegmentPointersView(),
+      this->getSlicesView(),
+   };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 auto
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getConstView() const -> ConstViewType
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getNumberOfSlices(),
-            this->getChunksInSlice(),
-            this->getDesiredChunkSize(),
-            this->getSegmentToChunkMappingView(),
-            this->getSegmentToSliceMappingView(),
-            this->getChunksToSegmentsMappingView(),
-            this->getSegmentPointersView(),
-            this->getSlicesView() };
+   return {
+      this->getElementCount(),
+      this->getStorageSize(),
+      this->getNumberOfSlices(),
+      this->getChunksInSlice(),
+      this->getDesiredChunkSize(),
+      this->getSegmentToChunkMappingView(),
+      this->getSegmentToSliceMappingView(),
+      this->getChunksToSegmentsMappingView(),
+      this->getSegmentPointersView(),
+      this->getSlicesView(),
+   };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >

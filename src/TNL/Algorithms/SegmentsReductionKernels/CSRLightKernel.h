@@ -15,7 +15,7 @@ enum LightCSRSThreadsMapping : std::uint8_t
 {
    LightCSRConstantThreads,
    CSRLightAutomaticThreads,
-   CSRLightAutomaticThreadsLightSpMV
+   CSRLightAutomaticThreadsLightSpMV,
 };
 
 template< typename Index, typename Device >

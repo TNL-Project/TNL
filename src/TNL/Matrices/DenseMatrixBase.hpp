@@ -211,7 +211,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::getCompressedRowLengths( V
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   this->reduceAllRows( fetch, TNL::Plus{}, keep );
+   this->reduceAllRows( fetch, TNL::Plus(), keep );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -672,15 +672,15 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct(
 
    if( outVectorMultiplicator == RealType{ 0 } ) {
       if( matrixMultiplicator == RealType{ 1 } )
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperDirect );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperDirect );
       else
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperMatrixMult );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperMatrixMult );
    }
    else {
       if( matrixMultiplicator == RealType{ 1 } )
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperVectorMult );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperVectorMult );
       else
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperGeneral );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperGeneral );
    }
 }
 

@@ -94,7 +94,7 @@ protected:
    {
       all,
       boundary,
-      interior
+      interior,
    };
 
    template< typename OutMeshFunctionPointer, typename InFunctionPointer >

@@ -63,11 +63,13 @@ __cuda_callable__
 auto
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getView() -> ViewType
 {
-   return { this->getRows(),
-            this->getColumns(),
-            this->getValues().getView(),
-            this->getColumnIndexes().getView(),
-            this->getSegments().getView() };
+   return {
+      this->getRows(),
+      this->getColumns(),
+      this->getValues().getView(),
+      this->getColumnIndexes().getView(),
+      this->getSegments().getView(),
+   };
 }
 
 template<
@@ -81,11 +83,13 @@ __cuda_callable__
 auto
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getConstView() const -> ConstViewType
 {
-   return { this->getRows(),
-            this->getColumns(),
-            this->getValues().getConstView(),
-            this->getColumnIndexes().getConstView(),
-            this->getSegments().getConstView() };
+   return {
+      this->getRows(),
+      this->getColumns(),
+      this->getValues().getConstView(),
+      this->getColumnIndexes().getConstView(),
+      this->getSegments().getConstView(),
+   };
 }
 
 template<

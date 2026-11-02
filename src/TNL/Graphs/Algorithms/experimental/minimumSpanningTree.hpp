@@ -304,9 +304,11 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       auto hook_candidates_fetch =
          [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool& compute )
       {
-         return AuxType{ hook_candidates_weights_view[ globalIdx ],
-                         hook_candidates_sources_view[ globalIdx ],
-                         hook_candidates_targets_view[ globalIdx ] };
+         return AuxType{
+            hook_candidates_weights_view[ globalIdx ],
+            hook_candidates_sources_view[ globalIdx ],
+            hook_candidates_targets_view[ globalIdx ],
+         };
       };
       auto hook_candidates_reduction = [ = ] __cuda_callable__( const AuxType& a, const AuxType& b )
       {

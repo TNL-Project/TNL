@@ -19,12 +19,14 @@ reduceRows()
     *
     */
    TNL::Matrices::TridiagonalMatrix< double, Device > matrix(
-      5,              // number of matrix columns
-      { { 0, 1, 3 },  // matrix elements
-        { 2, 1, 3 },
-        { 2, 1, 3 },
-        { 2, 1, 3 },
-        { 2, 1, 3 } } );
+      5,  // number of matrix columns
+      {
+         { 0, 1, 3 },  // matrix elements
+         { 2, 1, 3 },
+         { 2, 1, 3 },
+         { 2, 1, 3 },
+         { 2, 1, 3 },
+      } );
    auto view = matrix.getView();
 
    /***

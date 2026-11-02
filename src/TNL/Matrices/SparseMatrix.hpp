@@ -178,11 +178,13 @@ template<
 auto
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getView() -> ViewType
 {
-   return { this->getRows(),
-            this->getColumns(),
-            this->getValues().getView(),
-            this->getColumnIndexes().getView(),
-            this->getSegments().getView() };
+   return {
+      this->getRows(),
+      this->getColumns(),
+      this->getValues().getView(),
+      this->getColumnIndexes().getView(),
+      this->getSegments().getView(),
+   };
 }
 
 template<
@@ -198,11 +200,13 @@ auto
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getConstView() const
    -> ConstViewType
 {
-   return { this->getRows(),
-            this->getColumns(),
-            this->getValues().getConstView(),
-            this->getColumnIndexes().getConstView(),
-            this->getSegments().getConstView() };
+   return {
+      this->getRows(),
+      this->getColumns(),
+      this->getValues().getConstView(),
+      this->getColumnIndexes().getConstView(),
+      this->getSegments().getConstView(),
+   };
 }
 
 template<

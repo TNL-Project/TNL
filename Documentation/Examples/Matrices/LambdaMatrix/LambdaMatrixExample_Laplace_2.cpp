@@ -14,7 +14,7 @@ laplaceOperatorMatrix()
    const int gridSize( 4 );
    const int matrixSize = gridSize * gridSize;
    TNL::Containers::Vector< int, Device > columnOffsets{
-      0, -1, 0, 1, 0
+      0, -1, 0, 1, 0,
    };  // helper vector for getting matrix elements column indexes
    columnOffsets.setElement( 0, -gridSize );
    columnOffsets.setElement( 4, gridSize );

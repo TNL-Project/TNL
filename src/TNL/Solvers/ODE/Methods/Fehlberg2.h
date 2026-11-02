@@ -39,7 +39,7 @@ struct Fehlberg2
       constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
          std::array< Value, Stages >{ 0.0,       0.0,         0.0 },
          std::array< Value, Stages >{ 1.0/  2.0, 0.0,         0.0 },
-         std::array< Value, Stages >{ 1.0/256.0, 255.0/256.0, 0.0 }
+         std::array< Value, Stages >{ 1.0/256.0, 255.0/256.0, 0.0 },
       };
       // clang-format on
       return k_coefficients[ stage ][ i ];

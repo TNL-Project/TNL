@@ -38,7 +38,7 @@ struct Heun3
       constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
          std::array< Value, Stages >{     0.0,     0.0, 0.0 },
          std::array< Value, Stages >{ 1.0/3.0,     0.0, 0.0 },
-         std::array< Value, Stages >{     0.0, 2.0/3.0, 0.0 }
+         std::array< Value, Stages >{     0.0, 2.0/3.0, 0.0 },
       };
       // clang-format on
       return k_coefficients[ stage ][ i ];

@@ -144,12 +144,16 @@ struct ParallelExecutorDeviceDispatch
          exec( begins, ends, f, i[ 2 ], i[ 1 ], i[ 0 ] );
       };
 
-      const MultiIndex begin = { begins.template getSize< get< 2 >( Permutation{} ) >(),
-                                 begins.template getSize< get< 1 >( Permutation{} ) >(),
-                                 begins.template getSize< get< 0 >( Permutation{} ) >() };
-      const MultiIndex end = { ends.template getSize< get< 2 >( Permutation{} ) >(),
-                               ends.template getSize< get< 1 >( Permutation{} ) >(),
-                               ends.template getSize< get< 0 >( Permutation{} ) >() };
+      const MultiIndex begin = {
+         begins.template getSize< get< 2 >( Permutation{} ) >(),
+         begins.template getSize< get< 1 >( Permutation{} ) >(),
+         begins.template getSize< get< 0 >( Permutation{} ) >(),
+      };
+      const MultiIndex end = {
+         ends.template getSize< get< 2 >( Permutation{} ) >(),
+         ends.template getSize< get< 1 >( Permutation{} ) >(),
+         ends.template getSize< get< 0 >( Permutation{} ) >(),
+      };
       Algorithms::parallelFor< Device >( begin, end, launch_configuration, kernel );
    }
 };
@@ -172,12 +176,16 @@ struct ParallelExecutorDeviceDispatch< Permutation, Devices::Cuda >
          exec( begins, ends, f, i[ 2 ], i[ 1 ], i[ 0 ] );
       };
 
-      const MultiIndex begin = { begins.template getSize< get< Begins::getDimension() - 1 >( Permutation{} ) >(),
-                                 begins.template getSize< get< Begins::getDimension() - 2 >( Permutation{} ) >(),
-                                 begins.template getSize< get< Begins::getDimension() - 3 >( Permutation{} ) >() };
-      const MultiIndex end = { ends.template getSize< get< Ends::getDimension() - 1 >( Permutation{} ) >(),
-                               ends.template getSize< get< Ends::getDimension() - 2 >( Permutation{} ) >(),
-                               ends.template getSize< get< Ends::getDimension() - 3 >( Permutation{} ) >() };
+      const MultiIndex begin = {
+         begins.template getSize< get< Begins::getDimension() - 1 >( Permutation{} ) >(),
+         begins.template getSize< get< Begins::getDimension() - 2 >( Permutation{} ) >(),
+         begins.template getSize< get< Begins::getDimension() - 3 >( Permutation{} ) >(),
+      };
+      const MultiIndex end = {
+         ends.template getSize< get< Ends::getDimension() - 1 >( Permutation{} ) >(),
+         ends.template getSize< get< Ends::getDimension() - 2 >( Permutation{} ) >(),
+         ends.template getSize< get< Ends::getDimension() - 3 >( Permutation{} ) >(),
+      };
       Algorithms::parallelFor< Devices::Cuda >( begin, end, launch_configuration, kernel );
    }
 };
@@ -217,12 +225,16 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 3 > >
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Device > kernel;
 
-      const MultiIndex begin = { begins.template getSize< get< 2 >( Permutation{} ) >(),
-                                 begins.template getSize< get< 1 >( Permutation{} ) >(),
-                                 begins.template getSize< get< 0 >( Permutation{} ) >() };
-      const MultiIndex end = { ends.template getSize< get< 2 >( Permutation{} ) >(),
-                               ends.template getSize< get< 1 >( Permutation{} ) >(),
-                               ends.template getSize< get< 0 >( Permutation{} ) >() };
+      const MultiIndex begin = {
+         begins.template getSize< get< 2 >( Permutation{} ) >(),
+         begins.template getSize< get< 1 >( Permutation{} ) >(),
+         begins.template getSize< get< 0 >( Permutation{} ) >(),
+      };
+      const MultiIndex end = {
+         ends.template getSize< get< 2 >( Permutation{} ) >(),
+         ends.template getSize< get< 1 >( Permutation{} ) >(),
+         ends.template getSize< get< 0 >( Permutation{} ) >(),
+      };
       Algorithms::parallelFor< Device >( begin, end, launch_configuration, kernel, f );
    }
 };
@@ -246,10 +258,14 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 2 > >
       // nvcc does not like nested __cuda_callable__ and normal lambdas...
       Functor_call_with_unpermuted_arguments< Permutation, Device > kernel;
 
-      const MultiIndex begin = { begins.template getSize< get< 1 >( Permutation{} ) >(),
-                                 begins.template getSize< get< 0 >( Permutation{} ) >() };
-      const MultiIndex end = { ends.template getSize< get< 1 >( Permutation{} ) >(),
-                               ends.template getSize< get< 0 >( Permutation{} ) >() };
+      const MultiIndex begin = {
+         begins.template getSize< get< 1 >( Permutation{} ) >(),
+         begins.template getSize< get< 0 >( Permutation{} ) >(),
+      };
+      const MultiIndex end = {
+         ends.template getSize< get< 1 >( Permutation{} ) >(),
+         ends.template getSize< get< 0 >( Permutation{} ) >(),
+      };
       Algorithms::parallelFor< Device >( begin, end, launch_configuration, kernel, f );
    }
 };

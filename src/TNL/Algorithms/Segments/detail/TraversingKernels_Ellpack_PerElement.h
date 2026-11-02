@@ -187,7 +187,7 @@ forElements_Ellpack_PerElement_If(
    }
    __syncthreads();
 
-   const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
+   const Index v1 = InclusiveCudaScan::scan( Plus(), (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
    if( threadIdx.x < SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    __syncthreads();

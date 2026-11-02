@@ -100,22 +100,20 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::ViewType
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getView()
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getSegmentCount(),
-            this->getSliceOffsetsView(),
-            this->getSliceSegmentSizesView() };
+   return {
+      this->getElementCount(),     this->getStorageSize(),           this->getSegmentCount(),
+      this->getSliceOffsetsView(), this->getSliceSegmentSizesView(),
+   };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
 auto
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getConstView() const -> ConstViewType
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getSegmentCount(),
-            this->getSliceOffsetsView(),
-            this->getSliceSegmentSizesView() };
+   return {
+      this->getElementCount(),     this->getStorageSize(),           this->getSegmentCount(),
+      this->getSliceOffsetsView(), this->getSliceSegmentSizesView(),
+   };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >

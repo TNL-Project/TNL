@@ -37,7 +37,7 @@ struct Ralston2
       // clang-format off
       constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
          std::array< Value, Stages >{     0.0, 0.0 },
-         std::array< Value, Stages >{ 2.0/3.0, 0.0 }
+         std::array< Value, Stages >{ 2.0/3.0, 0.0 },
       };
       // clang-format on
       return k_coefficients[ stage ][ i ];

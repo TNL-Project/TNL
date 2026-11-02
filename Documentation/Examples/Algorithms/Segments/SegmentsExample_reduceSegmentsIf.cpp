@@ -76,13 +76,13 @@ SegmentsExample()
       compressedSums_view[ indexOfSegmentIdx ] = value;
    };
 
-   TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_full, TNL::Plus{}, store );
+   TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_full, TNL::Plus(), store );
    std::cout << "The sums with full fetch form are: " << sums << '\n';
    std::cout << "The compressed sums with full fetch form are: " << compressedSums << '\n';
 
    sums = 0;
    compressedSums = 0;
-   TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_brief, TNL::Plus{}, store );
+   TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_brief, TNL::Plus(), store );
    std::cout << "The sums with brief fetch form are: " << sums << '\n';
    std::cout << "The compressed sums with brief fetch form are: " << compressedSums << '\n';
    //! [reduction]

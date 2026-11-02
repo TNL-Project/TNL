@@ -107,9 +107,11 @@ template< typename EmbeddedSegments, typename IndexAllocator >
 auto
 SortedSegments< EmbeddedSegments, IndexAllocator >::getView() -> ViewType
 {
-   return { this->embeddedSegmentsView.getView(),
-            this->segmentsPermutationView.getView(),
-            this->inverseSegmentsPermutationView.getView() };
+   return {
+      this->embeddedSegmentsView.getView(),
+      this->segmentsPermutationView.getView(),
+      this->inverseSegmentsPermutationView.getView(),
+   };
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >

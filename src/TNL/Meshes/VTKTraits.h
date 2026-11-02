@@ -24,14 +24,14 @@ enum class FileFormat : std::uint8_t
 {
    ascii,
    binary,
-   zlib_compressed
+   zlib_compressed,
 };
 
 // VTK data types
 enum class DataType : std::uint8_t
 {
    CellData,
-   PointData
+   PointData,
 };
 
 // VTK entity shapes
@@ -53,7 +53,7 @@ enum class EntityShape : std::uint8_t
    Pyramid = 14,
    PentagonalPrism = 15,
    HexagonalPrism = 16,
-   Polyhedron = 42
+   Polyhedron = 42,
 };
 
 [[nodiscard]] inline std::string
@@ -280,13 +280,13 @@ enum class CellGhostTypes : std::uint8_t
    LOWCONNECTIVITYCELL = 4,   // the cell has less neighbors than in a regular mesh
    REFINEDCELL = 8,           // other cells are present that refines it
    EXTERIORCELL = 16,         // the cell is on the exterior of the data set
-   HIDDENCELL = 32            // the cell is needed to maintain connectivity, but the data values should be ignored
+   HIDDENCELL = 32,           // the cell is needed to maintain connectivity, but the data values should be ignored
 };
 
 enum class PointGhostTypes : std::uint8_t
 {
    DUPLICATEPOINT = 1,  // the cell is present on multiple processors
-   HIDDENPOINT = 2      // the point is needed to maintain connectivity, but the data values should be ignored
+   HIDDENPOINT = 2,     // the point is needed to maintain connectivity, but the data values should be ignored
 };
 
 /**

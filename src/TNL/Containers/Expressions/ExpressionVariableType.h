@@ -13,7 +13,7 @@ enum ExpressionVariableType : std::uint8_t
 {
    ArithmeticVariable,
    VectorExpressionVariable,
-   OtherVariable
+   OtherVariable,
 };
 
 template< typename T, typename V = T >

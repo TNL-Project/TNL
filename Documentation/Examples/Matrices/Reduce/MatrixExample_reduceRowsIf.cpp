@@ -53,7 +53,7 @@ reduceRowsIfExample()
 
    rangeSums.setValue( -1.0 );
 
-   TNL::Matrices::reduceRowsIf( matrix, 2, 7, evenRowCondition, fetch, TNL::Plus{}, storeRange );
+   TNL::Matrices::reduceRowsIf( matrix, 2, 7, evenRowCondition, fetch, TNL::Plus(), storeRange );
 
    std::cout << "Sums for rows 2-6 (only even indices, others show -1): " << rangeSums << '\n';
 

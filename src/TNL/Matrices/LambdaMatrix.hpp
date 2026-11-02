@@ -104,7 +104,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   TNL::Matrices::reduceAllRows( *this, fetch, TNL::Plus{}, keep );
+   TNL::Matrices::reduceAllRows( *this, fetch, TNL::Plus(), keep );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -189,7 +189,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    };
    if( ! end )
       end = this->getRows();
-   TNL::Matrices::reduceRows( *this, begin, end, fetch, TNL::Plus{}, keep );
+   TNL::Matrices::reduceRows( *this, begin, end, fetch, TNL::Plus(), keep );
 }
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >

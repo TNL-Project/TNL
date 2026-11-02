@@ -35,8 +35,10 @@ struct Heun2
    static constexpr ValueType
    getCoefficient( const std::size_t stage, const std::size_t i )
    {
-      constexpr std::array< std::array< Value, Stages >, Stages > k_coefficients{ std::array< Value, Stages >{ 0.0, 0.0 },
-                                                                                  std::array< Value, Stages >{ 1.0, 0.0 } };
+      constexpr std::array< std::array< Value, Stages >, Stages > k_coefficients{
+         std::array< Value, Stages >{ 0.0, 0.0 },
+         std::array< Value, Stages >{ 1.0, 0.0 },
+      };
       return k_coefficients[ stage ][ i ];
    }
 

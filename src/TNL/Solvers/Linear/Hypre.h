@@ -20,7 +20,7 @@ public:
    {
       IGNORE_HYPRE_ERRORS,  ///< Ignore Hypre errors
       WARN_HYPRE_ERRORS,    ///< Issue warnings on Hypre errors
-      ABORT_HYPRE_ERRORS    ///< Abort on Hypre errors (default in base class)
+      ABORT_HYPRE_ERRORS,   ///< Abort on Hypre errors (default in base class)
    };
 
 protected:

@@ -89,7 +89,10 @@ auto
 MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::getConstView() const -> ConstViewType
 {
    return {
-      this->getValues().getConstView(), diagonalOffsets.getConstView(), hostDiagonalOffsets.getConstView(), this->getIndexer()
+      this->getValues().getConstView(),
+      diagonalOffsets.getConstView(),
+      hostDiagonalOffsets.getConstView(),
+      this->getIndexer(),
    };
 }
 

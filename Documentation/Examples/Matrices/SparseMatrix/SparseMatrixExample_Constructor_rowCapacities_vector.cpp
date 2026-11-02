@@ -8,8 +8,10 @@ void
 initializerListExample()
 {
    TNL::Containers::Vector< int, Device > rowCapacities{ 1, 2, 3, 4, 5 };
-   TNL::Matrices::SparseMatrix< double, Device > matrix{ rowCapacities,  // row capacities
-                                                         6 };            // number of matrix columns
+   TNL::Matrices::SparseMatrix< double, Device > matrix{
+      rowCapacities,  // row capacities
+      6,
+   };  // number of matrix columns
 
    for( int row = 0; row < matrix.getRows(); row++ )
       for( int column = 0; column <= row; column++ )

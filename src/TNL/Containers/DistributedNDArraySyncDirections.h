@@ -118,16 +118,20 @@ namespace NDArraySyncPatterns {
 
 // TODO: we can use constexpr std::vector since C++20
 static constexpr std::array< SyncDirection, 2 > D1Q3 = { SyncDirection::Right, SyncDirection::Left };
-static constexpr std::array< SyncDirection, 4 > D2Q5 = { SyncDirection::Right,
-                                                         SyncDirection::Left,
-                                                         SyncDirection::Top,
-                                                         SyncDirection::Bottom };
-static constexpr std::array< SyncDirection, 8 > D2Q9 = { SyncDirection::Right,       SyncDirection::Left,
-                                                         SyncDirection::Top,         SyncDirection::Bottom,
-                                                         SyncDirection::TopRight,    SyncDirection::TopLeft,
-                                                         SyncDirection::BottomRight, SyncDirection::BottomLeft };
-static constexpr std::array< SyncDirection, 6 > D3Q7 = { SyncDirection::Right,  SyncDirection::Left, SyncDirection::Top,
-                                                         SyncDirection::Bottom, SyncDirection::Back, SyncDirection::Front };
+static constexpr std::array< SyncDirection, 4 > D2Q5 = {
+   SyncDirection::Right,
+   SyncDirection::Left,
+   SyncDirection::Top,
+   SyncDirection::Bottom,
+};
+static constexpr std::array< SyncDirection, 8 > D2Q9 = {
+   SyncDirection::Right,    SyncDirection::Left,    SyncDirection::Top,         SyncDirection::Bottom,
+   SyncDirection::TopRight, SyncDirection::TopLeft, SyncDirection::BottomRight, SyncDirection::BottomLeft,
+};
+static constexpr std::array< SyncDirection, 6 > D3Q7 = {
+   SyncDirection::Right,  SyncDirection::Left, SyncDirection::Top,
+   SyncDirection::Bottom, SyncDirection::Back, SyncDirection::Front,
+};
 static constexpr std::array< SyncDirection, 26 > D3Q27 = {
    SyncDirection::Right,
    SyncDirection::Left,

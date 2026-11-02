@@ -63,9 +63,11 @@ TEST( FileTestCuda, WriteAndReadCUDA )
 
 TEST( FileTestCuda, WriteAndReadCUDAWithConversion )
 {
-   const double constDoubleData[ 3 ] = { 3.1415926535897932384626433,
-                                         2.7182818284590452353602874,
-                                         1.6180339887498948482045868 };
+   const double constDoubleData[ 3 ] = {
+      3.1415926535897932384626433,
+      2.7182818284590452353602874,
+      1.6180339887498948482045868,
+   };
    float floatData[ 3 ];
    int intData[ 3 ];
 

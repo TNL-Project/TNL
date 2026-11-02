@@ -13,7 +13,7 @@ enum DomainType : std::uint8_t
    SpaceDomain,
    MeshDomain,
    MeshInteriorDomain,
-   MeshBoundaryDomain
+   MeshBoundaryDomain,
 };
 
 template< int Dimension, DomainType DomainType_ = SpaceDomain >

@@ -16,7 +16,7 @@ enum class FactorizationMethod : std::uint8_t
 {
    GramSchmidt,
    Givens,
-   Householder
+   Householder,
 };
 
 /**

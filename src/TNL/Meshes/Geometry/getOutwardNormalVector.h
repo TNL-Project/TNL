@@ -117,7 +117,7 @@ getNormalVector( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< MeshC
    const PointType n{
       u1.y() * u2.z() - u1.z() * u2.y(),  // first component of the cross product
       u1.z() * u2.x() - u1.x() * u2.z(),  // second component of the cross product
-      u1.x() * u2.y() - u1.y() * u2.x()   // third component of the cross product
+      u1.x() * u2.y() - u1.y() * u2.x(),  // third component of the cross product
    };
    return n;
 }

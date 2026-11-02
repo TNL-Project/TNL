@@ -14,7 +14,8 @@ reduceRows()
       {  1,  2,  0,  0,  0 },
       {  0,  1,  8,  0,  0 },
       {  0,  0,  1,  9,  0 },
-      {  0,  0,  0,  0,  1 } };
+      {  0,  0,  0,  0,  1 },
+      };
    // clang-format on
    /***
     * Allocate input and output vectors for matrix-vector product

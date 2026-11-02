@@ -112,7 +112,10 @@ TEST( BlockPartitioningTest, getMaximumImbalance )
    // balanced decomposition
    {
       const std::vector< block3d > decomposition = {
-         { b1_begin, b1_end }, { b2_begin, b2_end }, { b3_begin, b3_end }, { b4_begin, b4_end }
+         { b1_begin, b1_end },
+         { b2_begin, b2_end },
+         { b3_begin, b3_end },
+         { b4_begin, b4_end },
       };
       const int global_volume = getVolume( decomposition );
       ASSERT_EQ( global_volume, 4 );
