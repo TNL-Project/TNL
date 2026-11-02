@@ -168,8 +168,17 @@ workflow:
 
 # template for build jobs
 .build_template:
-    # don't wait for jobs in previous stages to complete before starting this job
-    needs: []
+    # A lint error stops the pipeline before the builds start.
+    # Listing the lint jobs in needs keeps the build:* stages running in parallel with each other.
+    needs:
+        - job: clang-format
+          optional: true
+        - job: clangd-tidy
+          optional: true
+        - job: cmake-format
+          optional: true
+        - job: copyright-headers
+          optional: true
     variables:
         # sccache rewrites paths below this base to relative form before hashing, so the same
         # job hits the same entries on a different runner, node or fork checkout.
