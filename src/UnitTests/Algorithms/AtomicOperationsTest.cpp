@@ -30,19 +30,19 @@ TEST( AtomicOperationsHostCAS, NoSwapInt )
 // CAS with float: compare matches
 TEST( AtomicOperationsHostCAS, BasicSwapFloat )
 {
-   float address = 3.14f;
-   float old = AtomicOperations< Devices::Host >::CAS( address, 3.14f, 2.71f );
-   EXPECT_EQ( old, 3.14f );
-   EXPECT_EQ( address, 2.71f );
+   float address = 3.14F;
+   float old = AtomicOperations< Devices::Host >::CAS( address, 3.14F, 2.71F );
+   EXPECT_EQ( old, 3.14F );
+   EXPECT_EQ( address, 2.71F );
 }
 
 // CAS with float: compare does not match
 TEST( AtomicOperationsHostCAS, NoSwapFloat )
 {
-   float address = 3.14f;
-   float old = AtomicOperations< Devices::Host >::CAS( address, 0.0f, 2.71f );
-   EXPECT_EQ( old, 3.14f );
-   EXPECT_EQ( address, 3.14f );
+   float address = 3.14F;
+   float old = AtomicOperations< Devices::Host >::CAS( address, 0.0F, 2.71F );
+   EXPECT_EQ( old, 3.14F );
+   EXPECT_EQ( address, 3.14F );
 }
 
 // CAS with double: compare matches
