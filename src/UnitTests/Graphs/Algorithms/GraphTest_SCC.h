@@ -39,7 +39,7 @@ TYPED_TEST( GraphTest, test_SCC_empty )
    using ComponentsType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
 
    GraphType graph;
-   ComponentsType components;
+   ComponentsType components( 5 );
 
    TNL::Graphs::Algorithms::stronglyConnectedComponents( graph, components );
 

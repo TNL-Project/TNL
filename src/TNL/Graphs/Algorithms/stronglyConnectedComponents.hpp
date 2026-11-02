@@ -52,10 +52,9 @@ stronglyConnectedComponents_impl(
    using GraphOrientation = typename Graph::GraphOrientation;
 
    const IndexType verticesCount = graph.getVertexCount();
+   components.setSize( verticesCount );
    if( verticesCount == 0 )
       return;
-
-   components.setSize( verticesCount );
 
    auto componentsView = components.getView();
    auto vertexPredicateCopy = vertexPredicate;
