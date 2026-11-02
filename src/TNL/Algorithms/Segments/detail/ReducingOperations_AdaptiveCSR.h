@@ -24,6 +24,17 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
    using CSRViewType = CSRView< Device, Index >;
    using ReducingOperationsCSR = ReducingOperations< CSRViewType >;
 
+   // The block descriptors are built only for values of at most 32 bytes, larger values (e.g. the partial
+   // results of multireductions) are reduced by the CSR kernels.
+   template< typename Fetch >
+   [[nodiscard]] static constexpr bool
+   isAdaptiveKernelSupported()
+   {
+      using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
+      return CSRAdaptiveKernelParameters<>::getSizeValueLogConstexpr( sizeof( ReturnType ) )
+           < CSRAdaptiveKernelParameters<>::MaxValueSizeLog;
+   }
+
    template<
       typename IndexBegin,
       typename IndexEnd,
@@ -42,7 +53,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > && isAdaptiveKernelSupported< Fetch >() ) {
          const bool isNativeMapping = launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive
                                    || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default;
          const int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
@@ -113,7 +124,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
       const Value& identity,
       const LaunchConfiguration& launchConfig )
    {
-      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > ) {
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > && isAdaptiveKernelSupported< Fetch >() ) {
          const bool isNativeMapping = launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Adaptive
                                    || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default;
          const int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
