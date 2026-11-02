@@ -89,8 +89,9 @@ ParallelFor2DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs.
          i.x() = begin.x();
          i.y() += blockDim.y * gridDim.y;
       }
-      else
+      else {
          break;
+      }
    }
 #endif
 }

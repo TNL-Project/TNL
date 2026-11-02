@@ -270,8 +270,9 @@ public:
                writer.writeCellData( buffer, functionName, 3 );
          }
       }
-      else if( format == "gnuplot" || format == "gplt" || format == "plt" )
+      else if( format == "gnuplot" || format == "gplt" || format == "plt" ) {
          return VectorFieldGnuplotWriter< VectorField >::write( *this, file );
+      }
       else {
          std::cerr << "Unknown output format: " << format << '\n';
          return false;
@@ -526,8 +527,9 @@ public:
                writer.writeCellData( buffer, functionName, 3 );
          }
       }
-      else if( format == "gnuplot" || format == "gplt" || format == "plt" )
+      else if( format == "gnuplot" || format == "gplt" || format == "plt" ) {
          return VectorFieldGnuplotWriter< VectorField >::write( *this, file );
+      }
       else {
          std::cerr << "Unknown output format: " << format << '\n';
          return false;

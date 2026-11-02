@@ -60,8 +60,9 @@ TEST( AssertCudaTest, suffix )                                                  
       cudaFree( output_cuda );                                                        \
       EXPECT_EQ( output_host, 1 );                                                    \
    }                                                                                  \
-   else                                                                               \
+   else {                                                                             \
       EXPECT_THROW( TNL_CHECK_CUDA_DEVICE;, TNL::Exceptions::BackendRuntimeError );   \
+   }                                                                                  \
 }
 // clang-format on
 

@@ -181,11 +181,12 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                               SegmentsPerBlock >;
                            Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
                         }
-                        else
+                        else {
                            throw std::invalid_argument(
                               "Unsupported threads per segment count ( " + std::to_string( 256 / SegmentsPerBlock )
                               + " ) for the PerElement traversal of Sliced Ellpack segments with slice size "
                               + std::to_string( SliceSize ) + "." );
+                        }
                      },
                      "Sliced Ellpack" );
                }

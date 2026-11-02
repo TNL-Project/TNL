@@ -74,8 +74,9 @@ AdaptiveCSR< Device, Index, IndexAllocator >::operator=( const AdaptiveCSR< Devi
          this->blocksArray[ i ] = segments.getBlocks()[ i ];
       this->view.bind( Base::getOffsets(), this->blocksArray );
    }
-   else
+   else {
       this->initBlocks();
+   }
    return *this;
 }
 

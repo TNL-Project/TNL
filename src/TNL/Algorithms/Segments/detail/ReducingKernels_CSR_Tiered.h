@@ -118,11 +118,12 @@ reduceSegments_CSR_Tiered(
             globalIdx += BlockSize;
          }
       }
-      else
+      else {
          while( globalIdx < endIdx ) {
             result = reduce( result, fetch( globalIdx ) );
             globalIdx += BlockSize;
          }
+      }
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
@@ -296,11 +297,12 @@ reduceSegments_CSR_Tiered_WithIndexes(
             globalIdx += BlockSize;
          }
       }
-      else
+      else {
          while( globalIdx < endIdx ) {
             result = reduce( result, fetch( globalIdx ) );
             globalIdx += BlockSize;
          }
+      }
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       // Complex has a non-trivial default constructor, which HIP rejects for __shared__ variables

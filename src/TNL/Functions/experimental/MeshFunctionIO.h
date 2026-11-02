@@ -150,8 +150,9 @@ writeMeshFunction(
       else
          writer.writeCellData( function.getData(), functionName, 1 );
    }
-   else if( format == "gnuplot" || format == "gplt" || format == "plt" )
+   else if( format == "gnuplot" || format == "gplt" || format == "plt" ) {
       MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
+   }
    else {
       if( fileFormat == "auto" )
          throw std::runtime_error(
@@ -203,8 +204,9 @@ writeMeshFunction(
       else
          writer.writeCellData( function.getData(), functionName, 1 );
    }
-   else if( format == "gnuplot" || format == "gplt" || format == "plt" )
+   else if( format == "gnuplot" || format == "gplt" || format == "plt" ) {
       MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
+   }
    else {
       if( fileFormat == "auto" )
          throw std::runtime_error(

@@ -96,9 +96,10 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
          checkEnumValues( entry, name, list );
          parameters.addList< std::string >( name, list );
       }
-      else
+      else {
          // this will not happen if all entry types are handled above
          throw std::runtime_error( "Function parseINIConfigFil encountered unsupported entry type: " + entryType );
+      }
    }
 
    if( ! undefinedOptions.empty() ) {

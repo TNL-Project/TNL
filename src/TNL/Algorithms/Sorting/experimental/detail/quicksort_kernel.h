@@ -172,8 +172,9 @@ writeNewTask(
 
    if( size <= maxElementsForSecondPhase ) {
       int idx = atomicAdd( secondPhaseTasksCnt, 1 );
-      if( idx < secondPhaseTasks.getSize() )
+      if( idx < secondPhaseTasks.getSize() ) {
          secondPhaseTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
+      }
       else {
          int idx = atomicAdd( newTasksCnt, 1 );
          TNL_ASSERT_LT( idx, newTasks.getSize(), "task memory exhausted in writeNewTask" );
@@ -182,8 +183,9 @@ writeNewTask(
    }
    else {
       int idx = atomicAdd( newTasksCnt, 1 );
-      if( idx < newTasks.getSize() )
+      if( idx < newTasks.getSize() ) {
          newTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
+      }
       else {
          int idx = atomicAdd( secondPhaseTasksCnt, 1 );
          TNL_ASSERT_LT( idx, secondPhaseTasks.getSize(), "task memory exhausted in writeNewTask" );
