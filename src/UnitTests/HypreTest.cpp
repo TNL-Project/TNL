@@ -733,7 +733,11 @@ TEST( HypreTest, ParCSRMatrix_fromMasterRank )
    Matrices::HypreCSRMatrix a_offd = a.getOffdiagonalBlock();
    EXPECT_EQ( a_offd.getRowOffsets().getSize(), local_size + 1 );
    EXPECT_EQ( a_offd.getRows(), local_size );
-   const int offd_cols = ( nproc == 1 ) ? 0 : ( rank > 0 && rank < nproc - 1 ) ? 2 : 1;
+   int offd_cols = 1;
+   if( nproc == 1 )
+      offd_cols = 0;
+   else if( rank > 0 && rank < nproc - 1 )
+      offd_cols = 2;
    EXPECT_EQ( a_offd.getColumns(), offd_cols );
 
    auto col_map_offd = a.getOffdiagonalColumnsMapping();
@@ -775,7 +779,11 @@ TEST( HypreTest, ParCSRMatrix_fromLocalBlocks )
    Matrices::HypreCSRMatrix a_offd = a.getOffdiagonalBlock();
    EXPECT_EQ( a_offd.getRowOffsets().getSize(), local_size + 1 );
    EXPECT_EQ( a_offd.getRows(), local_size );
-   const int offd_cols = ( nproc == 1 ) ? 0 : ( rank > 0 && rank < nproc - 1 ) ? 2 : 1;
+   int offd_cols = 1;
+   if( nproc == 1 )
+      offd_cols = 0;
+   else if( rank > 0 && rank < nproc - 1 )
+      offd_cols = 2;
    EXPECT_EQ( a_offd.getColumns(), offd_cols );
 
    auto col_map_offd = a.getOffdiagonalColumnsMapping();
