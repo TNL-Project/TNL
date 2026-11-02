@@ -66,7 +66,7 @@ public:
    }
 
    long int
-   getFlops()
+   getFlops() const
    {
       return adding_flops + multiplying_flops + dividing_flops + functions_flops;
    }
