@@ -463,9 +463,9 @@ graphColoringLubyOnActiveVertices(
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
    const IndexType verticesCount = graph.getVertexCount();
+   colors.setSize( verticesCount );
    if( verticesCount == 0 )
       return;
-   colors.setSize( verticesCount );
 
    {
       auto colorsInitView = colors.getView();

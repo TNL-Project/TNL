@@ -424,6 +424,19 @@ TYPED_TEST( GraphTest, test_graphColoring_empty )
    EXPECT_TRUE( TNL::Graphs::Algorithms::isProperlyColored( graph, colors ) );
 }
 
+TYPED_TEST( GraphTest, test_graphColoringLuby_empty_resizes_output )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using ColorsType = ColoringVector< GraphType >;
+
+   GraphType graph;
+   ColorsType colors( 5 );
+
+   TNL::Graphs::Algorithms::graphColoringLuby( graph, colors );
+
+   EXPECT_EQ( colors.getSize(), 0 );
+}
+
 TYPED_TEST( GraphTest, test_graphColoring_selfLoop )
 {
    using GraphType = typename TestFixture::GraphType;
