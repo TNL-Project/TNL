@@ -17,7 +17,9 @@ TEST( StringTest, CopyConstructor )
 {
    String string( "string1" );
    String emptyString( "" );
+   // NOLINTNEXTLINE(performance-unnecessary-copy-initialization): the copy is the tested behaviour
    String string2( string );
+   // NOLINTNEXTLINE(performance-unnecessary-copy-initialization): the copy is the tested behaviour
    String emptyString2( emptyString );
 
    EXPECT_STREQ( string2.getString(), "string1" );
