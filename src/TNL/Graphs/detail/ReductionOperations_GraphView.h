@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Graphs/GraphView.h>
 #include <TNL/Matrices/reduce.h>
 #include "ReductionOperations.h"
 

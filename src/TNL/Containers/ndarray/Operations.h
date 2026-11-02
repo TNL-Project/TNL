@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/ndarray/Executors.h>
+#include <TNL/Containers/ndarray/StaticSizesHolder.h>
 
 namespace TNL::Containers {
 

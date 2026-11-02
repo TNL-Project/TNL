@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/Optimization/AdaGrad.h>
+#include <TNL/Functional.h>
 
 namespace TNL::Solvers::Optimization {
 

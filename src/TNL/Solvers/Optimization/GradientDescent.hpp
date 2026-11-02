@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/Optimization/GradientDescent.h>
+#include <TNL/Functional.h>
 
 namespace TNL::Solvers::Optimization {
 

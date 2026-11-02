@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
+#include <TNL/Algorithms/Segments/TypeTraits.h>
 #include <ostream>
 #include <utility>
 

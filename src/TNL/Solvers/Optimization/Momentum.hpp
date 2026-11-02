@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/Optimization/Momentum.h>
+#include <TNL/Algorithms/reduce.h>
 
 namespace TNL::Solvers::Optimization {
 

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/Optimization/RMSProp.h>
+#include <TNL/Functional.h>
 
 namespace TNL::Solvers::Optimization {
 

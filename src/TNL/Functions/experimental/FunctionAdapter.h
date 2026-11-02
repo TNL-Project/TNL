@@ -5,6 +5,7 @@
 
 #include <TNL/Backend/Macros.h>
 #include <TNL/Config/ParameterContainer.h>
+#include <TNL/String.h>
 #include "Domain.h"
 
 namespace TNL::Functions::experimental {

@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <map>
 #include <string>
 
 namespace TNL::Graphs::Readers {

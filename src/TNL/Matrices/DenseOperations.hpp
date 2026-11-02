@@ -4,6 +4,8 @@
 #pragma once
 
 #include <TNL/Backend.h>
+#include <TNL/Containers/StaticArray.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/GPU.h>
