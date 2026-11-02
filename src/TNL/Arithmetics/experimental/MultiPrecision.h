@@ -88,11 +88,8 @@ public:
 #endif
 };
 
-MultiPrecision
-abs( const MultiPrecision );
-MultiPrecision
-sqrt( const MultiPrecision );
-MultiPrecision
-cqrt( const MultiPrecision );
+MultiPrecision abs( MultiPrecision );
+MultiPrecision sqrt( MultiPrecision );
+MultiPrecision cqrt( MultiPrecision );
 
 }  // namespace TNL::Arithmetics::experimental
