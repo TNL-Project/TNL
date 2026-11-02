@@ -7,23 +7,18 @@ namespace TNL::Arithmetics::experimental {
 
 class tnlFlopsCounter
 {
-   bool compute_flops;
+   bool compute_flops{ true };
 
-   long int adding_flops;
+   long int adding_flops{ 0 };
 
-   long int multiplying_flops;
+   long int multiplying_flops{ 0 };
 
-   long int dividing_flops;
+   long int dividing_flops{ 0 };
 
    long int functions_flops;
 
 public:
-   tnlFlopsCounter()
-   : compute_flops( true ),
-     adding_flops( 0 ),
-     multiplying_flops( 0 ),
-     dividing_flops( 0 )
-   {}
+   tnlFlopsCounter() {}
 
    void
    recordAdding( const int ops = 1 )
