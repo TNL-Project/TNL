@@ -115,7 +115,7 @@ reduceSegments_AdaptiveCSR(
          for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
             streamShared[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
          auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
-         warp.sync();
+         decltype( warp )::sync();
 
          for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
             const Index sharedEnd = offsets[ i + 1 ] - begin;  // end of preprocessed data
@@ -264,7 +264,7 @@ reduceSegments_AdaptiveCSR_WithArgument(
          for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
             streamShared_result[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
          auto warp = cg::tiled_partition< WarpSize >( cg::this_thread_block() );
-         warp.sync();
+         decltype( warp )::sync();
 
          for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
             const Index sharedEnd = offsets[ i + 1 ] - begin;  // end of preprocessed data

@@ -73,16 +73,16 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel(
    auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
    if( ThreadsPerRow > 8 && localColIdx < ThreadsPerRow - 8 )
       result_[ idx ] += result_[ idx + 8 ];
-   warp.sync();
+   decltype( warp )::sync();
    if( ThreadsPerRow > 4 && localColIdx < ThreadsPerRow - 4 )
       result_[ idx ] += result_[ idx + 4 ];
-   warp.sync();
+   decltype( warp )::sync();
    if( ThreadsPerRow > 2 && localColIdx < ThreadsPerRow - 2 )
       result_[ idx ] += result_[ idx + 2 ];
-   warp.sync();
+   decltype( warp )::sync();
    if( ThreadsPerRow > 1 && localColIdx < ThreadsPerRow - 1 )
       result_[ idx ] += result_[ idx + 1 ];
-   warp.sync();
+   decltype( warp )::sync();
 
    if( rowIdx < end && localColIdx == 0 ) {
       if( outVectorMultiplicator == 0 )
