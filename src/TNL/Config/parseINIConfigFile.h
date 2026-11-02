@@ -104,7 +104,7 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
 
    if( ! undefinedOptions.empty() ) {
       std::string msg = "The configuration file contains the following options which are not defined in the program:\n";
-      for( auto option : undefinedOptions )
+      for( const auto& option : undefinedOptions )
          msg += " - " + option + "\n";
       throw std::runtime_error( msg );
    }
