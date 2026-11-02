@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <queue>
-
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 namespace TNL::Graphs::Algorithms {

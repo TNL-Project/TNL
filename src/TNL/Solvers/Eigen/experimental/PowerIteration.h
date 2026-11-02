@@ -5,7 +5,6 @@
 
 #include <stdexcept>
 #include <tuple>
-#include <utility>
 
 #include <TNL/Math.h>
 #include <TNL/Containers/Vector.h>

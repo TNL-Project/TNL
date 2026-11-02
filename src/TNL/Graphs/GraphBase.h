@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <map>
 #include <ostream>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>

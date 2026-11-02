@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <algorithm>
-
 #include <TNL/Assert.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Exceptions/NotImplementedError.h>

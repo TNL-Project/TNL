@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
-#include "isSegmentReductionKernel.h"
 
 #include "../Segments/detail/CSRAdaptiveKernelBlockDescriptor.h"
 #include "../Segments/detail/CSRAdaptiveKernelParameters.h"

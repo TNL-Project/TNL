@@ -5,6 +5,7 @@
 
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/isSegmentReductionKernel.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "MatrixBase.h"
 #include "SparseMatrixRowView.h"

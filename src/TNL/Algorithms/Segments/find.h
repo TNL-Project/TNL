@@ -5,7 +5,6 @@
 
 #include <TNL/TypeTraits.h>
 #include "LaunchConfiguration.h"
-#include "detail/FetchLambdaAdapter.h"
 
 /**
  * \page SegmentFindOverview Overview of Segment Find Functions

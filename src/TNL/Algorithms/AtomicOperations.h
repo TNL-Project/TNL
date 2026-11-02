@@ -7,8 +7,6 @@
    #include <omp.h>
 #endif
 
-#include <mutex>
-
 #include <TNL/Atomic.h>
 #include <TNL/Assert.h>
 

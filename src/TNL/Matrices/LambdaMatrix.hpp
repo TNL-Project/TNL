@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iomanip>
-#include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/LambdaMatrix.h>
 #include <TNL/Matrices/reduce.h>

@@ -1,3 +1,4 @@
+#include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 
 #include <gtest/gtest.h>

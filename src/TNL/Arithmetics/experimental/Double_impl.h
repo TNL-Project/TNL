@@ -9,9 +9,6 @@
 
 #pragma once
 
-#include <cmath>
-#include <cstdio>
-
 #include "Double.h"
 
 namespace TNL::Arithmetics::experimental {

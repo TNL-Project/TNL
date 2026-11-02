@@ -1,5 +1,4 @@
 #include <iostream>
-#include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>

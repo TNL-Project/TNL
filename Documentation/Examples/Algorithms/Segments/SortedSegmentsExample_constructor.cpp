@@ -1,5 +1,4 @@
 #include <iostream>
-#include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>

@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iomanip>
-#include <functional>
 
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/Segments/traverse.h>

@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <TNL/Algorithms/fillRandom.h>
 #include <utility>
 #include <TNL/Matrices/LambdaMatrix.h>
-#include "PowerIteration.h"
 
 namespace TNL::Solvers::Eigen::experimental {
 

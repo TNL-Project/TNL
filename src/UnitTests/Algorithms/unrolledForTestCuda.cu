@@ -1,5 +1,3 @@
-#include <array>
-
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/unrolledFor.h>

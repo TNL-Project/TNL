@@ -6,7 +6,7 @@
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/Sorting/DefaultSorter.h>
 
-#include "CSR.h"
+#include "SortedSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
