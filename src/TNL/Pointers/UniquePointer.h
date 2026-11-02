@@ -141,7 +141,7 @@ public:
    operator*() const
    {
       TNL_ASSERT_TRUE( this->pointer, "Attempt to dereference a null pointer" );
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -153,7 +153,7 @@ public:
    operator*()
    {
       TNL_ASSERT_TRUE( this->pointer, "Attempt to dereference a null pointer" );
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -194,7 +194,7 @@ public:
    getData() const
    {
       TNL_ASSERT_TRUE( this->pointer, "Attempt to dereference a null pointer" );
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -214,7 +214,7 @@ public:
    modifyData()
    {
       TNL_ASSERT_TRUE( this->pointer, "Attempt to dereference a null pointer" );
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -444,7 +444,7 @@ public:
       if( std::is_same_v< Device, Devices::Host > )
          return this->pd->data;
       if( std::is_same_v< Device, Devices::Cuda > )
-         return *( this->cuda_pointer );
+         return *this->cuda_pointer;
    }
 
    /**
@@ -473,7 +473,7 @@ public:
          return this->pd->data;
       }
       if( std::is_same_v< Device, Devices::Cuda > )
-         return *( this->cuda_pointer );
+         return *this->cuda_pointer;
    }
 
    /**

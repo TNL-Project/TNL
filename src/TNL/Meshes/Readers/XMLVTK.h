@@ -375,7 +375,7 @@ public:
          throw MeshReaderError( "XMLVTK", "<VTKFile> is not the only element in the file " + fileName );
 
       // verify byte order
-      const std::string systemByteOrder = ( isLittleEndian() ) ? "LittleEndian" : "BigEndian";
+      const std::string systemByteOrder = isLittleEndian() ? "LittleEndian" : "BigEndian";
       byteOrder = getAttributeString( elem, "byte_order" );
       if( byteOrder != systemByteOrder )
          throw MeshReaderError( "XMLVTK",
