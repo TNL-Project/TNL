@@ -118,7 +118,7 @@ TEST( AtomicOperationsHostCAS, ParallelAtomicSwap )
    int address = 0;
    int successCount = 0;
 
-   #pragma omp parallel for reduction( + : successCount ) num_threads( 8 )
+   #pragma omp parallel for reduction( + : successCount ) num_threads( 8 ) default( none ) shared( address )
    for( int i = 0; i < 8; i++ ) {
       int old = AtomicOperations< Devices::Host >::CAS( address, 0, 1 );
       if( old == 0 )
@@ -137,7 +137,7 @@ TEST( AtomicOperationsHostCAS, ParallelCASIncrement )
    const int numThreads = 8;
    const int incrementsPerThread = 100;
 
-   #pragma omp parallel num_threads( numThreads )
+   #pragma omp parallel num_threads( numThreads ) default( none ) shared( counter, incrementsPerThread )
    {
       for( int i = 0; i < incrementsPerThread; i++ ) {
          int old;
