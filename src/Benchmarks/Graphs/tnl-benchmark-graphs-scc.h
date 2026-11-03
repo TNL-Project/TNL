@@ -10,30 +10,23 @@ void
 configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "Precision settings:" );
-   config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
+   config.addEntry< TNL::String >(
+      "precision", "Precision of the edge weights (ignored by SCC, which always uses double).", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
 }
 
-template< typename Real >
-bool
-startBenchmark( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
-{
-   TNL::Benchmarks::Graphs::GraphBenchmarkSCC< Real > graphBenchmark( parameters );
-   return graphBenchmark.runBenchmark( benchmark );
-}
-
 bool
 resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
-   auto precision = parameters.getParameter< TNL::String >( "precision" );
-   bool result = true;
-   if( precision == "all" || precision == "float" )
-      result = startBenchmark< float >( benchmark, parameters ) && result;
-   if( precision == "all" || precision == "double" )
-      result = startBenchmark< double >( benchmark, parameters ) && result;
-   return result;
+   // SCC ignores the edge weights, so the benchmark is instantiated only for one precision.
+   // This halves the compilation time and memory of the GPU benchmark.
+   const auto precision = parameters.getParameter< TNL::String >( "precision" );
+   if( precision != "double" )
+      std::cout << "SCC does not depend on the precision of the edge weights, running with double only.\n";
+   TNL::Benchmarks::Graphs::GraphBenchmarkSCC< double > graphBenchmark( parameters );
+   return graphBenchmark.runBenchmark( benchmark );
 }
 
 int

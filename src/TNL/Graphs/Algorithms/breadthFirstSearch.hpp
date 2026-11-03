@@ -132,74 +132,77 @@ breadthFirstSearchParallel(
          }
 
          if( useBottomUp ) {
-            auto marksView_bitmap = marks.getView();
-            auto nextMarksView = nextMarks.getView();
+            // Bottom-up is used only for undirected graphs, do not compile it for directed ones.
+            if constexpr( ! Graph::isDirected() ) {
+               auto marksView_bitmap = marks.getView();
+               auto nextMarksView = nextMarks.getView();
 
-            // The distances and the deterministic predecessors are kept in the atomic
-            // vectors during the traversal, as in the top-down modes, and copied back
-            // after the last iteration. Each vertex is updated only by its own thread.
-            TNL::Algorithms::parallelFor< DeviceType >(
-               0,
-               n,
-               [ = ]( IndexType v ) mutable
-               {
-                  if( ! graphView.vertexExists( v ) )
-                     return;
-                  if( atomicDistancesView[ v ].load() != -1 )
-                     return;
+               // The distances and the deterministic predecessors are kept in the atomic
+               // vectors during the traversal, as in the top-down modes, and copied back
+               // after the last iteration. Each vertex is updated only by its own thread.
+               TNL::Algorithms::parallelFor< DeviceType >(
+                  0,
+                  n,
+                  [ = ]( IndexType v ) mutable
+                  {
+                     if( ! graphView.vertexExists( v ) )
+                        return;
+                     if( atomicDistancesView[ v ].load() != -1 )
+                        return;
 
-                  auto row = adjacencyMatrixView.getRow( v );
+                     auto row = adjacencyMatrixView.getRow( v );
 
-                  if( ! deterministic ) {
-                     for( IndexType j = 0; j < row.getSize(); j++ ) {
-                        IndexType u = row.getColumnIndex( j );
-                        if( u == Matrices::paddingIndex< IndexType > )
-                           continue;
-                        const ValueType& w = row.getValue( j );
-                        if( ! graphView.edgeExists( u, v, w ) )
-                           continue;
-                        if( marksView_bitmap[ u ] == 1 ) {
+                     if( ! deterministic ) {
+                        for( IndexType j = 0; j < row.getSize(); j++ ) {
+                           IndexType u = row.getColumnIndex( j );
+                           if( u == Matrices::paddingIndex< IndexType > )
+                              continue;
+                           const ValueType& w = row.getValue( j );
+                           if( ! graphView.edgeExists( u, v, w ) )
+                              continue;
+                           if( marksView_bitmap[ u ] == 1 ) {
+                              atomicDistancesView[ v ].store( i + 1 );
+                              nextMarksView[ v ] = 1;
+                              visitor( v, i + 1 );
+                              if constexpr( WithPredecessors )
+                                 predecessorsView[ v ] = u;
+                              break;
+                           }
+                        }
+                     }
+                     else {
+                        // Deterministic: scan all neighbors, pick smallest frontier neighbor
+                        IndexType best = static_cast< IndexType >( -1 );
+                        bool found = false;
+                        for( IndexType j = 0; j < row.getSize(); j++ ) {
+                           IndexType u = row.getColumnIndex( j );
+                           if( u == Matrices::paddingIndex< IndexType > )
+                              continue;
+                           const ValueType& w = row.getValue( j );
+                           if( ! graphView.edgeExists( u, v, w ) )
+                              continue;
+                           if( marksView_bitmap[ u ] == 1 ) {
+                              if( ! found || u < best )
+                                 best = u;
+                              found = true;
+                           }
+                        }
+                        if( found ) {
                            atomicDistancesView[ v ].store( i + 1 );
                            nextMarksView[ v ] = 1;
                            visitor( v, i + 1 );
                            if constexpr( WithPredecessors )
-                              predecessorsView[ v ] = u;
-                           break;
+                              atomicPredView[ v ].store( best );
                         }
                      }
-                  }
-                  else {
-                     // Deterministic: scan all neighbors, pick smallest frontier neighbor
-                     IndexType best = static_cast< IndexType >( -1 );
-                     bool found = false;
-                     for( IndexType j = 0; j < row.getSize(); j++ ) {
-                        IndexType u = row.getColumnIndex( j );
-                        if( u == Matrices::paddingIndex< IndexType > )
-                           continue;
-                        const ValueType& w = row.getValue( j );
-                        if( ! graphView.edgeExists( u, v, w ) )
-                           continue;
-                        if( marksView_bitmap[ u ] == 1 ) {
-                           if( ! found || u < best )
-                              best = u;
-                           found = true;
-                        }
-                     }
-                     if( found ) {
-                        atomicDistancesView[ v ].store( i + 1 );
-                        nextMarksView[ v ] = 1;
-                        visitor( v, i + 1 );
-                        if constexpr( WithPredecessors )
-                           atomicPredView[ v ].store( best );
-                     }
-                  }
-               } );
+                  } );
 
-            frontierSize = sum( nextMarks );
+               frontierSize = sum( nextMarks );
 
-            marks.swap( nextMarks );
-            nextMarks = 0;
-            previousWasBitmap = true;
+               marks.swap( nextMarks );
+               nextMarks = 0;
+               previousWasBitmap = true;
+            }
          }
          else if( useTopDownBitmap ) {
             auto marksView_bitmap = marks.getView();
@@ -394,77 +397,80 @@ breadthFirstSearchParallel(
          }
 
          if( useBottomUp ) {
-            auto marksView_bitmap = marks.getView();
-            auto nextMarksView = nextMarks.getView();
-            auto distancesView_bu = distances.getView();
+            // Bottom-up is used only for undirected graphs, do not compile it for directed ones.
+            if constexpr( ! Graph::isDirected() ) {
+               auto marksView_bitmap = marks.getView();
+               auto nextMarksView = nextMarks.getView();
+               auto distancesView_bu = distances.getView();
 
-            TNL::Algorithms::parallelFor< DeviceType >(
-               0,
-               n,
-               [ = ] __cuda_callable__( IndexType v ) mutable
-               {
-                  // NVCC forbids first-capture of variables inside if constexpr
-                  // in extended lambdas.  These (void) casts force early capture.
-                  (void) deterministic;
-                  (void) predecessorsView;
+               TNL::Algorithms::parallelFor< DeviceType >(
+                  0,
+                  n,
+                  [ = ] __cuda_callable__( IndexType v ) mutable
+                  {
+                     // NVCC forbids first-capture of variables inside if constexpr
+                     // in extended lambdas.  These (void) casts force early capture.
+                     (void) deterministic;
+                     (void) predecessorsView;
 
-                  if( ! graphView.vertexExists( v ) )
-                     return;
-                  if( distancesView_bu[ v ] != -1 )
-                     return;
+                     if( ! graphView.vertexExists( v ) )
+                        return;
+                     if( distancesView_bu[ v ] != -1 )
+                        return;
 
-                  auto row = adjacencyMatrixView.getRow( v );
+                     auto row = adjacencyMatrixView.getRow( v );
 
-                  if( ! deterministic ) {
-                     for( IndexType j = 0; j < row.getSize(); j++ ) {
-                        IndexType u = row.getColumnIndex( j );
-                        if( u == Matrices::paddingIndex< IndexType > )
-                           continue;
-                        const ValueType& w = row.getValue( j );
-                        if( ! graphView.edgeExists( u, v, w ) )
-                           continue;
-                        if( marksView_bitmap[ u ] == 1 ) {
+                     if( ! deterministic ) {
+                        for( IndexType j = 0; j < row.getSize(); j++ ) {
+                           IndexType u = row.getColumnIndex( j );
+                           if( u == Matrices::paddingIndex< IndexType > )
+                              continue;
+                           const ValueType& w = row.getValue( j );
+                           if( ! graphView.edgeExists( u, v, w ) )
+                              continue;
+                           if( marksView_bitmap[ u ] == 1 ) {
+                              distancesView_bu[ v ] = i + 1;
+                              nextMarksView[ v ] = 1;
+                              visitor( v, i + 1 );
+                              if constexpr( WithPredecessors )
+                                 predecessorsView[ v ] = u;
+                              break;
+                           }
+                        }
+                     }
+                     else {
+                        // Deterministic: scan all neighbors, pick smallest frontier neighbor
+                        IndexType best = static_cast< IndexType >( -1 );
+                        bool found = false;
+                        for( IndexType j = 0; j < row.getSize(); j++ ) {
+                           IndexType u = row.getColumnIndex( j );
+                           if( u == Matrices::paddingIndex< IndexType > )
+                              continue;
+                           const ValueType& w = row.getValue( j );
+                           if( ! graphView.edgeExists( u, v, w ) )
+                              continue;
+                           if( marksView_bitmap[ u ] == 1 ) {
+                              if( ! found || u < best )
+                                 best = u;
+                              found = true;
+                           }
+                        }
+                        if( found ) {
                            distancesView_bu[ v ] = i + 1;
                            nextMarksView[ v ] = 1;
                            visitor( v, i + 1 );
                            if constexpr( WithPredecessors )
-                              predecessorsView[ v ] = u;
-                           break;
+                              predecessorsView[ v ] = best;
                         }
                      }
-                  }
-                  else {
-                     // Deterministic: scan all neighbors, pick smallest frontier neighbor
-                     IndexType best = static_cast< IndexType >( -1 );
-                     bool found = false;
-                     for( IndexType j = 0; j < row.getSize(); j++ ) {
-                        IndexType u = row.getColumnIndex( j );
-                        if( u == Matrices::paddingIndex< IndexType > )
-                           continue;
-                        const ValueType& w = row.getValue( j );
-                        if( ! graphView.edgeExists( u, v, w ) )
-                           continue;
-                        if( marksView_bitmap[ u ] == 1 ) {
-                           if( ! found || u < best )
-                              best = u;
-                           found = true;
-                        }
-                     }
-                     if( found ) {
-                        distancesView_bu[ v ] = i + 1;
-                        nextMarksView[ v ] = 1;
-                        visitor( v, i + 1 );
-                        if constexpr( WithPredecessors )
-                           predecessorsView[ v ] = best;
-                     }
-                  }
-               } );
+                  } );
 
-            frontierSize = sum( nextMarks );
+               frontierSize = sum( nextMarks );
 
-            marks.swap( nextMarks );
-            nextMarks = 0;
-            previousWasBitmap = true;
+               marks.swap( nextMarks );
+               nextMarks = 0;
+               previousWasBitmap = true;
+            }
          }
          else if( useTopDownBitmap ) {
             auto marksView_bitmap = marks.getView();
