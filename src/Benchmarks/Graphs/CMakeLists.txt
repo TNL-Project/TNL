@@ -28,9 +28,44 @@ if(TNL_BUILD_CUDA)
         NAMES gunrock/algorithms/bfs.hxx
         PATHS ${GUNROCK_ROOT} $ENV{GUNROCK_ROOT} $ENV{HOME}/.local/include /usr/local/include
     )
+    # SM_TARGET is the compute capability of the first CUDA architecture (e.g. 86 from "86-real"),
+    # Gunrock treats 0 as unknown
+    list(GET CMAKE_CUDA_ARCHITECTURES 0 GUNROCK_SM_TARGET)
+    string(REGEX MATCH "^[0-9]+" GUNROCK_SM_TARGET "${GUNROCK_SM_TARGET}")
+    if(NOT GUNROCK_SM_TARGET)
+        set(GUNROCK_SM_TARGET 0)
+    endif()
+    set(GUNROCK_DEFINITIONS HAVE_GUNROCK SM_TARGET=${GUNROCK_SM_TARGET} HIP_BACKEND=1 __HIP_PLATFORM_NVIDIA__=1)
     if(GUNROCK_INCLUDE_DIR)
         message(STATUS "Gunrock found: ${GUNROCK_INCLUDE_DIR}")
-        set(GUNROCK_FOUND TRUE)
+        # GunrockBenchmark.h uses the Gunrock 2.x API (options_t, graph::build from csr_t),
+        # older Gunrock versions are skipped instead of breaking the build.
+        include(CheckSourceCompiles)
+        list(TRANSFORM GUNROCK_DEFINITIONS PREPEND "-D" OUTPUT_VARIABLE CMAKE_REQUIRED_DEFINITIONS)
+        set(CMAKE_REQUIRED_INCLUDES ${GUNROCK_INCLUDE_DIR})
+        set(CMAKE_REQUIRED_FLAGS "-std=c++17 --extended-lambda --expt-relaxed-constexpr")
+        check_source_compiles(
+            CUDA
+            "#include <gunrock/algorithms/bfs.hxx>
+            #include <gunrock/algorithms/sssp.hxx>
+            #include <gunrock/graph/build.hxx>
+            using csr_t = gunrock::format::csr_t< gunrock::memory_space_t::device, int, int, float >;
+            using graph_t = decltype( gunrock::graph::build< gunrock::memory_space_t::device, int, int, float >(
+                std::declval< gunrock::graph::graph_properties_t >(), std::declval< csr_t& >() ) );
+            int main() { gunrock::options_t options; options.enable_filter = false; return 0; }"
+            GUNROCK_API_COMPATIBLE
+        )
+        unset(CMAKE_REQUIRED_DEFINITIONS)
+        unset(CMAKE_REQUIRED_INCLUDES)
+        unset(CMAKE_REQUIRED_FLAGS)
+        if(GUNROCK_API_COMPATIBLE)
+            set(GUNROCK_FOUND TRUE)
+        else()
+            message(
+                STATUS
+                "Gunrock in ${GUNROCK_INCLUDE_DIR} does not provide the 2.x API. Benchmarks with Gunrock will be omitted."
+            )
+        endif()
     else()
         message(STATUS "Gunrock not found. Benchmarks with Gunrock will be omitted.")
     endif()
@@ -48,8 +83,8 @@ if(TNL_BUILD_CUDA)
         endif()
 
         if(GUNROCK_FOUND AND NOT bench STREQUAL "mst")
-            target_compile_definitions(${target} PUBLIC HAVE_GUNROCK SM_TARGET=86 HIP_BACKEND=1 __HIP_PLATFORM_NVIDIA__=1)
-            target_include_directories(${target} PUBLIC ${GUNROCK_INCLUDE_DIR})
+            target_compile_definitions(${target} PUBLIC ${GUNROCK_DEFINITIONS})
+            target_include_directories(${target} SYSTEM PUBLIC ${GUNROCK_INCLUDE_DIR})
         endif()
 
         list(APPEND GRAPH_BENCHMARK_TARGETS_CUDA ${target})
