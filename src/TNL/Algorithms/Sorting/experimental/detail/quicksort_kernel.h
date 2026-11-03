@@ -66,7 +66,7 @@ cudaQuickSortFirstPhase(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* piv = (Value*) externMem;
+   Value* piv = reinterpret_cast< Value* >( externMem );
    Value* sharedMem = piv + 1;
 
    QuicksortTask< Index >& myTask = tasks[ taskMapping[ blockIdx.x ] ];
@@ -104,7 +104,7 @@ cudaWritePivot(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* piv = (Value*) externMem;
+   Value* piv = reinterpret_cast< Value* >( externMem );
 
    QuicksortTask< Index >& myTask = tasks[ blockIdx.x ];
 
@@ -208,7 +208,7 @@ cudaQuickSortSecondPhase(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* sharedMem = (Value*) externMem;
+   Value* sharedMem = reinterpret_cast< Value* >( externMem );
 
    QuicksortTask< Index >& myTask = secondPhaseTasks[ blockIdx.x ];
    if( myTask.getSize() <= 0 )
@@ -242,7 +242,7 @@ cudaQuickSortSecondPhase2(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* sharedMem = (Value*) externMem;
+   Value* sharedMem = reinterpret_cast< Value* >( externMem );
 
    QuicksortTask< Index > myTask;
    if( blockIdx.x < secondPhaseTasks1.getSize() )

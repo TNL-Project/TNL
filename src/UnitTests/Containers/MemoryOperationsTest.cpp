@@ -41,7 +41,7 @@ TYPED_TEST( MemoryOperationsTest, setElement_host )
    Allocator allocator;
    ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ ) {
-      MemoryOperations< Devices::Host >::setElement( data + i, (ValueType) i );
+      MemoryOperations< Devices::Host >::setElement( data + i, static_cast< ValueType >( i ) );
       EXPECT_EQ( data[ i ], i );
       EXPECT_EQ( MemoryOperations< Devices::Host >::getElement( data + i ), i );
    }

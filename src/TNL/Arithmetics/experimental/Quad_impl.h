@@ -36,7 +36,7 @@ Quad< T >::Quad( const T& value )
 template< class T >
 Quad< T >::Quad( int value )
 {
-   data[ 0 ] = (T) value;
+   data[ 0 ] = static_cast< T >( value );
    data[ 1 ] = 0;
    data[ 2 ] = 0;
    data[ 3 ] = 0;
@@ -372,7 +372,7 @@ Quad< T >
 sqrt( const Quad< T >& value )
 {
    Quad< T > qd( value );
-   Quad< T > x( 1 / sqrt( (T) qd ) );
+   Quad< T > x( 1 / sqrt( static_cast< T >( qd ) ) );
    Quad< T > step;
    // TODO zjednodušit dělení 2
    step = x * ( 1. - qd * x * x );

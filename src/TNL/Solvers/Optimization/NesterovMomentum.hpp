@@ -86,7 +86,7 @@ NesterovMomentum< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&
       RealType lastResidue = this->getResidue();
       this->setResidue(
          Algorithms::reduce< DeviceType >(
-            (IndexType) 0,
+            static_cast< IndexType >( 0 ),
             w_view.getSize(),
             [ = ] __cuda_callable__( IndexType i ) mutable
             {
@@ -94,7 +94,7 @@ NesterovMomentum< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&
                return abs( v_view[ i ] );
             },
             TNL::Plus() )
-         / ( this->relaxation * (RealType) w.getSize() ) );
+         / ( this->relaxation * static_cast< RealType >( w.getSize() ) ) );
 
       if( ! this->nextIteration() )
          return this->checkConvergence();

@@ -146,11 +146,14 @@ struct AtomicOperations< Devices::Cuda >
    {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       if constexpr( sizeof( Value ) == 4 ) {
-         return (Value) atomicCAS( (int*) &address, (int) compare, (int) val );
+         return static_cast< Value >(
+            atomicCAS( reinterpret_cast< int* >( &address ), static_cast< int >( compare ), static_cast< int >( val ) ) );
       }
       else if constexpr( sizeof( Value ) == 8 ) {
-         return (Value) atomicCAS(
-            (unsigned long long int*) &address, (unsigned long long int) compare, (unsigned long long int) val );
+         return static_cast< Value >( atomicCAS(
+            reinterpret_cast< unsigned long long int* >( &address ),
+            static_cast< unsigned long long int >( compare ),
+            static_cast< unsigned long long int >( val ) ) );
       }
       else {
          TNL_ASSERT_TRUE( false, "Atomic CAS is supported only for 4 and 8 byte values on CUDA." );

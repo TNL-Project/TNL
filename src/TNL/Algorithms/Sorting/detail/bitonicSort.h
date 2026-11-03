@@ -71,7 +71,7 @@ bitonicMergeSharedMemory(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* sharedMem = (Value*) externMem;
+   Value* sharedMem = reinterpret_cast< Value* >( externMem );
 
    int sharedMemLen = 2 * blockDim.x;
 
@@ -141,7 +141,7 @@ bitonicSortFirstStepSharedMemory( Containers::ArrayView< Value, Devices::GPU, Ar
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
 
-   Value* sharedMem = (Value*) externMem;
+   Value* sharedMem = reinterpret_cast< Value* >( externMem );
    int sharedMemLen = 2 * blockDim.x;
 
    // Range of elements this block processes

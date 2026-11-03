@@ -77,7 +77,7 @@ CSRVectorKernel< Index, Device >::reduceSegments(
       dim3 blocksCount;
       dim3 gridsCount;
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-      for( Index gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
+      for( Index gridIdx = 0; gridIdx < static_cast< Index >( gridsCount.x ); gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          constexpr auto kernel = Segments::detail::reduceSegments_CSR_Uniform<
             ThreadsPerSegment,

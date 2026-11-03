@@ -277,7 +277,7 @@ public:
 
    operator int() const
    {
-      return (int) data;
+      return static_cast< int >( data );
    }
 
    /*operator float () const
@@ -287,7 +287,7 @@ public:
 
    operator double() const
    {
-      return (double) data;
+      return static_cast< double >( data );
    }
 };
 

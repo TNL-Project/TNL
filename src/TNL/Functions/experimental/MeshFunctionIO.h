@@ -49,7 +49,7 @@ readMeshFunction(
       [ & ]( auto&& array )
       {
          const auto entitiesCount = function.getMesh().template getEntitiesCount< MeshFunction::getEntitiesDimension() >();
-         if( array.size() == (std::size_t) entitiesCount )
+         if( array.size() == static_cast< std::size_t >( entitiesCount ) )
             Algorithms::copy< typename MeshFunction::VectorType::DeviceType, Devices::Host >(
                function.getData().getData(), array.data(), array.size() );
          else
@@ -106,7 +106,7 @@ readDistributedMeshFunction(
       [ & ]( auto&& array )
       {
          const auto entitiesCount = function.getMesh().template getEntitiesCount< MeshFunction::getEntitiesDimension() >();
-         if( array.size() == (std::size_t) entitiesCount )
+         if( array.size() == static_cast< std::size_t >( entitiesCount ) )
             Algorithms::copy< typename MeshFunction::VectorType::DeviceType, Devices::Host >(
                function.getData().getData(), array.data(), array.size() );
          else

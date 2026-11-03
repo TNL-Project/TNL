@@ -30,7 +30,7 @@ TYPED_TEST( FillTest, fill_host )
 
    Allocator allocator;
    ValueType* data = allocator.allocate( ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data, (ValueType) 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data, static_cast< ValueType >( 13 ), ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( data[ i ], 13 );
    allocator.deallocate( data, ARRAY_TEST_SIZE );

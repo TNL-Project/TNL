@@ -29,7 +29,7 @@ Double< T >::Double( const T& value )
 template< class T >
 Double< T >::Double( int value )
 {
-   data[ 0 ] = (T) value;
+   data[ 0 ] = static_cast< T >( value );
    data[ 1 ] = 0;
 }
 

@@ -217,7 +217,7 @@ getHardwareMetadata()
       { "GPU name", Backend::getDeviceName( activeGPU ) },
       { "GPU architecture", deviceArch },
       { "GPU CUDA cores", std::to_string( Backend::getDeviceCores( activeGPU ) ) },
-      { "GPU global memory (GB)", std::to_string( (double) Backend::getGlobalMemorySize( activeGPU ) / 1e9 ) },
+      { "GPU global memory (GB)", std::to_string( static_cast< double >( Backend::getGlobalMemorySize( activeGPU ) ) / 1e9 ) },
       { "GPU memory ECC enabled", TNL::convertToString( Backend::getECCEnabled( activeGPU ) ) },
 #endif
    };

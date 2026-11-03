@@ -23,7 +23,7 @@ main()
     */
    double* deviceArray;
    double* hostArray;
-   cudaMalloc( (void**) &deviceArray, size * sizeof( double ) );
+   cudaMalloc( reinterpret_cast< void** >( &deviceArray ), size * sizeof( double ) );
    hostArray = new double[ 3 ];
 
    /***
@@ -36,7 +36,11 @@ main()
    /***
     * Copy array from device to host
     */
-   cudaMemcpy( (void*) hostArray, (const void*) deviceArray, size * sizeof( double ), cudaMemcpyDeviceToHost );
+   cudaMemcpy(
+      reinterpret_cast< void* >( hostArray ),
+      reinterpret_cast< const void* >( deviceArray ),
+      size * sizeof( double ),
+      cudaMemcpyDeviceToHost );
 
    /***
     * Print the array on host

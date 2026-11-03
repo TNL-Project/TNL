@@ -39,7 +39,7 @@ TYPED_TEST( CopyTest, copy_cuda )
    ValueType* hostData2 = hostAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData = cudaAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData2 = cudaAllocator.allocate( ARRAY_TEST_SIZE );
-   fill< Devices::Host >( hostData, (ValueType) 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, static_cast< ValueType >( 13 ), ARRAY_TEST_SIZE );
 
    copy< Devices::Cuda, Devices::Host, ValueType >( deviceData, hostData, ARRAY_TEST_SIZE );
    copy< Devices::Cuda, Devices::Cuda, ValueType, ValueType >( deviceData2, deviceData, ARRAY_TEST_SIZE );

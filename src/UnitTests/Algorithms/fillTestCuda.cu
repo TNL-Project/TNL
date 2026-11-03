@@ -35,8 +35,8 @@ TYPED_TEST( FillTest, fill_cuda )
    CudaAllocator cudaAllocator;
    ValueType* hostData = hostAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData = cudaAllocator.allocate( ARRAY_TEST_SIZE );
-   fill< Devices::Host >( hostData, (ValueType) 0, ARRAY_TEST_SIZE );
-   fill< Devices::Cuda >( deviceData, (ValueType) 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, static_cast< ValueType >( 0 ), ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, static_cast< ValueType >( 13 ), ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( hostData[ i ], 13 );
