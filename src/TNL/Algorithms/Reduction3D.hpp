@@ -149,7 +149,7 @@ Reduction3D<
    const int blocks = size / block_size;
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
-      const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
+      [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
       #pragma omp parallel num_threads( threads )
       {
          // first thread initializes the result array

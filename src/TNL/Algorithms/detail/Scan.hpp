@@ -134,7 +134,7 @@ Scan< Devices::Host, Type, PhaseType >::perform(
    const IndexType blocks = TNL::roundUpDivision( size, block_size );
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
-      const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
+      [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
       Containers::Array< ValueType > block_results( blocks + 1 );
 
       #pragma omp parallel num_threads( threads )
@@ -220,7 +220,7 @@ Scan< Devices::Host, Type, PhaseType >::performFirstPhase(
    const IndexType blocks = TNL::roundUpDivision( size, block_size );
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
-      const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
+      [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
       Containers::Array< ValueType, Devices::Sequential > block_results( blocks + 1 );
 
       #pragma omp parallel num_threads( threads )
@@ -282,7 +282,7 @@ Scan< Devices::Host, Type, PhaseType >::performSecondPhase(
    const IndexType blocks = TNL::roundUpDivision( size, block_size );
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
-      const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
+      [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
       #pragma omp parallel num_threads( threads )
       {
          const int block_idx = omp_get_thread_num();
