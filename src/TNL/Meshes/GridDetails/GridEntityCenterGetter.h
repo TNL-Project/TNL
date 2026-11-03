@@ -49,7 +49,7 @@ public:
    getEntityCenter( const Entity& entity )
    {
       const Grid& grid = entity.getMesh();
-      return Point( grid.getOrigin().x() + ( entity.getCoordinates().x() ) * grid.getSpaceSteps().x() );
+      return Point( grid.getOrigin().x() + entity.getCoordinates().x() * grid.getSpaceSteps().x() );
    }
 };
 
@@ -170,9 +170,9 @@ public:
    {
       const Grid& grid = entity.getMesh();
       return Point(
-         grid.getOrigin().x() + ( entity.getCoordinates().x() ) * grid.getSpaceSteps().x(),
-         grid.getOrigin().y() + ( entity.getCoordinates().y() ) * grid.getSpaceSteps().y(),
-         grid.getOrigin().z() + ( entity.getCoordinates().z() ) * grid.getSpaceSteps().z() );
+         grid.getOrigin().x() + entity.getCoordinates().x() * grid.getSpaceSteps().x(),
+         grid.getOrigin().y() + entity.getCoordinates().y() * grid.getSpaceSteps().y(),
+         grid.getOrigin().z() + entity.getCoordinates().z() * grid.getSpaceSteps().z() );
    }
 };
 

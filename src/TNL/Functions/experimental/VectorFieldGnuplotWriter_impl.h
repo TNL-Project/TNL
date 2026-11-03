@@ -99,8 +99,8 @@ VectorFieldGnuplotWriter<
    write( const VectorFieldType& vectorField, std::ostream& str )
 {
    const MeshType& mesh = vectorField.getMesh();
-   typedef typename MeshType::Face EntityType;
-   typedef typename EntityType::EntityOrientationType EntityOrientation;
+   using EntityType = typename MeshType::Face;
+   using EntityOrientation = typename EntityType::EntityOrientationType;
    EntityType entity( mesh );
    auto& c = entity.getCoordinates();
 
@@ -195,8 +195,8 @@ VectorFieldGnuplotWriter<
    write( const VectorFieldType& vectorField, std::ostream& str )
 {
    const MeshType& mesh = vectorField.getMesh();
-   typedef typename MeshType::Face EntityType;
-   typedef typename EntityType::EntityOrientationType EntityOrientation;
+   using EntityType = typename MeshType::Face;
+   using EntityOrientation = typename EntityType::EntityOrientationType;
    EntityType entity( mesh );
    auto& c = entity.getCoordinates();
 

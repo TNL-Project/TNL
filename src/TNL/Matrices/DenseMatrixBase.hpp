@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iomanip>
-#include <functional>
 
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/Segments/traverse.h>
@@ -73,16 +72,16 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel(
    auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
    if( ThreadsPerRow > 8 && localColIdx < ThreadsPerRow - 8 )
       result_[ idx ] += result_[ idx + 8 ];
-   warp.sync();
+   decltype( warp )::sync();
    if( ThreadsPerRow > 4 && localColIdx < ThreadsPerRow - 4 )
       result_[ idx ] += result_[ idx + 4 ];
-   warp.sync();
+   decltype( warp )::sync();
    if( ThreadsPerRow > 2 && localColIdx < ThreadsPerRow - 2 )
       result_[ idx ] += result_[ idx + 2 ];
-   warp.sync();
+   decltype( warp )::sync();
    if( ThreadsPerRow > 1 && localColIdx < ThreadsPerRow - 1 )
       result_[ idx ] += result_[ idx + 1 ];
-   warp.sync();
+   decltype( warp )::sync();
 
    if( rowIdx < end && localColIdx == 0 ) {
       if( outVectorMultiplicator == 0 )
@@ -211,7 +210,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::getCompressedRowLengths( V
    {
       rowLengths_view[ rowIdx ] = value;
    };
-   this->reduceAllRows( fetch, TNL::Plus{}, keep );
+   this->reduceAllRows( fetch, TNL::Plus(), keep );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -672,15 +671,15 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct(
 
    if( outVectorMultiplicator == RealType{ 0 } ) {
       if( matrixMultiplicator == RealType{ 1 } )
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperDirect );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperDirect );
       else
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperMatrixMult );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperMatrixMult );
    }
    else {
       if( matrixMultiplicator == RealType{ 1 } )
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperVectorMult );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperVectorMult );
       else
-         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperGeneral );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus(), keeperGeneral );
    }
 }
 

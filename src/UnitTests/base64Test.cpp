@@ -21,7 +21,7 @@ TEST( base64Test, get_encoded_length )
 void
 test_encode_block( const std::string& input, const std::string& expected_output )
 {
-   const auto result = encode( (const std::uint8_t*) input.c_str(), input.length() );
+   const auto result = encode( reinterpret_cast< const std::uint8_t* >( input.c_str() ), input.length() );
    const std::string encoded( result.get() );
    EXPECT_EQ( encoded.length(), get_encoded_length( input.length() ) );
    EXPECT_EQ( encoded, expected_output );

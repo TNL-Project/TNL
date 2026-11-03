@@ -22,9 +22,9 @@ template< int Size, typename Function >
 class VectorField : public Domain< Function::getDomainDimension(), Function::getDomainType() >
 {
 public:
-   typedef Function FunctionType;
-   typedef typename FunctionType::RealType RealType;
-   typedef typename FunctionType::PointType PointType;
+   using FunctionType = Function;
+   using RealType = typename FunctionType::RealType;
+   using PointType = typename FunctionType::PointType;
 
    static void
    configSetup( Config::ConfigDescription& config, const String& prefix = "" )
@@ -70,14 +70,14 @@ class VectorField< Size, MeshFunction< Mesh, MeshEntityDimension, Real > >
      MeshFunction< Mesh, MeshEntityDimension, Real >::getDomainType() >
 {
 public:
-   typedef Mesh MeshType;
-   typedef Real RealType;
-   typedef Pointers::SharedPointer< MeshType > MeshPointer;
-   typedef MeshFunction< MeshType, MeshEntityDimension, RealType > FunctionType;
-   typedef Pointers::SharedPointer< FunctionType > FunctionPointer;
-   typedef typename MeshType::DeviceType DeviceType;
-   typedef typename MeshType::GlobalIndexType IndexType;
-   typedef Containers::StaticVector< Size, RealType > VectorType;
+   using MeshType = Mesh;
+   using RealType = Real;
+   using MeshPointer = Pointers::SharedPointer< MeshType >;
+   using FunctionType = MeshFunction< MeshType, MeshEntityDimension, RealType >;
+   using FunctionPointer = Pointers::SharedPointer< FunctionType >;
+   using DeviceType = typename MeshType::DeviceType;
+   using IndexType = typename MeshType::GlobalIndexType;
+   using VectorType = Containers::StaticVector< Size, RealType >;
 
    static constexpr int
    getEntitiesDimension()
@@ -104,7 +104,7 @@ public:
          FunctionType::configSetup( config, prefix + convertToString( i ) + "-" );
    }
 
-   VectorField() {}
+   VectorField() = default;
 
    VectorField( const MeshPointer& meshPointer )
    {
@@ -212,7 +212,7 @@ public:
       return v;
    }
 
-   bool
+   [[nodiscard]] bool
    write( const std::string& functionName, const std::string& fileName, const std::string& fileFormat = "auto" ) const
    {
       std::fstream file;
@@ -227,7 +227,7 @@ public:
       std::string format = fileFormat;
       if( format == "auto" ) {
          format = fs::path( fileName ).extension();
-         if( format.length() > 0 )
+         if( ! format.empty() )
             // remove dot from the extension
             format = format.substr( 1 );
       }
@@ -270,8 +270,9 @@ public:
                writer.writeCellData( buffer, functionName, 3 );
          }
       }
-      else if( format == "gnuplot" || format == "gplt" || format == "plt" )
+      else if( format == "gnuplot" || format == "gplt" || format == "plt" ) {
          return VectorFieldGnuplotWriter< VectorField >::write( *this, file );
+      }
       else {
          std::cerr << "Unknown output format: " << format << '\n';
          return false;
@@ -290,14 +291,14 @@ class VectorField< Size, MeshFunctionView< Mesh, MeshEntityDimension, Real > >
      MeshFunctionView< Mesh, MeshEntityDimension, Real >::getDomainType() >
 {
 public:
-   typedef Mesh MeshType;
-   typedef Real RealType;
-   typedef Pointers::SharedPointer< MeshType > MeshPointer;
-   typedef MeshFunctionView< MeshType, MeshEntityDimension, RealType > FunctionType;
-   typedef Pointers::SharedPointer< FunctionType > FunctionPointer;
-   typedef typename MeshType::DeviceType DeviceType;
-   typedef typename MeshType::GlobalIndexType IndexType;
-   typedef Containers::StaticVector< Size, RealType > VectorType;
+   using MeshType = Mesh;
+   using RealType = Real;
+   using MeshPointer = Pointers::SharedPointer< MeshType >;
+   using FunctionType = MeshFunctionView< MeshType, MeshEntityDimension, RealType >;
+   using FunctionPointer = Pointers::SharedPointer< FunctionType >;
+   using DeviceType = typename MeshType::DeviceType;
+   using IndexType = typename MeshType::GlobalIndexType;
+   using VectorType = Containers::StaticVector< Size, RealType >;
 
    static constexpr int
    getEntitiesDimension()
@@ -324,7 +325,7 @@ public:
          FunctionType::configSetup( config, prefix + convertToString( i ) + "-" );
    }
 
-   VectorField() {}
+   VectorField() = default;
 
    VectorField( const MeshPointer& meshPointer )
    {
@@ -468,7 +469,7 @@ public:
       return v;
    }
 
-   bool
+   [[nodiscard]] bool
    write( const std::string& functionName, const std::string& fileName, const std::string& fileFormat = "auto" ) const
    {
       std::fstream file;
@@ -483,7 +484,7 @@ public:
       std::string format = fileFormat;
       if( format == "auto" ) {
          format = fs::path( fileName ).extension();
-         if( format.length() > 0 )
+         if( ! format.empty() )
             // remove dot from the extension
             format = format.substr( 1 );
       }
@@ -526,8 +527,9 @@ public:
                writer.writeCellData( buffer, functionName, 3 );
          }
       }
-      else if( format == "gnuplot" || format == "gplt" || format == "plt" )
+      else if( format == "gnuplot" || format == "gplt" || format == "plt" ) {
          return VectorFieldGnuplotWriter< VectorField >::write( *this, file );
+      }
       else {
          std::cerr << "Unknown output format: " << format << '\n';
          return false;

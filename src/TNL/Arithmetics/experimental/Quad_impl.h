@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <cmath>
 #include <cstdio>
 
 #include "Quad.h"
@@ -37,7 +36,7 @@ Quad< T >::Quad( const T& value )
 template< class T >
 Quad< T >::Quad( int value )
 {
-   data[ 0 ] = (T) value;
+   data[ 0 ] = static_cast< T >( value );
    data[ 1 ] = 0;
    data[ 2 ] = 0;
    data[ 3 ] = 0;
@@ -268,10 +267,7 @@ template< class T >
 bool
 Quad< T >::operator==( const Quad< T >& rhs ) const
 {
-   if( data[ 0 ] == rhs[ 0 ] && data[ 1 ] == rhs[ 1 ] && data[ 2 ] == rhs[ 2 ] && data[ 3 ] == rhs[ 3 ] ) {
-      return true;
-   }
-   return false;
+   return data[ 0 ] == rhs[ 0 ] && data[ 1 ] == rhs[ 1 ] && data[ 2 ] == rhs[ 2 ] && data[ 3 ] == rhs[ 3 ];
 }
 
 template< class T >
@@ -287,10 +283,7 @@ Quad< T >::operator<( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] < 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] < 0.;
 }
 
 template< class T >
@@ -299,10 +292,7 @@ Quad< T >::operator>( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] > 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] > 0.;
 }
 
 template< class T >
@@ -311,10 +301,7 @@ Quad< T >::operator>=( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] >= 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] >= 0.;
 }
 
 template< class T >
@@ -323,10 +310,7 @@ Quad< T >::operator<=( const Quad< T >& rhs ) const
 {
    Quad< T > qd( *this );
    qd -= rhs;
-   if( qd[ 0 ] <= 0. ) {
-      return true;
-   }
-   return false;
+   return qd[ 0 ] <= 0.;
 }
 
 template< class T >
@@ -388,7 +372,7 @@ Quad< T >
 sqrt( const Quad< T >& value )
 {
    Quad< T > qd( value );
-   Quad< T > x( 1 / sqrt( (T) qd ) );
+   Quad< T > x( 1 / sqrt( static_cast< T >( qd ) ) );
    Quad< T > step;
    // TODO zjednodušit dělení 2
    step = x * ( 1. - qd * x * x );
@@ -527,7 +511,10 @@ void
 twoProd( T a, T b, T* p, T* e )
 {
    *p = a * b;
-   T a_hi, a_lo, b_hi, b_lo;
+   T a_hi;
+   T a_lo;
+   T b_hi;
+   T b_lo;
    split( a, &a_hi, &a_lo );
    split( b, &b_hi, &b_lo );
    *e = ( ( a_hi * b_hi - *p ) + a_hi * b_lo + a_lo * b_hi ) + a_lo * b_lo;

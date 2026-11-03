@@ -92,13 +92,11 @@ ODEStaticSolverTest_ParallelLinearFunctionTest()
       solver.setStopTime( final_time );
       solver.setTau( 0.005 );
       solver.setConvergenceResidue( 0.0 );
-      const bool status = solver.solve( u_view[ idx ], inner_f );
+      [[maybe_unused]] const bool status = solver.solve( u_view[ idx ], inner_f );
 #if ! defined( __CUDA_ARCH__ ) && ! defined( __HIP_DEVICE_COMPILE__ )
       // gtest macros do not work inside GPU kernels (dynamic allocation with std::unique_ptr)
       EXPECT_TRUE( status );
       EXPECT_EQ( solver.getTime(), final_time );
-#else
-      (void) status;
 #endif
    };
    TNL::Algorithms::parallelFor< Device >( 0, size, f );

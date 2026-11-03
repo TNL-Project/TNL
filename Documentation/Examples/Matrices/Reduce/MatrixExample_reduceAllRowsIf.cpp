@@ -56,7 +56,7 @@ reduceAllRowsIfExample()
    // Initialize with -1 to see which rows were processed
    evenRowSums.setValue( -1.0 );
 
-   auto evenRowsCount = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Plus{}, store );
+   auto evenRowsCount = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Plus(), store );
 
    std::cout << "Sums for even-indexed rows (odd indices show -1): " << evenRowSums << '\n';
    std::cout << "Compressed sums for even-indexed rows: " << compressedEvenRowSums.getView( 0, evenRowsCount ) << '\n';

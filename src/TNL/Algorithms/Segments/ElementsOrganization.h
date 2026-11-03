@@ -15,7 +15,7 @@ enum ElementsOrganization : std::uint8_t
    //! \brief Column-major order
    ColumnMajorOrder = 0,
    //! \brief Row-major order
-   RowMajorOrder
+   RowMajorOrder,
 };
 
 template< typename Device >

@@ -176,9 +176,9 @@ cudaPartition(
 
    // synchronization is in this function already
    using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
-   __shared__ typename BlockScan::Storage storage;
-   int smallerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, smaller, threadIdx.x, storage );
-   int biggerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, bigger, threadIdx.x, storage );
+   __shared__ BlockScan::Storage storage;
+   int smallerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, smaller, threadIdx.x, storage );
+   int biggerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, bigger, threadIdx.x, storage );
 
    if( threadIdx.x == blockDim.x - 1 )  // last thread in block has sum of all values
    {

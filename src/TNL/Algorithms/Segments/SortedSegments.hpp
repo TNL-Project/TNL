@@ -6,7 +6,7 @@
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/Sorting/DefaultSorter.h>
 
-#include "CSR.h"
+#include "SortedSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -107,9 +107,11 @@ template< typename EmbeddedSegments, typename IndexAllocator >
 auto
 SortedSegments< EmbeddedSegments, IndexAllocator >::getView() -> ViewType
 {
-   return { this->embeddedSegmentsView.getView(),
-            this->segmentsPermutationView.getView(),
-            this->inverseSegmentsPermutationView.getView() };
+   return {
+      this->embeddedSegmentsView.getView(),
+      this->segmentsPermutationView.getView(),
+      this->inverseSegmentsPermutationView.getView(),
+   };
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >

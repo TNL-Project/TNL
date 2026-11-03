@@ -48,7 +48,7 @@ TYPED_TEST( UmfpackWrapperTest, LinearFunctionTest )
       {1, 0,  3.},              {1, 2,  4.},             {1, 4, 6.},
                    {2, 1, -1.}, {2, 2, -3.}, {2, 3, 2.},
                                 {3, 2,  1.},
-                   {4, 1,  4.}, {4, 2,  2.},             {4, 4, 1.}
+                   {4, 1,  4.}, {4, 2,  2.},             {4, 4, 1.},
    } );
    // clang-format on
    auto matrix_pointer = std::make_shared< CSRMatrix >( csr_matrix );

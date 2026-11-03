@@ -39,7 +39,7 @@ public:
    enum PeriodicBoundariesCopyDirection : std::uint8_t
    {
       BoundaryToOverlap,
-      OverlapToBoundary
+      OverlapToBoundary,
    };
 
    DistributedMeshSynchronizer()

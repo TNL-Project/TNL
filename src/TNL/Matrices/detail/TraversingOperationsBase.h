@@ -10,6 +10,9 @@
 
 namespace TNL::Matrices::detail {
 
+template< typename Matrix >
+struct TraversingOperations;
+
 /**
  * \brief Base class for matrix traversal operations shared across all specializations.
  *

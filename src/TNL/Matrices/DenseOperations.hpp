@@ -4,6 +4,8 @@
 #pragma once
 
 #include <TNL/Backend.h>
+#include <TNL/Containers/StaticArray.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/GPU.h>
@@ -127,14 +129,20 @@ DenseMatrixProductKernel(
       bool loadTileB = bRows < heightB && col < widthB;
 
       // Load tileA from matrix A if within bounds, else initialize to 0
-      tileA[ ty ][ tx ] =
-         // NOLINTNEXTLINE(readability-suspicious-call-argument)
-         loadTileA ? ( TransposeA == TransposeState::None ? matrixA( row, aCols ) : matrixA( aCols, row ) ) : 0.0;
+      if( loadTileA )
+         tileA[ ty ][ tx ] =
+            // NOLINTNEXTLINE(readability-suspicious-call-argument)
+            TransposeA == TransposeState::None ? matrixA( row, aCols ) : matrixA( aCols, row );
+      else
+         tileA[ ty ][ tx ] = 0.0;
 
       // Load tileB from matrix B if within bounds, else initialize to 0
-      tileB[ ty ][ tx ] =
-         // NOLINTNEXTLINE(readability-suspicious-call-argument)
-         loadTileB ? ( TransposeB == TransposeState::None ? matrixB( bRows, col ) : matrixB( col, bRows ) ) : 0.0;
+      if( loadTileB )
+         tileB[ ty ][ tx ] =
+            // NOLINTNEXTLINE(readability-suspicious-call-argument)
+            TransposeB == TransposeState::None ? matrixB( bRows, col ) : matrixB( col, bRows );
+      else
+         tileB[ ty ][ tx ] = 0.0;
 
       __syncthreads();
 

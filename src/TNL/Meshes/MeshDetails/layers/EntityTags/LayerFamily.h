@@ -4,7 +4,7 @@
 #pragma once
 
 #include "ConfigValidator.h"
-#include "Initializer.h"
+#include "Initializer.h"  // IWYU pragma: keep
 #include "Layer.h"
 #include "Traits.h"
 

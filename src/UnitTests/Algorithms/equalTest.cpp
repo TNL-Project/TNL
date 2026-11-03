@@ -31,10 +31,10 @@ TYPED_TEST( EqualTest, equal_host )
    Allocator allocator;
    ValueType* data1 = allocator.allocate( ARRAY_TEST_SIZE );
    ValueType* data2 = allocator.allocate( ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data1, (ValueType) 7, ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data2, (ValueType) 0, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data1, static_cast< ValueType >( 7 ), ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, static_cast< ValueType >( 0 ), ARRAY_TEST_SIZE );
    EXPECT_FALSE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   fill< Devices::Host >( data2, (ValueType) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, static_cast< ValueType >( 7 ), ARRAY_TEST_SIZE );
    EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
    allocator.deallocate( data1, ARRAY_TEST_SIZE );
    allocator.deallocate( data2, ARRAY_TEST_SIZE );
@@ -50,9 +50,9 @@ TYPED_TEST( EqualTest, equalWithConversion_host )
    int* data1 = allocator1.allocate( ARRAY_TEST_SIZE );
    float* data2 = allocator2.allocate( ARRAY_TEST_SIZE );
    fill< Devices::Host >( data1, 7, ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data2, (float) 0.0, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, static_cast< float >( 0.0 ), ARRAY_TEST_SIZE );
    EXPECT_FALSE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
-   fill< Devices::Host >( data2, (float) 7.0, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data2, static_cast< float >( 7.0 ), ARRAY_TEST_SIZE );
    EXPECT_TRUE( ( equal< Devices::Host, Devices::Host >( data1, data2, ARRAY_TEST_SIZE ) ) );
    allocator1.deallocate( data1, ARRAY_TEST_SIZE );
    allocator2.deallocate( data2, ARRAY_TEST_SIZE );

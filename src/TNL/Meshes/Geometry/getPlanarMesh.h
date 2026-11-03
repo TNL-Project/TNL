@@ -62,8 +62,10 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
       }
    };
    parallelFor< Devices::Host >( 0, inCellsCount, setCounts );
-   indices[ inCellsCount ] = { 0,
-                               0 };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
+   indices[ inCellsCount ] = {
+      0,
+      0,
+   };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
    auto reduction = []( const IndexPair& a, const IndexPair& b ) -> IndexPair
    {
       return { a.first + b.first, a.second + b.second };
@@ -192,8 +194,10 @@ planarCorrection( const Mesh< MeshConfig, Devices::Host >& inMesh )
       }
    };
    parallelFor< Devices::Host >( 0, inFacesCount, setCounts );
-   indices[ inFacesCount ] = { 0,
-                               0 };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
+   indices[ inFacesCount ] = {
+      0,
+      0,
+   };  // extend exclusive prefix sum by one element to also get result of reduce at the same time
    auto reduction = []( const IndexPair& a, const IndexPair& b ) -> IndexPair
    {
       return { a.first + b.first, a.second + b.second };

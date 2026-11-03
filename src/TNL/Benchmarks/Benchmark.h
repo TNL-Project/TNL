@@ -7,7 +7,6 @@
 #include <memory>
 #include <vector>
 #include <fstream>
-#include <filesystem>
 
 #include "BenchmarkResult.h"
 #include "Logging.h"

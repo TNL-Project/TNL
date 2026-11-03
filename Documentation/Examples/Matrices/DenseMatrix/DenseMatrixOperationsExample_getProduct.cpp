@@ -21,7 +21,8 @@ matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::T
       { 5, 6, 6 },
       { 6, 5, 7 },
       { 7, 2, 1 },
-      { 3, 3, 9 } };
+      { 3, 3, 9 },
+      };
       // clang-format on
    }
    else {
@@ -29,7 +30,8 @@ matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::T
       matrix1 = {
       { 5, 6, 7, 3 },
       { 6, 5, 2, 3 },
-      { 6, 7, 1, 9 } };
+      { 6, 7, 1, 9 },
+      };
       // clang-format on
    }
 
@@ -42,7 +44,8 @@ matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::T
       { 3, 4, 2, 8 },
       { 1, 4, 7, 9 },
       { 2, 3, 8, 0 },
-      { 7, 6, 5, 4 } };
+      { 7, 6, 5, 4 },
+      };
       // clang-format on
    }
    else {
@@ -51,7 +54,8 @@ matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::T
       { 4, 3, 2, 6, 7 },
       { 3, 4, 2, 8, 6 },
       { 1, 4, 7, 9, 5 },
-      { 2, 3, 8, 0, 4 } };
+      { 2, 3, 8, 0, 4 },
+      };
       // clang-format on
    }
 

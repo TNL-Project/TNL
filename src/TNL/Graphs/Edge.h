@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <ostream>
+
 namespace TNL::Graphs {
 
 /**

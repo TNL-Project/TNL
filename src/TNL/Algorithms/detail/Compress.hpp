@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/scan.h>
-#include "../compress.h"
+#include "../compress.h"  // IWYU pragma: keep
 
 namespace TNL::Algorithms::detail {
 

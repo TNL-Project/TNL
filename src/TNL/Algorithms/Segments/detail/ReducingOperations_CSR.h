@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include "LaunchConfiguration.h"

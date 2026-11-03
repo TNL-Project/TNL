@@ -76,7 +76,7 @@ struct CudaBlockReduceSharedMemory
          if constexpr( blockSize >= 2 * Backend::getWarpSize() ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + Backend::getWarpSize() ] );
             storage.data[ global_tid ] = threadValue;
-            warp.sync();
+            decltype( warp )::sync();
          }
          // Phase 3: Intra-warp reduction: min(blockSize, WarpSize) -> 1
          // When blockSize <= WarpSize the inter-warp steps were skipped,
@@ -87,10 +87,10 @@ struct CudaBlockReduceSharedMemory
          #pragma unroll
          for( int offset = startOffset; offset > 0; offset /= 2 ) {
             threadValue = reduction( threadValue, storage.data[ global_tid + offset ] );
-            warp.sync();
+            decltype( warp )::sync();
             storage.data[ global_tid ] = threadValue;
             if( offset > 1 )
-               warp.sync();
+               decltype( warp )::sync();
          }
       }
 
@@ -320,18 +320,18 @@ struct CudaBlockReduceWithArgument
                storage.idx[ tid + Backend::getWarpSize() ] );
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
-            warp.sync();
+            decltype( warp )::sync();
          }
          // Phase 3: Intra-warp reduction: min(blockSize, WarpSize) -> 1
          constexpr int startOffset = ( blockSize <= Backend::getWarpSize() ) ? blockSize / 2 : Backend::getWarpSize() / 2;
          #pragma unroll
          for( int offset = startOffset; offset > 0; offset /= 2 ) {
             reduction( threadValue, storage.data[ tid + offset ], threadIndex, storage.idx[ tid + offset ] );
-            warp.sync();
+            decltype( warp )::sync();
             storage.data[ tid ] = threadValue;
             storage.idx[ tid ] = threadIndex;
             if( offset > 1 )
-               warp.sync();
+               decltype( warp )::sync();
          }
       }
 

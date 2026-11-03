@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <TNL/Devices/Host.h>
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Containers/StaticArray.h>

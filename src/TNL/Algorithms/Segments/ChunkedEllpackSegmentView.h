@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
+#include <TNL/Backend/Macros.h>
 
 namespace TNL::Algorithms::Segments {
 

@@ -107,7 +107,8 @@ forElements_SlicedEllpack_PerElement(
          const Index local_segmentIdx = local_sliceIdx * SliceSize + inSliceIdx / shared_segments_size[ local_sliceIdx ];
 
          const Index globalIdx = firstSegmentInBlockOffset + idx;
-         Index localIdx, currentSegmentIdx;
+         Index localIdx;
+         Index currentSegmentIdx;
          if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
             localIdx = inSliceIdx % shared_segments_size[ local_sliceIdx ];
             currentSegmentIdx = firstSegmentInBlock + local_segmentIdx;
@@ -195,7 +196,7 @@ forElements_SlicedEllpack_PerElement_WithIndexes(
       TNL_ASSERT_LT( seg_idx, segments.getSegmentCount(), "Wrong index of segment index - larger that the number of indexes." );
       value = segments.getSegmentSize( seg_idx );
    }
-   const Index v = CudaScan::scan( Plus{}, (Index) 0, value, threadIdx.x, scan_storage );
+   const Index v = CudaScan::scan( Plus(), static_cast< Index >( 0 ), value, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v;
 
@@ -321,7 +322,8 @@ forElements_SlicedEllpack_PerElement_If(
       shared_offsets[ SegmentsPerBlock ] = 0;
    __syncthreads();
 
-   const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
+   const Index v1 =
+      InclusiveCudaScan::scan( Plus(), static_cast< Index >( 0 ), conditionValue, threadIdx.x, inclusive_scan_storage );
    if( threadIdx.x < SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    __syncthreads();
@@ -340,7 +342,8 @@ forElements_SlicedEllpack_PerElement_If(
 
    // the threads beyond the segments of the block contribute nothing to the scan
    const Index segmentSize = ( threadIdx.x <= SegmentsPerBlock ) ? shared_offsets[ threadIdx.x ] : 0;
-   const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, exclusive_scan_storage );
+   const Index v2 =
+      ExclusiveCudaScan::scan( Plus(), static_cast< Index >( 0 ), segmentSize, threadIdx.x, exclusive_scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
 
@@ -356,8 +359,9 @@ forElements_SlicedEllpack_PerElement_If(
    __syncthreads();
 
    const Index last_idx = shared_offsets[ activeSegmentsCount ];
-   if( activeSegmentsCount > 0 )
+   if( activeSegmentsCount > 0 ) {
       TNL_ASSERT_LE( last_idx, segments.getStorageSize() - shared_global_offsets[ 0 ], "" );
+   }
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {

@@ -168,8 +168,17 @@ workflow:
 
 # template for build jobs
 .build_template:
-    # don't wait for jobs in previous stages to complete before starting this job
-    needs: []
+    # A lint error stops the pipeline before the builds start.
+    # Listing the lint jobs in needs keeps the build:* stages running in parallel with each other.
+    needs:
+        - job: clang-format
+          optional: true
+        - job: clangd-tidy
+          optional: true
+        - job: cmake-format
+          optional: true
+        - job: copyright-headers
+          optional: true
     variables:
         # sccache rewrites paths below this base to relative form before hashing, so the same
         # job hits the same entries on a different runner, node or fork checkout.
@@ -566,7 +575,7 @@ clang-format:
                 src
     interruptible: true
 
-clang-tidy:
+clangd-tidy:
     stage: lint
     rules:
         - changes:
@@ -574,32 +583,16 @@ clang-tidy:
             - src/**/*.{h,hpp,cpp,cu,hip}
             - "**/CMakeLists.txt"
             - cmake/*
-            - .clang-tidy
+            - .clangd
             - .gitlab-ci.yml
-    variables:
-        BUILD_DIR: "./build/$CI_JOB_NAME_SLUG"
-        CMAKE_BUILD_TYPE: Debug
-        CXX: clang++
-        CC: clang
-        TNL_USE_OPENMP: ON
-        TNL_USE_MPI: ON
-        TNL_USE_CUDA: OFF
-        TNL_USE_CI_FLAGS: ON
+            - justfile
     before_script:
-        - pacman -Syu --needed --noconfirm just
+        # hypre provides the headers needed to lint the HAVE_HYPRE code paths (see .clangd)
+        - pacman -Syu --needed --noconfirm just clang clangd-tidy hypre
     script:
-        - just check-clang-tidy "$TARGET_PATH"
-    parallel:
-        matrix:
-            - TARGET_PATH:
-                - "Documentation/*"
-                - "src/Benchmarks/*"
-                - "src/Examples/*"
-                - "src/Tools/*"
-                # running clang-tidy on unit tests takes too long and is not very useful
-                # (most of the reported problems are in header files and they should be already
-                # reported by running clang-tidy on the previous targets)
-                #- "src/UnitTests/*"
+        - just check-clangd-tidy
+    variables:
+        FORCE_COLOR: 1
     interruptible: true
 
 cmake-format:

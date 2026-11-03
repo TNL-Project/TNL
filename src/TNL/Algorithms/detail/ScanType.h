@@ -10,13 +10,13 @@ namespace TNL::Algorithms::detail {
 enum class ScanType : std::uint8_t
 {
    Exclusive,
-   Inclusive
+   Inclusive,
 };
 
 enum class ScanPhaseType : std::uint8_t
 {
    WriteInFirstPhase,
-   WriteInSecondPhase
+   WriteInSecondPhase,
 };
 
 }  // namespace TNL::Algorithms::detail

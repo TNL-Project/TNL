@@ -35,8 +35,6 @@
 #include <climits>
 #include <cstdint>
 
-#include "Macros.h"
-
 namespace TNL::Backend {
 
 template< typename T, std::size_t _alignment = CHAR_BIT * sizeof( T ) >

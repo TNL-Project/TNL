@@ -59,10 +59,10 @@ scanExample()
    };
 
    // Perform inclusive scan
-   TNL::Algorithms::Segments::inclusiveScanAllSegments( segments, fetch, TNL::Plus{}, write_inclusive );
+   TNL::Algorithms::Segments::inclusiveScanAllSegments( segments, fetch, TNL::Plus(), write_inclusive );
 
    // Perform exclusive scan
-   TNL::Algorithms::Segments::exclusiveScanAllSegments( segments, fetch, TNL::Plus{}, write_exclusive );
+   TNL::Algorithms::Segments::exclusiveScanAllSegments( segments, fetch, TNL::Plus(), write_exclusive );
    //! [scan]
 
    // Print results
@@ -91,7 +91,7 @@ scanExample()
    };
 
    // Perform inclusive scan on selected segments
-   TNL::Algorithms::Segments::inclusiveScanSegments( segments, segmentIndexes, fetch, TNL::Plus{}, write_partial );
+   TNL::Algorithms::Segments::inclusiveScanSegments( segments, segmentIndexes, fetch, TNL::Plus(), write_partial );
 
    std::cout << "\nPartial inclusive inplace scan results (only segments 1 and 3):\n";
    std::cout << TNL::Algorithms::Segments::print(
@@ -108,7 +108,7 @@ scanExample()
    };
 
    // Perform inclusive scan on selected segments
-   TNL::Algorithms::Segments::inclusiveScanAllSegmentsIf( segments, condition, fetch, TNL::Plus{}, write_partial );
+   TNL::Algorithms::Segments::inclusiveScanAllSegmentsIf( segments, condition, fetch, TNL::Plus(), write_partial );
 
    std::cout << "\nPartial inclusive inplace scan results (only even segments):\n";
    std::cout << TNL::Algorithms::Segments::print(

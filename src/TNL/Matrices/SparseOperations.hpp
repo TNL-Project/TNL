@@ -80,7 +80,7 @@ copySparseMatrixElementsAcrossDevices(
       {
          return value != SourceRealType{ 0 } && ( ! generalToSymmetric || columnIdx <= rowIdx );
       },
-      TNL::Plus{},
+      TNL::Plus(),
       [ = ] __cuda_callable__( SourceIndexType rowIdx, SourceIndexType count ) mutable
       {
          sourceOffsets_view[ rowIdx ] = count;
@@ -223,7 +223,7 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
             else
                return 0;
          },
-         TNL::Plus{},
+         TNL::Plus(),
          [ = ] __cuda_callable__( SourceIndexType rowIdx, SourceIndexType value ) mutable
          {
             rowCapacities_view[ rowIdx ] = value;
@@ -300,7 +300,7 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
                rowCapacities_view[ columnIdx ], static_cast< SourceIndexType >( 1 ) );
          return 1;
       },
-      TNL::Plus{},
+      TNL::Plus(),
       [ = ] __cuda_callable__( SourceIndexType rowIdx, SourceIndexType value ) mutable
       {
          Algorithms::AtomicOperations< SourceDeviceType >::add( rowCapacities_view[ rowIdx ], value );
@@ -691,7 +691,7 @@ compressSparseMatrix( Matrix& A )
       {
          return columnIdx != paddingIndex< Index > && ( value != Real{ 0 } );
       },
-      TNL::Plus{},
+      TNL::Plus(),
       [ = ] __cuda_callable__( Index rowIdx, Index value ) mutable
       {
          row_capacities_view[ rowIdx ] = value;

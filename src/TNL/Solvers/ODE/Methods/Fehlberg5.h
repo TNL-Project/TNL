@@ -42,7 +42,7 @@ struct Fehlberg5
          std::array< Value, Stages >{    3.0/  32.0,     9.0/  32.0,    0.0,            0.0,           0.0,        0.0 },
          std::array< Value, Stages >{ 1932.0/2197.0, -7200.0/2197.0, 7296.0/2197.0,     0.0,           0.0,        0.0 },
          std::array< Value, Stages >{  439.0/ 216.0,    -8.0,        3680.0/ 513.0,  -845.0/4104.0,    0.0,        0.0 },
-         std::array< Value, Stages >{   -8.0/  27.0,     2.0,        -3544.0/2565.0, 1859.0/4104.0,  -11.0/  40.0, 0.0 }
+         std::array< Value, Stages >{   -8.0/  27.0,     2.0,        -3544.0/2565.0, 1859.0/4104.0,  -11.0/  40.0, 0.0 },
       };
       // clang-format on
       return k_coefficients[ stage ][ i ];
@@ -58,16 +58,18 @@ struct Fehlberg5
    static constexpr ValueType
    getUpdateCoefficient( std::size_t i )
    {
-      constexpr std::array< Value, Stages > higher_order_update_coefficients{ 16.0 / 135.0,      0.0,         6656.0 / 12825.0,
-                                                                              28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0 };
+      constexpr std::array< Value, Stages > higher_order_update_coefficients{
+         16.0 / 135.0, 0.0, 6656.0 / 12825.0, 28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0,
+      };
       return higher_order_update_coefficients[ i ];
    }
 
    static constexpr ValueType
    getErrorCoefficient( std::size_t i )
    {
-      constexpr std::array< Value, Stages > lower_order_update_coefficients{ 25.0 / 216.0,    0.0,        1408.0 / 2565.0,
-                                                                             2197.0 / 4104.0, -1.0 / 5.0, 0.0 };
+      constexpr std::array< Value, Stages > lower_order_update_coefficients{
+         25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -1.0 / 5.0, 0.0,
+      };
       return getUpdateCoefficient( i ) - lower_order_update_coefficients[ i ];
    }
 

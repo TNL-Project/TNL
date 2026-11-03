@@ -314,7 +314,7 @@ reduceSegments_SlicedEllpack_Uniform_ColumnMajor_impl(
       /////
       result = sharedResults[ threadIdx.x ].get();
       auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
-      warp.sync();
+      decltype( warp )::sync();
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       result = BlockReduce::template warpReduce< ThreadsPerSegment >( reduce, result );
 

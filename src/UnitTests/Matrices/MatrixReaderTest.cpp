@@ -108,7 +108,7 @@ TEST( MatrixReaderTest, readMtx_symmetricIntoGeneralMatrix )
 
 TEST( MatrixReaderTest, readMtx_symmetricIntoSymmetricMatrix )
 {
-   const SymmetricMatrix matrix = readFromString< SymmetricMatrix >( symmetricMtx );
+   const auto matrix = readFromString< SymmetricMatrix >( symmetricMtx );
    expectElements( matrix, { { 1, 2, 0 }, { 2, 3, 0 }, { 0, 0, 4 } } );
 }
 
@@ -125,7 +125,7 @@ TEST( MatrixReaderTest, readMtx_sequentialMatrix )
 
 TEST( MatrixReaderTest, readMtx_denseMatrix )
 {
-   const DenseMatrix matrix = readFromString< DenseMatrix >( generalMtx );
+   const auto matrix = readFromString< DenseMatrix >( generalMtx );
    expectElements( matrix, { { 1, 0, 0 }, { 2, 3, 0 }, { 0, 0, 4 } } );
 }
 
@@ -139,7 +139,7 @@ TEST( MatrixReaderTest, readMtx_skewSymmetric )
 
 TEST( MatrixReaderTest, readMtx_skewSymmetricIntoDenseMatrix )
 {
-   const DenseMatrix matrix = readFromString< DenseMatrix >( skewSymmetricMtx );
+   const auto matrix = readFromString< DenseMatrix >( skewSymmetricMtx );
    expectElements( matrix, { { 0, -2, 0 }, { 2, 0, 3 }, { 0, -3, 0 } } );
 }
 

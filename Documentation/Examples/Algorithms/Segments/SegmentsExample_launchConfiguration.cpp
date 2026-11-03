@@ -54,7 +54,7 @@ SegmentsExample()
       sums_view[ segmentIdx ] = value;
    };
    const LaunchConfiguration tiered( ThreadsToSegmentsMapping::Tiered, 4 );
-   reduceAllSegments( segments, fetch, TNL::Plus{}, store, tiered );
+   reduceAllSegments( segments, fetch, TNL::Plus(), store, tiered );
    std::cout << "Segment sizes: " << sums << '\n';
    //! [reduction]
 
@@ -64,7 +64,7 @@ SegmentsExample()
     */
    for( const auto& [ launchConfig, tag ] : reductionLaunchConfigurations( segments ) ) {
       sums = 0.0;
-      reduceAllSegments( segments, fetch, TNL::Plus{}, store, launchConfig );
+      reduceAllSegments( segments, fetch, TNL::Plus(), store, launchConfig );
       std::cout << "   " << tag << ": " << sums << '\n';
    }
    //! [list]
@@ -76,7 +76,7 @@ SegmentsExample()
     */
    const LaunchConfiguration bySize = uniformLaunchConfigurationBySegmentSize( segments, 2, 128 );
    std::cout << "Threads per segment chosen by the segment size: " << bySize.getThreadsPerSegmentCount() << '\n';
-   reduceAllSegments( segments, fetch, TNL::Plus{}, store, bySize );
+   reduceAllSegments( segments, fetch, TNL::Plus(), store, bySize );
    std::cout << "Segment sizes: " << sums << '\n';
    //! [by segment size]
 

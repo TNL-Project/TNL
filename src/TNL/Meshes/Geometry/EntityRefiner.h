@@ -13,7 +13,7 @@ namespace TNL::Meshes {
 
 enum class EntityRefinerVersion : std::uint8_t
 {
-   EdgeBisection
+   EdgeBisection,
 };
 
 template<

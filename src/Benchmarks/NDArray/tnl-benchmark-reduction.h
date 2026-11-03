@@ -39,8 +39,7 @@ benchmark_reduction1D( Benchmark& benchmark, index_type size )
 
    auto compute = [ & ]()
    {
-      auto res = reduce< Device >( 0, size, v.getConstView(), TNL::Plus{} );
-      (void) res;
+      [[maybe_unused]] auto res = reduce< Device >( 0, size, v.getConstView(), TNL::Plus{} );
    };
 
    const std::size_t datasetSize = size * sizeof( index_type );

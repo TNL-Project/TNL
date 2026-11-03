@@ -37,16 +37,16 @@ TYPED_TEST( EqualTest, equal_cuda )
    ValueType* deviceData = cudaAllocator.allocate( ARRAY_TEST_SIZE );
    ValueType* deviceData2 = cudaAllocator.allocate( ARRAY_TEST_SIZE );
 
-   fill< Devices::Host >( hostData, (ValueType) 7, ARRAY_TEST_SIZE );
-   fill< Devices::Cuda >( deviceData, (ValueType) 8, ARRAY_TEST_SIZE );
-   fill< Devices::Cuda >( deviceData2, (ValueType) 9, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( hostData, static_cast< ValueType >( 7 ), ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, static_cast< ValueType >( 8 ), ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, static_cast< ValueType >( 9 ), ARRAY_TEST_SIZE );
 
    EXPECT_FALSE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
    EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );
    EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ) );
 
-   fill< Devices::Cuda >( deviceData, (ValueType) 7, ARRAY_TEST_SIZE );
-   fill< Devices::Cuda >( deviceData2, (ValueType) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, static_cast< ValueType >( 7 ), ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, static_cast< ValueType >( 7 ), ARRAY_TEST_SIZE );
 
    EXPECT_TRUE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
    EXPECT_TRUE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );
@@ -71,15 +71,15 @@ TYPED_TEST( EqualTest, equalWithConversions_cuda )
    double* deviceData2 = cudaAllocator2.allocate( ARRAY_TEST_SIZE );
 
    fill< Devices::Host >( hostData, 7, ARRAY_TEST_SIZE );
-   fill< Devices::Cuda >( deviceData, (float) 8, ARRAY_TEST_SIZE );
-   fill< Devices::Cuda >( deviceData2, (double) 9, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, static_cast< float >( 8 ), ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, static_cast< double >( 9 ), ARRAY_TEST_SIZE );
 
    EXPECT_FALSE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
    EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );
    EXPECT_FALSE( ( equal< Devices::Cuda, Devices::Cuda >( deviceData, deviceData2, ARRAY_TEST_SIZE ) ) );
 
-   fill< Devices::Cuda >( deviceData, (float) 7, ARRAY_TEST_SIZE );
-   fill< Devices::Cuda >( deviceData2, (double) 7, ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData, static_cast< float >( 7 ), ARRAY_TEST_SIZE );
+   fill< Devices::Cuda >( deviceData2, static_cast< double >( 7 ), ARRAY_TEST_SIZE );
 
    EXPECT_TRUE( ( equal< Devices::Host, Devices::Cuda >( hostData, deviceData, ARRAY_TEST_SIZE ) ) );
    EXPECT_TRUE( ( equal< Devices::Cuda, Devices::Host >( deviceData, hostData, ARRAY_TEST_SIZE ) ) );

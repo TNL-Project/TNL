@@ -124,8 +124,8 @@ Reduction2D< Devices::Host >::reduce( Result identity, Fetch fetch, Reduction re
    const int blocks = size / block_size;
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
-      const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads(threads)
+      [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
+      #pragma omp parallel num_threads( threads )
       {
          // first thread initializes the result array
          #pragma omp single nowait

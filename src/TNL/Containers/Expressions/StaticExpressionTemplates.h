@@ -835,4 +835,4 @@ addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction,
 }  // namespace TNL
 
 // Helper TNL_ASSERT_ALL_* macros
-#include "Assert.h"
+#include "Assert.h"  // IWYU pragma: keep

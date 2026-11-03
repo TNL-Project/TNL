@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/compress.h>
-#include "detail/TraversingOperations.h"
+#include "detail/TraversingOperations.h"  // IWYU pragma: keep
 
 namespace TNL::Algorithms::Segments {
 

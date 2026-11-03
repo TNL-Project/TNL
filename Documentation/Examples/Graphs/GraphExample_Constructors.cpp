@@ -58,7 +58,8 @@ constructorsExample()
                           { 0, 1, 10.0 }, { 0, 2, 20.0 },
                                           { 1, 2, 30.0 }, { 1, 3, 40.0 },
                                                           { 2, 3, 50.0 },
-          { 3, 0, 60.0 },                                                 { 3, 4, 70.0 } } );
+          { 3, 0, 60.0 },                                                 { 3, 4, 70.0 },
+        } );
    // clang-format on
    std::cout << "Sparse graph:\n" << graph3a << '\n';
    //! [constructor with edges]
@@ -73,7 +74,8 @@ constructorsExample()
         {  // only need to specify edges once for undirected graph
           { 0, 1, 1.0 }, { 0, 2, 2.0 },
                          { 1, 2, 3.0 },
-                                        { 2, 3, 4.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+                                        { 2, 3, 4.0 },
+        }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
    std::cout << "Undirected graph:\n" << graph3b << '\n';
    //! [constructor with edges for undirected graph]
@@ -89,7 +91,8 @@ constructorsExample()
                              { 0.0,  0.0, 30.0, 40.0,  0.0 },  // edges from vertex 1
                              { 0.0,  0.0,  0.0, 50.0,  0.0 },  // edges from vertex 2
                              {60.0,  0.0,  0.0,  0.0, 70.0 },  // edges from vertex 3
-                             { 0.0,  0.0,  0.0,  0.0,  0.0 } } ); // edges from vertex 4
+                             { 0.0,  0.0,  0.0,  0.0,  0.0 },  // edges from vertex 4
+                           } );
    // clang-format on
    std::cout << "Dense graph (complete graph with weighted edges):\n" << graph3c << '\n';
    //! [constructor with edges for dense graph]
@@ -128,7 +131,8 @@ constructorsExample()
    // clang-format off
    matrix.setElements( {                { 0, 1, 1.0 }, { 0, 2, 2.0 },
                                                        { 1, 2, 3.0 },
-                         { 2, 0, 4.0 } } );
+                         { 2, 0, 4.0 },
+                       } );
    // clang-format on
    //! [constructor from adjacency matrix]
 

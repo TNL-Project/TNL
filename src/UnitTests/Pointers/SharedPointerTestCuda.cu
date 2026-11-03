@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <TNL/Devices/Host.h>
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Containers/StaticArray.h>
@@ -11,7 +10,7 @@ using namespace TNL;
 
 TEST( SharedPointerTestCuda, ConstructorTest )
 {
-   typedef TNL::Containers::StaticArray< 2, int > TestType;
+   using TestType = TNL::Containers::StaticArray< 2, int >;
    Pointers::SharedPointer< TestType, Devices::Cuda > ptr1;
 
    ptr1->x() = 0;
@@ -30,7 +29,7 @@ TEST( SharedPointerTestCuda, ConstructorTest )
 
 TEST( SharedPointerCudaTest, getDataTest )
 {
-   typedef TNL::Containers::StaticArray< 2, int > TestType;
+   using TestType = TNL::Containers::StaticArray< 2, int >;
    Pointers::SharedPointer< TestType, Devices::Cuda > ptr1( 1, 2 );
 
    Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
@@ -55,7 +54,7 @@ copyArrayKernel( const TNL::Containers::Array< int, Devices::Cuda >* inArray, in
 
 __global__
 void
-copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, Devices::Cuda > > inArray, int* outArray )
+copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, Devices::Cuda > >& inArray, int* outArray )
 {
    if( threadIdx.x < 2 ) {
       outArray[ threadIdx.x ] = ( *inArray )[ threadIdx.x ];
@@ -64,7 +63,7 @@ copyArrayKernel2( const Pointers::SharedPointer< TNL::Containers::Array< int, De
 
 TEST( SharedPointerCudaTest, getDataArrayTest )
 {
-   typedef TNL::Containers::Array< int, Devices::Cuda > TestType;
+   using TestType = TNL::Containers::Array< int, Devices::Cuda >;
    Pointers::SharedPointer< TestType > ptr;
 
    ptr->setSize( 2 );
@@ -73,7 +72,8 @@ TEST( SharedPointerCudaTest, getDataArrayTest )
 
    Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
 
-   int *testArray_device, *testArray_host;
+   int* testArray_device;
+   int* testArray_host;
    TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &testArray_device, 2 * sizeof( int ) ) );
    // clang-format off
    copyArrayKernel<<< 1, 2 >>>( &ptr.getData< Devices::Cuda >(), testArray_device );
@@ -99,7 +99,8 @@ TEST( SharedPointerCudaTest, getDataArrayTest )
 TEST( SharedPointerCudaTest, nullptrAssignment )
 {
    using TestType = Pointers::SharedPointer< double, Devices::Cuda >;
-   TestType p1( 5 ), p2( nullptr );
+   TestType p1( 5 );
+   TestType p2( nullptr );
 
    // This should not crash
    p1 = p2;
@@ -111,7 +112,8 @@ TEST( SharedPointerCudaTest, nullptrAssignment )
 TEST( SharedPointerCudaTest, swap )
 {
    using TestType = Pointers::SharedPointer< double, Devices::Cuda >;
-   TestType p1( 1 ), p2( 2 );
+   TestType p1( 1 );
+   TestType p2( 2 );
 
    p1.swap( p2 );
 

@@ -1,6 +1,4 @@
 #include <iostream>
-#include <iomanip>
-#include <functional>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Host.h>
 

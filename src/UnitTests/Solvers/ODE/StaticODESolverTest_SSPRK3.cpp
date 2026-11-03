@@ -6,4 +6,4 @@ using ODEMethod = TNL::Solvers::ODE::Methods::SSPRK3<>;
 
 constexpr double expected_eoc = 4.0;  // SSPRK3 is a 3th order method but the test reports EOC=4.0
 
-#include "ODEStaticSolverTest.h"
+#include "ODEStaticSolverTest.h"  // IWYU pragma: keep

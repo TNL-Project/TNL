@@ -10,6 +10,9 @@
 
 namespace TNL::Matrices::detail {
 
+template< typename Matrix >
+struct ReductionOperations;
+
 /**
  * \brief Base class for matrix reduction operations shared across all specializations.
  *

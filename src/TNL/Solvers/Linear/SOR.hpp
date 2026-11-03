@@ -107,7 +107,7 @@ SOR< Matrix >::performIteration( const ConstVectorViewType& b, const ConstVector
    {
       Algorithms::AtomicOperations< DeviceType >::add( x[ rowIdx ], omega_ / diagonalView[ rowIdx ] * ( b[ rowIdx ] - value ) );
    };
-   this->matrix->reduceAllRows( fetch, TNL::Plus{}, keep, 0.0 );
+   this->matrix->reduceAllRows( fetch, TNL::Plus(), keep, 0.0 );
 }
 
 }  // namespace TNL::Solvers::Linear

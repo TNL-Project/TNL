@@ -14,7 +14,7 @@ namespace TNL::Meshes {
 enum class EntityDecomposerVersion : std::uint8_t
 {
    ConnectEdgesToCentroid,
-   ConnectEdgesToPoint
+   ConnectEdgesToPoint,
 };
 
 template<
@@ -99,7 +99,8 @@ struct EntityDecomposer<
    {
       const auto pointsCount = entity.template getSubentitiesCount< 0 >();
       return {
-         0, pointsCount - 2
+         0,
+         pointsCount - 2,
       };  // no extra points and there is a triangle for every non-adjacent edge to the 0th point (pointsCount - 2)
    }
 

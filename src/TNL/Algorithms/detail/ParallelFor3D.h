@@ -93,15 +93,17 @@ ParallelFor3DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs.
             i.x() = begin.x();
             i.y() += blockDim.y * gridDim.y;
          }
-         else
+         else {
             break;
+         }
       }
       if( gridStride ) {
          i.y() = begin.y();
          i.z() += blockDim.z * gridDim.z;
       }
-      else
+      else {
          break;
+      }
    }
 #endif
 }

@@ -11,8 +11,8 @@ template< typename Value >
 __cuda_callable__
 constexpr Complex< Value >::Complex()
 {
-   this->real_ = (ValueType) 0.0;
-   this->imag_ = (ValueType) 0.0;
+   this->real_ = static_cast< ValueType >( 0.0 );
+   this->imag_ = static_cast< ValueType >( 0.0 );
 }
 
 template< typename Value >
@@ -20,7 +20,7 @@ __cuda_callable__
 constexpr Complex< Value >::Complex( const Value& re )
 {
    this->real_ = re;
-   this->imag_ = (ValueType) 0.0;
+   this->imag_ = static_cast< ValueType >( 0.0 );
 }
 
 template< typename Value >
@@ -54,7 +54,7 @@ constexpr Complex< Value >&
 Complex< Value >::operator=( const Value& v )
 {
    this->real_ = v;
-   this->imag_ = (ValueType) 0.0;
+   this->imag_ = static_cast< ValueType >( 0.0 );
    return *this;
 }
 
@@ -65,7 +65,7 @@ constexpr Complex< Value >&
 Complex< Value >::operator=( const Value_& v )
 {
    this->real_ = v;
-   this->imag_ = (ValueType) 0.0;
+   this->imag_ = static_cast< ValueType >( 0.0 );
    return *this;
 }
 
@@ -360,7 +360,7 @@ __cuda_callable__
 bool
 Complex< Value >::operator==( const Value& v ) const
 {
-   return this->real() == v && this->imag_ == (ValueType) 0.0;
+   return this->real() == v && this->imag_ == static_cast< ValueType >( 0.0 );
 }
 
 template< typename Value >
@@ -377,7 +377,7 @@ __cuda_callable__
 std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, bool >
 Complex< Value >::operator==( const Value_& v ) const
 {
-   return this->real() == v && this->imag() == (ValueType) 0.0;
+   return this->real() == v && this->imag() == static_cast< ValueType >( 0.0 );
 }
 
 template< typename Value >

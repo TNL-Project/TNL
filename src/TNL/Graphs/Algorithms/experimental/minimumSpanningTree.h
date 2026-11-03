@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <TNL/Containers/Vector.h>
+
 namespace TNL::Graphs::Algorithms::experimental {
 
 // TODO: Move to the experimental folder - the parallel algorithm is not working properly yet

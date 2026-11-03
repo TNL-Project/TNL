@@ -123,7 +123,7 @@ enum FuncCache
    FuncCachePreferNone = 0,
    FuncCachePreferShared = 1,
    FuncCachePreferL1 = 2,
-   FuncCachePreferEqual = 3
+   FuncCachePreferEqual = 3,
 };
 #endif
 

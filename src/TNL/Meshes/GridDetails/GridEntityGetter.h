@@ -85,7 +85,7 @@ public:
       const CoordinatesType& dimensions = grid.getDimensions();
 
       if( entity.getOrientation() == 0 )
-         return coordinates.y() * ( dimensions.x() ) + coordinates.x();
+         return coordinates.y() * dimensions.x() + coordinates.x();
 
       return grid.template getOrientedEntitiesCount< 1, 0 >() + coordinates.y() * ( dimensions.x() + 1 ) + coordinates.x();
    }
@@ -163,7 +163,7 @@ public:
       const CoordinatesType& dimensions = grid.getDimensions();
 
       if( entity.getOrientation() == 0 )
-         return ( coordinates.z() * dimensions.y() + coordinates.y() ) * ( dimensions.x() ) + coordinates.x();
+         return ( coordinates.z() * dimensions.y() + coordinates.y() ) * dimensions.x() + coordinates.x();
 
       if( entity.getOrientation() == 1 )
          return grid.template getOrientedEntitiesCount< 2, 0 >()

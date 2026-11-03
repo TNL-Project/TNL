@@ -19,7 +19,8 @@ reduceVerticesWithIndexesExample()
           { 0, 1, 10.0 }, { 0, 2, 20.0 },
                           { 1, 2, 30.0 }, { 1, 3, 40.0 }, { 1, 4, 50.0 },
                                           { 2, 3, 60.0 },
-          { 3, 0, 70.0 },                                { 3, 4, 80.0 } } );
+          { 3, 0, 70.0 },                                { 3, 4, 80.0 },
+        } );
    // clang-format on
 
    /***
@@ -48,7 +49,7 @@ reduceVerticesWithIndexesExample()
       vertexSums_view[ vertexIdx ] = sum;
    };
 
-   TNL::Graphs::reduceVertices( graph, vertexIndices, fetch, TNL::Plus{}, store );
+   TNL::Graphs::reduceVertices( graph, vertexIndices, fetch, TNL::Plus(), store );
    //! [reduce vertices with indices]
 
    /***

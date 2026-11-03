@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <TNL/Devices/Host.h>
 #include <TNL/Pointers/DevicePointer.h>
 #include <TNL/Containers/StaticArray.h>
@@ -58,7 +57,7 @@ copyArrayKernel( const TNL::Containers::Array< int, Devices::Cuda >* inArray, in
 
 __global__
 void
-copyArrayKernel2( const Pointers::DevicePointer< TNL::Containers::Array< int, Devices::Cuda > > inArray, int* outArray )
+copyArrayKernel2( const Pointers::DevicePointer< TNL::Containers::Array< int, Devices::Cuda > >& inArray, int* outArray )
 {
    if( threadIdx.x < 2 ) {
       outArray[ threadIdx.x ] = ( *inArray )[ threadIdx.x ];
@@ -77,7 +76,8 @@ TEST( DevicePointerCudaTest, getDataArrayTest )
 
    Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
 
-   int *testArray_device, *testArray_host;
+   int* testArray_device;
+   int* testArray_host;
    TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &testArray_device, 2 * sizeof( int ) ) );
    // clang-format off
    copyArrayKernel<<< 1, 2 >>>( &ptr.getData< Devices::Cuda >(), testArray_device );
@@ -104,7 +104,8 @@ TEST( DevicePointerCudaTest, nullptrAssignment )
 {
    using TestType = Pointers::DevicePointer< double, Devices::Cuda >;
    double o1 = 5;
-   TestType p1( o1 ), p2( nullptr );
+   TestType p1( o1 );
+   TestType p2( nullptr );
 
    // This should not crash
    p1 = p2;
@@ -116,8 +117,10 @@ TEST( DevicePointerCudaTest, nullptrAssignment )
 TEST( DevicePointerCudaTest, swap )
 {
    using TestType = Pointers::DevicePointer< double, Devices::Cuda >;
-   double o1( 1 ), o2( 2 );
-   TestType p1( o1 ), p2( o2 );
+   double o1( 1 );
+   double o2( 2 );
+   TestType p1( o1 );
+   TestType p2( o2 );
 
    p1.swap( p2 );
 

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Wrappers.h"
 #include "Utils.h"
 
 namespace TNL::MPI {

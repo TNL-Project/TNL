@@ -15,22 +15,24 @@ laplaceOperatorMatrix()
       { -gridSize, -1, 0, 1, gridSize }  // diagonals offsets
    );
    matrix.setElements(
-      { { 0.0, 0.0, 1.0 },  // set matrix elements corresponding to boundary grid nodes
-        { 0.0, 0.0, 1.0 },  // and Dirichlet boundary conditions, i.e. 1 on the main diagonal
-        { 0.0, 0.0, 1.0 },  // which is the third one
-        { 0.0, 0.0, 1.0 },
-        { 0.0, 0.0, 1.0 },
-        { -1.0, -1.0, 4.0, -1.0, -1.0 },  // set matrix elements corresponding to inner grid nodes, i.e. 4 on the main diagonal
-        { -1.0, -1.0, 4.0, -1.0, -1.0 },  //  (the third one) and -1 to the other sub-diagonals
-        { 0.0, 0.0, 1.0 },
-        { 0.0, 0.0, 1.0 },
-        { -1.0, -1.0, 4.0, -1.0, -1.0 },
-        { -1.0, -1.0, 4.0, -1.0, -1.0 },
-        { 0.0, 0.0, 1.0 },
-        { 0.0, 0.0, 1.0 },
-        { 0.0, 0.0, 1.0 },
-        { 0.0, 0.0, 1.0 },
-        { 0.0, 0.0, 1.0 } } );
+      {
+         { 0.0, 0.0, 1.0 },  // set matrix elements corresponding to boundary grid nodes
+         { 0.0, 0.0, 1.0 },  // and Dirichlet boundary conditions, i.e. 1 on the main diagonal
+         { 0.0, 0.0, 1.0 },  // which is the third one
+         { 0.0, 0.0, 1.0 },
+         { 0.0, 0.0, 1.0 },
+         { -1.0, -1.0, 4.0, -1.0, -1.0 },  // set matrix elements corresponding to inner grid nodes, i.e. 4 on the main diagonal
+         { -1.0, -1.0, 4.0, -1.0, -1.0 },  //  (the third one) and -1 to the other sub-diagonals
+         { 0.0, 0.0, 1.0 },
+         { 0.0, 0.0, 1.0 },
+         { -1.0, -1.0, 4.0, -1.0, -1.0 },
+         { -1.0, -1.0, 4.0, -1.0, -1.0 },
+         { 0.0, 0.0, 1.0 },
+         { 0.0, 0.0, 1.0 },
+         { 0.0, 0.0, 1.0 },
+         { 0.0, 0.0, 1.0 },
+         { 0.0, 0.0, 1.0 },
+      } );
    auto view = matrix.getView();
    TNL::Containers::Vector< int, Device > rowLengths;
    view.getCompressedRowLengths( rowLengths );  // or matrix.getCompressedRowLengths

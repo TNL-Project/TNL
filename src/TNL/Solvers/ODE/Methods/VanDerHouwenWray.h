@@ -38,7 +38,7 @@ struct VanDerHouwenWray
       constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
          std::array< Value, Stages >{      0.0,      0.0, 0.0 },
          std::array< Value, Stages >{ 8.0/15.0,      0.0, 0.0 },
-         std::array< Value, Stages >{ 1.0/ 4.0, 5.0/12.0, 0.0 }
+         std::array< Value, Stages >{ 1.0/ 4.0, 5.0/12.0, 0.0 },
       };
       // clang-format on
       return k_coefficients[ stage ][ i ];

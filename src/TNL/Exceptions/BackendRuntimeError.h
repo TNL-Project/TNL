@@ -8,7 +8,7 @@
 
 #include <TNL/Backend/Types.h>
 
-#include "BackendSupportMissing.h"
+#include "BackendSupportMissing.h"  // IWYU pragma: keep
 
 namespace TNL::Exceptions {
 

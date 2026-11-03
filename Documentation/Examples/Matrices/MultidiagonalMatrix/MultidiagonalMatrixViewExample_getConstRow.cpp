@@ -14,11 +14,13 @@ getRowExample()
    MatrixType matrix(
       matrixSize,  // number of matrix columns
       diagonalsOffsets,
-      { { 0.0, 0.0, 1.0 },  // matrix elements
-        { 0.0, 2.0, 1.0 },
-        { 3.0, 2.0, 1.0 },
-        { 3.0, 2.0, 1.0 },
-        { 3.0, 2.0, 1.0 } } );
+      {
+         { 0.0, 0.0, 1.0 },  // matrix elements
+         { 0.0, 2.0, 1.0 },
+         { 3.0, 2.0, 1.0 },
+         { 3.0, 2.0, 1.0 },
+         { 3.0, 2.0, 1.0 },
+      } );
    auto view = matrix.getView();
 
    /***

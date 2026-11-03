@@ -33,10 +33,12 @@ template< typename Device >
 std::string
 getDeviceName()
 {
-   if constexpr( std::is_same_v< Device, Devices::Sequential > )
+   if constexpr( std::is_same_v< Device, Devices::Sequential > ) {
       return "sequential";
-   else if constexpr( std::is_same_v< Device, Devices::Host > )
+   }
+   else if constexpr( std::is_same_v< Device, Devices::Host > ) {
       return "host";
+   }
    else if constexpr( std::is_same_v< Device, Devices::GPU > ) {
 #if defined( __CUDACC__ )
       return "cuda";
@@ -46,8 +48,9 @@ getDeviceName()
       return "gpu";
 #endif
    }
-   else
+   else {
       return "unknown";
+   }
 }
 
 /**

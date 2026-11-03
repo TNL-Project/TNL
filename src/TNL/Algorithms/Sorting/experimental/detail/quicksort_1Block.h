@@ -60,8 +60,9 @@ singleBlockQuickSort(
 {
    if( arr.getSize() <= maxBitonicSize ) {
       auto& src = ( _iteration & 1 ) == 0 ? arr : aux;
-      if( useShared && arr.getSize() <= memSize )
+      if( useShared && arr.getSize() <= memSize ) {
          externSort< Value, Index, Compare >( src, arr, compare, sharedMem );
+      }
       else {
          externSort< Value, Index, Compare >( src, compare );
          // extern sort without shared memory only works in-place, need to copy into from aux
@@ -109,8 +110,9 @@ singleBlockQuickSort(
 
       // small enough for bitonic sort
       if( size <= maxBitonicSize ) {
-         if( useShared && size <= memSize )
+         if( useShared && size <= memSize ) {
             externSort< Value, Index, Compare >( src.getView( begin, end ), arr.getView( begin, end ), compare, sharedMem );
+         }
          else {
             externSort< Value, Index, Compare >( src.getView( begin, end ), compare );
             // extern sort without shared memory only works in-place, need to copy into from aux
@@ -133,9 +135,9 @@ singleBlockQuickSort(
 
       // synchronization is in this function already
       using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
-      __shared__ typename BlockScan::Storage storage;
-      int smallerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, smaller, threadIdx.x, storage );
-      int biggerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, bigger, threadIdx.x, storage );
+      __shared__ BlockScan::Storage storage;
+      int smallerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, smaller, threadIdx.x, storage );
+      int biggerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, bigger, threadIdx.x, storage );
 
       if( threadIdx.x == blockDim.x - 1 )  // has sum of all smaller and greater elements than pivot in src
       {

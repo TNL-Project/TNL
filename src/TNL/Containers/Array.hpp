@@ -359,7 +359,7 @@ Array< Value, Device, Index, Allocator >::setElement( IndexType i, ValueType val
 {
    TNL_ASSERT_GE( i, static_cast< Index >( 0 ), "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   detail::MemoryOperations< Device >::setElement( &( this->data[ i ] ), value );
+   detail::MemoryOperations< Device >::setElement( &this->data[ i ], value );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -369,7 +369,7 @@ Array< Value, Device, Index, Allocator >::getElement( IndexType i ) const
 {
    TNL_ASSERT_GE( i, static_cast< Index >( 0 ), "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
-   return detail::MemoryOperations< Device >::getElement( &( this->data[ i ] ) );
+   return detail::MemoryOperations< Device >::getElement( &this->data[ i ] );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >

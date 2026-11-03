@@ -34,7 +34,7 @@ TYPED_TEST( CopyTest, copy_host )
    Allocator allocator;
    ValueType* data1 = allocator.allocate( ARRAY_TEST_SIZE );
    ValueType* data2 = allocator.allocate( ARRAY_TEST_SIZE );
-   fill< Devices::Host >( data1, (ValueType) 13, ARRAY_TEST_SIZE );
+   fill< Devices::Host >( data1, static_cast< ValueType >( 13 ), ARRAY_TEST_SIZE );
    copy< Devices::Host, Devices::Host >( data2, data1, ARRAY_TEST_SIZE );
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
       EXPECT_EQ( data1[ i ], data2[ i ] );

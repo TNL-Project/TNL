@@ -175,7 +175,7 @@ public:
    const Object&
    operator*() const
    {
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -186,7 +186,7 @@ public:
    Object&
    operator*()
    {
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -227,7 +227,7 @@ public:
    const Object&
    getData() const
    {
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -245,7 +245,7 @@ public:
    Object&
    modifyData()
    {
-      return *( this->pointer );
+      return *this->pointer;
    }
 
    /**
@@ -519,7 +519,7 @@ public:
    operator*() const
    {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
-      return *( this->cuda_pointer );
+      return *this->cuda_pointer;
 #else
       return *( this->pointer );
 #endif
@@ -537,7 +537,7 @@ public:
    operator*()
    {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
-      return *( this->cuda_pointer );
+      return *this->cuda_pointer;
 #else
       this->pd->maybe_modified = true;
       return *( this->pointer );
@@ -589,9 +589,9 @@ public:
       TNL_ASSERT_NE( this->pd, nullptr, "" );
       TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
       if( std::is_same_v< Device, Devices::Host > )
-         return *( this->pointer );
+         return *this->pointer;
       if( std::is_same_v< Device, Devices::Cuda > )
-         return *( this->cuda_pointer );
+         return *this->cuda_pointer;
    }
 
    /**
@@ -619,10 +619,10 @@ public:
       TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
       if( std::is_same_v< Device, Devices::Host > ) {
          this->pd->maybe_modified = true;
-         return *( this->pointer );
+         return *this->pointer;
       }
       if( std::is_same_v< Device, Devices::Cuda > )
-         return *( this->cuda_pointer );
+         return *this->cuda_pointer;
    }
 
    /**

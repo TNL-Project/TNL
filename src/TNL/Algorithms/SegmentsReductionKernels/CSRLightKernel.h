@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Backend.h>
-#include "isSegmentReductionKernel.h"
 
 #include "../Segments/detail/FetchLambdaAdapter.h"
 #include "isSegmentsReductionKernel.h"
@@ -15,7 +14,7 @@ enum LightCSRSThreadsMapping : std::uint8_t
 {
    LightCSRConstantThreads,
    CSRLightAutomaticThreads,
-   CSRLightAutomaticThreadsLightSpMV
+   CSRLightAutomaticThreadsLightSpMV,
 };
 
 template< typename Index, typename Device >

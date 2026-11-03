@@ -11,7 +11,11 @@ main( int argc, char** argv )
    cudaError_t error_id = cudaGetDeviceCount( &num_devices );
 
    if( error_id != cudaSuccess ) {
-      fprintf( stderr, "cudaGetDeviceCount returned error %d (%s)\n", (int) error_id, cudaGetErrorString( error_id ) );
+      fprintf(
+         stderr,
+         "cudaGetDeviceCount returned error %d (%s)\n",
+         static_cast< int >( error_id ),
+         cudaGetErrorString( error_id ) );
       exit( EXIT_FAILURE );
    }
 

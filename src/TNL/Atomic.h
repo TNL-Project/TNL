@@ -38,7 +38,7 @@ atomicAdd( long int* address, long int val )
 double
 atomicMax( double* address, double value )
 {
-   unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
+   auto* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
    unsigned long long old = *addr_as_longlong;
    unsigned long long expected;
    do {
@@ -53,7 +53,7 @@ atomicMax( double* address, double value )
 double
 atomicMin( double* address, double value )
 {
-   unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
+   auto* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
    unsigned long long old = *addr_as_longlong;
    unsigned long long expected;
    do {

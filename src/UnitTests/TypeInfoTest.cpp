@@ -9,12 +9,12 @@ using namespace TNL;
 enum MyEnumType : std::uint8_t
 {
    foo,
-   bar
+   bar,
 };
 enum class MyEnumClass : std::uint8_t
 {
    foo,
-   bar
+   bar,
 };
 
 class MyClass

@@ -505,9 +505,9 @@ TEST( HypreTest, CSRMatrix )
    constexpr int size = 97;
 
    using MatrixType = Matrices::SparseMatrix< double, HYPRE_Device >;
-   MatrixType matrix = getGlobalMatrix< MatrixType >( size );
+   auto matrix = getGlobalMatrix< MatrixType >( size );
 
-   Matrices::HypreCSRMatrix a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   auto a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
    EXPECT_GT( a.getValues().getSize(), 0 );
    EXPECT_GT( a.getColumnIndexes().getSize(), 0 );
    EXPECT_GT( a.getRowOffsets().getSize(), 0 );
@@ -557,8 +557,8 @@ TEST( HypreTest, CSRMatrixMoveAssignment )
 
    constexpr int size = 10;
 
-   Matrices::HypreCSRMatrix a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
-   Matrices::HypreCSRMatrix b = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   auto a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   auto b = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
    const auto nonzeros = a.getValues().getSize();
 
    // move-assignment must release the handle currently held by the target
@@ -580,9 +580,9 @@ TEST( HypreTest, CSRMatrixSelfBind )
 
    constexpr int size = 10;
 
-   Matrices::HypreCSRMatrix a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   auto a = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
    const auto nonzeros = a.getValues().getSize();
-   hypre_CSRMatrix* handle = static_cast< hypre_CSRMatrix* >( a );
+   auto* handle = static_cast< hypre_CSRMatrix* >( a );
 
    // self-binding the object is a no-op
    a.bind( a );
@@ -607,7 +607,7 @@ TEST( HypreTest, ParCSRMatrix_wrapCSRMatrix )
    TNL::Hypre hypre;
 
    constexpr int size = 97;
-   Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   auto matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
 
    auto a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
    EXPECT_EQ( a.getRows(), size );
@@ -651,7 +651,7 @@ TEST( HypreTest, ParCSRMatrixMoveAssignment )
 
    // self-move-assignment must leave the matrix intact
    {
-      Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      auto matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
       Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
       Matrices::HypreParCSRMatrix& self = a;
       a = std::move( self );
@@ -661,7 +661,7 @@ TEST( HypreTest, ParCSRMatrixMoveAssignment )
 
    // move construction must transfer the ownership of the borrowed blocks
    {
-      Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      auto matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
       Matrices::HypreParCSRMatrix source = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
       Matrices::HypreParCSRMatrix target( std::move( source ) );
       EXPECT_EQ( target.getRows(), size );
@@ -669,8 +669,8 @@ TEST( HypreTest, ParCSRMatrixMoveAssignment )
 
    // move-assignment must transfer the ownership and release the old target handle
    {
-      Matrices::HypreCSRMatrix matrix1 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
-      Matrices::HypreCSRMatrix matrix2 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      auto matrix1 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+      auto matrix2 = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
       Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix1 );
       Matrices::HypreParCSRMatrix b = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix2 );
       a = std::move( b );
@@ -685,9 +685,9 @@ TEST( HypreTest, ParCSRMatrixSelfBind )
 
    constexpr int size = 10;
 
-   Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
+   auto matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( size );
    Matrices::HypreParCSRMatrix a = Matrices::HypreParCSRMatrix::wrapCSRMatrix( matrix );
-   hypre_ParCSRMatrix* handle = static_cast< hypre_ParCSRMatrix* >( a );
+   auto* handle = static_cast< hypre_ParCSRMatrix* >( a );
    const auto nonzeros = a.getNonzeroElementsCount();
 
    // self-binding the handle with take_ownership = false releases the handle
@@ -711,7 +711,7 @@ TEST( HypreTest, ParCSRMatrix_fromMasterRank )
    const int nproc = TNL::MPI::GetSize( MPI_COMM_WORLD );
 
    constexpr int global_size = 97;
-   Matrices::HypreCSRMatrix matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( global_size );
+   auto matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( global_size );
 
    using DistributedVector = Containers::DistributedVector< double, HYPRE_Device >;
    auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
@@ -733,7 +733,11 @@ TEST( HypreTest, ParCSRMatrix_fromMasterRank )
    Matrices::HypreCSRMatrix a_offd = a.getOffdiagonalBlock();
    EXPECT_EQ( a_offd.getRowOffsets().getSize(), local_size + 1 );
    EXPECT_EQ( a_offd.getRows(), local_size );
-   const int offd_cols = ( nproc == 1 ) ? 0 : ( rank > 0 && rank < nproc - 1 ) ? 2 : 1;
+   int offd_cols = 1;
+   if( nproc == 1 )
+      offd_cols = 0;
+   else if( rank > 0 && rank < nproc - 1 )
+      offd_cols = 2;
    EXPECT_EQ( a_offd.getColumns(), offd_cols );
 
    auto col_map_offd = a.getOffdiagonalColumnsMapping();
@@ -757,7 +761,7 @@ TEST( HypreTest, ParCSRMatrix_fromLocalBlocks )
    using DistributedVector = Containers::DistributedVector< double, HYPRE_Device >;
    auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
 
-   Matrices::HypreCSRMatrix matrix = getLocalBlock< Matrices::HypreCSRMatrix >( global_size, x.getLocalRange() );
+   auto matrix = getLocalBlock< Matrices::HypreCSRMatrix >( global_size, x.getLocalRange() );
 
    auto a = Matrices::HypreParCSRMatrix::fromLocalBlocks(
       MPI_COMM_WORLD, global_size, global_size, x.getLocalRange(), x.getLocalRange(), matrix );
@@ -775,7 +779,11 @@ TEST( HypreTest, ParCSRMatrix_fromLocalBlocks )
    Matrices::HypreCSRMatrix a_offd = a.getOffdiagonalBlock();
    EXPECT_EQ( a_offd.getRowOffsets().getSize(), local_size + 1 );
    EXPECT_EQ( a_offd.getRows(), local_size );
-   const int offd_cols = ( nproc == 1 ) ? 0 : ( rank > 0 && rank < nproc - 1 ) ? 2 : 1;
+   int offd_cols = 1;
+   if( nproc == 1 )
+      offd_cols = 0;
+   else if( rank > 0 && rank < nproc - 1 )
+      offd_cols = 2;
    EXPECT_EQ( a_offd.getColumns(), offd_cols );
 
    auto col_map_offd = a.getOffdiagonalColumnsMapping();
@@ -909,7 +917,7 @@ TEST( HypreTest, solve_distributed_fromLocalBlock )
    hypre_b.bind( b );
 
    // create the local matrix block
-   Matrices::HypreCSRMatrix local_matrix = getLocalBlock< Matrices::HypreCSRMatrix >( global_size, x.getLocalRange() );
+   auto local_matrix = getLocalBlock< Matrices::HypreCSRMatrix >( global_size, x.getLocalRange() );
 
    // create the distributed matrix
    auto matrix = Matrices::HypreParCSRMatrix::fromLocalBlocks(

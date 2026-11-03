@@ -6,4 +6,4 @@ using ODEMethod = TNL::Solvers::ODE::Methods::DormandPrince<>;
 
 constexpr double expected_eoc = 5.0;
 
-#include "ODEStaticSolverTest.h"
+#include "ODEStaticSolverTest.h"  // IWYU pragma: keep

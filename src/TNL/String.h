@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
 #include <sstream>
 #include <vector>
 #include <string>
@@ -35,8 +34,8 @@ public:
     */
    enum class SplitSkip : std::uint8_t
    {
-      NoSkip,    //!< Do not skip empty characters.
-      SkipEmpty  //!< Skip empty characters.
+      NoSkip,     //!< Do not skip empty characters.
+      SkipEmpty,  //!< Skip empty characters.
    };
 
    //! \brief Default constructor.

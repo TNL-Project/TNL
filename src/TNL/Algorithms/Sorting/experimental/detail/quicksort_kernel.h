@@ -66,7 +66,7 @@ cudaQuickSortFirstPhase(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* piv = (Value*) externMem;
+   Value* piv = reinterpret_cast< Value* >( externMem );
    Value* sharedMem = piv + 1;
 
    QuicksortTask< Index >& myTask = tasks[ taskMapping[ blockIdx.x ] ];
@@ -104,7 +104,7 @@ cudaWritePivot(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* piv = (Value*) externMem;
+   Value* piv = reinterpret_cast< Value* >( externMem );
 
    QuicksortTask< Index >& myTask = tasks[ blockIdx.x ];
 
@@ -172,8 +172,9 @@ writeNewTask(
 
    if( size <= maxElementsForSecondPhase ) {
       int idx = atomicAdd( secondPhaseTasksCnt, 1 );
-      if( idx < secondPhaseTasks.getSize() )
+      if( idx < secondPhaseTasks.getSize() ) {
          secondPhaseTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
+      }
       else {
          int idx = atomicAdd( newTasksCnt, 1 );
          TNL_ASSERT_LT( idx, newTasks.getSize(), "task memory exhausted in writeNewTask" );
@@ -182,8 +183,9 @@ writeNewTask(
    }
    else {
       int idx = atomicAdd( newTasksCnt, 1 );
-      if( idx < newTasks.getSize() )
+      if( idx < newTasks.getSize() ) {
          newTasks[ idx ] = QuicksortTask< Index >( begin, end, iteration + 1 );
+      }
       else {
          int idx = atomicAdd( secondPhaseTasksCnt, 1 );
          TNL_ASSERT_LT( idx, secondPhaseTasks.getSize(), "task memory exhausted in writeNewTask" );
@@ -206,7 +208,7 @@ cudaQuickSortSecondPhase(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* sharedMem = (Value*) externMem;
+   Value* sharedMem = reinterpret_cast< Value* >( externMem );
 
    QuicksortTask< Index >& myTask = secondPhaseTasks[ blockIdx.x ];
    if( myTask.getSize() <= 0 )
@@ -240,7 +242,7 @@ cudaQuickSortSecondPhase2(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    extern __shared__ int externMem[];
-   Value* sharedMem = (Value*) externMem;
+   Value* sharedMem = reinterpret_cast< Value* >( externMem );
 
    QuicksortTask< Index > myTask;
    if( blockIdx.x < secondPhaseTasks1.getSize() )

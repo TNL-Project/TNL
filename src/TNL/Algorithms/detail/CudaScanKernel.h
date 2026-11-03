@@ -89,10 +89,10 @@ struct CudaBlockScan
             result = reduction(
                storage.chunkResults[ chunkResultIdx ], storage.chunkResults[ Backend::getInterleaving( tid - stride ) ] );
          // We must sync all threads in a warp after read and before write to avoid race condition
-         warp.sync();
+         decltype( warp )::sync();
          if( lane_id >= stride )
             storage.chunkResults[ chunkResultIdx ] = result;
-         warp.sync();
+         decltype( warp )::sync();
       }
       threadValue = storage.chunkResults[ chunkResultIdx ];
 
@@ -109,10 +109,10 @@ struct CudaBlockScan
             if( lane_id >= stride )
                result = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
             // We must sync all threads in a warp after read and before write to avoid race condition
-            warp.sync();
+            decltype( warp )::sync();
             if( lane_id >= stride )
                storage.warpResults[ tid ] = result;
-            warp.sync();
+            decltype( warp )::sync();
          }
       }
       __syncthreads();

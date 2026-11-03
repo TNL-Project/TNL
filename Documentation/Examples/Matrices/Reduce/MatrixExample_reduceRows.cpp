@@ -46,7 +46,7 @@ reduceRowsExample()
       rangeSums_view[ rowIdx - 2 ] = sum;  // Offset by begin index
    };
 
-   TNL::Matrices::reduceRows( matrix, 2, 6, fetch, TNL::Plus{}, storeRange );
+   TNL::Matrices::reduceRows( matrix, 2, 6, fetch, TNL::Plus(), storeRange );
 
    std::cout << "Sums for rows 2-5: " << rangeSums << '\n';
 
@@ -65,7 +65,7 @@ reduceRowsExample()
       compressedSums_view[ indexOfRowIdx ] = sum;
    };
 
-   TNL::Matrices::reduceRows( matrix, rowIndexes, fetch, TNL::Plus{}, storeArray );
+   TNL::Matrices::reduceRows( matrix, rowIndexes, fetch, TNL::Plus(), storeArray );
 
    std::cout << "Sums for rows [0, 2, 4, 6]: " << arraySums << '\n';
    std::cout << "Compressed sums for rows [0, 2, 4, 6]: " << compressedSums.getView( 0, rowIndexes.getSize() ) << '\n';

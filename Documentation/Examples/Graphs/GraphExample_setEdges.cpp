@@ -25,7 +25,8 @@ setEdgesExample()
                       { 0, 1, 10.0 }, { 0, 2, 20.0 },
                                       { 1, 2, 30.0 }, { 1, 3, 40.0 }, { 1, 4, 50.0 },
                                                       { 2, 3, 60.0 },
-      { 3, 0, 70.0 },                                                 { 3, 4, 80.0 } } );
+      { 3, 0, 70.0 },                                                 { 3, 4, 80.0 },
+                    } );
    // clang-format on
 
    std::cout << "Sparse graph after setEdges:\n" << graph1 << '\n';
@@ -52,7 +53,8 @@ setEdgesExample()
                             {  0.0,  0.0, 30.0, 40.0, 50.0 },  // edges from vertex 1
                             {  0.0,  0.0,  0.0, 60.0,  0.0 },  // edges from vertex 2
                             { 70.0,  0.0,  0.0,  0.0, 80.0 },  // edges from vertex 3
-                            {  0.0,  0.0,  0.0,  0.0,  0.0 } } ); // edges from vertex 4
+                            {  0.0,  0.0,  0.0,  0.0,  0.0 },  // edges from vertex 4
+                          } );
    // clang-format on
 
    std::cout << "Dense graph after setDenseEdges:\n" << graph1b << '\n';
@@ -86,7 +88,8 @@ setEdgesExample()
    // clang-format off
    GraphType graph3( 4, { { 0, 1, 1.0 },
                                          { 1, 2, 2.0 },
-                                                       { 2, 3, 3.0 } } );
+                                                       { 2, 3, 3.0 },
+                        } );
    // clang-format on
 
    std::cout << "Original graph:\n" << graph3 << '\n';
@@ -95,7 +98,8 @@ setEdgesExample()
    // clang-format off
    graph3.setEdges( { { 0, 1, 10.0 },
                                      { 1, 2, 20.0 },
-                                                     { 2, 3, 30.0 } } );
+                                                     { 2, 3, 30.0 },
+                    } );
    // clang-format on
    std::cout << "Updated graph:\n" << graph3 << '\n';
 
@@ -113,7 +117,8 @@ setEdgesExample()
    graph4.setEdges( {
                      { 0, 1, 1.0 }, { 0, 2, 2.0 },
                                     { 1, 2, 3.0 },
-                                                   { 2, 3, 4.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+                                                   { 2, 3, 4.0 },
+                    }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 }
 

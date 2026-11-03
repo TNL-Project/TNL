@@ -1,1 +1,1 @@
-#include "SparseMatrixReduceTest_SlicedEllpack.h"
+#include "SparseMatrixReduceTest_SlicedEllpack.h"  // IWYU pragma: keep

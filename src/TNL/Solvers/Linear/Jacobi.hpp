@@ -95,7 +95,7 @@ Jacobi< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
          this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
       this->currentIteration++;
       this->performIteration( bView, diagonalView, auxView, xView );
-      if( ( this->getIterations() ) % this->residuePeriod == 0 )
+      if( this->getIterations() % this->residuePeriod == 0 )
          this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
    }
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
@@ -119,7 +119,7 @@ Jacobi< Matrix >::performIteration(
    {
       out[ rowIdx ] = in[ rowIdx ] + omega_ / diagonalView[ rowIdx ] * ( b[ rowIdx ] - value );
    };
-   this->matrix->reduceAllRows( fetch, TNL::Plus{}, keep, 0.0 );
+   this->matrix->reduceAllRows( fetch, TNL::Plus(), keep, 0.0 );
 }
 
 }  // namespace TNL::Solvers::Linear

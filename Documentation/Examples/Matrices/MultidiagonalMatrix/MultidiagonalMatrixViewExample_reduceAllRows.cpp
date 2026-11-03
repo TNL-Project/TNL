@@ -1,6 +1,4 @@
 #include <iostream>
-#include <iomanip>
-#include <functional>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Matrices/reduce.h>
 #include <TNL/Devices/Host.h>
@@ -24,11 +22,13 @@ reduceAllRows()
    TNL::Matrices::MultidiagonalMatrix< double, Device > matrix(
       5,              // number of matrix columns
       { -2, -1, 0 },  // diagonals offsets
-      { { 0, 0, 1 },  // matrix elements
-        { 0, 2, 1 },
-        { 3, 2, 1 },
-        { 3, 2, 1 },
-        { 3, 2, 1 } } );
+      {
+         { 0, 0, 1 },  // matrix elements
+         { 0, 2, 1 },
+         { 3, 2, 1 },
+         { 3, 2, 1 },
+         { 3, 2, 1 },
+      } );
    auto view = matrix.getView();
 
    /***

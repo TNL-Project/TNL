@@ -51,8 +51,8 @@ TYPED_TEST( AllocatorsTestCuda, CudaManaged )
 
    // fill data on the device
    ValueType host_data[ ARRAY_TEST_SIZE ];
-   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
-      host_data[ i ] = 0;
+   for( auto& value : host_data )
+      value = 0;
    Backend::memcpy(
       static_cast< void* >( data ), static_cast< void* >( host_data ), ARRAY_TEST_SIZE, Backend::MemcpyHostToDevice );
 
@@ -74,8 +74,8 @@ TYPED_TEST( AllocatorsTestCuda, Cuda )
 
    // fill data on the device
    ValueType host_data[ ARRAY_TEST_SIZE ];
-   for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
-      host_data[ i ] = 0;
+   for( auto& value : host_data )
+      value = 0;
    Backend::memcpy(
       static_cast< void* >( data ), static_cast< void* >( host_data ), ARRAY_TEST_SIZE, Backend::MemcpyHostToDevice );
 

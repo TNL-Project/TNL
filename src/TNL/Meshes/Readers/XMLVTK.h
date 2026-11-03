@@ -21,11 +21,11 @@
 
 namespace TNL::Meshes::Readers {
 
-static const std::map< std::string, std::string > VTKDataTypes{ { "Int8", "std::int8_t" },   { "UInt8", "std::uint8_t" },
-                                                                { "Int16", "std::int16_t" }, { "UInt16", "std::uint16_t" },
-                                                                { "Int32", "std::int32_t" }, { "UInt32", "std::uint32_t" },
-                                                                { "Int64", "std::int64_t" }, { "UInt64", "std::uint64_t" },
-                                                                { "Float32", "float" },      { "Float64", "double" } };
+static const std::map< std::string, std::string > VTKDataTypes{
+   { "Int8", "std::int8_t" },   { "UInt8", "std::uint8_t" },   { "Int16", "std::int16_t" }, { "UInt16", "std::uint16_t" },
+   { "Int32", "std::int32_t" }, { "UInt32", "std::uint32_t" }, { "Int64", "std::int64_t" }, { "UInt64", "std::uint64_t" },
+   { "Float32", "float" },      { "Float64", "double" },
+};
 
 class XMLVTK : public MeshReader
 {
@@ -375,7 +375,7 @@ public:
          throw MeshReaderError( "XMLVTK", "<VTKFile> is not the only element in the file " + fileName );
 
       // verify byte order
-      const std::string systemByteOrder = ( isLittleEndian() ) ? "LittleEndian" : "BigEndian";
+      const std::string systemByteOrder = isLittleEndian() ? "LittleEndian" : "BigEndian";
       byteOrder = getAttributeString( elem, "byte_order" );
       if( byteOrder != systemByteOrder )
          throw MeshReaderError( "XMLVTK",

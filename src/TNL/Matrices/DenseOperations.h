@@ -10,7 +10,7 @@ namespace TNL::Matrices {
 enum class TransposeState : std::uint8_t
 {
    None,
-   Transpose
+   Transpose,
 };
 
 template< typename Matrix1, typename Matrix2 >

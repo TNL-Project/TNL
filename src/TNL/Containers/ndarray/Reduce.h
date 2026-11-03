@@ -229,9 +229,11 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
       };
 
       const MultiIndex begin = { 0, 0, 0 };
-      const MultiIndex end = { input.template getSize< axis1 >(),
-                               input.template getSize< axis2 >(),
-                               input.template getSize< axis3 >() };
+      const MultiIndex end = {
+         input.template getSize< axis1 >(),
+         input.template getSize< axis2 >(),
+         input.template getSize< axis3 >(),
+      };
       Algorithms::parallelFor< DeviceType >( begin, end, kernel );
    }
    else if constexpr( dimension == 5 ) {
@@ -273,9 +275,11 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
       };
 
       const MultiIndex begin = { 0, 0, 0 };
-      const MultiIndex end = { input.template getSize< axis2 >(),
-                               input.template getSize< axis3 >(),
-                               input.template getSize< axis4 >() };
+      const MultiIndex end = {
+         input.template getSize< axis2 >(),
+         input.template getSize< axis3 >(),
+         input.template getSize< axis4 >(),
+      };
       Algorithms::parallelFor< DeviceType >( begin, end, kernel );
    }
    else if constexpr( dimension == 6 ) {
@@ -325,9 +329,11 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
       };
 
       const MultiIndex begin = { 0, 0, 0 };
-      const MultiIndex end = { input.template getSize< axis3 >(),
-                               input.template getSize< axis4 >(),
-                               input.template getSize< axis5 >() };
+      const MultiIndex end = {
+         input.template getSize< axis3 >(),
+         input.template getSize< axis4 >(),
+         input.template getSize< axis5 >(),
+      };
       Algorithms::parallelFor< DeviceType >( begin, end, kernel );
    }
    /*

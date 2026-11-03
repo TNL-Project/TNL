@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/Optimization/Momentum.h>
+#include <TNL/Algorithms/reduce.h>
 
 namespace TNL::Solvers::Optimization {
 
@@ -82,7 +83,7 @@ Momentum< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGra
       RealType lastResidue = this->getResidue();
       this->setResidue(
          Algorithms::reduce< DeviceType >(
-            (IndexType) 0,
+            static_cast< IndexType >( 0 ),
             w_view.getSize(),
             [ = ] __cuda_callable__( IndexType i ) mutable
             {
@@ -90,7 +91,7 @@ Momentum< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGra
                return abs( v_view[ i ] );
             },
             TNL::Plus() )
-         / ( this->relaxation * (RealType) w.getSize() ) );
+         / ( this->relaxation * static_cast< RealType >( w.getSize() ) ) );
 
       if( ! this->nextIteration() )
          return this->checkConvergence();

@@ -58,7 +58,7 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 16 ), "Tiered 16 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Tiered, 32 ), "Tiered 32 TPS" },
          { uniformLaunchConfigurationBySegmentSize( segments, 2 ), "Uniform by size 2-warp TPS" },
-         { uniformLaunchConfigurationBySegmentSize( segments, 2, 128 ), "Uniform by size 2-128 TPS" }
+         { uniformLaunchConfigurationBySegmentSize( segments, 2, 128 ), "Uniform by size 2-128 TPS" },
       };
    }
    else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
@@ -70,7 +70,7 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 4 ), "4 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 8 ), "8 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 16 ), "16 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" },
          };
          if constexpr( Backend::getMaxWarpSize() == 64 )
             if( Backend::getWarpSize( Backend::getDevice() ) == 64 )
@@ -124,7 +124,7 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 4 ), "4 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 8 ), "8 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 16 ), "16 TPS" },
-         { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" }
+         { LaunchConfiguration( ThreadsToSegmentsMapping::Uniform, 32 ), "32 TPS" },
       };
       if constexpr( Backend::getMaxWarpSize() == 64 )
          if( Backend::getWarpSize( Backend::getDevice() ) == 64 )

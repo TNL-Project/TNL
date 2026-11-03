@@ -45,7 +45,7 @@ reduceAllRowsExample()
       rowSums_view[ rowIdx ] = sum;
    };
 
-   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, store );
+   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus(), store );
 
    std::cout << "Row sums: " << rowSums << '\n';
 

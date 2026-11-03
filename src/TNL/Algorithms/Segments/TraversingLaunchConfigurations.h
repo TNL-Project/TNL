@@ -103,7 +103,7 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 4 ), "PerElement 4 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 8 ), "PerElement 8 TPS" },
          { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 16 ), "PerElement 16 TPS" },
-         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 32 ), "PerElement 32 TPS" }
+         { LaunchConfiguration( ThreadsToSegmentsMapping::PerElement, 32 ), "PerElement 32 TPS" },
       };
    }
    else {

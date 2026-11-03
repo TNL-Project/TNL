@@ -256,7 +256,7 @@ public:
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
-      return *( this->cuda_pointer );
+      return *this->cuda_pointer;
 #else
       return this->pd->data;
 #endif
@@ -275,7 +275,7 @@ public:
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
-      return *( this->cuda_pointer );
+      return *this->cuda_pointer;
 #else
       this->pd->maybe_modified = true;
       return this->pd->data;
@@ -328,7 +328,7 @@ public:
       if( std::is_same_v< Device, Devices::Host > )
          return this->pd->data;
       if( std::is_same_v< Device, Devices::Cuda > )
-         return *( this->cuda_pointer );
+         return *this->cuda_pointer;
    }
 
    /**
@@ -358,7 +358,7 @@ public:
          return this->pd->data;
       }
       if( std::is_same_v< Device, Devices::Cuda > )
-         return *( this->cuda_pointer );
+         return *this->cuda_pointer;
    }
 
    /**

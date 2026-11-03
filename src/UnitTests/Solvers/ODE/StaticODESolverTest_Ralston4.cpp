@@ -6,4 +6,4 @@ using ODEMethod = TNL::Solvers::ODE::Methods::Ralston4<>;
 
 constexpr double expected_eoc = 4.1;
 
-#include "ODEStaticSolverTest.h"
+#include "ODEStaticSolverTest.h"  // IWYU pragma: keep

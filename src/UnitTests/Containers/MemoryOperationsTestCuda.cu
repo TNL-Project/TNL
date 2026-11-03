@@ -46,7 +46,7 @@ TYPED_TEST( MemoryOperationsTest, setElement_cuda )
    ASSERT_NO_THROW( TNL_CHECK_CUDA_DEVICE );
 
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ )
-      MemoryOperations< Devices::Cuda >::setElement( &data[ i ], (ValueType) i );
+      MemoryOperations< Devices::Cuda >::setElement( &data[ i ], static_cast< ValueType >( i ) );
 
    for( int i = 0; i < ARRAY_TEST_SIZE; i++ ) {
       ValueType d;

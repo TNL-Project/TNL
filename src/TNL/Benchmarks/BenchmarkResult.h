@@ -114,18 +114,20 @@ struct BenchmarkResult
    getTableHeader() const
    {
       return HeaderElements(
-         { "time",
-           "time_median",
-           "bandwidth",
-           "cycles/op",
-           "cycles",
-           "cycles_median",
-           "time_stddev",
-           "time_stddev/time",
-           "cycles_stddev",
-           "cycles_stddev/cycles",
-           "loops",
-           "ops_per_loop" } );
+         {
+            "time",
+            "time_median",
+            "bandwidth",
+            "cycles/op",
+            "cycles",
+            "cycles_median",
+            "time_stddev",
+            "time_stddev/time",
+            "cycles_stddev",
+            "cycles_stddev/cycles",
+            "loops",
+            "ops_per_loop",
+         } );
    }
 
    /**

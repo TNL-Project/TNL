@@ -20,7 +20,8 @@ sparseInitializerListExample()
                         { 1, 1, 3.0 },               { 1, 3, 4.0 },
          { 2, 0, 5.0 },                { 2, 2, 6.0 },               { 2, 4, 7.0 },
                         { 3, 1, 8.0 },               { 3, 3, 9.0 },
-         { 4, 0, 10.0 },                                            { 4, 4, 11.0 } } );
+         { 4, 0, 10.0 },                                            { 4, 4, 11.0 },
+      } );
    // clang-format on
 
    std::cout << "Dense matrix created from sparse tuple data:\n" << sparseMatrix << '\n';
@@ -37,7 +38,8 @@ sparseInitializerListExample()
          { 0, 0, 1.0 },
          { 1, 0, 2.0 }, { 1, 1, 3.0 },
          { 2, 0, 4.0 }, { 2, 1, 5.0 }, { 2, 2, 6.0 },
-         { 3, 0, 7.0 }, { 3, 1, 8.0 }, { 3, 2, 9.0 }, { 3, 3, 10.0 } },
+         { 3, 0, 7.0 }, { 3, 1, 8.0 }, { 3, 2, 9.0 }, { 3, 3, 10.0 },
+      },
       TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
    // clang-format on
    std::cout << "Symmetric matrix from lower triangular data:\n" << symmetricMatrix << '\n';

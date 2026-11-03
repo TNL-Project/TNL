@@ -30,19 +30,19 @@ TEST( AtomicOperationsHostCAS, NoSwapInt )
 // CAS with float: compare matches
 TEST( AtomicOperationsHostCAS, BasicSwapFloat )
 {
-   float address = 3.14f;
-   float old = AtomicOperations< Devices::Host >::CAS( address, 3.14f, 2.71f );
-   EXPECT_EQ( old, 3.14f );
-   EXPECT_EQ( address, 2.71f );
+   float address = 3.14F;
+   float old = AtomicOperations< Devices::Host >::CAS( address, 3.14F, 2.71F );
+   EXPECT_EQ( old, 3.14F );
+   EXPECT_EQ( address, 2.71F );
 }
 
 // CAS with float: compare does not match
 TEST( AtomicOperationsHostCAS, NoSwapFloat )
 {
-   float address = 3.14f;
-   float old = AtomicOperations< Devices::Host >::CAS( address, 0.0f, 2.71f );
-   EXPECT_EQ( old, 3.14f );
-   EXPECT_EQ( address, 3.14f );
+   float address = 3.14F;
+   float old = AtomicOperations< Devices::Host >::CAS( address, 0.0F, 2.71F );
+   EXPECT_EQ( old, 3.14F );
+   EXPECT_EQ( address, 3.14F );
 }
 
 // CAS with double: compare matches
@@ -118,7 +118,7 @@ TEST( AtomicOperationsHostCAS, ParallelAtomicSwap )
    int address = 0;
    int successCount = 0;
 
-   #pragma omp parallel for reduction( + : successCount ) num_threads( 8 )
+   #pragma omp parallel for reduction( + : successCount ) num_threads( 8 ) default( none ) shared( address )
    for( int i = 0; i < 8; i++ ) {
       int old = AtomicOperations< Devices::Host >::CAS( address, 0, 1 );
       if( old == 0 )
@@ -137,10 +137,11 @@ TEST( AtomicOperationsHostCAS, ParallelCASIncrement )
    const int numThreads = 8;
    const int incrementsPerThread = 100;
 
-   #pragma omp parallel num_threads( numThreads )
+   #pragma omp parallel num_threads( numThreads ) default( none ) shared( counter, incrementsPerThread )
    {
       for( int i = 0; i < incrementsPerThread; i++ ) {
-         int old, expected;
+         int old;
+         int expected;
          do {
             expected = counter;
             old = AtomicOperations< Devices::Host >::CAS( counter, expected, expected + 1 );

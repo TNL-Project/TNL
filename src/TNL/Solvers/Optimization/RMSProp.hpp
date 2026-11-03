@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/Optimization/RMSProp.h>
+#include <TNL/Functional.h>
 
 namespace TNL::Solvers::Optimization {
 
@@ -67,8 +68,11 @@ RMSProp< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGrad
       a = this->beta * a + ( 1.0 - this->beta ) * gradient_view * gradient_view;
       this->setResidue(
          addAndReduceAbs(
-            w_view, -this->relaxation / sqrt( this->a + this->epsilon ) * gradient_view, TNL::Plus(), (RealType) 0.0 )
-         / ( this->relaxation * (RealType) w.getSize() ) );
+            w_view,
+            -this->relaxation / sqrt( this->a + this->epsilon ) * gradient_view,
+            TNL::Plus(),
+            static_cast< RealType >( 0.0 ) )
+         / ( this->relaxation * static_cast< RealType >( w.getSize() ) ) );
 
       if( ! this->nextIteration() )
          return this->checkConvergence();

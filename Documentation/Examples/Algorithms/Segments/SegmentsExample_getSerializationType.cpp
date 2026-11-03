@@ -1,5 +1,4 @@
 #include <iostream>
-#include <functional>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Devices/Host.h>

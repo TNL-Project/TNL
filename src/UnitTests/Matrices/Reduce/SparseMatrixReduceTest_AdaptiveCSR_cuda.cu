@@ -1,1 +1,1 @@
-#include "SparseMatrixReduceTest_AdaptiveCSR.h"
+#include "SparseMatrixReduceTest_AdaptiveCSR.h"  // IWYU pragma: keep

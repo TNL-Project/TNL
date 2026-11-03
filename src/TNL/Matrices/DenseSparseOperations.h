@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cstdint>
-
 namespace TNL::Matrices {
 
 template< typename Matrix1, typename Matrix2 >

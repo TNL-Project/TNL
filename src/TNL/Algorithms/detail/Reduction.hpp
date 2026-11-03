@@ -18,14 +18,6 @@
 
 namespace TNL::Algorithms::detail {
 
-/**
- * \brief Threshold for switching between CPU and GPU reduction.
- *
- * Arrays smaller than the following constant are reduced on CPU.
- * The constant must not be larger than maximal CUDA grid size.
- */
-static constexpr int Reduction_minGpuDataSize = 256;  // 65536; //16384;//1024;//256;
-
 template< typename Index, typename Result, typename Fetch, typename Reduce >
 constexpr Result
 Reduction< Devices::Sequential >::reduce(
@@ -148,8 +140,8 @@ Reduction< Devices::Host >::reduce( const Index begin, const Index end, Fetch&& 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
       // global result variable
       Result result = identity;
-      const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads(threads)
+      [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
+      #pragma omp parallel num_threads( threads )
       {
          // initialize array for thread-local results
          Result r[ 4 ] = { identity, identity, identity, identity };
@@ -209,8 +201,8 @@ Reduction< Devices::Host >::reduceWithArgument(
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
       // global result variable
       std::pair< Result, Index > result( identity, -1 );
-      const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads(threads)
+      [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
+      #pragma omp parallel num_threads( threads )
       {
          // initialize array for thread-local results
          Index arg[ 4 ] = { 0, 0, 0, 0 };

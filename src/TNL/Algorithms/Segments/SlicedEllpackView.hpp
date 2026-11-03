@@ -36,11 +36,10 @@ __cuda_callable__
 typename SlicedEllpackView< Device, Index, Organization, SliceSize >::ViewType
 SlicedEllpackView< Device, Index, Organization, SliceSize >::getView()
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getSegmentCount(),
-            this->getSliceOffsetsView(),
-            this->getSliceSegmentSizesView() };
+   return {
+      this->getElementCount(),     this->getStorageSize(),           this->getSegmentCount(),
+      this->getSliceOffsetsView(), this->getSliceSegmentSizesView(),
+   };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -48,11 +47,10 @@ __cuda_callable__
 auto
 SlicedEllpackView< Device, Index, Organization, SliceSize >::getConstView() const -> ConstViewType
 {
-   return { this->getElementCount(),
-            this->getStorageSize(),
-            this->getSegmentCount(),
-            this->getSliceOffsetsView(),
-            this->getSliceSegmentSizesView() };
+   return {
+      this->getElementCount(),     this->getStorageSize(),           this->getSegmentCount(),
+      this->getSliceOffsetsView(), this->getSliceSegmentSizesView(),
+   };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >

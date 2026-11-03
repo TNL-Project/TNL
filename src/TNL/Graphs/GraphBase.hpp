@@ -70,7 +70,7 @@ GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getEdgeCount() 
       if constexpr( isUndirected() )
          return getVertexCount() * ( getVertexCount() - 1 ) / 2;
       else
-         return getVertexCount() * ( getVertexCount() );
+         return getVertexCount() * getVertexCount();
    }
    if constexpr( isUndirected() ) {
       auto diagonalEntries = sum( notEqualTo( Matrices::getDiagonal( adjacencyMatrixView ), 0 ) );

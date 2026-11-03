@@ -118,7 +118,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::operator==(
          } );
       return result;
    };
-   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->getRows(), fetch, TNL::LogicalAnd{}, true );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), this->getRows(), fetch, TNL::LogicalAnd(), true );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

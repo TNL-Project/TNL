@@ -39,7 +39,7 @@ struct Ralston4
          std::array< Value, Stages >{  0.0,         0.0,        0.0,        0.0 },
          std::array< Value, Stages >{  0.4,         0.0,        0.0,        0.0 },
          std::array< Value, Stages >{  0.29697761,  0.15875964, 0.0,        0.0 },
-         std::array< Value, Stages >{  0.21810040, -3.05096516, 3.83286476, 0.0 }
+         std::array< Value, Stages >{  0.21810040, -3.05096516, 3.83286476, 0.0 },
       };
       // clang-format on
       return k_coefficients[ stage ][ i ];

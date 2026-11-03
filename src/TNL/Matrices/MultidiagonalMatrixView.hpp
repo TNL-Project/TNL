@@ -34,7 +34,10 @@ auto
 MultidiagonalMatrixView< Real, Device, Index, Organization >::getView() -> ViewType
 {
    return {
-      this->getValues().getView(), this->diagonalOffsets.getView(), this->hostDiagonalOffsets.getView(), this->getIndexer()
+      this->getValues().getView(),
+      this->diagonalOffsets.getView(),
+      this->hostDiagonalOffsets.getView(),
+      this->getIndexer(),
    };
 }
 
@@ -42,10 +45,12 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 auto
 MultidiagonalMatrixView< Real, Device, Index, Organization >::getConstView() const -> ConstViewType
 {
-   return { this->getValues().getConstView(),
-            this->diagonalOffsets.getConstView(),
-            this->hostDiagonalOffsets.getConstView(),
-            this->getIndexer() };
+   return {
+      this->getValues().getConstView(),
+      this->diagonalOffsets.getConstView(),
+      this->hostDiagonalOffsets.getConstView(),
+      this->getIndexer(),
+   };
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
@@ -69,9 +68,9 @@ SegmentsExample()
       sums_view[ segmentIdx ] = value;
    };
 
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, store );
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus(), store );
    std::cout << "The sums with full fetch form are: " << sums << '\n';
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, store );
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus(), store );
    std::cout << "The sums with brief fetch form are: " << sums << "\n\n";
    //! [reduction]
 }

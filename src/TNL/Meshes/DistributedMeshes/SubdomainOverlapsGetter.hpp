@@ -4,6 +4,9 @@
 #pragma once
 
 #include <TNL/MPI/Wrappers.h>
+#include <TNL/MPI/Comm.h>
+#include "Directions.h"
+#include "SubdomainOverlapsGetter.h"
 #include <TNL/Assert.h>
 #include <TNL/Meshes/Grid.h>
 

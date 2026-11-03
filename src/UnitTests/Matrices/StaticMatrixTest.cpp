@@ -117,17 +117,17 @@ TEST( StaticNDArrayTest, set_elements )
    constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I, J, Permutation > M = 1.2f;
+   StaticMatrix< float, I, J, Permutation > M = 1.2F;
 
-   EXPECT_EQ( M( 0, 0 ), 1.2f );
-   EXPECT_EQ( M( 0, 1 ), 1.2f );
-   EXPECT_EQ( M( 0, 2 ), 1.2f );
-   EXPECT_EQ( M( 1, 0 ), 1.2f );
-   EXPECT_EQ( M( 1, 1 ), 1.2f );
-   EXPECT_EQ( M( 1, 2 ), 1.2f );
-   EXPECT_EQ( M( 2, 0 ), 1.2f );
-   EXPECT_EQ( M( 2, 1 ), 1.2f );
-   EXPECT_EQ( M( 2, 2 ), 1.2f );
+   EXPECT_EQ( M( 0, 0 ), 1.2F );
+   EXPECT_EQ( M( 0, 1 ), 1.2F );
+   EXPECT_EQ( M( 0, 2 ), 1.2F );
+   EXPECT_EQ( M( 1, 0 ), 1.2F );
+   EXPECT_EQ( M( 1, 1 ), 1.2F );
+   EXPECT_EQ( M( 1, 2 ), 1.2F );
+   EXPECT_EQ( M( 2, 0 ), 1.2F );
+   EXPECT_EQ( M( 2, 1 ), 1.2F );
+   EXPECT_EQ( M( 2, 2 ), 1.2F );
 }
 
 TEST( StaticNDArrayTest, matrix_addition )
@@ -136,19 +136,19 @@ TEST( StaticNDArrayTest, matrix_addition )
    constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I, J, Permutation > A = 1.2f;
-   StaticMatrix< float, I, J, Permutation > B = 1.3f;
+   StaticMatrix< float, I, J, Permutation > A = 1.2F;
+   StaticMatrix< float, I, J, Permutation > B = 1.3F;
    StaticMatrix< float, I, J, Permutation > C = A + B;
 
-   EXPECT_EQ( C( 0, 0 ), 2.5f );
-   EXPECT_EQ( C( 0, 1 ), 2.5f );
-   EXPECT_EQ( C( 0, 2 ), 2.5f );
-   EXPECT_EQ( C( 1, 0 ), 2.5f );
-   EXPECT_EQ( C( 1, 1 ), 2.5f );
-   EXPECT_EQ( C( 1, 2 ), 2.5f );
-   EXPECT_EQ( C( 2, 0 ), 2.5f );
-   EXPECT_EQ( C( 2, 1 ), 2.5f );
-   EXPECT_EQ( C( 2, 2 ), 2.5f );
+   EXPECT_EQ( C( 0, 0 ), 2.5F );
+   EXPECT_EQ( C( 0, 1 ), 2.5F );
+   EXPECT_EQ( C( 0, 2 ), 2.5F );
+   EXPECT_EQ( C( 1, 0 ), 2.5F );
+   EXPECT_EQ( C( 1, 1 ), 2.5F );
+   EXPECT_EQ( C( 1, 2 ), 2.5F );
+   EXPECT_EQ( C( 2, 0 ), 2.5F );
+   EXPECT_EQ( C( 2, 1 ), 2.5F );
+   EXPECT_EQ( C( 2, 2 ), 2.5F );
 }
 
 TEST( StaticNDArrayTest, matrix_subtraction )
@@ -157,19 +157,19 @@ TEST( StaticNDArrayTest, matrix_subtraction )
    constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I, J, Permutation > A = 3.f;
-   StaticMatrix< float, I, J, Permutation > B = 1.5f;
+   StaticMatrix< float, I, J, Permutation > A = 3.F;
+   StaticMatrix< float, I, J, Permutation > B = 1.5F;
    StaticMatrix< float, I, J, Permutation > C = A - B;
 
-   EXPECT_EQ( C( 0, 0 ), 1.5f );
-   EXPECT_EQ( C( 0, 1 ), 1.5f );
-   EXPECT_EQ( C( 0, 2 ), 1.5f );
-   EXPECT_EQ( C( 1, 0 ), 1.5f );
-   EXPECT_EQ( C( 1, 1 ), 1.5f );
-   EXPECT_EQ( C( 1, 2 ), 1.5f );
-   EXPECT_EQ( C( 2, 0 ), 1.5f );
-   EXPECT_EQ( C( 2, 1 ), 1.5f );
-   EXPECT_EQ( C( 2, 2 ), 1.5f );
+   EXPECT_EQ( C( 0, 0 ), 1.5F );
+   EXPECT_EQ( C( 0, 1 ), 1.5F );
+   EXPECT_EQ( C( 0, 2 ), 1.5F );
+   EXPECT_EQ( C( 1, 0 ), 1.5F );
+   EXPECT_EQ( C( 1, 1 ), 1.5F );
+   EXPECT_EQ( C( 1, 2 ), 1.5F );
+   EXPECT_EQ( C( 2, 0 ), 1.5F );
+   EXPECT_EQ( C( 2, 1 ), 1.5F );
+   EXPECT_EQ( C( 2, 2 ), 1.5F );
 }
 
 TEST( StaticNDArrayTest, matrix_expression )
@@ -178,16 +178,16 @@ TEST( StaticNDArrayTest, matrix_expression )
    constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I, J, Permutation > A = 3.f;
-   StaticMatrix< float, I, J, Permutation > B = 1.5f;
-   StaticMatrix< float, I, J, Permutation > C = 2.3f * A - B * 3.6 + 3 * A - A / 8;
+   StaticMatrix< float, I, J, Permutation > A = 3.F;
+   StaticMatrix< float, I, J, Permutation > B = 1.5F;
+   StaticMatrix< float, I, J, Permutation > C = 2.3F * A - B * 3.6 + 3 * A - A / 8;
 
-   EXPECT_EQ( C( 0, 0 ), 10.125f );
-   EXPECT_EQ( C( 0, 1 ), 10.125f );
-   EXPECT_EQ( C( 0, 2 ), 10.125f );
-   EXPECT_EQ( C( 1, 0 ), 10.125f );
-   EXPECT_EQ( C( 1, 1 ), 10.125f );
-   EXPECT_EQ( C( 1, 2 ), 10.125f );
+   EXPECT_EQ( C( 0, 0 ), 10.125F );
+   EXPECT_EQ( C( 0, 1 ), 10.125F );
+   EXPECT_EQ( C( 0, 2 ), 10.125F );
+   EXPECT_EQ( C( 1, 0 ), 10.125F );
+   EXPECT_EQ( C( 1, 1 ), 10.125F );
+   EXPECT_EQ( C( 1, 2 ), 10.125F );
 }
 
 TEST( StaticNDArrayTest, 3x3_times_3x3_matrix_multiplication )
@@ -196,32 +196,32 @@ TEST( StaticNDArrayTest, 3x3_times_3x3_matrix_multiplication )
    constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I, J, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f, 3.5f, 8.f, 1.f };
-   StaticMatrix< float, I, J, Permutation > B = { 2.f, 6.f, 1.2f, 9.f, 7.3f, 5.f, 4.f, 6.f, 2.f };
+   StaticMatrix< float, I, J, Permutation > A = { 3.F, 8.F, 6.F, 4.F, 1.F, 2.F, 3.5F, 8.F, 1.F };
+   StaticMatrix< float, I, J, Permutation > B = { 2.F, 6.F, 1.2F, 9.F, 7.3F, 5.F, 4.F, 6.F, 2.F };
 
    StaticMatrix< float, I, J, Permutation > C = A * B;
 
-   EXPECT_EQ( C( 0, 0 ), 102.f );
-   EXPECT_EQ( C( 0, 1 ), 112.4f );
-   EXPECT_EQ( C( 0, 2 ), 55.6f );
-   EXPECT_EQ( C( 1, 0 ), 25.f );
-   EXPECT_EQ( C( 1, 1 ), 43.3f );
-   EXPECT_EQ( C( 1, 2 ), 13.8f );
-   EXPECT_EQ( C( 2, 0 ), 83.f );
-   EXPECT_EQ( C( 2, 1 ), 85.4f );
-   EXPECT_EQ( C( 2, 2 ), 46.2f );
+   EXPECT_EQ( C( 0, 0 ), 102.F );
+   EXPECT_EQ( C( 0, 1 ), 112.4F );
+   EXPECT_EQ( C( 0, 2 ), 55.6F );
+   EXPECT_EQ( C( 1, 0 ), 25.F );
+   EXPECT_EQ( C( 1, 1 ), 43.3F );
+   EXPECT_EQ( C( 1, 2 ), 13.8F );
+   EXPECT_EQ( C( 2, 0 ), 83.F );
+   EXPECT_EQ( C( 2, 1 ), 85.4F );
+   EXPECT_EQ( C( 2, 2 ), 46.2F );
 
    StaticMatrix< float, I, J, Permutation > D = B * A;
 
-   EXPECT_EQ( D( 0, 0 ), 34.2f );
-   EXPECT_EQ( D( 0, 1 ), 31.6f );
-   EXPECT_EQ( D( 0, 2 ), 25.2f );
-   EXPECT_EQ( D( 1, 0 ), 73.7f );
-   EXPECT_EQ( D( 1, 1 ), 119.3f );
-   EXPECT_EQ( D( 1, 2 ), 73.6f );
-   EXPECT_EQ( D( 2, 0 ), 43.f );
-   EXPECT_EQ( D( 2, 1 ), 54.f );
-   EXPECT_EQ( D( 2, 2 ), 38.f );
+   EXPECT_EQ( D( 0, 0 ), 34.2F );
+   EXPECT_EQ( D( 0, 1 ), 31.6F );
+   EXPECT_EQ( D( 0, 2 ), 25.2F );
+   EXPECT_EQ( D( 1, 0 ), 73.7F );
+   EXPECT_EQ( D( 1, 1 ), 119.3F );
+   EXPECT_EQ( D( 1, 2 ), 73.6F );
+   EXPECT_EQ( D( 2, 0 ), 43.F );
+   EXPECT_EQ( D( 2, 1 ), 54.F );
+   EXPECT_EQ( D( 2, 2 ), 38.F );
 }
 
 TEST( StaticNDArrayTest, 2x3_times_3x4_matrix_multiplication )
@@ -232,19 +232,19 @@ TEST( StaticNDArrayTest, 2x3_times_3x4_matrix_multiplication )
    constexpr int J2 = 4;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I1, J1, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f };
-   StaticMatrix< float, I2, J2, Permutation > B = { 2.f, 6.f, 1.2f, 1.f, 9.f, 7.3f, 5.f, 2.f, 4.f, 6.f, 2.f, 3.f };
+   StaticMatrix< float, I1, J1, Permutation > A = { 3.F, 8.F, 6.F, 4.F, 1.F, 2.F };
+   StaticMatrix< float, I2, J2, Permutation > B = { 2.F, 6.F, 1.2F, 1.F, 9.F, 7.3F, 5.F, 2.F, 4.F, 6.F, 2.F, 3.F };
 
    StaticMatrix< float, I1, J2, Permutation > C = A * B;
 
-   EXPECT_EQ( C( 0, 0 ), 102.f );
-   EXPECT_EQ( C( 0, 1 ), 112.4f );
-   EXPECT_EQ( C( 0, 2 ), 55.6f );
-   EXPECT_EQ( C( 0, 3 ), 37.f );
-   EXPECT_EQ( C( 1, 0 ), 25.f );
-   EXPECT_EQ( C( 1, 1 ), 43.3f );
-   EXPECT_EQ( C( 1, 2 ), 13.8f );
-   EXPECT_EQ( C( 1, 3 ), 12.f );
+   EXPECT_EQ( C( 0, 0 ), 102.F );
+   EXPECT_EQ( C( 0, 1 ), 112.4F );
+   EXPECT_EQ( C( 0, 2 ), 55.6F );
+   EXPECT_EQ( C( 0, 3 ), 37.F );
+   EXPECT_EQ( C( 1, 0 ), 25.F );
+   EXPECT_EQ( C( 1, 1 ), 43.3F );
+   EXPECT_EQ( C( 1, 2 ), 13.8F );
+   EXPECT_EQ( C( 1, 3 ), 12.F );
 }
 
 TEST( StaticNDArrayTest, 3x3_transpose )
@@ -253,19 +253,19 @@ TEST( StaticNDArrayTest, 3x3_transpose )
    constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I, J, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f, 3.5f, 8.f, 1.f };
+   StaticMatrix< float, I, J, Permutation > A = { 3.F, 8.F, 6.F, 4.F, 1.F, 2.F, 3.5F, 8.F, 1.F };
 
    A = transpose( A );
 
-   EXPECT_EQ( A( 0, 0 ), 3.f );
-   EXPECT_EQ( A( 0, 1 ), 4.f );
-   EXPECT_EQ( A( 0, 2 ), 3.5f );
-   EXPECT_EQ( A( 1, 0 ), 8.f );
-   EXPECT_EQ( A( 1, 1 ), 1.f );
-   EXPECT_EQ( A( 1, 2 ), 8.f );
-   EXPECT_EQ( A( 2, 0 ), 6.f );
-   EXPECT_EQ( A( 2, 1 ), 2.f );
-   EXPECT_EQ( A( 2, 2 ), 1.f );
+   EXPECT_EQ( A( 0, 0 ), 3.F );
+   EXPECT_EQ( A( 0, 1 ), 4.F );
+   EXPECT_EQ( A( 0, 2 ), 3.5F );
+   EXPECT_EQ( A( 1, 0 ), 8.F );
+   EXPECT_EQ( A( 1, 1 ), 1.F );
+   EXPECT_EQ( A( 1, 2 ), 8.F );
+   EXPECT_EQ( A( 2, 0 ), 6.F );
+   EXPECT_EQ( A( 2, 1 ), 2.F );
+   EXPECT_EQ( A( 2, 2 ), 1.F );
 }
 
 TEST( StaticNDArrayTest, 2x3_transpose )
@@ -274,16 +274,16 @@ TEST( StaticNDArrayTest, 2x3_transpose )
    constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
-   StaticMatrix< float, I, J, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f };
+   StaticMatrix< float, I, J, Permutation > A = { 3.F, 8.F, 6.F, 4.F, 1.F, 2.F };
 
    StaticMatrix< float, J, I, Permutation > B = transpose( A );
 
-   EXPECT_EQ( B( 0, 0 ), 3.f );
-   EXPECT_EQ( B( 0, 1 ), 4.f );
-   EXPECT_EQ( B( 1, 0 ), 8.f );
-   EXPECT_EQ( B( 1, 1 ), 1.f );
-   EXPECT_EQ( B( 2, 0 ), 6.f );
-   EXPECT_EQ( B( 2, 1 ), 2.f );
+   EXPECT_EQ( B( 0, 0 ), 3.F );
+   EXPECT_EQ( B( 0, 1 ), 4.F );
+   EXPECT_EQ( B( 1, 0 ), 8.F );
+   EXPECT_EQ( B( 1, 1 ), 1.F );
+   EXPECT_EQ( B( 2, 0 ), 6.F );
+   EXPECT_EQ( B( 2, 1 ), 2.F );
 }
 
 TEST( StaticNDArrayTest, 2x2_determinant )
@@ -322,7 +322,7 @@ TEST( StaticNDArrayTest, 4x4_determinant )
 
    float det = determinant( M );
 
-   EXPECT_FLOAT_EQ( 723.25f, det );
+   EXPECT_FLOAT_EQ( 723.25F, det );
 }
 
 TEST( StaticNDArrayTest, 2x2_linear_system )

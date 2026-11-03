@@ -69,11 +69,12 @@ forElements_CSR_Tiered_impl( const OffsetsView offsets, bool traverse_segment, c
             globalIdx += BlockSize;
          }
       }
-      else
+      else {
          while( globalIdx < endIdx ) {
             function( scheduled_segment[ 0 ], globalIdx );
             globalIdx += BlockSize;
          }
+      }
       // All threads must finish reading scheduled_segment before it is reset
       __syncthreads();
 

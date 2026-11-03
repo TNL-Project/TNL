@@ -78,12 +78,12 @@ public:
    /**
     * \brief Method for importing matrix from STL input stream.
     *
-    * \param str is the input stream.
+    * \param file is the input stream.
     * \param matrix is the target matrix.
     * \param verbose controls verbosity of the matrix import.
     */
    static void
-   readMtx( std::istream& str, Matrix& matrix, bool verbose = false );
+   readMtx( std::istream& file, Matrix& matrix, bool verbose = false );
 
    /**
     * \brief Method for importing matrix from file with given filename.

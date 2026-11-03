@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Meshes/Grid.h>
+#include <TNL/MPI/Wrappers.h>
 
 namespace TNL::Meshes::DistributedMeshes {
 

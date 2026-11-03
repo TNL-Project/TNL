@@ -125,7 +125,7 @@ protected:
       CGSR,
       MGS,
       MGSR,
-      CWY
+      CWY,
    };
 
 // nvcc allows __cuda_callable__ lambdas only in public methods

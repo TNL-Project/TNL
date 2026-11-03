@@ -9,7 +9,10 @@ CompileFlags:
     - "-DHAVE_MPI"
     - "-DHAVE_TINYXML2"
     - "-DHAVE_ZLIB"
-    - "-xcu"
+    # Hypre headers (needed e.g. for TNL/Hypre.h, guarded by HAVE_HYPRE)
+    - "-isystem/usr/include/hypre"
+    # do not truncate diagnostic cascades ("Too many errors emitted")
+    - "-ferror-limit=0"
   Remove:
     # remove all nvcc-specific flags that may appear in the compile_commands.json file
     - "-Xcompiler"
@@ -62,6 +65,8 @@ Diagnostics:
       performance-unnecessary-value-param.AllowedTypes: "std::shared_ptr;std::unique_ptr"
       cppcoreguidelines-pro-type-member-init.UseAssignment: true
 
+  # NOLINT comments are NOT honored by the unused-includes check
+  # (intended includes must be marked with "// IWYU pragma: keep")
   UnusedIncludes: Strict
   MissingIncludes: None  # TODO: switch to Strict?
 
@@ -74,6 +79,105 @@ Style:
 
 Documentation:
   CommentFormat: Doxygen
+
+---
+# Library headers are parsed by clangd in CUDA mode so that the device code guarded
+# by "#if defined( __CUDACC__ ) || defined( __HIP__ )" is also checked (the -xcu flag
+# is needed because clangd implies the CUDA language from the file extension only
+# for .cu files).
+If:
+  PathMatch: src/TNL/.*
+  # Headers that end with '#include "X.hpp"' which pulls new CCCL headers after the
+  # preamble are parsed in host mode instead, see the block below.
+  PathExclude:
+    - src/TNL/Algorithms/Segments/SortedSegments.h
+    - src/TNL/Algorithms/Segments/find.h
+    - src/TNL/Algorithms/Segments/reduce.h
+    - src/TNL/Algorithms/Segments/scan.h
+    - src/TNL/Algorithms/Segments/traverse.h
+    - src/TNL/Functions/experimental/MeshFunction.h
+    - src/TNL/Functions/experimental/MeshFunctionView.h
+    - src/TNL/Graphs/Algorithms/breadthFirstSearch.h
+    - src/TNL/Graphs/Algorithms/experimental/minimumSpanningTree.h
+    - src/TNL/Graphs/Algorithms/singleSourceShortestPath.h
+    - src/TNL/Graphs/reduce.h
+    - src/TNL/Graphs/traverse.h
+    - src/TNL/Matrices/LambdaMatrix.h
+    - src/TNL/Matrices/MultidiagonalMatrix.h
+    - src/TNL/Matrices/SparseMatrixBase.h
+    - src/TNL/Matrices/TridiagonalMatrix.h
+    - src/TNL/Matrices/reduce.h
+    - src/TNL/Matrices/traverse.h
+CompileFlags:
+  Add:
+    - "-xcu"
+    - "--cuda-path=/opt/cuda"
+    - "-isystem/opt/cuda/include/cccl"
+    # silenced for library headers (settings remain strict in sources):
+    # -Wunused-function fires for header utilities that only real TUs consume
+    - "-Wno-unused-function"
+
+---
+# clangd's preamble resets the __COUNTER__ preprocessor builtin, which corrupts the
+# pre-C++20 concepts emulation of CCCL (cuda/std/__concepts/concept_macros.h names
+# its generated structs via __COUNTER__) whenever a header pulls new CCCL headers
+# after the preamble. This happens for headers that end with '#include "X.hpp"'
+# pulling in further headers, and the corrupted parse then cascades into bogus
+# redefinition/overload errors. These headers are therefore parsed in host mode
+# (all their CUDA-specific code is guarded by __CUDACC__ and the device code in the
+# kernels they orchestrate lives in headers that are still linted in CUDA mode).
+If:
+  PathMatch:
+    - src/TNL/Algorithms/Segments/SortedSegments.h
+    - src/TNL/Algorithms/Segments/find.h
+    - src/TNL/Algorithms/Segments/reduce.h
+    - src/TNL/Algorithms/Segments/scan.h
+    - src/TNL/Algorithms/Segments/traverse.h
+    - src/TNL/Functions/experimental/MeshFunction.h
+    - src/TNL/Functions/experimental/MeshFunctionView.h
+    - src/TNL/Graphs/Algorithms/breadthFirstSearch.h
+    - src/TNL/Graphs/Algorithms/experimental/minimumSpanningTree.h
+    - src/TNL/Graphs/Algorithms/singleSourceShortestPath.h
+    - src/TNL/Graphs/reduce.h
+    - src/TNL/Graphs/traverse.h
+    - src/TNL/Matrices/LambdaMatrix.h
+    - src/TNL/Matrices/MultidiagonalMatrix.h
+    - src/TNL/Matrices/SparseMatrixBase.h
+    - src/TNL/Matrices/TridiagonalMatrix.h
+    - src/TNL/Matrices/reduce.h
+    - src/TNL/Matrices/traverse.h
+CompileFlags:
+  Add:
+    - "-x"
+    - "c++-header"
+    # silenced for library headers (settings remain strict in sources):
+    # -Wunused-function fires for header utilities that only real TUs consume
+    - "-Wno-unused-function"
+
+---
+# CUDA 13 moved libcu++ to include/cccl and the extra -isystem is needed for
+# clangd to find cuda/std/* there. The other patterns cover files that must be
+# parsed in CUDA mode although clangd cannot infer it from the compile command
+# it finds for them:
+# - *.cu sources built by nvcc
+# - Documentation example headers: per the documentation convention, the
+#   example code lives in *.h files and the *.cpp/*.cu files are one-line
+#   #include wrappers, so the headers are linted in CUDA mode like the .cu
+#   wrappers that build them
+# - ElementsAccessing-1.cpp is compiled only via a .cu symlink pointing to it
+#   (clangd resolves the symlink, so it gets a host command inferred from a
+#   sibling source file instead of its own nvcc entry and cannot parse raw
+#   CUDA syntax such as <<< >>> kernel launches)
+If:
+  PathMatch:
+    - .*\.cu$
+    - Documentation/.*\.h$
+    - .*/ElementsAccessing-1\.cpp$
+CompileFlags:
+  Add:
+    - "-xcu"
+    - "--cuda-path=/opt/cuda"
+    - "-isystem/opt/cuda/include/cccl"
 
 ...
 # vim: ft=yaml

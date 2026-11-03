@@ -151,9 +151,6 @@ protected:
    MeshPointer meshPointer;
 
    VectorType data;
-
-   template< typename, typename >
-   friend class MeshFunctionEvaluator;
 };
 
 template< typename Mesh, int MeshEntityDimension, typename Real >

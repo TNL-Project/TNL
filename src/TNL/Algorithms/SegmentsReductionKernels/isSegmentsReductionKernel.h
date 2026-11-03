@@ -5,8 +5,6 @@
 
 #include <TNL/Backend.h>
 
-#include "../Segments/detail/FetchLambdaAdapter.h"
-
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
 template< typename Kernel >

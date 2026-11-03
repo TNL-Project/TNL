@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CSRAdaptiveKernelView.h"
-#include "isSegmentReductionKernel.h"
 
 #include "../Segments/detail/FetchLambdaAdapter.h"
 #include "isSegmentsReductionKernel.h"

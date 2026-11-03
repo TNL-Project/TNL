@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/Optimization/AdaGrad.h>
+#include <TNL/Functional.h>
 
 namespace TNL::Solvers::Optimization {
 
@@ -65,8 +66,11 @@ AdaGrad< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&& getGrad
       a += gradient_view * gradient_view;
       this->setResidue(
          addAndReduceAbs(
-            w_view, -this->relaxation / sqrt( this->a + this->epsilon ) * gradient_view, TNL::Plus(), (RealType) 0.0 )
-         / ( this->relaxation * (RealType) w.getSize() ) );
+            w_view,
+            -this->relaxation / sqrt( this->a + this->epsilon ) * gradient_view,
+            TNL::Plus(),
+            static_cast< RealType >( 0.0 ) )
+         / ( this->relaxation * static_cast< RealType >( w.getSize() ) ) );
 
       if( ! this->nextIteration() )
          return this->checkConvergence();

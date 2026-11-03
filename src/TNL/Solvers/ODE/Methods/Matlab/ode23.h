@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <TNL/Solvers/ODE/Methods/BogackiShampin.h>
+
 namespace TNL::Solvers::ODE::Methods::Matlab {
 
 /**

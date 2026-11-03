@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cstdlib>
-
 #include "DistributedGrid.h"
 #include <TNL/Meshes/DistributedMeshes/SubdomainOverlapsGetter.h>
 #include <TNL/MPI/Wrappers.h>
