@@ -29,10 +29,5 @@ set(COMMON_EXAMPLES
 )
 
 foreach(target IN ITEMS ${COMMON_EXAMPLES})
-    if(target STREQUAL "SegmentsExample_forSegmentsIf")
-        # this example has different sources for the host and CUDA
-        tnl_add_example_with_output(${target} SOURCES ${target}.cpp CUDA_SOURCES ${target}.cu)
-    else()
-        tnl_add_example_with_output(${target} SOURCES ${target}.cpp)
-    endif()
+    tnl_add_example_with_output(${target} SOURCES ${target}.cpp)
 endforeach()
