@@ -202,8 +202,9 @@ forElements_Ellpack_PerElement_If(
    __syncthreads();
 
    const Index last_idx = activeSegmentsCount * segments.getSegmentSize();
-   if( activeSegmentsCount > 0 )
+   if( activeSegmentsCount > 0 ) {
       TNL_ASSERT_LE( last_idx, segments.getStorageSize() - segments.getGlobalIndex( shared_segment_indexes[ 0 ], 0 ), "" );
+   }
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {

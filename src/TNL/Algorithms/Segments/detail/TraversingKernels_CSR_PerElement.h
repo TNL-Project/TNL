@@ -293,8 +293,9 @@ forElements_CSR_PerElement_If(
    __syncthreads();
 
    const Index last_idx = shared_offsets[ activeSegmentsCount ];
-   if( activeSegmentsCount > 0 )
+   if( activeSegmentsCount > 0 ) {
       TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - offsets[ shared_segment_indexes[ 0 ] ], "" );
+   }
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {

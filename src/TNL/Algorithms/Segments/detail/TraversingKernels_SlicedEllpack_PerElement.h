@@ -359,8 +359,9 @@ forElements_SlicedEllpack_PerElement_If(
    __syncthreads();
 
    const Index last_idx = shared_offsets[ activeSegmentsCount ];
-   if( activeSegmentsCount > 0 )
+   if( activeSegmentsCount > 0 ) {
       TNL_ASSERT_LE( last_idx, segments.getStorageSize() - shared_global_offsets[ 0 ], "" );
+   }
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {
