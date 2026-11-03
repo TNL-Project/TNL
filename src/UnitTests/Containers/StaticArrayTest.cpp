@@ -6,8 +6,6 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-static const char* TEST_FILE_NAME = "test_StaticArrayTest.tnl";
-
 // test fixture for typed tests
 template< typename Array >
 class StaticArrayTest : public ::testing::Test
@@ -305,6 +303,7 @@ TYPED_TEST( StaticArrayTest, CastToDifferentStaticArray )
 TYPED_TEST( StaticArrayTest, SaveAndLoad )
 {
    using ArrayType = typename TestFixture::ArrayType;
+   const char* TEST_FILE_NAME = "test_StaticArrayTest.tnl";
 
    ArrayType u1( 7 );
    ArrayType u2;
