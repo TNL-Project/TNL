@@ -175,11 +175,11 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
          threadsCount = segmentsCount * warpSize;
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      dim3 blocksCount;
-      dim3 gridsCount;
-      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-      for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+      const std::size_t blocksCount =
+         max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x ) );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+      for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
          if constexpr( callableArgumentCount< Function >() == 3 ) {
             auto condition = [] __cuda_callable__( IndexType )
             {
@@ -188,11 +188,11 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
             constexpr auto kernel =
                detail::forElements_CSR_Uniform_If< ConstOffsetsView, IndexType, decltype( condition ), Function >;
             Backend::launchKernelAsync(
-               kernel, launch_config, gridIdx, warpSize, this->offsets, begin, end, condition, function );
+               kernel, launch_config, blockOffset, warpSize, this->offsets, begin, end, condition, function );
          }
          else {
             constexpr auto kernel = detail::forElements_CSR_PerElement< ConstOffsetsView, IndexType, Function >;
-            Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
+            Backend::launchKernelAsync( kernel, launch_config, blockOffset, this->offsets, begin, end, function );
          }
       }
       Backend::streamSynchronize( launch_config.stream );
@@ -246,16 +246,22 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
       const std::size_t threadsCount = segmentsCount * warpSize;  // for vector kernel
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      dim3 blocksCount;
-      dim3 gridsCount;
-      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-      for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+      const std::size_t blocksCount =
+         max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x ) );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+      for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
 
          constexpr auto kernel =
             detail::forElements_CSR_Uniform_WithIndexes< ConstOffsetsView, typename Array::ConstViewType, IndexType, Function >;
          Backend::launchKernelAsync(
-            kernel, launch_config, gridIdx, warpSize, this->offsets, segmentIndexesView.getConstView( begin, end ), function );
+            kernel,
+            launch_config,
+            blockOffset,
+            warpSize,
+            this->offsets,
+            segmentIndexesView.getConstView( begin, end ),
+            function );
       }
       Backend::streamSynchronize( launch_config.stream );
    }
@@ -322,13 +328,14 @@ CSRBase< Device, Index >::forElementsIf( IndexType begin, IndexType end, Conditi
       const std::size_t threadsCount = warpsCount * warpSize;
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      dim3 blocksCount;
-      dim3 gridsCount;
-      Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-      for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-         Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+      const std::size_t blocksCount =
+         max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x ) );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+      for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
          constexpr auto kernel = detail::forElements_CSR_Uniform_If< ConstOffsetsView, IndexType, Condition, Function >;
-         Backend::launchKernelAsync( kernel, launch_config, gridIdx, warpSize, this->offsets, begin, end, condition, function );
+         Backend::launchKernelAsync(
+            kernel, launch_config, blockOffset, warpSize, this->offsets, begin, end, condition, function );
       }
       Backend::streamSynchronize( launch_config.stream );
    }

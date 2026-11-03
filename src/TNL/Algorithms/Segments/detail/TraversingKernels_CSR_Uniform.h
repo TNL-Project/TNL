@@ -45,7 +45,7 @@ template< typename OffsetsView, typename ArrayView, typename Index, typename Fun
 __global__
 void
 forElements_CSR_Uniform_WithIndexes(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
@@ -53,7 +53,7 @@ forElements_CSR_Uniform_WithIndexes(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index idx = Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_GE( idx, 0, "" );
@@ -62,7 +62,7 @@ forElements_CSR_Uniform_WithIndexes(
    TNL_ASSERT_GE( segmentIdx, 0, "Wrong index segment index - smaller that 0." );
    TNL_ASSERT_LT( segmentIdx, offsets.getSize() - 1, "Wrong index segment index - larger that the number of indexes." );
 
-   const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
+   const Index laneIdx = Backend::getGlobalThreadIdx_x( blockOffset ) & ( threadsPerSegment - 1 );  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
@@ -92,7 +92,7 @@ template< typename OffsetsView, typename Index, typename Condition, typename Fun
 __global__
 void
 forElements_CSR_Uniform_If(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const OffsetsView offsets,
    const Index begin,
@@ -102,11 +102,11 @@ forElements_CSR_Uniform_If(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
    if( segmentIdx >= end || ! condition( segmentIdx ) )
       return;
 
-   const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
+   const Index laneIdx = Backend::getGlobalThreadIdx_x( blockOffset ) & ( threadsPerSegment - 1 );  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 

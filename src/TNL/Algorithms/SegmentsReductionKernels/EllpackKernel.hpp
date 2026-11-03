@@ -16,6 +16,7 @@ template< typename Index, typename Fetch, typename Reduction, typename ResultKee
 __global__
 void
 EllpackCudaReductionKernel(
+   const std::size_t blockOffset,
    Index begin,
    Index end,
    Fetch fetch,
@@ -28,9 +29,7 @@ EllpackCudaReductionKernel(
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    constexpr int warpSize = Backend::getWarpSize();
-   const int gridIdx = 0;
-   const Index segmentIdx =
-      begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / warpSize;
    if( segmentIdx >= end )
       return;
 
@@ -112,14 +111,19 @@ EllpackKernel< Index, Device >::reduceSegments(
       if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
          if( end <= begin )
             return;
-         const Index segmentsCount = end - begin;
-         const Index threadsCount = segmentsCount * Backend::getWarpSize( Backend::getDevice() );
-         const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
+         const std::size_t segmentsCount = end - begin;
+         const std::size_t threadsCount = segmentsCount * Backend::getWarpSize( Backend::getDevice() );
          Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;
-         launch_config.gridSize.x = blocksCount;
-         constexpr auto kernel = EllpackCudaReductionKernel< IndexType, Fetch, Reduction, ResultKeeper, ReturnType >;
-         Backend::launchKernelSync( kernel, launch_config, begin, end, fetch, reduction, keeper, identity, segmentSize );
+         const std::size_t blocksCount = Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x );
+         const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+         for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
+            constexpr auto kernel = EllpackCudaReductionKernel< IndexType, Fetch, Reduction, ResultKeeper, ReturnType >;
+            Backend::launchKernelAsync(
+               kernel, launch_config, blockOffset, begin, end, fetch, reduction, keeper, identity, segmentSize );
+         }
+         Backend::streamSynchronize( launch_config.stream );
       }
       else {
          auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable

@@ -753,7 +753,8 @@ struct CudaScanKernelLauncher
          // compute the number of grids
          constexpr int maxElementsInBlock = blockSize * valuesPerThread;
          const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
-         const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
+         const std::size_t maxGridSize = Backend::getMaxGridXSize( blockSize );
+         const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize );
 
          // allocate array for the block results
          Containers::Array< typename OutputArray::ValueType, Devices::Cuda > blockResults;
@@ -762,8 +763,8 @@ struct CudaScanKernelLauncher
          // loop over all grids
          for( Index gridIdx = 0; gridIdx < numberOfGrids; gridIdx++ ) {
             // compute current grid offset and size of data to be scanned
-            const Index gridOffset = gridIdx * maxGridSize() * maxElementsInBlock;
-            const Index currentSize = TNL::min( end - begin - gridOffset, maxGridSize() * maxElementsInBlock );
+            const Index gridOffset = gridIdx * maxGridSize * maxElementsInBlock;
+            const Index currentSize = TNL::min( end - begin - gridOffset, maxGridSize * maxElementsInBlock );
 
             // set CUDA launch configuration
             Backend::LaunchConfiguration launch_config;
@@ -791,7 +792,7 @@ struct CudaScanKernelLauncher
                         outputBegin + gridOffset,
                         reduction,
                         identity,
-                        &blockResults.getData()[ gridIdx * maxGridSize() ] );
+                        &blockResults.getData()[ gridIdx * maxGridSize ] );
                      break;
                   }
 
@@ -811,7 +812,7 @@ struct CudaScanKernelLauncher
                         begin + gridOffset + currentSize,
                         reduction,
                         identity,
-                        &blockResults.getData()[ gridIdx * maxGridSize() ] );
+                        &blockResults.getData()[ gridIdx * maxGridSize ] );
                      break;
                   }
             }
@@ -888,13 +889,14 @@ struct CudaScanKernelLauncher
          // compute the number of grids
          constexpr int maxElementsInBlock = blockSize * valuesPerThread;
          const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
-         const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
+         const std::size_t maxGridSize = Backend::getMaxGridXSize( blockSize );
+         const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize );
 
          // loop over all grids
          for( Index gridIdx = 0; gridIdx < numberOfGrids; gridIdx++ ) {
             // compute current grid offset and size of data to be scanned
-            const Index gridOffset = gridIdx * maxGridSize() * maxElementsInBlock;
-            const Index currentSize = TNL::min( end - begin - gridOffset, maxGridSize() * maxElementsInBlock );
+            const Index gridOffset = gridIdx * maxGridSize * maxElementsInBlock;
+            const Index currentSize = TNL::min( end - begin - gridOffset, maxGridSize * maxElementsInBlock );
 
             // set CUDA launch configuration
             Backend::LaunchConfiguration launch_config;
@@ -914,7 +916,7 @@ struct CudaScanKernelLauncher
                         outputBegin + gridOffset,
                         outputBegin + gridOffset + currentSize,
                         reduction,
-                        &blockShifts.getData()[ gridIdx * maxGridSize() ],
+                        &blockShifts.getData()[ gridIdx * maxGridSize ],
                         shift );
                      break;
                   }
@@ -939,7 +941,7 @@ struct CudaScanKernelLauncher
                         reduction,
                         identity,
                         shift,
-                        &blockShifts.getData()[ gridIdx * maxGridSize() ] );
+                        &blockShifts.getData()[ gridIdx * maxGridSize ] );
                      break;
                   }
             }
@@ -950,22 +952,9 @@ struct CudaScanKernelLauncher
       }
    }
 
-   // The following serves for setting smaller maxGridSize so that we can force
-   // the scan in CUDA to run with more than one grid in unit tests.
-   static std::size_t&
-   maxGridSize()
-   {
-      static std::size_t maxGridSize = Backend::getMaxGridXSize();
-      return maxGridSize;
-   }
-
-   static void
-   resetMaxGridSize()
-   {
-      maxGridSize() = Backend::getMaxGridXSize();
-      gridsCount() = -1;
-   }
-
+   // The number of grids used by the last launch, which serves for checking
+   // in unit tests that the scan in CUDA runs with more than one grid. The
+   // maximal grid size can be made smaller by Backend::detail::MaxGridXSizeOverride.
    static int&
    gridsCount()
    {

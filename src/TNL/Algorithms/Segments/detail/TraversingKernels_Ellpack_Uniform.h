@@ -36,7 +36,7 @@ template< typename SegmentsView, typename ArrayView, typename Index, typename Fu
 __global__
 void
 forElements_Ellpack_Uniform_WithIndexes(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
    SegmentsView segments,
@@ -50,12 +50,12 @@ forElements_Ellpack_Uniform_WithIndexes(
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+      const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
       if( segmentIdx_idx >= segmentIndexes.getSize() )
          return;
 
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-      const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
+      const Index laneIdx = Backend::getGlobalThreadIdx_x( blockOffset ) & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
@@ -77,7 +77,7 @@ forElements_Ellpack_Uniform_WithIndexes(
    else {  // ColumnMajorOrder
       const Index segmentsCount = segmentIndexes.getSize();
       const Index elementsCount = segmentsCount * segmentSize;
-      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( blockOffset );
            globalThreadIdx < static_cast< std::size_t >( elementsCount );
            globalThreadIdx += totalThreadsCount )
       {
@@ -119,7 +119,7 @@ template<
 __global__
 void
 forElements_Ellpack_Uniform_If(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const std::size_t totalThreadsCount,
    const Index threadsPerSegment,
    SegmentsView segments,
@@ -135,11 +135,11 @@ forElements_Ellpack_Uniform_If(
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / threadsPerSegment;
       if( segmentIdx >= end || ! condition( segmentIdx ) )
          return;
 
-      const Index laneIdx = Backend::getGlobalThreadIdx_x( gridIdx ) & ( threadsPerSegment - 1 );  // & is cheaper than %
+      const Index laneIdx = Backend::getGlobalThreadIdx_x( blockOffset ) & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
@@ -161,7 +161,7 @@ forElements_Ellpack_Uniform_If(
    else {  // ColumnMajorOrder
       const Index segmentsCount = ( end - begin );
       const Index elementsCount = segmentsCount * segmentSize;
-      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
+      for( std::size_t globalThreadIdx = Backend::getGlobalThreadIdx_x( blockOffset );
            globalThreadIdx < static_cast< std::size_t >( elementsCount );
            globalThreadIdx += totalThreadsCount )
       {

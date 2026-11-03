@@ -154,7 +154,7 @@ template< typename OffsetsView, typename Index, typename Function, int BlockSize
 __global__
 void
 forElements_CSR_Tiered(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const OffsetsView offsets,
    const Index begin,
@@ -163,7 +163,7 @@ forElements_CSR_Tiered(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentsPerBlock = BlockSize / threadsPerSegment;
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * segmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * segmentsPerBlock + threadIdx.x;
    bool traverse_segment = ( threadIdx.x < segmentsPerBlock && segmentIdx < end );
 
    forElements_CSR_Tiered_impl( offsets, traverse_segment, segmentIdx, function );
@@ -182,7 +182,7 @@ template< typename OffsetsView, typename ArrayView, typename Index, typename Fun
 __global__
 void
 forElements_CSR_Tiered_WithIndexes(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const OffsetsView offsets,
    const ArrayView segmentIndexes,
@@ -190,7 +190,7 @@ forElements_CSR_Tiered_WithIndexes(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentsPerBlock = BlockSize / threadsPerSegment;
-   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * segmentsPerBlock + threadIdx.x;
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( blockOffset ) * segmentsPerBlock + threadIdx.x;
 
    Index segmentIdx( 0 );
    bool traverse_segment( false );
@@ -221,7 +221,7 @@ template< typename OffsetsView, typename Index, typename Condition, typename Fun
 __global__
 void
 forElements_CSR_Tiered_If(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const Index threadsPerSegment,
    const OffsetsView offsets,
    const Index begin,
@@ -231,7 +231,7 @@ forElements_CSR_Tiered_If(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentsPerBlock = BlockSize / threadsPerSegment;
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * segmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * segmentsPerBlock + threadIdx.x;
 
    bool traverse_segment = false;
    if( threadIdx.x < segmentsPerBlock && segmentIdx < end ) {

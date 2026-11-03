@@ -152,11 +152,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                launchConfig.blockSize.x = 256;
             }
 
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
-            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
+            const std::size_t blocksCount =
+               max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launchConfig.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launchConfig.blockSize.x );
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launchConfig.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   auto condition = [] __cuda_callable__( IndexType )
                   {
@@ -170,7 +170,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getOffsets(),
                      begin,
@@ -181,7 +181,8 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::PerElement ) {
                   auto launch = [ & ]( auto kernel )
                   {
-                     Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
+                     Backend::launchKernelAsync(
+                        kernel, launchConfig, blockOffset, segments.getOffsets(), begin, end, function );
                   };
                   using F = std::remove_reference_t< Function >;
                   dispatchThreadsPerSegment< 1, 2, 4, 8, 16, 32, 64 >(
@@ -203,7 +204,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getOffsets(),
                      begin,
@@ -289,11 +290,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                threadsCount *= static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
             }
 
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
-            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
+            const std::size_t blocksCount =
+               max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launchConfig.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launchConfig.blockSize.x );
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launchConfig.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = detail::forElements_CSR_Uniform_WithIndexes<
                      ConstOffsetsView,
@@ -303,7 +304,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getOffsets(),
                      segmentIndexesView,
@@ -313,7 +314,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   auto launch = [ & ]( auto kernel )
                   {
                      Backend::launchKernelAsync(
-                        kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
+                        kernel, launchConfig, blockOffset, segments.getOffsets(), segmentIndexesView, function );
                   };
                   using ArrayView = typename Array::ConstViewType;
                   using F = std::remove_reference_t< Function >;
@@ -340,7 +341,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Backend::launchKernelAsync(
                      kernel,
                      launchConfig,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getOffsets(),
                      segmentIndexesView,
@@ -423,11 +424,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
-            dim3 blocksCount;
-            dim3 gridsCount;
-            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+            const std::size_t blocksCount =
+               max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x ) );
+            const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+            for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+               launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                   constexpr auto kernel = forElements_CSR_Uniform_If<
                      ConstOffsetsView,
@@ -437,7 +438,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getOffsets(),
                      begin,
@@ -449,7 +450,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   auto launch = [ & ]( auto kernel )
                   {
                      Backend::launchKernelAsync(
-                        kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
+                        kernel, launch_config, blockOffset, segments.getOffsets(), begin, end, condition, function );
                   };
                   using C = std::remove_reference_t< Condition >;
                   using F = std::remove_reference_t< Function >;
@@ -476,7 +477,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Backend::launchKernelAsync(
                      kernel,
                      launch_config,
-                     gridIdx,
+                     blockOffset,
                      launchConfig.getThreadsPerSegmentCount(),
                      segments.getOffsets(),
                      begin,

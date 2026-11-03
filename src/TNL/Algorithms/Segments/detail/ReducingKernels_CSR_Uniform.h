@@ -46,7 +46,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform(
-   const Index gridID,
+   std::size_t blockOffset,
    const Segments segments,
    const Index begin,
    const Index end,
@@ -58,7 +58,7 @@ reduceSegments_CSR_Uniform(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -141,7 +141,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform_MultipleWarps(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    Index begin,
    Index end,
@@ -153,7 +153,7 @@ reduceSegments_CSR_Uniform_MultipleWarps(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment + begin;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -223,7 +223,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform_WithIndexes(
-   const Index gridID,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -234,7 +234,7 @@ reduceSegments_CSR_Uniform_WithIndexes(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -295,7 +295,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -306,7 +306,7 @@ reduceSegments_CSR_Uniform_MultipleWarps_WithIndexes(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -380,7 +380,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform_WithArgument(
-   const Index gridID,
+   std::size_t blockOffset,
    const Segments segments,
    const Index begin,
    const Index end,
@@ -393,7 +393,7 @@ reduceSegments_CSR_Uniform_WithArgument(
 
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -449,7 +449,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform_MultipleWarps_WithArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    Index begin,
    Index end,
@@ -461,7 +461,7 @@ reduceSegments_CSR_Uniform_MultipleWarps_WithArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
+   const Index segmentIdx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment + begin;
    const bool active = ( segmentIdx < end );
 
    ReturnType result = identity;
@@ -542,7 +542,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform_WithIndexesAndArgument(
-   const Index gridID,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -553,7 +553,7 @@ reduceSegments_CSR_Uniform_WithIndexesAndArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridID ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
@@ -610,7 +610,7 @@ template<
 __global__
 void
 reduceSegments_CSR_Uniform_MultipleWarps_WithIndexesAndArgument(
-   int gridIdx,
+   std::size_t blockOffset,
    const Segments segments,
    const ArrayView segmentIndexes,
    Fetch fetch,
@@ -621,7 +621,7 @@ reduceSegments_CSR_Uniform_MultipleWarps_WithIndexesAndArgument(
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( blockOffset ) / ThreadsPerSegment;
    const bool active = ( segmentIdx_idx < segmentIndexes.getSize() );
 
    ReturnType result = identity;
