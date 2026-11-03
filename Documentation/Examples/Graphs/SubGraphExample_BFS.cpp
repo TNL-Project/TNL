@@ -29,9 +29,9 @@ bfsOnSubgraphExample()
    // Build a subgraph that excludes vertex 2 (and all edges incident to it)
    auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
-      [] __cuda_callable__( IndexType v )
+      [] __cuda_callable__( IndexType vertex )
       {
-         return v != 2;
+         return vertex != 2;
       } );
 
    // Run BFS on the subgraph — vertices outside the subgraph keep distance -1

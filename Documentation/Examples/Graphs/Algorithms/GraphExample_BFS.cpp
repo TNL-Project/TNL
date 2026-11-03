@@ -47,12 +47,12 @@ breadthFirstSearchExample()
    //! [bfs edge predicate]
    /***
     * Edge-predicate BFS: skip edges whose target is vertex 3.
-    * The lambda (src, tgt, weight) -> bool returns false for edges
+    * The lambda (source, target, weight) -> bool returns false for edges
     * that should not be traversed.
     */
-   auto skipEdgeTo3 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto skipEdgeTo3 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return tgt != 3;
+      return target != 3;
    };
    VectorType distancesEdge;
    auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, skipEdgeTo3 );

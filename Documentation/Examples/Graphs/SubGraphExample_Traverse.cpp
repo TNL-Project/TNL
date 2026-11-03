@@ -27,16 +27,16 @@ traverseExample()
         { 4, 5, 6 } } );
    // clang-format on
 
-   // SubGraph with vertex filter (exclude vertex 2) and edge filter (w <= 3)
+   // SubGraph with vertex filter (exclude vertex 2) and edge filter (weight <= 3)
    auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
-      [] __cuda_callable__( IndexType v )
+      [] __cuda_callable__( IndexType vertex )
       {
-         return v != 2;
+         return vertex != 2;
       },
-      [] __cuda_callable__( IndexType, IndexType, ValueType w )
+      [] __cuda_callable__( IndexType, IndexType, ValueType weight )
       {
-         return w <= 3;
+         return weight <= 3;
       } );
 
    // forAllEdges traverses only active vertices and edges that pass the filter
@@ -50,7 +50,7 @@ traverseExample()
       },
       TNL::Algorithms::Segments::LaunchConfiguration{} );
 
-   std::cout << "Active edges (vertex 2 excluded, w<=3): " << counter.getElement( 0 ) << "\n";
+   std::cout << "Active edges (vertex 2 excluded, weight <= 3): " << counter.getElement( 0 ) << "\n";
    //! [traverse subgraph]
 }
 

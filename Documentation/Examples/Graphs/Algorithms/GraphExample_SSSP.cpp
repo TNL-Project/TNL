@@ -49,14 +49,14 @@ singleSourceShortestPathExample()
    //! [sssp edge weight callable]
    /***
     * Edge-weight callable SSSP: double the weight of edge (0,1).
-    * The callable (src, tgt, weight) -> ValueType returns the modified
+    * The callable (source, target, weight) -> ValueType returns the modified
     * edge weight. Returning infinity marks an edge as non-traversable.
     */
-   auto doubleEdge01 = [] __cuda_callable__( IndexType src, IndexType tgt, ValueType w ) -> ValueType
+   auto doubleEdge01 = [] __cuda_callable__( IndexType source, IndexType target, ValueType weight ) -> ValueType
    {
-      if( src == 0 && tgt == 1 )
-         return w * 2;
-      return w;
+      if( source == 0 && target == 1 )
+         return weight * 2;
+      return weight;
    };
    VectorType distancesEdge;
    TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, doubleEdge01, distancesEdge );

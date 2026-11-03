@@ -26,9 +26,9 @@ vertexFilterExample()
    // Create a subgraph that excludes vertex 2
    auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
-      [] __cuda_callable__( IndexType v )
+      [] __cuda_callable__( IndexType vertex )
       {
-         return v != 2;
+         return vertex != 2;
       } );
 
    std::cout << "Vertex count: " << subgraph.getVertexCount() << "\n";

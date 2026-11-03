@@ -49,13 +49,13 @@ stronglyConnectedComponentsExample()
    //! [scc edge predicate]
    /***
     * Edge-predicate SCC: block the edge (1, 0).
-    * The lambda (src, tgt, weight) -> bool returns false for edges
+    * The lambda (source, target, weight) -> bool returns false for edges
     * that should not be traversed. This breaks the cycle {0, 1}, so
     * vertices 0 and 1 become separate SCCs.
     */
-   auto blockEdge10 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto blockEdge10 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return ! ( src == 1 && tgt == 0 );
+      return ! ( source == 1 && target == 0 );
    };
    VectorType componentsEdge;
    auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge10 );
