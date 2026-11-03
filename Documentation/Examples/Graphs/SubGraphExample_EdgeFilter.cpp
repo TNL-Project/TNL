@@ -28,9 +28,9 @@ edgeFilterExample()
    auto subgraph = TNL::Graphs::makeSubGraph(
       graph,
       TNL::Graphs::edgeOnly,
-      [] __cuda_callable__( IndexType, IndexType, ValueType w )
+      [] __cuda_callable__( IndexType, IndexType, ValueType weight )
       {
-         return w <= 3;
+         return weight <= 3;
       } );
 
    std::cout << "edgeExists(0,1,1): " << subgraph.edgeExists( 0, 1, 1 ) << "\n";
@@ -43,13 +43,13 @@ edgeFilterExample()
    // Create a subgraph with both vertex and edge filters
    auto subgraph2 = TNL::Graphs::makeSubGraph(
       graph,
-      [] __cuda_callable__( IndexType v )
+      [] __cuda_callable__( IndexType vertex )
       {
-         return v != 2;
+         return vertex != 2;
       },
-      [] __cuda_callable__( IndexType, IndexType, ValueType w )
+      [] __cuda_callable__( IndexType, IndexType, ValueType weight )
       {
-         return w <= 3;
+         return weight <= 3;
       } );
 
    std::cout << "Both filters - vertexExists(2): " << subgraph2.vertexExists( 2 ) << "\n";

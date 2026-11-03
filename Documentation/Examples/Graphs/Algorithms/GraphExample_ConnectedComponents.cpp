@@ -47,13 +47,13 @@ connectedComponentsExample()
    //! [cc edge predicate]
    /***
     * Edge-predicate CC: ignore the edge (1, 2).
-    * The lambda (src, tgt, weight) -> bool returns false for edges
+    * The lambda (source, target, weight) -> bool returns false for edges
     * that should not be traversed. This splits component {0, 1, 2}
     * into {0, 1} and {2}.
     */
-   auto blockEdge12 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto blockEdge12 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return ! ( src == 1 && tgt == 2 );
+      return ! ( source == 1 && target == 2 );
    };
    VectorType componentsEdge;
    auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge12 );

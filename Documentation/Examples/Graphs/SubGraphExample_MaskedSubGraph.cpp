@@ -54,13 +54,13 @@ maskedSubGraphExample()
    //! [masked subgraph edge filter]
    using ValueType = typename GraphType::ValueType;
 
-   // MaskedSubGraph with an additional edge filter (w <= 3)
+   // MaskedSubGraph with an additional edge filter (weight <= 3)
    auto subgraph2 = TNL::Graphs::makeSubGraph(
       graph,
       indexes,
-      [] __cuda_callable__( IndexType, IndexType, ValueType w )
+      [] __cuda_callable__( IndexType, IndexType, ValueType weight )
       {
-         return w <= 3;
+         return weight <= 3;
       } );
 
    CounterVector counter2( 1, 0 );
@@ -73,7 +73,7 @@ maskedSubGraphExample()
       },
       TNL::Algorithms::Segments::LaunchConfiguration{} );
 
-   std::cout << "Active edges (masked + w<=3): " << counter2.getElement( 0 ) << "\n";
+   std::cout << "Active edges (masked + weight <= 3): " << counter2.getElement( 0 ) << "\n";
    //! [masked subgraph edge filter]
 }
 

@@ -51,13 +51,13 @@ graphColoringExample()
    //! [coloring edge predicate]
    /***
     * Edge-predicate coloring: ignore the edge between 4 and 0.
-    * The lambda (src, tgt, weight) -> bool returns false for blocked edges.
+    * The lambda (source, target, weight) -> bool returns false for blocked edges.
     * The remaining path 0-1-2-3-4 needs only 2 colors.
     */
    VectorType colorsEdge;
-   auto blockEdge40 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto blockEdge40 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return ! ( ( src == 4 && tgt == 0 ) || ( src == 0 && tgt == 4 ) );
+      return ! ( ( source == 4 && target == 0 ) || ( source == 0 && target == 4 ) );
    };
    auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge40 );
    TNL::Graphs::Algorithms::graphColoring( subgraphEdge, colorsEdge );

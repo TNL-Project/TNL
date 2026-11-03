@@ -82,12 +82,12 @@ treesExample()
    //! [is tree edge predicate]
    /***
     * Edge-predicate isTree: block edge (0, 2).
-    * The lambda (src, tgt, weight) -> bool returns false for blocked edges.
+    * The lambda (source, target, weight) -> bool returns false for blocked edges.
     * This disconnects vertices 2 and 5, so it is not a tree.
     */
-   auto blockEdge02 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto blockEdge02 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return ! ( ( src == 0 && tgt == 2 ) || ( src == 2 && tgt == 0 ) );
+      return ! ( ( source == 0 && target == 2 ) || ( source == 2 && target == 0 ) );
    };
    auto subgraphTreeEdge = TNL::Graphs::makeSubGraph( treeGraph, TNL::Graphs::edgeOnly, blockEdge02 );
    bool isTreeEdgeResult = TNL::Graphs::Algorithms::isTree( subgraphTreeEdge, 0 );
@@ -152,9 +152,9 @@ treesExample()
     * Blocking edge (4, 1) removes the cycle, making it a path
     * (which is a tree, hence a forest).
     */
-   auto blockEdge41 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto blockEdge41 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return ! ( ( src == 4 && tgt == 1 ) || ( src == 1 && tgt == 4 ) );
+      return ! ( ( source == 4 && target == 1 ) || ( source == 1 && target == 4 ) );
    };
    auto subgraphForestEdge = TNL::Graphs::makeSubGraph( cyclicGraph, TNL::Graphs::edgeOnly, blockEdge41 );
    bool isForestEdgeResult = TNL::Graphs::Algorithms::isForest( subgraphForestEdge );
@@ -219,9 +219,9 @@ treesExample()
     * This splits the tree {2-3-4} into {2-3} and {4}, so vertex 4 must
     * be added as an extra root to cover the whole forest.
     */
-   auto blockEdge34 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto blockEdge34 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return ! ( ( src == 3 && tgt == 4 ) || ( src == 4 && tgt == 3 ) );
+      return ! ( ( source == 3 && target == 4 ) || ( source == 4 && target == 3 ) );
    };
    auto subgraphRootsEdge = TNL::Graphs::makeSubGraph( forestGraph, TNL::Graphs::edgeOnly, blockEdge34 );
    bool isForestWithRootsEdgeResult = TNL::Graphs::Algorithms::isForestWithRoots( subgraphRootsEdge, VectorType{ 0, 2, 4 } );

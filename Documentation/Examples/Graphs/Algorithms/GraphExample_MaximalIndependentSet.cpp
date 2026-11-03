@@ -47,12 +47,12 @@ maximalIndependentSetExample()
    //! [mis edge predicate]
    /***
     * Edge-predicate MIS: ignore the edge between 2 and 3.
-    * The lambda (src, tgt, weight) -> bool returns false for blocked edges.
+    * The lambda (source, target, weight) -> bool returns false for blocked edges.
     * Vertices 2 and 3 may now coexist in the independent set.
     */
-   auto blockEdge23 = [] __cuda_callable__( IndexType src, IndexType tgt, float )
+   auto blockEdge23 = [] __cuda_callable__( IndexType source, IndexType target, float )
    {
-      return ! ( ( src == 2 && tgt == 3 ) || ( src == 3 && tgt == 2 ) );
+      return ! ( ( source == 2 && target == 3 ) || ( source == 3 && target == 2 ) );
    };
    VectorType independentSetEdge;
    auto subgraphEdge = TNL::Graphs::makeSubGraph( graph, TNL::Graphs::edgeOnly, blockEdge23 );
