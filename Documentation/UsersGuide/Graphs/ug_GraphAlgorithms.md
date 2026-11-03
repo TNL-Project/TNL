@@ -76,6 +76,29 @@ place of the original graph. The factory accepts:
 Use the \ref TNL::Graphs::edgeOnly tag to pass an edge predicate alone (without a vertex filter).
 Inactive vertices receive the algorithm's inactive sentinel value in the output.
 
+The predicates are stored in the SubGraph type, so they become part of the type of every kernel
+launched by the algorithm. With CUDA, an extended lambda used as a predicate can make the
+compilation of algorithms launching many kernels (e.g. BFS or SCC) several times slower and more
+memory-demanding than a named functor with a `__cuda_callable__` `operator()`, especially when the
+lambda is defined inside another function template. Prefer named functors for such algorithms:
+
+```cpp
+template< typename VectorView >
+struct ActiveVertexPredicate
+{
+   VectorView active;
+
+   __cuda_callable__
+   bool
+   operator()( typename VectorView::IndexType vertex ) const
+   {
+      return active[ vertex ] != 0;
+   }
+};
+
+auto subgraph = TNL::Graphs::makeSubGraph( graph, ActiveVertexPredicate< decltype( activeView ) >{ activeView } );
+```
+
 ### Graph requirements (table)
 
 Some algorithms require a specific graph orientation, enforced at compile time via `static_assert`:
