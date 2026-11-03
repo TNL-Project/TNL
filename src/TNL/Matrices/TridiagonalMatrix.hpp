@@ -126,10 +126,10 @@ TridiagonalMatrixTranspositionCudaKernel(
    const InMatrixView inMatrix,
    OutMatrixView outMatrix,
    Real matrixMultiplicator,
-   Index gridIdx )
+   std::size_t blockOffset )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   const Index rowIdx = Backend::getGlobalBlockIdx_x( blockOffset ) * blockDim.x + threadIdx.x;
    if( rowIdx < inMatrix.getRows() ) {
       for( Index columnIdx = rowIdx - 1; columnIdx <= rowIdx + 1; columnIdx++ )
          if( columnIdx >= 0 && columnIdx < inMatrix.getColumns() )
@@ -165,14 +165,14 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::getTransp
    if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
-      launch_config.gridSize.x = Backend::getMaxGridXSize();
       const Index cudaBlocks = Backend::getNumberOfBlocks( matrix.getRows(), launch_config.blockSize.x );
-      const Index cudaGrids = Backend::getNumberOfGrids( cudaBlocks, launch_config.gridSize.x );
-      for( Index gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
-         launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, gridIdx, Backend::getMaxGridXSize() );
+      const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+      for( std::size_t blockOffset = 0; blockOffset < static_cast< std::size_t >( cudaBlocks ); blockOffset += maxGridSize ) {
+         launch_config.gridSize.x = Backend::getGridSize( cudaBlocks, blockOffset, maxGridSize );
          constexpr auto kernel =
             TridiagonalMatrixTranspositionCudaKernel< decltype( matrix.getConstView() ), ViewType, Real, Index >;
-         Backend::launchKernelAsync( kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, gridIdx );
+         Backend::launchKernelAsync(
+            kernel, launch_config, matrix.getConstView(), getView(), matrixMultiplicator, blockOffset );
       }
       Backend::streamSynchronize( launch_config.stream );
    }

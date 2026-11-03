@@ -92,8 +92,8 @@ DenseMatrixProductKernel(
    const typename ResultMatrix::RealType matrixMultiplicator,
    TransposeState TransposeA,
    TransposeState TransposeB,
-   const typename ResultMatrix::IndexType gridIdx_x,
-   const typename ResultMatrix::IndexType gridIdx_y )
+   const std::size_t blockOffset_x,
+   const std::size_t blockOffset_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
@@ -102,9 +102,9 @@ DenseMatrixProductKernel(
    __shared__ RealType tileA[ tileDim ][ tileDim + 1 ];
    __shared__ RealType tileB[ tileDim ][ tileDim + 1 ];
 
-   // Calculate the global block indices using gridIdx_x and gridIdx_y
-   IndexType bx = blockIdx.x + gridIdx_x * Backend::getMaxGridXSize();
-   IndexType by = blockIdx.y + gridIdx_y * Backend::getMaxGridYSize();
+   // Calculate the global block indices
+   IndexType bx = Backend::getGlobalBlockIdx_x( blockOffset_x );
+   IndexType by = Backend::getGlobalBlockIdx_y( blockOffset_y );
    IndexType tx = threadIdx.x;
    IndexType ty = threadIdx.y;
 
@@ -197,13 +197,20 @@ getMatrixProduct(
 
       const Index rowTiles = Backend::getNumberOfBlocks( resultMatrix.getRows(), tileDim );
       const Index columnTiles = Backend::getNumberOfBlocks( resultMatrix.getColumns(), tileDim );
-      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
-      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
+      // the x-dimension is limited such that the number of threads of the grids
+      // with the largest extent in the y-dimension does not exceed the device limit
+      const std::size_t maxGridSizeY = Backend::getMaxGridYSize();
+      const std::size_t gridSizeY = TNL::min( static_cast< std::size_t >( rowTiles ), maxGridSizeY );
+      const std::size_t maxGridSizeX = Backend::getMaxGridXSize(
+         static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y * gridSizeY );
 
-      for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
-         for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( columnTiles, gridIdx_x, Backend::getMaxGridXSize() );
-            launch_config.gridSize.y = Backend::getGridSize( rowTiles, gridIdx_y, Backend::getMaxGridYSize() );
+      for( std::size_t blockOffset_x = 0; blockOffset_x < static_cast< std::size_t >( columnTiles );
+           blockOffset_x += maxGridSizeX )
+         for( std::size_t blockOffset_y = 0; blockOffset_y < static_cast< std::size_t >( rowTiles );
+              blockOffset_y += maxGridSizeY )
+         {
+            launch_config.gridSize.x = Backend::getGridSize( columnTiles, blockOffset_x, maxGridSizeX );
+            launch_config.gridSize.y = Backend::getGridSize( rowTiles, blockOffset_y, maxGridSizeY );
 
             constexpr auto kernel = DenseMatrixProductKernel<
                tileDim,
@@ -219,10 +226,8 @@ getMatrixProduct(
                matrixMultiplicator,
                transposeA,
                transposeB,
-               gridIdx_x,
-               gridIdx_y
-
-            );
+               blockOffset_x,
+               blockOffset_y );
          }
       Backend::streamSynchronize( launch_config.stream );
    }
@@ -286,8 +291,8 @@ DenseTranspositionKernel(
    OutputMatrix resultMatrix,
    const InputMatrix inputMatrix,
    const Real matrixMultiplicator,
-   const typename OutputMatrix::IndexType gridIdx_x,
-   const typename OutputMatrix::IndexType gridIdx_y )
+   const std::size_t blockOffset_x,
+   const std::size_t blockOffset_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim ][ tileDim + 1 ];
@@ -295,9 +300,9 @@ DenseTranspositionKernel(
    const Index matrixColumns = inputMatrix.getColumns();
    const Index matrixRows = inputMatrix.getRows();
 
-   // Adjust block indices based on gridIdx_x and gridIdx_y
-   Index row = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.y;
-   Index col = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.x;
+   // Calculate the global block indices
+   Index row = Backend::getGlobalBlockIdx_y( blockOffset_y ) * tileDim + threadIdx.y;
+   Index col = Backend::getGlobalBlockIdx_x( blockOffset_x ) * tileDim + threadIdx.x;
 
    if( row < matrixRows && col < matrixColumns )
       tile[ threadIdx.y ][ threadIdx.x ] = inputMatrix( row, col ) * matrixMultiplicator;
@@ -307,8 +312,8 @@ DenseTranspositionKernel(
    __syncthreads();
 
    // Adjust writing based on result matrix organization
-   row = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.y;
-   col = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.x;
+   row = Backend::getGlobalBlockIdx_x( blockOffset_x ) * tileDim + threadIdx.y;
+   col = Backend::getGlobalBlockIdx_y( blockOffset_y ) * tileDim + threadIdx.x;
 
    if( row < matrixColumns && col < matrixRows ) {
       resultMatrix( row, col ) = tile[ threadIdx.x ][ threadIdx.y ];
@@ -334,13 +339,20 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
 
       const Index rowTiles = Backend::getNumberOfBlocks( resultMatrix.getRows(), tileDim );
       const Index columnTiles = Backend::getNumberOfBlocks( resultMatrix.getColumns(), tileDim );
-      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
-      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
+      // the x-dimension is limited such that the number of threads of the grids
+      // with the largest extent in the y-dimension does not exceed the device limit
+      const std::size_t maxGridSizeY = Backend::getMaxGridYSize();
+      const std::size_t gridSizeY = TNL::min( static_cast< std::size_t >( rowTiles ), maxGridSizeY );
+      const std::size_t maxGridSizeX = Backend::getMaxGridXSize(
+         static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y * gridSizeY );
 
-      for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
-         for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( columnTiles, gridIdx_x, Backend::getMaxGridXSize() );
-            launch_config.gridSize.y = Backend::getGridSize( rowTiles, gridIdx_y, Backend::getMaxGridYSize() );
+      for( std::size_t blockOffset_x = 0; blockOffset_x < static_cast< std::size_t >( columnTiles );
+           blockOffset_x += maxGridSizeX )
+         for( std::size_t blockOffset_y = 0; blockOffset_y < static_cast< std::size_t >( rowTiles );
+              blockOffset_y += maxGridSizeY )
+         {
+            launch_config.gridSize.x = Backend::getGridSize( columnTiles, blockOffset_x, maxGridSizeX );
+            launch_config.gridSize.y = Backend::getGridSize( rowTiles, blockOffset_y, maxGridSizeY );
 
             constexpr auto kernel =
                DenseTranspositionKernel< tileDim, typename ResultMatrix::ViewType, typename Matrix::ConstViewType, Real, Index >;
@@ -350,8 +362,8 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
                resultMatrix.getView(),
                matrix.getConstView(),
                matrixMultiplicator,
-               gridIdx_x,
-               gridIdx_y );
+               blockOffset_x,
+               blockOffset_y );
          }
       Backend::streamSynchronize( launch_config.stream );
    }
@@ -374,8 +386,8 @@ void
 DenseInPlaceTranspositionKernel(
    Matrix matrix,
    const Real matrixMultiplicator,
-   const typename Matrix::IndexType gridIdx_x,
-   const typename Matrix::IndexType gridIdx_y )
+   const std::size_t blockOffset_x,
+   const std::size_t blockOffset_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile1[ tileDim ][ tileDim + 1 ];
@@ -383,8 +395,8 @@ DenseInPlaceTranspositionKernel(
 
    const Index matrixSize = matrix.getRows();
 
-   const Index tileRow = blockIdx.y + gridIdx_y * Backend::getMaxGridYSize();
-   const Index tileCol = blockIdx.x + gridIdx_x * Backend::getMaxGridXSize();
+   const Index tileRow = Backend::getGlobalBlockIdx_y( blockOffset_y );
+   const Index tileCol = Backend::getGlobalBlockIdx_x( blockOffset_x );
 
    // Only process upper triangle (including diagonal) to avoid race conditions
    // between blocks processing mirrored tile pairs
@@ -465,16 +477,24 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
 
       const Index rowTiles = Backend::getNumberOfBlocks( matrix.getRows(), tileDim );
       const Index columnTiles = Backend::getNumberOfBlocks( matrix.getColumns(), tileDim );
-      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
-      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
+      // the x-dimension is limited such that the number of threads of the grids
+      // with the largest extent in the y-dimension does not exceed the device limit
+      const std::size_t maxGridSizeY = Backend::getMaxGridYSize();
+      const std::size_t gridSizeY = TNL::min( static_cast< std::size_t >( rowTiles ), maxGridSizeY );
+      const std::size_t maxGridSizeX = Backend::getMaxGridXSize(
+         static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y * gridSizeY );
 
-      for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
-         for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( columnTiles, gridIdx_x, Backend::getMaxGridXSize() );
-            launch_config.gridSize.y = Backend::getGridSize( rowTiles, gridIdx_y, Backend::getMaxGridYSize() );
+      for( std::size_t blockOffset_x = 0; blockOffset_x < static_cast< std::size_t >( columnTiles );
+           blockOffset_x += maxGridSizeX )
+         for( std::size_t blockOffset_y = 0; blockOffset_y < static_cast< std::size_t >( rowTiles );
+              blockOffset_y += maxGridSizeY )
+         {
+            launch_config.gridSize.x = Backend::getGridSize( columnTiles, blockOffset_x, maxGridSizeX );
+            launch_config.gridSize.y = Backend::getGridSize( rowTiles, blockOffset_y, maxGridSizeY );
 
             auto kernel = DenseInPlaceTranspositionKernel< tileDim, decltype( matrix.getView() ), Real, Index >;
-            Backend::launchKernelAsync( kernel, launch_config, matrix.getView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
+            Backend::launchKernelAsync(
+               kernel, launch_config, matrix.getView(), matrixMultiplicator, blockOffset_x, blockOffset_y );
          }
 
       Backend::streamSynchronize( launch_config.stream );

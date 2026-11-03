@@ -3,61 +3,74 @@
 #include "TraverseSegmentsTest.h"
 #include "TraverseSegmentsTest.hpp"
 
+#include "../../../MultipleGrids.h"
+
 // TYPED_TEST_P definitions that will be instantiated for each segment type
 
 TYPED_TEST_P( TraverseSegmentsTest, forElements_EmptySegments )
 {
-   test_forElements_EmptySegments< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forElements_EmptySegments< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forElements_EqualSizes )
 {
-   test_forElements_EqualSizes< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forElements_EqualSizes< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forElements )
 {
-   test_forElements< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forElements< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forElements_LongSegments )
 {
-   test_forElements_LongSegments< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forElements_LongSegments< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forElementsIf )
 {
-   test_forElementsIf< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forElementsIf< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
 {
-   test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forElementsWithSegmentIndexes )
 {
-   test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forSegments )
 {
-   test_forSegments< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forSegments< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forSegmentsWithIndexes )
 {
-   test_forSegmentsWithIndexes< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forSegmentsWithIndexes< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forSegmentsIf )
 {
-   test_forSegmentsIf< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forSegmentsIf< typename TestFixture::SegmentsType > );
 }
 
 TYPED_TEST_P( TraverseSegmentsTest, forSegmentsSequential )
 {
-   test_forSegmentsSequential< typename TestFixture::SegmentsType >();
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_forSegmentsSequential< typename TestFixture::SegmentsType > );
 }
 
 // Register all test cases

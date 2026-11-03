@@ -39,11 +39,11 @@ template<
    int BlockSize = 256 >
 __global__
 void
-forElements_Ellpack_PerElement( Index gridIdx, SegmentsView segments, Index begin, Index end, Function function )
+forElements_Ellpack_PerElement( std::size_t blockOffset, SegmentsView segments, Index begin, Index end, Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentSize = segments.getSegmentSize();
-   const Index firstSegmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock;
+   const Index firstSegmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock;
    const Index segmentsInBlock = min( end - firstSegmentIdx, static_cast< Index >( SegmentsPerBlock ) );
    if( segmentSize == 0 || segmentsInBlock <= 0 )
       return;
@@ -90,14 +90,14 @@ template<
 __global__
 void
 forElements_Ellpack_PerElement_WithIndexes(
-   Index gridIdx,
+   std::size_t blockOffset,
    SegmentsConstView segments,
    ArrayView segmentIndexes,
    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentSize = segments.getSegmentSize();
-   const Index firstEntry = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock;
+   const Index firstEntry = Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock;
    const Index segmentsInBlock = min( segmentIndexes.getSize() - firstEntry, static_cast< Index >( SegmentsPerBlock ) );
    if( segmentSize == 0 || segmentsInBlock <= 0 )
       return;
@@ -155,7 +155,7 @@ template<
 __global__
 void
 forElements_Ellpack_PerElement_If(
-   Index gridIdx,
+   std::size_t blockOffset,
    SegmentsView segments,
    const Index begin,
    const Index end,
@@ -174,7 +174,7 @@ forElements_Ellpack_PerElement_If(
 
    if( threadIdx.x == 0 )
       segmentSize = segments.getSegmentSize();
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    Index conditionValue = 0;
    if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );

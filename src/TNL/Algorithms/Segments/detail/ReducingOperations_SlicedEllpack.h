@@ -165,11 +165,11 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
          Backend::LaunchConfiguration launch_config;
          launch_config.blockSize.x = 256;
-         dim3 blocksCount;
-         dim3 gridsCount;
-         Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-         for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
-            Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+         const std::size_t blocksCount =
+            max( static_cast< std::size_t >( 1 ), Backend::getNumberOfBlocks( threadsCount, launch_config.blockSize.x ) );
+         const std::size_t maxGridSize = Backend::getMaxGridXSize( launch_config.blockSize.x );
+         for( std::size_t blockOffset = 0; blockOffset < blocksCount; blockOffset += maxGridSize ) {
+            launch_config.gridSize.x = Backend::getGridSize( blocksCount, blockOffset, maxGridSize );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform ) {
                dispatchThreadsPerSegment< 2, 4, 8, 16, 32, 64 >(
                   launchConfig.getThreadsPerSegmentCount(),
@@ -191,7 +191,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                            Backend::launchKernelAsync(
                               kernel,
                               launch_config,
-                              gridIdx,
+                              blockOffset,
                               segments.getConstView(),
                               begin,
                               end,

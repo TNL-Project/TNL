@@ -41,7 +41,7 @@ template<
 __global__
 void
 forElements_SlicedEllpack_PerElement(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const SegmentsConstView segments,
    Index begin,
    Index end,
@@ -70,7 +70,7 @@ forElements_SlicedEllpack_PerElement(
    }
    __syncthreads();
 
-   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = firstSegmentIdx + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index segmentInSliceIdx = segmentIdx % SliceSize;
    const Index sliceIdx = segmentIdx / SliceSize;
    if( threadIdx.x == 0 ) {
@@ -163,7 +163,7 @@ template<
 __global__
 void
 forElements_SlicedEllpack_PerElement_WithIndexes(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const SegmentsConstView segments,
    const ArrayView segmentIndexes,
    Function function )
@@ -177,9 +177,9 @@ forElements_SlicedEllpack_PerElement_WithIndexes(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx =
-      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock );
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
@@ -281,7 +281,7 @@ template<
 __global__
 void
 forElements_SlicedEllpack_PerElement_If(
-   const Index gridIdx,
+   std::size_t blockOffset,
    const SegmentsConstView segments,
    const Index begin,
    const Index end,
@@ -303,9 +303,9 @@ forElements_SlicedEllpack_PerElement_If(
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index segmentIdx = begin + Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx =
-      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+      min( SegmentsPerBlock, end - begin - Backend::getGlobalBlockIdx_x( blockOffset ) * SegmentsPerBlock );
    Index conditionValue = 0;
    if( segmentIdx < end && threadIdx.x < SegmentsPerBlock )
       conditionValue = condition( segmentIdx );
