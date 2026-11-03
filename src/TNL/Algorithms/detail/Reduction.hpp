@@ -18,14 +18,6 @@
 
 namespace TNL::Algorithms::detail {
 
-/**
- * \brief Threshold for switching between CPU and GPU reduction.
- *
- * Arrays smaller than the following constant are reduced on CPU.
- * The constant must not be larger than maximal CUDA grid size.
- */
-static constexpr int Reduction_minGpuDataSize = 256;  // 65536; //16384;//1024;//256;
-
 template< typename Index, typename Result, typename Fetch, typename Reduce >
 constexpr Result
 Reduction< Devices::Sequential >::reduce(
