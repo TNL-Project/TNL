@@ -22,6 +22,7 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 #include "details/activeVertices.hpp"
+#include "details/hostAtomics.hpp"
 #include "details/lambdaTraits.hpp"
 #include "details/parallelTraversal.hpp"
 #include "singleSourceShortestPath.h"
@@ -95,7 +96,7 @@ parallelSingleSourceShortestPath(
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
-               [ = ] __cuda_callable__( IndexType idx ) mutable
+               [ = ]( IndexType idx ) mutable
                {
                   hostAtomicYView[ idx ] = yView[ idx ];
                } );
@@ -118,7 +119,7 @@ parallelSingleSourceShortestPath(
                      return;
 
                   const ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
-                  const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
+                  const ValueType oldDistance = detail::hostAtomicFetchMin( hostAtomicYView[ targetIdx ], newDistance );
                   if( newDistance < oldDistance ) {
 #if defined( HAVE_OPENMP )
                   #pragma omp atomic write
@@ -132,7 +133,7 @@ parallelSingleSourceShortestPath(
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
-               [ = ] __cuda_callable__( IndexType idx ) mutable
+               [ = ]( IndexType idx ) mutable
                {
                   yView[ idx ] = hostAtomicYView[ idx ].load();
                } );
@@ -155,7 +156,7 @@ parallelSingleSourceShortestPath(
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
-               [ = ] __cuda_callable__( IndexType idx ) mutable
+               [ = ]( IndexType idx ) mutable
                {
                   hostAtomicYView[ idx ] = yView[ idx ];
                } );
@@ -174,7 +175,7 @@ parallelSingleSourceShortestPath(
                         return;
 
                      ValueType newDistance = yView[ sourceIdx ] + transformedWeight;
-                     const ValueType oldDistance = hostAtomicYView[ targetIdx ].fetch_min( newDistance );
+                     const ValueType oldDistance = detail::hostAtomicFetchMin( hostAtomicYView[ targetIdx ], newDistance );
                      if( newDistance < oldDistance ) {
 #if defined( HAVE_OPENMP )
                      #pragma omp atomic write
@@ -192,7 +193,7 @@ parallelSingleSourceShortestPath(
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
-               [ = ] __cuda_callable__( IndexType idx ) mutable
+               [ = ]( IndexType idx ) mutable
                {
                   yView[ idx ] = hostAtomicYView[ idx ].load();
                } );

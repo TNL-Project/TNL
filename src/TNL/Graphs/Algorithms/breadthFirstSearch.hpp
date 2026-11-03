@@ -21,6 +21,7 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 #include "details/activeVertices.hpp"
+#include "details/hostAtomics.hpp"
 #include "details/lambdaTraits.hpp"
 #include "details/parallelTraversal.hpp"
 #include "breadthFirstSearch.h"
@@ -91,7 +92,7 @@ breadthFirstSearchParallel(
       TNL::Algorithms::parallelFor< DeviceType >(
          0,
          n,
-         [ = ] __cuda_callable__( IndexType idx ) mutable
+         [ = ]( IndexType idx ) mutable
          {
             atomicDistancesView[ idx ] = distancesView[ idx ];
          } );
@@ -103,7 +104,7 @@ breadthFirstSearchParallel(
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
-               [ = ] __cuda_callable__( IndexType idx ) mutable
+               [ = ]( IndexType idx ) mutable
                {
                   atomicPredView[ idx ] = predecessorsView[ idx ];
                } );
@@ -140,14 +141,8 @@ breadthFirstSearchParallel(
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
-               [ = ] __cuda_callable__( IndexType v ) mutable
+               [ = ]( IndexType v ) mutable
                {
-                  // NVCC forbids first-capture of variables inside if constexpr
-                  // in extended lambdas.  These (void) casts force early capture.
-                  (void) deterministic;
-                  (void) predecessorsView;
-                  (void) atomicPredView;
-
                   if( ! graphView.vertexExists( v ) )
                      return;
                   if( atomicDistancesView[ v ].load() != -1 )
@@ -228,7 +223,7 @@ breadthFirstSearchParallel(
                      return;
 
                   IndexType prev = -1;
-                  const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+                  const bool i_am_winner = detail::hostAtomicCompareExchange( atomicDistancesView[ targetIdx ], prev, i + 1 );
 
                   if( i_am_winner ) {
                      nextMarksView[ targetIdx ] = 1;
@@ -242,7 +237,7 @@ breadthFirstSearchParallel(
                   if constexpr( WithPredecessors ) {
                      if( deterministic ) {
                         if( i_am_winner || prev == i + 1 )
-                           atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                           detail::hostAtomicFetchMin( atomicPredView[ targetIdx ], sourceIdx );
                      }
                      else if( i_am_winner ) {
                         predecessorsView[ targetIdx ] = sourceIdx;
@@ -277,7 +272,7 @@ breadthFirstSearchParallel(
                   (void) atomicPredView;
 
                   IndexType prev = -1;
-                  const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+                  const bool i_am_winner = detail::hostAtomicCompareExchange( atomicDistancesView[ targetIdx ], prev, i + 1 );
 
                   if( i_am_winner )
                      visitor( targetIdx, i + 1 );
@@ -286,7 +281,7 @@ breadthFirstSearchParallel(
                   if constexpr( WithPredecessors ) {
                      if( deterministic ) {
                         if( i_am_winner || prev == i + 1 )
-                           atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                           detail::hostAtomicFetchMin( atomicPredView[ targetIdx ], sourceIdx );
                      }
                      else if( i_am_winner ) {
                         predecessorsView[ targetIdx ] = sourceIdx;
@@ -324,7 +319,7 @@ breadthFirstSearchParallel(
                      return;
 
                   IndexType prev = -1;
-                  const bool i_am_winner = atomicDistancesView[ targetIdx ].compare_exchange_strong( prev, i + 1 );
+                  const bool i_am_winner = detail::hostAtomicCompareExchange( atomicDistancesView[ targetIdx ], prev, i + 1 );
 
                   if( i_am_winner ) {
                      marksView[ targetIdx ] = 1;
@@ -338,7 +333,7 @@ breadthFirstSearchParallel(
                   if constexpr( WithPredecessors ) {
                      if( deterministic ) {
                         if( i_am_winner || prev == i + 1 )
-                           atomicPredView[ targetIdx ].fetch_min( sourceIdx );
+                           detail::hostAtomicFetchMin( atomicPredView[ targetIdx ], sourceIdx );
                      }
                      else if( i_am_winner ) {
                         predecessorsView[ targetIdx ] = sourceIdx;
@@ -357,7 +352,7 @@ breadthFirstSearchParallel(
       TNL::Algorithms::parallelFor< DeviceType >(
          0,
          n,
-         [ = ] __cuda_callable__( IndexType idx ) mutable
+         [ = ]( IndexType idx ) mutable
          {
             distancesView[ idx ] = atomicDistancesView[ idx ].load();
          } );
@@ -367,7 +362,7 @@ breadthFirstSearchParallel(
             TNL::Algorithms::parallelFor< DeviceType >(
                0,
                n,
-               [ = ] __cuda_callable__( IndexType idx ) mutable
+               [ = ]( IndexType idx ) mutable
                {
                   IndexType p = atomicPredView[ idx ].load();
                   predecessorsView[ idx ] = ( p == n ) ? -1 : p;
