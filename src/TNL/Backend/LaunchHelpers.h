@@ -171,10 +171,9 @@ getMinWarpSize()
  * \param deviceId The device ID to query (default: current device).
  */
 [[nodiscard]] inline int
-getWarpSize( int deviceId )
+getWarpSize( [[maybe_unused]] int deviceId )
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
-   (void) deviceId;
    return 32;
 #elif defined( __HIP__ )
    static const std::vector< int > warpSizes = []
@@ -188,7 +187,6 @@ getWarpSize( int deviceId )
       throw Exceptions::BackendRuntimeError( hipErrorInvalidDevice, __FILE__, __LINE__ );
    return warpSizes[ deviceId ];
 #else
-   (void) deviceId;
    return 32;
 #endif
 }

@@ -416,8 +416,7 @@ struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< R
       const Real hx_inv = 1.0 / ( hx * hx );
       const Real hy_inv = 1.0 / ( hy * hy );
 
-      const Container< 2, bool > direction{ false, false };
-      (void) direction;  // avoid nvcc warning due to defined but not referenced variable
+      [[maybe_unused]] const Container< 2, bool > direction{ false, false };
 
       Real start = 0;
       Index iterations = 0;

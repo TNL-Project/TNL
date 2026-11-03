@@ -49,8 +49,7 @@ benchmark_ndarray_reduction1D( Benchmark& benchmark, index_type size )
 
    auto compute = [ & ]()
    {
-      auto res = nd_reduce( input, TNL::Plus{}, 0 );
-      (void) res;
+      [[maybe_unused]] auto res = nd_reduce( input, TNL::Plus{}, 0 );
    };
 
    const std::size_t datasetSize = size * sizeof( index_type );

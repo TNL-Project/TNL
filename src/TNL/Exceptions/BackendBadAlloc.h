@@ -56,7 +56,7 @@ private:
    }
 
    [[nodiscard]] static std::string
-   error_details( Backend::error_t error_code )
+   error_details( [[maybe_unused]] Backend::error_t error_code )
    {
 #if defined( __CUDACC__ )
       if( error_code != cudaSuccess )
@@ -66,8 +66,6 @@ private:
       if( error_code != hipSuccess )
          return std::string( ": HIP ERROR " ) + std::to_string( static_cast< int >( error_code ) ) + " ("
               + hipGetErrorName( error_code ) + "): " + hipGetErrorString( error_code ) + ".";
-#else
-      (void) error_code;
 #endif
       return ": most likely there is not enough space on the device.";
    }
