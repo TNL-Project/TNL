@@ -99,11 +99,6 @@ connectedComponentsParallel(
    const auto graphView = graph.getConstView();
    Vector previous( verticesCount );
    Vector relaxed( verticesCount );
-   using HostAtomicIndexVector = Containers::Vector< Atomic< IndexType, Devices::Host >, Devices::Host, IndexType >;
-   HostAtomicIndexVector hostAtomicComponents;
-
-   if constexpr( std::is_same_v< DeviceType, Devices::Host > )
-      hostAtomicComponents.setSize( verticesCount );
 
    components.forAllElements(
       [ = ] __cuda_callable__( IndexType vertex, IndexType& value )
@@ -119,64 +114,24 @@ connectedComponentsParallel(
       const auto previousView = previous.getConstView();
       const IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
 
-      if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
-         auto hostAtomicComponentsView = hostAtomicComponents.getView();
+      forAllEdges(
+         graph,
+         [ = ] __cuda_callable__(
+            IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
+         {
+            if( targetIdx == paddingIndex )
+               return;
 
-         TNL::Algorithms::parallelFor< DeviceType >(
-            0,
-            verticesCount,
-            [ = ] __cuda_callable__( IndexType vertex ) mutable
-            {
-               hostAtomicComponentsView[ vertex ] = previousView[ vertex ];
-            } );
+            const IndexType sourceLabel = previousView[ sourceIdx ];
+            const IndexType targetLabel = previousView[ targetIdx ];
+            if( sourceLabel == static_cast< IndexType >( -1 ) || targetLabel == static_cast< IndexType >( -1 ) )
+               return;
+            const IndexType componentLabel = sourceLabel < targetLabel ? sourceLabel : targetLabel;
 
-         forAllEdges(
-            graph,
-            [ = ] __cuda_callable__(
-               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
-            {
-               if( targetIdx == paddingIndex )
-                  return;
-
-               const IndexType sourceLabel = previousView[ sourceIdx ];
-               const IndexType targetLabel = previousView[ targetIdx ];
-               if( sourceLabel == static_cast< IndexType >( -1 ) || targetLabel == static_cast< IndexType >( -1 ) )
-                  return;
-               const IndexType componentLabel = sourceLabel < targetLabel ? sourceLabel : targetLabel;
-
-               hostAtomicComponentsView[ sourceIdx ].fetch_min( componentLabel );
-               hostAtomicComponentsView[ targetIdx ].fetch_min( componentLabel );
-            },
-            launchConfig );
-
-         TNL::Algorithms::parallelFor< DeviceType >(
-            0,
-            verticesCount,
-            [ = ] __cuda_callable__( IndexType vertex ) mutable
-            {
-               componentsView[ vertex ] = hostAtomicComponentsView[ vertex ].load();
-            } );
-      }
-      else {
-         forAllEdges(
-            graph,
-            [ = ] __cuda_callable__(
-               IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const ValueType& weight ) mutable
-            {
-               if( targetIdx == paddingIndex )
-                  return;
-
-               const IndexType sourceLabel = previousView[ sourceIdx ];
-               const IndexType targetLabel = previousView[ targetIdx ];
-               if( sourceLabel == static_cast< IndexType >( -1 ) || targetLabel == static_cast< IndexType >( -1 ) )
-                  return;
-               const IndexType componentLabel = sourceLabel < targetLabel ? sourceLabel : targetLabel;
-
-               atomicMin( &componentsView[ sourceIdx ], componentLabel );
-               atomicMin( &componentsView[ targetIdx ], componentLabel );
-            },
-            launchConfig );
-      }
+            atomicMin( &componentsView[ sourceIdx ], componentLabel );
+            atomicMin( &componentsView[ targetIdx ], componentLabel );
+         },
+         launchConfig );
 
       relaxed = components;
       const auto relaxedView = relaxed.getConstView();
