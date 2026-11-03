@@ -66,6 +66,63 @@ getMaxThreadsPerBlock()
    return 1024;
 }
 
+namespace detail {
+
+//! \brief Returns a reference to the maximal grid size forced by \ref MaxGridXSizeOverride.
+//! Zero means that no maximal grid size is forced.
+inline std::size_t&
+getMaxGridXSizeOverride()
+{
+   static std::size_t maxGridSize = 0;
+   return maxGridSize;
+}
+
+/**
+ * \brief Forces a smaller maximal grid size
+ * returned by \ref getMaxGridXSize( std::size_t ) during the lifetime of the object.
+ *
+ * It serves for unit tests,
+ * which use it to run the kernels as several grids
+ * even with small data.
+ * The previous value is restored by the destructor.
+ *
+ * \warning The forced value is shared by all host threads without synchronization,
+ * so no other thread may launch kernels during the lifetime of the object.
+ *
+ * \code{.cpp}
+ * {
+ *    TNL::Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 1 );
+ *    // every block of the kernels launched here runs as a separate grid
+ * }
+ * \endcode
+ */
+class MaxGridXSizeOverride
+{
+public:
+   //! \brief Forces the maximal grid size `maxGridSize`.
+   explicit MaxGridXSizeOverride( std::size_t maxGridSize )
+   : previousMaxGridSize( getMaxGridXSizeOverride() )
+   {
+      getMaxGridXSizeOverride() = maxGridSize;
+   }
+
+   MaxGridXSizeOverride( const MaxGridXSizeOverride& ) = delete;
+
+   MaxGridXSizeOverride&
+   operator=( const MaxGridXSizeOverride& ) = delete;
+
+   //! \brief Restores the previously forced maximal grid size.
+   ~MaxGridXSizeOverride()
+   {
+      getMaxGridXSizeOverride() = previousMaxGridSize;
+   }
+
+private:
+   std::size_t previousMaxGridSize;
+};
+
+}  // namespace detail
+
 /**
  * \brief Returns the maximal number of blocks of a one-dimensional grid with
  * `threadsPerBlock` threads per block.
@@ -76,19 +133,24 @@ getMaxThreadsPerBlock()
  * For a multidimensional grid, pass the number of threads of one slice of the
  * grid in the x-dimension, i.e. the threads per block times the grid size in
  * the other dimensions.
+ * Unit tests can force a smaller value by `detail::MaxGridXSizeOverride`.
  */
-constexpr std::size_t
+inline std::size_t
 getMaxGridXSize( std::size_t threadsPerBlock )
 {
-   const std::size_t maxBlocks = getMaxThreadsPerGrid() / threadsPerBlock;
-   // at least one block, so that loops over the grids always make progress;
-   // an invalid configuration is then reported by the kernel launch
    // an invalid configuration with no threads is reported by the kernel launch
    if( threadsPerBlock == 0 )
       threadsPerBlock = 1;
+   const std::size_t maxBlocks = getMaxThreadsPerGrid() / threadsPerBlock;
+   // at least one block, so that loops over the grids always make progress;
+   // an invalid configuration is then reported by the kernel launch
    if( maxBlocks == 0 )
       return 1;
-   return maxBlocks < getMaxGridXSize() ? maxBlocks : getMaxGridXSize();
+   const std::size_t maxGridSize = maxBlocks < getMaxGridXSize() ? maxBlocks : getMaxGridXSize();
+   const std::size_t forcedMaxGridSize = detail::getMaxGridXSizeOverride();
+   if( forcedMaxGridSize > 0 && forcedMaxGridSize < maxGridSize )
+      return forcedMaxGridSize;
+   return maxGridSize;
 }
 
 constexpr int

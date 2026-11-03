@@ -52,6 +52,9 @@ protected:
    DistributedVectorView av_view, bv_view, cv_view;
    HostDistributedArrayType array_host, input_host, expected_host;
 
+   // make sure that we perform tests with multiple CUDA grids
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride{ 3 };
+
    const int rank = GetRank( communicator );
    const int nproc = GetSize( communicator );
 
@@ -89,17 +92,13 @@ protected:
       bv_view.bind( b );
       cv_view.bind( c );
 
-      // make sure that we perform tests with multiple CUDA grids
+      // reset the numbers of grids checked in checkResult
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if( std::is_same< DeviceType, Devices::Cuda >::value ) {
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::maxGridSize() = 3;
-         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::maxGridSize() = 3;
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::maxGridSize() = 3;
-         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::maxGridSize() = 3;
+         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount() = -1;
+         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount() = -1;
+         CudaScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() = -1;
+         CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() = -1;
       }
 #endif
    }
