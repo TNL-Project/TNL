@@ -93,7 +93,17 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
     # reference in device code; disable the hardening for the device compilation only
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xarch_device -D_GLIBCXX_NO_ASSERTIONS")
 
-    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0")
+    # -O2 optimizes the device code, which clang does not do without an -O flag, unlike
+    # nvcc which optimizes it unless -G is given -- without it, the CUDA tests run their
+    # kernels at -O0 and are an order of magnitude slower
+    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -O2")
+
+    # Clang < 20 emits invalid PTX (ptxas fatal error) when the device code contains
+    # debug info, see https://github.com/llvm/llvm-project/issues/58491. The fix was
+    # merged after the 19 branch was created, so -g0 is still needed for older Clang.
+    if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 20)
+        set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -Xarch_device -g0")
+    endif()
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled
