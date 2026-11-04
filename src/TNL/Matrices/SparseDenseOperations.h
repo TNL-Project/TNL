@@ -17,6 +17,11 @@ namespace TNL::Matrices {
  * row-major and column-major dense matrices. It is intended for dense matrices with a small
  * number of columns, for one column it is equivalent to \ref SparseMatrixBase::vectorProduct.
  *
+ * With the default launch configuration, a CSR matrix on GPU and a row-major `B` with more than
+ * 8 columns, the product is computed by \ref sparseDenseMatrixProductLanesOverColumns, which
+ * is faster for many columns of `B`. The number of lanes and columns per lane are selected by
+ * the number of columns of `B` and `MaxTileSize` is not used then.
+ *
  * Symmetric sparse matrices are not supported yet.
  *
  * \tparam MaxTileSize The maximal number of columns of `B` and `C` processed at once.
@@ -47,6 +52,45 @@ sparseDenseMatrixProduct(
    Real alpha = 1,
    Real beta = 0,
    const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Computes the product of a sparse and a dense matrix, `C = alpha * A * B + beta * C`,
+ * with the threads of each row of `A` distributed over the columns of `B` and `C`.
+ *
+ * The columns of `B` and `C` are processed in tiles of `Lanes * ColumnsPerLane` columns, each
+ * tile by one \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions. On GPUs,
+ * a group of `Lanes` threads processes every row of `A` and each thread computes `ColumnsPerLane`
+ * consecutive columns of the tile. Hence for row-major `B` the threads of the group read
+ * consecutive elements of its rows and no reduction between the threads is needed.
+ *
+ * The rows of `A` with more than `maxRowLength` elements are split into pieces processed by
+ * whole thread blocks, see \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions.
+ *
+ * The threads are distributed over the columns only for the CSR format of `A` on GPUs, otherwise
+ * the product is computed by the general multireduction, see
+ * \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions.
+ * See \ref sparseDenseMatrixProduct for the other parameters.
+ *
+ * \tparam Lanes The number of threads per row of `A`, a power of two up to the warp size.
+ * \tparam ColumnsPerLane The number of consecutive columns computed by each thread.
+ * \param maxRowLength The maximal number of elements of the rows processed by one group of
+ *        threads, zero means the default.
+ */
+template<
+   int Lanes,
+   int ColumnsPerLane,
+   typename SparseMatrix,
+   typename DenseMatrixB,
+   typename DenseMatrixC,
+   typename Real = typename SparseMatrix::ComputeRealType >
+void
+sparseDenseMatrixProductLanesOverColumns(
+   const SparseMatrix& A,
+   const DenseMatrixB& B,
+   DenseMatrixC& C,
+   Real alpha = 1,
+   Real beta = 0,
+   typename SparseMatrix::IndexType maxRowLength = 0 );
 
 }  // namespace TNL::Matrices
 
