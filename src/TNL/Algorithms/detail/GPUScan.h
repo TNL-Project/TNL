@@ -127,11 +127,19 @@ struct GPUScanLookbackDefaults
    //! \brief Maximum size of the tile in bytes.
    static constexpr std::size_t maxTileBytes = 36 * 1024;
 
+   //! \brief Returns the CUDA block size of the lookback kernel.
+   static constexpr int
+   getBlockSize()
+   {
+      if( sizeof( ValueType ) <= 8 )
+         return 256;
+      if( 128 * sizeof( ValueType ) <= maxTileBytes )
+         return 128;
+      return std::max( 1, static_cast< int >( 256 * 4 / sizeof( ValueType ) ) );
+   }
+
    //! \brief The CUDA block size of the lookback kernel.
-   static constexpr int blockSize = sizeof( ValueType ) <= 8 ? 256
-                                  : 128 * sizeof( ValueType ) <= maxTileBytes
-                                     ? 128
-                                     : std::max( 1, static_cast< int >( 256 * 4 / sizeof( ValueType ) ) );
+   static constexpr int blockSize = getBlockSize();
 
    //! \brief The mapping of the lookback to the threads of the block.
    static constexpr LookbackStrategy strategy =

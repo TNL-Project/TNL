@@ -122,7 +122,7 @@ enum class LookbackStrategy : std::uint8_t
 };
 
 // The largest epoch which fits into the status word together with the flag.
-constexpr unsigned int maxLookbackEpoch = ~0u >> 2;
+inline constexpr unsigned int maxLookbackEpoch = ~0U >> 2;
 
 __cuda_callable__
 constexpr unsigned int
@@ -187,8 +187,9 @@ __device__
 T
 loadVolatile( const T& ref )
 {
-   if constexpr( std::is_arithmetic_v< T > )
+   if constexpr( std::is_arithmetic_v< T > ) {
       return *reinterpret_cast< const volatile T* >( &ref );
+   }
    else {
       static_assert(
          sizeof( T ) % sizeof( int ) == 0,
@@ -212,8 +213,9 @@ __device__
 T
 warpShuffleDown( const T& value, int delta )
 {
-   if constexpr( std::is_trivially_copyable_v< T > )
+   if constexpr( std::is_trivially_copyable_v< T > ) {
       return Backend::warp_shuffle_down( value, delta );
+   }
    else {
       static_assert(
          sizeof( T ) % sizeof( int ) == 0,
@@ -237,9 +239,9 @@ inline std::uint64_t
 warpBallot( bool predicate )
 {
    #if defined( __HIP__ )
-   return __ballot( predicate );
+   return __ballot( static_cast< int >( predicate ) );
    #else
-   return __ballot_sync( Backend::getWarpFullMask(), predicate );
+   return __ballot_sync( Backend::getWarpFullMask(), static_cast< int >( predicate ) );
    #endif
 }
 
@@ -362,7 +364,7 @@ GPUScanKernelLookback(
    // with lower blockIdx.x are not scheduled first, which is not guaranteed
    // (e.g. on AMD GPUs).
    if( threadIdx.x == 0 )
-      sharedTileIdx = static_cast< unsigned int >( atomicAdd( tileCounter, 1ull ) - tileCounterBase );
+      sharedTileIdx = static_cast< unsigned int >( atomicAdd( tileCounter, 1ULL ) - tileCounterBase );
    __syncthreads();
    const unsigned int tileIdx = sharedTileIdx;
 
