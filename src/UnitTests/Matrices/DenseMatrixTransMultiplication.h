@@ -271,63 +271,77 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesTransposed2 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductATrans )
 {
    using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   using RealType = typename DenseMatrixType::RealType;
+   using IndexType = typename DenseMatrixType::IndexType;
+   using HostMatrixType =
+      TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType, DenseMatrixType::getOrganization() >;
 
-   DenseMatrixType matrix1;
-   matrix1.setDimensions( 50, 70 );
+   // Build the operands on the host to avoid per-element host-device transfers
+   HostMatrixType hostMatrix1;
+   hostMatrix1.setDimensions( 50, 70 );
 
-   DenseMatrixType matrix2;
-   matrix2.setDimensions( 70, 40 );
+   HostMatrixType hostMatrix2;
+   hostMatrix2.setDimensions( 70, 40 );
 
    // Fill the matrices
    const double h_x = 1.0 / 100;
    const double h_y = 1.0 / 100;
 
-   for( int i = 0; i < matrix1.getRows(); i++ ) {
-      for( int j = 0; j < matrix1.getColumns(); j++ ) {
+   for( int i = 0; i < hostMatrix1.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix1.getColumns(); j++ ) {
          double value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * j );
-         matrix1.setElement( i, j, value );
+         hostMatrix1.setElement( i, j, value );
       }
    }
 
-   for( int i = 0; i < matrix2.getRows(); i++ ) {
-      for( int j = 0; j < matrix2.getColumns(); j++ ) {
+   for( int i = 0; i < hostMatrix2.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2.getColumns(); j++ ) {
          double value = std::sin( 3 * M_PI * h_x * i ) + std::cos( 3 * M_PI * h_y * j );
-         matrix2.setElement( i, j, value );
+         hostMatrix2.setElement( i, j, value );
       }
    }
+
+   HostMatrixType hostCheckMatrix;
+   hostCheckMatrix.setDimensions( 50, 40 );
+
+   // Calculate the product of hostMatrix1 and hostMatrix2 manually
+   for( int i = 0; i < hostMatrix1.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2.getColumns(); j++ ) {
+         double sum = 0;
+         for( int k = 0; k < hostMatrix1.getColumns(); k++ ) {
+            sum += hostMatrix1.getElement( i, k ) * hostMatrix2.getElement( k, j );
+         }
+         hostCheckMatrix.setElement( i, j, sum );
+      }
+   }
+
+   // Transpose the hostMatrix1 manually
+   HostMatrixType hostMatrix1Transposed;
+   hostMatrix1Transposed.setDimensions( 70, 50 );
+   for( int i = 0; i < hostMatrix1Transposed.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix1Transposed.getColumns(); j++ ) {
+         hostMatrix1Transposed.setElement( i, j, hostMatrix1.getElement( j, i ) );
+      }
+   }
+
+   DenseMatrixType matrix1_transposed;
+   matrix1_transposed = hostMatrix1Transposed;
+
+   DenseMatrixType matrix2;
+   matrix2 = hostMatrix2;
 
    DenseMatrixType resultMatrix;
    resultMatrix.setDimensions( 50, 40 );
 
-   DenseMatrixType checkMatrix;
-   checkMatrix.setDimensions( 50, 40 );
-
-   // Calculate the product of matrix1 and matrix2 manually
-   for( int i = 0; i < matrix1.getRows(); i++ ) {
-      for( int j = 0; j < matrix2.getColumns(); j++ ) {
-         double sum = 0;
-         for( int k = 0; k < matrix1.getColumns(); k++ ) {
-            sum += matrix1.getElement( i, k ) * matrix2.getElement( k, j );
-         }
-         checkMatrix.setElement( i, j, sum );
-      }
-   }
-
-   // Transpose the matrix1 manually
-   DenseMatrixType matrix1_transposed;
-   matrix1_transposed.setDimensions( 70, 50 );
-   for( int i = 0; i < matrix1_transposed.getRows(); i++ ) {
-      for( int j = 0; j < matrix1_transposed.getColumns(); j++ ) {
-         matrix1_transposed.setElement( i, j, matrix1.getElement( j, i ) );
-      }
-   }
-
    resultMatrix.getMatrixProduct(
       matrix1_transposed, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
 
+   HostMatrixType hostResultMatrix;
+   hostResultMatrix = resultMatrix;
+
    auto tolerance = 1e-3;
 
-   auto diff = resultMatrix.getValues() - checkMatrix.getValues();
+   auto diff = hostResultMatrix.getValues() - hostCheckMatrix.getValues();
 
    bool check = true;
 
@@ -340,62 +354,77 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductATrans 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductBTrans )
 {
    using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   using RealType = typename DenseMatrixType::RealType;
+   using IndexType = typename DenseMatrixType::IndexType;
+   using HostMatrixType =
+      TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType, DenseMatrixType::getOrganization() >;
 
-   DenseMatrixType matrix1;
-   matrix1.setDimensions( 50, 70 );
+   // Build the operands on the host to avoid per-element host-device transfers
+   HostMatrixType hostMatrix1;
+   hostMatrix1.setDimensions( 50, 70 );
 
-   DenseMatrixType matrix2;
-   matrix2.setDimensions( 70, 40 );
+   HostMatrixType hostMatrix2;
+   hostMatrix2.setDimensions( 70, 40 );
 
    // Fill the matrices
    const double h_x = 1.0 / 100;
    const double h_y = 1.0 / 100;
 
-   for( int i = 0; i < matrix1.getRows(); i++ ) {
-      for( int j = 0; j < matrix1.getColumns(); j++ ) {
+   for( int i = 0; i < hostMatrix1.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix1.getColumns(); j++ ) {
          double value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * j );
-         matrix1.setElement( i, j, value );
+         hostMatrix1.setElement( i, j, value );
       }
    }
 
-   for( int i = 0; i < matrix2.getRows(); i++ ) {
-      for( int j = 0; j < matrix2.getColumns(); j++ ) {
+   for( int i = 0; i < hostMatrix2.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2.getColumns(); j++ ) {
          double value = std::sin( 3 * M_PI * h_x * i ) + std::cos( 3 * M_PI * h_y * j );
-         matrix2.setElement( i, j, value );
+         hostMatrix2.setElement( i, j, value );
       }
    }
+
+   HostMatrixType hostCheckMatrix;
+   hostCheckMatrix.setDimensions( 50, 40 );
+
+   // Calculate the product of hostMatrix1 and hostMatrix2 manually
+   for( int i = 0; i < hostMatrix1.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2.getColumns(); j++ ) {
+         double sum = 0;
+         for( int k = 0; k < hostMatrix1.getColumns(); k++ ) {
+            sum += hostMatrix1.getElement( i, k ) * hostMatrix2.getElement( k, j );
+         }
+         hostCheckMatrix.setElement( i, j, sum );
+      }
+   }
+
+   // Transpose the hostMatrix2 manually
+   HostMatrixType hostMatrix2Transposed;
+   hostMatrix2Transposed.setDimensions( 40, 70 );
+   for( int i = 0; i < hostMatrix2Transposed.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2Transposed.getColumns(); j++ ) {
+         hostMatrix2Transposed.setElement( i, j, hostMatrix2.getElement( j, i ) );
+      }
+   }
+
+   DenseMatrixType matrix1;
+   matrix1 = hostMatrix1;
+
+   DenseMatrixType matrix2_transposed;
+   matrix2_transposed = hostMatrix2Transposed;
 
    DenseMatrixType resultMatrix;
    resultMatrix.setDimensions( 50, 40 );
 
-   DenseMatrixType checkMatrix;
-   checkMatrix.setDimensions( 50, 40 );
-
-   // Calculate the product of matrix1 and matrix2 manually
-   for( int i = 0; i < matrix1.getRows(); i++ ) {
-      for( int j = 0; j < matrix2.getColumns(); j++ ) {
-         double sum = 0;
-         for( int k = 0; k < matrix1.getColumns(); k++ ) {
-            sum += matrix1.getElement( i, k ) * matrix2.getElement( k, j );
-         }
-         checkMatrix.setElement( i, j, sum );
-      }
-   }
-
-   // Transpose the matrix2 manually
-   DenseMatrixType matrix2_transposed;
-   matrix2_transposed.setDimensions( 40, 70 );
-   for( int i = 0; i < matrix2_transposed.getRows(); i++ ) {
-      for( int j = 0; j < matrix2_transposed.getColumns(); j++ ) {
-         matrix2_transposed.setElement( i, j, matrix2.getElement( j, i ) );
-      }
-   }
    resultMatrix.getMatrixProduct(
       matrix1, matrix2_transposed, 1.0, TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
 
+   HostMatrixType hostResultMatrix;
+   hostResultMatrix = resultMatrix;
+
    auto tolerance = 1e-3;
 
-   auto diff = resultMatrix.getValues() - checkMatrix.getValues();
+   auto diff = hostResultMatrix.getValues() - hostCheckMatrix.getValues();
 
    bool check = true;
 
@@ -407,65 +436,76 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductBTrans 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductBothTrans )
 {
    using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   using RealType = typename DenseMatrixType::RealType;
+   using IndexType = typename DenseMatrixType::IndexType;
+   using HostMatrixType =
+      TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType, DenseMatrixType::getOrganization() >;
 
-   DenseMatrixType matrix1;
-   matrix1.setDimensions( 50, 70 );
+   // Build the operands on the host to avoid per-element host-device transfers
+   HostMatrixType hostMatrix1;
+   hostMatrix1.setDimensions( 50, 70 );
 
-   DenseMatrixType matrix2;
-   matrix2.setDimensions( 70, 40 );
+   HostMatrixType hostMatrix2;
+   hostMatrix2.setDimensions( 70, 40 );
 
    // Fill the matrices
    const double h_x = 1.0 / 100;
    const double h_y = 1.0 / 100;
 
-   for( int i = 0; i < matrix1.getRows(); i++ ) {
-      for( int j = 0; j < matrix1.getColumns(); j++ ) {
+   for( int i = 0; i < hostMatrix1.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix1.getColumns(); j++ ) {
          double value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * j );
-         matrix1.setElement( i, j, value );
+         hostMatrix1.setElement( i, j, value );
       }
    }
 
-   for( int i = 0; i < matrix2.getRows(); i++ ) {
-      for( int j = 0; j < matrix2.getColumns(); j++ ) {
+   for( int i = 0; i < hostMatrix2.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2.getColumns(); j++ ) {
          double value = std::sin( 3 * M_PI * h_x * i ) + std::cos( 3 * M_PI * h_y * j );
-         matrix2.setElement( i, j, value );
+         hostMatrix2.setElement( i, j, value );
       }
    }
+
+   HostMatrixType hostCheckMatrix;
+   hostCheckMatrix.setDimensions( 50, 40 );
+
+   // Calculate the product of hostMatrix1 and hostMatrix2 manually
+   for( int i = 0; i < hostMatrix1.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2.getColumns(); j++ ) {
+         double sum = 0;
+         for( int k = 0; k < hostMatrix1.getColumns(); k++ ) {
+            sum += hostMatrix1.getElement( i, k ) * hostMatrix2.getElement( k, j );
+         }
+         hostCheckMatrix.setElement( i, j, sum );
+      }
+   }
+
+   // Transpose the hostMatrix1 manually
+   HostMatrixType hostMatrix1Transposed;
+   hostMatrix1Transposed.setDimensions( 70, 50 );
+   for( int i = 0; i < hostMatrix1Transposed.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix1Transposed.getColumns(); j++ ) {
+         hostMatrix1Transposed.setElement( i, j, hostMatrix1.getElement( j, i ) );
+      }
+   }
+
+   // Transpose the hostMatrix2 manually
+   HostMatrixType hostMatrix2Transposed;
+   hostMatrix2Transposed.setDimensions( 40, 70 );
+   for( int i = 0; i < hostMatrix2Transposed.getRows(); i++ ) {
+      for( int j = 0; j < hostMatrix2Transposed.getColumns(); j++ ) {
+         hostMatrix2Transposed.setElement( i, j, hostMatrix2.getElement( j, i ) );
+      }
+   }
+
+   DenseMatrixType matrix1_transposed;
+   matrix1_transposed = hostMatrix1Transposed;
+
+   DenseMatrixType matrix2_transposed;
+   matrix2_transposed = hostMatrix2Transposed;
 
    DenseMatrixType resultMatrix;
    resultMatrix.setDimensions( 50, 40 );
-
-   DenseMatrixType checkMatrix;
-   checkMatrix.setDimensions( 50, 40 );
-
-   // Calculate the product of matrix1 and matrix2 manually
-   for( int i = 0; i < matrix1.getRows(); i++ ) {
-      for( int j = 0; j < matrix2.getColumns(); j++ ) {
-         double sum = 0;
-         for( int k = 0; k < matrix1.getColumns(); k++ ) {
-            sum += matrix1.getElement( i, k ) * matrix2.getElement( k, j );
-         }
-         checkMatrix.setElement( i, j, sum );
-      }
-   }
-
-   // Transpose the matrix1 manually
-   DenseMatrixType matrix1_transposed;
-   matrix1_transposed.setDimensions( 70, 50 );
-   for( int i = 0; i < matrix1_transposed.getRows(); i++ ) {
-      for( int j = 0; j < matrix1_transposed.getColumns(); j++ ) {
-         matrix1_transposed.setElement( i, j, matrix1.getElement( j, i ) );
-      }
-   }
-
-   // Transpose the matrix2 manually
-   DenseMatrixType matrix2_transposed;
-   matrix2_transposed.setDimensions( 40, 70 );
-   for( int i = 0; i < matrix2_transposed.getRows(); i++ ) {
-      for( int j = 0; j < matrix2_transposed.getColumns(); j++ ) {
-         matrix2_transposed.setElement( i, j, matrix2.getElement( j, i ) );
-      }
-   }
 
    resultMatrix.getMatrixProduct(
       matrix1_transposed,
@@ -474,9 +514,12 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductBothTra
       TNL::Matrices::TransposeState::Transpose,
       TNL::Matrices::TransposeState::Transpose );
 
+   HostMatrixType hostResultMatrix;
+   hostResultMatrix = resultMatrix;
+
    auto tolerance = 1e-3;
 
-   auto diff = resultMatrix.getValues() - checkMatrix.getValues();
+   auto diff = hostResultMatrix.getValues() - hostCheckMatrix.getValues();
 
    bool check = true;
 
