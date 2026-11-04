@@ -26,6 +26,9 @@ generic SpMM implementation based on TNL segments.
   segments of `A` (`TNL::Algorithms::Segments::multiReduceAllSegments`). It is
   measured with `A` in the CSR format (`TNL SpMM`) and with all launch
   configurations of its segments (Uniform with `TPS` 1–128 and Tiered).
+  With the `Default` configuration, row-major `B` and more than 8 columns,
+  it uses `sparseDenseMatrixProductLanesOverColumns` with the numbers of lanes
+  and columns per lane selected by `k`.
   Selected by `--segments-formats`, it is also measured with `A` in other
   formats:
   - `TNL SpMM AdaptiveCSR` – the native adaptive kernel only, with tiles of at
@@ -34,6 +37,12 @@ generic SpMM implementation based on TNL segments.
   - `TNL SpMM Ellpack` and `TNL SpMM SlicedEllpack` – all launch
     configurations of the segments. A format is skipped when it would have more
     elements than `--max-padding-ratio` times the number of nonzeros.
+- **TNL SpMM LanesOverColumns** – `TNL::Matrices::sparseDenseMatrixProductLanesOverColumns`
+  with `A` in the CSR format (row-major layout only): a group of `G` threads
+  processes one row of `A` and every thread computes `V` consecutive columns of
+  `C`, loaded by vectorized loads when possible. The very long rows are split
+  into pieces processed by whole thread blocks. It is measured with the same
+  configurations as the LanesOverColumns reference kernels.
 - **RowGroup** – a group of `TPR` threads processes one row of `A` and every
   thread accumulates a tile of `K` columns of `C` in registers. Every element
   of `A` is loaded once per tile.

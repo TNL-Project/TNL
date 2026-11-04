@@ -667,6 +667,38 @@ benchmarkGPU(
       using DefaultTileSize = std::integral_constant< int, 16 >;
       if( isSelected( segmentsFormats, "csr" ) )
          runSegments( "TNL SpMM", matrix, DefaultTileSize{}, false );
+      // the threads of the rows distributed over the columns (row-major only), the same configurations as
+      // for the LanesOverColumns reference kernels
+      if( problem.rowMajor && isSelected( segmentsFormats, "csr" ) )
+         for( int G : { 4, 8, 16, 32 } )
+            for( int V : { 1, 2, 4 } ) {
+               if( G * V >= 2 * problem.k )
+                  continue;
+               dispatchPowerOfTwo(
+                  G,
+                  [ & ]( auto G_ )
+                  {
+                     dispatchPowerOfTwo(
+                        V,
+                        [ & ]( auto V_ )
+                        {
+                           if constexpr( G_ >= 4 && V_ <= 4 ) {
+                              using DenseView =
+                                 Matrices::DenseMatrixView< Real, Devices::GPU, Index, Algorithms::Segments::RowMajorOrder >;
+                              auto compute = [ & ]()
+                              {
+                                 const DenseView viewB( problem.columns, problem.k, B.getView() );
+                                 DenseView viewC( problem.rows, problem.k, C.getView() );
+                                 Matrices::sparseDenseMatrixProductLanesOverColumns< G_, V_ >( matrix, viewB, viewC );
+                              };
+                              run(
+                                 "TNL SpMM LanesOverColumns",
+                                 "G=" + std::to_string( G ) + " V=" + std::to_string( V ),
+                                 compute );
+                           }
+                        } );
+                  } );
+            }
       // The adaptive kernel supports values of at most 32 bytes, the larger tiles would fall back to the CSR kernels.
       // The other launch configurations of AdaptiveCSR are the same as those of CSR.
       if( formats.adaptiveCSR )
