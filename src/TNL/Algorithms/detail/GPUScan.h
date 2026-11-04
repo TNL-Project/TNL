@@ -236,7 +236,7 @@ struct GPUScanKernelLauncher
       using Index = typename InputArray::IndexType;
       constexpr int maxElementsInBlock = blockSize * valuesPerThread;
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
-      const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
+      const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, Backend::getMaxGridXSize( blockSize ) );
 
       if( numberOfGrids == 1 ) {
          performLookback(

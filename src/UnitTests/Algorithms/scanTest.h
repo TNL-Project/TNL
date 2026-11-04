@@ -844,13 +844,8 @@ TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
    using DeviceType = typename TestFixture::DeviceType;
 
    // The fixture constrains maxGridSize to 3, which would route to the
-   // three-phase path. Reset it so the lookback kernel is selected.
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   // three-phase path. Disable it so the lookback kernel is selected.
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    // Choose size large enough to span multiple blocks with the default
    // maxElementsInBlock (= blockSize * lookbackValuesPerThread). A prime
@@ -922,14 +917,8 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_begin )
 {
    using ValueType = typename TestFixture::ValueType;
    using IndexType = typename TestFixture::IndexType;
-   using DeviceType = typename TestFixture::DeviceType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    // begin=3 breaks 16-byte alignment for double (3*8=24) and int (3*4=12).
    const IndexType size = 9377;
@@ -976,14 +965,8 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_view )
 {
    using ValueType = typename TestFixture::ValueType;
    using IndexType = typename TestFixture::IndexType;
-   using DeviceType = typename TestFixture::DeviceType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    const IndexType size = 9377;
    const IndexType inputOffset = 1;
@@ -1038,13 +1021,9 @@ TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
    using ArrayType = typename TestFixture::ArrayType;
    using ValueType = typename TestFixture::ValueType;
    using IndexType = typename TestFixture::IndexType;
-   using DeviceType = typename TestFixture::DeviceType;
    using HostArrayType = typename TestFixture::HostArrayType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    const IndexType size = 9377;
    const int threadsCount = 4;
@@ -1199,16 +1178,11 @@ TYPED_TEST( ScanTest, inplaceScan_lookback_nonblocking )
    using IndexType = typename TestFixture::IndexType;
    using DeviceType = typename TestFixture::DeviceType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
-   else {
-      // the lookback kernel exists only on the GPU
+   // the lookback kernel exists only on the GPU
+   if constexpr( ! std::is_same_v< DeviceType, Devices::Cuda > )
       return;
-   }
+
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    typename DeviceType::LaunchConfiguration launch_config;
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
