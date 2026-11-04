@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
+#include <TNL/Functional.h>
 #include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 

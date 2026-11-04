@@ -6,6 +6,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Atomic.h>
+#include <TNL/Functional.h>
 #include "QuicksortTask.h"
 
 namespace TNL::Algorithms::Sorting::experimental::detail {

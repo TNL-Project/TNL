@@ -7,6 +7,7 @@
 #include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Algorithms/find.h>
 #include <TNL/Backend/LaunchHelpers.h>
+#include <TNL/Functional.h>
 #include <TNL/TypeTraits.h>
 
 namespace TNL::Algorithms::Segments::detail {
