@@ -356,9 +356,15 @@ isTree_impl(
             {
                visitedView[ rowIdx ] = visitedView[ rowIdx ] + value;
             };
+            // symmetric_fetch of other rows atomically adds to visitedView[ rowIdx ]
+            // during the same reduction, so the update must be atomic as well.
+            auto symmetric_keep = [ = ] __cuda_callable__( IndexType rowIdx, const IndexType value ) mutable
+            {
+               TNL::Algorithms::AtomicOperations< DeviceType >::add( visitedView[ rowIdx ], value );
+            };
             if constexpr( AdjacencyMatrixType::isSymmetric() )
                graph.getAdjacencyMatrix().reduceAllRows(
-                  symmetric_fetch, TNL::Plus(), keep, static_cast< IndexType >( 0 ), launchConfig );
+                  symmetric_fetch, TNL::Plus(), symmetric_keep, static_cast< IndexType >( 0 ), launchConfig );
             else
                graph.getAdjacencyMatrix().reduceAllRows(
                   fetch, TNL::Plus(), keep, static_cast< IndexType >( 0 ), launchConfig );
