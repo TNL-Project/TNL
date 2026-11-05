@@ -10,17 +10,18 @@ namespace TNL::Matrices {
 /**
  * \brief Computes the product of a sparse and a dense matrix, `C = alpha * A * B + beta * C`.
  *
- * The columns of `B` and `C` are processed in tiles of at most `MaxTileSize` columns. Each tile
- * is computed by one \ref TNL::Algorithms::Segments::Segments_multiReduceAllSegments over the rows
- * of `A`, so every element of `A` is read once per tile and used for all columns of the tile.
- * It works with all segment types and launch configurations of the sparse matrix and with both
- * row-major and column-major dense matrices. It is intended for dense matrices with a small
- * number of columns, for one column it is equivalent to \ref SparseMatrixBase::vectorProduct.
+ * The columns of `B` and `C` are processed in tiles of at most `MaxTileSize` columns by
+ * \ref TNL::Algorithms::Segments::multiReduceAllSegmentsInTiles over the rows of `A`, so every
+ * element of `A` is read once per tile and used for all columns of the tile. It works with all
+ * segment types and launch configurations of the sparse matrix and with both row-major and
+ * column-major dense matrices. For one column it is equivalent to \ref SparseMatrixBase::vectorProduct.
  *
  * With the default launch configuration, a CSR matrix on GPU and a row-major `B` with more than
- * 8 columns, the product is computed by \ref sparseDenseMatrixProductLanesOverColumns, which
+ * 4 columns, the product is computed by \ref sparseDenseMatrixProductLanesOverColumns, which
  * is faster for many columns of `B`. The number of lanes and columns per lane are selected by
- * the number of columns of `B` and `MaxTileSize` is not used then.
+ * the number of columns of `B` and the precision and `MaxTileSize` is not used then. Otherwise, the default
+ * configuration of CSR on GPU is selected by the average number of elements per row: the Tiered
+ * mapping for less than 16 elements and the Uniform mapping with 16 threads per row for more.
  *
  * Symmetric sparse matrices are not supported yet.
  *
@@ -57,11 +58,13 @@ sparseDenseMatrixProduct(
  * \brief Computes the product of a sparse and a dense matrix, `C = alpha * A * B + beta * C`,
  * with the threads of each row of `A` distributed over the columns of `B` and `C`.
  *
- * The columns of `B` and `C` are processed in tiles of `Lanes * ColumnsPerLane` columns, each
- * tile by one \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions. On GPUs,
- * a group of `Lanes` threads processes every row of `A` and each thread computes `ColumnsPerLane`
- * consecutive columns of the tile. Hence for row-major `B` the threads of the group read
- * consecutive elements of its rows and no reduction between the threads is needed.
+ * The product is computed by one \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions.
+ * On GPUs, the columns of `B` and `C` are split into tiles of `Lanes * ColumnsPerLane` columns,
+ * a group of `Lanes` threads processes every row of `A` and tile and each thread computes
+ * `ColumnsPerLane` consecutive columns of the tile. Hence for row-major `B` the threads of the group
+ * read consecutive elements of its rows and no reduction between the threads is needed. All tiles
+ * are processed at once, so the product is efficient also for a few rows of `A` and many columns
+ * of `B`.
  *
  * The rows of `A` with more than `maxRowLength` elements are split into pieces processed by
  * whole thread blocks, see \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions.

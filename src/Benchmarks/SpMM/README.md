@@ -26,9 +26,11 @@ generic SpMM implementation based on TNL segments.
   segments of `A` (`TNL::Algorithms::Segments::multiReduceAllSegments`). It is
   measured with `A` in the CSR format (`TNL SpMM`) and with all launch
   configurations of its segments (Uniform with `TPS` 1–128 and Tiered).
-  With the `Default` configuration, row-major `B` and more than 8 columns,
+  With the `Default` configuration, row-major `B` and more than 4 columns,
   it uses `sparseDenseMatrixProductLanesOverColumns` with the numbers of lanes
-  and columns per lane selected by `k`.
+  and columns per lane selected by `k` and the precision. Otherwise, the `Default` configuration
+  is selected by the average row length (Tiered for less than 16 elements,
+  Uniform with 16 threads per row otherwise).
   Selected by `--segments-formats`, it is also measured with `A` in other
   formats:
   - `TNL SpMM AdaptiveCSR` – the native adaptive kernel only, with tiles of at
