@@ -22,12 +22,32 @@ public:
    using EntityNormals = TNL::Meshes::NormalsGetter< Index, EntityDimension, Grid::getMeshDimension() >;
 
    GridCoordinateIterator( const typename Grid::CoordinatesType& end )
-   : Base( Coordinate( 0 ), end + EntityNormals::template getNormals< Orientation >() )
+   : Base( Coordinate( 0 ), end + EntityNormals::template getNormals< Orientation >() ),
+     normals( EntityNormals::template getNormals< Orientation >() )
    {
+      Index stride = 1;
       for( Index i = 0; i < this->current.getSize(); i++ ) {
          this->start[ i ] = 0;
          this->current[ i ] = 0;
+         strides[ i ] = stride;
+         stride *= this->end[ i ];
       }
+   }
+
+   GridCoordinateIterator( const Grid& grid )
+   : GridCoordinateIterator( grid.getDimensions() )
+   {
+      for( Index i = 0; i < Orientation; i++ )
+         orientationOffset += grid.getOrientedEntitiesCount( EntityDimension, i );
+
+      if( EntityDimension != 0 ) {
+         Coordinate powers;
+         for( Index i = 0; i < this->current.getSize(); i++ )
+            powers[ i ] = ! normals[ i ];
+         measure = grid.getSpaceStepsProducts( powers );
+      }
+
+      hasGrid = true;
    }
 
    [[nodiscard]] bool
@@ -42,7 +62,7 @@ public:
             break;
          default:
             for( Index i = 0; i < this->current.getSize(); i++ )
-               if( getNormals()[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] ) )
+               if( normals[ i ] && ( this->current[ i ] == 0 || this->current[ i ] == grid.getDimensions()[ i ] ) )
                   return true;
             break;
       }
@@ -61,22 +81,14 @@ public:
    {
       Index result = 0;
 
-      for( Index i = 0; i < this->current.getSize(); i++ ) {
-         if( i == 0 ) {
-            result += this->current[ i ];
-         }
-         else {
-            Index offset = 1;
+      for( Index i = 0; i < this->current.getSize(); i++ )
+         result += this->current[ i ] * strides[ i ];
 
-            for( Index j = 0; j < i; j++ )
-               offset *= this->end[ j ];
-
-            result += this->current[ i ] * offset;
-         }
-      }
-
-      for( Index i = 0; i < Orientation; i++ )
-         result += grid.getOrientedEntitiesCount( EntityDimension, i );
+      if( hasGrid )
+         result += orientationOffset;
+      else
+         for( Index i = 0; i < Orientation; i++ )
+            result += grid.getOrientedEntitiesCount( EntityDimension, i );
 
       return result;
    }
@@ -84,7 +96,7 @@ public:
    [[nodiscard]] Coordinate
    getNormals() const
    {
-      return EntityNormals::template getNormals< Orientation >();
+      return normals;
    }
 
    [[nodiscard]] Point
@@ -93,8 +105,6 @@ public:
       const Point& origin = grid.getOrigin();
       Point center;
       const Point& spaceSteps = grid.getSpaceSteps();
-
-      Coordinate normals = getNormals();
 
       for( Index i = 0; i < this->current.getSize(); i++ )
          center[ i ] = origin[ i ] + ( this->current[ i ] + (Real) ( 0.5 * ! normals[ i ] ) ) * spaceSteps[ i ];
@@ -105,11 +115,12 @@ public:
    [[nodiscard]] Real
    getMeasure( const Grid& grid ) const
    {
-      if( EntityDimension == 0 ) {
+      if( EntityDimension == 0 )
          return 0.0;
-      }
 
-      Coordinate normals = getNormals();
+      if( hasGrid )
+         return measure;
+
       Coordinate powers;
 
       for( Index i = 0; i < this->current.getSize(); i++ )
@@ -117,6 +128,12 @@ public:
 
       return grid.getSpaceStepsProducts( powers );
    }
+
+private:
+   Coordinate normals, strides;
+   Index orientationOffset = 0;
+   Real measure = 0;
+   bool hasGrid = false;
 };
 
 template< typename Grid, int EntityDimension >
@@ -241,7 +258,7 @@ public:
 
       auto verify = [ & ]( const auto orientation )
       {
-         Iterator< orientation > iterator( grid.getDimensions() );
+         Iterator< orientation > iterator( grid );
 
          if( ! iterator.canIterate() ) {
             SCOPED_TRACE( "Skip iteration" );
@@ -271,7 +288,7 @@ public:
 
       auto verify = [ & ]( const auto orientation )
       {
-         Iterator< orientation > iterator( grid.getDimensions() );
+         Iterator< orientation > iterator( grid );
 
          if( ! iterator.canIterate() ) {
             SCOPED_TRACE( "Skip iteration" );
@@ -301,7 +318,7 @@ public:
 
       auto verify = [ & ]( const auto orientation )
       {
-         Iterator< orientation > iterator( grid.getDimensions() );
+         Iterator< orientation > iterator( grid );
 
          if( ! iterator.canIterate() ) {
             SCOPED_TRACE( "Skip iteration" );
@@ -326,31 +343,30 @@ private:
       typename HostDataStore::View& dataStore,
       bool expectCall ) const
    {
-      static Real precision = 9e-5;
+      static constexpr Real precision = 9e-5;
 
       auto index = iterator.getIndex( grid );
       auto entity = dataStore.getEntity( index );
 
-      SCOPED_TRACE( "Entity: " + TNL::convertToString( entity ) );
-
-      EXPECT_EQ( entity.calls, expectCall ? 1 : 0 ) << "Expect the index to be called once";
-      EXPECT_EQ( entity.index, expectCall ? index : 0 ) << "Expect the index was correctly set";
-      EXPECT_EQ( entity.isBoundary, expectCall ? iterator.isBoundary( grid ) : 0 ) << "Expect the index was correctly set";
+      EXPECT_EQ( entity.calls, expectCall ? 1 : 0 ) << "Expect the index to be called once: " << entity;
+      EXPECT_EQ( entity.index, expectCall ? index : 0 ) << "Expect the index was correctly set: " << entity;
+      EXPECT_EQ( entity.isBoundary, expectCall ? iterator.isBoundary( grid ) : 0 )
+         << "Expect the boundary tag was correctly set: " << entity;
 
       Coordinate coordinate = expectCall ? iterator.getCoordinate() : Coordinate( 0 );
       Coordinate normals = expectCall ? iterator.getNormals() : Coordinate( 0 );
       Point center = expectCall ? iterator.getCenter( grid ) : Point( 0 );
 
-      EXPECT_EQ( entity.coordinate, coordinate ) << "Expect the coordinates are the same on the same index. ";
-      EXPECT_EQ( entity.normals, normals ) << "Expect the normals are the same on the same index. ";
+      EXPECT_EQ( entity.coordinate, coordinate ) << "Expect the coordinates are the same on the same index: " << entity;
+      EXPECT_EQ( entity.normals, normals ) << "Expect the normals are the same on the same index: " << entity;
 
       // CUDA calculates floating points differently.
       EXPECT_NEAR( expectCall ? iterator.getMeasure( grid ) : 0.0, entity.measure, precision )
-         << "Expect the measure was correctly calculated. ";
+         << "Expect the measure was correctly calculated: " << entity;
 
       for( Index i = 0; i < Grid::getMeshDimension(); i++ )
          EXPECT_NEAR( entity.center[ i ], center[ i ], precision )
-            << "Expect the centers are the same on the same index. " << entity.center << " " << center;
+            << "Expect the centers are the same on the same index: " << entity << " " << entity.center << " " << center;
    }
 };
 
