@@ -18,6 +18,7 @@ test_reduceSegments_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType segmentSize = 70;
@@ -43,6 +44,7 @@ test_reduceSegments_MaximumInSegments()
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount );
+      HostVectorType hostResult;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -64,20 +66,23 @@ test_reduceSegments_MaximumInSegments()
       TNL::Algorithms::Segments::reduceAllSegments(
          segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], 5 * i + segmentSize ) << "segmentIdx = " << i;
 
       result_view = 0;
       TNL::Algorithms::Segments::reduceAllSegments(
          segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], 5 * i + segmentSize ) << "segmentIdx = " << i;
 
       TNL::Algorithms::Segments::reduceSegments(
          segments, 29, 193, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
+      hostResult = result;
       for( IndexType i = 29; i < 193; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], 5 * i + segmentSize ) << "segmentIdx = " << i;
    }
 }
 
@@ -331,6 +336,7 @@ test_reduceSegments_MaximumInTriangularSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
 
@@ -359,6 +365,7 @@ test_reduceSegments_MaximumInTriangularSegments()
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount );
+      HostVectorType hostResult;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -380,20 +387,23 @@ test_reduceSegments_MaximumInTriangularSegments()
       TNL::Algorithms::Segments::reduceAllSegments(
          segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), i + 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], i + 1 ) << "segmentIdx = " << i;
 
       result_view = 0;
       TNL::Algorithms::Segments::reduceAllSegments(
          segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), i + 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], i + 1 ) << "segmentIdx = " << i;
 
       TNL::Algorithms::Segments::reduceSegments(
          segments, 29, 193, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
+      hostResult = result;
       for( IndexType i = 29; i < 193; i++ )
-         EXPECT_EQ( result.getElement( i ), i + 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], i + 1 ) << "segmentIdx = " << i;
    }
 }
 
@@ -405,6 +415,7 @@ test_reduceSegments_MaximumInSegments_short_fetch()
    // It can be used only for segments without padding zeros.
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType segmentSize = 70;
@@ -431,6 +442,7 @@ test_reduceSegments_MaximumInSegments_short_fetch()
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount );
+      HostVectorType hostResult;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -451,14 +463,16 @@ test_reduceSegments_MaximumInSegments_short_fetch()
       TNL::Algorithms::Segments::reduceAllSegments(
          segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], 5 * i + segmentSize ) << "segmentIdx = " << i;
 
       result_view = 0;
       TNL::Algorithms::Segments::reduceAllSegments(
          segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], 5 * i + segmentSize ) << "segmentIdx = " << i;
    }
 }
 
@@ -468,6 +482,7 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType maxSegmentSize = 70;
@@ -501,6 +516,8 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount );
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount );
+      HostVectorType hostResult;
+      HostVectorType hostArgs;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -519,9 +536,11 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
       };
       TNL::Algorithms::Segments::reduceAllSegmentsWithArgument( segments, fetch, TNL::MaxWithArg{}, keep, launch_config );
 
+      hostResult = result;
+      hostArgs = args;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
-         EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-         EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostArgs[ i ], i % maxSegmentSize ) << "segmentIdx = " << i;
       }
 
       // Test with segments view and short fetch
@@ -537,9 +556,11 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
       TNL::Algorithms::Segments::reduceAllSegmentsWithArgument(
          segments.getView(), short_fetch, TNL::MaxWithArg{}, keep, launch_config );
 
+      hostResult = result;
+      hostArgs = args;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
-         EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-         EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostArgs[ i ], i % maxSegmentSize ) << "segmentIdx = " << i;
       }
    }
 }
@@ -550,6 +571,7 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType maxSegmentSize = 70;
@@ -591,6 +613,8 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 );
       // Position of the segment in the array segmentIndexes passed to keep
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > positions( segmentsCount, -1 );
+      HostVectorType hostResult;
+      HostVectorType hostPositions;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -609,14 +633,16 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
       };
       TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch, TNL::Max{}, keep, launch_config );
 
+      hostResult = result;
+      hostPositions = positions;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 ) {
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], i / 2 ) << "segmentIdx = " << i;
          }
          else {
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], -1 ) << "segmentIdx = " << i;
          }
       }
 
@@ -633,14 +659,16 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
       TNL::Algorithms::Segments::reduceSegments(
          segments.getView(), segmentIndexes, short_fetch, TNL::Max{}, keep, launch_config );
 
+      hostResult = result;
+      hostPositions = positions;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 ) {
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], i / 2 ) << "segmentIdx = " << i;
          }
          else {
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], -1 ) << "segmentIdx = " << i;
          }
       }
    }
@@ -652,6 +680,7 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType maxSegmentSize = 70;
@@ -694,6 +723,9 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount, -1 );
       // Position of the segment in the array segmentIndexes passed to keep
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > positions( segmentsCount, -1 );
+      HostVectorType hostResult;
+      HostVectorType hostArgs;
+      HostVectorType hostPositions;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -717,16 +749,19 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
       TNL::Algorithms::Segments::reduceSegmentsWithArgument(
          segments, segmentIndexes, fetch, TNL::MaxWithArg{}, keep, launch_config );
 
+      hostResult = result;
+      hostArgs = args;
+      hostPositions = positions;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 ) {
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], i % maxSegmentSize ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], i / 2 ) << "segmentIdx = " << i;
          }
          else {
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], -1 ) << "segmentIdx = " << i;
          }
       }
 
@@ -744,16 +779,19 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
       TNL::Algorithms::Segments::reduceSegmentsWithArgument(
          segments.getView(), segmentIndexes, short_fetch, TNL::MaxWithArg{}, keep, launch_config );
 
+      hostResult = result;
+      hostArgs = args;
+      hostPositions = positions;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 ) {
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), i / 2 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], i % maxSegmentSize ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], i / 2 ) << "segmentIdx = " << i;
          }
          else {
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostPositions[ i ], -1 ) << "segmentIdx = " << i;
          }
       }
    }
@@ -767,6 +805,8 @@ test_reduceSegmentsWithSegmentIndexes_IdentityOfOtherType()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
+   using HostResultVectorType = TNL::Containers::Vector< double, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType maxSegmentSize = 70;
@@ -800,6 +840,8 @@ test_reduceSegmentsWithSegmentIndexes_IdentityOfOtherType()
 
       TNL::Containers::Vector< double, DeviceType, IndexType > result( segmentsCount, -1 );
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount, -1 );
+      HostResultVectorType hostResult;
+      HostVectorType hostArgs;
       auto result_view = result.getView();
       auto args_view = args.getView();
 
@@ -809,9 +851,10 @@ test_reduceSegmentsWithSegmentIndexes_IdentityOfOtherType()
       };
       TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch, TNL::Plus{}, keep, 0, launch_config );
 
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i += 2 ) {
          const IndexType size = i % maxSegmentSize + 1;
-         EXPECT_EQ( result.getElement( i ), size * size / 2.0 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], size * size / 2.0 ) << "segmentIdx = " << i;
       }
 
       result_view = -1;
@@ -825,10 +868,12 @@ test_reduceSegmentsWithSegmentIndexes_IdentityOfOtherType()
       TNL::Algorithms::Segments::reduceSegmentsWithArgument(
          segments, segmentIndexes, fetch, TNL::MaxWithArg{}, keepWithArgument, 0, launch_config );
 
+      hostResult = result;
+      hostArgs = args;
       for( IndexType i = 0; i < segmentsCount; i += 2 ) {
          const IndexType size = i % maxSegmentSize + 1;
-         EXPECT_EQ( result.getElement( i ), size - 0.5 ) << "segmentIdx = " << i;
-         EXPECT_EQ( args.getElement( i ), size - 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], size - 0.5 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostArgs[ i ], size - 1 ) << "segmentIdx = " << i;
       }
    }
 }
@@ -839,6 +884,7 @@ test_reduceSegmentsIf_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType maxSegmentSize = 70;
@@ -871,6 +917,7 @@ test_reduceSegmentsIf_MaximumInSegments()
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 );
+      HostVectorType hostResult;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -892,11 +939,12 @@ test_reduceSegmentsIf_MaximumInSegments()
       TNL::Algorithms::Segments::reduceSegmentsIf(
          segments, 0, segmentsCount, condition, fetch, TNL::Max{}, keep, launch_config );
 
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 )
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
          else
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
       }
 
       // Test with segments view and short fetch
@@ -911,11 +959,12 @@ test_reduceSegmentsIf_MaximumInSegments()
       TNL::Algorithms::Segments::reduceAllSegmentsIf(
          segments.getView(), condition, short_fetch, TNL::Max{}, keep, launch_config );
 
+      hostResult = result;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 )
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
          else
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
       }
    }
 }
@@ -926,6 +975,7 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 270;
    const IndexType maxSegmentSize = 70;
@@ -959,6 +1009,8 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 );
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount, -1 );
+      HostVectorType hostResult;
+      HostVectorType hostArgs;
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -984,14 +1036,16 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
       TNL::Algorithms::Segments::reduceAllSegmentsWithArgumentIf(
          segments, condition, fetch, TNL::MaxWithArg{}, keep, launch_config );
 
+      hostResult = result;
+      hostArgs = args;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 ) {
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], i % maxSegmentSize ) << "segmentIdx = " << i;
          }
          else {
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], -1 ) << "segmentIdx = " << i;
          }
       }
 
@@ -1008,14 +1062,16 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
       TNL::Algorithms::Segments::reduceSegmentsWithArgumentIf(
          segments.getView(), 0, segmentsCount, condition, short_fetch, TNL::MaxWithArg{}, keep, launch_config );
 
+      hostResult = result;
+      hostArgs = args;
       for( IndexType i = 0; i < segmentsCount; i++ ) {
          if( i % 2 == 0 ) {
-            EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], i % maxSegmentSize ) << "segmentIdx = " << i;
          }
          else {
-            EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
-            EXPECT_EQ( args.getElement( i ), -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
+            EXPECT_EQ( hostArgs[ i ], -1 ) << "segmentIdx = " << i;
          }
       }
    }
