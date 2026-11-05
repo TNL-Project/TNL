@@ -122,7 +122,7 @@ parallelSingleSourceShortestPath(
                   const ValueType oldDistance = detail::hostAtomicFetchMin( hostAtomicYView[ targetIdx ], newDistance );
                   if( newDistance < oldDistance ) {
 #if defined( HAVE_OPENMP )
-                  #pragma omp atomic write
+   #pragma omp atomic write
 #endif
                      predecessorsView[ targetIdx ] = sourceIdx;
                      nextMarksView[ targetIdx ] = 1;
@@ -178,11 +178,11 @@ parallelSingleSourceShortestPath(
                      const ValueType oldDistance = detail::hostAtomicFetchMin( hostAtomicYView[ targetIdx ], newDistance );
                      if( newDistance < oldDistance ) {
 #if defined( HAVE_OPENMP )
-                     #pragma omp atomic write
+   #pragma omp atomic write
 #endif
                         predecessorsView[ targetIdx ] = sourceIdx;
 #if defined( HAVE_OPENMP )
-                     #pragma omp atomic write
+   #pragma omp atomic write
 #endif
                         marksView[ targetIdx ] = 1;
                      }
@@ -213,13 +213,14 @@ parallelSingleSourceShortestPath(
                {
                   TNL_ASSERT_GE( sourceIdx, 0, "" );
                   TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
-                  TNL_ASSERT_GE( targetIdx, 0, "" );
-                  TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
 
                   if( marksView_bitmap[ sourceIdx ] != 1 )
                      return;
                   if( targetIdx == Matrices::paddingIndex< IndexType > )
                      return;
+
+                  TNL_ASSERT_GE( targetIdx, 0, "" );
+                  TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
 
                   const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                   if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
@@ -259,9 +260,9 @@ parallelSingleSourceShortestPath(
                {
                   TNL_ASSERT_GE( sourceIdx, 0, "" );
                   TNL_ASSERT_LT( sourceIdx, yView.getSize(), "" );
-                  TNL_ASSERT_GE( targetIdx, 0, "" );
-                  TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
                   if( targetIdx != Matrices::paddingIndex< IndexType > ) {
+                     TNL_ASSERT_GE( targetIdx, 0, "" );
+                     TNL_ASSERT_LT( targetIdx, yView.getSize(), "" );
                      const ValueType transformedWeight = edgeWeightCallable( sourceIdx, targetIdx, weight );
                      if( detail::isBlockedSsspEdgeWeight( transformedWeight ) )
                         return;
