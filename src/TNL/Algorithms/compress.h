@@ -34,7 +34,7 @@ namespace TNL::Algorithms {
  * All variants work in parallel on any device. They compute the inclusive prefix
  * sum of the marks and then write each marked index to the position given by the
  * prefix sum. The inverse operation, which converts a list of indices back to marks,
- * is \ref TNL::Algorithms::uncompress.
+ * is \ref TNL::Algorithms::uncompress (see \ref UncompressOverview).
  *
  * \section CompressFunctions Overview of the Variants
  *
