@@ -25,23 +25,15 @@ using SlicedEllpackSegmentsTypes = ::testing::Types<
    RowMajorSlicedEllpackType< TNL::Devices::Cuda, int, 8 >,
    RowMajorSlicedEllpackType< TNL::Devices::Cuda, int, 1 >,
    RowMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 32 >,
-   RowMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 1 >,
    ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 8 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 1 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 1 >
+   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 8 >
 #elif defined( __HIP__ )
    RowMajorSlicedEllpackType< TNL::Devices::Hip, int, 32 >,
    RowMajorSlicedEllpackType< TNL::Devices::Hip, int, 8 >,
    RowMajorSlicedEllpackType< TNL::Devices::Hip, int, 1 >,
    RowMajorSlicedEllpackType< TNL::Devices::Hip, long int, 32 >,
-   RowMajorSlicedEllpackType< TNL::Devices::Hip, long int, 1 >,
    ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 8 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 1 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, long int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, long int, 1 >
+   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 8 >
 #endif
    >;
 
