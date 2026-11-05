@@ -41,7 +41,7 @@ namespace TNL::Graphs::Algorithms {
  *
  * The algorithm treats the input graph as the underlying undirected graph. In
  * particular, for directed graphs it computes weakly connected components.
- * On sequential and host backends it uses a traversal-based component expansion,
+ * On sequential and host backends it uses union-find over the stored edges,
  * while GPU backends use iterative label relaxation with pointer jumping.
  *
  * To operate on a subgraph (vertex predicate, edge predicate, or both),
