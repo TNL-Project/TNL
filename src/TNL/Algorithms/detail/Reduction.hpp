@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include <memory>  // std::unique_ptr
+#include <limits>       // std::numeric_limits
+#include <memory>       // std::unique_ptr
+#include <type_traits>  // std::is_signed_v
 
 //#define CUDA_REDUCTION_PROFILING
 
@@ -87,27 +89,31 @@ Reduction< Devices::Sequential >::reduceWithArgument(
       for( Index b = 0; b < blocks; b++ ) {
          const Index offset = begin + b * block_size;
          for( int i = 0; i < block_size; i += 4 ) {
+            const Index i0 = static_cast< Index >( offset + i );
+            const Index i1 = static_cast< Index >( offset + i + 1 );
+            const Index i2 = static_cast< Index >( offset + i + 2 );
+            const Index i3 = static_cast< Index >( offset + i + 3 );
             if( ! initialized ) {
-               arg[ 0 ] = offset + i;
-               arg[ 1 ] = offset + i + 1;
-               arg[ 2 ] = offset + i + 2;
-               arg[ 3 ] = offset + i + 3;
-               r[ 0 ] = fetch( offset + i );
-               r[ 1 ] = fetch( offset + i + 1 );
-               r[ 2 ] = fetch( offset + i + 2 );
-               r[ 3 ] = fetch( offset + i + 3 );
+               arg[ 0 ] = i0;
+               arg[ 1 ] = i1;
+               arg[ 2 ] = i2;
+               arg[ 3 ] = i3;
+               r[ 0 ] = fetch( i0 );
+               r[ 1 ] = fetch( i1 );
+               r[ 2 ] = fetch( i2 );
+               r[ 3 ] = fetch( i3 );
                initialized = true;
                continue;
             }
-            reduce( r[ 0 ], fetch( offset + i ), arg[ 0 ], offset + i );
-            reduce( r[ 1 ], fetch( offset + i + 1 ), arg[ 1 ], offset + i + 1 );
-            reduce( r[ 2 ], fetch( offset + i + 2 ), arg[ 2 ], offset + i + 2 );
-            reduce( r[ 3 ], fetch( offset + i + 3 ), arg[ 3 ], offset + i + 3 );
+            reduce( r[ 0 ], fetch( i0 ), arg[ 0 ], i0 );
+            reduce( r[ 1 ], fetch( i1 ), arg[ 1 ], i1 );
+            reduce( r[ 2 ], fetch( i2 ), arg[ 2 ], i2 );
+            reduce( r[ 3 ], fetch( i3 ), arg[ 3 ], i3 );
          }
       }
 
       // reduce of the last, incomplete block (not unrolled)
-      for( Index i = begin + blocks * block_size; i < size; i++ )
+      for( Index i = begin + blocks * block_size; i < end; i++ )
          reduce( r[ 0 ], fetch( i ), arg[ 0 ], i );
 
       // reduce of unrolled results
@@ -195,12 +201,13 @@ Reduction< Devices::Host >::reduceWithArgument(
 {
 #ifdef HAVE_OPENMP
    constexpr int block_size = 128;
+   constexpr Index invalidIndex = std::numeric_limits< Index >::max();
    const Index size = end - begin;
    const Index blocks = size / block_size;
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
       // global result variable
-      std::pair< Result, Index > result( identity, -1 );
+      std::pair< Result, Index > result( identity, invalidIndex );
       [[maybe_unused]] const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
       #pragma omp parallel num_threads( threads )
       {
@@ -213,22 +220,26 @@ Reduction< Devices::Host >::reduceWithArgument(
          for( Index b = 0; b < blocks; b++ ) {
             const Index offset = begin + b * block_size;
             for( int i = 0; i < block_size; i += 4 ) {
+               const Index i0 = static_cast< Index >( offset + i );
+               const Index i1 = static_cast< Index >( offset + i + 1 );
+               const Index i2 = static_cast< Index >( offset + i + 2 );
+               const Index i3 = static_cast< Index >( offset + i + 3 );
                if( ! initialized ) {
-                  arg[ 0 ] = offset + i;
-                  arg[ 1 ] = offset + i + 1;
-                  arg[ 2 ] = offset + i + 2;
-                  arg[ 3 ] = offset + i + 3;
-                  r[ 0 ] = fetch( offset + i );
-                  r[ 1 ] = fetch( offset + i + 1 );
-                  r[ 2 ] = fetch( offset + i + 2 );
-                  r[ 3 ] = fetch( offset + i + 3 );
+                  arg[ 0 ] = i0;
+                  arg[ 1 ] = i1;
+                  arg[ 2 ] = i2;
+                  arg[ 3 ] = i3;
+                  r[ 0 ] = fetch( i0 );
+                  r[ 1 ] = fetch( i1 );
+                  r[ 2 ] = fetch( i2 );
+                  r[ 3 ] = fetch( i3 );
                   initialized = true;
                   continue;
                }
-               reduce( r[ 0 ], fetch( offset + i ), arg[ 0 ], offset + i );
-               reduce( r[ 1 ], fetch( offset + i + 1 ), arg[ 1 ], offset + i + 1 );
-               reduce( r[ 2 ], fetch( offset + i + 2 ), arg[ 2 ], offset + i + 2 );
-               reduce( r[ 3 ], fetch( offset + i + 3 ), arg[ 3 ], offset + i + 3 );
+               reduce( r[ 0 ], fetch( i0 ), arg[ 0 ], i0 );
+               reduce( r[ 1 ], fetch( i1 ), arg[ 1 ], i1 );
+               reduce( r[ 2 ], fetch( i2 ), arg[ 2 ], i2 );
+               reduce( r[ 3 ], fetch( i3 ), arg[ 3 ], i3 );
             }
          }
 
@@ -247,7 +258,7 @@ Reduction< Devices::Host >::reduceWithArgument(
          // inter-thread reduce of local results
          #pragma omp critical
          {
-            if( result.second == -1 )
+            if( result.second == invalidIndex )
                result.second = arg[ 0 ];
             reduce( result.first, r[ 0 ], result.second, arg[ 0 ] );
          }
@@ -268,6 +279,10 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
    // trivial case, nothing to reduce
    if( begin >= end )
       return identity;
+
+   if constexpr( std::is_signed_v< Index > ) {
+      TNL_ASSERT_GE( begin, 0, "GPU reductions require non-negative indices." );
+   }
 
    // Only fundamental and pointer types can be safely reduced on host. Complex
    // objects stored on the device might contain pointers into the device memory,
@@ -346,6 +361,10 @@ Reduction< Devices::Cuda >::reduceWithArgument(
    if( begin >= end )
       return std::make_pair( identity, end );
 
+   if constexpr( std::is_signed_v< Index > ) {
+      TNL_ASSERT_GE( begin, 0, "GPU reductions require non-negative indices." );
+   }
+
    // Only fundamental and pointer types can be safely reduced on host. Complex
    // objects stored on the device might contain pointers into the device memory,
    // in which case reduce on host might fail.
@@ -389,7 +408,7 @@ Reduction< Devices::Cuda >::reduceWithArgument(
       //auto fetch = [&] ( Index i ) { return resultArray[ i ]; };
       //const Result result = Reduction< Devices::Sequential >::reduceWithArgument( reducedSize, argument, reduce, fetch,
       //identity );
-      for( Index i = 1; i < reducedSize; i++ )
+      for( int i = 1; i < reducedSize; i++ )
          reduce( resultArray[ 0 ], resultArray[ i ], indexArray[ 0 ], indexArray[ i ] );
 
 #ifdef CUDA_REDUCTION_PROFILING
