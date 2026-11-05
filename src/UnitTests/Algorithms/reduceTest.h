@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include <gtest/gtest.h>
 
 #include <TNL/Arithmetics/experimental/Quad.h>
@@ -84,6 +86,31 @@ using ArrayTypes = ::testing::Types<
    >;
 
 TYPED_TEST_SUITE( ReduceTest, ArrayTypes );
+
+template< typename Array >
+class ReduceShortTest : public ::testing::Test
+{
+protected:
+   using ArrayType = Array;
+};
+
+// Arrays with short IndexType have a much smaller range than the general tests above.
+using ShortArrayTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   Array< double, Devices::Sequential, short >,
+   Array< CustomScalar< int >, Devices::Sequential, short >,
+   Array< double, Devices::Host, short >,
+   Array< CustomScalar< int >, Devices::Host, short >
+#elif defined( __CUDACC__ )
+   Array< double, Devices::Cuda, short >,
+   Array< CustomScalar< int >, Devices::Cuda, short >
+#elif defined( __HIP__ )
+   Array< double, Devices::Hip, short >,
+   Array< CustomScalar< int >, Devices::Hip, short >
+#endif
+   >;
+
+TYPED_TEST_SUITE( ReduceShortTest, ShortArrayTypes );
 
 template< typename Array >
 void
@@ -197,6 +224,181 @@ TYPED_TEST( ReduceTest, maxWithArg )
       EXPECT_EQ( res.second, size - 1 );
    }
 }
+
+TYPED_TEST( ReduceShortTest, sum )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1, 255, 256, 257, 1000, 32512, 32513, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      a.setSize( size );
+      a.setValue( 1 );
+
+      auto res = reduce< typename ArrayType::DeviceType >( (Index) 0, size, a.getConstView(), TNL::Plus{} );
+      EXPECT_EQ( res, size );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, maxWithArg )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1, 255, 256, 257, 1000, 32512, 32513, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      a.setSize( size );
+      iota( a, 1 );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( (Index) 0, size, a.getConstView(), TNL::MaxWithArg{} );
+      EXPECT_EQ( res.first, size );
+      EXPECT_EQ( res.second, size - 1 );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, minWithArg )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1, 255, 256, 257, 1000, 32512, 32513, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      a.setSize( size );
+      iota( a, 1 );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( (Index) 0, size, a.getConstView(), TNL::MinWithArg{} );
+      EXPECT_EQ( res.first, 1 );
+      EXPECT_EQ( res.second, 0 );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, maxWithArgNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      iota( a, 1 );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MaxWithArg{} );
+      EXPECT_EQ( res.first, size );
+      EXPECT_EQ( res.second, size - 1 );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, sumNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      a.setValue( 1 );
+
+      auto res = reduce< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::Plus{} );
+      EXPECT_EQ( res, size - begin );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, beginNearMax )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   const Index size = 32767;
+   const Index begin = 32000;
+   ArrayType a;
+   a.setSize( size );
+   a.setValue( 1 );
+
+   auto sum = reduce< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::Plus{} );
+   EXPECT_EQ( sum, size - begin );
+
+   iota( a, 1 );
+   auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MaxWithArg{} );
+   EXPECT_EQ( res.first, size );
+   EXPECT_EQ( res.second, size - 1 );
+}
+
+TYPED_TEST( ReduceShortTest, maxWithArgAllIdentityNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   using Value = typename ArrayType::ValueType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      a.setValue( std::numeric_limits< Value >::lowest() );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MaxWithArg{} );
+      EXPECT_EQ( res.first, std::numeric_limits< Value >::lowest() );
+      EXPECT_EQ( res.second, begin );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, minWithArgAllIdentityNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   using Value = typename ArrayType::ValueType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      a.setValue( std::numeric_limits< Value >::max() );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MinWithArg{} );
+      EXPECT_EQ( res.first, std::numeric_limits< Value >::max() );
+      EXPECT_EQ( res.second, begin );
+   }
+}
+
+template< typename Device >
+void
+testAnyWithArgShort()
+{
+   using Index = short;
+   auto first_true = [] __cuda_callable__( Index i )
+   {
+      return i == 17;
+   };
+   auto res = reduceWithArgument< Device >( (Index) 10, (Index) 100, first_true, TNL::AnyWithArg{} );
+   EXPECT_TRUE( res.first );
+   EXPECT_EQ( res.second, (Index) 17 );
+
+   auto all_false = [] __cuda_callable__( Index )
+   {
+      return false;
+   };
+   res = reduceWithArgument< Device >( (Index) 10, (Index) 100, all_false, TNL::AnyWithArg{} );
+   EXPECT_FALSE( res.first );
+   EXPECT_EQ( res.second, (Index) 10 );
+}
+
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+TEST( ReduceShortAnyTest, anyWithArg )
+{
+   testAnyWithArgShort< Devices::Sequential >();
+   testAnyWithArgShort< Devices::Host >();
+}
+#elif defined( __CUDACC__ )
+TEST( ReduceShortAnyTest, anyWithArg )
+{
+   testAnyWithArgShort< Devices::Cuda >();
+}
+#elif defined( __HIP__ )
+TEST( ReduceShortAnyTest, anyWithArg )
+{
+   testAnyWithArgShort< Devices::Hip >();
+}
+#endif
 
 TYPED_TEST( ReduceTest, logicalAnd )
 {

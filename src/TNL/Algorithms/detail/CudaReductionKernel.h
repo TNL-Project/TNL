@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <limits>       // std::numeric_limits
 #include <type_traits>  // std::conditional_t, std::is_trivially_copyable_v
 #include <utility>      // std::pair
 
@@ -399,28 +400,33 @@ CudaReductionKernel(
    using BlockReduce = CudaBlockReduce< blockSize, Reduction, Result >;
    __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
-   // Calculate the grid size (stride of the sequential reduction loop).
-   const Index gridSize = blockDim.x * gridDim.x;
-   // Shift the input lower bound by the thread index in the grid.
-   begin += blockIdx.x * blockDim.x + threadIdx.x;
+   // Use std::size_t for the traversal to avoid integer promotions and overflows for small Index types.
+   const std::size_t size = static_cast< std::size_t >( end ) - static_cast< std::size_t >( begin );
+   const std::size_t gridSize = static_cast< std::size_t >( blockDim.x ) * gridDim.x;
+   std::size_t offset = static_cast< std::size_t >( blockIdx.x ) * blockDim.x + threadIdx.x;
 
    // Start with the sequential reduction and push the result into the shared memory.
    Result result = identity;
-   while( begin + 4 * gridSize < end ) {
-      result = reduction( result, dataFetcher( begin ) );
-      result = reduction( result, dataFetcher( begin + gridSize ) );
-      result = reduction( result, dataFetcher( begin + 2 * gridSize ) );
-      result = reduction( result, dataFetcher( begin + 3 * gridSize ) );
-      begin += 4 * gridSize;
-   }
-   while( begin + 2 * gridSize < end ) {
-      result = reduction( result, dataFetcher( begin ) );
-      result = reduction( result, dataFetcher( begin + gridSize ) );
-      begin += 2 * gridSize;
-   }
-   while( begin < end ) {
-      result = reduction( result, dataFetcher( begin ) );
-      begin += gridSize;
+   if( offset < size ) {
+      while( size - offset > 4 * gridSize ) {
+         result = reduction( result, dataFetcher( static_cast< Index >( begin + offset ) ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( begin + offset + gridSize ) ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( begin + offset + 2 * gridSize ) ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( begin + offset + 3 * gridSize ) ) );
+         offset += 4 * gridSize;
+      }
+      while( size - offset > 2 * gridSize ) {
+         result = reduction( result, dataFetcher( static_cast< Index >( begin + offset ) ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( begin + offset + gridSize ) ) );
+         offset += 2 * gridSize;
+      }
+      while( offset < size ) {
+         result = reduction( result, dataFetcher( static_cast< Index >( begin + offset ) ) );
+         if( gridSize < size - offset )
+            offset += gridSize;
+         else
+            offset = size;
+      }
    }
    __syncthreads();
 
@@ -453,60 +459,90 @@ CudaReductionWithArgumentKernel(
    using BlockReduce = CudaBlockReduceWithArgument< blockSize, Reduction, Result, Index >;
    __shared__ Backend::Uninitialized< typename BlockReduce::Storage > storage;
 
-   // Calculate the grid size (stride of the sequential reduction loop).
-   const Index gridSize = blockDim.x * gridDim.x;
-   // Shift the input lower bound by the thread index in the grid.
-   begin += blockIdx.x * blockDim.x + threadIdx.x;
+   // Use std::size_t for the traversal to avoid integer promotions and overflows for small Index types.
+   const std::size_t size = static_cast< std::size_t >( end ) - static_cast< std::size_t >( begin );
+   const std::size_t gridSize = static_cast< std::size_t >( blockDim.x ) * gridDim.x;
+   std::size_t offset = static_cast< std::size_t >( blockIdx.x ) * blockDim.x + threadIdx.x;
 
-   // TODO: initialIndex should be passed as an argument to the kernel
-   Index initialIndex;
+   // Idle threads use the maximum index so that they cannot win the index tie-breaking.
+   Index initialIndex = std::numeric_limits< Index >::max();
 
    // Start with the sequential reduction and push the result into the shared memory.
    Result result = identity;
    if( idxInput ) {
-      if( begin < end ) {
-         result = dataFetcher( begin );
-         initialIndex = idxInput[ begin ];
-         begin += gridSize;
-      }
-      while( begin + 4 * gridSize < end ) {
-         reduction( result, dataFetcher( begin ), initialIndex, idxInput[ begin ] );
-         reduction( result, dataFetcher( begin + gridSize ), initialIndex, idxInput[ begin + gridSize ] );
-         reduction( result, dataFetcher( begin + 2 * gridSize ), initialIndex, idxInput[ begin + 2 * gridSize ] );
-         reduction( result, dataFetcher( begin + 3 * gridSize ), initialIndex, idxInput[ begin + 3 * gridSize ] );
-         begin += 4 * gridSize;
-      }
-      while( begin + 2 * gridSize < end ) {
-         reduction( result, dataFetcher( begin ), initialIndex, idxInput[ begin ] );
-         reduction( result, dataFetcher( begin + gridSize ), initialIndex, idxInput[ begin + gridSize ] );
-         begin += 2 * gridSize;
-      }
-      while( begin < end ) {
-         reduction( result, dataFetcher( begin ), initialIndex, idxInput[ begin ] );
-         begin += gridSize;
+      if( offset < size ) {
+         const Index index = static_cast< Index >( begin + offset );
+         result = dataFetcher( index );
+         initialIndex = idxInput[ index ];
+         if( gridSize < size - offset )
+            offset += gridSize;
+         else
+            offset = size;
+
+         while( size - offset > 4 * gridSize ) {
+            const Index i0 = static_cast< Index >( begin + offset );
+            const Index i1 = static_cast< Index >( begin + offset + gridSize );
+            const Index i2 = static_cast< Index >( begin + offset + 2 * gridSize );
+            const Index i3 = static_cast< Index >( begin + offset + 3 * gridSize );
+            reduction( result, dataFetcher( i0 ), initialIndex, idxInput[ i0 ] );
+            reduction( result, dataFetcher( i1 ), initialIndex, idxInput[ i1 ] );
+            reduction( result, dataFetcher( i2 ), initialIndex, idxInput[ i2 ] );
+            reduction( result, dataFetcher( i3 ), initialIndex, idxInput[ i3 ] );
+            offset += 4 * gridSize;
+         }
+         while( size - offset > 2 * gridSize ) {
+            const Index i0 = static_cast< Index >( begin + offset );
+            const Index i1 = static_cast< Index >( begin + offset + gridSize );
+            reduction( result, dataFetcher( i0 ), initialIndex, idxInput[ i0 ] );
+            reduction( result, dataFetcher( i1 ), initialIndex, idxInput[ i1 ] );
+            offset += 2 * gridSize;
+         }
+         while( offset < size ) {
+            const Index index = static_cast< Index >( begin + offset );
+            reduction( result, dataFetcher( index ), initialIndex, idxInput[ index ] );
+            if( gridSize < size - offset )
+               offset += gridSize;
+            else
+               offset = size;
+         }
       }
    }
    else {
-      if( begin < end ) {
-         result = dataFetcher( begin );
-         initialIndex = begin;
-         begin += gridSize;
-      }
-      while( begin + 4 * gridSize < end ) {
-         reduction( result, dataFetcher( begin ), initialIndex, begin );
-         reduction( result, dataFetcher( begin + gridSize ), initialIndex, begin + gridSize );
-         reduction( result, dataFetcher( begin + 2 * gridSize ), initialIndex, begin + 2 * gridSize );
-         reduction( result, dataFetcher( begin + 3 * gridSize ), initialIndex, begin + 3 * gridSize );
-         begin += 4 * gridSize;
-      }
-      while( begin + 2 * gridSize < end ) {
-         reduction( result, dataFetcher( begin ), initialIndex, begin );
-         reduction( result, dataFetcher( begin + gridSize ), initialIndex, begin + gridSize );
-         begin += 2 * gridSize;
-      }
-      while( begin < end ) {
-         reduction( result, dataFetcher( begin ), initialIndex, begin );
-         begin += gridSize;
+      if( offset < size ) {
+         const Index index = static_cast< Index >( begin + offset );
+         result = dataFetcher( index );
+         initialIndex = index;
+         if( gridSize < size - offset )
+            offset += gridSize;
+         else
+            offset = size;
+
+         while( size - offset > 4 * gridSize ) {
+            const Index i0 = static_cast< Index >( begin + offset );
+            const Index i1 = static_cast< Index >( begin + offset + gridSize );
+            const Index i2 = static_cast< Index >( begin + offset + 2 * gridSize );
+            const Index i3 = static_cast< Index >( begin + offset + 3 * gridSize );
+            reduction( result, dataFetcher( i0 ), initialIndex, i0 );
+            reduction( result, dataFetcher( i1 ), initialIndex, i1 );
+            reduction( result, dataFetcher( i2 ), initialIndex, i2 );
+            reduction( result, dataFetcher( i3 ), initialIndex, i3 );
+            offset += 4 * gridSize;
+         }
+         while( size - offset > 2 * gridSize ) {
+            const Index i0 = static_cast< Index >( begin + offset );
+            const Index i1 = static_cast< Index >( begin + offset + gridSize );
+            reduction( result, dataFetcher( i0 ), initialIndex, i0 );
+            reduction( result, dataFetcher( i1 ), initialIndex, i1 );
+            offset += 2 * gridSize;
+         }
+         while( offset < size ) {
+            const Index index = static_cast< Index >( begin + offset );
+            reduction( result, dataFetcher( index ), initialIndex, index );
+            if( gridSize < size - offset )
+               offset += gridSize;
+            else
+               offset = size;
+         }
       }
    }
    __syncthreads();
