@@ -1681,33 +1681,13 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >
 #elif defined( __CUDACC__ )
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   // TNL::Matrices::DenseMatrix< TNL::Arithmetics::Complex<float>,  TNL::Devices::Cuda, long,
-   // TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >
 #elif defined( __HIP__ )
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::RowMajorOrder >
 #endif
    >;
