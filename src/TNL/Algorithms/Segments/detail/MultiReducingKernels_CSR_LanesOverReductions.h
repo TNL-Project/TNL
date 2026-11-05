@@ -70,11 +70,12 @@ reduceElementsLanesOverReductions(
 /**
  * \brief Multireduction kernel which distributes the reductions among the lanes.
  *
- * A group of `Lanes` threads is assigned to every segment and all lanes of
- * the group traverse all elements of the segment. The lane `l` computes the
- * reductions `j = l * ReductionsPerLane, ..., (l + 1) * ReductionsPerLane - 1`
- * (only those smaller than `reductions`), so the lanes do not need to combine
- * their partial results.
+ * The reductions are split into tiles of `Lanes * ReductionsPerLane` reductions, the tile
+ * `firstTile + blockIdx.y` is processed by the blocks with the given `blockIdx.y`. A group of
+ * `Lanes` threads is assigned to every segment and all lanes of the group traverse all elements
+ * of the segment. The lane `l` computes the reductions `j = t + l * ReductionsPerLane, ...,
+ * t + (l + 1) * ReductionsPerLane - 1`, where `t` is the first reduction of the tile (only those
+ * smaller than `reductions`), so the lanes do not need to combine their partial results.
  *
  * The lanes of the group read the same element of the segment at the same
  * time, which the hardware serves by one broadcast load. When the fetch of the
@@ -95,6 +96,8 @@ reduceElementsLanesOverReductions(
  *
  * The segments with more than `maxSegmentSize` elements are skipped and counted in
  * `longSegmentsCount`, they are processed by \ref multiReduceSegments_CSR_LanesOverReductions_Pieces.
+ * The first `longSegmentsCapacity` of them are stored in `longSegments` as triples of the segment
+ * index and the global indexes of its first element and of the element after the last one.
  */
 template<
    int Lanes,
@@ -114,6 +117,9 @@ multiReduceSegments_CSR_LanesOverReductions(
    const Index end,
    const Index maxSegmentSize,
    int* longSegmentsCount,
+   Index* longSegments,
+   const int longSegmentsCapacity,
+   const int firstTile,
    const int reductions,
    Fetch fetch,
    Reduce reduce,
@@ -121,16 +127,25 @@ multiReduceSegments_CSR_LanesOverReductions(
    const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   constexpr int tileSize = Lanes * ReductionsPerLane;
    const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridID ) / Lanes;
-   const int firstReduction = ( threadIdx.x & ( Lanes - 1 ) ) * ReductionsPerLane;
+   const int firstReduction =
+      ( firstTile + static_cast< int >( blockIdx.y ) ) * tileSize + ( threadIdx.x & ( Lanes - 1 ) ) * ReductionsPerLane;
    // there is no communication between the lanes, so the idle threads can quit
    if( segmentIdx >= end || firstReduction >= reductions )
       return;
    const Index beginIdx = segments.getOffsets()[ segmentIdx ];
    const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
    if( endIdx - beginIdx > maxSegmentSize ) {
-      if( firstReduction == 0 )
-         atomicAdd( longSegmentsCount, 1 );
+      // every long segment is counted once, by the first lane of the first tile
+      if( firstReduction == 0 ) {
+         const int i = atomicAdd( longSegmentsCount, 1 );
+         if( i < longSegmentsCapacity ) {
+            longSegments[ 3 * i ] = segmentIdx;
+            longSegments[ 3 * i + 1 ] = beginIdx;
+            longSegments[ 3 * i + 2 ] = endIdx;
+         }
+      }
       return;
    }
 
@@ -153,8 +168,9 @@ multiReduceSegments_CSR_LanesOverReductions(
  * pieceEnds[ p ] - 1` of the segment `pieceSegments[ p ]`. The block is split into
  * groups of `Lanes` threads which distribute the reductions among the lanes as in
  * \ref multiReduceSegments_CSR_LanesOverReductions and process every `BlockSize / Lanes`-th
- * element of the piece. The results of the groups are combined in the shared memory and the
- * results of the piece are written to `partialResults[ p * Lanes * ReductionsPerLane + j ]`.
+ * element of the piece. The blocks with the given `blockIdx.y` process the tile of reductions
+ * `firstTile + blockIdx.y`. The results of the groups are combined in the shared memory and the
+ * result of the reduction `j` of the piece is written to `partialResults[ p * stride + j ]`.
  */
 template<
    int BlockSize,
@@ -174,8 +190,10 @@ multiReduceSegments_CSR_LanesOverReductions_Pieces(
    const IndexView pieceSegments,
    const IndexView pieceBegins,
    const IndexView pieceEnds,
+   const int firstTile,
    const int reductions,
    ValueView partialResults,
+   const Index stride,
    Fetch fetch,
    Reduce reduce,
    const Value identity )
@@ -187,7 +205,8 @@ multiReduceSegments_CSR_LanesOverReductions_Pieces(
    const Index piece = blockIdx.x;
    const Index segmentIdx = pieceSegments[ piece ];
    const int group = threadIdx.x / Lanes;
-   const int firstReduction = ( threadIdx.x & ( Lanes - 1 ) ) * ReductionsPerLane;
+   const int tileBegin = ( firstTile + static_cast< int >( blockIdx.y ) ) * tileSize;
+   const int firstReduction = tileBegin + ( threadIdx.x & ( Lanes - 1 ) ) * ReductionsPerLane;
 
    Value results[ ReductionsPerLane ];
    for( int r = 0; r < ReductionsPerLane; r++ )
@@ -211,11 +230,11 @@ multiReduceSegments_CSR_LanesOverReductions_Pieces(
    for( int r = 0; r < ReductionsPerLane; r++ )
       shared[ threadIdx.x * ReductionsPerLane + r ] = results[ r ];
    __syncthreads();
-   if( threadIdx.x < tileSize && threadIdx.x < reductions ) {
+   if( threadIdx.x < tileSize && tileBegin + static_cast< int >( threadIdx.x ) < reductions ) {
       Value result = shared[ threadIdx.x ].get();
       for( int g = 1; g < groups; g++ )
          result = reduce( result, shared[ g * tileSize + threadIdx.x ].get() );
-      partialResults[ piece * tileSize + threadIdx.x ] = result;
+      partialResults[ piece * stride + tileBegin + threadIdx.x ] = result;
    }
 #endif
 }
@@ -224,11 +243,11 @@ multiReduceSegments_CSR_LanesOverReductions_Pieces(
  * \brief Combines the partial results of the pieces of long segments computed by
  * \ref multiReduceSegments_CSR_LanesOverReductions_Pieces.
  *
- * The thread `i * tileSize + j` reduces the partial results of the reduction `j` over
+ * The thread `i * stride + j` reduces the partial results of the reduction `j` over
  * the pieces `firstPieces[ i ], ..., firstPieces[ i + 1 ] - 1` of the long segment
  * `longSegments[ i ]` and stores the result.
  */
-template< int TileSize, typename IndexView, typename ValueView, typename Index, typename Reduce, typename Store >
+template< typename IndexView, typename ValueView, typename Index, typename Reduce, typename Store >
 __global__
 void
 multiReduceSegments_CSR_LanesOverReductions_CombinePieces(
@@ -236,18 +255,19 @@ multiReduceSegments_CSR_LanesOverReductions_CombinePieces(
    const IndexView firstPieces,
    const int reductions,
    const ValueView partialResults,
+   const Index stride,
    Reduce reduce,
    Store store )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index threadIdx_ = static_cast< Index >( blockIdx.x ) * blockDim.x + threadIdx.x;
-   const Index i = threadIdx_ / TileSize;
-   const int j = threadIdx_ % TileSize;
+   const Index i = threadIdx_ / stride;
+   const int j = threadIdx_ % stride;
    if( i >= longSegments.getSize() || j >= reductions )
       return;
-   auto result = partialResults[ firstPieces[ i ] * TileSize + j ];
+   auto result = partialResults[ firstPieces[ i ] * stride + j ];
    for( Index piece = firstPieces[ i ] + 1; piece < firstPieces[ i + 1 ]; piece++ )
-      result = reduce( result, partialResults[ piece * TileSize + j ] );
+      result = reduce( result, partialResults[ piece * stride + j ] );
    store( longSegments[ i ], j, result );
 #endif
 }

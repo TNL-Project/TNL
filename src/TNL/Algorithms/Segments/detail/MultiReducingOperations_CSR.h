@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <type_traits>
 #include <vector>
@@ -19,7 +21,9 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Math.h>
 #include "MultiReducingKernels_CSR_LanesOverReductions.h"
+#include "MultiReducingKernels_CSR_Uniform.h"
 #include "MultiReducingOperationsBase.h"
+#include "ReducingOperations_CSR.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
@@ -70,6 +74,124 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
    }
 
    /**
+    * \brief Implementation of \ref TNL::Algorithms::Segments::multiReduceAllSegmentsInTiles.
+    *
+    * On GPUs with the Uniform mapping of at most a warp of threads per segment, all tiles are
+    * processed at once by \ref multiReduceSegments_CSR_Uniform. Otherwise, the general
+    * implementation is used.
+    */
+   template< int TileSize, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
+   static void
+   multiReduceAllSegmentsInTiles(
+      const SegmentsViewType& segments,
+      int reductions,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
+   {
+      if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
+         ReducingOperations< SegmentsViewType >::resolveLaunchConfiguration( launchConfig );
+         const int threadsPerSegment = launchConfig.getThreadsPerSegmentCount();
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Uniform
+             && threadsPerSegment <= Backend::getWarpSize( Backend::getDevice() ) && threadsPerSegment <= 32 )
+         {
+            using FetchType = std::decay_t< Fetch >;
+            using ValueType = MultiReductionFetchValue< IndexType, FetchType >;
+            const IndexType segmentsCount = segments.getSegmentCount();
+            if( segmentsCount == 0 )
+               return;
+            auto launchTiles = [ & ]( auto threadsPerSegment_, auto tileSize_ )
+            {
+               constexpr int TPS = decltype( threadsPerSegment_ )::value;
+               constexpr int ActualTileSize = decltype( tileSize_ )::value;
+               constexpr auto kernel = multiReduceSegments_CSR_Uniform<
+                  TPS,
+                  ActualTileSize,
+                  SegmentsViewType,
+                  IndexType,
+                  FetchType,
+                  std::decay_t< Reduction >,
+                  std::decay_t< ResultStorer >,
+                  ValueType >;
+               Backend::LaunchConfiguration config;
+               config.blockSize.x = 256;
+               dim3 blocksCount;
+               dim3 gridsCount;
+               Backend::setupThreads(
+                  config.blockSize, blocksCount, gridsCount, static_cast< std::size_t >( segmentsCount ) * TPS );
+               const int tiles = roundUpDivision( reductions, ActualTileSize );
+               const int maxGridY = Backend::getMaxGridYSize();
+               for( int firstTile = 0; firstTile < tiles; firstTile += maxGridY )
+                  for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
+                     Backend::setupGrid( blocksCount, gridsCount, gridIdx, config.gridSize );
+                     config.gridSize.y = TNL::min( maxGridY, tiles - firstTile );
+                     Backend::launchKernelAsync(
+                        kernel,
+                        config,
+                        gridIdx,
+                        segments,
+                        IndexType( 0 ),
+                        segmentsCount,
+                        firstTile,
+                        reductions,
+                        fetch,
+                        reduction,
+                        storer,
+                        static_cast< ValueType >( identity ) );
+                  }
+               Backend::streamSynchronize( config.stream );
+            };
+            // when all reductions fit into one tile, the tile has exactly their size, so that the threads do not
+            // keep and check the unused partial results
+            auto launch = [ & ]( auto threadsPerSegment_ )
+            {
+               if( reductions < TileSize )
+                  dispatchMultiReductionSize< TileSize - 1 >(
+                     reductions,
+                     [ & ]( auto tileSize_ )
+                     {
+                        launchTiles( threadsPerSegment_, tileSize_ );
+                     } );
+               else
+                  launchTiles( threadsPerSegment_, std::integral_constant< int, TileSize >{} );
+            };
+            switch( threadsPerSegment ) {
+               case 1:
+                  launch( std::integral_constant< int, 1 >{} );
+                  return;
+               case 2:
+                  launch( std::integral_constant< int, 2 >{} );
+                  return;
+               case 4:
+                  launch( std::integral_constant< int, 4 >{} );
+                  return;
+               case 8:
+                  launch( std::integral_constant< int, 8 >{} );
+                  return;
+               case 16:
+                  launch( std::integral_constant< int, 16 >{} );
+                  return;
+               case 32:
+                  launch( std::integral_constant< int, 32 >{} );
+                  return;
+               default:
+                  break;
+            }
+         }
+      }
+      Base::template multiReduceAllSegmentsInTiles< TileSize >(
+         segments,
+         reductions,
+         std::forward< Fetch >( fetch ),
+         std::forward< Reduction >( reduction ),
+         std::forward< ResultStorer >( storer ),
+         identity,
+         launchConfig );
+   }
+
+   /**
     * \brief Implementation of \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions.
     *
     * On GPUs, a group of `Lanes` threads processes every segment by
@@ -103,17 +225,11 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
             launchConfig.blockSize, blocksCount, gridsCount, static_cast< std::size_t >( segmentsCount ) * Lanes );
          if( maxSegmentSize <= 0 )
             maxSegmentSize = getDefaultMaxSegmentSize< Lanes >( segments.getOffsets().getElement( segmentsCount ) );
-         // The number of the long segments skipped by the kernel is counted in the mapped page-locked memory, so that the
-         // host can reset and read it without copying, which would add a noticeable latency to the product of small
-         // matrices. The buffer is allocated once, hence the function must not be called concurrently from several
-         // host threads.
-#if defined( __HIP__ )
-         using PinnedAllocator = Allocators::HipHost< int >;
-#else
-         using PinnedAllocator = Allocators::CudaHost< int >;
-#endif
-         static Containers::Array< int, Devices::Host, int, PinnedAllocator > longSegmentsCount( 1 );
+         // the long segments skipped by the kernel are counted and stored in the mapped page-locked buffers
+         auto& longSegmentsCount = getLongSegmentsCountBuffer();
+         auto& longSegments = getLongSegmentsBuffer();
          longSegmentsCount[ 0 ] = 0;
+         const int longSegmentsCapacity = longSegments.getSize() / 3;
          constexpr auto kernel = multiReduceSegments_CSR_LanesOverReductions<
             Lanes,
             ReductionsPerLane,
@@ -123,27 +239,51 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
             std::decay_t< Reduction >,
             std::decay_t< ResultStorer >,
             ValueType >;
-         for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
-            Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-            Backend::launchKernelAsync(
-               kernel,
-               launchConfig,
-               gridIdx,
+         // the tiles of reductions are processed by the blocks with the same blockIdx.y, so that all of them
+         // run at once even when there are only a few segments
+         const int tiles = roundUpDivision( reductions, Lanes * ReductionsPerLane );
+         const int maxGridY = Backend::getMaxGridYSize();
+         for( int firstTile = 0; firstTile < tiles; firstTile += maxGridY )
+            for( IndexType gridIdx = 0; gridIdx < static_cast< IndexType >( gridsCount.x ); gridIdx++ ) {
+               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
+               launchConfig.gridSize.y = TNL::min( maxGridY, tiles - firstTile );
+               Backend::launchKernelAsync(
+                  kernel,
+                  launchConfig,
+                  gridIdx,
+                  segments,
+                  IndexType( 0 ),
+                  segmentsCount,
+                  maxSegmentSize,
+                  longSegmentsCount.getData(),
+                  longSegments.getData(),
+                  longSegmentsCapacity,
+                  firstTile,
+                  reductions,
+                  fetch,
+                  reduction,
+                  storer,
+                  static_cast< ValueType >( identity ) );
+            }
+         Backend::streamSynchronize( launchConfig.stream );
+         const int longCount = longSegmentsCount[ 0 ];
+         if( longCount > 0 ) {
+            // when the buffer was too small, the long segments are searched for again and the buffer is enlarged for
+            // the next calls
+            const bool stored = longCount <= longSegmentsCapacity;
+            multiReduceLongSegmentsLanesOverReductions< Lanes, ReductionsPerLane >(
                segments,
-               IndexType( 0 ),
-               segmentsCount,
                maxSegmentSize,
-               longSegmentsCount.getData(),
                reductions,
                fetch,
                reduction,
                storer,
-               static_cast< ValueType >( identity ) );
+               static_cast< ValueType >( identity ),
+               stored ? longSegments.getData() : nullptr,
+               longCount );
+            if( ! stored )
+               longSegments.setSize( 3 * longCount );
          }
-         Backend::streamSynchronize( launchConfig.stream );
-         if( longSegmentsCount[ 0 ] > 0 )
-            multiReduceLongSegmentsLanesOverReductions< Lanes, ReductionsPerLane >(
-               segments, maxSegmentSize, reductions, fetch, reduction, storer, static_cast< ValueType >( identity ) );
       }
       else
          Base::template multiReduceAllSegmentsLanesOverReductions< Lanes, ReductionsPerLane >(
@@ -163,6 +303,12 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
     * The segments are split into pieces processed by thread blocks with
     * \ref multiReduceSegments_CSR_LanesOverReductions_Pieces and the partial results of the pieces
     * are combined by \ref multiReduceSegments_CSR_LanesOverReductions_CombinePieces.
+    *
+    * The long segments are given by `longSegments` as stored by \ref multiReduceSegments_CSR_LanesOverReductions,
+    * or they are searched for when it is `nullptr`. The pieces are set up on the host in the mapped
+    * page-locked memory and the partial results are stored in a buffer kept for the next calls, so that
+    * there is no allocation and copying in the common case, which would take much longer than the
+    * reduction of a few long segments.
     */
    template< int Lanes, int ReductionsPerLane, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
@@ -173,95 +319,125 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
       const Fetch& fetch,
       const Reduction& reduction,
       const ResultStorer& storer,
-      const Value& identity )
+      const Value& identity,
+      const IndexType* longSegments,
+      int longCount )
    {
       using IndexVector = Containers::Vector< IndexType, Devices::GPU, IndexType >;
       using HostIndexVector = Containers::Vector< IndexType, Devices::Host, IndexType >;
       using ValueVector = Containers::Vector< Value, Devices::GPU, IndexType >;
+      using IndexView = Containers::ArrayView< const IndexType, Devices::GPU, IndexType >;
       constexpr int tileSize = Lanes * ReductionsPerLane;
       // the pieces are smaller only when the maximal size is set explicitly to a small value
       const IndexType pieceSize =
          TNL::max( IndexType( 1 ), TNL::min( maxSegmentSize, IndexType( lanesOverReductionsPieceSize< Lanes >() ) ) );
 
-      const auto offsets = segments.getOffsets();
-      auto isLong = [ = ] __cuda_callable__( IndexType segmentIdx ) -> bool
-      {
-         return offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ] > maxSegmentSize;
-      };
-      const IndexType segmentsCount = segments.getSegmentCount();
-      const IndexVector longSegments = Algorithms::compress< IndexVector >( IndexType( 0 ), segmentsCount, isLong );
-      const IndexType longCount = longSegments.getSize();
-
-      // the pieces are set up on the host, there are only a few long segments
-      IndexVector bounds( 2 * longCount );
-      auto boundsView = bounds.getView();
-      const auto longSegmentsView = longSegments.getConstView();
-      Algorithms::parallelFor< Devices::GPU >(
-         IndexType( 0 ),
-         longCount,
-         [ = ] __cuda_callable__( IndexType i ) mutable
+      // the long segments as triples ( segment index, first element, end of the elements )
+      std::vector< std::array< IndexType, 3 > > longList( longCount );
+      if( longSegments != nullptr ) {
+         for( int i = 0; i < longCount; i++ )
+            longList[ i ] = { longSegments[ 3 * i ], longSegments[ 3 * i + 1 ], longSegments[ 3 * i + 2 ] };
+      }
+      else {
+         const auto offsets = segments.getOffsets();
+         auto isLong = [ = ] __cuda_callable__( IndexType segmentIdx ) -> bool
          {
-            boundsView[ 2 * i ] = offsets[ longSegmentsView[ i ] ];
-            boundsView[ 2 * i + 1 ] = offsets[ longSegmentsView[ i ] + 1 ];
-         } );
-      const HostIndexVector hostBounds( bounds );
-      const HostIndexVector hostLongSegments( longSegments );
-      HostIndexVector hostFirstPieces( longCount + 1 );
-      std::vector< IndexType > pieceSegments;
-      std::vector< IndexType > pieceBegins;
-      std::vector< IndexType > pieceEnds;
-      for( IndexType i = 0; i < longCount; i++ ) {
-         hostFirstPieces[ i ] = pieceSegments.size();
-         for( IndexType begin = hostBounds[ 2 * i ]; begin < hostBounds[ 2 * i + 1 ]; begin += pieceSize ) {
-            pieceSegments.push_back( hostLongSegments[ i ] );
-            pieceBegins.push_back( begin );
-            pieceEnds.push_back( TNL::min( begin + pieceSize, hostBounds[ 2 * i + 1 ] ) );
+            return offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ] > maxSegmentSize;
+         };
+         const IndexVector found = Algorithms::compress< IndexVector >( IndexType( 0 ), segments.getSegmentCount(), isLong );
+         IndexVector bounds( 2 * longCount );
+         auto boundsView = bounds.getView();
+         const auto foundView = found.getConstView();
+         Algorithms::parallelFor< Devices::GPU >(
+            IndexType( 0 ),
+            IndexType( longCount ),
+            [ = ] __cuda_callable__( IndexType i ) mutable
+            {
+               boundsView[ 2 * i ] = offsets[ foundView[ i ] ];
+               boundsView[ 2 * i + 1 ] = offsets[ foundView[ i ] + 1 ];
+            } );
+         const HostIndexVector hostFound( found );
+         const HostIndexVector hostBounds( bounds );
+         for( int i = 0; i < longCount; i++ )
+            longList[ i ] = { hostFound[ i ], hostBounds[ 2 * i ], hostBounds[ 2 * i + 1 ] };
+      }
+      // the kernel stores the segments in an arbitrary order, the order of the pieces does not matter for the results
+      // but sorting makes the computation deterministic
+      std::sort( longList.begin(), longList.end() );
+
+      // the pieces are set up in the mapped page-locked buffer: the segments, the first and the end elements of the
+      // pieces, the long segments and the first pieces of the long segments
+      IndexType piecesCount = 0;
+      for( const auto& [ segmentIdx, begin, end ] : longList )
+         piecesCount += roundUpDivision( end - begin, pieceSize );
+      auto& buffer = getPiecesBuffer();
+      const IndexType bufferSize = 3 * piecesCount + 2 * longCount + 1;
+      if( buffer.getSize() < bufferSize )
+         buffer.setSize( bufferSize );
+      IndexType* pieceSegments = buffer.getData();
+      IndexType* pieceBegins = pieceSegments + piecesCount;
+      IndexType* pieceEnds = pieceBegins + piecesCount;
+      IndexType* longSegmentIndexes = pieceEnds + piecesCount;
+      IndexType* firstPieces = longSegmentIndexes + longCount;
+      IndexType piece = 0;
+      for( int i = 0; i < longCount; i++ ) {
+         const auto& [ segmentIdx, begin, end ] = longList[ i ];
+         longSegmentIndexes[ i ] = segmentIdx;
+         firstPieces[ i ] = piece;
+         for( IndexType pieceBegin = begin; pieceBegin < end; pieceBegin += pieceSize ) {
+            pieceSegments[ piece ] = segmentIdx;
+            pieceBegins[ piece ] = pieceBegin;
+            pieceEnds[ piece ] = TNL::min( pieceBegin + pieceSize, end );
+            piece++;
          }
       }
-      const IndexType piecesCount = pieceSegments.size();
-      hostFirstPieces[ longCount ] = piecesCount;
-      const IndexVector firstPieces( hostFirstPieces );
-      IndexVector devicePieceSegments( piecesCount );
-      IndexVector devicePieceBegins( piecesCount );
-      IndexVector devicePieceEnds( piecesCount );
-      devicePieceSegments = pieceSegments;
-      devicePieceBegins = pieceBegins;
-      devicePieceEnds = pieceEnds;
-      ValueVector partialResults( piecesCount * tileSize );
+      firstPieces[ longCount ] = piecesCount;
+
+      // the partial results of all reductions of a piece are stored contiguously, including the padding of the last tile
+      const int tiles = roundUpDivision( reductions, tileSize );
+      const IndexType stride = static_cast< IndexType >( tiles ) * tileSize;
+      static ValueVector partialResults;
+      if( partialResults.getSize() < piecesCount * stride )
+         partialResults.setSize( piecesCount * stride );
 
       Backend::LaunchConfiguration piecesConfig;
       piecesConfig.blockSize.x = lanesOverReductionsBlockSize;
       piecesConfig.gridSize.x = piecesCount;
+      const int maxGridY = Backend::getMaxGridYSize();
       constexpr auto piecesKernel = multiReduceSegments_CSR_LanesOverReductions_Pieces<
          lanesOverReductionsBlockSize,
          Lanes,
          ReductionsPerLane,
          SegmentsViewType,
-         typename IndexVector::ConstViewType,
+         IndexView,
          typename ValueVector::ViewType,
          IndexType,
          Fetch,
          Reduction,
          Value >;
-      Backend::launchKernelAsync(
-         piecesKernel,
-         piecesConfig,
-         segments,
-         devicePieceSegments.getConstView(),
-         devicePieceBegins.getConstView(),
-         devicePieceEnds.getConstView(),
-         reductions,
-         partialResults.getView(),
-         fetch,
-         reduction,
-         identity );
+      for( int firstTile = 0; firstTile < tiles; firstTile += maxGridY ) {
+         piecesConfig.gridSize.y = TNL::min( maxGridY, tiles - firstTile );
+         Backend::launchKernelAsync(
+            piecesKernel,
+            piecesConfig,
+            segments,
+            IndexView( pieceSegments, piecesCount ),
+            IndexView( pieceBegins, piecesCount ),
+            IndexView( pieceEnds, piecesCount ),
+            firstTile,
+            reductions,
+            partialResults.getView(),
+            stride,
+            fetch,
+            reduction,
+            identity );
+      }
 
       Backend::LaunchConfiguration combineConfig;
       combineConfig.blockSize.x = 256;
-      combineConfig.gridSize.x = roundUpDivision( longCount * tileSize, IndexType( 256 ) );
+      combineConfig.gridSize.x = roundUpDivision( longCount * stride, IndexType( 256 ) );
       constexpr auto combineKernel = multiReduceSegments_CSR_LanesOverReductions_CombinePieces<
-         tileSize,
-         typename IndexVector::ConstViewType,
+         IndexView,
          typename ValueVector::ConstViewType,
          IndexType,
          Reduction,
@@ -269,12 +445,53 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
       Backend::launchKernelSync(
          combineKernel,
          combineConfig,
-         longSegments.getConstView(),
-         firstPieces.getConstView(),
+         IndexView( longSegmentIndexes, longCount ),
+         IndexView( firstPieces, longCount + 1 ),
          reductions,
          partialResults.getConstView(),
+         stride,
          reduction,
          storer );
+   }
+
+private:
+#if defined( __HIP__ )
+   template< typename T >
+   using PinnedAllocator = Allocators::HipHost< T >;
+#else
+   template< typename T >
+   using PinnedAllocator = Allocators::CudaHost< T >;
+#endif
+   template< typename T >
+   using PinnedArray = Containers::Array< T, Devices::Host, IndexType, PinnedAllocator< T > >;
+
+   // The buffers in the page-locked memory mapped to the address space of the device, so that the host can read and
+   // write them without copying, which would add a noticeable latency to the product of small matrices. They are
+   // allocated once, hence multiReduceAllSegmentsLanesOverReductions must not be called concurrently from several
+   // host threads.
+
+   // The number of the long segments found by multiReduceSegments_CSR_LanesOverReductions.
+   static PinnedArray< int >&
+   getLongSegmentsCountBuffer()
+   {
+      static PinnedArray< int > buffer( 1 );
+      return buffer;
+   }
+
+   // The long segments stored by multiReduceSegments_CSR_LanesOverReductions, see its description.
+   static PinnedArray< IndexType >&
+   getLongSegmentsBuffer()
+   {
+      static PinnedArray< IndexType > buffer( 3 * 256 );
+      return buffer;
+   }
+
+   // The pieces of the long segments, see multiReduceLongSegmentsLanesOverReductions.
+   static PinnedArray< IndexType >&
+   getPiecesBuffer()
+   {
+      static PinnedArray< IndexType > buffer;
+      return buffer;
    }
 };
 

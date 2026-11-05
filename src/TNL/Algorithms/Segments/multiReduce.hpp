@@ -57,6 +57,34 @@ multiReduceAllSegments(
       launchConfig );
 }
 
+template< int TileSize, typename Segments, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
+static void
+multiReduceAllSegmentsInTiles(
+   const Segments& segments,
+   int reductions,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig )
+{
+   static_assert( TileSize > 0, "The tile size must be positive." );
+   static_assert(
+      callableArgumentCount< std::decay_t< Fetch > >() == 4 || callableArgumentCount< std::decay_t< Fetch > >() == 2,
+      "The fetch lambda of the multireduction must take either (segmentIdx, localIdx, globalIdx, j) "
+      "or (globalIdx, j)." );
+   if( reductions <= 0 )
+      throw std::invalid_argument( "multiReduceAllSegmentsInTiles: the number of reductions must be positive" );
+   detail::MultiReducingOperations< typename Segments::ConstViewType >::template multiReduceAllSegmentsInTiles< TileSize >(
+      segments.getConstView(),
+      reductions,
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduction >( reduction ),
+      std::forward< ResultStorer >( storer ),
+      identity,
+      launchConfig );
+}
+
 template<
    int Lanes,
    int ReductionsPerLane,
@@ -83,8 +111,8 @@ multiReduceAllSegmentsLanesOverReductions(
       callableArgumentCount< std::decay_t< Fetch > >() == 4 || callableArgumentCount< std::decay_t< Fetch > >() == 2,
       "The fetch lambda of the multireduction must take either (segmentIdx, localIdx, globalIdx, j) "
       "or (globalIdx, j)." );
-   if( reductions <= 0 || reductions > Lanes * ReductionsPerLane )
-      throw std::invalid_argument( "multiReduceAllSegmentsLanesOverReductions: wrong number of reductions" );
+   if( reductions <= 0 )
+      throw std::invalid_argument( "multiReduceAllSegmentsLanesOverReductions: the number of reductions must be positive" );
    detail::MultiReducingOperations< typename Segments::ConstViewType >::
       template multiReduceAllSegmentsLanesOverReductions< Lanes, ReductionsPerLane >(
          segments.getConstView(),

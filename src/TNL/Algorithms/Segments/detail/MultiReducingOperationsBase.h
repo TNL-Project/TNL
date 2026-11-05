@@ -221,6 +221,50 @@ struct MultiReducingOperationsBase
    }
 
    /**
+    * \brief General implementation of \ref TNL::Algorithms::Segments::multiReduceAllSegmentsInTiles.
+    *
+    * The tiles of `TileSize` reductions are processed one after another by \ref multiReduceAllSegments.
+    */
+   template< int TileSize, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
+   static void
+   multiReduceAllSegmentsInTiles(
+      const Segments& segments,
+      int reductions,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
+   {
+      using FetchType = std::decay_t< Fetch >;
+      using ValueType = MultiReductionFetchValue< IndexType, FetchType >;
+      for( int first = 0; first < reductions; first += TileSize ) {
+         const MultiReductionShiftedStorer< IndexType, std::decay_t< ResultStorer >, ValueType > shiftedStorer{ storer, first };
+         auto run = [ & ]( auto size )
+         {
+            constexpr int Size = decltype( size )::value;
+            if constexpr( callableArgumentCount< FetchType >() == 4 )
+               multiReduceAllSegments< Size >(
+                  segments,
+                  MultiReductionShiftedFetch< IndexType, FetchType >{ fetch, first },
+                  reduction,
+                  shiftedStorer,
+                  identity,
+                  launchConfig );
+            else
+               multiReduceAllSegments< Size >(
+                  segments,
+                  MultiReductionShiftedBriefFetch< IndexType, FetchType >{ fetch, first },
+                  reduction,
+                  shiftedStorer,
+                  identity,
+                  launchConfig );
+         };
+         dispatchMultiReductionSize< TileSize >( TNL::min( reductions - first, TileSize ), run );
+      }
+   }
+
+   /**
     * \brief General implementation of \ref TNL::Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions.
     *
     * The reductions are computed by the general multireduction, `ReductionsPerLane` reductions at
@@ -237,32 +281,14 @@ struct MultiReducingOperationsBase
       const Value& identity,
       IndexType maxSegmentSize )
    {
-      using FetchType = std::decay_t< Fetch >;
-      using ValueType = MultiReductionFetchValue< IndexType, FetchType >;
-      for( int first = 0; first < reductions; first += ReductionsPerLane ) {
-         const MultiReductionShiftedStorer< IndexType, std::decay_t< ResultStorer >, ValueType > shiftedStorer{ storer, first };
-         auto run = [ & ]( auto size )
-         {
-            constexpr int Size = decltype( size )::value;
-            if constexpr( callableArgumentCount< FetchType >() == 4 )
-               multiReduceAllSegments< Size >(
-                  segments,
-                  MultiReductionShiftedFetch< IndexType, FetchType >{ fetch, first },
-                  reduction,
-                  shiftedStorer,
-                  identity,
-                  LaunchConfiguration() );
-            else
-               multiReduceAllSegments< Size >(
-                  segments,
-                  MultiReductionShiftedBriefFetch< IndexType, FetchType >{ fetch, first },
-                  reduction,
-                  shiftedStorer,
-                  identity,
-                  LaunchConfiguration() );
-         };
-         dispatchMultiReductionSize< ReductionsPerLane >( TNL::min( reductions - first, ReductionsPerLane ), run );
-      }
+      multiReduceAllSegmentsInTiles< ReductionsPerLane >(
+         segments,
+         reductions,
+         std::forward< Fetch >( fetch ),
+         std::forward< Reduction >( reduction ),
+         std::forward< ResultStorer >( storer ),
+         identity,
+         LaunchConfiguration() );
    }
 };
 

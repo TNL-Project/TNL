@@ -96,15 +96,49 @@ multiReduceAllSegments(
    LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Performs up to `Lanes * ReductionsPerLane` independent reductions within each segment
- * at once, distributing the reductions among the threads.
+ * \brief Performs a given number of independent reductions within each segment, processing
+ * them in tiles of `TileSize` reductions.
  *
  * It computes the same as \ref Segments_multiReduceAllSegments_identity with `Size` equal to
- * `reductions`, but on GPUs a group of `Lanes` threads processes every segment, all threads of
+ * `reductions`, but only `TileSize` reductions are processed at once, so their partial results
+ * fit into registers. Each tile is computed as by \ref Segments_multiReduceAllSegments_identity
+ * with the given launch configuration. For the \ref TNL::Algorithms::Segments::CSR segments on
+ * GPUs with the Uniform mapping of at most a warp of threads per segment, all tiles are processed
+ * by one kernel in parallel, which matters for a few segments and many reductions. Otherwise,
+ * the tiles are processed one after another.
+ *
+ * \tparam TileSize The number of reductions processed at once.
+ * \param segments The segment data structure on which the reductions will be performed.
+ * \param reductions The number of reductions.
+ * \param fetch Lambda function for fetching data, see \ref Segments_multiReduceAllSegments_identity.
+ * \param reduction Lambda function or function object for the reduction operation.
+ * \param storer Lambda function for storing the results.
+ * \param identity The identity element of the reduction operation.
+ * \param launchConfig The configuration of the parallel execution.
+ */
+template< int TileSize, typename Segments, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
+static void
+multiReduceAllSegmentsInTiles(
+   const Segments& segments,
+   int reductions,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Performs a given number of independent reductions within each segment at once,
+ * distributing the reductions among the threads.
+ *
+ * It computes the same as \ref Segments_multiReduceAllSegments_identity with `Size` equal to
+ * `reductions`, but on GPUs the reductions are split into tiles of `Lanes * ReductionsPerLane`
+ * reductions and a group of `Lanes` threads processes every segment and tile. All threads of
  * the group traverse all elements of the segment and each thread computes `ReductionsPerLane`
- * of the reductions. Hence the threads do not need to combine their partial results and when
- * the fetch of the reduction `j` reads data indexed by `j` (e.g. the row of a row-major dense
- * matrix), the threads of the group read consecutive data.
+ * of the reductions of the tile. Hence the threads do not need to combine their partial results
+ * and when the fetch of the reduction `j` reads data indexed by `j` (e.g. the row of a row-major
+ * dense matrix), the threads of the group read consecutive data. All tiles are processed at once,
+ * so there is enough parallelism also for a few segments and many reductions.
  *
  * A group of threads would process a very long segment much longer than the other groups need for
  * theirs. Hence the segments with more than `maxSegmentSize` elements are split into pieces processed
@@ -119,7 +153,7 @@ multiReduceAllSegments(
  * \tparam Lanes The number of threads per segment, a power of two up to the warp size.
  * \tparam ReductionsPerLane The number of reductions computed by each thread.
  * \param segments The segment data structure on which the reductions will be performed.
- * \param reductions The number of reductions, at most `Lanes * ReductionsPerLane`.
+ * \param reductions The number of reductions.
  * \param fetch Lambda function for fetching data, see \ref Segments_multiReduceAllSegments_identity.
  * \param reduction Lambda function or function object for the reduction operation.
  * \param storer Lambda function for storing the results.
