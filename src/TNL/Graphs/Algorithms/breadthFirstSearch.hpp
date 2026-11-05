@@ -488,14 +488,15 @@ breadthFirstSearchParallel(
 
                   TNL_ASSERT_GE( sourceIdx, 0, "" );
                   TNL_ASSERT_LT( sourceIdx, distancesView.getSize(), "" );
-                  TNL_ASSERT_GE( targetIdx, 0, "" );
-                  TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
 
                   if( marksView_bitmap[ sourceIdx ] != 1 )
                      return;
 
                   if( targetIdx == Matrices::paddingIndex< IndexType > )
                      return;
+
+                  TNL_ASSERT_GE( targetIdx, 0, "" );
+                  TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
 
                   const IndexType old = atomicCAS( &distancesView[ targetIdx ], -1, i + 1 );
                   const bool i_am_winner = ( old == -1 );
@@ -590,11 +591,12 @@ breadthFirstSearchParallel(
 
                   TNL_ASSERT_GE( sourceIdx, 0, "" );
                   TNL_ASSERT_LT( sourceIdx, distancesView.getSize(), "" );
-                  TNL_ASSERT_GE( targetIdx, 0, "" );
-                  TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
 
                   if( targetIdx == Matrices::paddingIndex< IndexType > )
                      return;
+
+                  TNL_ASSERT_GE( targetIdx, 0, "" );
+                  TNL_ASSERT_LT( targetIdx, distancesView.getSize(), "" );
 
                   const IndexType old = atomicCAS( &distancesView[ targetIdx ], -1, i + 1 );
                   const bool i_am_winner = ( old == -1 );
