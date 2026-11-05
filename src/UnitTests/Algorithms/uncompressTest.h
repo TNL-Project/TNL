@@ -243,6 +243,111 @@ TYPED_TEST( UncompressTest, roundtrip )
 }
 
 // ---------------------------------------------------------------------------
+// Range [begin, end) of the index vector.
+// ---------------------------------------------------------------------------
+
+template< typename VectorType >
+void
+UncompressTest_range()
+{
+   using IndexType = typename VectorType::IndexType;
+   using HostVectorType = Vector< typename VectorType::ValueType, Devices::Host, IndexType >;
+
+   // only the first two indices are valid, the rest must be ignored
+   // (99 would be out of range for the mask size 11)
+   VectorType indices{ 0, 5, 99, 99 };
+   VectorType mask( 11, 1 );
+   uncompress( indices, mask, IndexType( 11 ), IndexType( 0 ), IndexType( 2 ) );
+   ASSERT_EQ( mask.getSize(), IndexType( 11 ) );
+   VectorType expected{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 };
+   EXPECT_EQ( mask, expected );
+
+   // subrange in the middle of the index vector
+   VectorType indices2{ 99, 2, 7, 99 };
+   uncompress( indices2, mask, IndexType( 11 ), IndexType( 1 ), IndexType( 3 ) );
+   VectorType expected2{ 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 };
+   EXPECT_EQ( mask, expected2 );
+
+   // end == 0 means the end of the index vector
+   VectorType indices3{ 99, 3, 4 };
+   uncompress( indices3, mask, IndexType( 11 ), IndexType( 1 ) );
+   VectorType expected3{ 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 };
+   EXPECT_EQ( mask, expected3 );
+
+   // auto-detected mask size uses only the indices in the range
+   auto mask2 = uncompress< VectorType >( indices2, IndexType( 0 ), IndexType( 1 ), IndexType( 3 ) );
+   EXPECT_EQ( mask2.getSize(), IndexType( 8 ) );
+   EXPECT_EQ( mask2.getElement( 2 ), 1 );
+   EXPECT_EQ( mask2.getElement( 7 ), 1 );
+
+   // indices on the host, only the range is used
+   HostVectorType hostIndices{ 99, 2, 7, 99 };
+   uncompress( hostIndices, mask, IndexType( 11 ), IndexType( 1 ), IndexType( 3 ) );
+   EXPECT_EQ( mask, expected2 );
+}
+
+TYPED_TEST( UncompressTest, range )
+{
+   UncompressTest_range< typename TestFixture::VectorType >();
+}
+
+// ---------------------------------------------------------------------------
+// uncompressUnchecked gives the same results as uncompress for valid indices.
+// ---------------------------------------------------------------------------
+
+template< typename VectorType >
+void
+UncompressTest_unchecked()
+{
+   using IndexType = typename VectorType::IndexType;
+   using HostVectorType = Vector< typename VectorType::ValueType, Devices::Host, IndexType >;
+
+   // returning overload
+   VectorType indices{ 0, 5, 7, 8 };
+   auto mask = uncompressUnchecked< VectorType >( indices, IndexType( 11 ) );
+   VectorType expected{ 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0 };
+   EXPECT_EQ( mask, expected );
+
+   // auto-detected mask size
+   auto mask2 = uncompressUnchecked< VectorType >( indices );
+   EXPECT_EQ( mask2.getSize(), IndexType( 9 ) );
+   EXPECT_EQ( mask2, uncompress< VectorType >( indices ) );
+
+   // filling overload: the previous content of the mask is overwritten
+   VectorType mask3( 11, 1 );
+   uncompressUnchecked( indices, mask3, IndexType( 11 ) );
+   EXPECT_EQ( mask3, expected );
+
+   // duplicate indices
+   VectorType duplicates{ 5, 0, 5, 8, 7, 0 };
+   uncompressUnchecked( duplicates, mask3, IndexType( 11 ) );
+   EXPECT_EQ( mask3, expected );
+
+   // range: indices out of the range are ignored
+   VectorType indices2{ 99, 2, 7, 99 };
+   uncompressUnchecked( indices2, mask3, IndexType( 11 ), IndexType( 1 ), IndexType( 3 ) );
+   VectorType expected2{ 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 };
+   EXPECT_EQ( mask3, expected2 );
+
+   // indices on the host
+   HostVectorType hostIndices{ 99, 2, 7, 99 };
+   VectorType mask4;
+   uncompressUnchecked( hostIndices, mask4, IndexType( 11 ), IndexType( 1 ), IndexType( 3 ) );
+   EXPECT_EQ( mask4, expected2 );
+
+   // empty input
+   VectorType empty;
+   EXPECT_EQ( uncompressUnchecked< VectorType >( empty ).getSize(), IndexType( 0 ) );
+   uncompressUnchecked( empty, mask4, IndexType( 11 ) );
+   EXPECT_EQ( mask4, VectorType( 11, 0 ) );
+}
+
+TYPED_TEST( UncompressTest, unchecked )
+{
+   UncompressTest_unchecked< typename TestFixture::VectorType >();
+}
+
+// ---------------------------------------------------------------------------
 // Invalid index throws std::invalid_argument.
 // (Only testable on host because CUDA kernels cannot throw exceptions.)
 // ---------------------------------------------------------------------------

@@ -7,3 +7,4 @@ they operate on. For user-oriented tutorials, see the \ref UsersGuide.
 - \subpage GraphAlgorithms
 - \subpage MatrixAlgorithms
 - \subpage CompressOverview
+- \subpage UncompressOverview
