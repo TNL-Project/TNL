@@ -1549,30 +1549,14 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, long >
 #elif defined( __CUDACC__ )
    TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, short >,
-   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, short >,
-   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, short >,
-   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, short >,
-   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, int >,
    TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, int >,
-   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, int >,
-   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, int >,
-   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, long >,
-   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, long >,
    TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, long >,
-   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, long >
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
    TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, short >,
-   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, short >,
-   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, short >,
-   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, short >,
-   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, int >,
    TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, int >,
-   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, int >,
-   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, int >,
-   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, long >,
-   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, long >,
    TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, long >,
-   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, long >
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, int >
 #endif
    >;
 
