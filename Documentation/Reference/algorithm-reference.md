@@ -6,3 +6,4 @@ they operate on. For user-oriented tutorials, see the \ref UsersGuide.
 - \subpage SegmentAlgorithms
 - \subpage GraphAlgorithms
 - \subpage MatrixAlgorithms
+- \subpage CompressOverview

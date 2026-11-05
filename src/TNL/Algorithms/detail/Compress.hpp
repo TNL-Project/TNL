@@ -8,17 +8,18 @@
 
 namespace TNL::Algorithms::detail {
 
-template< typename MarksVector, typename OutputVector, typename Index >
+// Writes indices of the marks into outputVector, given the inclusive prefix sum
+// of the marks in scannedMarks.
+template< typename ScannedMarks, typename OutputVector, typename Index >
 Index
-compress_impl( MarksVector&& marksVector, OutputVector& outputVector, Index shift )
+compress_scatter( ScannedMarks&& scannedMarks, OutputVector& outputVector, Index shift )
 {
    TNL_ASSERT_GE( shift, 0, "" );
-   Algorithms::inplaceInclusiveScan( marksVector );
-   auto outputSize = marksVector.getElement( marksVector.getSize() - 1 );
+   auto outputSize = scannedMarks.getElement( scannedMarks.getSize() - 1 );
    if( outputSize > outputVector.getSize() )
       outputVector.setSize( outputSize );
    auto outputView = outputVector.getView();
-   auto marksView = marksVector.getView();
+   auto marksView = scannedMarks.getView();
    auto f = [ = ] __cuda_callable__( const Index idx, const Index value ) mutable
    {
       if( idx == 0 ) {
@@ -31,6 +32,15 @@ compress_impl( MarksVector&& marksVector, OutputVector& outputVector, Index shif
    };
    marksView.forAllElements( f );
    return outputSize;
+}
+
+template< typename MarksVector, typename OutputVector, typename Index >
+Index
+compress_impl( MarksVector&& marksVector, OutputVector& outputVector, Index shift )
+{
+   TNL_ASSERT_GE( shift, 0, "" );
+   Algorithms::inplaceInclusiveScan( marksVector );
+   return compress_scatter( std::forward< MarksVector >( marksVector ), outputVector, shift );
 }
 
 template< typename BeginIndex, typename EndIndex, typename MarksFunction, typename OutputVector >
@@ -79,6 +89,31 @@ compressVector( MarksVector& marksVector, OutputVector& outputVector, BeginIndex
 
    auto marksView = marksVector.getView( begin, end );
    return compress_impl( marksView, outputVector, begin );
+}
+
+template< typename MarksVector, typename OutputVector, typename AuxVector, typename BeginIndex, typename EndIndex >
+auto
+compressVector(
+   const MarksVector& marksVector,
+   OutputVector& outputVector,
+   AuxVector& auxVector,
+   BeginIndex begin,
+   EndIndex end ) -> typename OutputVector::IndexType
+{
+   TNL_ASSERT_GE( begin, 0, "" );
+   TNL_ASSERT_GE( end, begin, "" );
+   if( end == 0 )
+      end = marksVector.getSize();
+
+   using Index = typename OutputVector::IndexType;
+   const Index size = end - begin;
+   if( size == 0 )
+      return 0;
+   if( auxVector.getSize() < size )
+      auxVector.setSize( size );
+   auto auxView = auxVector.getView( 0, size );
+   Algorithms::inclusiveScan( marksVector, auxView, begin, end, 0 );
+   return compress_scatter( auxView, outputVector, static_cast< Index >( begin ) );
 }
 
 template< typename MarksVector, typename OutputVector, typename BeginIndex, typename EndIndex >

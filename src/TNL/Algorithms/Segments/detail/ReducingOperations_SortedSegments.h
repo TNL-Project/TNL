@@ -439,7 +439,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             conditionsView[ i ] = condition( inverseSegmentsPermutationView[ i + begin ] );
          } );
 
-      auto indexes = compressFast< VectorType >( conditions );
+      auto indexes = compressOverwritingMarks< VectorType >( conditions );
       if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
@@ -509,7 +509,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             conditionsView[ i ] = condition( inverseSegmentsPermutationView[ i + begin ] );
          } );
 
-      auto indexes = compressFast< VectorType >( conditions );
+      auto indexes = compressOverwritingMarks< VectorType >( conditions );
       if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),

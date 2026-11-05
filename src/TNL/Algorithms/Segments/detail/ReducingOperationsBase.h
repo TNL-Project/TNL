@@ -50,7 +50,7 @@ struct ReducingOperationsBase
             value = condition( i + begin );
          } );
 
-      auto indexes = compressFast< VectorType >( conditions );
+      auto indexes = compressOverwritingMarks< VectorType >( conditions );
       indexes += begin;
       reduceSegments(
          segments,
@@ -92,7 +92,7 @@ struct ReducingOperationsBase
             value = condition( i + begin );
          } );
 
-      auto indexes = compressFast< VectorType >( conditions );
+      auto indexes = compressOverwritingMarks< VectorType >( conditions );
       indexes += begin;
       reduceSegmentsWithArgument(
          segments,

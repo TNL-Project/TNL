@@ -36,7 +36,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
    // kernel where `condition` is evaluated per row inline during the same traversal that calls
    // `function`. The inherited base-class range-overloads (TraversingOperationsBase) instead
    // build a 0/1 row mask via forAllElements, compact it into a row-index array via
-   // Algorithms::compressFast (which involves a blocking device->host sync), and then delegate
+   // Algorithms::compressOverwritingMarks (which involves a blocking device->host sync), and then delegate
    // to the array-overload -- effectively three kernel launches plus a sync instead of one fused
    // kernel. It has not been benchmarked which approach actually performs better in practice
    // (e.g. the mask+compress path launches a second kernel sized to the number of matching rows,

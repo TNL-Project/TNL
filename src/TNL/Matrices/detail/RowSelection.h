@@ -32,7 +32,7 @@ checkRowIndexesDevice()
  *
  * Shared by the `*If` methods of \ref TraversingOperationsBase and \ref ReductionOperationsBase
  * (range overloads): materializes the condition as a 0/1 mask and compresses it via
- * \ref TNL::Algorithms::compressFast.
+ * \ref TNL::Algorithms::compressOverwritingMarks.
  */
 template< typename IndexType, typename DeviceType, typename IndexBegin, typename IndexEnd, typename Condition >
 Containers::Vector< IndexType, DeviceType, IndexType >
@@ -47,7 +47,7 @@ buildSelectedRowIndexes( IndexBegin begin, IndexEnd end, Condition&& condition )
          value = condition( rowIdx + begin ) ? 1 : 0;
       } );
    // Compress the mask into a dense array of matching row indexes
-   auto selectedRowIndexes = Algorithms::compressFast< VectorType >( conditionMask );
+   auto selectedRowIndexes = Algorithms::compressOverwritingMarks< VectorType >( conditionMask );
    if( selectedRowIndexes.getSize() > 0 )
       selectedRowIndexes += begin;
    return selectedRowIndexes;
@@ -59,7 +59,7 @@ buildSelectedRowIndexes( IndexBegin begin, IndexEnd end, Condition&& condition )
  *
  * Shared by the `*If` methods of \ref TraversingOperationsBase and \ref ReductionOperationsBase
  * (array overloads): materializes the condition as a 0/1 mask over positions, compresses it into
- * matching positions via \ref TNL::Algorithms::compressFast, then gathers the actual row indexes.
+ * matching positions via \ref TNL::Algorithms::compressOverwritingMarks, then gathers the actual row indexes.
  */
 template< typename IndexType, typename DeviceType, typename Array, typename IndexBegin, typename IndexEnd, typename Condition >
 Containers::Vector< IndexType, DeviceType, IndexType >
@@ -81,7 +81,7 @@ buildSelectedRowIndexesFromArray( const Array& rowIndexes, IndexBegin begin, Ind
          value = condition( rowIndexes_view[ positionIdx + begin ] ) ? 1 : 0;
       } );
    // Compress the mask into matching positions within [0, end - begin)
-   auto matchingPositions = Algorithms::compressFast< VectorType >( conditionMask );
+   auto matchingPositions = Algorithms::compressOverwritingMarks< VectorType >( conditionMask );
    if( matchingPositions.getSize() == 0 )
       return matchingPositions;
 

@@ -103,4 +103,69 @@ TYPED_TEST( CompressTest, compressVector )
    CompressTest_compressVector< typename TestFixture::VectorType >();
 }
 
+template< typename VectorType >
+void
+CompressTest_compressVectorWithAux()
+{
+   using IndexType = typename VectorType::IndexType;
+
+   //clang-format off
+   //            0  1  2  3  4  5  6  7  8  9 10
+   VectorType v{ 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0 };
+   //clang-format on
+   const VectorType v_copy( v );
+
+   // empty output and auxiliary vectors are resized automatically
+   VectorType output;
+   VectorType aux;
+   IndexType count = compress( v, output, aux );
+   EXPECT_EQ( count, 4 );
+   EXPECT_EQ( output.getSize(), 4 );
+   EXPECT_EQ( aux.getSize(), v.getSize() );
+   EXPECT_EQ( output.getElement( 0 ), 0 );
+   EXPECT_EQ( output.getElement( 1 ), 5 );
+   EXPECT_EQ( output.getElement( 2 ), 7 );
+   EXPECT_EQ( output.getElement( 3 ), 8 );
+   // the input vector is not modified
+   EXPECT_EQ( v, v_copy );
+
+   // larger output and auxiliary vectors are not reallocated
+   VectorType output2( 20, -1 );
+   VectorType aux2( 20 );
+   count = compress( v, output2, aux2 );
+   EXPECT_EQ( count, 4 );
+   EXPECT_EQ( output2.getSize(), 20 );
+   EXPECT_EQ( aux2.getSize(), 20 );
+   EXPECT_EQ( output2.getElement( 0 ), 0 );
+   EXPECT_EQ( output2.getElement( 1 ), 5 );
+   EXPECT_EQ( output2.getElement( 2 ), 7 );
+   EXPECT_EQ( output2.getElement( 3 ), 8 );
+   EXPECT_EQ( output2.getElement( 4 ), -1 );
+   EXPECT_EQ( v, v_copy );
+
+   // subrange
+   count = compress( v, output2, aux2, 4, v.getSize() );
+   EXPECT_EQ( count, 3 );
+   EXPECT_EQ( output2.getElement( 0 ), 5 );
+   EXPECT_EQ( output2.getElement( 1 ), 7 );
+   EXPECT_EQ( output2.getElement( 2 ), 8 );
+
+   count = compress( v, output2, aux2, 1, 5 );
+   EXPECT_EQ( count, 0 );
+   EXPECT_EQ( v, v_copy );
+
+   // no marks
+   VectorType zeros( 7, 0 );
+   EXPECT_EQ( compress( zeros, output2, aux2 ), 0 );
+
+   // empty input
+   VectorType empty;
+   EXPECT_EQ( compress( empty, output2, aux2 ), 0 );
+}
+
+TYPED_TEST( CompressTest, compressVectorWithAux )
+{
+   CompressTest_compressVectorWithAux< typename TestFixture::VectorType >();
+}
+
 #include "../main.h"
