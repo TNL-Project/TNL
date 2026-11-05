@@ -46,7 +46,7 @@ struct TraversingOperationsBase
             value = condition( i + begin );
          } );
 
-      auto indexes = compressFast< VectorType >( conditions );
+      auto indexes = compressOverwritingMarks< VectorType >( conditions );
       indexes += begin;
       forElements( segments, indexes, function, launchConfig );
    }

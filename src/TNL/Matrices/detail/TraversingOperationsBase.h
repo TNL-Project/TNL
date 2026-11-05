@@ -25,7 +25,7 @@ struct TraversingOperations;
  * The `*If` methods follow a compress + delegate strategy (see \ref buildSelectedRowIndexes
  * and \ref buildSelectedRowIndexesFromArray in RowSelection.h):
  *
- * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressFast.
+ * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressOverwritingMarks.
  * 2. Delegate to \ref TraversingOperations<Matrix>::forElements or
  *    \ref TraversingOperations<Matrix>::forRows with the filtered row indexes.
  *

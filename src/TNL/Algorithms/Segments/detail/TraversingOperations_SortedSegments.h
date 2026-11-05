@@ -197,7 +197,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             value = condition( i );
          } );
 
-      auto indexes = compressFast< VectorType >( conditions );
+      auto indexes = compressOverwritingMarks< VectorType >( conditions );
       indexes += begin;
       forElements( segments, indexes, function, launchConfig );
    }
@@ -307,7 +307,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             value = segmentCondition( i );
          } );
 
-      auto indexes = compressFast< VectorType >( conditions );
+      auto indexes = compressOverwritingMarks< VectorType >( conditions );
       indexes += begin;
       forSegments( segments, indexes, function, launchConfig );
    }

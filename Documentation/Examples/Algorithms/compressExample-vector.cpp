@@ -21,7 +21,7 @@ compressExample()
    std::cout << "Number of marks in v2 is: " << n << '\n';
    std::cout << "Positions of marks in v2 is ( only first " << n << " numbers are valid):" << compressed_v << '\n';
 
-   TNL::Algorithms::compressFast( v2, compressed_v );
+   TNL::Algorithms::compressOverwritingMarks( v2, compressed_v );
    std::cout << "v2 = " << v2 << '\n';
 }
 

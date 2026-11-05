@@ -26,7 +26,7 @@ struct ReductionOperations;
  * The `*If` methods follow a compress + gather + delegate strategy (see
  * \ref buildSelectedRowIndexes and \ref buildSelectedRowIndexesFromArray in RowSelection.h):
  *
- * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressFast.
+ * 1. Materialize the row-condition mask into a vector via \ref TNL::Algorithms::compressOverwritingMarks.
  * 2. For the array overloads, gather the actual row indexes from the user-supplied
  *    `rowIndexes` array using the compressed mask.
  * 3. Delegate to \ref ReductionOperations<Matrix>::reduceRows or
