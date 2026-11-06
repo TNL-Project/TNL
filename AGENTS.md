@@ -170,6 +170,10 @@ Use `git` for managing the local repository and `glab` for the remote repository
 - **Test structure**: Tests in `src/UnitTests/` subdirectories, each with its own `CMakeLists.txt`
 - **Test labels**: `Matrices`, `MPI`, etc.
 - **File extensions**: `.cpp`, `.cu` (CUDA), `.hip` (HIP)
+- **Typed-test lists**: The host branch of the type list can be complete; the CUDA/HIP
+  branches need to be reduced to a covering set where every real type, index type and
+  other parameters appear at least once, see
+  [Unit tests architecture](src/UnitTests/ARCHITECTURE.md)
 
 ### Debugging
 
