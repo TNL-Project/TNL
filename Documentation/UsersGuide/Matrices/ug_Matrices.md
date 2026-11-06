@@ -705,6 +705,16 @@ The elements depicted in grey color are not stored in the memory. The main diffe
 
 \include SymmetricSparseMatrixExample.out
 
+When a reduction over a symmetric sparse matrix has to account for the implicit upper part,
+the `fetch` or `keep` lambda must mirror the stored lower-triangular elements
+into the result slot of the corresponding row.
+Since rows are reduced in parallel,
+such cross-row updates can run concurrently with the `keep` lambda of the target row
+and must be atomic, or accumulated in a separate array and combined after the reduction.
+Modifying the element passed to `fetch` does not need atomics,
+because each stored element is visited exactly once.
+See \ref MatrixReductionSymmetricMatrices for details.
+
 **Warning: Assignment of symmetric sparse matrix to general sparse matrix does not give correct result, currently. Only the diagonal and the lower part of the matrix is assigned.**
 
 #### Binary sparse matrices
