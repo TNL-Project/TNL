@@ -42,8 +42,9 @@ benchmarks:
   #      - s3dkt3m2.mtx  # https://sparse.tamu.edu/GHS_psdef/s3dkt3m2
   #    shift-value: -0.8
 
-  eigen-random:
+  eigen-random-cuda:
     params:
+      device: all
       # QR algorithm is very slow compared to the other benchmarks
       with-qr-householder: false
       with-qr-gram-schmidt: false
@@ -52,7 +53,7 @@ benchmarks:
       max-size-dense: 2000
       max-size-sparse: 2000
 
-  heat-equation:
+  heat-equation-cuda:
     params:
       device: all
       precision:

@@ -13,10 +13,12 @@ Each benchmark subdirectory contains:
 - **Benchmark logic headers** — define templated `run_benchmark*()` functions, benchmark
   helpers, etc. They are included by the entry point header.
 - **CMakeLists.txt** — registers the executable targets with `tnl_add_backend_executables`.
-  The host-only `tnl-benchmark-<name>` executable is built always,
-  `tnl-benchmark-<name>-cuda` and `tnl-benchmark-<name>-hip` are built conditionally
-  when the CUDA/HIP build is enabled. Use `SINGLE` when the benchmark is built for one
-  backend only.
+  Benchmarks build one executable per backend, so they do not use `SINGLE` and the base
+  name must not contain a backend suffix: the helper appends `-cuda` and `-hip` and builds
+  those variants only when the corresponding backend is enabled. The host-only
+  `tnl-benchmark-<name>` executable is built always; use `OPTIONAL_HOST` to skip it in the
+  CUDA and HIP CI jobs, where `TNL_BUILD_CPP_TARGETS` is off. Pass `OUTPUT_TARGETS <var>`
+  to collect the target names for per-target settings and for `install(TARGETS ...)`.
 
 ## Entry point pattern
 

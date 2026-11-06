@@ -44,68 +44,48 @@ if(TNL_BUILD_CUDA)
     else()
         message(STATUS "Gunrock not found.")
     endif()
-
-    set(GRAPH_BENCHMARK_TARGETS_CUDA)
-
-    foreach(bench IN LISTS GRAPH_BENCHMARKS)
-        set(target tnl-benchmark-graphs-${bench}-cuda)
-        tnl_add_backend_executables(${target} SOURCES tnl-benchmark-graphs-${bench}.h BACKENDS CUDA SINGLE)
-
-        if(NOT bench STREQUAL "mst")
-            target_compile_options(${target} PUBLIC ${GUNROCK_FLAGS})
-        endif()
-
-        if(Boost_GRAPH_FOUND)
-            target_link_libraries(${target} PUBLIC Boost::graph)
-            target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
-        endif()
-
-        if(GUNROCK_INCLUDE_DIR)
-            target_compile_definitions(${target} PUBLIC HAVE_GUNROCK SM_TARGET=${CMAKE_CUDA_ARCHITECTURES})
-            target_include_directories(${target} PUBLIC ${GUNROCK_INCLUDE_DIR})
-        endif()
-
-        list(APPEND GRAPH_BENCHMARK_TARGETS_CUDA ${target})
-    endforeach()
-
-    # NOTE: the following parameters are just for performance debugging
-    # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#printing-code-generation-statistics
-    # target_compile_options( tnl-benchmark-graphs PUBLIC --resource-usage )
-    # set_target_properties( tnl-benchmark-graphs PROPERTIES CUDA_SEPARABLE_COMPILATION OFF )
-
-    install(TARGETS ${GRAPH_BENCHMARK_TARGETS_CUDA} RUNTIME DESTINATION bin COMPONENT benchmarks)
-endif()
-
-if(TNL_BUILD_HIP)
-    set(GRAPH_BENCHMARK_TARGETS_HIP)
-
-    foreach(bench IN LISTS GRAPH_BENCHMARKS)
-        set(target tnl-benchmark-graphs-${bench}-hip)
-        tnl_add_backend_executables(${target} SOURCES tnl-benchmark-graphs-${bench}.h BACKENDS HIP SINGLE)
-
-        if(Boost_GRAPH_FOUND)
-            target_link_libraries(${target} PUBLIC Boost::graph)
-            target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
-        endif()
-
-        list(APPEND GRAPH_BENCHMARK_TARGETS_HIP ${target})
-    endforeach()
-
-    install(TARGETS ${GRAPH_BENCHMARK_TARGETS_HIP} RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
 set(GRAPH_BENCHMARK_TARGETS)
 
 foreach(bench IN LISTS GRAPH_BENCHMARKS)
-    set(target tnl-benchmark-graphs-${bench})
-    tnl_add_backend_executables(${target} SOURCES tnl-benchmark-graphs-${bench}.h BACKENDS HOST SINGLE)
+    tnl_add_backend_executables(
+        tnl-benchmark-graphs-${bench}
+        SOURCES tnl-benchmark-graphs-${bench}.h
+        BACKENDS HOST CUDA HIP
+        OUTPUT_TARGETS targets
+        OUTPUT_BACKENDS backends
+    )
 
     if(Boost_GRAPH_FOUND)
-        target_link_libraries(${target} PUBLIC Boost::graph)
-        target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
+        foreach(target IN LISTS targets)
+            target_link_libraries(${target} PUBLIC Boost::graph)
+            target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
+        endforeach()
     endif()
 
-    list(APPEND GRAPH_BENCHMARK_TARGETS ${target})
+    # options and libraries for the CUDA variants
+    foreach(target backend IN ZIP_LISTS targets backends)
+        if(NOT backend STREQUAL "CUDA")
+            continue()
+        endif()
+        if(NOT bench STREQUAL "mst" AND GUNROCK_FLAGS)
+            target_compile_options(${target} PUBLIC ${GUNROCK_FLAGS})
+        endif()
+        if(GUNROCK_INCLUDE_DIR)
+            target_compile_definitions(${target} PUBLIC HAVE_GUNROCK SM_TARGET=${CMAKE_CUDA_ARCHITECTURES})
+            target_include_directories(${target} PUBLIC ${GUNROCK_INCLUDE_DIR})
+        endif()
+    endforeach()
+
+    list(APPEND GRAPH_BENCHMARK_TARGETS ${targets})
 endforeach()
 
-install(TARGETS ${GRAPH_BENCHMARK_TARGETS} RUNTIME DESTINATION bin COMPONENT benchmarks)
+# NOTE: the following parameters are just for performance debugging
+# https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#printing-code-generation-statistics
+# target_compile_options( tnl-benchmark-graphs-bfs-cuda PUBLIC --resource-usage )
+# set_target_properties( tnl-benchmark-graphs-bfs-cuda PROPERTIES CUDA_SEPARABLE_COMPILATION OFF )
+
+if(GRAPH_BENCHMARK_TARGETS)
+    install(TARGETS ${GRAPH_BENCHMARK_TARGETS} RUNTIME DESTINATION bin COMPONENT benchmarks)
+endif()

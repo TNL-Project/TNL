@@ -1,9 +1,9 @@
 # Grid Benchmark
 
 This benchmark measures the performance of entity traversals in structured grids, i.e. the `TNL::Meshes::Grid` class.
-For every grid dimension, an executable is built which creates a grid of the given resolution and measures the time
-needed to traverse all entities of every entity dimension (vertices, edges, faces, cells) using three traversal
-variants:
+For every grid dimension, a set of backend-specific executables is built; each creates a grid of the given
+resolution and measures the time needed to traverse all entities of every entity dimension (vertices, edges,
+faces, cells) using three traversal variants:
 
 1. `forAllEntities` — traversal of all entities.
 2. `forInteriorEntities` — traversal of interior entities only.
@@ -27,7 +27,7 @@ CUDA, HIP), either selected individually or all at once.
 
 ## Executables
 
-One executable is built per grid dimension:
+One set of backend-specific executables is built per grid dimension; the table lists the host variants:
 
 | Executable | Grid dimension | Resolution options used |
 | ---------- | -------------- | ----------------------- |
@@ -35,9 +35,10 @@ One executable is built per grid dimension:
 | `tnl-benchmark-grid-2D` | 2D | `--x-dimension`, `--y-dimension` |
 | `tnl-benchmark-grid-3D` | 3D | `--x-dimension`, `--y-dimension`, `--z-dimension` |
 
-The executables are built from the same source `tnl-benchmark-grid.h` for all backends: the host build compiles it
-with the host compiler, the CUDA build with the CUDA compiler, and the HIP build with the HIP compiler. There are no
-separate executables for CUDA or HIP — the target names stay the same, only the compiler differs.
+The executables are built from the same source `tnl-benchmark-grid.h` for all backends: the host variants are
+compiled with the host compiler, the CUDA variants with the CUDA compiler, and the HIP variants with the HIP compiler.
+For every grid dimension, the executables are named `tnl-benchmark-grid-<N>D` (host),
+`tnl-benchmark-grid-<N>D-cuda` and `tnl-benchmark-grid-<N>D-hip`.
 
 ## Command-line options
 
@@ -58,6 +59,7 @@ can be obtained with the `--help` command line argument.
 ## Usage
 
 ```bash
-just build tnl-benchmark-grid-3D
+just build tnl-benchmark-grid-3D tnl-benchmark-grid-3D-cuda
 ./build/bin/tnl-benchmark-grid-3D --x-dimension 200 --y-dimension 200 --z-dimension 200
+./build/bin/tnl-benchmark-grid-3D-cuda --x-dimension 200 --y-dimension 200 --z-dimension 200 --device cuda
 ```

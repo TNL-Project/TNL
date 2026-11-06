@@ -78,7 +78,6 @@ endfunction()
 #       SOURCES <source>...
 #       [CUDA_SOURCES <source>...] [HIP_SOURCES <source>...]
 #       [BACKENDS <backend>...] [SINGLE] [OPTIONAL_HOST]
-#       [CUDA_SUFFIX <suffix>] [HIP_SUFFIX <suffix>]
 #       [COMPILE_DEFINITIONS <definition>...]
 #       [LINK_LIBRARIES <library>...]
 #       [CUDA_LINK_LIBRARIES <library>...] [HIP_LINK_LIBRARIES <library>...]
@@ -92,7 +91,7 @@ endfunction()
 #   executables are built (default: all backends with sources). A backend is
 #   skipped when it is not enabled (TNL_BUILD_CUDA, TNL_BUILD_HIP).
 # - The host executable is named <name>, the CUDA and HIP executables are named
-#   <name><CUDA_SUFFIX> and <name><HIP_SUFFIX> (default suffixes: -cuda, -hip).
+#   <name>-cuda and <name>-hip.
 # - SINGLE builds only one executable named <name> for the first enabled
 #   backend in BACKENDS. For example, BACKENDS CUDA HIP HOST SINGLE builds the
 #   CUDA executable if CUDA is enabled, otherwise the HIP or the host executable.
@@ -117,7 +116,7 @@ endfunction()
 #   tnl_add_backend_executables(foo SOURCES foo.h OPTIONAL_HOST)
 function(tnl_add_backend_executables name)
     set(options SINGLE OPTIONAL_HOST)
-    set(oneValueArgs CUDA_SUFFIX HIP_SUFFIX OUTPUT_TARGETS OUTPUT_BACKENDS)
+    set(oneValueArgs OUTPUT_TARGETS OUTPUT_BACKENDS)
     set(multiValueArgs
         SOURCES
         CUDA_SOURCES
@@ -131,13 +130,6 @@ function(tnl_add_backend_executables name)
     cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "tnl_add_backend_executables: unknown arguments for '${name}': ${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(NOT DEFINED ARG_CUDA_SUFFIX)
-        set(ARG_CUDA_SUFFIX "-cuda")
-    endif()
-    if(NOT DEFINED ARG_HIP_SUFFIX)
-        set(ARG_HIP_SUFFIX "-hip")
     endif()
 
     foreach(backend IN ITEMS HOST CUDA HIP)
@@ -175,7 +167,8 @@ function(tnl_add_backend_executables name)
         if(ARG_SINGLE OR backend STREQUAL "HOST")
             set(target ${name})
         else()
-            set(target ${name}${ARG_${backend}_SUFFIX})
+            string(TOLOWER ${backend} suffix)
+            set(target ${name}-${suffix})
         endif()
 
         tnl_get_backend_source(source TARGET ${target} BACKEND ${backend} SOURCES ${ARG_${backend}_SOURCES})

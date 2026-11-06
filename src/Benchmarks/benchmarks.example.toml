@@ -47,9 +47,10 @@ loops = 10
 
 # ── Eigen random ─────────────────────────────────────────────────────────
 
-[benchmarks.eigen-random]
+[benchmarks.eigen-random-cuda]
 
-[benchmarks.eigen-random.params]
+[benchmarks.eigen-random-cuda.params]
+device = "all"
 # QR algorithm is very slow compared to the other benchmarks
 with-qr-householder = false
 with-qr-gram-schmidt = false
@@ -60,9 +61,9 @@ max-size-sparse = 2000
 
 # ── Heat equation ────────────────────────────────────────────────────────
 
-[benchmarks.heat-equation]
+[benchmarks.heat-equation-cuda]
 
-[benchmarks.heat-equation.params]
+[benchmarks.heat-equation-cuda.params]
 device = "all"
 precision = ["float", "double"]
 implementation = ["parallel-for", "simple-grid", "grid", "nd-grid"]

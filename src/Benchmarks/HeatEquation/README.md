@@ -36,11 +36,16 @@ minimum dimension and each following size is the step factor times the previous 
 Each combination of the x and y sizes is measured separately. The results include the precision, the grid dimensions,
 and the implementation as metadata, and the dataset size is set to the size of one state vector.
 
-## Executable
+## Executables
 
-The build produces a single executable, `tnl-benchmark-heat-equation`, for all backends. CMake compiles
-`tnl-benchmark-heat-equation.h` with the host compiler for host-only builds, with the CUDA compiler for CUDA builds,
-and with the HIP compiler for HIP builds.
+One executable is built for each enabled backend, all from the same source
+`tnl-benchmark-heat-equation.h`:
+
+| Executable | Backend |
+| ---------- | ------- |
+| `tnl-benchmark-heat-equation` | host |
+| `tnl-benchmark-heat-equation-cuda` | CUDA |
+| `tnl-benchmark-heat-equation-hip` | HIP |
 
 ## Usage
 
