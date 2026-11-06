@@ -976,7 +976,7 @@ test_reduceRows()
    };
    auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const IndexType value ) mutable
    {
-      rowLengths_view[ rowIdx ] += value;
+      TNL::Algorithms::AtomicOperations< DeviceType >::add( rowLengths_view[ rowIdx ], value );
    };
    m_5.reduceAllRows( fetch, std::plus<>{}, keep, 0 );
 
