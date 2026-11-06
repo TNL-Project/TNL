@@ -25,18 +25,74 @@ constexpr int radixSortBits = 8;
 //! \brief Number of digit buckets, i.e. `2^radixSortBits`.
 constexpr int radixSortBuckets = 1 << radixSortBits;
 
-//! \brief Number of threads per block in the radix sort kernels.
+//! \brief Number of threads per block in the histogram, per-digit and
+//! single-tile kernels of the radix sort.
+//!
+//! The per-digit kernels (\ref radixSortProcessHistogramsKernel and
+//! \ref radixSortAdvanceBaseKernel) rely on each thread handling exactly one
+//! digit, which requires the block size to be equal to the number of digit
+//! buckets. The histogram and single-tile kernels use the same block size
+//! for simplicity.
 constexpr int radixSortBlockSize = 256;
 
-//! \brief Number of elements processed by one thread in one tile.
+//! \brief Number of elements processed by one thread in one tile of the
+//! histogram and single-tile kernels.
 //!
 //! Processing multiple elements per thread amortizes the shared-memory
 //! zeroing, the per-digit scan and the synchronization over more elements
 //! and provides more independent loads to hide the memory latency.
 constexpr int radixSortItemsPerThread = 8;
 
-//! \brief Number of elements processed by one tile of the kernels.
+//! \brief Number of elements processed by one tile of the single-tile
+//! kernel.
 constexpr int radixSortTileSize = radixSortBlockSize * radixSortItemsPerThread;
+
+//! \brief Number of threads per block of \ref radixSortOnesweepKernel.
+//!
+//! Unlike the per-digit kernels, the sweep kernel does not require the block
+//! size to be equal to the number of digit buckets: its per-digit phases
+//! (lookback, digit starts) are guarded to the first \ref radixSortBuckets
+//! threads and the per-\e word phases to the first `radixSortBuckets / 2`
+//! threads. Larger blocks spread the barrier, lookback and zeroing costs
+//! over more elements and improve the number of resident warps.
+constexpr int radixSortOnesweepBlockSize = 384;
+
+//! \brief Number of elements processed by one thread in one tile of
+//! \ref radixSortOnesweepKernel.
+//!
+//! The items fill the staging tile to about 24 KiB of shared memory for any
+//! value type: the remaining shared-memory budget of a thread block (the
+//! per-warp rank counters and the digit bases) then keeps three blocks
+//! resident on a streaming multiprocessor for both 4-byte and 8-byte values.
+template< typename Value >
+constexpr int radixSortOnesweepItemsPerThread = ( sizeof( Value ) <= 4 ) ? 16 : 8;
+
+//! \brief Number of elements processed by one tile of
+//! \ref radixSortOnesweepKernel (6,144 for values of at most 4 bytes,
+//! 3,072 for 8-byte values).
+template< typename Value >
+constexpr int radixSortOnesweepTileSize = radixSortOnesweepBlockSize * radixSortOnesweepItemsPerThread< Value >;
+
+//! \brief Array size threshold below which the sweep uses the small tile
+//! configuration of the histogram and single-tile kernels
+//! (\ref radixSortTileSize).
+//!
+//! The per-tile costs of the big configuration (the deeper ranking phases
+//! of 16 or 8 items per thread) are amortized only when the array fills
+//! most of the device; below this threshold the shorter 2,048-element
+//! tiles of the small configuration are faster.
+constexpr int radixSortOnesweepSmallTileLimit = 1 << 18;
+
+//! \brief Number of elements processed by one tile of
+//! \ref radixSortOnesweepKernel for the given array size.
+template< typename Value, typename Index >
+constexpr Index
+radixSortOnesweepTileSizeFor( const Index n )
+{
+   return n <= static_cast< Index >( radixSortOnesweepSmallTileLimit )
+           ? static_cast< Index >( radixSortTileSize )
+           : static_cast< Index >( radixSortOnesweepTileSize< Value > );
+}
 
 //! \brief Array size threshold below which the tile status regions of all
 //! passes are zeroed by a single upfront fill.
@@ -62,12 +118,11 @@ constexpr int radixSortAggregatedFillLimit = 1 << 22;
 //! was 100k elements.
 constexpr int radixSortGraphLimit = 1 << 19;
 
-// The per-digit phases of the scatter kernel rely on each thread handling
-// exactly one digit, which requires the block size to be equal to the number
-// of digit buckets.
+// the per-digit kernels are launched with one thread per bucket (see the
+// comment on radixSortBlockSize)
 static_assert( radixSortBlockSize == radixSortBuckets, "radixSortBlockSize must be equal to radixSortBuckets" );
 
-//! \brief Maximum number of warps per block in the radix sort kernels,
+//! \brief Maximum number of warps per block in the single-tile kernel,
 //! assuming the smallest supported warp size of 32.
 constexpr int radixSortMaxWarps = radixSortBlockSize / 32;
 
@@ -203,25 +258,120 @@ radixSortPopcount( RadixSortWarpMask mask )
       return __popcll( mask );
 }
 
+/**
+ * \brief Returns the index of the lowest set bit of a warp synchronization
+ * mask (-1 when the mask is empty).
+ */
+[[nodiscard]] __device__
+__forceinline__ int
+radixSortWarpFirstLane( RadixSortWarpMask mask )
+{
+   if constexpr( sizeof( RadixSortWarpMask ) == 4 )
+      return __ffs( static_cast< int >( mask ) ) - 1;
+   else
+      return __ffsll( static_cast< long long >( mask ) ) - 1;
+}
+
+/**
+ * \brief Atomically adds `count` to the 16-bit counter of the given digit
+ * packed with another digit's counter in a 32-bit shared word, and returns
+ * the previous value of the digit's counter.
+ *
+ * The counters of each (warp, digit) pair are packed two per 32-bit
+ * word, which halves the shared-memory footprint of the rank counters of
+ * \ref radixSortOnesweepKernel and is what allows three thread blocks to
+ * stay resident on a streaming multiprocessor. Neither half of a word can
+ * overflow 16 bits (a digit's count and running offset stay below the tile
+ * size of the sweep), so a shifted 32-bit atomic addition never carries
+ * into the other half. On devices without a 16-bit shared-memory atomic add
+ * (that is, on all of them) this is also the only portable formulation.
+ *
+ * \param packedCounters points to the shared word holding the digit's
+ *                       counter in its `16 * (digit & 1)`-shifted half.
+ * \param digit is the digit whose counter is incremented.
+ * \param count is the increment (at most the warp size).
+ */
+[[nodiscard]] __device__
+__forceinline__ unsigned int
+radixSortPackedCounterAdd( unsigned int* packedCounters, unsigned int digit, unsigned int count )
+{
+   const unsigned int shift = 16u * ( digit & 1u );
+   return ( atomicAdd( packedCounters, count << shift ) >> shift ) & 0xFFFFu;
+}
+
 #endif
+
+/**
+ * \brief Returns the value used to fill the rounded-up rounds of partial
+ * tiles in \ref radixSortOnesweepKernel.
+ *
+ * The staged positions of the padded lanes are forced to the last bucket
+ * during the ranking, so the padding value is never written to the sorted
+ * array; any value with an in-range digit would work, and a NaN is used for
+ * floating-point types because its raw bytes mark it clearly as never
+ * touched when it does leak into observability during debugging.
+ */
+template< typename Value, bool descending >
+__cuda_callable__
+Value
+radixSortPaddingValue()
+{
+   if constexpr( std::is_floating_point_v< Value > ) {
+      // ascending: key of all ones comes from bits 0x7FF...F (a positive
+      // NaN); descending: a key of zero comes from bits of all ones (a
+      // negative NaN, inverted to zero by the key mapping)
+#if defined( __CUDA_ARCH__ ) || defined( __HIP__ )
+      if constexpr( sizeof( Value ) == 4 )
+         return __uint_as_float( descending ? 0xFFFFFFFFu : 0x7FFFFFFFu );
+      else
+         return __longlong_as_double(
+            descending ? static_cast< long long >( 0xFFFFFFFFFFFFFFFFull )
+                       : static_cast< long long >( 0x7FFFFFFFFFFFFFFFull ) );
+#else
+      using Key = RadixSortKey< Value >;
+      constexpr Key signBit = Key( 1 ) << ( 8 * sizeof( Value ) - 1 );
+      const Key bits = descending ? ~Key( 0 ) : ( ~Key( 0 ) & ~signBit );
+      unsigned char raw[ sizeof( Value ) ];
+      for( int byte = 0; byte < static_cast< int >( sizeof( Value ) ); byte++ )
+         raw[ byte ] = static_cast< unsigned char >( ( bits >> ( 8 * byte ) ) & 0xFF );
+      Value value;
+      std::memcpy( &value, raw, sizeof( Value ) );
+      return value;
+#endif
+   }
+   else {
+      using Key = RadixSortKey< Value >;
+      constexpr Key signBit = Key( 1 ) << ( 8 * sizeof( Value ) - 1 );
+      const Key bits = ( std::is_signed_v< Value > ? signBit : Key( 0 ) ) ^ ( descending ? Key( 0 ) : ~Key( 0 ) );
+      Value value;
+      auto* out = reinterpret_cast< unsigned char* >( &value );
+      for( int byte = 0; byte < static_cast< int >( sizeof( Value ) ); byte++ )
+         out[ byte ] = static_cast< unsigned char >( ( bits >> ( 8 * byte ) ) & 0xFF );
+      return value;
+   }
+}
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
 /**
- * \brief Shared-memory union of the rank offsets and the staging tile of
- * \ref radixSortOnesweepKernel.
+ * \brief Shared-memory union of the tile-local digit starts and the staging
+ * tile of \ref radixSortOnesweepKernel.
  *
- * The per-(warp, digit) rank offsets are consumed by the computation of the
- * staged positions of the items into registers before the staging tile is
- * written, so the two arrays can share the same storage, which reduces the
- * shared-memory footprint of the kernel and increases the number of thread
- * blocks resident on a streaming multiprocessor.
+ * The digit starts are folded into the running per-(warp, digit) rank
+ * counters and into the shifted digit bases before the re-ranking (and the
+ * lookback) consumes them for the last time, so the staging tile written
+ * afterwards can share their storage, keeping the block's shared memory
+ * low enough for three resident blocks per streaming multiprocessor.
  */
-template< typename Value >
-union RadixSortRankTileUnion
+template< typename Value, int blockThreads, int itemsPerThread >
+union RadixSortOnesweepStage
 {
-   int warpOffsets[ radixSortMaxWarps * radixSortBuckets ];
-   Value tile[ radixSortTileSize ];
+   //! \brief Tile-local starts of the digit runs (`digitStarts[d]` is the
+   //! number of tile items with a digit smaller than `d`).
+   unsigned short digitStarts[ radixSortBuckets + 1 ];
+
+   //! \brief Staging tile of the scattered items, grouped by digit.
+   Value tile[ blockThreads * itemsPerThread ];
 };
 
 #endif
@@ -417,16 +567,17 @@ constexpr unsigned int radixSortTileAggregate = 1u << 30;
 constexpr unsigned int radixSortTilePrefix = 1u << 31;
 constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
 
-// the launch bounds keep the occupancy of the binning kernel from
-// silently dropping when a change grows the register count: with 256
-// threads per block, at most 64 registers are available per thread when
-// 4 blocks should stay resident on a multiprocessor (8-byte values need
-// more registers, so only 2 blocks are requested for them); HIP is not
-// guarded because the attribute was not verified there
+// the launch bounds keep the occupancy of the binning kernel from silently
+// dropping when a change grows the register count: the big configuration
+// (384 threads, 3 blocks per multiprocessor = 1,152 of 1,536 threads) then
+// allows at most 56 registers per thread with the shared-memory usage
+// (about 32 KiB per block) staying below the 3-block budget as well; HIP is
+// not guarded because the attribute was not verified there
 #if defined( __CUDACC__ )
-   #define RADIX_SORT_LAUNCH_BOUNDS __launch_bounds__( radixSortBlockSize, sizeof( Value ) <= 4 ? 4 : 2 )
+   #define RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemCount ) \
+      __launch_bounds__( blockThreads, blockThreads == radixSortOnesweepBlockSize ? 3 : ( sizeof( Value ) <= 4 ? 4 : 2 ) )
 #else
-   #define RADIX_SORT_LAUNCH_BOUNDS
+   #define RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemCount )
 #endif
 
 /**
@@ -435,14 +586,37 @@ constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
  * The tiles are assigned to the blocks via a work counter: an atomic
  * increment assigns the tile indices in increasing order, regardless of the
  * block scheduling. Each warp handles a contiguous span of the tile, split
- * into \ref radixSortItemsPerThread rounds of `warpSize` elements, so that
- * the loads and stores of each round are coalesced and the warp-major order
- * of the rank offsets matches the order of the elements in the tile. The
- * intra-tile rank of an element among the elements with the same digit is
- * computed with the warp match intrinsic, which is O(1) in the tile size
- * instead of a linear scan over the digits. After the ranks are computed,
- * the items are staged into a shared-memory tile grouped by digit, from
- * which they are written out with coalesced global stores. The per-digit
+ * into `radixSortOnesweepItemsPerThread< Value >` rounds of `warpSize`
+ * elements, so that the loads of each round are coalesced and the
+ * warp-major order of the rank offsets matches the order of the elements
+ * in the tile. The tail of a partial tile is filled with
+ * \ref radixSortPaddingValue: the ranking forces the padded rounds to the
+ * last bucket, so all warp collectives run unmasked on full warps and no
+ * per-round active-mask computation or per-item guards are needed; the
+ * padded items land at the tail of the last digit's run of the staged
+ * tile, past all real items, and are never written out.
+ *
+ * The intra-tile ranks are computed in two phases, following CUB's
+ * `BlockRadixRankMatchEarlyCounts`:
+ *
+ * 1. Each item is atomically accumulated into its warp's shared per-digit
+ *    histogram (one `atomicAdd` per item into the packed per-(warp, digit)
+ *    counters, see \ref radixSortPackedCounterAdd), giving the tile's digit
+ *    counts early for the lookback publishing below. The counters are then
+ *    scanned in place across the warps of each digit and the block-wide
+ *    digit counts are turned into the tile-local starts of the digit runs
+ *    by a raking scan.
+ * 2. Each item is re-ranked with the warp match intrinsic (O(1) in the
+ *    tile size instead of a linear scan over the digits): the lowest lane
+ *    of each group of equal digits atomically adds the group size to the
+ *    running per-(warp, digit) counter and the returned offset is
+ *    broadcast within the group, giving each item its staged position. The
+ *    rank is consumed immediately by the staging write, so neither ranks
+ *    nor digits are kept in registers per item (the digits are recomputed
+ *    from the values whenever they are needed).
+ *
+ * After the ranks are consumed, the staged tile holds the items grouped by
+ * digit and is written out with coalesced global stores. The per-digit
  * base offsets are not loaded from a global histogram, but computed on the
  * fly with a decoupled lookback: after the scan phase, each thread
  * (handling one digit) publishes the tile's aggregate count of its digit
@@ -496,11 +670,21 @@ constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
  * \param stripEnd is the index one past the last element of the strip.
  * \param numTiles is the number of tiles of the strip.
  * \param pass is the index of the radix sort pass.
+ * \tparam blockThreads is the block size of the tile configuration (the
+ *                      big configuration of \ref radixSortOnesweepBlockSize
+ *                      threads by default).
+ * \tparam itemsPerThread is the number of items per thread of the tile
+ *                        configuration.
  */
-template< typename Value, typename Index, bool descending >
+template<
+   typename Value,
+   typename Index,
+   bool descending,
+   int blockThreads = radixSortOnesweepBlockSize,
+   int itemsPerThread = radixSortOnesweepItemsPerThread< Value > >
 __global__
-void RADIX_SORT_LAUNCH_BOUNDS
-radixSortOnesweepKernel(
+void
+RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel(
    Containers::ArrayView< Value, Devices::GPU, Index > arrA,
    Containers::ArrayView< Value, Devices::GPU, Index > arrB,
    const Containers::ArrayView< Index, Devices::GPU, Index > digitBase,
@@ -527,26 +711,34 @@ radixSortOnesweepKernel(
    const auto input = ( srcIsB ? arrB : arrA ).getView( stripBegin, stripEnd );
    auto output = srcIsB ? arrA : arrB;
 
+   constexpr int tileElements = blockThreads * itemsPerThread;
+   // the per-(warp, digit) counters are packed two per 32-bit word, so one
+   // word covers the two digits `2 * word` and `2 * word + 1`
+   constexpr int counterWords = radixSortBuckets / 2;
+   constexpr int counterBlock = ( blockThreads / 32 ) * counterWords;
+
    __shared__ Index s_base[ radixSortBuckets ];
-   __shared__ int s_digitStart[ radixSortBuckets + 1 ];
+   __shared__ unsigned int s_warpCounters[ counterBlock ];
+   __shared__ RadixSortOnesweepStage< Value, blockThreads, itemsPerThread > s_stage;
    __shared__ int s_singleDigit;
    __shared__ Index s_claimedTile;
-   __shared__ RadixSortRankTileUnion< Value > s_rankTile;
 
-   // the launch uses blockSize.x == radixSortBuckets, so each thread handles
-   // exactly one digit in the per-digit phases below
    const int digit = static_cast< int >( threadIdx.x );
-   s_digitStart[ 0 ] = 0;
 
    const Index n = input.getSize();
    unsigned int* const workCounter = &tileStatus[ numTiles * radixSortBuckets ];
 
    const int warpId = static_cast< int >( threadIdx.x ) / warpSize;
    const int lane = static_cast< int >( threadIdx.x ) % warpSize;
-   constexpr int itemsPerThread = radixSortItemsPerThread;
+   const int warps = static_cast< int >( blockDim.x ) / warpSize;
    const RadixSortWarpMask fullMask = Backend::getWarpFullMask();
    const RadixSortWarpMask laneMaskLt =
       ( static_cast< RadixSortWarpMask >( 1 ) << lane ) - static_cast< RadixSortWarpMask >( 1 );
+
+   // the rounded-up rounds of a partial tile are filled with the padding
+   // value (its digit is the last bucket in every pass), so the warp
+   // collectives below always run unmasked on full warps
+   const Value padValue = radixSortPaddingValue< Value, descending >();
 
    // the work counter assigns tile indices in increasing order, so the block
    // processing a tile can rely on all its predecessors being claimed
@@ -557,92 +749,91 @@ radixSortOnesweepKernel(
       const Index tile = s_claimedTile;
       if( tile >= numTiles )
          break;
-      const Index tileBegin = tile * static_cast< Index >( radixSortTileSize );
-      const Index tileEnd = tileBegin + TNL::min( n - tileBegin, static_cast< Index >( radixSortTileSize ) );
+      const Index tileBegin = tile * static_cast< Index >( tileElements );
+      const Index tileEnd = tileBegin + TNL::min( n - tileBegin, static_cast< Index >( tileElements ) );
       const int tileSize = static_cast< int >( tileEnd - tileBegin );
+      const int padCount = tileElements - tileSize;
 
       // the loads and stores of the tile are addressed with 32-bit
       // tile-relative indices from the base pointer of the tile
       const Value* const tileInput = input.getData() + tileBegin;
 
-      // zero the per-(warp, digit) offsets of this tile
-      for( int i = digit; i < radixSortMaxWarps * radixSortBuckets; i += static_cast< int >( blockDim.x ) )
-         s_rankTile.warpOffsets[ i ] = 0;
+      // zero the packed per-(warp, digit) counters of this tile and the
+      // anchor of the digit starts (the staging tile of the previous tile
+      // of this block aliases the digit starts and may have clobbered it)
+      for( int i = digit; i < warps * counterWords; i += static_cast< int >( blockDim.x ) )
+         s_warpCounters[ i ] = 0;
+      s_stage.digitStarts[ 0 ] = 0;
       __syncthreads();
 
-      // the entries of values and digits of the rounds beyond the tail of
-      // a partial tile stay uninitialized; the guarded loops below never
-      // read them (their lanes do not participate in the warp matches);
-      // each warp handles a contiguous span of the tile, split into
-      // consecutive rounds of warpSize elements, so that the loads of each
-      // round are coalesced and the warp-major order of the rank offsets
-      // below matches the order of the elements in the tile
+      // load the items into registers in the warp-major layout (each warp
+      // handles a contiguous span of the tile, split into consecutive
+      // rounds of warpSize elements, so that the loads of each round are
+      // coalesced) and accumulate each item into its warp's shared per-digit
+      // histogram; the first phase of the ranking ends here, giving the
+      // tile's digit counts early for the lookback publishing below
       Value values[ itemsPerThread ];
-      unsigned char digits[ itemsPerThread ];
-      #pragma unroll
-      for( int j = 0; j < itemsPerThread; j++ ) {
-         const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
-         if( idxInTile < tileSize ) {
-            values[ j ] = tileInput[ idxInTile ];
-            digits[ j ] = static_cast< unsigned char >( radixSortDigit< Value, descending >( values[ j ], pass ) );
+      const int warpBase = warpId * ( warpSize * itemsPerThread );
+      if( tileSize == tileElements ) {
+         #pragma unroll
+         for( int j = 0; j < itemsPerThread; j++ ) {
+            const Value value = tileInput[ warpBase + j * static_cast< int >( warpSize ) + lane ];
+            values[ j ] = value;
+            const unsigned int dig = radixSortDigit< Value, descending >( value, pass );
+            (void) radixSortPackedCounterAdd( &s_warpCounters[ warpId * counterWords + ( dig >> 1 ) ], dig, 1 );
          }
       }
-
-      // rank the items: every lane reads the running (warp, digit) offset of
-      // its digit with a plain shared load and the lowest lane of each group
-      // of equal digits (the lane with no lower-lane peer) stores the offset
-      // advanced by the group size, which gives the offset of the item's
-      // round within the warp; the warp synchronizations order the reads of
-      // a round before its stores, so the lanes of a group share the same
-      // base and no atomics are needed - each round touches every
-      // (warp, digit) counter with a single store
-      int itemOffsets[ itemsPerThread ]{};
-      #pragma unroll
-      for( int j = 0; j < itemsPerThread; j++ ) {
-         // active lanes of the warp form a prefix of the warp, so the mask
-         // of lanes participating in the warp match can be computed directly
-         const int activeInWarp = TNL::max(
-            0,
-            TNL::min(
-               static_cast< int >( warpSize ),
-               tileSize - warpId * ( warpSize * itemsPerThread ) - j * static_cast< int >( warpSize ) ) );
-         const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
-         if( activeInWarp > 0 && idxInTile < tileSize ) {
-            const RadixSortWarpMask activeMask =
-               activeInWarp >= static_cast< int >( warpSize )
-                  ? fullMask
-                  : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
-            const RadixSortWarpMask match = __match_any_sync( activeMask, static_cast< int >( digits[ j ] ) );
-            const int rank = radixSortPopcount( match & laneMaskLt );
-            volatile int* counter = &s_rankTile.warpOffsets[ warpId * radixSortBuckets + digits[ j ] ];
-            const int roundOffset = *counter;
-            __syncwarp( activeMask );
-            if( rank == 0 )
-               *counter = roundOffset + radixSortPopcount( match );
-            __syncwarp( activeMask );
-            itemOffsets[ j ] = roundOffset + rank;
+      else {
+         // partial tile: pad the rounded-up rounds with the padding value
+         #pragma unroll
+         for( int j = 0; j < itemsPerThread; j++ ) {
+            const int idxInTile = warpBase + j * static_cast< int >( warpSize ) + lane;
+            const Value value = idxInTile < tileSize ? tileInput[ idxInTile ] : padValue;
+            values[ j ] = value;
+            // the rounded-up rounds go to the last bucket regardless of the
+            // padding value (which lands in the staged tile but is never
+            // written out)
+            const unsigned int dig =
+               idxInTile < tileSize ? radixSortDigit< Value, descending >( value, pass ) : radixSortBuckets - 1;
+            (void) radixSortPackedCounterAdd( &s_warpCounters[ warpId * counterWords + ( dig >> 1 ) ], dig, 1 );
          }
       }
       __syncthreads();
 
-      // exclusive scan of the warp offsets of each digit (in place); the
-      // total count of the thread's digit stays in a register for the
-      // lookback below
-      int digitCount = 0;
-      #pragma unroll
-      for( int w = 0; w < radixSortMaxWarps; w++ ) {
-         const int idx = w * radixSortBuckets + digit;
-         const int count = s_rankTile.warpOffsets[ idx ];
-         s_rankTile.warpOffsets[ idx ] = digitCount;
-         digitCount += count;
+      // exclusive scan of the packed per-warp counters of each digit pair
+      // (in place, one thread per counter word); the packed counts of the
+      // digits stay in registers for the lookback publishing and the digit
+      // starts written below
+      if( digit < counterWords ) {
+         unsigned int exclusive = 0;
+         for( int w = 0; w < warps; w++ ) {
+            const int idx = w * counterWords + digit;
+            const unsigned int count = s_warpCounters[ idx ];
+            s_warpCounters[ idx ] = exclusive;
+            exclusive += count;
+         }
+         // the last digit's count includes the padding items; it is fixed
+         // before publishing so that the exchanged strip counters hold only
+         // the counts of the real items (the staging below still uses the
+         // padded counts, which place the padding at the tail of the last
+         // digit's run)
+         const int countLow = static_cast< int >( exclusive & 0xFFFFu );
+         const int countHigh = static_cast< int >( exclusive >> 16 );
+         s_stage.digitStarts[ 2 * digit + 1 ] = static_cast< unsigned short >( countLow );
+         s_stage.digitStarts[ 2 * digit + 2 ] = static_cast< unsigned short >( countHigh );
+         const int realLow = countLow;
+         const int realHigh = countHigh - ( 2 * digit + 1 == radixSortBuckets - 1 ? padCount : 0 );
+         // publish the tile's aggregate counts before waiting on any
+         // predecessor, which guarantees that the lookback of all blocks
+         // always makes progress
+         atomicExch(
+            &tileStatus[ tile * radixSortBuckets + 2 * digit ],
+            radixSortTileAggregate | static_cast< unsigned int >( realLow ) );
+         atomicExch(
+            &tileStatus[ tile * radixSortBuckets + 2 * digit + 1 ],
+            radixSortTileAggregate | static_cast< unsigned int >( realHigh ) );
       }
-      s_digitStart[ digit + 1 ] = digitCount;
       __syncthreads();
-
-      // publish the tile's aggregate count of this thread's digit before
-      // waiting on any predecessor, which guarantees that the lookback of
-      // all blocks always makes progress
-      atomicExch( &tileStatus[ tile * radixSortBuckets + digit ], radixSortTileAggregate | digitCount );
 
       // turn the digit counts into the tile-local starts of the digit runs
       // by a raking scan: each thread of the first warp reads a segment of
@@ -656,7 +847,7 @@ radixSortOnesweepKernel(
          int sum = 0;
          #pragma unroll
          for( int k = 0; k < digitsPerThread; k++ ) {
-            counts[ k ] = s_digitStart[ lane * digitsPerThread + k + 1 ];
+            counts[ k ] = s_stage.digitStarts[ lane * digitsPerThread + k + 1 ];
             sum += counts[ k ];
          }
          int inclusive = sum;
@@ -670,17 +861,18 @@ radixSortOnesweepKernel(
          #pragma unroll
          for( int k = 0; k < digitsPerThread; k++ ) {
             running += counts[ k ];
-            s_digitStart[ lane * digitsPerThread + k + 1 ] = running;
+            s_stage.digitStarts[ lane * digitsPerThread + k + 1 ] = static_cast< unsigned short >( running );
          }
 
-         // if all items of the tile fall into the same digit bin, the bin is
-         // recorded so that the tile can be written out without staging; at
-         // most one bin can own all items, since the counts sum to the tile
-         // size, so the write below has a single writer
+         // if all items of the tile fall into the same digit bin, the bin
+         // is recorded so that the tile can be written out without
+         // staging; at most one bin can own all items (the counts include
+         // the padding, so only the last bin can reach the padded tile
+         // size of a partial tile), so the write below has a single writer
          int single = -1;
          #pragma unroll
          for( int k = 0; k < digitsPerThread; k++ )
-            if( counts[ k ] == tileSize )
+            if( counts[ k ] == tileElements )
                single = lane * digitsPerThread + k;
          const RadixSortWarpMask ballot = __ballot_sync( fullMask, single >= 0 );
          if( single >= 0 )
@@ -690,77 +882,66 @@ radixSortOnesweepKernel(
       }
       __syncthreads();
 
-      // fold the digit start and the warp offset of each item into its rank
-      // offset, which turns it into the tile-relative staged position; this
-      // is the last use of the rank offsets, so the staging tile written
-      // below can alias them in shared memory (see RadixSortRankTileUnion)
-      if( s_singleDigit < 0 ) {
-         #pragma unroll
-         for( int j = 0; j < itemsPerThread; j++ ) {
-            const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
-            if( idxInTile < tileSize )
-               itemOffsets[ j ] +=
-                  s_digitStart[ digits[ j ] ] + s_rankTile.warpOffsets[ warpId * radixSortBuckets + digits[ j ] ];
-         }
+      // fold the tile-local digit starts into the running per-(warp, digit)
+      // counters (packed two per word, one thread per word); the digit
+      // starts are consumed here and by the lookback below, so the staging
+      // tile written afterwards may clobber them (see the union)
+      if( s_singleDigit < 0 && digit < counterWords ) {
+         const unsigned int packedStart = static_cast< unsigned int >( s_stage.digitStarts[ 2 * digit ] )
+                                        | static_cast< unsigned int >( s_stage.digitStarts[ 2 * digit + 1 ] ) << 16;
+         for( int w = 0; w < warps; w++ )
+            s_warpCounters[ w * counterWords + digit ] += packedStart;
       }
-      // no thread may read the rank offsets after this barrier, so the
-      // staging tile may clobber them
-      __syncthreads();
 
-      // stage the items into the shared tile, grouped by digit
-      if( s_singleDigit < 0 ) {
-         #pragma unroll
-         for( int j = 0; j < itemsPerThread; j++ ) {
-            const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
-            if( idxInTile < tileSize )
-               s_rankTile.tile[ itemOffsets[ j ] ] = values[ j ];
-         }
-      }
-      __syncthreads();
-
-      // decoupled lookback: accumulate the aggregates of the preceding tiles
-      // until an inclusive prefix is found; the first tile has no
+      // decoupled lookback: accumulate the aggregates of the preceding
+      // tiles until an inclusive prefix is found; the first tile has no
       // predecessors, so its strip-relative offset is zero
-      Index stripExclusive = 0;
-      if( tile != 0 ) {
-         unsigned int accumulated = 0;
-         bool foundPrefix = false;
-         for( Index predecessor = tile; predecessor-- > 0; ) {
-            unsigned int word;
-            // spin until the predecessor publishes its aggregate or prefix;
-            // the status and the value share one word, so no acquire-release
-            // ordering is needed - the volatile load bypasses L1 and the
-            // atomic exchange is performed in L2, which makes the word
-            // visible in bounded time
-            while( ( word = *reinterpret_cast< const volatile unsigned int* >(
-                        &tileStatus[ predecessor * radixSortBuckets + digit ] ) )
-                   < radixSortTileAggregate )
-            {
+      if( digit < radixSortBuckets ) {
+         Index stripExclusive = 0;
+         if( tile != 0 ) {
+            unsigned int accumulated = 0;
+            bool foundPrefix = false;
+            for( Index predecessor = tile; predecessor-- > 0; ) {
+               unsigned int word;
+               // spin until the predecessor publishes its aggregate or
+               // prefix; the status and the value share one word, so no
+               // acquire-release ordering is needed - the volatile load
+               // bypasses L1 and the atomic exchange is performed in L2,
+               // which makes the word visible in bounded time
+               while( ( word = *reinterpret_cast< const volatile unsigned int* >(
+                           &tileStatus[ predecessor * radixSortBuckets + digit ] ) )
+                      < radixSortTileAggregate )
+               {
+               }
+               if( word & radixSortTilePrefix )
+                  foundPrefix = true;
+               accumulated += word & radixSortTileValueMask;
+               if( foundPrefix )
+                  break;
             }
-            if( word & radixSortTilePrefix )
-               foundPrefix = true;
-            accumulated += word & radixSortTileValueMask;
-            if( foundPrefix )
-               break;
+            // no prefix was found: the aggregates of all predecessors were
+            // accumulated, which is the strip-relative exclusive offset
+            stripExclusive = static_cast< Index >( accumulated );
          }
-         // no prefix was found: the aggregates of all predecessors were
-         // accumulated, which is the strip-relative exclusive offset
-         stripExclusive = static_cast< Index >( accumulated );
+         // shift the base of the digit's run by the tile-local start of
+         // the run, so that the staged writeout stores with a single
+         // shared operand (the start of the single-digit run is zero, so
+         // the direct writeout path below is unaffected by the shift)
+         s_base[ digit ] = digitBase[ static_cast< Index >( pass ) * radixSortBuckets + digit ] + stripExclusive
+                         - static_cast< Index >( s_stage.digitStarts[ digit ] );
+         // republish with the strip-relative inclusive prefix through this
+         // tile, which shortens the lookback of the subsequent blocks; the
+         // real count is recovered from the raked starts (the last digit's
+         // count includes the padding, which does not belong to the strip)
+         const int realCount = static_cast< int >( s_stage.digitStarts[ digit + 1 ] - s_stage.digitStarts[ digit ] )
+                             - ( digit == radixSortBuckets - 1 ? padCount : 0 );
+         // the block of the last tile of the strip publishes the strip's
+         // total count of its digit in this counter, from which the driver
+         // advances the base offsets of the digit runs for the next strip
+         atomicExch(
+            &tileStatus[ tile * radixSortBuckets + digit ],
+            radixSortTilePrefix | static_cast< unsigned int >( stripExclusive + realCount ) );
       }
-      // shift the base of the digit's run by the tile-local start of the
-      // run, so that the staged writeout stores with a single shared operand
-      // (the start of the single-digit run is zero, so the direct writeout
-      // path below is unaffected by the shift)
-      s_base[ digit ] = digitBase[ static_cast< Index >( pass ) * radixSortBuckets + digit ] + stripExclusive
-                      - static_cast< Index >( s_digitStart[ digit ] );
-      // republish with the strip-relative inclusive prefix through this
-      // tile, which shortens the lookback of the subsequent blocks; the
-      // block of the last tile of the strip publishes the strip's total
-      // count of its digit in this counter, from which the driver advances
-      // the base offsets of the digit runs for the next strip
-      atomicExch(
-         &tileStatus[ tile * radixSortBuckets + digit ],
-         radixSortTilePrefix | static_cast< unsigned int >( stripExclusive + digitCount ) );
       __syncthreads();
 
       if( s_singleDigit >= 0 ) {
@@ -770,20 +951,66 @@ radixSortOnesweepKernel(
          // stores are stable and consecutive
          #pragma unroll
          for( int j = 0; j < itemsPerThread; j++ ) {
-            const int idxInTile = warpId * ( warpSize * itemsPerThread ) + j * static_cast< int >( warpSize ) + lane;
+            const int idxInTile = warpBase + j * static_cast< int >( warpSize ) + lane;
             if( idxInTile < tileSize )
                output[ s_base[ s_singleDigit ] + idxInTile ] = values[ j ];
          }
       }
       else {
-         // write the tile out with coalesced stores: consecutive positions of
-         // the staged tile belong to the same digit run (or to adjacent runs),
-         // so the global stores are consecutive as well; the digit owning each
-         // position is recomputed from the staged value instead of searching
-         // the digit starts - it is a pure function of the value and the pass
+         // re-rank the items and stage them into the shared tile in a
+         // single pass: the lowest lane of each group of equal digits (the
+         // lane with no lower-lane peer) atomically adds the group size to
+         // the running per-(warp, digit) counter and the returned offset,
+         // broadcast within the group, gives each item its staged position
+         // directly - the rank is consumed by the staging write, so no
+         // per-item rank or digit arrays are kept in registers (the
+         // warp-crossing between the rounds is ordered by the shared
+         // counter: rounds of a warp are issued in order and the running
+         // counters of each warp are private to it); the rounded-up rounds
+         // of a partial tile are forced to the last bucket regardless of
+         // the padding value
+         if( tileSize == tileElements ) {
+            #pragma unroll
+            for( int j = 0; j < itemsPerThread; j++ ) {
+               const unsigned int dig = radixSortDigit< Value, descending >( values[ j ], pass );
+               const RadixSortWarpMask match = __match_any_sync( fullMask, static_cast< int >( dig ) );
+               const int rank = radixSortPopcount( match & laneMaskLt );
+               int staged = 0;
+               if( rank == 0 )
+                  staged = static_cast< int >( radixSortPackedCounterAdd(
+                     &s_warpCounters[ warpId * counterWords + ( dig >> 1 ) ], dig, radixSortPopcount( match ) ) );
+               staged = __shfl_sync( fullMask, staged, radixSortWarpFirstLane( match ) );
+               s_stage.tile[ staged + rank ] = values[ j ];
+            }
+         }
+         else {
+            #pragma unroll
+            for( int j = 0; j < itemsPerThread; j++ ) {
+               const int idxInTile = warpBase + j * static_cast< int >( warpSize ) + lane;
+               const unsigned int dig = idxInTile < tileSize ? radixSortDigit< Value, descending >( values[ j ], pass )
+                                                             : static_cast< unsigned int >( radixSortBuckets - 1 );
+               const RadixSortWarpMask match = __match_any_sync( fullMask, static_cast< int >( dig ) );
+               const int rank = radixSortPopcount( match & laneMaskLt );
+               int staged = 0;
+               if( rank == 0 )
+                  staged = static_cast< int >( radixSortPackedCounterAdd(
+                     &s_warpCounters[ warpId * counterWords + ( dig >> 1 ) ], dig, radixSortPopcount( match ) ) );
+               staged = __shfl_sync( fullMask, staged, radixSortWarpFirstLane( match ) );
+               s_stage.tile[ staged + rank ] = values[ j ];
+            }
+         }
+         __syncthreads();
+
+         // write the tile out with coalesced stores: consecutive positions
+         // of the staged tile belong to the same digit run (or to adjacent
+         // runs), so the global stores are consecutive as well; the digit
+         // owning each position is recomputed from the staged value
+         // instead of searching the digit starts - it is a pure function
+         // of the value and the pass; the padding stays past the written
+         // positions of the last digit's run and is never written out
          for( int i = digit; i < tileSize; i += static_cast< int >( blockDim.x ) ) {
-            const int dig = radixSortDigit< Value, descending >( s_rankTile.tile[ i ], pass );
-            output[ s_base[ dig ] + i ] = s_rankTile.tile[ i ];
+            const Value value = s_stage.tile[ i ];
+            output[ s_base[ static_cast< int >( radixSortDigit< Value, descending >( value, pass ) ) ] + i ] = value;
          }
       }
       __syncthreads();
@@ -1550,12 +1777,13 @@ struct RadixSortWorkspace
       // capped by the maximum strip size of 2^28 elements, so the buffer
       // stops growing once it can hold the counters of a full strip
       if( size > 0 ) {
+         const Index tileSize = radixSortOnesweepTileSizeFor< Value >( size );
          // computed without rounding up to avoid overflow of the index
-         // type when the size is close to its maximum
-         const Index numTiles =
-            size / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( size % radixSortTileSize != 0 );
-         const Index maxStripTiles =
-            TNL::min( numTiles, ( static_cast< Index >( 1 ) << 28 ) / static_cast< Index >( radixSortTileSize ) );
+         // type when the size is close to its maximum; the tiles of a full
+         // strip are rounded up (a partial tile of a strip gets its own
+         // status counters, plus one work counter at the end)
+         const Index numTiles = size / tileSize + static_cast< Index >( size % tileSize != 0 );
+         const Index maxStripTiles = TNL::min( numTiles, ( ( static_cast< Index >( 1 ) << 28 ) + tileSize - 1 ) / tileSize );
          // padded to a multiple of the bucket count so that every region
          // starts 1 KiB-aligned (keep in sync with the driver in radixSort)
          const Index requiredSize = static_cast< Index >( passes ) * ( ( maxStripTiles + 1 ) * radixSortBuckets );
@@ -1612,9 +1840,12 @@ radixSortLaunchSequence(
 {
    constexpr int passes = static_cast< int >( sizeof( Value ) );
 
-   // computed without rounding up to avoid overflow of n + radixSortTileSize
-   // when the index type is signed and n is close to its maximum
-   const Index numTiles = n / static_cast< Index >( radixSortTileSize ) + static_cast< Index >( n % radixSortTileSize != 0 );
+   // computed without rounding up to avoid overflow of n + tileSize when
+   // the index type is signed and n is close to its maximum; the small
+   // arrays take the short-tile configuration of the sweep (see
+   // radixSortOnesweepSmallTileLimit)
+   const Index tileSize = radixSortOnesweepTileSizeFor< Value >( n );
+   const Index numTiles = n / tileSize + static_cast< Index >( n % tileSize != 0 );
    const int multiprocessors = Backend::getDeviceMultiprocessors( Backend::getDevice() );
    const Index maxBlocks = static_cast< Index >( multiprocessors ) * 32;
 
@@ -1626,6 +1857,19 @@ radixSortLaunchSequence(
    launch_config.stream = stream;
    launch_config.blockSize.x = radixSortBlockSize;
    launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
+
+   // the sweep kernel decouples its block size from the bucket count (the
+   // per-digit phases are guarded inside the kernel); the small arrays take
+   // the short-tile configuration
+   Backend::LaunchConfiguration onesweepConfig = launch_config;
+   constexpr auto onesweepKernelSmall =
+      radixSortOnesweepKernel< Value, Index, descending, radixSortBlockSize, radixSortItemsPerThread >;
+   constexpr auto onesweepKernelBig = radixSortOnesweepKernel< Value, Index, descending >;
+   const auto onesweepKernel =
+      n <= static_cast< Index >( radixSortOnesweepSmallTileLimit ) ? onesweepKernelSmall : onesweepKernelBig;
+   onesweepConfig.blockSize.x = n <= static_cast< Index >( radixSortOnesweepSmallTileLimit )
+                                 ? static_cast< unsigned >( radixSortBlockSize )
+                                 : static_cast< unsigned >( radixSortOnesweepBlockSize );
 
    // launch configuration for zero-filling the work buffers: the fills are
    // ordered with the sort kernels on the stream and do not block the
@@ -1664,7 +1908,7 @@ radixSortLaunchSequence(
    // digit) stays reasonably small
    constexpr Index onesweepStripSize = ( static_cast< Index >( 1 ) << 28 );
    const Index numStrips = n / onesweepStripSize + static_cast< Index >( n % onesweepStripSize != 0 );
-   const Index maxStripTiles = TNL::min( numTiles, onesweepStripSize / radixSortTileSize );
+   const Index maxStripTiles = TNL::min( numTiles, ( onesweepStripSize + tileSize - 1 ) / tileSize );
 
    // each pass owns one region of the tile status buffer, holding one
    // status counter per (tile, digit) of a strip plus the work counter;
@@ -1676,7 +1920,6 @@ radixSortLaunchSequence(
    auto& tileStatus = workspace.tileStatus;
    const Index tileStatusSize = ( maxStripTiles + 1 ) * radixSortBuckets;
 
-   constexpr auto onesweepKernel = radixSortOnesweepKernel< Value, Index, descending >;
    constexpr auto advanceBaseKernel = radixSortAdvanceBaseKernel< Index >;
 
    // zero the tile status counters of all passes with a single fill when
@@ -1705,7 +1948,7 @@ radixSortLaunchSequence(
          const Index stripEnd = stripBegin + stripSize;
          // computed without rounding up to avoid overflow of the index type
          // when the strip size is close to its maximum
-         const Index stripNumTiles = stripSize / radixSortTileSize + static_cast< Index >( stripSize % radixSortTileSize != 0 );
+         const Index stripNumTiles = stripSize / tileSize + static_cast< Index >( stripSize % tileSize != 0 );
 
          // with the aggregated fill the sweep uses its pass's region;
          // without it the sweeps share the first region (zeroed right
@@ -1717,10 +1960,10 @@ radixSortLaunchSequence(
          auto tileStatusRegion = tileStatus.getView( regionBegin, regionBegin + tileStatusSize );
          if( ! aggregateFill || strip > 0 )
             Algorithms::fill< Devices::GPU >( tileStatus.getData() + regionBegin, 0u, tileStatusSize, fillConfig );
-         launch_config.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
+         onesweepConfig.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
          Backend::launchKernelAsync(
             onesweepKernel,
-            launch_config,
+            onesweepConfig,
             view,
             aux,
             digitBase.getView(),
@@ -1735,7 +1978,7 @@ radixSortLaunchSequence(
                *cache,
                stream,
                onesweepKernel,
-               launch_config,
+               onesweepConfig,
                view,
                aux,
                digitBase.getView(),
