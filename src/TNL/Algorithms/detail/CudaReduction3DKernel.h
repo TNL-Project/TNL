@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <TNL/Assert.h>
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
@@ -29,11 +31,11 @@ CudaReduction3DKernel(
    // allocate shared memory
    using BlockReduce = CudaBlockReduceSharedMemory< blockSizeX, Reduction, Result >;
    __shared__ typename BlockReduce::Storage blockReduceStorage;
-
    // Get the thread id (tid), global thread id (gid) and gridSize.
-   const Index tid = threadIdx.z * blockDim.x * blockDim.y + threadIdx.y * blockDim.x + threadIdx.x;
-   Index gid = blockIdx.x * blockDim.x + threadIdx.x;
-   const Index gridSizeX = blockDim.x * gridDim.x;
+   const int tid = static_cast< int >( threadIdx.z * blockDim.x * blockDim.y + threadIdx.y * blockDim.x + threadIdx.x );
+   const std::size_t datasetSize = size;
+   const std::size_t gridSizeX = static_cast< std::size_t >( blockDim.x ) * gridDim.x;
+   std::size_t gid = static_cast< std::size_t >( blockIdx.x ) * blockDim.x + threadIdx.x;
 
    // Get the dataset index.
    const int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -43,21 +45,26 @@ CudaReduction3DKernel(
 
    // Start with the sequential reduction and push the result into the shared memory.
    Result result = identity;
-   while( gid + 4 * gridSizeX < size ) {
-      result = reduction( result, dataFetcher( gid, y, z ) );
-      result = reduction( result, dataFetcher( gid + gridSizeX, y, z ) );
-      result = reduction( result, dataFetcher( gid + 2 * gridSizeX, y, z ) );
-      result = reduction( result, dataFetcher( gid + 3 * gridSizeX, y, z ) );
-      gid += 4 * gridSizeX;
-   }
-   while( gid + 2 * gridSizeX < size ) {
-      result = reduction( result, dataFetcher( gid, y, z ) );
-      result = reduction( result, dataFetcher( gid + gridSizeX, y, z ) );
-      gid += 2 * gridSizeX;
-   }
-   while( gid < size ) {
-      result = reduction( result, dataFetcher( gid, y, z ) );
-      gid += gridSizeX;
+   if( gid < datasetSize ) {
+      while( datasetSize - gid > 4 * gridSizeX ) {
+         result = reduction( result, dataFetcher( static_cast< Index >( gid ), y, z ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( gid + gridSizeX ), y, z ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( gid + 2 * gridSizeX ), y, z ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( gid + 3 * gridSizeX ), y, z ) );
+         gid += 4 * gridSizeX;
+      }
+      while( datasetSize - gid > 2 * gridSizeX ) {
+         result = reduction( result, dataFetcher( static_cast< Index >( gid ), y, z ) );
+         result = reduction( result, dataFetcher( static_cast< Index >( gid + gridSizeX ), y, z ) );
+         gid += 2 * gridSizeX;
+      }
+      while( gid < datasetSize ) {
+         result = reduction( result, dataFetcher( static_cast< Index >( gid ), y, z ) );
+         if( gridSizeX < datasetSize - gid )
+            gid += gridSizeX;
+         else
+            gid = datasetSize;
+      }
    }
    __syncthreads();
 
