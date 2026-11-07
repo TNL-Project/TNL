@@ -241,8 +241,9 @@ radixSortDigit( const Value& value, int pass )
 //! \brief Type of the warp synchronization mask, following
 //! \ref Backend::getWarpFullMask (32-bit on CUDA, 64-bit on HIP).
 //!
-//! \note The warp match intrinsic used by the binning kernels requires
-//! compute capability 7.0 or newer on CUDA and gfx8 or newer on HIP.
+//! \note The warp match intrinsic used by the single-tile kernel and by
+//! the HIP fallback of \ref radixSortWarpMatchAny requires compute
+//! capability 7.0 or newer on CUDA and gfx8 or newer on HIP.
 using RadixSortWarpMask = decltype( Backend::getWarpFullMask() );
 
 /**
@@ -256,6 +257,60 @@ radixSortPopcount( RadixSortWarpMask mask )
       return __popc( mask );
    else
       return __popcll( mask );
+}
+
+/**
+ * \brief Returns the mask of the lanes holding the same label as the calling
+ * lane, i.e. the equivalent of `__match_any_sync` invoked with the full warp
+ * mask.
+ *
+ * On CUDA, the match is computed by a sequence of `radixSortBits` warp
+ * ballots, one per bit of the label, instead of the native match intrinsic:
+ * the native `match.any.sync` instruction has a long dependent latency which
+ * stalls the instruction issue of the re-ranking loop of
+ * \ref radixSortOnesweepKernel (it was measured as the dominant bottleneck
+ * of the sweep kernel), while the ballot sequence interleaves with the
+ * surrounding instructions much better. This is the same trade-off made by
+ * CUB's warp matcher (`cub/util_ptx.cuh`). On HIP, the native intrinsic is
+ * kept: the ballot sequence is written in CUDA's inline PTX and the measured
+ * latency pathology is specific to the CUDA GPUs of the current generation.
+ *
+ * All lanes of the warp must participate in the call - the binning kernel
+ * pads the partial tiles so that its warp collectives always run on full
+ * warps (see \ref radixSortOnesweepKernel).
+ *
+ * \param label is the label whose equal-lane peers are searched for; only
+ *              the low `radixSortBits` bits are significant.
+ */
+[[nodiscard]] __device__
+__forceinline__ RadixSortWarpMask
+radixSortWarpMatchAny( unsigned int label )
+{
+   #if defined( __CUDACC__ )
+   RadixSortWarpMask match = 0;
+   #pragma unroll
+   for( int bit = 0; bit < radixSortBits; bit++ ) {
+      unsigned int mask;
+      const unsigned int currentBit = 1u << bit;
+      asm(
+         "{\n"
+         "   .reg .pred p;\n"
+         "   and.b32 %0, %1, %2;\n"
+         "   setp.ne.u32 p, %0, 0;\n"
+         "   vote.ballot.sync.b32 %0, p, 0xffffffff;\n"
+         "   @!p not.b32 %0, %0;\n"
+         "}\n"
+         : "=r"( mask )
+         : "r"( label ), "r"( currentBit ) );
+      if( bit == 0 )
+         match = mask;
+      else
+         match &= mask;
+   }
+   return match;
+   #else
+   return __match_any_sync( Backend::getWarpFullMask(), static_cast< int >( label ) );
+   #endif
 }
 
 /**
@@ -606,8 +661,9 @@ constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
  *    scanned in place across the warps of each digit and the block-wide
  *    digit counts are turned into the tile-local starts of the digit runs
  *    by a raking scan.
- * 2. Each item is re-ranked with the warp match intrinsic (O(1) in the
- *    tile size instead of a linear scan over the digits): the lowest lane
+ * 2. Each item is re-ranked with a warp match, computed by
+ *    \ref radixSortWarpMatchAny (O(1) in the tile size instead of a linear
+ *    scan over the digits): the lowest lane
  *    of each group of equal digits atomically adds the group size to the
  *    running per-(warp, digit) counter and the returned offset is
  *    broadcast within the group, giving each item its staged position. The
@@ -973,7 +1029,7 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
             #pragma unroll
             for( int j = 0; j < itemsPerThread; j++ ) {
                const unsigned int dig = radixSortDigit< Value, descending >( values[ j ], pass );
-               const RadixSortWarpMask match = __match_any_sync( fullMask, static_cast< int >( dig ) );
+               const RadixSortWarpMask match = radixSortWarpMatchAny( dig );
                const int rank = radixSortPopcount( match & laneMaskLt );
                int staged = 0;
                if( rank == 0 )
@@ -989,7 +1045,7 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
                const int idxInTile = warpBase + j * static_cast< int >( warpSize ) + lane;
                const unsigned int dig = idxInTile < tileSize ? radixSortDigit< Value, descending >( values[ j ], pass )
                                                              : static_cast< unsigned int >( radixSortBuckets - 1 );
-               const RadixSortWarpMask match = __match_any_sync( fullMask, static_cast< int >( dig ) );
+               const RadixSortWarpMask match = radixSortWarpMatchAny( dig );
                const int rank = radixSortPopcount( match & laneMaskLt );
                int staged = 0;
                if( rank == 0 )
@@ -1108,8 +1164,11 @@ radixSortCopyBackKernel(
  * loads the whole array into shared memory, performs all digit-binning
  * passes there, and writes the sorted data back, so the sort costs a single
  * kernel launch and needs no temporary buffers at all. The stable ranking
- * of the items is identical to \ref radixSortOnesweepKernel (warp match +
- * raking scan), and the permutations of the passes ping-pong between two
+ * of the items follows \ref radixSortOnesweepKernel (warp match + raking
+ * scan), except that the match keeps the native intrinsic: the last round
+ * of a partial tile runs on a partial warp, which
+ * \ref radixSortWarpMatchAny does not support. The permutations of the
+ * passes ping-pong between two
  * shared-memory tiles. A pass mapping all elements to the same digit is the
  * identity permutation, so its permute is skipped and the tiles are not
  * swapped.
