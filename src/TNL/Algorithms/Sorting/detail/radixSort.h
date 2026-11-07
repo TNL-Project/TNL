@@ -73,15 +73,38 @@ constexpr int radixSortOnesweepItemsPerThread = ( sizeof( Value ) <= 4 ) ? 16 : 
 template< typename Value >
 constexpr int radixSortOnesweepTileSize = radixSortOnesweepBlockSize * radixSortOnesweepItemsPerThread< Value >;
 
-//! \brief Array size threshold below which the sweep uses the small tile
-//! configuration of the histogram and single-tile kernels
-//! (\ref radixSortTileSize).
-//!
-//! The per-tile costs of the big configuration (the deeper ranking phases
-//! of 16 or 8 items per thread) are amortized only when the array fills
-//! most of the device; below this threshold the shorter 2,048-element
-//! tiles of the small configuration are faster.
-constexpr int radixSortOnesweepSmallTileLimit = 1 << 18;
+//! \brief Number of threads per block in the medium-tile configuration of
+//! \ref radixSortOnesweepKernel.
+constexpr int radixSortOnesweepMediumBlockSize = 512;
+
+//! \brief Number of elements processed by one thread in the medium-tile
+//! configuration of \ref radixSortOnesweepKernel.
+constexpr int radixSortOnesweepMediumItemsPerThread = 8;
+
+//! \brief Number of elements in one medium tile of \ref radixSortOnesweepKernel.
+constexpr int radixSortOnesweepMediumTileSize = radixSortOnesweepMediumBlockSize * radixSortOnesweepMediumItemsPerThread;
+
+/**
+ * \brief Array size threshold below which the sweep uses the small tile
+ * configuration of the histogram and single-tile kernels
+ * (\ref radixSortTileSize).
+ *
+ * The 2,048-element tiles maximize block parallelism at small sizes. Above
+ * this threshold, the 4,096-element medium tiles reduce the per-tile ranking
+ * and look-back costs without an occupancy regression. The measured crossover
+ * is at about 100,000 elements for values of at most four bytes, but between
+ * 150,000 and 175,000 elements for eight-byte values.
+ */
+template< typename Value >
+constexpr int radixSortOnesweepSmallTileLimit = ( sizeof( Value ) <= 4 ) ? 100000 : 160000;
+
+/**
+ * \brief Array size threshold below which the sweep uses medium tiles.
+ *
+ * Above this threshold, the deeper ranking phases of the big configuration
+ * are amortized over enough elements to outweigh its lower block parallelism.
+ */
+constexpr int radixSortOnesweepMediumTileLimit = 1 << 18;
 
 //! \brief Number of elements processed by one tile of
 //! \ref radixSortOnesweepKernel for the given array size.
@@ -89,9 +112,11 @@ template< typename Value, typename Index >
 constexpr Index
 radixSortOnesweepTileSizeFor( const Index n )
 {
-   return n <= static_cast< Index >( radixSortOnesweepSmallTileLimit )
-           ? static_cast< Index >( radixSortTileSize )
-           : static_cast< Index >( radixSortOnesweepTileSize< Value > );
+   if( n <= static_cast< Index >( radixSortOnesweepSmallTileLimit< Value > ) )
+      return static_cast< Index >( radixSortTileSize );
+   if( n <= static_cast< Index >( radixSortOnesweepMediumTileLimit ) )
+      return static_cast< Index >( radixSortOnesweepMediumTileSize );
+   return static_cast< Index >( radixSortOnesweepTileSize< Value > );
 }
 
 //! \brief Array size threshold below which the tile status regions of all
@@ -638,14 +663,19 @@ constexpr unsigned int radixSortTilePrefix = 1u << 31;
 constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
 
 // the launch bounds keep the occupancy of the binning kernel from silently
-// dropping when a change grows the register count: the big configuration
-// (384 threads, 3 blocks per multiprocessor = 1,152 of 1,536 threads) then
-// allows at most 56 registers per thread with the shared-memory usage
-// (about 32 KiB per block) staying below the 3-block budget as well; HIP is
-// not guarded because the attribute was not verified there
+// dropping when a change grows the register count: the medium configuration
+// (512 threads, 2 blocks per multiprocessor = 1,024 of 1,536 threads) allows
+// at most 64 registers per thread, and the big configuration (384 threads,
+// 3 blocks = 1,152 threads) allows at most 56; their shared-memory usage
+// stays below the respective block budgets as well; HIP is not guarded
+// because the attribute was not verified there
 #if defined( __CUDACC__ )
    #define RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemCount ) \
-      __launch_bounds__( blockThreads, blockThreads == radixSortOnesweepBlockSize ? 3 : ( sizeof( Value ) <= 4 ? 4 : 2 ) )
+      __launch_bounds__(                                       \
+         blockThreads,                                         \
+         blockThreads == radixSortOnesweepMediumBlockSize ? 2  \
+         : blockThreads == radixSortOnesweepBlockSize     ? 3  \
+                                                          : ( sizeof( Value ) <= 4 ? 4 : 2 ) )
 #else
    #define RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemCount )
 #endif
@@ -2012,17 +2042,28 @@ radixSortLaunchSequence(
    launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
 
    // the sweep kernel decouples its block size from the bucket count (the
-   // per-digit phases are guarded inside the kernel); the small arrays take
-   // the short-tile configuration
+   // per-digit phases are guarded inside the kernel); the dispatch is a pure
+   // function of the array size and value type, so it is also graph-capturable
    Backend::LaunchConfiguration onesweepConfig = launch_config;
    constexpr auto onesweepKernelSmall =
       radixSortOnesweepKernel< Value, Index, descending, radixSortBlockSize, radixSortItemsPerThread >;
+   constexpr auto onesweepKernelMedium = radixSortOnesweepKernel<
+      Value,
+      Index,
+      descending,
+      radixSortOnesweepMediumBlockSize,
+      radixSortOnesweepMediumItemsPerThread >;
    constexpr auto onesweepKernelBig = radixSortOnesweepKernel< Value, Index, descending >;
-   const auto onesweepKernel =
-      n <= static_cast< Index >( radixSortOnesweepSmallTileLimit ) ? onesweepKernelSmall : onesweepKernelBig;
-   onesweepConfig.blockSize.x = n <= static_cast< Index >( radixSortOnesweepSmallTileLimit )
-                                 ? static_cast< unsigned >( radixSortBlockSize )
-                                 : static_cast< unsigned >( radixSortOnesweepBlockSize );
+   auto onesweepKernel = onesweepKernelBig;
+   onesweepConfig.blockSize.x = radixSortOnesweepBlockSize;
+   if( n <= static_cast< Index >( radixSortOnesweepSmallTileLimit< Value > ) ) {
+      onesweepKernel = onesweepKernelSmall;
+      onesweepConfig.blockSize.x = radixSortBlockSize;
+   }
+   else if( n <= static_cast< Index >( radixSortOnesweepMediumTileLimit ) ) {
+      onesweepKernel = onesweepKernelMedium;
+      onesweepConfig.blockSize.x = radixSortOnesweepMediumBlockSize;
+   }
 
    // launch configuration for zero-filling the work buffers: the fills are
    // ordered with the sort kernels on the stream and do not block the
