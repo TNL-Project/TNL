@@ -449,6 +449,10 @@ radixSortAtomicAdd( Index* address, Index value )
       atomicAdd( address, value );
 }
 
+//! \brief Pass-flag value marking a skip flag not yet published by the
+//! current launch of \ref radixSortProcessHistogramsKernel.
+constexpr int radixSortPassPending = -1;
+
 /**
  * \brief Kernel computing the global histograms of digit counts for all passes.
  *
@@ -465,16 +469,24 @@ radixSortAtomicAdd( Index* address, Index value )
  * \param counts is the view of the global histograms to be filled, with the
  *               entry for the pass `p` and digit `d` stored at
  *               `counts[ p * radixSortBuckets + d ]`. It must be zeroed.
+ * \param flags is the view of the pass flags; its skip slots are initialized
+ *              to \ref radixSortPassPending for the processing kernel.
  */
 template< typename Value, typename Index, bool descending >
 __global__
 void
 radixSortTotalHistogramKernel(
    const Containers::ArrayView< Value, Devices::GPU, Index > input,
-   Containers::ArrayView< Index, Devices::GPU, Index > counts )
+   Containers::ArrayView< Index, Devices::GPU, Index > counts,
+   Containers::ArrayView< int, Devices::GPU, Index > flags )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    constexpr int passes = static_cast< int >( sizeof( Value ) );
+   // the pending values distinguish this launch's skip flags from flags left
+   // by a previous sort; the processing kernel starts after this whole grid
+   if( blockIdx.x == 0 && static_cast< int >( threadIdx.x ) < passes )
+      flags[ threadIdx.x ] = radixSortPassPending;
+
    constexpr int itemsPerThread = radixSortItemsPerThread;
    constexpr int histogramTileSize = radixSortBlockSize * itemsPerThread;
    __shared__ unsigned int s_counts[ passes ][ radixSortBuckets ];
@@ -525,23 +537,20 @@ radixSortTotalHistogramKernel(
  * passes and the sweep buffers from them.
  *
  * The global base offsets of the digit runs are the exclusive scans of the
- * per-pass histograms; the kernel computes the scans of all (at most 8)
- * passes, replacing the per-pass scan launches of the driver. The launch
- * uses a single block of \ref radixSortBuckets threads, so the raw counters
- * of one pass are held one per thread and the block-wide exclusive scan
- * written back in place scans one pass per iteration of the main loop.
+ * per-pass histograms. The launch uses one block of \ref radixSortBuckets
+ * threads per pass, so the block-wide exclusive scans of all (at most 8)
+ * passes run concurrently and are written back in place.
  *
  * A pass whose histogram consists of a single non-zero bucket maps all
  * elements to the same digit, so the stable partition of its sweep is the
  * identity permutation and the sweep can be skipped. The flags are computed
  * on the device so that the driver does not have to synchronize the host to
  * learn them: the host launches the sweeps of all passes and each sweep
- * adjusts itself (see \ref radixSortOnesweepKernel). The non-zero buckets
- * of each pass are counted with warp ballots, which predicate on the raw
- * counters held in registers; thread 0 then computes the skip flag of
- * each pass, the running parity of the executed passes before each pass,
- * and the parity of the total number of executed passes, which is a short
- * sequential prefix.
+ * adjusts itself (see \ref radixSortOnesweepKernel). Each block counts the
+ * non-zero buckets of its pass with a block-wide reduction and publishes the
+ * skip flag before starting its scan. The last block then computes the
+ * running parity of the executed passes before each pass and the parity of
+ * the total number of executed passes, which is a short sequential prefix.
  *
  * \param counts is the view of the digit histograms filled by
  *               \ref radixSortTotalHistogramKernel, with the entry for the
@@ -552,7 +561,8 @@ radixSortTotalHistogramKernel(
  *              `flags[ p ]` tells whether the pass `p` is skipped,
  *              `flags[ passes + p ]` is the parity of the number of passes
  *              executed before the pass `p`, and `flags[ 2 * passes ]` is
- *              the parity of the total number of executed passes.
+ *              the parity of the total number of executed passes. The skip
+ *              slots must initially hold \ref radixSortPassPending.
  */
 template< typename Value, typename Index >
 __global__
@@ -563,47 +573,52 @@ radixSortProcessHistogramsKernel(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    constexpr int passes = static_cast< int >( sizeof( Value ) );
-   // the launch uses blockDim.x == radixSortBuckets, so the block holding
-   // one counter per thread scans the 256 counters of one pass
+   // the launch uses blockDim.x == radixSortBuckets and one block per pass,
+   // so each block holds one counter of its pass per thread
    using BlockScan =
       Algorithms::detail::GPUBlockScan< Algorithms::detail::ScanType::Exclusive, radixSortBuckets, std::plus<>, Index >;
    __shared__ typename BlockScan::Storage s_scanStorage;
-   __shared__ int s_nonZeroBuckets[ passes ];
-   if( static_cast< int >( threadIdx.x ) < passes )
-      s_nonZeroBuckets[ threadIdx.x ] = 0;
-   __syncthreads();
 
+   const int pass = static_cast< int >( blockIdx.x );
    const int digit = static_cast< int >( threadIdx.x );
-   const int lane = static_cast< int >( threadIdx.x ) % warpSize;
-   const RadixSortWarpMask fullMask = Backend::getWarpFullMask();
-   for( int p = 0; p < passes; p++ ) {
-      // the block-wide exclusive scan of the pass's raw counters is written
-      // back in place, giving the global base offsets of the digit runs
-      const Index count = counts[ static_cast< Index >( p ) * radixSortBuckets + digit ];
-      const Index base = BlockScan::scan( std::plus<>{}, Index( 0 ), count, static_cast< int >( threadIdx.x ), s_scanStorage );
-      counts[ static_cast< Index >( p ) * radixSortBuckets + digit ] = base;
+   const Index count = counts[ static_cast< Index >( pass ) * radixSortBuckets + digit ];
 
-      // count the non-zero buckets of the pass: a single non-zero bucket
-      // means the pass maps all elements to the same digit and its sweep
-      // can be skipped
-      const RadixSortWarpMask ballot = __ballot_sync( fullMask, count != 0 );
-      if( lane == 0 && ballot != 0 )
-         atomicAdd( &s_nonZeroBuckets[ p ], radixSortPopcount( ballot ) );
-   }
-   __syncthreads();
+   // count the non-zero buckets of the pass: a single non-zero bucket means
+   // the pass maps all elements to the same digit and its sweep can be skipped
+   const int nonZeroBuckets = __syncthreads_count( count != 0 );
 
-   // the parity prefix is sequential over the (at most 8) passes, so it is
-   // computed by a single thread
-   if( threadIdx.x == 0 ) {
-      int parity = 0;
-      #pragma unroll
-      for( int p = 0; p < passes; p++ ) {
-         const int skip = static_cast< int >( s_nonZeroBuckets[ p ] == 1 );
-         flags[ p ] = skip;
-         flags[ passes + p ] = parity;
-         parity ^= 1 - skip;
+   // publish the predicate on the raw counters before replacing them by the
+   // scan, so the parity consumer never has to read another pass's counters
+   if( threadIdx.x == 0 )
+      atomicExch( &flags[ pass ], static_cast< int >( nonZeroBuckets == 1 ) );
+
+   const Index base = BlockScan::scan( std::plus<>{}, Index( 0 ), count, static_cast< int >( threadIdx.x ), s_scanStorage );
+   counts[ static_cast< Index >( pass ) * radixSortBuckets + digit ] = base;
+
+   // gather the predicates concurrently after the scan, when the other blocks
+   // have already had the scan interval to publish them; there are at most 8
+   // flags, so one warp ballot collects them without another block barrier
+   if( pass == passes - 1 && threadIdx.x < warpSize ) {
+      int skip = 0;
+      if( static_cast< int >( threadIdx.x ) < passes ) {
+         const volatile int* const skipFlag = &flags[ threadIdx.x ];
+         do {
+            skip = *skipFlag;
+         } while( skip == radixSortPassPending );
       }
-      flags[ 2 * passes ] = parity;
+      const RadixSortWarpMask skipMask = __ballot_sync( Backend::getWarpFullMask(), skip );
+
+      // the parity prefix is sequential over the (at most 8) passes, so it is
+      // computed by a single lane
+      if( threadIdx.x == 0 ) {
+         int parity = 0;
+         #pragma unroll
+         for( int p = 0; p < passes; p++ ) {
+            flags[ passes + p ] = parity;
+            parity ^= 1 - static_cast< int >( ( skipMask >> p ) & 1 );
+         }
+         flags[ 2 * passes ] = parity;
+      }
    }
 #endif
 }
@@ -2021,12 +2036,14 @@ radixSortLaunchSequence(
    // computed upfront; the exclusive scan of each histogram then gives the
    // global base offsets of the digit runs
    auto& digitBase = workspace.digitBase;
+   auto& passFlags = workspace.passFlags;
    Algorithms::fill< Devices::GPU >( digitBase.getData(), Index( 0 ), digitBase.getSize(), fillConfig );
 
    constexpr auto totalHistogramKernel = radixSortTotalHistogramKernel< Value, Index, descending >;
-   Backend::launchKernelAsync( totalHistogramKernel, launch_config, view, digitBase.getView() );
+   Backend::launchKernelAsync( totalHistogramKernel, launch_config, view, digitBase.getView(), passFlags.getView() );
    if( cache != nullptr )
-      radixSortRecordGraphViewNode( *cache, stream, totalHistogramKernel, launch_config, view, digitBase.getView() );
+      radixSortRecordGraphViewNode(
+         *cache, stream, totalHistogramKernel, launch_config, view, digitBase.getView(), passFlags.getView() );
 
    // scan the digit histograms of all passes and detect the skippable
    // passes together with the source/target buffer parity of each sweep in
@@ -2035,8 +2052,7 @@ radixSortLaunchSequence(
    // replaces the per-pass non-blocking launches of the standalone
    // Algorithms::inplaceExclusiveScan
    constexpr auto processHistogramsKernel = radixSortProcessHistogramsKernel< Value, Index >;
-   auto& passFlags = workspace.passFlags;
-   Backend::LaunchConfiguration processHistogramsConfig( 1, radixSortBuckets );
+   Backend::LaunchConfiguration processHistogramsConfig( static_cast< unsigned >( passes ), radixSortBuckets );
    processHistogramsConfig.stream = stream;
    Backend::launchKernelAsync( processHistogramsKernel, processHistogramsConfig, digitBase.getView(), passFlags.getView() );
 
