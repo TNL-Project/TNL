@@ -1748,12 +1748,14 @@ radixSortRecordGraphViewNode(
  * The radix sort driver needs an auxiliary array of the size of the input
  * (the ping-pong buffer of the sweeps), the digit histograms of the passes,
  * the tile status counters of the decoupled lookback and the pass flags.
+ * The latter three metadata buffers are views into a single allocation to
+ * reduce the host-side allocation cost of a fresh workspace.
  * A default-constructed workspace owns no memory; \ref setSize grows the
  * buffers to the requested size and they are never shrunk, so a workspace
  * reused across sorts performs no device memory allocation at all once the
  * buffers fit the input. The auxiliary array is the dominant buffer (one
- * value per element) and its allocation costs several microseconds per
- * sort even when the memory is cached by the GPU driver.
+ * value per element), but even the small metadata allocations cost host
+ * time when a fresh workspace is constructed and destroyed for every sort.
  *
  * The value, device and index types of the buffers must match the sorted
  * array, which is enforced by the `sort` overloads of \ref RadixSort
@@ -1784,18 +1786,18 @@ struct RadixSortWorkspace
     */
    RadixSortWorkspace( const RadixSortWorkspace& other )
    : aux( other.aux ),
-     digitBase( other.digitBase ),
-     tileStatus( other.tileStatus ),
-     passFlags( other.passFlags )
-   {}
+     smallBuffers( other.smallBuffers )
+   {
+      bindSmallBuffers( other.tileStatus.getSize() );
+   }
 
    RadixSortWorkspace&
    operator=( const RadixSortWorkspace& other )
    {
+      const Index tileStatusSize = other.tileStatus.getSize();
       aux = other.aux;
-      digitBase = other.digitBase;
-      tileStatus = other.tileStatus;
-      passFlags = other.passFlags;
+      smallBuffers = other.smallBuffers;
+      bindSmallBuffers( tileStatusSize );
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       // the buffers were deep-copied, so a cached graph of the assigned
       // workspace must not be replayed against them
@@ -1804,9 +1806,33 @@ struct RadixSortWorkspace
       return *this;
    }
 
-   RadixSortWorkspace( RadixSortWorkspace&& ) = default;
+   RadixSortWorkspace( RadixSortWorkspace&& other ) noexcept
+   : aux( std::move( other.aux ) ),
+     smallBuffers( std::move( other.smallBuffers ) )
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+     ,
+     graphCache( std::move( other.graphCache ) )
+#endif
+   {
+      bindSmallBuffers( other.tileStatus.getSize() );
+      other.resetSmallBufferViews();
+   }
+
    RadixSortWorkspace&
-   operator=( RadixSortWorkspace&& ) = default;
+   operator=( RadixSortWorkspace&& other ) noexcept( false )
+   {
+      if( this != &other ) {
+         const Index tileStatusSize = other.tileStatus.getSize();
+         aux = std::move( other.aux );
+         smallBuffers = std::move( other.smallBuffers );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+         graphCache = std::move( other.graphCache );
+#endif
+         bindSmallBuffers( tileStatusSize );
+         other.resetSmallBufferViews();
+      }
+      return *this;
+   }
 
    /**
     * \brief Grows the buffers so that an array of `size` elements can be
@@ -1823,13 +1849,8 @@ struct RadixSortWorkspace
       if( aux.getSize() < size )
          aux.setSize( size );
 
-      // the sizes of the histogram and flag buffers depend only on the
-      // value type, so they are allocated on the first call
       constexpr int passes = static_cast< int >( sizeof( Value ) );
-      if( digitBase.getSize() == 0 )
-         digitBase.setSize( passes * radixSortBuckets );
-      if( passFlags.getSize() == 0 )
-         passFlags.setSize( 2 * passes + 1 );
+      Index requiredTileStatusSize = tileStatus.getSize();
 
       // one status counter per (tile, digit) plus the work counter, with
       // one such region per radix pass; the number of tiles of a strip is
@@ -1846,23 +1867,81 @@ struct RadixSortWorkspace
          // padded to a multiple of the bucket count so that every region
          // starts 1 KiB-aligned (keep in sync with the driver in radixSort)
          const Index requiredSize = static_cast< Index >( passes ) * ( ( maxStripTiles + 1 ) * radixSortBuckets );
-         if( tileStatus.getSize() < requiredSize )
-            tileStatus.setSize( requiredSize );
+         requiredTileStatusSize = TNL::max( requiredTileStatusSize, requiredSize );
+      }
+
+      // the histogram and flag sizes depend only on the value type; their
+      // fixed offsets leave the variable-sized tile status region at the end
+      if( smallBuffers.getSize() == 0 || tileStatus.getSize() < requiredTileStatusSize ) {
+         smallBuffers.setSize( getSmallBufferWords( requiredTileStatusSize ) );
+         bindSmallBuffers( requiredTileStatusSize );
       }
    }
 
    //! \brief Auxiliary (ping-pong) array of at least the sorted size.
    Containers::Array< Value, Device, Index > aux;
 
+private:
+   // 64-bit words align all supported index types; 1 KiB-relative region
+   // offsets preserve the tile status alignment assumed by the driver
+   static constexpr std::size_t smallBufferAlignment = 1024;
+
+   static constexpr std::size_t
+   alignSmallBufferOffset( const std::size_t offset )
+   {
+      return ( offset + smallBufferAlignment - 1 ) / smallBufferAlignment * smallBufferAlignment;
+   }
+
+   static constexpr std::size_t digitBaseBytes = sizeof( Value ) * radixSortBuckets * sizeof( Index );
+   static constexpr std::size_t passFlagsOffset = alignSmallBufferOffset( digitBaseBytes );
+   static constexpr std::size_t passFlagsBytes = ( 2 * sizeof( Value ) + 1 ) * sizeof( int );
+   static constexpr std::size_t tileStatusOffset = alignSmallBufferOffset( passFlagsOffset + passFlagsBytes );
+
+   static Index
+   getSmallBufferWords( const Index tileStatusSize )
+   {
+      const std::size_t bytes = tileStatusOffset + static_cast< std::size_t >( tileStatusSize ) * sizeof( unsigned int );
+      return static_cast< Index >( ( bytes + sizeof( std::uint64_t ) - 1 ) / sizeof( std::uint64_t ) );
+   }
+
+   //! \brief Owning allocation shared by the three metadata views.
+   Containers::Array< std::uint64_t, Device, Index > smallBuffers;
+
+   void
+   bindSmallBuffers( const Index tileStatusSize )
+   {
+      if( smallBuffers.getSize() == 0 ) {
+         resetSmallBufferViews();
+         return;
+      }
+      auto* const base = reinterpret_cast< std::uint8_t* >( smallBuffers.getData() );
+      constexpr int passes = static_cast< int >( sizeof( Value ) );
+      digitBase.bind( reinterpret_cast< Index* >( base ), passes * radixSortBuckets );
+      passFlags.bind( reinterpret_cast< int* >( base + passFlagsOffset ), 2 * passes + 1 );
+      if( tileStatusSize > 0 )
+         tileStatus.bind( reinterpret_cast< unsigned int* >( base + tileStatusOffset ), tileStatusSize );
+      else
+         tileStatus.reset();
+   }
+
+   void
+   resetSmallBufferViews()
+   {
+      digitBase.reset();
+      tileStatus.reset();
+      passFlags.reset();
+   }
+
+public:
    //! \brief Base offsets of the digit runs: `passes` x `radixSortBuckets` entries.
-   Containers::Array< Index, Device, Index > digitBase;
+   Containers::ArrayView< Index, Device, Index > digitBase;
 
    //! \brief Status counters of the lookback tiles plus the work counter,
    //! with one region per radix pass (see \ref radixSort).
-   Containers::Array< unsigned int, Device, Index > tileStatus;
+   Containers::ArrayView< unsigned int, Device, Index > tileStatus;
 
    //! \brief Skip flags and buffer-parity flags of the passes: `2 * passes + 1` entries.
-   Containers::Array< int, Device, Index > passFlags;
+   Containers::ArrayView< int, Device, Index > passFlags;
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    /**
