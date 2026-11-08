@@ -143,6 +143,14 @@ constexpr int radixSortAggregatedFillLimit = 1 << 22;
 //! was 100k elements.
 constexpr int radixSortGraphLimit = 1 << 19;
 
+//! \brief Maximum array size for programmatic dependent launches.
+//!
+//! Small sorts can hide launch latency and drain their short grids together;
+//! larger sorts already hide host launch submission behind device execution.
+//! The limit matches CUB's radix-sort policy and avoids deeply nesting
+//! dependent grids for very large inputs.
+constexpr int radixSortPdlLimit = 1 << 24;
+
 // the per-digit kernels are launched with one thread per bucket (see the
 // comment on radixSortBlockSize)
 static_assert( radixSortBlockSize == radixSortBuckets, "radixSortBlockSize must be equal to radixSortBuckets" );
@@ -506,6 +514,7 @@ radixSortTotalHistogramKernel(
    Containers::ArrayView< int, Devices::GPU, Index > flags )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   Backend::triggerProgrammaticLaunchCompletion();
    constexpr int passes = static_cast< int >( sizeof( Value ) );
    // the pending values distinguish this launch's skip flags from flags left
    // by a previous sort; the processing kernel starts after this whole grid
@@ -552,6 +561,9 @@ radixSortTotalHistogramKernel(
    }
    __syncthreads();
 
+   // The input and shared histograms are independent of the zero fill, but
+   // the global accumulation consumes its zeroed counters.
+   Backend::gridDependencySynchronize();
    for( int i = static_cast< int >( threadIdx.x ); i < passes * radixSortBuckets; i += static_cast< int >( blockDim.x ) )
       radixSortAtomicAdd( &counts[ i ], static_cast< Index >( s_counts[ i / radixSortBuckets ][ i % radixSortBuckets ] ) );
 #endif
@@ -597,6 +609,8 @@ radixSortProcessHistogramsKernel(
    Containers::ArrayView< int, Devices::GPU, Index > flags )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   Backend::gridDependencySynchronize();
+   Backend::triggerProgrammaticLaunchCompletion();
    constexpr int passes = static_cast< int >( sizeof( Value ) );
    // the launch uses blockDim.x == radixSortBuckets and one block per pass,
    // so each block holds one counter of its pass per thread
@@ -797,6 +811,7 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
    int pass )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   Backend::gridDependencySynchronize();
    constexpr int passes = static_cast< int >( sizeof( Value ) );
 
    // a skipped pass maps all elements to the same digit, so its sweep is the
@@ -1116,6 +1131,7 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
       }
       __syncthreads();
    }
+   Backend::triggerProgrammaticLaunchCompletion();
 #endif
 }
 
@@ -1152,9 +1168,11 @@ radixSortAdvanceBaseKernel(
    int pass )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   Backend::gridDependencySynchronize();
    const Index digit = static_cast< Index >( threadIdx.x );
    const unsigned int word = tileStatus[ ( numTiles - 1 ) * radixSortBuckets + digit ];
    digitBase[ static_cast< Index >( pass ) * radixSortBuckets + digit ] += word & radixSortTileValueMask;
+   Backend::triggerProgrammaticLaunchCompletion();
 #endif
 }
 
@@ -1183,6 +1201,7 @@ radixSortCopyBackKernel(
    const Containers::ArrayView< const int, Devices::GPU, Index > flags )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   Backend::gridDependencySynchronize();
    constexpr int passes = static_cast< int >( sizeof( Value ) );
    if( flags[ 2 * passes ] == 0 )
       return;
@@ -2022,6 +2041,7 @@ radixSortLaunchSequence(
    RadixSortGraphCache* cache )
 {
    constexpr int passes = static_cast< int >( sizeof( Value ) );
+   const bool usePdl = n <= static_cast< Index >( radixSortPdlLimit );
 
    // computed without rounding up to avoid overflow of n + tileSize when
    // the index type is signed and n is close to its maximum; the small
@@ -2037,6 +2057,7 @@ radixSortLaunchSequence(
    auto aux = workspace.aux.getView( 0, n );
 
    Backend::LaunchConfiguration launch_config;
+   launch_config.programmaticStreamSerialization = usePdl;
    launch_config.stream = stream;
    launch_config.blockSize.x = radixSortBlockSize;
    launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
@@ -2079,9 +2100,13 @@ radixSortLaunchSequence(
    auto& digitBase = workspace.digitBase;
    auto& passFlags = workspace.passFlags;
    Algorithms::fill< Devices::GPU >( digitBase.getData(), Index( 0 ), digitBase.getSize(), fillConfig );
+   // The first fill serializes with the input producer; all later kernels use
+   // explicit grid dependency synchronization and may be dependent launches.
+   fillConfig.programmaticStreamSerialization = usePdl;
 
    constexpr auto totalHistogramKernel = radixSortTotalHistogramKernel< Value, Index, descending >;
-   Backend::launchKernelAsync( totalHistogramKernel, launch_config, view, digitBase.getView(), passFlags.getView() );
+   Backend::launchKernelAsyncWithAttributes(
+      totalHistogramKernel, launch_config, view, digitBase.getView(), passFlags.getView() );
    if( cache != nullptr )
       radixSortRecordGraphViewNode(
          *cache, stream, totalHistogramKernel, launch_config, view, digitBase.getView(), passFlags.getView() );
@@ -2094,8 +2119,10 @@ radixSortLaunchSequence(
    // Algorithms::inplaceExclusiveScan
    constexpr auto processHistogramsKernel = radixSortProcessHistogramsKernel< Value, Index >;
    Backend::LaunchConfiguration processHistogramsConfig( static_cast< unsigned >( passes ), radixSortBuckets );
+   processHistogramsConfig.programmaticStreamSerialization = usePdl;
    processHistogramsConfig.stream = stream;
-   Backend::launchKernelAsync( processHistogramsKernel, processHistogramsConfig, digitBase.getView(), passFlags.getView() );
+   Backend::launchKernelAsyncWithAttributes(
+      processHistogramsKernel, processHistogramsConfig, digitBase.getView(), passFlags.getView() );
 
    // the input is processed in strips of up to 2^28 elements: the values
    // exchanged by the decoupled lookback must fit into 30 bits, and the
@@ -2156,7 +2183,7 @@ radixSortLaunchSequence(
          if( ! aggregateFill || strip > 0 )
             Algorithms::fill< Devices::GPU >( tileStatus.getData() + regionBegin, 0u, tileStatusSize, fillConfig );
          onesweepConfig.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
-         Backend::launchKernelAsync(
+         Backend::launchKernelAsyncWithAttributes(
             onesweepKernel,
             onesweepConfig,
             view,
@@ -2189,7 +2216,7 @@ radixSortLaunchSequence(
          // strip
          if( strip + 1 < numStrips ) {
             launch_config.gridSize.x = 1;
-            Backend::launchKernelAsync(
+            Backend::launchKernelAsyncWithAttributes(
                advanceBaseKernel, launch_config, digitBase.getView(), tileStatusRegion, stripNumTiles, pass );
          }
       }
@@ -2201,7 +2228,7 @@ radixSortLaunchSequence(
    // sorted in place (even parity, no copy)
    constexpr auto copyBackKernel = radixSortCopyBackKernel< Value, Index >;
    launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
-   Backend::launchKernelAsync( copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
+   Backend::launchKernelAsyncWithAttributes( copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
    if( cache != nullptr )
       radixSortRecordGraphViewNode( *cache, stream, copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
 }

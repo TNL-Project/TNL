@@ -3,8 +3,11 @@
 
 #pragma once
 
+#include <map>
+#include <mutex>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "Macros.h"
 #include <TNL/Exceptions/BackendSupportMissing.h>
@@ -56,6 +59,48 @@ getArchitectureMinor( int deviceNum )
    return properties.minor;
 #else
    throw Exceptions::BackendSupportMissing();
+#endif
+}
+
+/**
+ * \brief Checks whether programmatic dependent launch can be used for a kernel.
+ *
+ * CUDA requires both a device with compute capability at least 9.0 and a
+ * kernel compiled for that architecture. The result is cached per device for
+ * each kernel signature. HIP and non-GPU builds always return `false`.
+ *
+ * \tparam RawKernel is the kernel function pointer type.
+ * \param kernel_function is the kernel to be launched.
+ * \param deviceNum is the device on which the kernel will run.
+ * \return `true` when the launch can use programmatic stream serialization.
+ */
+template< typename RawKernel >
+[[nodiscard]] inline bool
+supportsProgrammaticDependentLaunch( RawKernel kernel_function, int deviceNum )
+{
+#if defined( __CUDACC__ )
+   // the map is shared by all instantiations with the same kernel type (it
+   // has vague linkage across translation units), so it must be keyed by
+   // the function pointer as well as the device, and concurrent first calls
+   // from multiple host threads are serialized
+   static std::mutex mutex;
+   static std::map< std::pair< const void*, int >, bool > results;
+   std::lock_guard< std::mutex > lock( mutex );
+   const auto key = std::make_pair( reinterpret_cast< const void* >( kernel_function ), deviceNum );
+   if( auto it = results.find( key ); it != results.end() )
+      return it->second;
+   bool supported = false;
+   if( getArchitectureMajor( deviceNum ) >= 9 ) {
+      cudaFuncAttributes attributes;
+      TNL_BACKEND_SAFE_CALL( cudaFuncGetAttributes( &attributes, reinterpret_cast< const void* >( kernel_function ) ) );
+      supported = attributes.ptxVersion >= 90;
+   }
+   results.emplace( key, supported );
+   return supported;
+#else
+   (void) kernel_function;
+   (void) deviceNum;
+   return false;
 #endif
 }
 

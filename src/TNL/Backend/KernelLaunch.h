@@ -9,11 +9,32 @@
 #include "Types.h"
 #include "Functions.h"
 #include "LaunchHelpers.h"
+#include "DeviceInfo.h"
 #include <TNL/Exceptions/BackendRuntimeError.h>
 #include <TNL/Exceptions/BackendSupportMissing.h>
 #include <TNL/TypeInfo.h>
 
 namespace TNL::Backend {
+
+//! \brief Waits for the direct grid dependencies on CUDA devices that support it.
+__device__
+inline void
+gridDependencySynchronize()
+{
+#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ ) && __CUDA_ARCH__ >= 900
+   cudaGridDependencySynchronize();
+#endif
+}
+
+//! \brief Allows dependent grids to launch on CUDA devices that support it.
+__device__
+inline void
+triggerProgrammaticLaunchCompletion()
+{
+#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ ) && __CUDA_ARCH__ >= 900
+   cudaTriggerProgrammaticLaunchCompletion();
+#endif
+}
 
 /**
  * \brief Holds the parameters necessary to *launch* a CUDA or HIP kernel
@@ -32,6 +53,9 @@ struct LaunchConfiguration
 
    //! \brief stream handle
    Backend::stream_t stream = 0;  // NOLINT(modernize-use-nullptr)
+
+   //! \brief allows CUDA to overlap this grid with its predecessor when supported
+   bool programmaticStreamSerialization = false;
 
    //! \brief indicates whether host execution is blocked until the kernel execution is finished
    bool blockHostUntilFinished = true;
@@ -158,6 +182,60 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
 #else
    throw Exceptions::BackendSupportMissing();
 #endif
+}
+
+//! \brief Launches a kernel with the extended attributes selected in its configuration.
+template< typename RawKernel, typename... KernelParameters >
+inline void
+launchKernelWithAttributes(
+   RawKernel kernel_function,
+   LaunchConfiguration launch_configuration,
+   KernelParameters&&... parameters )
+{
+#if defined( __CUDACC__ )
+   if( launch_configuration.programmaticStreamSerialization
+       && supportsProgrammaticDependentLaunch( kernel_function, getDevice() ) )
+   {
+      if( kernel_function == nullptr )
+         throw std::logic_error( "cannot call a function via nullptr" );
+      checkLaunchConfiguration( launch_configuration );
+
+      cudaLaunchAttribute attributes[ 1 ];
+      attributes[ 0 ].id = cudaLaunchAttributeProgrammaticStreamSerialization;
+      attributes[ 0 ].val.programmaticStreamSerializationAllowed = 1;
+
+      cudaLaunchConfig_t config{};
+      config.gridDim = launch_configuration.gridSize;
+      config.blockDim = launch_configuration.blockSize;
+      config.dynamicSmemBytes = launch_configuration.dynamicSharedMemorySize;
+      config.stream = launch_configuration.stream;
+      config.attrs = attributes;
+      config.numAttrs = 1;
+      const Backend::error_t status =
+         cudaLaunchKernelEx( &config, kernel_function, ::std::forward< KernelParameters >( parameters )... );
+      if( launch_configuration.blockHostUntilFinished )
+         Backend::streamSynchronize( launch_configuration.stream );
+      if( status != cudaSuccess ) {
+         std::string msg = "detected after launching kernel " + TNL::getType( kernel_function ) + "\nSource: line "
+                         + std::to_string( __LINE__ ) + " in " + __FILE__;
+         throw Exceptions::BackendRuntimeError( status, msg );
+      }
+      return;
+   }
+#endif
+   launchKernel( kernel_function, launch_configuration, std::forward< KernelParameters >( parameters )... );
+}
+
+//! \brief Launches a kernel asynchronously with the extended attributes selected in its configuration.
+template< typename RawKernel, typename... KernelParameters >
+inline void
+launchKernelAsyncWithAttributes(
+   RawKernel kernel_function,
+   LaunchConfiguration launch_configuration,
+   KernelParameters&&... parameters )
+{
+   launch_configuration.blockHostUntilFinished = false;
+   launchKernelWithAttributes( kernel_function, launch_configuration, std::forward< KernelParameters >( parameters )... );
 }
 
 template< typename RawKernel, typename... KernelParameters >

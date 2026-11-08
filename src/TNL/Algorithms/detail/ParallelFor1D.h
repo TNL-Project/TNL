@@ -55,6 +55,10 @@ void
 ParallelFor1DKernel( Index begin, Index end, Function f, FunctionArgs... args )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   // Preserve the dependency before touching any predecessor state, then let
+   // the dependent grid launch while this grid performs its independent work.
+   Backend::gridDependencySynchronize();
+   Backend::triggerProgrammaticLaunchCompletion();
    Index i = begin + blockIdx.x * blockDim.x + threadIdx.x;
    while( i < end ) {
       f( i, args... );
@@ -97,7 +101,7 @@ struct ParallelFor1D< Devices::Cuda >
 
       if( ! needsGridStride && totalThreads >= static_cast< std::size_t >( end - begin ) ) {
          constexpr auto kernel = ParallelFor1DKernel< false, Index, Function, FunctionArgs... >;
-         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernelWithAttributes( kernel, launch_config, begin, end, f, args... );
       }
       else {
          // decrease the grid size and align to the number of multiprocessors
@@ -105,7 +109,7 @@ struct ParallelFor1D< Devices::Cuda >
          launch_config.gridSize.x =
             TNL::min( desGridSize, Backend::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
          constexpr auto kernel = ParallelFor1DKernel< true, Index, Function, FunctionArgs... >;
-         Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
+         Backend::launchKernelWithAttributes( kernel, launch_config, begin, end, f, args... );
       }
    }
 };
