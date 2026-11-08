@@ -15,6 +15,18 @@ generic SpMM implementation based on TNL segments.
 - **RowWise** – rows of `A` are distributed among OpenMP threads, every
   thread computes the whole row of `C`. It is also used to compute the
   reference result for the verification.
+- **TNL SpMM** – `TNL::Matrices::sparseDenseMatrixProduct` with `A` in the CSR
+  format on the host (with OpenMP), with the default configuration and with
+  tiles of 8, 32 and 64 columns (`tile T`).
+- **TNL SpMM Sequential** – the same with the default configuration on
+  `TNL::Devices::Sequential`.
+- **Eigen** – the product of `Eigen::Map` of a row-major `Eigen::SparseMatrix`
+  and a dense matrix, parallelized over the rows with OpenMP by Eigen
+  (when Eigen is found by CMake).
+- **Ginkgo** – `gko::matrix::Csr::apply` on `gko::matrix::Dense` with the
+  OpenMP executor and the SpMV strategies `automatic`, `classical`,
+  `load_balance` and `merge_path` (row-major layout only, when Ginkgo is found
+  by CMake).
 
 ### GPU (CUDA and HIP)
 

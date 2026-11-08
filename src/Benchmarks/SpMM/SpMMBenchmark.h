@@ -34,6 +34,8 @@
 
 #include "ReferenceKernels.h"
 #include "CuSparseSpMM.h"
+#include "EigenSpMM.h"
+#include "GinkgoSpMM.h"
 #include "HipSparseSpMM.h"
 
 namespace TNL::Benchmarks::SpMM {
@@ -554,6 +556,79 @@ benchmarkHost(
       spmmHost( A, arrayB, arrayC, problem.rowMajor );
    };
    benchmark.time< Devices::Host >( "RowWise", compute, result );
+
+   // the generic SpMM of TNL with the default configuration and with tiles of 8 to 64 columns, on the host (with OpenMP)
+   // and sequentially
+   auto runSegments =
+      [ & ]( const std::string& performer, const auto& sparseMatrix, auto maxTileSize, const std::string& config )
+   {
+      using Device = typename std::decay_t< decltype( sparseMatrix ) >::DeviceType;
+      constexpr int MaxTileSize = decltype( maxTileSize )::value;
+      auto compute = [ & ]()
+      {
+         auto multiply = [ & ]( auto organization )
+         {
+            constexpr auto Organization = decltype( organization )::value;
+            using DenseView = Matrices::DenseMatrixView< Real, Device, Index, Organization >;
+            // B is only read through the view
+            const DenseView viewB(
+               problem.columns,
+               problem.k,
+               typename DenseView::ValuesViewType( const_cast< Real* >( B.getData() ), B.getSize() ) );
+            DenseView viewC( problem.rows, problem.k, typename DenseView::ValuesViewType( C.getData(), C.getSize() ) );
+            Matrices::sparseDenseMatrixProduct< MaxTileSize >( sparseMatrix, viewB, viewC );
+         };
+         if( problem.rowMajor )
+            multiply(
+               std::integral_constant< Algorithms::Segments::ElementsOrganization, Algorithms::Segments::RowMajorOrder >{} );
+         else
+            multiply(
+               std::integral_constant< Algorithms::Segments::ElementsOrganization, Algorithms::Segments::ColumnMajorOrder >{} );
+      };
+      benchmark.setMetadataElement( { "kernel config", config } );
+      benchmark.time< Device >( performer, compute, result );
+   };
+   runSegments( "TNL SpMM", matrix, std::integral_constant< int, 16 >{}, "Default" );
+   runSegments( "TNL SpMM", matrix, std::integral_constant< int, 8 >{}, "tile 8" );
+   runSegments( "TNL SpMM", matrix, std::integral_constant< int, 32 >{}, "tile 32" );
+   runSegments( "TNL SpMM", matrix, std::integral_constant< int, 64 >{}, "tile 64" );
+   Matrices::SparseMatrix< Real, Devices::Sequential, Index > sequentialMatrix;
+   sequentialMatrix = matrix;
+   runSegments( "TNL SpMM Sequential", sequentialMatrix, std::integral_constant< int, 16 >{}, "Default" );
+
+#if defined( HAVE_EIGEN )
+   auto computeEigen = [ & ]()
+   {
+      eigenSpMM( A, arrayB, arrayC, problem.rowMajor );
+   };
+   benchmark.setMetadataElement( { "kernel config", "" } );
+   benchmark.time< Devices::Host >( "Eigen", computeEigen, result );
+#endif
+
+#if defined( HAVE_GINKGO )
+   // the dense matrices of Ginkgo are row-major
+   if( problem.rowMajor ) {
+      const std::pair< gko::matrix::csr::spmv_strategy, std::string > ginkgoStrategies[] = {
+         { gko::matrix::csr::spmv_strategy::automatic, "automatic" },
+         { gko::matrix::csr::spmv_strategy::classical, "classical" },
+         { gko::matrix::csr::spmv_strategy::load_balance, "load_balance" },
+         { gko::matrix::csr::spmv_strategy::merge_path, "merge_path" } };
+      for( const auto& [ strategy, name ] : ginkgoStrategies ) {
+         try {
+            GinkgoSpMM< Real, Index > ginkgo( A, arrayB, arrayC, strategy );
+            auto compute = [ & ]()
+            {
+               ginkgo.multiply();
+            };
+            benchmark.setMetadataElement( { "kernel config", name } );
+            benchmark.time< Devices::Host >( "Ginkgo", compute, result );
+         }
+         catch( const std::exception& e ) {
+            benchmark.addErrorMessage( "Ginkgo " + name + ": " + e.what() );
+         }
+      }
+   }
+#endif
 }
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -654,7 +729,9 @@ benchmarkGPU(
                };
                if( problem.rowMajor )
                   multiply(
-                     std::integral_constant< Algorithms::Segments::ElementsOrganization, Algorithms::Segments::RowMajorOrder >{} );
+                     std::integral_constant<
+                        Algorithms::Segments::ElementsOrganization,
+                        Algorithms::Segments::RowMajorOrder >{} );
                else
                   multiply(
                      std::integral_constant<
