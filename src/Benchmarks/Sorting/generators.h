@@ -37,7 +37,7 @@ generateRandom( std::size_t size, std::uint32_t seed = 2021 )
          } );
    }
    else {
-      std::uniform_real_distribution< T > dist( -size / 2, size / 2 );
+      std::uniform_real_distribution< T > dist( -static_cast< T >( size ) / 2, static_cast< T >( size ) / 2 );
       std::generate(
          vec.begin(),
          vec.end(),
