@@ -86,6 +86,9 @@ include(cmake/cxx_flags.cmake)
 # enable the compiler cache if sccache is available
 include(cmake/sccache.cmake)
 
+# helper functions for building targets
+include(target_helpers)
+
 # configure the project for testing with CTest/CDash
 include(testing)
 

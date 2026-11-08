@@ -2,7 +2,7 @@ add_subdirectory(Factorization)
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
-set(COMMON_TESTS
+set(TESTS
     DenseMatrixTest
     DenseMatrixCopyTest
     TridiagonalMatrixTest
@@ -43,115 +43,17 @@ set(COMMON_TESTS
     DenseMatrixTransMultiplication
 )
 
-set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest MatrixReaderTest)
-set(CUDA_TESTS)
-set(HIP_TESTS)
-
-foreach(target IN ITEMS ${COMMON_TESTS})
-    set(CUDA_TESTS ${CUDA_TESTS} ${target}_cuda)
-    set(HIP_TESTS ${HIP_TESTS} ${target}_hip)
-endforeach()
-
+set(HOST_TESTS StaticMatrixTest MatrixTypeTraitsTest MatrixReaderTest)
 set(MPI_TESTS DistributedMatrixTest)
-set(MPI_CUDA_TESTS DistributedMatrixTest_cuda)
-set(MPI_HIP_TESTS DistributedMatrixTest_hip)
 
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
+foreach(test IN ITEMS ${TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.h LABELS Matrices)
 endforeach()
 
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-        # add "Matrices" label to the test
-        set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
-    endforeach()
-endif()
+foreach(test IN ITEMS ${HOST_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.cpp BACKENDS HOST LABELS Matrices)
+endforeach()
 
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-        # add "Matrices" label to the test
-        set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
-    endforeach()
-endif()
-
-if(TNL_BUILD_MPI)
-    foreach(target IN ITEMS ${MPI_TESTS})
-        add_executable(${target} ${target}.cpp)
-        target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-        target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-        tnl_add_mpi_test(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-        tnl_add_mpi_test(
-            NAME ${target}_nodistr
-            NPROC 1
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-        )
-        # add "Matrices" label to the test
-        set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
-        set_property(TEST ${target}_nodistr APPEND PROPERTY LABELS Matrices)
-    endforeach()
-
-    if(TNL_BUILD_CUDA)
-        foreach(target IN ITEMS ${MPI_CUDA_TESTS})
-            add_executable(${target} ${target}.cu)
-            target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-            target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-            target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-            tnl_add_mpi_test(
-                NAME ${target}
-                NPROC 4
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            tnl_add_mpi_test(
-                NAME ${target}_nodistr
-                NPROC 1
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            # add "Matrices" label to the test
-            set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
-            set_property(TEST ${target}_nodistr APPEND PROPERTY LABELS Matrices)
-        endforeach()
-    endif()
-
-    if(TNL_BUILD_HIP)
-        foreach(target IN ITEMS ${MPI_HIP_TESTS})
-            add_executable(${target} ${target}.hip)
-            target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-            target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-            target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-            tnl_add_hip_mpi_test(
-                NAME ${target}
-                NPROC 4
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            tnl_add_hip_mpi_test(
-                NAME ${target}_nodistr
-                NPROC 1
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            # add "Matrices" label to the test
-            set_property(TEST ${target}_nodistr APPEND PROPERTY LABELS Matrices)
-        endforeach()
-    endif()
-endif()
+foreach(test IN ITEMS ${MPI_TESTS})
+    tnl_add_test_executables(${test} MPI SOURCES ${test}.h LABELS Matrices)
+endforeach()

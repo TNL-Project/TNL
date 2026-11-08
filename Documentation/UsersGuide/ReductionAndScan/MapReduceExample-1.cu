@@ -1,1 +1,0 @@
-MapReduceExample-1.cpp

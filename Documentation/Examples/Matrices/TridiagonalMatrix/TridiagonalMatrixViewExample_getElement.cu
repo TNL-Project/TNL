@@ -1,1 +1,0 @@
-TridiagonalMatrixViewExample_getElement.cpp

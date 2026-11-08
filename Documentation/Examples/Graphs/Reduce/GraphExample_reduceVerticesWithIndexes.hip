@@ -1,1 +1,0 @@
-GraphExample_reduceVerticesWithIndexes.cpp

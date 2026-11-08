@@ -1,33 +1,10 @@
 set(CUDA_EXAMPLES Expressions Reduction)
 set(HOST_EXAMPLES StaticVectorExample)
 
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_EXAMPLES})
-        add_executable(${target} ${target}.cu)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
-        add_custom_command(
-            COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS ${target}
-        )
-        set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
-    endforeach()
-
-    add_custom_target(RunUGVectorsExamples-cuda ALL DEPENDS ${DOC_OUTPUTS})
-endif()
-
-foreach(target IN ITEMS ${HOST_EXAMPLES})
-    add_executable(${target} ${target}.cpp)
-    target_link_libraries(${target} PUBLIC TNL::TNL)
-    add_custom_command(
-        COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        DEPENDS ${target}
-    )
-    set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
+foreach(target IN ITEMS ${CUDA_EXAMPLES})
+    tnl_add_example_with_output(${target} SOURCES ${target}.cpp BACKENDS CUDA)
 endforeach()
 
-add_custom_target(RunUGVectorsExamples ALL DEPENDS ${DOC_OUTPUTS})
-
-# add the dependency to the main target
-add_dependencies(run-doc-examples RunUGVectorsExamples)
+foreach(target IN ITEMS ${HOST_EXAMPLES})
+    tnl_add_example_with_output(${target} SOURCES ${target}.cpp BACKENDS HOST)
+endforeach()

@@ -6,14 +6,19 @@ Each benchmark subdirectory contains:
 
 - **README.md** file providing documentation for the benchmark.
 - **Entry point header** (`tnl-benchmark-<name>.h`) — defines `configSetup()`, `main()`, and
-  optionally precision/device resolution functions. This file is included by wrappers (same
-  basename) for all device targets: `.cpp` for host, `.cu` for CUDA compiler, and `.hip` for
-  HIP compiler.
+  optionally precision/device resolution functions. This file is compiled for all device
+  targets: `tnl_add_backend_executables` (see `cmake/target_helpers.cmake`) generates the `.cpp`,
+  `.cu` and `.hip` source files which include it in the build directory, so they are not
+  part of the source tree.
 - **Benchmark logic headers** — define templated `run_benchmark*()` functions, benchmark
   helpers, etc. They are included by the entry point header.
-- **CMakeLists.txt** — registers the executable targets. The host-only `tnl-benchmark-<name>`
-  executable is built always, `tnl-benchmark-<name>-cuda` and `tnl-benchmark-<name>-hip`
-  are built conditionally when the CUDA/HIP build is enabled.
+- **CMakeLists.txt** — registers the executable targets with `tnl_add_backend_executables`.
+  Benchmarks build one executable per backend, so they do not use `SINGLE` and the base
+  name must not contain a backend suffix: the helper appends `-cuda` and `-hip` and builds
+  those variants only when the corresponding backend is enabled. The host-only
+  `tnl-benchmark-<name>` executable is built always; use `OPTIONAL_HOST` to skip it in the
+  CUDA and HIP CI jobs, where `TNL_BUILD_CPP_TARGETS` is off. Pass `OUTPUT_TARGETS <var>`
+  to collect the target names for per-target settings and for `install(TARGETS ...)`.
 
 ## Entry point pattern
 

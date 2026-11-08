@@ -1,1 +1,0 @@
-StaticODESolverTest_SSPRK3.cpp

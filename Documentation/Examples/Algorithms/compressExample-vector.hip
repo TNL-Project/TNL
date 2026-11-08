@@ -1,1 +1,0 @@
-compressExample-vector.cpp

@@ -1,1 +1,0 @@
-MultidiagonalMatrixViewExample_reduceRows.cpp

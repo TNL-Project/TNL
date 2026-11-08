@@ -1,1 +1,0 @@
-GridExample_writer.cpp

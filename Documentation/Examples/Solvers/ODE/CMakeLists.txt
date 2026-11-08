@@ -9,76 +9,17 @@ set(COMMON_EXAMPLES
 
 set(MPI_EXAMPLES DistributedODESolver-HeatEquationExample)
 
-set(mpirun_parameters
-    -np
-    4
-    --bind-to
-    none
-    --oversubscribe
-)
-
 foreach(target IN ITEMS ${HOST_EXAMPLES})
-    add_executable(${target} ${target}.cpp)
-    target_link_libraries(${target} PUBLIC TNL::TNL)
-    add_custom_command(
-        COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        DEPENDS ${target}
-    )
-    set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
+    tnl_add_example_with_output(${target} SOURCES ${target}.h BACKENDS HOST)
 endforeach()
 
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${COMMON_EXAMPLES})
-        add_executable(${target} ${target}.cu)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
-        add_custom_command(
-            COMMAND
-                ${target} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS ${target}
-        )
-        set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
-    endforeach()
-else()
-    foreach(target IN ITEMS ${COMMON_EXAMPLES})
-        add_executable(${target} ${target}.cpp)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
-        add_custom_command(
-            COMMAND
-                ${target} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS ${target}
-        )
-        set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
-    endforeach()
-endif()
+foreach(target IN ITEMS ${COMMON_EXAMPLES})
+    tnl_add_example_with_output(${target} SOURCES ${target}.h ARGS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH})
+endforeach()
 
-if(TNL_BUILD_MPI)
-    foreach(target IN ITEMS ${MPI_EXAMPLES})
-        if(TNL_BUILD_CUDA)
-            add_executable(${target} ${target}.cu)
-        else()
-            add_executable(${target} ${target}.cpp)
-        endif()
-
-        target_link_libraries(${target} PUBLIC TNL::TNL)
-
-        # enable MPI support in TNL
-        target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-        # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-        target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-
-        add_custom_command(
-            COMMAND
-                "mpirun" ${mpirun_parameters} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-                ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS ${target}
-        )
-        set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
-    endforeach()
-endif()
+foreach(target IN ITEMS ${MPI_EXAMPLES})
+    tnl_add_example_with_output(${target} SOURCES ${target}.h MPI ARGS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH})
+endforeach()
 
 # check if the system has python3 and matplotlib
 find_package(Python3 COMPONENTS Interpreter QUIET)
@@ -155,17 +96,16 @@ if(TNL_PYTHON3_MATPLOTLIB_FOUND)
         VERBATIM
     )
 
-    set(DOC_OUTPUTS
-        ${DOC_OUTPUTS}
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
+    # the target-level dependency is needed because the custom commands are
+    # defined in a different directory than the run-doc-examples target
+    add_custom_target(
+        ODESolversExamples-plots
+        DEPENDS
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
     )
+    add_dependencies(run-doc-examples ODESolversExamples-plots)
 endif()
-
-add_custom_target(RunODESolversExamples ALL DEPENDS ${DOC_OUTPUTS})
-
-# add the dependency to the main target
-add_dependencies(run-doc-examples RunODESolversExamples)

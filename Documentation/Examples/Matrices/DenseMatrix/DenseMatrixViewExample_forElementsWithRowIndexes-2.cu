@@ -1,1 +1,0 @@
-DenseMatrixViewExample_forElementsWithRowIndexes-2.cpp

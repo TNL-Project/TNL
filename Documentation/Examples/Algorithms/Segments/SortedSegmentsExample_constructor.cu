@@ -1,1 +1,0 @@
-SortedSegmentsExample_constructor.cpp

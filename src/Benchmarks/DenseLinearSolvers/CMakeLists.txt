@@ -1,13 +1,15 @@
 if(TNL_BUILD_CUDA)
     find_package(CUDAToolkit REQUIRED)
-    add_executable(tnl-benchmark-dense-linear-solvers tnl-benchmark-dense-linear-solvers.cu)
-    target_link_libraries(tnl-benchmark-dense-linear-solvers PUBLIC TNL::TNL CUDA::cusolver)
-elseif(TNL_BUILD_HIP)
-    add_executable(tnl-benchmark-dense-linear-solvers tnl-benchmark-dense-linear-solvers.hip)
-    target_link_libraries(tnl-benchmark-dense-linear-solvers PUBLIC TNL::TNL)
-else()
-    add_executable(tnl-benchmark-dense-linear-solvers tnl-benchmark-dense-linear-solvers.cpp)
-    target_link_libraries(tnl-benchmark-dense-linear-solvers PUBLIC TNL::TNL)
 endif()
 
-install(TARGETS tnl-benchmark-dense-linear-solvers RUNTIME DESTINATION bin COMPONENT benchmarks)
+# OPTIONAL_HOST skips building host-only targets in CUDA-enabled CI jobs
+tnl_add_backend_executables(
+    tnl-benchmark-dense-linear-solvers
+    SOURCES tnl-benchmark-dense-linear-solvers.h
+    BACKENDS CUDA HIP HOST
+    OPTIONAL_HOST
+    CUDA_LINK_LIBRARIES CUDA::cusolver
+    OUTPUT_TARGETS BENCHMARKS
+)
+
+install(TARGETS ${BENCHMARKS} RUNTIME DESTINATION bin COMPONENT benchmarks)

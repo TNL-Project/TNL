@@ -1,96 +1,69 @@
 # Option to enable Tensor Core support explicitly
 option(USE_TENSOR_CORES "Enable to compile with Tensor Core support" OFF)
 
-# TNL Build CPP Targets
-if(TNL_BUILD_CPP_TARGETS)
-    add_executable(tnl-benchmark-dense-matrix-multiplication tnl-benchmark-dense-matrix-multiplication.cpp)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication PUBLIC TNL::TNL)
-    set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-dense-matrix-multiplication)
-
-    add_executable(tnl-benchmark-dense-matrix-transposition tnl-benchmark-dense-matrix-transposition.cpp)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition PUBLIC TNL::TNL)
-    set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-dense-matrix-transposition)
-
-    add_executable(tnl-benchmark-dense-matrix-vector-product tnl-benchmark-dense-matrix-vector-product.cpp)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product PUBLIC TNL::TNL)
-    set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-dense-matrix-vector-product)
-endif()
-
-# TNL Build CUDA Targets
 if(TNL_BUILD_CUDA)
     find_package(CUDAToolkit REQUIRED)
-    add_executable(tnl-benchmark-dense-matrix-multiplication-cuda tnl-benchmark-dense-matrix-multiplication.cu)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC TNL::TNL)
-    target_include_directories(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC CUDA::cublas)
-
-    add_executable(tnl-benchmark-dense-matrix-transposition-cuda tnl-benchmark-dense-matrix-transposition.cu)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC TNL::TNL)
-    target_include_directories(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC CUDA::cublas)
-
-    add_executable(tnl-benchmark-dense-matrix-vector-product-cuda tnl-benchmark-dense-matrix-vector-product.cu)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC TNL::TNL)
-    target_include_directories(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC CUDA::cublas)
+    find_package(NvidiaCutlass)
+    find_library(MAGMA_LIBRARY NAMES magma PATHS /opt/cuda/targets/x86_64-linux/lib)
 
     if(USE_TENSOR_CORES)
         message(STATUS "Compiling with Tensor Core support.")
-        target_compile_definitions(tnl-benchmark-dense-matrix-multiplication-cuda PRIVATE USE_TENSOR_CORES=1)
-        target_compile_definitions(tnl-benchmark-dense-matrix-transposition-cuda PRIVATE USE_TENSOR_CORES=1)
     else()
         message(STATUS "Compiling without Tensor Core support.")
     endif()
-
-    # Linking MAGMA
-    find_library(MAGMA_LIBRARY NAMES magma PATHS /opt/cuda/targets/x86_64-linux/lib)
-    if(MAGMA_LIBRARY)
-        target_link_libraries(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC ${MAGMA_LIBRARY})
-        target_link_libraries(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC ${MAGMA_LIBRARY})
-        target_link_libraries(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC ${MAGMA_LIBRARY})
-        add_definitions(-DHAVE_MAGMA)
-    else()
+    if(NOT MAGMA_LIBRARY)
         message(WARNING "MAGMA library not found.")
     endif()
-
-    # Linking Cutlass
-    find_package(NvidiaCutlass)
-    if(NvidiaCutlass_FOUND)
-        target_compile_definitions(tnl-benchmark-dense-matrix-multiplication-cuda PUBLIC -DHAVE_CUTLASS)
-        target_compile_definitions(tnl-benchmark-dense-matrix-transposition-cuda PUBLIC -DHAVE_CUTLASS)
-        target_compile_definitions(tnl-benchmark-dense-matrix-vector-product-cuda PUBLIC -DHAVE_CUTLASS)
-    else()
+    if(NOT NvidiaCutlass_FOUND)
         message(WARNING "CUTLASS library not found.")
     endif()
-
-    set(BENCHMARKS
-        ${BENCHMARKS}
-        tnl-benchmark-dense-matrix-multiplication-cuda
-        tnl-benchmark-dense-matrix-transposition-cuda
-        tnl-benchmark-dense-matrix-vector-product-cuda
-    )
 endif()
 
 if(TNL_BUILD_HIP)
-    add_executable(tnl-benchmark-dense-matrix-multiplication-hip tnl-benchmark-dense-matrix-multiplication.hip)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication-hip PUBLIC TNL::TNL)
     find_package(HIPBLAS REQUIRED)
-    target_link_libraries(tnl-benchmark-dense-matrix-multiplication-hip PUBLIC roc::hipblas)
+endif()
 
-    add_executable(tnl-benchmark-dense-matrix-transposition-hip tnl-benchmark-dense-matrix-transposition.hip)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition-hip PUBLIC TNL::TNL)
-    target_link_libraries(tnl-benchmark-dense-matrix-transposition-hip PUBLIC roc::hipblas)
+set(DENSE_MATRIX_BENCHMARKS
+    tnl-benchmark-dense-matrix-multiplication
+    tnl-benchmark-dense-matrix-transposition
+    tnl-benchmark-dense-matrix-vector-product
+)
 
-    add_executable(tnl-benchmark-dense-matrix-vector-product-hip tnl-benchmark-dense-matrix-vector-product.hip)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product-hip PUBLIC TNL::TNL)
-    target_link_libraries(tnl-benchmark-dense-matrix-vector-product-hip PUBLIC roc::hipblas)
-
-    set(BENCHMARKS
-        ${BENCHMARKS}
-        tnl-benchmark-dense-matrix-multiplication-hip
-        tnl-benchmark-dense-matrix-transposition-hip
-        tnl-benchmark-dense-matrix-vector-product-hip
+# OPTIONAL_HOST skips building host-only targets in CUDA-enabled CI jobs
+foreach(bench IN LISTS DENSE_MATRIX_BENCHMARKS)
+    tnl_add_backend_executables(
+        ${bench}
+        SOURCES ${bench}.h
+        BACKENDS HOST CUDA HIP
+        OPTIONAL_HOST
+        CUDA_LINK_LIBRARIES CUDA::cublas
+        HIP_LINK_LIBRARIES roc::hipblas
+        OUTPUT_TARGETS targets
+        OUTPUT_BACKENDS backends
     )
+
+    # libraries and options for the CUDA variants
+    foreach(target backend IN ZIP_LISTS targets backends)
+        if(NOT backend STREQUAL "CUDA")
+            continue()
+        endif()
+        target_include_directories(${target} PUBLIC /opt/cuda/targets/x86_64-linux/include)
+        if(MAGMA_LIBRARY)
+            target_link_libraries(${target} PUBLIC ${MAGMA_LIBRARY})
+        endif()
+        if(NvidiaCutlass_FOUND)
+            target_compile_definitions(${target} PUBLIC -DHAVE_CUTLASS)
+        endif()
+        if(USE_TENSOR_CORES AND NOT bench MATCHES "vector-product")
+            target_compile_definitions(${target} PRIVATE USE_TENSOR_CORES=1)
+        endif()
+    endforeach()
+
+    list(APPEND BENCHMARKS ${targets})
+endforeach()
+
+if(TNL_BUILD_CUDA AND MAGMA_LIBRARY)
+    add_definitions(-DHAVE_MAGMA)
 endif()
 
 # Installation

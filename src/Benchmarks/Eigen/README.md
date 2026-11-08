@@ -45,16 +45,16 @@ only. Individual operations can be toggled with the `--with-*` options.
 
 ### Compilation
 
-The directory builds three executables. Each is compiled from the `.cu` sources when
-CUDA is enabled, from the `.hip` sources when HIP is enabled, and from the `.cpp`
-sources otherwise; the target names are the same in all cases:
+The directory builds three benchmarks, each in a host (`tnl-benchmark-eigen-<name>`), CUDA
+(`tnl-benchmark-eigen-<name>-cuda`) and HIP (`tnl-benchmark-eigen-<name>-hip`) variant, all
+compiled from the same header:
 
 ```bash
-# Build all three benchmarks
+# Build all host variants
 just build tnl-benchmark-eigen-pi tnl-benchmark-eigen-qr tnl-benchmark-eigen-random
 
-# Build a single benchmark
-just build tnl-benchmark-eigen-pi
+# Build the CUDA variant of a single benchmark
+just build tnl-benchmark-eigen-pi-cuda
 ```
 
 ### Running

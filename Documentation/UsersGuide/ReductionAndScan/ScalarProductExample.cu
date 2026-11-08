@@ -1,1 +1,0 @@
-ScalarProductExample.cpp

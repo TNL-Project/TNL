@@ -1,1 +1,0 @@
-ReductionWithArgument.cpp

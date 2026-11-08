@@ -164,12 +164,29 @@ Use `git` for managing the local repository and `glab` for the remote repository
 - **TNL_BACKEND_SAFE_CALL(call)** for low-level CUDA/HIP API calls
 - **TNL::Exceptions::BackendRuntimeError** for runtime errors
 
+### CMake targets for several backends
+
+- Do not add per-backend `.cpp`, `.cu` and `.hip` files (or symbolic links) which
+  only include a common header: the sources are generated in the build directory.
+- Add executables with `tnl_add_backend_executables` (`cmake/target_helpers.cmake`)
+  and tests with `tnl_add_test_executables` (`cmake/testing.cmake`). Use
+  `CUDA_SOURCES` and `HIP_SOURCES` only when the code really differs between
+  backends.
+- Targets are named `<name>` (host), `<name>-cuda` and `<name>-hip`. `SINGLE`
+  builds one executable for the best available backend, `OPTIONAL_HOST` skips
+  host targets in GPU CI jobs.
+- Add documentation examples with `tnl_add_example_with_output`, which also
+  registers the output in the `run-doc-examples` target.
+- See `src/UnitTests/ARCHITECTURE.md` and `src/Benchmarks/ARCHITECTURE.md` for
+  the details and conventions.
+
 ### Testing
 
 - **Framework**: Google Test (GTest) via CTest
 - **Test structure**: Tests in `src/UnitTests/` subdirectories, each with its own `CMakeLists.txt`
 - **Test labels**: `Matrices`, `MPI`, etc.
-- **File extensions**: `.cpp`, `.cu` (CUDA), `.hip` (HIP)
+- **Test sources**: generated for each backend, see `src/UnitTests/ARCHITECTURE.md`
+- **Manually registered tests**: link the `TNL_tests` interface target, which provides the test flags and GTest
 
 ### Debugging
 

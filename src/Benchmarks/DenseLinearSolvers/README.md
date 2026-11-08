@@ -18,28 +18,28 @@ the `--precision all` option.
 
 ## Executables
 
-The benchmark is built as a single executable, `tnl-benchmark-dense-linear-solvers`, with the backend selected at
-compile time:
+The benchmark is built once per backend, all from the same source `tnl-benchmark-dense-linear-solvers.h`:
 
-| Build | Sources | Linked libraries |
-|-------|---------|------------------|
-| Host only | `tnl-benchmark-dense-linear-solvers.cpp` | `TNL::TNL` |
-| CUDA | `tnl-benchmark-dense-linear-solvers.cu` | `TNL::TNL`, `CUDA::cusolver` |
-| HIP | `tnl-benchmark-dense-linear-solvers.hip` | `TNL::TNL` |
+| Executable | Linked libraries |
+|------------|------------------|
+| `tnl-benchmark-dense-linear-solvers` (host) | `TNL::TNL` |
+| `tnl-benchmark-dense-linear-solvers-cuda` | `TNL::TNL`, `CUDA::cusolver` |
+| `tnl-benchmark-dense-linear-solvers-hip` | `TNL::TNL` |
 
 ## Usage
 
 Build the benchmark with `just` and run it:
 
 ```bash
-just build tnl-benchmark-dense-linear-solvers
+just build tnl-benchmark-dense-linear-solvers tnl-benchmark-dense-linear-solvers-cuda
 ./build/bin/tnl-benchmark-dense-linear-solvers
+./build/bin/tnl-benchmark-dense-linear-solvers-cuda --device cuda
 ```
 
 Run with a specific matrix size, in double precision, on the GPU:
 
 ```bash
-./build/bin/tnl-benchmark-dense-linear-solvers --matrix-size 2048 --precision double --device cuda
+./build/bin/tnl-benchmark-dense-linear-solvers-cuda --matrix-size 2048 --precision double --device cuda
 ```
 
 ## Options

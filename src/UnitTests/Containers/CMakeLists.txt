@@ -1,81 +1,29 @@
 add_subdirectory(ndarray)
 
-set(CPP_TESTS
-    MemoryOperationsTest
+set(HOST_TESTS
+    StaticArrayTest
+    StaticVectorTest
+    StaticVectorOperationsTest
+    StaticVectorOfStaticVectorsTest
+    BlockTest
+    BlockPartitioningTest
+    LinearCombinationTest
+)
+
+# tests built for all backends
+set(BACKEND_TESTS
     ArrayTest
     ArrayViewTest
     ComplexVectorBinaryOperationsTest
     ComplexVectorUnaryOperationsTest
     ComplexVectorVerticalOperationsTest
-    StaticArrayTest
-    StaticVectorTest
-    StaticVectorOperationsTest
-    StaticVectorOfStaticVectorsTest
     VectorTest
     VectorEvaluateAndReduceTest
-    VectorBinaryOperationsTest
-    VectorUnaryOperationsTest
-    VectorVerticalOperationsTest
     VectorOfStaticVectorsTest
-    BlockTest
-    BlockPartitioningTest
-    LinearCombinationTest
-)
-set(CUDA_TESTS
-    MemoryOperationsTestCuda
-    ArrayTestCuda
-    ArrayViewTestCuda
-    ComplexVectorBinaryOperationsTestCuda
-    ComplexVectorUnaryOperationsTestCuda
-    ComplexVectorVerticalOperationsTestCuda
-    VectorTestCuda
-    VectorEvaluateAndReduceTestCuda
-    VectorBinaryOperationsTestCuda
-    VectorUnaryOperationsTestCuda
-    VectorVerticalOperationsTestCuda
-    VectorOfStaticVectorsTestCuda
-)
-set(HIP_TESTS
-    MemoryOperationsTestHip
-    ArrayTestHip
-    ArrayViewTestHip
-    ComplexVectorBinaryOperationsTestHip
-    ComplexVectorUnaryOperationsTestHip
-    ComplexVectorVerticalOperationsTestHip
-    VectorTestHip
-    VectorBinaryOperationsTestHip
-    VectorUnaryOperationsTestHip
-    VectorVerticalOperationsTestHip
-    VectorOfStaticVectorsTestHip
 )
 
-foreach(target IN ITEMS ${CPP_TESTS})
-    add_executable(${target} ${target}.cpp)
-    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-    tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-endforeach()
-
-if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${CUDA_TESTS})
-        add_executable(${target} ${target}.cu)
-        target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
-    endforeach()
-endif()
-
-if(TNL_BUILD_HIP)
-    foreach(target IN ITEMS ${HIP_TESTS})
-        add_executable(${target} ${target}.hip)
-        target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        tnl_add_hip_test(NAME ${target} COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-    endforeach()
-endif()
+# tests built for all backends whose header does not define main()
+set(BACKEND_TESTS_WITHOUT_MAIN VectorBinaryOperationsTest VectorUnaryOperationsTest VectorVerticalOperationsTest)
 
 set(MPI_TESTS
     DistributedArrayTest
@@ -84,75 +32,26 @@ set(MPI_TESTS
     DistributedVectorVerticalOperationsTest
 )
 
-if(TNL_BUILD_MPI)
-    foreach(target IN ITEMS ${MPI_TESTS})
-        add_executable(${target} ${target}.cpp)
-        target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-        target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
+foreach(test IN ITEMS ${HOST_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.cpp BACKENDS HOST)
+endforeach()
 
-        # enable MPI support in TNL
-        target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-        # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-        target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
+foreach(test IN ITEMS ${BACKEND_TESTS})
+    tnl_add_test_executables(${test} SOURCES ${test}.h)
+endforeach()
 
-        tnl_add_mpi_test(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
-        tnl_add_mpi_test(
-            NAME ${target}_nodistr
-            NPROC 1
-            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-        )
-    endforeach()
+foreach(test IN ITEMS ${BACKEND_TESTS_WITHOUT_MAIN})
+    tnl_add_test_executables(${test} SOURCES ${test}.h ../main.h)
+endforeach()
 
-    if(TNL_BUILD_CUDA)
-        foreach(test IN ITEMS ${MPI_TESTS})
-            set(target ${test}Cuda)
-            add_executable(${target} ${target}.cu)
-            target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
-            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
+# test with different sources for each backend
+tnl_add_test_executables(
+    MemoryOperationsTest
+    SOURCES MemoryOperationsTest.cpp
+    CUDA_SOURCES MemoryOperationsTestCuda.cu
+    HIP_SOURCES MemoryOperationsTestHip.hip
+)
 
-            # enable MPI support in TNL
-            target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-            # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-            target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-
-            tnl_add_mpi_test(
-                NAME ${target}
-                NPROC 4
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            tnl_add_mpi_test(
-                NAME ${target}_nodistr
-                NPROC 1
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-        endforeach()
-    endif()
-
-    if(TNL_BUILD_HIP)
-        foreach(test IN ITEMS ${MPI_TESTS})
-            set(target ${test}Hip)
-            add_executable(${target} ${target}.hip)
-            target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
-            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-
-            # enable MPI support in TNL
-            target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
-            # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-            target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
-
-            tnl_add_hip_mpi_test(
-                NAME ${target}
-                NPROC 4
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-            tnl_add_hip_mpi_test(
-                NAME ${target}_nodistr
-                NPROC 1
-                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            )
-        endforeach()
-    endif()
-endif()
+foreach(test IN ITEMS ${MPI_TESTS})
+    tnl_add_test_executables(${test} MPI SOURCES ${test}.h)
+endforeach()

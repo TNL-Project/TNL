@@ -1,1 +1,0 @@
-#include "StaticODESolver-LorenzParallelExample.h"

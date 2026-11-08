@@ -1,25 +1,21 @@
-# skip building host-only targets in CUDA-enabled CI jobs
-if(TNL_BUILD_CPP_TARGETS)
-    add_executable(tnl-benchmark-blas tnl-benchmark-blas.cpp)
-    target_link_libraries(tnl-benchmark-blas PUBLIC TNL::TNL)
-    set(BENCHMARKS tnl-benchmark-blas)
-endif()
-
 if(TNL_BUILD_CUDA)
-    add_executable(tnl-benchmark-blas-cuda tnl-benchmark-blas.cu)
-    target_link_libraries(tnl-benchmark-blas-cuda PUBLIC TNL::TNL)
     find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(tnl-benchmark-blas-cuda PUBLIC CUDA::cublas)
-    set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-blas-cuda)
 endif()
 
 if(TNL_BUILD_HIP)
-    add_executable(tnl-benchmark-blas-hip tnl-benchmark-blas.hip)
-    target_link_libraries(tnl-benchmark-blas-hip PUBLIC TNL::TNL)
     find_package(HIPBLAS REQUIRED)
-    target_link_libraries(tnl-benchmark-blas-hip PUBLIC roc::hipblas)
-    set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-blas-hip)
 endif()
+
+# OPTIONAL_HOST skips building host-only targets in CUDA-enabled CI jobs
+tnl_add_backend_executables(
+    tnl-benchmark-blas
+    SOURCES tnl-benchmark-blas.h
+    BACKENDS HOST CUDA HIP
+    OPTIONAL_HOST
+    CUDA_LINK_LIBRARIES CUDA::cublas
+    HIP_LINK_LIBRARIES roc::hipblas
+    OUTPUT_TARGETS BENCHMARKS
+)
 
 foreach(target IN ITEMS ${BENCHMARKS})
     install(TARGETS ${target} RUNTIME DESTINATION bin COMPONENT benchmarks)

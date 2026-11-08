@@ -3,26 +3,17 @@ set(CUDA_EXAMPLES ParallelIterationCuda GameOfLifeCuda)
 set(ALL_EXAMPLES ${CPP_EXAMPLES})
 
 foreach(target IN ITEMS ${CPP_EXAMPLES})
-    add_executable(${target} ${target}.cpp)
-    target_link_libraries(${target} PUBLIC TNL::TNL)
-    add_custom_command(
-        COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        DEPENDS ${target}
-    )
-    set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
+    tnl_add_example_with_output(${target} SOURCES ${target}.cpp BACKENDS HOST)
 endforeach()
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${CUDA_EXAMPLES})
-        add_executable(${target} ${target}.cu)
-        target_link_libraries(${target} PUBLIC TNL::TNL)
-        add_custom_command(
-            COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS ${target}
-        )
-        set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
+        if(target STREQUAL "GameOfLifeCuda")
+            set(source GameOfLife.cpp)
+        else()
+            set(source ${target}.h)
+        endif()
+        tnl_add_example_with_output(${target} SOURCES ${source} BACKENDS CUDA)
     endforeach()
     set(ALL_EXAMPLES ${ALL_EXAMPLES} ${CUDA_EXAMPLES})
 endif()
@@ -42,11 +33,6 @@ if(tinyxml2_FOUND)
         target_link_libraries(${target} PUBLIC tinyxml2::tinyxml2)
     endforeach()
 endif()
-
-add_custom_target(RunUGMeshesExamples ALL DEPENDS ${DOC_OUTPUTS})
-
-# add the dependency to the main target
-add_dependencies(run-doc-examples RunUGMeshesExamples)
 
 set(DATA_FILES example-triangles.vtu grid-100x100.vtu)
 

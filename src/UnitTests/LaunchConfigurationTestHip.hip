@@ -1,1 +1,0 @@
-LaunchConfigurationTest.cpp
