@@ -20,6 +20,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Math.h>
+#include "CSRHostScheduling.h"
 #include "MultiReducingKernels_CSR_LanesOverReductions.h"
 #include "MultiReducingKernels_CSR_Uniform.h"
 #include "MultiReducingOperationsBase.h"
@@ -34,6 +35,13 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
    using Base = MultiReducingOperationsBase< SegmentsViewType >;
    using DeviceType = Device;
    using IndexType = std::remove_const_t< Index >;
+
+   //! \brief Returns `true` for the devices on the host, i.e. \ref TNL::Devices::Host and \ref TNL::Devices::Sequential.
+   static constexpr bool
+   isHostDevice()
+   {
+      return std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential >;
+   }
 
    //! \brief The block size of the kernels of \ref multiReduceAllSegmentsLanesOverReductions.
    static constexpr int lanesOverReductionsBlockSize = 256;
@@ -181,6 +189,10 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
             }
          }
       }
+      if constexpr( isHostDevice() ) {
+         multiReduceSegmentsHost< TileSize, false >( segments, reductions, fetch, reduction, storer, identity );
+         return;
+      }
       Base::template multiReduceAllSegmentsInTiles< TileSize >(
          segments,
          reductions,
@@ -189,6 +201,144 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
          std::forward< ResultStorer >( storer ),
          identity,
          launchConfig );
+   }
+
+   /**
+    * \brief Implementation of \ref Segments_multiReduceAllSegments_identity.
+    *
+    * On the host, \ref multiReduceSegmentsHost is used. Otherwise, the general implementation is used.
+    */
+   template< int Size, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
+   static void
+   multiReduceAllSegments(
+      const SegmentsViewType& segments,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
+   {
+      if constexpr( isHostDevice() )
+         multiReduceSegmentsHost< Size, true >( segments, Size, fetch, reduction, storer, identity );
+      else
+         Base::template multiReduceAllSegments< Size >(
+            segments,
+            std::forward< Fetch >( fetch ),
+            std::forward< Reduction >( reduction ),
+            std::forward< ResultStorer >( storer ),
+            identity,
+            launchConfig );
+   }
+
+   /**
+    * \brief Multireduction in CSR segments on the host.
+    *
+    * Every thread processes a contiguous block of segments with approximately the same number of
+    * elements (see \ref forSegmentsHost), sequentially for \ref TNL::Devices::Sequential. The
+    * reductions are computed in tiles of `TileSize` reductions:
+    *
+    * - With `TilesInSegment`, all tiles of a segment are computed one after another, so the
+    *   elements of the segment are read from the cache for all tiles but the first one. This suits
+    *   the fetch of the reduction `j` reading consecutive data for consecutive `j` (e.g. a row of a
+    *   row-major dense matrix), which are then read only once.
+    * - Otherwise, every tile is computed for all segments before the next one, so only the data of
+    *   one tile are read at once. This suits the fetch of the reduction `j` reading data far from
+    *   those for `j + 1` (e.g. a column of a column-major dense matrix), which stay in the cache
+    *   for the elements of the next segments.
+    *
+    * Within a tile, the inner loop over the reductions has a constant trip count and the partial
+    * results are kept in a local array, so the compiler can vectorize it. The tiles of at most 8
+    * reductions are computed with two independent partial results per reduction, so that the loop
+    * is not bound by the latency of the reduction operation (e.g. the FMA in SpMM).
+    */
+   template< int TileSize, bool TilesInSegment, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
+   static void
+   multiReduceSegmentsHost(
+      const SegmentsViewType& segments,
+      int reductions,
+      Fetch fetch,
+      Reduction reduction,
+      ResultStorer storer,
+      const Value& identity )
+   {
+      using FetchType = std::decay_t< Fetch >;
+      using ValueType = MultiReductionFetchValue< IndexType, FetchType >;
+      const auto offsets = segments.getOffsets();
+      const IndexType segmentsCount = segments.getSegmentCount();
+      const int tiles = roundUpDivision( reductions, TileSize );
+
+      // computes the reductions firstReduction, ..., firstReduction + count - 1 of the segment
+      auto reduceTile =
+         [ offsets, fetch, reduction, storer, identity ]( IndexType segmentIdx, int firstReduction, auto count ) mutable
+      {
+         const IndexType begin = offsets[ segmentIdx ];
+         const IndexType end = offsets[ segmentIdx + 1 ];
+         auto fetchValue = [ & ]( IndexType globalIdx, int j )
+         {
+            if constexpr( callableArgumentCount< FetchType >() == 4 )
+               return fetch( segmentIdx, globalIdx - begin, globalIdx, firstReduction + j );
+            else
+               return fetch( globalIdx, firstReduction + j );
+         };
+         // the elements are processed by Unroll independent sets of the partial results, so that there are at
+         // least 8 independent reductions in the inner loop
+         constexpr int Unroll = TileSize <= 4 ? 4 : TileSize <= 8 ? 2 : 1;
+         ValueType results[ Unroll ][ TileSize ];
+         for( int u = 0; u < Unroll; u++ )
+            for( int j = 0; j < TileSize; j++ )
+               results[ u ][ j ] = identity;
+         IndexType globalIdx = begin;
+         if constexpr( Unroll > 1 ) {
+            for( ; globalIdx + Unroll - 1 < end; globalIdx += Unroll )
+               for( int u = 0; u < Unroll; u++ )
+                  for( int j = 0; j < count; j++ )
+                     results[ u ][ j ] = reduction( results[ u ][ j ], fetchValue( globalIdx + u, j ) );
+            for( int u = 1; u < Unroll; u++ )
+               for( int j = 0; j < count; j++ )
+                  results[ 0 ][ j ] = reduction( results[ 0 ][ j ], results[ u ][ j ] );
+         }
+         for( ; globalIdx < end; globalIdx++ )
+            for( int j = 0; j < count; j++ )
+               results[ 0 ][ j ] = reduction( results[ 0 ][ j ], fetchValue( globalIdx, j ) );
+         for( int j = 0; j < count; j++ )
+            storer( segmentIdx, firstReduction + j, results[ 0 ][ j ] );
+      };
+      // the full tiles have the constant trip count of the inner loop
+      auto reduceSegmentTile = [ reduceTile, reductions ]( IndexType segmentIdx, int tile ) mutable
+      {
+         const int firstReduction = tile * TileSize;
+         if( firstReduction + TileSize <= reductions )
+            reduceTile( segmentIdx, firstReduction, std::integral_constant< int, TileSize >{} );
+         else
+            reduceTile( segmentIdx, firstReduction, reductions - firstReduction );
+      };
+      auto forAllSegments = [ & ]( auto& f )
+      {
+         if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
+            for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
+               f( segmentIdx );
+         }
+         else
+            forSegmentsHost( offsets, IndexType( 0 ), segmentsCount, f );
+      };
+
+      if constexpr( TilesInSegment ) {
+         auto processSegment = [ reduceSegmentTile, tiles ]( IndexType segmentIdx ) mutable
+         {
+            for( int tile = 0; tile < tiles; tile++ )
+               reduceSegmentTile( segmentIdx, tile );
+         };
+         forAllSegments( processSegment );
+      }
+      else {
+         for( int tile = 0; tile < tiles; tile++ ) {
+            auto processSegment = [ reduceSegmentTile, tile ]( IndexType segmentIdx ) mutable
+            {
+               reduceSegmentTile( segmentIdx, tile );
+            };
+            forAllSegments( processSegment );
+         }
+      }
    }
 
    /**
@@ -284,6 +434,10 @@ struct MultiReducingOperations< CSRView< Device, Index > > : public MultiReducin
             if( ! stored )
                longSegments.setSize( 3 * longCount );
          }
+      }
+      else if constexpr( isHostDevice() ) {
+         // on the host, a thread processes all reductions of its segments
+         multiReduceSegmentsHost< Lanes * ReductionsPerLane, true >( segments, reductions, fetch, reduction, storer, identity );
       }
       else
          Base::template multiReduceAllSegmentsLanesOverReductions< Lanes, ReductionsPerLane >(

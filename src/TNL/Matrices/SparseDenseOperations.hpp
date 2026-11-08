@@ -236,8 +236,12 @@ sparseDenseMatrixProduct(
    using SegmentsType = std::decay_t< decltype( A.getSegments() ) >;
    using Algorithms::Segments::ThreadsToSegmentsMapping;
    Algorithms::Segments::LaunchConfiguration config = launchConfig;
-   if constexpr( Algorithms::Segments::isCSRSegments_v< SegmentsType >
-                 && std::is_same_v< typename SparseMatrix::DeviceType, Devices::GPU > )
+   using DeviceType = typename SparseMatrix::DeviceType;
+   // on the host, sparseDenseMatrixProductLanesOverColumns computes all columns of a row of C at once, which suits
+   // row-major B, and the launch configuration is not used
+   if constexpr(
+      Algorithms::Segments::isCSRSegments_v< SegmentsType >
+      && (std::is_same_v< DeviceType, Devices::GPU > || std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential >) )
    {
       if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
          if constexpr( DenseMatrixB::getOrganization() == Algorithms::Segments::RowMajorOrder ) {

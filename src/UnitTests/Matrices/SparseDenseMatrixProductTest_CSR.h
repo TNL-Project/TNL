@@ -16,6 +16,7 @@ using MatrixTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TestMatrixType< int, TNL::Devices::Host, int >,
    TestMatrixType< float, TNL::Devices::Host, int >,
+   TestMatrixType< double, TNL::Devices::Sequential, int >,
    TestMatrixType< double, TNL::Devices::Host, long >,
    TestMatrixType< std::complex< float >, TNL::Devices::Host, long >
 #elif defined( __CUDACC__ )
