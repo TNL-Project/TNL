@@ -874,6 +874,31 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
       // tile-relative indices from the base pointer of the tile
       const Value* const tileInput = input.getData() + tileBegin;
 
+      // load the items into registers in the warp-major layout (each warp
+      // handles a contiguous span of the tile, split into consecutive
+      // rounds of warpSize elements, so that the loads of each round are
+      // coalesced); all loads of the tile are issued before any shared
+      // memory access: the compiler does not move a global load across a
+      // shared atomic, so loads interleaved with the histogram atomics
+      // below would wait for the full memory latency one after another,
+      // and issuing them before the zeroing barrier also overlaps their
+      // latency with the zeroing; the rounded-up rounds of a partial tile
+      // are filled with the padding value
+      Value values[ itemsPerThread ];
+      const int warpBase = warpId * ( warpSize * itemsPerThread );
+      if( tileSize == tileElements ) {
+         #pragma unroll
+         for( int j = 0; j < itemsPerThread; j++ )
+            values[ j ] = tileInput[ warpBase + j * static_cast< int >( warpSize ) + lane ];
+      }
+      else {
+         #pragma unroll
+         for( int j = 0; j < itemsPerThread; j++ ) {
+            const int idxInTile = warpBase + j * static_cast< int >( warpSize ) + lane;
+            values[ j ] = idxInTile < tileSize ? tileInput[ idxInTile ] : padValue;
+         }
+      }
+
       // zero the packed per-(warp, digit) counters of this tile and the
       // anchor of the digit starts (the staging tile of the previous tile
       // of this block aliases the digit starts and may have clobbered it)
@@ -882,35 +907,25 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
       s_stage.digitStarts[ 0 ] = 0;
       __syncthreads();
 
-      // load the items into registers in the warp-major layout (each warp
-      // handles a contiguous span of the tile, split into consecutive
-      // rounds of warpSize elements, so that the loads of each round are
-      // coalesced) and accumulate each item into its warp's shared per-digit
-      // histogram; the first phase of the ranking ends here, giving the
-      // tile's digit counts early for the lookback publishing below
-      Value values[ itemsPerThread ];
-      const int warpBase = warpId * ( warpSize * itemsPerThread );
+      // accumulate each item into its warp's shared per-digit histogram;
+      // the first phase of the ranking ends here, giving the tile's digit
+      // counts early for the lookback publishing below
       if( tileSize == tileElements ) {
          #pragma unroll
          for( int j = 0; j < itemsPerThread; j++ ) {
-            const Value value = tileInput[ warpBase + j * static_cast< int >( warpSize ) + lane ];
-            values[ j ] = value;
-            const unsigned int dig = radixSortDigit< Value, descending >( value, pass );
+            const unsigned int dig = radixSortDigit< Value, descending >( values[ j ], pass );
             (void) radixSortPackedCounterAdd( &s_warpCounters[ warpId * counterWords + ( dig >> 1 ) ], dig, 1 );
          }
       }
       else {
-         // partial tile: pad the rounded-up rounds with the padding value
          #pragma unroll
          for( int j = 0; j < itemsPerThread; j++ ) {
             const int idxInTile = warpBase + j * static_cast< int >( warpSize ) + lane;
-            const Value value = idxInTile < tileSize ? tileInput[ idxInTile ] : padValue;
-            values[ j ] = value;
             // the rounded-up rounds go to the last bucket regardless of the
             // padding value (which lands in the staged tile but is never
             // written out)
             const unsigned int dig =
-               idxInTile < tileSize ? radixSortDigit< Value, descending >( value, pass ) : radixSortBuckets - 1;
+               idxInTile < tileSize ? radixSortDigit< Value, descending >( values[ j ], pass ) : radixSortBuckets - 1;
             (void) radixSortPackedCounterAdd( &s_warpCounters[ warpId * counterWords + ( dig >> 1 ) ], dig, 1 );
          }
       }
@@ -998,9 +1013,20 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
       }
       __syncthreads();
 
+      // the lookback below needs the tile-local start and end of the
+      // thread's digit run, which are kept in registers: the lookback is
+      // deferred past the staging, whose tile clobbers the digit starts
+      // (see the union)
+      int runStart = 0;
+      int runEnd = 0;
+      if( digit < radixSortBuckets ) {
+         runStart = s_stage.digitStarts[ digit ];
+         runEnd = s_stage.digitStarts[ digit + 1 ];
+      }
+
       // fold the tile-local digit starts into the running per-(warp, digit)
       // counters (packed two per word, one thread per word); the digit
-      // starts are consumed here and by the lookback below, so the staging
+      // starts are consumed here and by the reads above, so the staging
       // tile written afterwards may clobber them (see the union)
       if( s_singleDigit < 0 && digit < counterWords ) {
          const unsigned int packedStart = static_cast< unsigned int >( s_stage.digitStarts[ 2 * digit ] )
@@ -1008,11 +1034,18 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
          for( int w = 0; w < warps; w++ )
             s_warpCounters[ w * counterWords + digit ] += packedStart;
       }
+      __syncthreads();
 
       // decoupled lookback: accumulate the aggregates of the preceding
       // tiles until an inclusive prefix is found; the first tile has no
-      // predecessors, so its strip-relative offset is zero
-      if( digit < radixSortBuckets ) {
+      // predecessors, so its strip-relative offset is zero; the lookback
+      // runs after the tile is staged (as in CUB's onesweep), so that the
+      // ranking hides the time the predecessors need to publish their
+      // prefixes instead of the block stalling on them
+      const auto lookback = [ & ]()
+      {
+         if( digit >= radixSortBuckets )
+            return;
          Index stripExclusive = 0;
          if( tile != 0 ) {
             unsigned int accumulated = 0;
@@ -1044,23 +1077,23 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
          // shared operand (the start of the single-digit run is zero, so
          // the direct writeout path below is unaffected by the shift)
          s_base[ digit ] = digitBase[ static_cast< Index >( pass ) * radixSortBuckets + digit ] + stripExclusive
-                         - static_cast< Index >( s_stage.digitStarts[ digit ] );
+                         - static_cast< Index >( runStart );
          // republish with the strip-relative inclusive prefix through this
          // tile, which shortens the lookback of the subsequent blocks; the
          // real count is recovered from the raked starts (the last digit's
          // count includes the padding, which does not belong to the strip)
-         const int realCount = static_cast< int >( s_stage.digitStarts[ digit + 1 ] - s_stage.digitStarts[ digit ] )
-                             - ( digit == radixSortBuckets - 1 ? padCount : 0 );
+         const int realCount = runEnd - runStart - ( digit == radixSortBuckets - 1 ? padCount : 0 );
          // the block of the last tile of the strip publishes the strip's
          // total count of its digit in this counter, from which the driver
          // advances the base offsets of the digit runs for the next strip
          atomicExch(
             &tileStatus[ tile * radixSortBuckets + digit ],
             radixSortTilePrefix | static_cast< unsigned int >( stripExclusive + realCount ) );
-      }
-      __syncthreads();
+      };
 
       if( s_singleDigit >= 0 ) {
+         lookback();
+         __syncthreads();
          // all items of the tile fall into the same digit bin: write them
          // out directly from registers, skipping the staged tile; the
          // intra-tile rank of an item is its index in the tile, so the
@@ -1115,6 +1148,7 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
                s_stage.tile[ staged + rank ] = values[ j ];
             }
          }
+         lookback();
          __syncthreads();
 
          // write the tile out with coalesced stores: consecutive positions
