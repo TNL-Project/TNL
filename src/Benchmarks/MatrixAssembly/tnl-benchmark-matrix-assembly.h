@@ -51,7 +51,11 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "hip" );
    config.addEntryEnum( "all" );
-   config.addEntry< std::string >( "dimension", "Dimension of the numerical grid.", "all" );
+   config.addEntry< std::string >( "problem", "Problem whose matrix is assembled.", "all" );
+   config.addEntryEnum( "laplace" );
+   config.addEntryEnum( "graph" );
+   config.addEntryEnum( "all" );
+   config.addEntry< std::string >( "dimension", "Dimension of the numerical grid of the Laplace problem.", "all" );
    config.addEntryEnum( "1" );
    config.addEntryEnum( "2" );
    config.addEntryEnum( "3" );
@@ -60,9 +64,16 @@ configSetup( TNL::Config::ConfigDescription& config )
       "x-size", "Number of grid nodes along the x axis (0 means 10^6, 10^3 and 10^2 nodes in 1D, 2D and 3D).", 0 );
    config.addEntry< int >( "y-size", "Number of grid nodes along the y axis (0 means 10^3 and 10^2 nodes in 2D and 3D).", 0 );
    config.addEntry< int >( "z-size", "Number of grid nodes along the z axis (0 means 10^2 nodes in 3D).", 0 );
+   config.addEntry< int >( "graph-scale", "Logarithm of the number of vertices of the R-MAT graph (base 2).", 20 );
+   config.addEntry< int >( "graph-edge-factor", "Number of generated edges per vertex of the R-MAT graph.", 8 );
+   config.addEntry< int >( "graph-seed", "Seed of the random generator of the R-MAT graph.", 0 );
    config.addList< std::string >(
       "libraries", "Libraries to benchmark (TNL, Ginkgo, Hypre, PETSc, cuSPARSE, all).", { "all" } );
-   config.addList< std::string >( "formats", "Matrix formats to benchmark (CSR, Ellpack, SlicedEllpack, all).", { "all" } );
+   config.addList< std::string >(
+      "formats",
+      "Matrix formats to benchmark (CSR, AdaptiveCSR, Ellpack, SlicedEllpack, ChunkedEllpack, "
+      "BiEllpack, the same formats with the prefix Sorted, e.g. SortedCSR, or all).",
+      { "all" } );
    config.addEntry< bool >( "verify", "Verify the assembled matrices.", true );
 
    config.addDelimiter( "Device settings:" );

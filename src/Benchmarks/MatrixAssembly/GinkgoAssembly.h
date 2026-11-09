@@ -5,6 +5,7 @@
 
 #ifdef HAVE_GINKGO
 
+   #include <limits>
    #include <memory>
    #include <set>
    #include <string>
@@ -18,7 +19,6 @@
    #include <TNL/Devices/GPU.h>
    #include <TNL/Devices/Host.h>
 
-   #include "LaplaceProblem.h"
    #include "Utils.h"
 
 namespace TNL::Benchmarks::MatrixAssembly {
@@ -40,10 +40,13 @@ getGinkgoExecutor()
 }
 
 //! \brief Converts a Ginkgo matrix to CSR on the host and compares it with the exact matrix.
-template< typename Real, typename Index, typename Format >
+template< typename Format, typename Problem >
 void
-verifyGinkgoMatrix( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, const Format& matrix )
+verifyGinkgoMatrix( Benchmark& benchmark, const Problem& problem, const Format& matrix )
 {
+   using Real = typename Problem::RealType;
+   using Index = typename Problem::IndexType;
+
    using Csr = gko::matrix::Csr< Real, Index >;
    auto csr = Csr::create( matrix.get_executor()->get_master() );
    matrix.convert_to( csr );
@@ -56,10 +59,13 @@ verifyGinkgoMatrix( Benchmark& benchmark, const LaplaceProblem< Real, Index >& p
 }
 
 //! \brief Assembles a Ginkgo matrix from COO triplets generated on \e Device.
-template< typename Device, typename Format, typename Real, typename Index >
+template< typename Device, typename Format, typename Problem >
 std::unique_ptr< Format >
-assembleGinkgoMatrix( const std::shared_ptr< gko::Executor >& exec, const LaplaceProblem< Real, Index >& problem )
+assembleGinkgoMatrix( const std::shared_ptr< gko::Executor >& exec, const Problem& problem )
 {
+   using Real = typename Problem::RealType;
+   using Index = typename Problem::IndexType;
+
    gko::device_matrix_data< Real, Index > data(
       exec, gko::dim< 2 >( problem.getRows(), problem.getRows() ), problem.getNonzeroElementsCount() );
    Containers::Vector< Index, Device, Index > offsets;
@@ -86,17 +92,23 @@ assembleGinkgoMatrix( const std::shared_ptr< gko::Executor >& exec, const Laplac
  * For GPU devices, the assembly on the OpenMP executor followed by `copy_from` to the GPU
  * executor is measured in addition (see \ref timeHostAssemblyAndTransfer).
  */
-template< typename Real, typename Device, typename Index, typename Format >
+template< typename Real, typename Device, typename Index, typename Format, typename Problem >
 void
-benchmarkGinkgoFormat(
-   Benchmark& benchmark,
-   const LaplaceProblem< Real, Index >& problem,
-   const std::string& format,
-   bool verify )
+benchmarkGinkgoFormat( Benchmark& benchmark, const Problem& problem, const std::string& format, bool verify )
 {
    using DeviceData = gko::device_matrix_data< Real, Index >;
 
    benchmark.setMetadataElement( { "format", format } );
+
+   // Ell pads all rows to the length of the longest row
+   if( isEllpackFormat( format )
+       && (long double) problem.getRows() * problem.getMaxRowLength() > std::numeric_limits< Index >::max() )
+   {
+      benchmark.addErrorMessage(
+         "Ginkgo " + format + " skipped: the padded matrix with " + std::to_string( problem.getRows() )
+         + " rows and the maximal row length " + std::to_string( problem.getMaxRowLength() ) + " is too large" );
+      return;
+   }
 
    const auto exec = getGinkgoExecutor< Device >();
    const gko::dim< 2 > size( problem.getRows(), problem.getRows() );
@@ -165,13 +177,9 @@ benchmarkGinkgoFormat(
    }
 }
 
-template< typename Real, typename Device, typename Index >
+template< typename Real, typename Device, typename Index, typename Problem >
 void
-benchmarkGinkgo(
-   Benchmark& benchmark,
-   const LaplaceProblem< Real, Index >& problem,
-   const std::set< std::string >& formats,
-   bool verify )
+benchmarkGinkgo( Benchmark& benchmark, const Problem& problem, const std::set< std::string >& formats, bool verify )
 {
    if( formats.count( "CSR" ) > 0 )
       benchmarkGinkgoFormat< Real, Device, Index, gko::matrix::Csr< Real, Index > >( benchmark, problem, "CSR", verify );

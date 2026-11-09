@@ -17,7 +17,6 @@
    #include <TNL/Devices/GPU.h>
    #include <TNL/Devices/Host.h>
 
-   #include "LaplaceProblem.h"
    #include "Utils.h"
 
 namespace TNL::Benchmarks::MatrixAssembly {
@@ -45,9 +44,9 @@ checkCusparse( cusparseStatus_t status, const char* call )
  * The assembly of the CSR arrays on the host followed by their transfer to the GPU and
  * creating the matrix descriptor is measured in addition (see \ref timeHostAssemblyAndTransfer).
  */
-template< typename Real, typename Index >
+template< typename Real, typename Index, typename Problem >
 void
-benchmarkCusparse( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, bool verify )
+benchmarkCusparse( Benchmark& benchmark, const Problem& problem, bool verify )
 {
    static_assert( std::is_same_v< Index, int >, "cusparseXcoo2csr supports only 32-bit indexes" );
    using Device = Devices::GPU;

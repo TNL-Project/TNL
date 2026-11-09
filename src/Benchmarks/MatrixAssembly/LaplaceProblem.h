@@ -4,12 +4,10 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
-#include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Algorithms/scan.h>
 #include <TNL/Backend/Macros.h>
-#include <TNL/Containers/Vector.h>
+
+#include "AssemblyProblem.h"
 
 namespace TNL::Benchmarks::MatrixAssembly {
 
@@ -24,14 +22,12 @@ namespace TNL::Benchmarks::MatrixAssembly {
  * column indexes, so the generated data is sorted in the row-major order.
  *
  * All methods marked with \ref __cuda_callable__ can be used in GPU kernels and the
- * object can be captured by value in lambda functions.
+ * object can be captured by value in lambda functions, so it serves as its own view
+ * (see \ref AssemblyProblemBase).
  */
 template< typename Real, typename Index >
-struct LaplaceProblem
+struct LaplaceProblem : public AssemblyProblemBase< LaplaceProblem< Real, Index >, Real, Index >
 {
-   using RealType = Real;
-   using IndexType = Index;
-
    LaplaceProblem() = default;
 
    LaplaceProblem( int dimension, Index xSize, Index ySize, Index zSize )
@@ -52,6 +48,20 @@ struct LaplaceProblem
       return dimension;
    }
 
+   [[nodiscard]] std::string
+   getName() const
+   {
+      return "Laplace " + std::to_string( dimension ) + "D";
+   }
+
+   //! \brief The view used in kernels on \e Device is the problem itself.
+   template< typename Device >
+   [[nodiscard]] LaplaceProblem
+   getView() const
+   {
+      return *this;
+   }
+
    [[nodiscard]] __cuda_callable__
    Index
    getRows() const
@@ -60,7 +70,7 @@ struct LaplaceProblem
    }
 
    [[nodiscard]] std::string
-   getGridSizeString() const
+   getSizeString() const
    {
       std::string result = std::to_string( xSize );
       if( dimension > 1 )
@@ -76,6 +86,14 @@ struct LaplaceProblem
    getStencilSize() const
    {
       return 2 * dimension + 1;
+   }
+
+   //! \brief Maximal number of non-zero elements in one row of the matrix.
+   [[nodiscard]] __cuda_callable__
+   Index
+   getMaxRowLength() const
+   {
+      return getNonzeroElementsCount() > getRows() ? getStencilSize() : 1;
    }
 
    //! \brief Number of non-zero elements of the whole matrix.
@@ -157,119 +175,6 @@ struct LaplaceProblem
          f( localIdx++, row + xSize, -hy );
       if( dimension > 2 )
          f( localIdx++, row + xSize * ySize, -hz );
-   }
-
-   /**
-    * \brief Computes the CSR row pointers (offsets of the rows in the COO/CSR arrays).
-    *
-    * \param offsets is resized to `getRows() + 1` elements and filled with the row offsets.
-    */
-   template< typename Device >
-   void
-   computeRowOffsets( Containers::Vector< Index, Device, Index >& offsets ) const
-   {
-      const Index rows = getRows();
-      offsets.setSize( rows + 1 );
-      auto offsetsView = offsets.getView();
-      const LaplaceProblem problem = *this;
-      Algorithms::parallelFor< Device >(
-         0,
-         rows,
-         [ = ] __cuda_callable__( Index row ) mutable
-         {
-            offsetsView[ row ] = problem.getRowLength( row );
-         } );
-      offsets.setElement( rows, 0 );
-      Algorithms::inplaceExclusiveScan( offsets );
-   }
-
-   /**
-    * \brief Writes the matrix elements in the COO format into the given arrays.
-    *
-    * Any of the pointers \e rowIndexes, \e columnIndexes and \e values may be \e nullptr
-    * in which case the corresponding array is not written. The arrays must be allocated
-    * on \e Device and have at least \ref getNonzeroElementsCount elements.
-    *
-    * \param offsets are the row offsets computed by \ref computeRowOffsets.
-    */
-   template< typename Device, typename RowIndex, typename ColumnIndex, typename Value >
-   void
-   writeCOO(
-      const Containers::Vector< Index, Device, Index >& offsets,
-      RowIndex* rowIndexes,
-      ColumnIndex* columnIndexes,
-      Value* values ) const
-   {
-      const auto offsetsView = offsets.getConstView();
-      const LaplaceProblem problem = *this;
-      Algorithms::parallelFor< Device >(
-         0,
-         getRows(),
-         [ = ] __cuda_callable__( Index row ) mutable
-         {
-            const Index begin = offsetsView[ row ];
-            problem.forRowElements(
-               row,
-               [ & ]( Index localIdx, Index column, Real value )
-               {
-                  if( rowIndexes != nullptr )
-                     rowIndexes[ begin + localIdx ] = row;
-                  if( columnIndexes != nullptr )
-                     columnIndexes[ begin + localIdx ] = column;
-                  if( values != nullptr )
-                     values[ begin + localIdx ] = value;
-               } );
-         } );
-   }
-
-   /**
-    * \brief Compares a matrix given by host CSR arrays with the exact matrix.
-    *
-    * The order of the elements within each row does not matter (e.g. Hypre stores the
-    * diagonal element first). Explicit zeros and padding elements must be removed by the
-    * caller.
-    *
-    * \return Empty string on success, otherwise a description of the first difference.
-    */
-   template< typename RowPointer, typename ColumnIndex, typename Value >
-   [[nodiscard]] std::string
-   compare(
-      const std::vector< RowPointer >& rowPointers,
-      const std::vector< ColumnIndex >& columnIndexes,
-      const std::vector< Value >& values ) const
-   {
-      const Index rows = getRows();
-      if( (Index) rowPointers.size() != rows + 1 )
-         return "wrong number of rows: " + std::to_string( (long) rowPointers.size() - 1 ) + " instead of "
-              + std::to_string( rows );
-      if( (Index) rowPointers[ rows ] != getNonzeroElementsCount() )
-         return "wrong number of non-zero elements: " + std::to_string( (long) rowPointers[ rows ] ) + " instead of "
-              + std::to_string( getNonzeroElementsCount() );
-      for( Index row = 0; row < rows; row++ ) {
-         const Index begin = rowPointers[ row ];
-         const Index end = rowPointers[ row + 1 ];
-         if( end - begin != getRowLength( row ) )
-            return "wrong length of row " + std::to_string( row );
-         std::string error;
-         forRowElements(
-            row,
-            [ & ]( Index localIdx, Index column, Real value )
-            {
-               if( ! error.empty() )
-                  return;
-               Index idx = begin;
-               while( idx < end && (Index) columnIndexes[ idx ] != column )
-                  idx++;
-               if( idx == end )
-                  error = "missing element at row " + std::to_string( row ) + ", column " + std::to_string( column );
-               else if( Real( values[ idx ] ) != value )
-                  error = "wrong value at row " + std::to_string( row ) + ", column " + std::to_string( column ) + ": "
-                        + std::to_string( (double) values[ idx ] ) + " instead of " + std::to_string( (double) value );
-            } );
-         if( ! error.empty() )
-            return error;
-      }
-      return "";
    }
 
 protected:

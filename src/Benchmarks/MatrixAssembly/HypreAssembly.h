@@ -17,7 +17,6 @@
    #include <HYPRE.h>
    #include <TNL/Hypre.h>
 
-   #include "LaplaceProblem.h"
    #include "Utils.h"
 
 namespace TNL::Benchmarks::MatrixAssembly {
@@ -35,10 +34,12 @@ using HypreDevice = Devices::Host;
  * \e memoryLocation must correspond to \e ArrayDevice. The row sizes are set only for the
  * assembly in the host memory, GPU builds of Hypre do not use them.
  */
-template< typename Real, typename ArrayDevice, typename Index >
+template< typename Problem, typename ArrayDevice >
 struct HypreAssembler
 {
-   HypreAssembler( const LaplaceProblem< Real, Index >& problem, HYPRE_MemoryLocation memoryLocation )
+   using Index = typename Problem::IndexType;
+
+   HypreAssembler( const Problem& problem, HYPRE_MemoryLocation memoryLocation )
    : problem( problem ),
      memoryLocation( memoryLocation )
    {}
@@ -80,13 +81,13 @@ struct HypreAssembler
          offdSizes.setSize( rows );
          offdSizes.setValue( 0 );
          auto diagSizesView = diagSizes.getView();
-         const LaplaceProblem< Real, Index > p = problem;
+         const auto problemView = problem.template getView< Devices::Host >();
          Algorithms::parallelFor< Devices::Host >(
             0,
             rows,
             [ = ]( Index row ) mutable
             {
-               diagSizesView[ row ] = p.getRowLength( row );
+               diagSizesView[ row ] = problemView.getRowLength( row );
             } );
          HYPRE_IJMatrixSetDiagOffdSizes( matrix, diagSizes.getData(), offdSizes.getData() );
       }
@@ -106,13 +107,13 @@ struct HypreAssembler
       problem.writeCOO( offsets, (HYPRE_BigInt*) nullptr, columnIndexes.getData(), values.getData() );
       auto rowLengthsView = rowLengths.getView();
       auto rowIndexesView = rowIndexes.getView();
-      const LaplaceProblem< Real, Index > p = problem;
+      const auto problemView = problem.template getView< ArrayDevice >();
       Algorithms::parallelFor< ArrayDevice >(
          0,
          rows,
          [ = ] __cuda_callable__( Index row ) mutable
          {
-            rowLengthsView[ row ] = p.getRowLength( row );
+            rowLengthsView[ row ] = problemView.getRowLength( row );
             rowIndexesView[ row ] = row;
          } );
       HYPRE_IJMatrixSetValues2(
@@ -126,7 +127,7 @@ struct HypreAssembler
       HYPRE_IJMatrixAssemble( matrix );
    }
 
-   const LaplaceProblem< Real, Index > problem;
+   const Problem& problem;
    const HYPRE_MemoryLocation memoryLocation;
    HYPRE_IJMatrix matrix = nullptr;
    Containers::Vector< HYPRE_Int, Devices::Host, Index > diagSizes;
@@ -143,15 +144,11 @@ struct HypreAssembler
  *
  * It also checks that the matrix is stored in the expected memory space.
  */
-template< typename Real, typename Index >
+template< typename Problem >
 void
-verifyHypreMatrix(
-   Benchmark& benchmark,
-   const LaplaceProblem< Real, Index >& problem,
-   HYPRE_IJMatrix matrix,
-   HYPRE_MemoryLocation expectedLocation )
+verifyHypreMatrix( Benchmark& benchmark, const Problem& problem, HYPRE_IJMatrix matrix, HYPRE_MemoryLocation expectedLocation )
 {
-   const Index rows = problem.getRows();
+   const auto rows = problem.getRows();
    hypre_ParCSRMatrix* parcsr = nullptr;
    HYPRE_IJMatrixGetObject( matrix, (void**) &parcsr );
    hypre_CSRMatrix* diag = hypre_ParCSRMatrixDiag( parcsr );
@@ -191,9 +188,9 @@ verifyHypreMatrix(
  * The benchmark runs only for the precision Hypre was built with (\e HYPRE_Real) and on the
  * device matching the Hypre build.
  */
-template< typename Real, typename Device, typename Index >
+template< typename Real, typename Device, typename Index, typename Problem >
 void
-benchmarkHypre( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, bool verify )
+benchmarkHypre( Benchmark& benchmark, const Problem& problem, bool verify )
 {
    if constexpr( std::is_same_v< Real, HYPRE_Real > && std::is_same_v< Index, HYPRE_BigInt >
                  && std::is_same_v< Device, HypreDevice > )
@@ -209,7 +206,7 @@ benchmarkHypre( Benchmark& benchmark, const LaplaceProblem< Real, Index >& probl
    #endif
 
       {
-         HypreAssembler< Real, Device, Index > assembler( problem, memoryLocation );
+         HypreAssembler< Problem, Device > assembler( problem, memoryLocation );
          auto destroy = [ & ]()
          {
             assembler.destroy();
@@ -244,7 +241,7 @@ benchmarkHypre( Benchmark& benchmark, const LaplaceProblem< Real, Index >& probl
 
    #ifdef HYPRE_USING_GPU
       {
-         HypreAssembler< Real, Devices::Host, Index > assembler( problem, HYPRE_MEMORY_HOST );
+         HypreAssembler< Problem, Devices::Host > assembler( problem, HYPRE_MEMORY_HOST );
          auto resetAll = [ & ]()
          {
             assembler.destroy();

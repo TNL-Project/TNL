@@ -18,7 +18,6 @@
    #include <TNL/Devices/GPU.h>
    #include <TNL/Devices/Host.h>
 
-   #include "LaplaceProblem.h"
    #include "Utils.h"
 
 namespace TNL::Benchmarks::MatrixAssembly {
@@ -37,9 +36,9 @@ checkPetsc( PetscErrorCode error, const char* call )
    #define TNL_PETSC_CALL( call ) checkPetsc( call, #call )
 
 //! \brief Reads the matrix row by row and compares it with the exact matrix.
-template< typename Real, typename Index >
+template< typename Problem >
 void
-verifyPetscMatrix( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, Mat matrix )
+verifyPetscMatrix( Benchmark& benchmark, const Problem& problem, Mat matrix )
 {
    std::vector< PetscInt > rowPointers( 1, 0 );
    std::vector< PetscInt > columnIndexes;
@@ -58,10 +57,12 @@ verifyPetscMatrix( Benchmark& benchmark, const LaplaceProblem< Real, Index >& pr
 }
 
 //! \brief Assembles a MATSEQAIJ matrix on the host with the COO interface.
-template< typename Real, typename Index >
+template< typename Problem >
 Mat
-assemblePetscHostMatrix( const LaplaceProblem< Real, Index >& problem )
+assemblePetscHostMatrix( const Problem& problem )
 {
+   using Index = typename Problem::IndexType;
+
    const Index rows = problem.getRows();
    const Index nonzeros = problem.getNonzeroElementsCount();
    Mat matrix = nullptr;
@@ -87,9 +88,9 @@ assemblePetscHostMatrix( const LaplaceProblem< Real, Index >& problem )
  * GPU lazily, so the copy is forced by getting the array of values on the device.
  * See \ref timeHostAssemblyAndTransfer for the measured operations.
  */
-template< typename Real, typename Device, typename Index >
+template< typename Real, typename Device, typename Index, typename Problem >
 void
-benchmarkPetscHostToGPU( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, bool verify )
+benchmarkPetscHostToGPU( Benchmark& benchmark, const Problem& problem, bool verify )
 {
    #if ( defined( __CUDACC__ ) && defined( PETSC_HAVE_CUDA ) ) || ( defined( __HIP__ ) && defined( PETSC_HAVE_HIP ) )
    benchmark.setMetadataElement( { "format", "CSR" } );
@@ -149,14 +150,9 @@ benchmarkPetscHostToGPU( Benchmark& benchmark, const LaplaceProblem< Real, Index
  *
  * The benchmark runs only for the precision PETSc was built with (\e PetscScalar).
  */
-template< typename Real, typename Device, typename Index >
+template< typename Real, typename Device, typename Index, typename Problem >
 void
-benchmarkPetscType(
-   Benchmark& benchmark,
-   const LaplaceProblem< Real, Index >& problem,
-   const std::string& format,
-   MatType matrixType,
-   bool verify )
+benchmarkPetscType( Benchmark& benchmark, const Problem& problem, const std::string& format, MatType matrixType, bool verify )
 {
    benchmark.setMetadataElement( { "format", format } );
 
@@ -235,13 +231,9 @@ benchmarkPetscType(
    destroy();
 }
 
-template< typename Real, typename Device, typename Index >
+template< typename Real, typename Device, typename Index, typename Problem >
 void
-benchmarkPetsc(
-   Benchmark& benchmark,
-   const LaplaceProblem< Real, Index >& problem,
-   const std::set< std::string >& formats,
-   bool verify )
+benchmarkPetsc( Benchmark& benchmark, const Problem& problem, const std::set< std::string >& formats, bool verify )
 {
    if constexpr( std::is_same_v< Real, PetscScalar > && std::is_same_v< Index, PetscInt > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > ) {

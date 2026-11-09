@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <limits>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <TNL/Algorithms/parallelFor.h>
@@ -13,7 +15,6 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
-#include "LaplaceProblem.h"
 #include "Utils.h"
 
 namespace TNL::Benchmarks::MatrixAssembly {
@@ -30,12 +31,13 @@ allocateTNLMatrix( Matrix& matrix, const Problem& problem )
    matrix.setDimensions( rows, rows );
    Containers::Vector< Index, Device, Index > rowCapacities( rows );
    auto capacitiesView = rowCapacities.getView();
+   const auto problemView = problem.template getView< Device >();
    Algorithms::parallelFor< Device >(
       0,
       rows,
       [ = ] __cuda_callable__( Index row ) mutable
       {
-         capacitiesView[ row ] = problem.getRowLength( row );
+         capacitiesView[ row ] = problemView.getRowLength( row );
       } );
    matrix.setRowCapacities( rowCapacities );
 }
@@ -45,14 +47,16 @@ template< typename Matrix, typename Problem >
 void
 fillTNLMatrix( Matrix& matrix, const Problem& problem )
 {
+   using Device = typename Matrix::DeviceType;
    using Index = typename Matrix::IndexType;
    using Real = typename Matrix::RealType;
    using RowView = typename Matrix::RowView;
 
+   const auto problemView = problem.template getView< Device >();
    matrix.forAllRows(
       [ = ] __cuda_callable__( RowView& row ) mutable
       {
-         problem.forRowElements(
+         problemView.forRowElements(
             row.getRowIndex(),
             [ & ]( Index localIdx, Index column, Real value )
             {
@@ -106,13 +110,30 @@ getTNLMatrixCSR(
  * the sparse matrix. The operation `array transfer` measures copying only the arrays of values
  * and column indexes, which is the lower bound of the transfer time.
  */
-template< typename Real, typename Device, typename Index, template< typename, typename, typename > class Segments >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   template< typename, typename, typename > class Segments,
+   typename Problem >
 void
-benchmarkTNL( Benchmark& benchmark, const LaplaceProblem< Real, Index >& problem, const std::string& format, bool verify )
+benchmarkTNL( Benchmark& benchmark, const Problem& problem, const std::string& format, bool verify )
 {
    using Matrix = Matrices::SparseMatrix< Real, Device, Index, Matrices::GeneralMatrix, Segments >;
 
    benchmark.setMetadataElement( { "format", format } );
+
+   // all rows of the Ellpack format have the length of the longest row, so the number of the
+   // stored elements must fit into the index type
+   if( isEllpackFormat( format )
+       && (long double) problem.getRows() * problem.getMaxRowLength() > std::numeric_limits< Index >::max() )
+   {
+      benchmark.addErrorMessage(
+         "TNL " + format + " skipped: the padded matrix with " + std::to_string( problem.getRows() )
+         + " rows and the maximal row length " + std::to_string( problem.getMaxRowLength() )
+         + " is too large for the index type" );
+      return;
+   }
    Matrix matrix;
 
    auto resetMatrix = [ & ]()
