@@ -300,6 +300,10 @@ struct GPUScanKernelLauncher
       // (which may be unsigned)
       const bool grow = static_cast< Index >( states.getSize() ) < numberOfBlocks;
       if( grow || epoch == maxLookbackEpoch ) {
+         // If any step of the reset throws, the states or the tile counter may
+         // be left uninitialized (e.g. the array is already resized, but not
+         // filled), so the next scan must reset them again.
+         epoch = maxLookbackEpoch;
          if( grow ) {
             // the array may not be reallocated while the kernels of previously
             // launched asynchronous scans are still using it
@@ -310,10 +314,10 @@ struct GPUScanKernelLauncher
          fillConfig.stream = launch_config.stream;
          fillConfig.blockHostUntilFinished = false;
          Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize(), fillConfig );
-         epoch = 0;
          cache.tileCounter.setSize( 1 );
          cache.tileCounter.setValue( 0 );
          cache.tileCounterBase = 0;
+         epoch = 0;
       }
       epoch++;
 
