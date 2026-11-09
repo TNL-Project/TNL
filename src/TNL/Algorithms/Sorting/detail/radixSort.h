@@ -1504,7 +1504,7 @@ radixSortGraphLastNode( Backend::stream_t stream )
    cudaGraph_t graph;
    const cudaGraphNode_t* dependencies = nullptr;
    std::size_t dependenciesCount = 0;
-      #if CUDART_VERSION >= 12000
+      #if CUDART_VERSION >= 13000
    TNL_BACKEND_SAFE_CALL(
       cudaStreamGetCaptureInfo( stream, &status, nullptr, &graph, &dependencies, nullptr, &dependenciesCount ) );
       #else
