@@ -78,6 +78,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <stdexcept>
 
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
@@ -541,11 +542,21 @@ struct GPUScanKernelLauncher
          // The recursive scan of the block shifts must not enter the
          // two-phase path again - it would reuse this cache as its
          // block-results buffer and overwrite the shifts while they are
-         // still being scanned.
-         TNL_ASSERT_LE(
-            static_cast< std::size_t >( Backend::getNumberOfBlocks( numberOfBlocks + 1, maxElementsInBlock ) ),
-            maxGridSize,
-            "the recursive scan of the block shifts must not split into multiple grids" );
+         // still being scanned. This cannot happen with the hardware limit
+         // of the grid size, but the limit may be lowered by
+         // Backend::detail::MaxGridXSizeOverride.
+         if( static_cast< std::size_t >( Backend::getNumberOfBlocks( numberOfBlocks + 1, maxElementsInBlock ) ) > maxGridSize )
+            throw std::logic_error(
+               "GPU scan: the input is too large for the maximal grid size, the scan of the block "
+               "shifts would have to be split into multiple grids." );
+
+         // The first phase writes the block results to the first numberOfBlocks
+         // elements, the exclusive scan below reads also the last element.
+         // It does not affect the result, but it must be initialized.
+         Devices::GPU::LaunchConfiguration fillConfig;
+         fillConfig.stream = launch_config.stream;
+         fillConfig.blockHostUntilFinished = false;
+         Algorithms::fill< Devices::GPU >( blockShifts.getData() + numberOfBlocks, identity, 1, fillConfig );
 
          // loop over all grids
          for( Index gridIdx = 0; gridIdx < numberOfGrids; gridIdx++ ) {

@@ -92,7 +92,9 @@ private:
 // recursion does not enter the two-phase path again - this holds as long as
 // the first phase spans at most
 // `blockSize * valuesPerThread * Backend::getMaxGridXSize( blockSize )`
-// blocks, which no allocatable array can exceed. Like the lookback cache pool, it is a singleton
+// blocks, which no allocatable array can exceed with the hardware limit of
+// the grid size (the launcher checks it, since the limit may be lowered by
+// Backend::detail::MaxGridXSizeOverride). Like the lookback cache pool, it is a singleton
 // constructed on first use and shared by all launcher instantiations with
 // the same value type.
 template< typename ValueType >
