@@ -21,6 +21,39 @@ else()
     endif()
 endif()
 
+# Find the GAP Benchmark Suite reference code (gapbs, https://github.com/sbeamer/gapbs), whose BFS, SSSP and CC
+# kernels serve as the CPU baselines. It is not a library, its kernels are compiled from its sources in a separate
+# translation unit with the host compiler.
+set(GAPBS_BENCHMARKS bfs sssp cc)
+find_path(
+    GAPBS_SOURCE_DIR
+    NAMES bfs.cc sssp.cc cc.cc benchmark.h
+    PATHS ${GAPBS_ROOT} $ENV{GAPBS_ROOT} $ENV{HOME}/install/gapbs
+    PATH_SUFFIXES src
+    NO_DEFAULT_PATH
+)
+find_package(OpenMP COMPONENTS CXX)
+if(GAPBS_SOURCE_DIR AND OpenMP_CXX_FOUND)
+    message(STATUS "gapbs found: ${GAPBS_SOURCE_DIR}")
+    add_library(tnl-benchmark-graphs-gapbs STATIC GapbsKernels.cpp)
+    target_include_directories(tnl-benchmark-graphs-gapbs SYSTEM PRIVATE ${GAPBS_SOURCE_DIR})
+    target_compile_features(tnl-benchmark-graphs-gapbs PRIVATE cxx_std_17)
+    # the gapbs sources are not ours, do not report their warnings
+    target_compile_options(tnl-benchmark-graphs-gapbs PRIVATE -w)
+    target_link_libraries(tnl-benchmark-graphs-gapbs PUBLIC OpenMP::OpenMP_CXX)
+    set(GAPBS_FOUND TRUE)
+else()
+    message(STATUS "gapbs not found (set GAPBS_ROOT). Benchmarks with gapbs will be omitted.")
+endif()
+
+# Adds the gapbs kernels to a benchmark target if they are used by the benchmark.
+function(tnl_graph_benchmark_add_gapbs target bench)
+    if(GAPBS_FOUND AND bench IN_LIST GAPBS_BENCHMARKS)
+        target_link_libraries(${target} PUBLIC tnl-benchmark-graphs-gapbs)
+        target_compile_definitions(${target} PUBLIC "-DHAVE_GAPBS")
+    endif()
+endfunction()
+
 if(TNL_BUILD_CUDA)
     # Find Gunrock (header-only CUDA library, requires nvcc to compile)
     find_path(
@@ -88,6 +121,10 @@ foreach(bench IN LISTS GRAPH_BENCHMARKS)
             target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
         endforeach()
     endif()
+
+    foreach(target IN LISTS targets)
+        tnl_graph_benchmark_add_gapbs(${target} ${bench})
+    endforeach()
 
     # options and libraries for the CUDA variants
     foreach(target backend IN ZIP_LISTS targets backends)

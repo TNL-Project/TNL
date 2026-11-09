@@ -68,11 +68,24 @@ struct BoostGraph
          const auto row = graph.getAdjacencyMatrix().getRow( rowIdx );
          for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
             auto value = row.getValue( localIdx );
+            const Index columnIdx = row.getColumnIndex( localIdx );
+            // The adjacency matrix of an undirected graph stores each edge in both directions, but the undirected
+            // Boost graph stores it once, so the edge would be duplicated.
+            if constexpr( isUndirected() )
+               if( columnIdx < rowIdx )
+                  continue;
             if( value != 0.0 ) {
-               add_edge( rowIdx, row.getColumnIndex( localIdx ), value, this->graph );
+               add_edge( rowIdx, columnIdx, value, this->graph );
             }
          }
       }
+   }
+
+   //! \brief Returns the number of vertices of the Boost graph.
+   [[nodiscard]] Index
+   getVertexCount() const
+   {
+      return boost::num_vertices( graph );
    }
 
    void
@@ -81,6 +94,24 @@ struct BoostGraph
       distances.resize( boost::num_vertices( graph ) );
       auto recorder = record_distances( distances.data(), boost::on_tree_edge{} );
       auto visitor = boost::make_bfs_visitor( recorder );
+      boost::breadth_first_search( graph, boost::vertex( start, graph ), boost::visitor( visitor ) );
+   }
+
+   /**
+    * \brief BFS computing the distances and the predecessors (-1 for unreached vertices).
+    */
+   void
+   breadthFirstSearch( Index start, std::vector< Index >& distances, std::vector< Index >& predecessors )
+   {
+      const auto n = boost::num_vertices( graph );
+      distances.assign( n, -1 );
+      predecessors.assign( n, -1 );
+      distances[ start ] = 0;
+      predecessors[ start ] = start;
+      auto visitor = boost::make_bfs_visitor(
+         std::make_pair(
+            boost::record_distances( distances.data(), boost::on_tree_edge{} ),
+            boost::record_predecessors( predecessors.data(), boost::on_tree_edge{} ) ) );
       boost::breadth_first_search( graph, boost::vertex( start, graph ), boost::visitor( visitor ) );
    }
 

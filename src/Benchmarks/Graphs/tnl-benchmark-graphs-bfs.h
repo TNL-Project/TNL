@@ -1,6 +1,8 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
+#include <cstdint>
+
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/GPU.h>
@@ -20,7 +22,12 @@ template< typename Real >
 bool
 startBenchmark( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::Graphs::GraphBenchmarkBFS< Real > graphBenchmark( parameters );
+   // The GAP graphs with more than 2^31 stored edges need a 64-bit index, the other graphs use a 32-bit index.
+   if( TNL::Benchmarks::Graphs::GraphBenchmarkBFS< Real, int >::requiresLongIndex( parameters ) ) {
+      TNL::Benchmarks::Graphs::GraphBenchmarkBFS< Real, std::int64_t > graphBenchmark( parameters );
+      return graphBenchmark.runBenchmark( benchmark );
+   }
+   TNL::Benchmarks::Graphs::GraphBenchmarkBFS< Real, int > graphBenchmark( parameters );
    return graphBenchmark.runBenchmark( benchmark );
 }
 
