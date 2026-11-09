@@ -38,8 +38,8 @@ and `1-vector` variants. The Thrust host algorithms are reported on the `host` d
 Thrust host backend is parallel (TBB or OpenMP), otherwise on the `sequential` device.
 
 The explicitly selected two-phase GPU kernels use the default block size of the launcher, which
-is `256 * 4 / sizeof(value type)` (i.e. 1 kB of values per value of each thread), and the given
-number of values per thread. The lookback kernels are measured for each of the given block sizes
+is `256 * 4 / sizeof(value type)` (i.e. the block holds 1 kB of values when each thread holds one
+value), and the given number of values per thread. The lookback kernels are measured for each of the given block sizes
 (`--block-sizes`), which is logged in the `block size` column; the combinations whose tile does not
 fit into 40 kB of shared memory or whose block is smaller than a warp are skipped. The number of
 values per thread and the block size are template parameters, so the benchmark contains a fixed
