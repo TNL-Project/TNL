@@ -34,6 +34,35 @@ atomicAdd( long int* address, long int val )
 }
 
    #ifndef __HIP__  // HIP has its own atomicMax and atomicMin functions for float and double
+// CUDA provides atomicMin, atomicMax and atomicCAS for long long int, but not for long int, which is std::int64_t on
+// LP64 platforms.
+[[maybe_unused]] __device__
+long int
+atomicMin( long int* address, long int value )
+{
+   static_assert( sizeof( long int ) == sizeof( long long int ) );
+   return ::atomicMin( reinterpret_cast< long long int* >( address ), static_cast< long long int >( value ) );
+}
+
+[[maybe_unused]] __device__
+long int
+atomicMax( long int* address, long int value )
+{
+   static_assert( sizeof( long int ) == sizeof( long long int ) );
+   return ::atomicMax( reinterpret_cast< long long int* >( address ), static_cast< long long int >( value ) );
+}
+
+[[maybe_unused]] __device__
+long int
+atomicCAS( long int* address, long int compare, long int value )
+{
+   static_assert( sizeof( long int ) == sizeof( long long int ) );
+   return static_cast< long int >( ::atomicCAS(
+      reinterpret_cast< unsigned long long int* >( address ),
+      static_cast< unsigned long long int >( compare ),
+      static_cast< unsigned long long int >( value ) ) );
+}
+
 [[maybe_unused]] __device__
 double
 atomicMax( double* address, double value )
