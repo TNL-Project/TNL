@@ -13,6 +13,11 @@
 #include <TNL/DiscreteMath.h>
 #include <TNL/Exceptions/BackendSupportMissing.h>
 
+namespace TNL::Containers {
+template< int Size, typename Value >
+class StaticArray;
+}  // namespace TNL::Containers
+
 namespace TNL::Backend {
 
 //! \brief Returns the number of devices available in the system.
@@ -189,6 +194,65 @@ inline constexpr bool is_warp_shuffle_native_v =
    || std::is_same_v< T, unsigned long > || std::is_same_v< T, long long > || std::is_same_v< T, unsigned long long >
    || std::is_same_v< T, float > || std::is_same_v< T, double >;
 
+namespace detail {
+
+template< int Size, typename Value >
+struct StaticArrayTag
+{
+   static constexpr int size = Size;
+   using ValueType = Value;
+};
+
+// returns the tag of the StaticArray base class of T, or void if there is none
+template< int Size, typename Value >
+StaticArrayTag< Size, Value >
+staticArrayTag( const Containers::StaticArray< Size, Value >* );
+
+void
+staticArrayTag( ... );
+
+}  // namespace detail
+
+/**
+ * \brief Type trait for the types whose values can be copied by copying
+ * their object representation.
+ *
+ * The values of such types can be copied by `::memcpy`, so they can be split
+ * into words, the words transferred separately (e.g. by warp shuffles or
+ * volatile loads) and the value assembled again. The trait is true for:
+ *
+ * - all trivially copyable types,
+ * - \ref TNL::Containers::StaticArray "StaticArray" and the classes derived
+ *   from it without additional data members (e.g.
+ *   \ref TNL::Containers::StaticVector "StaticVector"), if their values
+ *   satisfy this trait. They are not trivially copyable, since they have a
+ *   user-provided copy constructor, but it only copies the elements.
+ *
+ * It may be specialized for other types whose copy constructor is equivalent
+ * to copying their object representation.
+ */
+template< typename T, typename = void >
+struct is_memcpy_copyable : std::is_trivially_copyable< T >
+{};
+
+template< typename T >
+struct is_memcpy_copyable<
+   T,
+   std::enable_if_t<
+      ! std::is_trivially_copyable_v< T > && ! std::is_void_v< decltype( detail::staticArrayTag( std::declval< T* >() ) ) > > >
+{
+private:
+   using Tag = decltype( detail::staticArrayTag( std::declval< T* >() ) );
+
+public:
+   static constexpr bool value = sizeof( T ) == Tag::size * sizeof( typename Tag::ValueType )
+                              && std::is_trivially_destructible_v< T > && is_memcpy_copyable< typename Tag::ValueType >::value;
+};
+
+//! \brief Value of \ref is_memcpy_copyable.
+template< typename T >
+inline constexpr bool is_memcpy_copyable_v = is_memcpy_copyable< T >::value;
+
 /**
  * \brief Storage wrapper for type-punning through an array of device words.
  *
@@ -308,21 +372,21 @@ public:
 };
 
 /**
- * \brief Generic warp shuffle xor for any bit-copyable type.
+ * \brief Generic warp shuffle xor for any type which satisfies \ref is_memcpy_copyable.
  *
  * CUDA's `__shfl_xor_sync` only has overloads for a fixed set of primitive
  * types (see \ref is_warp_shuffle_native_v). This wrapper splits any other type
  * into an array of words and shuffles each word separately, the same pattern
  * used by NVIDIA's CUB and libcu++ libraries. Works for
- * \ref TNL::Arithmetics::Complex and any other trivially copyable struct with
- * `sizeof <= 32`.
+ * \ref TNL::Arithmetics::Complex, \ref TNL::Containers::StaticVector "StaticVector"
+ * and any other type which satisfies \ref is_memcpy_copyable.
  */
 template< typename T >
 __device__
 T
 warp_shuffle_xor( T val, int laneMask )
 {
-   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+   static_assert( is_memcpy_copyable_v< T >, "warp shuffle requires types which satisfy is_memcpy_copyable" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    if constexpr( is_warp_shuffle_native_v< T > ) {
       return __shfl_xor_sync( getWarpFullMask(), val, laneMask );
@@ -347,7 +411,7 @@ warp_shuffle_xor( T val, int laneMask )
 }
 
 /**
- * \brief Generic warp shuffle down for any bit-copyable type.
+ * \brief Generic warp shuffle down for any type which satisfies \ref is_memcpy_copyable.
  *
  * See \ref warp_shuffle_xor for details.
  */
@@ -356,7 +420,7 @@ __device__
 T
 warp_shuffle_down( T val, int delta )
 {
-   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+   static_assert( is_memcpy_copyable_v< T >, "warp shuffle requires types which satisfy is_memcpy_copyable" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    if constexpr( is_warp_shuffle_native_v< T > ) {
       return __shfl_down_sync( getWarpFullMask(), val, delta );
@@ -377,7 +441,7 @@ warp_shuffle_down( T val, int delta )
 }
 
 /**
- * \brief Generic warp shuffle up for any bit-copyable type.
+ * \brief Generic warp shuffle up for any type which satisfies \ref is_memcpy_copyable.
  *
  * See \ref warp_shuffle_xor for details.
  */
@@ -386,7 +450,7 @@ __device__
 T
 warp_shuffle_up( T val, int delta )
 {
-   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+   static_assert( is_memcpy_copyable_v< T >, "warp shuffle requires types which satisfy is_memcpy_copyable" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    if constexpr( is_warp_shuffle_native_v< T > ) {
       return __shfl_up_sync( getWarpFullMask(), val, delta );
@@ -403,6 +467,26 @@ warp_shuffle_up( T val, int delta )
    }
 #else
    return val;
+#endif
+}
+
+/**
+ * \brief Returns the mask of the lanes of the calling warp for which the
+ * predicate is true.
+ *
+ * All lanes of the warp must call it. The mask is 64-bit, since the
+ * wavefronts of AMD GPUs may have 64 lanes; lane `i` corresponds to bit `i`.
+ */
+__device__
+inline std::uint64_t
+warp_ballot( bool predicate )
+{
+#if defined( __HIP_DEVICE_COMPILE__ )
+   return __ballot( static_cast< int >( predicate ) );
+#elif defined( __CUDA_ARCH__ )
+   return __ballot_sync( getWarpFullMask(), static_cast< int >( predicate ) );
+#else
+   return 0;
 #endif
 }
 
