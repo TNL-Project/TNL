@@ -719,6 +719,13 @@ breadthFirstSearch_impl(
                visitor( neighbor, distance );
                q.push( neighbor );
             }
+            else if constexpr( WithPredecessors ) {
+               // The deterministic predecessor is the smallest vertex of the previous layer with an edge to the
+               // neighbor, like in the parallel algorithm. The first discoverer in the queue order need not be the
+               // smallest one, but all vertices of the previous layer are processed before the neighbor's layer.
+               if( deterministic && distances[ neighbor ] == distances[ current ] + 1 && current < predecessors[ neighbor ] )
+                  predecessors[ neighbor ] = current;
+            }
          }
       }
    }

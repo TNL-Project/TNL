@@ -900,6 +900,47 @@ TYPED_TEST( GraphTest, test_BFS_predecessors_deterministic )
 
 template< typename GraphType >
 void
+test_BFS_predecessors_deterministic_queue_order_impl()
+{
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   // clang-format off
+   //   0 → 1 → 5 → 6
+   //   0 → 2 → 4 → 6
+   // Vertex 5 is discovered before vertex 4 (in the queue order of the
+   // sequential BFS), so vertex 6 is first discovered from 5, but the
+   // deterministic predecessor is the smallest vertex of the previous
+   // layer, i.e. 4. Vertex 3 is isolated.
+   GraphType graph(
+      7,
+      {
+         { 0, 1, 1.0 }, { 0, 2, 1.0 },
+         { 1, 5, 1.0 },
+         { 2, 4, 1.0 },
+         { 4, 6, 1.0 },
+         { 5, 6, 1.0 },
+      } );
+   // clang-format on
+
+   const VectorType expectedPredecessors( { -1, 0, 0, -1, 2, 1, 4 } );
+   const VectorType expectedDistances( { 0, 1, 1, -1, 2, 2, 3 } );
+
+   VectorType distances;
+   VectorType predecessors;
+   TNL::Graphs::Algorithms::breadthFirstSearchWithPredecessors( graph, 0, distances, predecessors, true );
+   EXPECT_EQ( distances, expectedDistances );
+   EXPECT_EQ( predecessors, expectedPredecessors );
+}
+
+TYPED_TEST( GraphTest, test_BFS_predecessors_deterministic_queue_order )
+{
+   test_BFS_predecessors_deterministic_queue_order_impl< typename TestFixture::GraphType >();
+}
+
+template< typename GraphType >
+void
 test_BFS_predecessors_unreachable_impl()
 {
    using DeviceType = typename GraphType::DeviceType;
