@@ -39,6 +39,12 @@
  *    input fits into one CUDA grid   ->  2. decoupled lookback
  *    otherwise                       ->  3. or 4., selected by ScanPhaseType
  *
+ * The lookback transfers the values between the blocks (volatile loads) and
+ * between the lanes of a warp (warp shuffles) word by word, so it is used
+ * only for the value types which satisfy Backend::is_memcpy_copyable (e.g.
+ * arithmetic types and StaticVector). The other value types use the
+ * two-phase strategies also for the inputs which fit into one CUDA grid.
+ *
  * One CUDA grid has up to 2^31 - 1 blocks, so in practice the lookback is
  * used for all local scans larger than one tile, including the scans of
  * expressions. The two-phase strategies are kept for the distributed scan
@@ -262,10 +268,14 @@ struct GPUScanKernelLauncher
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
       const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, Backend::getMaxGridXSize( blockSize ) );
 
-      if( numberOfGrids == 1 ) {
-         performLookback(
-            input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
-         return;
+      // the lookback kernel transfers the values between the blocks and the
+      // lanes of a warp word by word, see Backend::is_memcpy_copyable
+      if constexpr( Backend::is_memcpy_copyable_v< ValueType > ) {
+         if( numberOfGrids == 1 ) {
+            performLookback(
+               input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
+            return;
+         }
       }
 
       const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity, launch_config );
@@ -290,6 +300,9 @@ struct GPUScanKernelLauncher
       static_assert(
          lookbackStrategy == LookbackStrategy::Thread || lookbackBlockSize >= Backend::getMaxWarpSize(),
          "the warp lookback needs at least one full warp in the block" );
+      static_assert(
+         Backend::is_memcpy_copyable_v< ValueType >,
+         "the lookback scan requires value types which satisfy Backend::is_memcpy_copyable" );
       constexpr int maxElementsInBlock = lookbackBlockSize * lookbackValuesPerThread;
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
 

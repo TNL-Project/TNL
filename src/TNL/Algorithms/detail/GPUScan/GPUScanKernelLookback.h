@@ -178,9 +178,9 @@ loadAcquire( const unsigned int* ptr )
 /* Loads a value written by another CUDA block during the same kernel. The L1
  * cache is not coherent between the multiprocessors, so the load must be
  * volatile to read the value from the L2 cache. Class types are loaded word by
- * word and copied bitwise, the same way as the kernel arguments are passed
- * (the value type does not have to be trivially copyable, but it must be
- * bitwise copyable).
+ * word and assembled by memcpy, so they must satisfy
+ * Backend::is_memcpy_copyable (e.g. StaticVector, which is not trivially
+ * copyable).
  */
 template< typename T >
 __device__
@@ -191,6 +191,7 @@ loadVolatile( const T& ref )
       return *reinterpret_cast< const volatile T* >( &ref );
    }
    else {
+      static_assert( Backend::is_memcpy_copyable_v< T >, "loadVolatile requires types which satisfy is_memcpy_copyable" );
       static_assert(
          sizeof( T ) % sizeof( int ) == 0,
          "loadVolatile supports only arithmetic types and types whose size is a multiple of sizeof(int)" );
@@ -204,45 +205,6 @@ loadVolatile( const T& ref )
       memcpy( static_cast< void* >( &result ), buffer, sizeof( T ) );
       return result;
    }
-}
-
-// Warp shuffle down which supports also the value types that are bitwise
-// copyable, but not trivially copyable (see loadVolatile).
-template< typename T >
-__device__
-T
-warpShuffleDown( const T& value, int delta )
-{
-   if constexpr( std::is_trivially_copyable_v< T > ) {
-      return Backend::warp_shuffle_down( value, delta );
-   }
-   else {
-      static_assert(
-         sizeof( T ) % sizeof( int ) == 0,
-         "warpShuffleDown supports only trivially copyable types and types whose size is a multiple of sizeof(int)" );
-      constexpr int words = sizeof( T ) / sizeof( int );
-      alignas( T ) int buffer[ words ];
-      memcpy( buffer, static_cast< const void* >( &value ), sizeof( T ) );
-      #pragma unroll
-      for( int i = 0; i < words; i++ )
-         buffer[ i ] = Backend::warp_shuffle_down( buffer[ i ], delta );
-      T result;
-      memcpy( static_cast< void* >( &result ), buffer, sizeof( T ) );
-      return result;
-   }
-}
-
-// Returns the mask of the lanes of the calling warp for which the predicate
-// is true. All lanes of the warp must call it.
-__device__
-inline std::uint64_t
-warpBallot( bool predicate )
-{
-   #if defined( __HIP__ )
-   return __ballot( static_cast< int >( predicate ) );
-   #else
-   return __ballot_sync( Backend::getWarpFullMask(), static_cast< int >( predicate ) );
-   #endif
 }
 
 /* Phase 5 of GPUScanKernelLookback with LookbackStrategy::Warp. It must be
@@ -294,7 +256,7 @@ warpLookback(
       }
 
       // only the tiles up to the nearest one with a prefix are reduced
-      const std::uint64_t prefixMask = warpBallot( hasPrefix );
+      const std::uint64_t prefixMask = Backend::warp_ballot( hasPrefix );
       const int stopLane = prefixMask != 0 ? __ffsll( static_cast< long long >( prefixMask ) ) - 1 : warpSize - 1;
       if( lane > stopLane )
          value = identity;
@@ -303,7 +265,7 @@ warpLookback(
       // of the higher lanes precede the tiles of the lower lanes
       #pragma unroll
       for( int offset = 1; offset < warpSize; offset *= 2 ) {
-         const ValueType other = warpShuffleDown( value, offset );
+         const ValueType other = Backend::warp_shuffle_down( value, offset );
          if( lane + offset < warpSize )
             value = reduction( other, value );
       }
