@@ -296,9 +296,10 @@ protected:
       ReferenceVectorType hostResult;
       hostResult = result;
       if( hostResult != reference )
-         std::cerr << "ERROR: the result of " << performer << " (values per thread " << valuesPerThread << ") on "
-                   << getDeviceName< Device >() << " differs from the reference for " << operation << ", value type "
-                   << getType< Value >() << ", size " << size << '\n';
+         benchmark.addErrorMessage(
+            "ERROR: the result of " + performer + " (values per thread " + valuesPerThread + ") on " + getDeviceName< Device >()
+            + " differs from the reference for " + operation + ", value type " + getType< Value >() + ", size "
+            + std::to_string( size ) );
    }
 
    // Measures the scans of the other libraries from input to output on Device.

@@ -141,6 +141,10 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
+   if( parameters.getParameter< int >( "min-size" ) <= 0 ) {
+      std::cerr << "The value of --min-size must be positive.\n";
+      return EXIT_FAILURE;
+   }
    if( parameters.getParameter< int >( "size-step-factor" ) <= 1 ) {
       std::cerr << "The value of --size-step-factor must be greater than 1.\n";
       return EXIT_FAILURE;
