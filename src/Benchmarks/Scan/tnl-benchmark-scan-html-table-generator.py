@@ -20,6 +20,17 @@ produces the tuning tables for each operation and GPU device:
 - the recommended number of values per thread of each kernel for each value type,
   i.e. the one with the smallest geometric mean of the slowdown against the best
   number of values per thread over all sizes.
+
+The kernels measured with several block sizes (--block-sizes) are treated as
+separate kernels in the tuning tables, e.g. "lookback-warp (block 256)".
+
+Several logs can be given, e.g. the logs of different GPUs. If the same
+configuration (operation, device, performer, value type, size, values per thread
+and block size) is found in more than one log, the devices are labeled by the
+name of the log, e.g. "cuda (a100.log)", so that the results are not merged.
+
+The errors reported in the logs (e.g. a result which differs from the reference)
+are listed at the end of the output.
 """
 
 import argparse
@@ -91,6 +102,36 @@ _KERNEL_PREFIX = "TNL "
 # columns identifying a benchmark configuration (rows of the tables)
 _KEY_COLUMNS = ["value type", "size"]
 _VPT_COLUMN = "values per thread"
+_BLOCK_SIZE_COLUMN = "block size"
+# column with the name of the log file of each row
+_LOG_COLUMN = "log"
+# columns identifying a measurement
+_CONFIGURATION_COLUMNS = [
+    "operation",
+    "device",
+    "performer",
+    *_KEY_COLUMNS,
+    _VPT_COLUMN,
+    _BLOCK_SIZE_COLUMN,
+]
+
+
+def _label_devices_by_logs(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Labels the devices by the names of the logs if the same configuration is found
+    in more than one log, so that the results of different logs are not merged.
+    """
+    logs_per_configuration = df.groupby(_CONFIGURATION_COLUMNS, dropna=False)[
+        _LOG_COLUMN
+    ].nunique()
+    if (logs_per_configuration > 1).any():
+        print(
+            "The same configurations are found in several logs, "
+            "the devices are labeled by the names of the logs.",
+            file=sys.stderr,
+        )
+        df = df.assign(device=df["device"] + " (" + df[_LOG_COLUMN] + ")")
+    return df
 
 
 def _load_dataframe(filenames: list[Path]) -> pd.DataFrame:
@@ -99,7 +140,8 @@ def _load_dataframe(filenames: list[Path]) -> pd.DataFrame:
         if not path.is_file():
             print(f"Skipping non-existing input file {path}", file=sys.stderr)
             continue
-        frames.append(BenchmarkLogs.get_benchmark_dataframe(str(path)))
+        frame = BenchmarkLogs.get_benchmark_dataframe(str(path))
+        frames.append(frame.assign(**{_LOG_COLUMN: path.name}))
     if not frames:
         return pd.DataFrame()
     df = pd.concat(frames, ignore_index=True)
@@ -110,14 +152,17 @@ def _load_dataframe(filenames: list[Path]) -> pd.DataFrame:
         sys.exit(
             f"The log is not a log of the scan benchmark (missing columns {missing})."
         )
-    if _VPT_COLUMN not in df.columns:
-        df[_VPT_COLUMN] = "default"
-    df[_VPT_COLUMN] = df[_VPT_COLUMN].astype(str)
+    for column in [_VPT_COLUMN, _BLOCK_SIZE_COLUMN]:
+        if column not in df.columns:
+            df[column] = "default"
+        df[column] = df[column].fillna("default").astype(str)
+    if "error" not in df.columns:
+        df["error"] = None
     df["size"] = pd.to_numeric(df["size"], errors="coerce").astype("Int64")
     for column in ["time", "time_median", "bandwidth"]:
         if column in df.columns:
             df[column] = pd.to_numeric(df[column], errors="coerce")
-    return df
+    return _label_devices_by_logs(df)
 
 
 def _is_kernel_row(df: pd.DataFrame) -> pd.Series:
@@ -138,18 +183,33 @@ def _sort_index(table: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def _device_key(device: str) -> int:
-    return (
-        _DEVICE_ORDER.index(device) if device in _DEVICE_ORDER else len(_DEVICE_ORDER)
+def _device_type(device: str) -> str:
+    """The device without the label of the log, e.g. "cuda" for "cuda (a.log)"."""
+    return device.split(" (", 1)[0]
+
+
+def _device_log(device: str) -> str:
+    """The label of the log of the device, e.g. "a.log" for "cuda (a.log)"."""
+    parts = device.split(" (", 1)
+    return parts[1].removesuffix(")") if len(parts) > 1 else ""
+
+
+def _device_key(device: str) -> tuple[str, int]:
+    device_type = _device_type(device)
+    order = (
+        _DEVICE_ORDER.index(device_type)
+        if device_type in _DEVICE_ORDER
+        else len(_DEVICE_ORDER)
     )
+    return (_device_log(device), order)
 
 
 def _is_gpu(device: str) -> bool:
-    return device in _GPU_DEVICES
+    return _device_type(device) in _GPU_DEVICES
 
 
 def _is_cpu(device: str) -> bool:
-    return device in _CPU_DEVICES
+    return _device_type(device) in _CPU_DEVICES
 
 
 def _format_value(value: object, fmt: str) -> str:
@@ -246,13 +306,18 @@ def _pivot_comparison(df: pd.DataFrame, value: str) -> pd.DataFrame:
 
 
 def _gpu_vs_cpu(times: pd.DataFrame) -> pd.DataFrame:
-    """Speedup of each GPU performer against the same performer on CPU devices."""
+    """
+    Speedup of each GPU performer against the same performer on CPU devices
+    (of the same log, if the devices are labeled by the logs).
+    """
     result = {}
     devices = list(dict.fromkeys(d for d, _ in times.columns))
     gpu_devices = [d for d in devices if _is_gpu(d)]
-    cpu_devices = [d for d in devices if _is_cpu(d)]
-    cpu_columns = [c for c in times.columns if _is_cpu(c[0])]
     for gpu in gpu_devices:
+        cpu_devices = [
+            d for d in devices if _is_cpu(d) and _device_log(d) == _device_log(gpu)
+        ]
+        cpu_columns = [c for c in times.columns if c[0] in cpu_devices]
         for performer in [p for d, p in times.columns if d == gpu]:
             # the libraries have different names on the CPU and the GPU (e.g. CUB),
             # but TNL and Thrust are compared
@@ -284,8 +349,15 @@ def _tnl_vs_others(times: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(result, index=times.index)
 
 
-def _kernel_name(performer: str) -> str:
-    return performer.removeprefix(_KERNEL_PREFIX)
+def _kernel_name(performer: str, block_size: str) -> str:
+    """
+    The name of the kernel in the tuning tables, including the block size if it was
+    selected explicitly.
+    """
+    name = performer.removeprefix(_KERNEL_PREFIX)
+    if block_size.isdigit():
+        name += f" (block {block_size})"
+    return name
 
 
 def _tuning_times(kernels: pd.DataFrame, default: pd.DataFrame) -> pd.DataFrame:
@@ -294,12 +366,22 @@ def _tuning_times(kernels: pd.DataFrame, default: pd.DataFrame) -> pd.DataFrame:
     is the first column.
     """
     kernels = kernels.assign(
-        kernel=kernels["performer"].map(_kernel_name),
+        kernel=[
+            _kernel_name(performer, block_size)
+            for performer, block_size in zip(
+                kernels["performer"], kernels[_BLOCK_SIZE_COLUMN], strict=True
+            )
+        ],
         vpt=kernels[_VPT_COLUMN].astype(int),
     )
     table = _pivot(kernels, ["kernel", "vpt"], "time_ms")
     order = list(dict.fromkeys(kernels["kernel"]))
-    table = table[sorted(table.columns, key=lambda c: (order.index(c[0]), c[1]))]
+    table = table[
+        sorted(
+            (c for c in table.columns if c[0] in order),
+            key=lambda c: (order.index(c[0]), c[1]),
+        )
+    ]
     if not default.empty:
         default_times = _pivot(default, ["performer"], "time_ms")[_TNL_PERFORMER]
         table.insert(0, (_TNL_PERFORMER, "default"), default_times)
@@ -412,9 +494,19 @@ def _tuning_html(title: str, kernels: pd.DataFrame, default: pd.DataFrame) -> li
     return parts
 
 
+def _errors_html(errors: pd.DataFrame) -> list[str]:
+    parts = ["<h2 id='errors'>Errors</h2>\n<ul>\n"]
+    for _, row in errors.iterrows():
+        parts.append(f"<li>{html.escape(str(row['error']))}</li>\n")
+    parts.append("</ul>\n")
+    return parts
+
+
 def generate_html(
     df: pd.DataFrame, metadata: dict | None, time_column: str, title: str
 ) -> str:
+    errors = df[df["error"].notna()]
+    df = df[df["error"].isna()]
     df = df.assign(time_ms=pd.to_numeric(df[time_column], errors="coerce") * 1e3)
     is_kernel = _is_kernel_row(df)
     comparison = df[~is_kernel]
@@ -444,6 +536,8 @@ def generate_html(
         parts.append(
             f"<li><a href='#{_anchor(heading)}'>{html.escape(heading)}</a></li>\n"
         )
+    if not errors.empty:
+        parts.append("<li><a href='#errors'>Errors</a></li>\n")
     parts.append("</ul></nav>\n")
     parts.append(
         "<p class='note'>"
@@ -463,6 +557,9 @@ def generate_html(
             selected[~is_kernel] & (comparison["performer"] == _TNL_PERFORMER)
         ]
         parts += _tuning_html(heading, kernels[selected[is_kernel]], default)
+
+    if not errors.empty:
+        parts += _errors_html(errors)
 
     parts.append("</body>\n</html>\n")
     return "".join(parts)
@@ -509,6 +606,8 @@ def main() -> None:
     df = _load_dataframe(args.logs)
     if df.empty:
         sys.exit("No benchmark data found.")
+    for error in df["error"].dropna():
+        print(f"Error in the log: {error}", file=sys.stderr)
     if args.filter:
         mask = (
             df["operation"]
