@@ -1446,6 +1446,56 @@ TEST( ScanLookbackStrategyTest, warp_static_vector )
    testLookbackStrategy< ValueType, ScanType::Inclusive, LookbackStrategy::Warp >();
    testLookbackStrategy< ValueType, ScanType::Exclusive, LookbackStrategy::Warp >();
 }
+
+// Test of the lookback scan when the epoch of the cached states reaches its
+// maximum: the last epoch must still be usable and the next scan must reset
+// the states and start again from the first epoch.
+TEST( ScanLookbackStrategyTest, epoch_overflow )
+{
+   using ValueType = int;
+   using DeviceType = Devices::GPU;
+   using IndexType = int;
+   using HostArrayType = Array< ValueType, Devices::Sequential, IndexType >;
+   using Launcher = GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >;
+
+   const IndexType size = 100003;
+   HostArrayType input_host( size );
+   for( IndexType i = 0; i < size; i++ )
+      input_host[ i ] = i % 7;
+   HostArrayType expected_host;
+   expected_host = input_host;
+   inplaceInclusiveScan( expected_host, 0, size, std::plus<>{}, 0 );
+
+   Array< ValueType, DeviceType, IndexType > input;
+   Array< ValueType, DeviceType, IndexType > output( size );
+   input = input_host;
+   HostArrayType result;
+
+   auto scan = [ & ]( const std::string& message )
+   {
+      output.setValue( -1 );
+      Launcher::performLookback( input, output, 0, size, 0, std::plus<>{}, 0 );
+      result = output;
+      EXPECT_EQ( result, expected_host ) << message;
+   };
+
+   // the first scan allocates the cached states
+   scan( "first scan" );
+   auto& cache = LookbackCachePool< ValueType >::getInstance().getCache( Backend::LaunchConfiguration{}.stream );
+
+   // the next scan uses the last epoch
+   cache.epoch = maxLookbackEpoch - 1;
+   scan( "scan with the last epoch" );
+   EXPECT_EQ( cache.epoch, maxLookbackEpoch );
+
+   // the next scan resets the states and uses the first epoch
+   scan( "scan after the reset of the states" );
+   EXPECT_EQ( cache.epoch, 1U );
+
+   // the states of the scan with the last epoch must not be used
+   scan( "second scan after the reset of the states" );
+   EXPECT_EQ( cache.epoch, 2U );
+}
 #endif
 
 #include "../main.h"
