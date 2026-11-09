@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+
+# Runs the BFS, SSSP and CC benchmarks on the graphs of the GAP Benchmark Suite
+# prepared by get-gap-graphs.py, with the parameters of the GAP methodology:
+#
+# - BFS and SSSP from 64 sources (the default of the benchmarks), CC in 16 trials,
+# - BFS on <graph>.sg, SSSP on <graph>.wsg, CC on <graph>U.sg,
+# - the directed graphs (twitter, web, road) are benchmarked as directed and as
+#   undirected (<graph>U.sg, <graph>U.wsg) in separate runs, so that a 64-bit
+#   index is used only for the graphs which need it,
+# - the delta of the gapbs SSSP is chosen by the benchmark like in the GAP Makefile.
+#
+# The CPU binaries run the CPU baselines (gapbs, Boost); the GPU binaries
+# (--suffix -cuda or -hip) run Gunrock and TNL on the GPU only.
+
+# abort when an unset variable is used
+set -o nounset
+
+THIS_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+PROJECT_DIR="$( realpath "$THIS_DIR/../../.." )"
+
+BIN_DIR="$PROJECT_DIR/build/bin"
+SUFFIX=""
+GRAPH_DIR="./gap-graphs"
+GRAPHS="twitter web road kron urand"
+ALGORITHMS="bfs sssp cc"
+LOG_DIR="./log-files"
+DEVICE=""
+SEGMENTS="all"
+MAX_OMP_THREADS="auto"
+WITH_SEMIRINGS="no"
+EXTRA_ARGS=""
+DRY_RUN="no"
+
+print_help() {
+    echo "Usage: $0 [options]"
+    echo "Options:"
+    echo "  -B, --bin-dir DIR             Directory with the benchmark binaries. Default: $BIN_DIR"
+    echo "  -s, --suffix SUFFIX           Suffix of the binaries: '' (CPU), -cuda or -hip. Default: ''"
+    echo "  -g, --graph-dir DIR           Directory with the graphs from get-gap-graphs.py. Default: $GRAPH_DIR"
+    echo "  -G, --graphs 'LIST'           Graphs to benchmark. Default: '$GRAPHS'"
+    echo "  -a, --algorithms 'LIST'       Benchmarks to run (bfs, sssp, cc). Default: '$ALGORITHMS'"
+    echo "  -l, --log-dir DIR             Directory for the log files. Default: $LOG_DIR"
+    echo "  -d, --device DEVICE           Device of the TNL benchmarks. Default: all for CPU binaries,"
+    echo "                                cuda or hip for GPU binaries"
+    echo "  -S, --segments all|csr        Segments formats benchmarked on GPU. Default: $SEGMENTS"
+    echo "  -t, --openmp-max-threads N    Number of OpenMP threads. Default: number of physical cores"
+    echo "      --with-semirings yes|no   Run the semiring-based BFS and SSSP (very slow on large"
+    echo "                                graphs). Default: $WITH_SEMIRINGS"
+    echo "  -x, --extra 'ARGS'            Additional arguments for all benchmarks"
+    echo "  -n, --dry-run                 Only print the commands"
+    echo "  -h, --help                    Display help"
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -B|--bin-dir) BIN_DIR="$2"; shift ;;
+        -s|--suffix) SUFFIX="$2"; shift ;;
+        -g|--graph-dir) GRAPH_DIR="$2"; shift ;;
+        -G|--graphs) GRAPHS="$2"; shift ;;
+        -a|--algorithms) ALGORITHMS="$2"; shift ;;
+        -l|--log-dir) LOG_DIR="$2"; shift ;;
+        -d|--device) DEVICE="$2"; shift ;;
+        -S|--segments) SEGMENTS="$2"; shift ;;
+        -t|--openmp-max-threads) MAX_OMP_THREADS="$2"; shift ;;
+        --with-semirings) WITH_SEMIRINGS="$2"; shift ;;
+        -x|--extra) EXTRA_ARGS="$2"; shift ;;
+        -n|--dry-run) DRY_RUN="yes" ;;
+        -h|--help) print_help; exit 0 ;;
+        *) echo "Unknown option: $1" >&2; print_help; exit 1 ;;
+    esac
+    shift
+done
+
+if [[ ! -d "$GRAPH_DIR" ]]; then
+    echo "The graph directory '$GRAPH_DIR' does not exist, prepare the graphs with get-gap-graphs.py." >&2
+    exit 1
+fi
+mkdir -p "$LOG_DIR"
+
+# the number of physical cores, even with multiple NUMA nodes
+if [[ "$MAX_OMP_THREADS" == "auto" ]]; then
+    MAX_OMP_THREADS=$(lscpu --all --parse=CORE,SOCKET | grep -Ev "^#" | sort -u | wc -l)
+fi
+
+COMMON_ARGS=(--output-mode append --verbose 1 --segments "$SEGMENTS")
+if [[ -z "$SUFFIX" ]]; then
+    COMMON_ARGS+=(--device "${DEVICE:-all}" --openmp-enabled yes --openmp-max-threads "$MAX_OMP_THREADS")
+    # Gunrock is available only in the GPU binaries
+else
+    # the CPU baselines are measured by the CPU binaries
+    COMMON_ARGS+=(--device "${DEVICE:-${SUFFIX#-}}" --openmp-enabled no --with-gapbs no)
+fi
+export OMP_NUM_THREADS="$MAX_OMP_THREADS"
+
+# Returns 1 if the gapbs serialized graph is directed (the first byte of the file is the flag).
+is_directed() {
+    od -An -tu1 -N1 "$1" | tr -d ' '
+}
+
+run() {
+    echo "$@"
+    if [[ "$DRY_RUN" == "yes" ]]; then
+        return 0
+    fi
+    "$@"
+    local status=$?
+    if [[ $status -ne 0 ]]; then
+        echo "The benchmark failed with exit status $status." >&2
+        echo "$@" >> "$LOG_DIR/failed-runs.log"
+    fi
+    return 0
+}
+
+for graph in $GRAPHS; do
+    for algorithm in $ALGORITHMS; do
+        binary="$BIN_DIR/tnl-benchmark-graphs-${algorithm}${SUFFIX}"
+        log_file="$LOG_DIR/gap-${algorithm}${SUFFIX}.log"
+        args=("${COMMON_ARGS[@]}" --log-file "$log_file")
+        case $algorithm in
+            bfs) input="$GRAPH_DIR/$graph.sg"; args+=(--with-semirings "$WITH_SEMIRINGS") ;;
+            sssp) input="$GRAPH_DIR/$graph.wsg"; args+=(--with-semirings "$WITH_SEMIRINGS" --precision double) ;;
+            cc) input="$GRAPH_DIR/$graph.sg" ;;
+            *) echo "Unknown algorithm $algorithm" >&2; exit 1 ;;
+        esac
+        if [[ ! -f "$input" ]]; then
+            echo "Skipping $algorithm on $graph, the file $input does not exist." >&2
+            continue
+        fi
+        # shellcheck disable=SC2206
+        extra=($EXTRA_ARGS)
+        if [[ "$algorithm" == "cc" ]]; then
+            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" "${extra[@]}"
+        elif [[ "$(is_directed "$input")" == "1" ]]; then
+            run "$binary" --input-file "$input" --orientation directed "${args[@]}" "${extra[@]}"
+            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" "${extra[@]}"
+        else
+            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" "${extra[@]}"
+        fi
+    done
+done

@@ -8,9 +8,14 @@ Builds a per-graph speedup summary table from tnl-benchmark-graphs log files.
 For every TNL measurement executed on a GPU, the speedup is computed relative to:
   - TNL on CPU (the "host" run with plain CSR segments)
   - Boost (sequential)
+  - gapbs (the GAP reference code on CPU)
   - each individual Gunrock launch configuration (thread_mapped, block_mapped, ...)
   - the best (fastest) of the Gunrock launch configurations
-Additionally, the speedup of TNL on CPU relative to Boost is computed as well.
+Additionally, the speedup of TNL on CPU relative to Boost and gapbs is computed as well.
+
+The logs of the GAP methodology contain one row per trial; the trials of each
+configuration are aggregated first (see graph_benchmark_trials.py), so the times
+are the mean times over the trials.
 
 Semiring variants of a problem (e.g. "Semiring BFS dir") are compared against the
 same Boost/Gunrock baselines as the corresponding plain problem ("BFS dir"), since
@@ -30,6 +35,7 @@ import os
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from graph_benchmark_trials import aggregate_trials
 from matplotlib.ticker import LogLocator, NullFormatter, ScalarFormatter
 from TNL.BenchmarkLogs import get_benchmark_dataframe
 from TNL.MultiindexCreator import MultiindexCreator
@@ -58,6 +64,8 @@ def load_results(input_files):
     df = pd.DataFrame()
     for filename in input_files:
         df = pd.concat([df, get_benchmark_dataframe(filename)], ignore_index=True)
+    # one row per configuration: the mean time of the GAP trials
+    df = aggregate_trials(df)
 
     df["time"] = pd.to_numeric(df["time"], errors="coerce")
     df["launch cfg."] = df["launch cfg."].fillna("")
@@ -148,6 +156,12 @@ def get_boost_time(pivot, base):
     return pivot[col] if col in pivot.columns else None
 
 
+def get_gapbs_time(pivot, base):
+    """Time of the GAP reference code; gapbs has a single configuration per problem."""
+    cols = [c for c in pivot.columns if c[0] == base and c[1] == "gapbs"]
+    return pivot[cols].min(axis=1) if cols else None
+
+
 def get_gunrock_best_time(pivot, base, gunrock_configs):
     """Per-graph minimum time across the Gunrock launch configurations."""
     cols = [
@@ -234,6 +248,7 @@ def build_table(df, pivot):
     for problem in problems:
         base = base_problem(problem)
         boost_time = get_boost_time(pivot, base)
+        gapbs_time = get_gapbs_time(pivot, base)
         gunrock_configs = get_gunrock_configs(df, base)
         gunrock_best_time = get_gunrock_best_time(pivot, base, gunrock_configs)
         cpu_config = get_tnl_cpu_config(df, problem)
@@ -265,6 +280,17 @@ def build_table(df, pivot):
                         "Boost",
                     )
                     data.setdefault(key, boost_time / cpu_time)
+                if gapbs_time is not None:
+                    key = (
+                        problem,
+                        "TNL",
+                        cpu_device,
+                        cpu_kernel,
+                        cpu_launch_cfg,
+                        "Speedup",
+                        "gapbs",
+                    )
+                    data.setdefault(key, gapbs_time / cpu_time)
                 if gunrock_best_time is not None:
                     key = (
                         problem,
@@ -289,6 +315,10 @@ def build_table(df, pivot):
             if boost_time is not None:
                 key = (problem, "TNL", device, kernel, launch_cfg, "Speedup", "Boost")
                 data[key] = boost_time / gpu_time
+
+            if gapbs_time is not None:
+                key = (problem, "TNL", device, kernel, launch_cfg, "Speedup", "gapbs")
+                data[key] = gapbs_time / gpu_time
 
             if gunrock_best_time is not None:
                 key = (
@@ -320,6 +350,10 @@ def build_table(df, pivot):
         if boost_time is not None:
             key = (base, "Boost", "sequential", "N/A", "", "time", "")
             data.setdefault(key, boost_time)
+
+        if gapbs_time is not None:
+            key = (base, "gapbs", "host", "N/A", "", "time", "")
+            data.setdefault(key, gapbs_time)
 
         for gunrock_cfg in gunrock_configs:
             gunrock_col = (base, "Gunrock", "cuda", "N/A", gunrock_cfg)

@@ -8,6 +8,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from graph_benchmark_trials import aggregate_trials
 
 from TNL import MultiindexCreator as mic
 
@@ -122,6 +123,8 @@ def get_benchmark_dataframe(logFile):
     print(f"Parsing input file {logFile}")
     with open(logFile) as file:
         df = pd.read_json(file, orient="records", lines=True)
+        # one row per configuration: the mean time of the GAP trials
+        df = aggregate_trials(df)
         # convert "N/A" in the speedup column to nan
         # if "speedup" in df.columns:
         #    df["speedup"] = pd.to_numeric(df["speedup"], errors="coerce")
