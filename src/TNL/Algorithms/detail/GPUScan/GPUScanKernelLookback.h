@@ -46,7 +46,7 @@
  * 8- and 16-byte value types, where the states of the whole window take
  * 1-1.5 kB. The paper considers the extra work of the parallel lookback
  * often negligible, but it pays off only when the lookback is long. The warp
- * lookback is the default (see GPUScanLookbackDefaults in GPUScan.h), the
+ * lookback is the default (see GPUScanDefaults in GPUScan.h), the
  * thread lookback is used for blocks smaller than a warp.
  *
  * Usage (see GPUScanKernelLauncher in GPUScan.h): the complete scan in

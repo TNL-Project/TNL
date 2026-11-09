@@ -44,6 +44,7 @@
 
 namespace TNL::Benchmarks::Scan {
 
+using Algorithms::detail::GPUScanDefaults;
 using Algorithms::detail::GPUScanKernelLauncher;
 using Algorithms::detail::LookbackStrategy;
 using Algorithms::detail::ScanPhaseType;
@@ -55,10 +56,6 @@ constexpr const char* cubPerformer = "hipCUB";
 #else
 constexpr const char* cubPerformer = "CUB";
 #endif
-
-// the default block size of GPUScanKernelLauncher
-template< typename Value >
-constexpr int defaultBlockSize = 256 * 4 / sizeof( Value );
 
 template< ScanType Type >
 std::string
@@ -436,7 +433,7 @@ protected:
       if( std::find( valuesPerThread.begin(), valuesPerThread.end(), kernelValuesPerThread ) == valuesPerThread.end() )
          return;
       const std::string valuesPerThreadString = std::to_string( kernelValuesPerThread );
-      constexpr int blockSize = defaultBlockSize< Value >;
+      constexpr int blockSize = GPUScanDefaults< Value >::blockSize;
       auto reset = [ this ]()
       {
          a.setValue( Value( 1 ) );
@@ -496,8 +493,8 @@ protected:
             Type,
             ScanPhaseType::WriteInSecondPhase,
             Value,
-            defaultBlockSize< Value >,
-            7,
+            GPUScanDefaults< Value >::blockSize,
+            GPUScanDefaults< Value >::valuesPerThread,
             blockSize,
             kernelValuesPerThread,
             strategy >;

@@ -1389,8 +1389,8 @@ testLookbackStrategy()
       scanType,
       ScanPhaseType::WriteInSecondPhase,
       ValueType,
-      GPUScanLookbackDefaults< ValueType >::blockSize,
-      7,
+      GPUScanDefaults< ValueType >::blockSize,
+      GPUScanDefaults< ValueType >::valuesPerThread,
       Backend::getMaxWarpSize(),
       3,
       strategy >;
