@@ -12,11 +12,12 @@ and writes:
 - LaTeX/TikZ (pgfplots) figures with speed-up graphs, optionally compiled to PDF.
 
 The speed-up of TNL over another library is the ratio of the time of the library
-and the time of TNL with the same matrix format, device, precision and grid.
+and the time of TNL with the same matrix format, device, precision and problem.
 """
 
 import argparse
 import html
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -35,8 +36,17 @@ OPERATIONS = [
     "array transfer",
 ]
 LIBRARIES = ["TNL", "Ginkgo", "Hypre", "PETSc", "cuSPARSE"]
-FORMATS = ["CSR", "Ellpack", "SlicedEllpack"]
-GROUP_COLUMNS = ["precision", "device", "dimension", "grid size"]
+BASE_FORMATS = [
+    "CSR",
+    "AdaptiveCSR",
+    "Ellpack",
+    "SlicedEllpack",
+    "ChunkedEllpack",
+    "BiEllpack",
+]
+FORMATS = BASE_FORMATS + [f"Sorted{fmt}" for fmt in BASE_FORMATS]
+GROUP_COLUMNS = ["precision", "device", "problem", "size"]
+PROBLEM_COLUMNS = ["problem", "size", "rows", "nonzeros", "max row length"]
 
 # pgfplots colors and marks for the bars of the individual series
 BAR_STYLES = [
@@ -66,9 +76,8 @@ def load_results(filenames: list[str]) -> pd.DataFrame:
         raise ValueError("The input files do not contain any benchmark results.")
     df = df[df["performer"].notna()].copy()
 
-    df["dimension"] = df["dimension"].astype(int)
-    df["rows"] = df["rows"].astype(int)
-    df["nonzeros"] = df["nonzeros"].astype(int)
+    for column in ["rows", "nonzeros", "max row length"]:
+        df[column] = df[column].astype(int)
     df["time"] = pd.to_numeric(df["time"], errors="coerce") * 1e3
     df["time_stddev"] = pd.to_numeric(df["time_stddev"], errors="coerce") * 1e3
 
@@ -99,8 +108,14 @@ def series_label(row: pd.Series) -> str:
     return f"{row['performer']} {row['format']}"
 
 
-def grid_label(dimension: int, grid_size: str) -> str:
-    return f"{dimension}D {grid_size}"
+def problem_label(problem: str, size: str) -> str:
+    # symbolic coordinates of pgfplots must not contain commas
+    return f"{problem} {size}".replace(",", " ")
+
+
+def file_label(text: str) -> str:
+    """Converts a label to a part of a file name."""
+    return re.sub(r"[^A-Za-z0-9.+-]+", "-", text).strip("-")
 
 
 # --------------------------------------------------------------------------- HTML
@@ -127,42 +142,34 @@ def format_number(value: float, digits: int = 3) -> str:
 def html_results_table(df: pd.DataFrame) -> str:
     """Table of times (ms) of all operations and the TNL speed-up of the assembly."""
     operations = [op for op in OPERATIONS if op in set(df["operation"])]
+    index = [*PROBLEM_COLUMNS, "performer", "format"]
     times = df.pivot_table(
-        index=["dimension", "grid size", "rows", "nonzeros", "performer", "format"],
+        index=index,
         columns="operation",
         values="time",
         aggfunc="first",
     )
-    assembly = df[df["operation"] == "assembly"].set_index(
-        ["dimension", "grid size", "rows", "nonzeros", "performer", "format"]
-    )["TNL speed-up"]
+    assembly = df[df["operation"] == "assembly"].set_index(index)["TNL speed-up"]
     times = times.reset_index().sort_values(
-        ["dimension", "grid size", "performer", "format"], key=sort_key
+        ["problem", "size", "performer", "format"], key=sort_key
     )
 
     lines = ["<table>", "<thead><tr>"]
-    headers = ["dim", "grid", "rows", "nonzeros", "library", "format"]
+    headers = ["problem", "size", "rows", "nonzeros", "max row", "library", "format"]
     headers += [f"{op} [ms]" for op in operations]
     headers += ["TNL speed-up (assembly)"]
     lines.append("".join(f"<th>{html.escape(h)}</th>" for h in headers))
     lines.append("</tr></thead>")
     lines.append("<tbody>")
     for _, row in times.iterrows():
-        index = (
-            row["dimension"],
-            row["grid size"],
-            row["rows"],
-            row["nonzeros"],
-            row["performer"],
-            row["format"],
-        )
-        speedup = assembly.get(index, float("nan"))
+        speedup = assembly.get(tuple(row[column] for column in index), float("nan"))
         css = ' class="tnl"' if row["performer"] == "TNL" else ""
         cells = [
-            f"<td>{row['dimension']}</td>",
-            f'<td class="text">{html.escape(str(row["grid size"]))}</td>',
+            f'<td class="text">{html.escape(str(row["problem"]))}</td>',
+            f'<td class="text">{html.escape(str(row["size"]))}</td>',
             f"<td>{row['rows']}</td>",
             f"<td>{row['nonzeros']}</td>",
+            f"<td>{row['max row length']}</td>",
             f'<td class="text">{html.escape(row["performer"])}</td>',
             f'<td class="text">{html.escape(row["format"])}</td>',
         ]
@@ -183,7 +190,7 @@ def write_html(df: pd.DataFrame, output_dir: Path) -> Path:
         (
             "<p>Times are in milliseconds. The TNL speed-up is the ratio of the "
             "assembly time of the library and the assembly time of TNL with the same "
-            "matrix format, device, precision and grid. Values greater than 1 mean "
+            "matrix format, device, precision and problem. Values greater than 1 mean "
             "that TNL is faster.</p>"
         ),
     ]
@@ -266,13 +273,9 @@ def tikz_bar_chart(
 
 
 def x_labels(df: pd.DataFrame) -> list[str]:
-    grids = df[["dimension", "grid size"]].drop_duplicates()
-    grids = grids.sort_values(["dimension", "grid size"])
-    # symbolic coordinates must not contain commas
-    return [
-        grid_label(d, str(g)).replace(",", " ")
-        for d, g in grids.itertuples(index=False)
-    ]
+    problems = df[["problem", "size"]].drop_duplicates()
+    problems = problems.sort_values(["problem", "size"])
+    return [problem_label(p, str(s)) for p, s in problems.itertuples(index=False)]
 
 
 def speedup_figures(df: pd.DataFrame, operation: str) -> dict[str, str]:
@@ -286,7 +289,7 @@ def speedup_figures(df: pd.DataFrame, operation: str) -> dict[str, str]:
         for _, row in group.sort_values(
             ["performer", "format"], key=sort_key
         ).iterrows():
-            x = grid_label(row["dimension"], str(row["grid size"])).replace(",", " ")
+            x = problem_label(row["problem"], str(row["size"]))
             series.setdefault(series_label(row), {})[x] = row["TNL speed-up"]
         name = f"speedup-{operation}-{device}-{precision}".replace(" ", "-")
         figures[name] = tikz_bar_chart(
@@ -296,6 +299,35 @@ def speedup_figures(df: pd.DataFrame, operation: str) -> dict[str, str]:
             series=series,
             log_scale=True,
         )
+    return figures
+
+
+def format_figures(df: pd.DataFrame) -> dict[str, str]:
+    """
+    Assembly time of the TNL formats relative to TNL CSR for each device and precision.
+
+    It shows how the formats cope with the problems with uniform (Laplace) and very
+    different (graph) row lengths.
+    """
+    figures = {}
+    tnl = df[(df["performer"] == "TNL") & (df["operation"] == "assembly")]
+    for (precision, device), group in tnl.groupby(["precision", "device"], sort=True):
+        csr = group[group["format"] == "CSR"].set_index(["problem", "size"])["time"]
+        series: dict[str, dict[str, float]] = {}
+        for _, row in group.sort_values(["format"], key=sort_key).iterrows():
+            if row["format"] == "CSR":
+                continue
+            reference = csr.get((row["problem"], row["size"]), float("nan"))
+            x = problem_label(row["problem"], str(row["size"]))
+            series.setdefault(row["format"], {})[x] = row["time"] / reference
+        if series:
+            figures[f"tnl-formats-{device}-{precision}"] = tikz_bar_chart(
+                title=f"TNL formats, assembly, {device}, {precision}",
+                ylabel="assembly time relative to CSR",
+                xlabels=x_labels(group),
+                series=series,
+                log_scale=True,
+            )
     return figures
 
 
@@ -356,19 +388,20 @@ def gpu_figures(df: pd.DataFrame) -> dict[str, str]:
 
     - speed-up of the assembly on the GPU over the host assembly + transfer for all
       libraries and formats,
-    - for each grid, stacked bars with the times of the host assembly and the transfer.
+    - for each problem, stacked bars with the times of the host assembly and the
+      transfer.
     """
     figures = {}
     gpu = df[df["device"].isin(["cuda", "hip"])]
     for (precision, device), group in gpu.groupby(["precision", "device"], sort=True):
         times = group.pivot_table(
-            index=["dimension", "grid size", "performer", "format"],
+            index=["problem", "size", "performer", "format"],
             columns="operation",
             values="time",
             aggfunc="first",
         ).reset_index()
         times = times.sort_values(
-            ["dimension", "grid size", "performer", "format"], key=sort_key
+            ["problem", "size", "performer", "format"], key=sort_key
         )
         if "host assembly + transfer" not in times.columns:
             continue
@@ -376,7 +409,7 @@ def gpu_figures(df: pd.DataFrame) -> dict[str, str]:
         # speed-up of the assembly on the GPU
         series: dict[str, dict[str, float]] = {}
         for _, row in times.iterrows():
-            x = grid_label(row["dimension"], str(row["grid size"])).replace(",", " ")
+            x = problem_label(row["problem"], str(row["size"]))
             speedup = row["host assembly + transfer"] / row.get("assembly")
             if pd.notna(speedup):
                 series.setdefault(series_label(row), {})[x] = speedup
@@ -391,27 +424,25 @@ def gpu_figures(df: pd.DataFrame) -> dict[str, str]:
                 log_scale=True,
             )
 
-        # time of the host assembly and the transfer for each grid
+        # time of the host assembly and the transfer for each problem
         measured = times[times["host assembly + transfer"].notna()]
-        for (dimension, grid), grid_times in measured.groupby(
-            ["dimension", "grid size"], sort=True
+        for (problem, size), problem_times in measured.groupby(
+            ["problem", "size"], sort=True
         ):
-            if grid_times.empty:
+            if problem_times.empty:
                 continue
-            labels = [series_label(row) for _, row in grid_times.iterrows()]
+            label = problem_label(problem, str(size))
+            labels = [series_label(row) for _, row in problem_times.iterrows()]
             parts: dict[str, dict[str, float]] = {
                 "host assembly": {},
                 "transfer": {},
             }
-            for label, (_, row) in zip(labels, grid_times.iterrows(), strict=True):
+            for bar, (_, row) in zip(labels, problem_times.iterrows(), strict=True):
                 for part, values in parts.items():
-                    values[label] = row.get(part)
-            name = f"host-to-gpu-{device}-{precision}-{dimension}D-{grid}"
+                    values[bar] = row.get(part)
+            name = f"host-to-gpu-{device}-{precision}-{file_label(label)}"
             figures[name] = tikz_stacked_chart(
-                title=(
-                    f"Host assembly + transfer, {grid_label(dimension, str(grid))}, "
-                    f"{device}, {precision}"
-                ),
+                title=f"Host assembly + transfer, {label}, {device}, {precision}",
                 ylabel="time [ms]",
                 xlabels=labels,
                 series=parts,
@@ -480,6 +511,7 @@ def main() -> None:
     figures = {}
     for operation in args.operations:
         figures.update(speedup_figures(df, operation))
+    figures.update(format_figures(df))
     figures.update(gpu_figures(df))
     write_figures(figures, args.output_dir, args.pdf)
 

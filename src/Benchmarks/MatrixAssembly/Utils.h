@@ -10,6 +10,18 @@
 
 namespace TNL::Benchmarks::MatrixAssembly {
 
+/**
+ * \brief Returns true for the formats which pad all rows to the length of the longest row.
+ *
+ * The size of such matrices is the number of rows times the maximal row length, which can exceed
+ * the range of the index type (or the memory) for matrices with very different row lengths.
+ */
+inline bool
+isEllpackFormat( const std::string& format )
+{
+   return format == "Ellpack" || format == "SortedEllpack";
+}
+
 //! \brief Reset function which does nothing.
 inline void
 noReset()
