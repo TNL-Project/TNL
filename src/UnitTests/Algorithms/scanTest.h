@@ -909,7 +909,7 @@ TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
 }
 
 // Test that the lookback kernel handles an unaligned begin offset. The
-// vectorized Vec4 load/store path requires the tile origin to be 16-byte
+// vectorized TileVector load/store path requires the tile origin to be 16-byte
 // aligned. With begin=3 and double (8 B), the byte offset is 24 (not a
 // multiple of 16), which would crash ld.global.v4 if the kernel did not
 // fall back to scalar loads. This test exercises the fallback.
@@ -1330,7 +1330,7 @@ TEST( ScanSmallValueTypeTest, unsigned_short )
 // Test of the lookback kernel with a 16-byte value type with 8-byte alignment,
 // which uses the generic block scan (without the warp shuffle instructions).
 // With an 8-byte offset of the data, no element starts at a 16-byte boundary,
-// so the tiles must be accessed scalarly instead of via Vec4. The views are
+// so the tiles must be accessed scalarly instead of via TileVector. The views are
 // created over arrays of doubles, since the data of an array of the value type
 // are always 16-byte aligned.
 TEST( ScanStaticVectorTest, lookback_kernel_16_byte_value_type )

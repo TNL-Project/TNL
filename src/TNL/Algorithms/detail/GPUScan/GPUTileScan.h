@@ -34,30 +34,30 @@ namespace TNL::Algorithms::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-// 16-byte vector type used for vectorized loads/stores of the tiles. int4 is
-// available on all CUDA targets and supports all value types whose sizeof
-// divides 16 (1, 2, 4, 8, 16 bytes).
-struct alignas( 16 ) Vec4
-{
-   int x, y, z, w;
-};
+// The built-in vector type used for the vectorized (16-byte) loads and stores
+// of the tiles. It supports all value types whose size divides its size
+// (1, 2, 4, 8 and 16 bytes).
+using TileVector = int4;
+
+// Size of TileVector in bytes, which is also its alignment.
+inline constexpr int tileVectorBytes = sizeof( TileVector );
 
 /* Returns the number of elements at the beginning of a tile which must be
- * accessed scalarly, so that the following elements start at a 16-byte
- * boundary and can be accessed via Vec4. The alignment is determined from the
- * address, since the data of a view do not have to start at a 16-byte
- * boundary. If no element starts at a 16-byte boundary (e.g. 16-byte types
- * with 8-byte alignment), the whole tile is accessed scalarly.
+ * accessed scalarly, so that the following elements are aligned to
+ * tileVectorBytes and can be accessed via TileVector. The alignment is
+ * determined from the address, since the data of a view do not have to be
+ * aligned. If no element is aligned (e.g. 16-byte types with 8-byte
+ * alignment), the whole tile is accessed scalarly.
  */
 template< typename ValueType >
 __device__
 int
-getVec4FrontPeel( const ValueType* tile, int elementsInTile )
+getTileVectorFrontPeel( const ValueType* tile, int elementsInTile )
 {
-   const int misalignment = reinterpret_cast< std::uintptr_t >( tile ) % 16;
+   const int misalignment = reinterpret_cast< std::uintptr_t >( tile ) % tileVectorBytes;
    if( misalignment == 0 )
       return 0;
-   const int peelBytes = 16 - misalignment;
+   const int peelBytes = tileVectorBytes - misalignment;
    if( peelBytes % sizeof( ValueType ) != 0 )
       return elementsInTile;
    return TNL::min( static_cast< int >( peelBytes / sizeof( ValueType ) ), elementsInTile );
@@ -66,7 +66,7 @@ getVec4FrontPeel( const ValueType* tile, int elementsInTile )
 template< typename ValueType, typename BlockStorage, int BlockSize, int ValuesPerThread >
 struct GPUTileScanStorage
 {
-   alignas( 16 ) ValueType data[ BlockSize * ValuesPerThread ];
+   alignas( tileVectorBytes ) ValueType data[ BlockSize * ValuesPerThread ];
    BlockStorage blockScanStorage;
 };
 
@@ -157,7 +157,7 @@ struct GPUTileScan
     * memory and pads the rest of the tile with identity, so that all threads
     * run the same code path in the following steps.
     *
-    * The aligned middle of the tile is loaded via Vec4 for arrays whose value
+    * The aligned middle of the tile is loaded via TileVector for arrays whose value
     * type size divides 16 (with scalar shared stores, since the middle does
     * not start at a 16-byte boundary in shared memory in general); the
     * unaligned prefix and suffix are loaded scalarly. Expression templates are
@@ -174,16 +174,16 @@ struct GPUTileScan
       ValueType identity,
       Storage& storage )
    {
-      // range of the tile accessed via Vec4
+      // range of the tile accessed via TileVector
       int vecBegin = elementsInTile;
       int vecEnd = elementsInTile;
-      if constexpr( 16 % sizeof( ValueType ) == 0 && IsArrayType< InputView >::value ) {
-         constexpr int vecWidth = 16 / sizeof( ValueType );
-         vecBegin = getVec4FrontPeel( input.getData() + tileBegin, elementsInTile );
+      if constexpr( tileVectorBytes % sizeof( ValueType ) == 0 && IsArrayType< InputView >::value ) {
+         constexpr int vecWidth = tileVectorBytes / sizeof( ValueType );
+         vecBegin = getTileVectorFrontPeel( input.getData() + tileBegin, elementsInTile );
          vecEnd = vecBegin + ( elementsInTile - vecBegin ) / vecWidth * vecWidth;
-         const Vec4* inputVec = reinterpret_cast< const Vec4* >( input.getData() + tileBegin + vecBegin );
+         const auto* inputVec = reinterpret_cast< const TileVector* >( input.getData() + tileBegin + vecBegin );
          for( int v = threadIdx.x; v < ( vecEnd - vecBegin ) / vecWidth; v += blockDim.x ) {
-            const Vec4 vec = inputVec[ v ];
+            const TileVector vec = inputVec[ v ];
             const ValueType* values = reinterpret_cast< const ValueType* >( &vec );
             #pragma unroll
             for( int c = 0; c < vecWidth; c++ )
@@ -207,16 +207,16 @@ struct GPUTileScan
    static void
    storeTile( OutputView& output, typename OutputView::IndexType tileBegin, int elementsInTile, const Storage& storage )
    {
-      // range of the tile accessed via Vec4
+      // range of the tile accessed via TileVector
       int vecBegin = elementsInTile;
       int vecEnd = elementsInTile;
-      if constexpr( 16 % sizeof( ValueType ) == 0 && IsArrayType< OutputView >::value ) {
-         constexpr int vecWidth = 16 / sizeof( ValueType );
-         vecBegin = getVec4FrontPeel( output.getData() + tileBegin, elementsInTile );
+      if constexpr( tileVectorBytes % sizeof( ValueType ) == 0 && IsArrayType< OutputView >::value ) {
+         constexpr int vecWidth = tileVectorBytes / sizeof( ValueType );
+         vecBegin = getTileVectorFrontPeel( output.getData() + tileBegin, elementsInTile );
          vecEnd = vecBegin + ( elementsInTile - vecBegin ) / vecWidth * vecWidth;
-         Vec4* outputVec = reinterpret_cast< Vec4* >( output.getData() + tileBegin + vecBegin );
+         auto* outputVec = reinterpret_cast< TileVector* >( output.getData() + tileBegin + vecBegin );
          for( int v = threadIdx.x; v < ( vecEnd - vecBegin ) / vecWidth; v += blockDim.x ) {
-            Vec4 vec;
+            TileVector vec;
             ValueType* values = reinterpret_cast< ValueType* >( &vec );
             #pragma unroll
             for( int c = 0; c < vecWidth; c++ )
