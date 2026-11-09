@@ -164,14 +164,15 @@ loadAcquire( const unsigned int* ptr )
 {
    #if defined( __HIP__ )
    return __hip_atomic_load( ptr, __ATOMIC_ACQUIRE, __HIP_MEMORY_SCOPE_AGENT );
-   #elif defined( __CUDA_ARCH__ ) && __CUDA_ARCH__ >= 700
+   #elif defined( __CUDA_ARCH__ )
+   // the acquire load needs compute capability 7.0 (Volta) or newer, the older
+   // GPUs are not supported
    unsigned int value;
    asm volatile( "ld.acquire.gpu.global.u32 %0, [%1];" : "=r"( value ) : "l"( ptr ) : "memory" );
    return value;
    #else
-   const unsigned int value = *reinterpret_cast< const volatile unsigned int* >( ptr );
-   __threadfence();
-   return value;
+   // host compilation pass, the function is never called on the host
+   return *ptr;
    #endif
 }
 
