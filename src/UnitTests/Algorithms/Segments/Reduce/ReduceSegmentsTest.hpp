@@ -2,6 +2,7 @@
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
+#include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
@@ -214,6 +215,113 @@ test_reduceSegments_LongSegments()
          },
          launch_config );
       check( true, true );
+   }
+}
+
+// The storer must be called exactly once for each non-empty segment, because it may
+// accumulate the result, e.g. by an atomic addition in the product of a symmetric matrix
+// with a vector. The segments with more than 1024 elements are split among several warps
+// by some kernels, e.g. the LONG blocks of AdaptiveCSR.
+template< typename Segments >
+void
+test_reduceSegments_StoreOncePerSegment()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
+   using CountsType = TNL::Containers::Vector< int, DeviceType, IndexType >;
+   using HostCountsType = TNL::Containers::Vector< int, TNL::Devices::Host, IndexType >;
+
+   const IndexType segmentsCount = 64;
+   const HostVectorType sizesPattern{ 3000, 5, 1100, 0, 40, 2049, 1, 1500 };
+   HostVectorType hostSegmentsSizes( segmentsCount );
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
+      hostSegmentsSizes[ segmentIdx ] = sizesPattern[ segmentIdx % sizesPattern.getSize() ];
+   const VectorType segmentsSizes( hostSegmentsSizes );
+
+   Segments segments( segmentsSizes );
+
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      // padding elements, if any, keep the value 0
+      VectorType v( segments.getStorageSize(), 0 );
+      auto view = v.getView();
+      const auto sizesView = segmentsSizes.getConstView();
+      TNL::Algorithms::Segments::forAllElements(
+         segments,
+         [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+         {
+            if( localIdx < sizesView[ segmentIdx ] )
+               view[ globalIdx ] = 1;
+         } );
+      const auto v_view = v.getConstView();
+
+      VectorType result( segmentsCount, -1 );
+      CountsType calls( segmentsCount, 0 );
+      auto result_view = result.getView();
+      auto calls_view = calls.getView();
+
+      auto check = [ & ]( bool sum )
+      {
+         const HostVectorType hostResult( result );
+         const HostCountsType hostCalls( calls );
+         for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+            const IndexType size = hostSegmentsSizes[ segmentIdx ];
+            if( size == 0 ) {
+               EXPECT_LE( hostCalls[ segmentIdx ], 1 ) << "segmentIdx = " << segmentIdx;
+               continue;
+            }
+            EXPECT_EQ( hostCalls[ segmentIdx ], 1 ) << "segmentIdx = " << segmentIdx;
+            EXPECT_EQ( hostResult[ segmentIdx ], sum ? size : 1 ) << "segmentIdx = " << segmentIdx;
+         }
+         result = -1;
+         calls = 0;
+      };
+
+      auto store = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType res ) mutable
+      {
+         result_view[ segmentIdx ] = res;
+         TNL::Algorithms::AtomicOperations< DeviceType >::add( calls_view[ segmentIdx ], 1 );
+      };
+
+      TNL::Algorithms::Segments::reduceAllSegments(
+         segments,
+         [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+         {
+            return v_view[ globalIdx ];
+         },
+         TNL::Plus{},
+         store,
+         launch_config );
+      check( true );
+
+      TNL::Algorithms::Segments::reduceAllSegments(
+         segments,
+         [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
+         {
+            return v_view[ globalIdx ];
+         },
+         TNL::Plus{},
+         store,
+         launch_config );
+      check( true );
+
+      TNL::Algorithms::Segments::reduceAllSegmentsWithArgument(
+         segments,
+         [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+         {
+            return v_view[ globalIdx ];
+         },
+         TNL::MaxWithArg{},
+         [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType res, bool emptySegment ) mutable
+         {
+            result_view[ segmentIdx ] = res;
+            TNL::Algorithms::AtomicOperations< DeviceType >::add( calls_view[ segmentIdx ], 1 );
+         },
+         launch_config );
+      check( false );
    }
 }
 

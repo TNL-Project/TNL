@@ -19,6 +19,12 @@ TYPED_TEST_P( ReduceSegmentsTest, reduceSegments_LongSegments )
       test_reduceSegments_LongSegments< typename TestFixture::SegmentsType > );
 }
 
+TYPED_TEST_P( ReduceSegmentsTest, reduceSegments_StoreOncePerSegment )
+{
+   runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
+      test_reduceSegments_StoreOncePerSegment< typename TestFixture::SegmentsType > );
+}
+
 TYPED_TEST_P( ReduceSegmentsTest, reduceSegments_MaximumInTriangularSegments )
 {
    runWithMultipleGrids< typename TestFixture::SegmentsType::DeviceType >(
@@ -72,6 +78,7 @@ REGISTER_TYPED_TEST_SUITE_P(
    ReduceSegmentsTest,
    reduceSegments_MaximumInSegments,
    reduceSegments_LongSegments,
+   reduceSegments_StoreOncePerSegment,
    reduceSegments_MaximumInTriangularSegments,
    reduceSegments_MaximumInSegments_short_fetch,
    reduceSegmentsWithArgument_MaximumInSegments,
