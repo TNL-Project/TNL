@@ -166,18 +166,16 @@ reduceSegments_AdaptiveCSR(
          multivectorShared[ warpIdx ] = result;
 
       __syncthreads();
-      // Reduction in multivectorShared using warp-level shuffle
+      // Reduction in multivectorShared using warp-level shuffle.
+      // Only the first warp of the segment stores the result, because the
+      // storer may accumulate it (e.g. by an atomic addition in the product
+      // of a symmetric matrix with a vector), so it must be called exactly once.
       if( block.getWarpIdx() == 0 ) {
          constexpr int totalWarps = BlockSize / WarpSize;
          auto myValue = ( laneIdx < totalWarps ) ? multivectorShared[ laneIdx ].get() : identity;
          myValue = BlockReduce::warpReduce( reduction, myValue );
          if( laneIdx == 0 )
-            multivectorShared[ 0 ] = myValue;
-      }
-      __syncthreads();
-
-      if( laneIdx == 0 ) {
-         store( segmentIdx, multivectorShared[ 0 ].get() );
+            store( segmentIdx, myValue );
       }
    }
 #endif
@@ -326,22 +324,18 @@ reduceSegments_AdaptiveCSR_WithArgument(
       }
 
       __syncthreads();
-      // Reduction in multivectorShared using warp-level shuffle
+      // Reduction in multivectorShared using warp-level shuffle.
+      // Only the first warp of the segment stores the result, so that the
+      // storer is called exactly once, see reduceSegments_AdaptiveCSR.
       if( block.getWarpIdx() == 0 ) {
          constexpr int totalWarps = BlockSize / WarpSize;
          auto myResult = ( laneIdx < totalWarps ) ? multivectorShared_result[ laneIdx ].get() : identity;
          auto myArgument = ( laneIdx < totalWarps ) ? multivectorShared_argument[ laneIdx ] : Index{};
          auto [ reducedResult, reducedArgument ] = BlockReduce::warpReduceWithArgument( reduction, myResult, myArgument );
          if( laneIdx == 0 ) {
-            multivectorShared_result[ 0 ] = reducedResult;
-            multivectorShared_argument[ 0 ] = reducedArgument;
+            const bool emptySegment = ( begin == end );
+            store( segmentIdx, reducedArgument, reducedResult, emptySegment );
          }
-      }
-      __syncthreads();
-
-      if( laneIdx == 0 ) {
-         bool emptySegment = ( begin == end );
-         store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ].get(), emptySegment );
       }
    }
 #endif
