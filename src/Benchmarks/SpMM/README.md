@@ -51,6 +51,12 @@ generic SpMM implementation based on TNL segments.
   - `TNL SpMM Ellpack` and `TNL SpMM SlicedEllpack` – all launch
     configurations of the segments. A format is skipped when it would have more
     elements than `--max-padding-ratio` times the number of nonzeros.
+- **TNL SpMM Lambdas** – `TNL::Matrices::sparseDenseMatrixProductWithLambdas` with
+  `B` read and `C` written by lambda functions (`Default`), or with `B` given by the dense
+  matrix view and only `C` by a lambda function (`matrix B`, row-major layout only), or with
+  `B` given by `TNL::Matrices::DirectFetch`, i.e. the array and the stride, so that its rows
+  are read by vectorized loads (`direct`). The `Default` and `direct` variants are also
+  measured on the host.
 - **TNL SpMM LanesOverColumns** – `TNL::Matrices::sparseDenseMatrixProductLanesOverColumns`
   with `A` in the CSR format (row-major layout only): a group of `G` threads
   processes one row of `A` and every thread computes `V` consecutive columns of

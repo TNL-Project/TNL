@@ -526,6 +526,81 @@ struct RowBinsData
 
 #endif
 
+//! \brief The way of passing B to `sparseDenseMatrixProductWithLambdas` in `spmmWithLambdas`.
+enum class LambdaB : std::uint8_t
+{
+   //! \brief B is read by a lambda function.
+   Function,
+   //! \brief B is given by a dense matrix view (row-major layout only).
+   Matrix,
+   //! \brief B is given by `TNL::Matrices::DirectFetch`.
+   Direct
+};
+
+/**
+ * \brief Computes `C = A * B` by `sparseDenseMatrixProductWithLambdas` with lambda functions reading the raw array of B
+ * (or with B passed as given by `lambdaB`) and writing the raw array of C in the layout of the problem.
+ *
+ * The lambda functions are defined in a named function, because nvcc does not allow extended lambdas inside lambdas.
+ */
+template< typename Matrix, typename Real, typename Index >
+void
+spmmWithLambdas(
+   const Matrix& A,
+   Real* B,
+   Real* C,
+   const SpMMProblem< Real, Index >& problem,
+   LambdaB lambdaB = LambdaB::Function )
+{
+   using Device = typename Matrix::DeviceType;
+   const Index ldB = problem.leadingDimensionB();
+   const Index ldC = problem.leadingDimensionC();
+   if( problem.rowMajor ) {
+      auto fetchB = [ = ] __cuda_callable__( Index column, Index j )
+      {
+         return B[ column * ldB + j ];
+      };
+      auto storeC = [ = ] __cuda_callable__( Index row, int j, const Real& value )
+      {
+         C[ row * ldC + j ] = value;
+      };
+      // B given by the dense matrix view is read by vectorized loads, C is still given by the lambda function
+      if( lambdaB == LambdaB::Matrix ) {
+         using DenseView = Matrices::DenseMatrixView< Real, Device, Index, Algorithms::Segments::RowMajorOrder >;
+         const DenseView viewB(
+            problem.columns, problem.k, typename DenseView::ValuesViewType( B, problem.columns * problem.k ) );
+         Matrices::sparseDenseMatrixProductWithLambdas( A, problem.k, viewB, storeC );
+      }
+      else if( lambdaB == LambdaB::Direct )
+         Matrices::sparseDenseMatrixProductWithLambdas(
+            A,
+            problem.k,
+            Matrices::directFetch< Algorithms::Segments::RowMajorOrder >( const_cast< const Real* >( B ), ldB ),
+            storeC );
+      else
+         Matrices::sparseDenseMatrixProductWithLambdas< Algorithms::Segments::RowMajorOrder >( A, problem.k, fetchB, storeC );
+   }
+   else {
+      auto fetchB = [ = ] __cuda_callable__( Index column, Index j )
+      {
+         return B[ j * ldB + column ];
+      };
+      auto storeC = [ = ] __cuda_callable__( Index row, int j, const Real& value )
+      {
+         C[ j * ldC + row ] = value;
+      };
+      if( lambdaB == LambdaB::Direct )
+         Matrices::sparseDenseMatrixProductWithLambdas(
+            A,
+            problem.k,
+            Matrices::directFetch< Algorithms::Segments::ColumnMajorOrder >( const_cast< const Real* >( B ), ldB ),
+            storeC );
+      else
+         Matrices::sparseDenseMatrixProductWithLambdas< Algorithms::Segments::ColumnMajorOrder >(
+            A, problem.k, fetchB, storeC );
+   }
+}
+
 template< typename Real, typename Index >
 void
 benchmarkHost(
@@ -576,7 +651,12 @@ benchmarkHost(
                problem.k,
                typename DenseView::ValuesViewType( const_cast< Real* >( B.getData() ), B.getSize() ) );
             DenseView viewC( problem.rows, problem.k, typename DenseView::ValuesViewType( C.getData(), C.getSize() ) );
-            Matrices::sparseDenseMatrixProduct< MaxTileSize >( sparseMatrix, viewB, viewC );
+            // a non-default configuration (ignored on the host) keeps the tile size of column-major B, which the
+            // default one adapts to the cache size
+            Algorithms::Segments::LaunchConfiguration launchConfig;
+            if( config != "Default" && Organization == Algorithms::Segments::ColumnMajorOrder )
+               launchConfig.setThreadsToSegmentsMapping( Algorithms::Segments::ThreadsToSegmentsMapping::Uniform );
+            Matrices::sparseDenseMatrixProduct< MaxTileSize >( sparseMatrix, viewB, viewC, Real( 1 ), Real( 0 ), launchConfig );
          };
          if( problem.rowMajor )
             multiply(
@@ -589,6 +669,19 @@ benchmarkHost(
       benchmark.time< Device >( performer, compute, result );
    };
    runSegments( "TNL SpMM", matrix, std::integral_constant< int, 16 >{}, "Default" );
+   auto computeLambdas = [ & ]()
+   {
+      spmmWithLambdas( matrix, const_cast< Real* >( B.getData() ), C.getData(), problem );
+   };
+   benchmark.setMetadataElement( { "kernel config", "Default" } );
+   benchmark.time< Devices::Host >( "TNL SpMM Lambdas", computeLambdas, result );
+   auto computeDirect = [ & ]()
+   {
+      spmmWithLambdas( matrix, const_cast< Real* >( B.getData() ), C.getData(), problem, LambdaB::Direct );
+   };
+   benchmark.setMetadataElement( { "kernel config", "direct" } );
+   benchmark.time< Devices::Host >( "TNL SpMM Lambdas", computeDirect, result );
+   runSegments( "TNL SpMM", matrix, std::integral_constant< int, 4 >{}, "tile 4" );
    runSegments( "TNL SpMM", matrix, std::integral_constant< int, 8 >{}, "tile 8" );
    runSegments( "TNL SpMM", matrix, std::integral_constant< int, 32 >{}, "tile 32" );
    runSegments( "TNL SpMM", matrix, std::integral_constant< int, 64 >{}, "tile 64" );
@@ -612,7 +705,8 @@ benchmarkHost(
          { gko::matrix::csr::spmv_strategy::automatic, "automatic" },
          { gko::matrix::csr::spmv_strategy::classical, "classical" },
          { gko::matrix::csr::spmv_strategy::load_balance, "load_balance" },
-         { gko::matrix::csr::spmv_strategy::merge_path, "merge_path" } };
+         { gko::matrix::csr::spmv_strategy::merge_path, "merge_path" }
+      };
       for( const auto& [ strategy, name ] : ginkgoStrategies ) {
          try {
             GinkgoSpMM< Real, Index > ginkgo( A, arrayB, arrayC, strategy );
@@ -742,8 +836,27 @@ benchmarkGPU(
          }
       };
       using DefaultTileSize = std::integral_constant< int, 16 >;
-      if( isSelected( segmentsFormats, "csr" ) )
+      if( isSelected( segmentsFormats, "csr" ) ) {
          runSegments( "TNL SpMM", matrix, DefaultTileSize{}, false );
+         // the same product with B and C accessed by lambda functions
+         auto compute = [ & ]()
+         {
+            spmmWithLambdas( matrix, B.getData(), C.getData(), problem );
+         };
+         run( "TNL SpMM Lambdas", "Default", compute );
+         if( problem.rowMajor ) {
+            auto computeMatrixB = [ & ]()
+            {
+               spmmWithLambdas( matrix, B.getData(), C.getData(), problem, LambdaB::Matrix );
+            };
+            run( "TNL SpMM Lambdas", "matrix B", computeMatrixB );
+         }
+         auto computeDirect = [ & ]()
+         {
+            spmmWithLambdas( matrix, B.getData(), C.getData(), problem, LambdaB::Direct );
+         };
+         run( "TNL SpMM Lambdas", "direct", computeDirect );
+      }
       // the threads of the rows distributed over the columns (row-major only), the same configurations as
       // for the LanesOverColumns reference kernels
       if( problem.rowMajor && isSelected( segmentsFormats, "csr" ) )
