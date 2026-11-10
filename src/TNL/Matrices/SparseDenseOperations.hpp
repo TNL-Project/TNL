@@ -14,6 +14,8 @@
 #include <TNL/Functional.h>
 #include <TNL/Math.h>
 #include <TNL/Matrices/MatrixBase.h>
+#include <TNL/Matrices/TypeTraits.h>
+#include <TNL/SystemInfo.h>
 #include <TNL/TypeTraits.h>
 #include "SparseDenseOperations.h"
 
@@ -91,16 +93,148 @@ loadConsecutive( const Real* source, Real ( &target )[ N ], bool aligned )
       target[ i ] = source[ i ];
 }
 
-// The fetch of the multireduction computing the columns columnOffset + j of A * B.
+// The access to the elements of a dense matrix B for the fetch of the product. The consecutive columns of row-major B
+// are loaded by vectorized loads.
+template< typename DenseMatrixBView >
+struct DenseMatrixBAccess
+{
+   using IndexType = typename DenseMatrixBView::IndexType;
+   using RealType = std::remove_const_t< typename DenseMatrixBView::RealType >;
+
+   __cuda_callable__
+   RealType
+   operator()( IndexType column, IndexType j ) const
+   {
+      return B( column, j );
+   }
+
+   // Loads the columns firstJ, ..., firstJ + Count - 1 of the row `column`, by the vectorized loads when vectorLoads
+   // is set.
+   template< int Count >
+   __cuda_callable__
+   void
+   load( IndexType column, IndexType firstJ, RealType ( &b )[ Count ], bool vectorLoads ) const
+   {
+      // the consecutive columns of B are consecutive in memory only in the row-major order
+      if constexpr( DenseMatrixBView::getOrganization() == Algorithms::Segments::RowMajorOrder )
+         loadConsecutive< Count >( &B( column, firstJ ), b, vectorLoads );
+      else
+         for( int c = 0; c < Count; c++ )
+            b[ c ] = B( column, firstJ + c );
+   }
+
+   // Tells whether W consecutive columns starting at multiples of W can be loaded by the vectorized loads, i.e. whether
+   // B is row-major with the rows aligned to the vector width.
+   template< int W >
+   [[nodiscard]] bool
+   canLoadVectors() const
+   {
+      if constexpr( DenseMatrixBView::getOrganization() == Algorithms::Segments::RowMajorOrder ) {
+         const auto& segments = B.getSegments();
+         const auto address = reinterpret_cast< std::uintptr_t >( B.getValues().getData() );
+         return address % ( W * sizeof( RealType ) ) == 0
+             && ( B.getRows() < 2 || ( segments.getGlobalIndex( 1, 0 ) - segments.getGlobalIndex( 0, 0 ) ) % W == 0 );
+      }
+      return false;
+   }
+
+   DenseMatrixBView B;
+};
+
+// The access to the elements of B given by the function fetchB( column, j ).
+template< typename FetchB, typename Index >
+struct LambdaBAccess
+{
+   using IndexType = Index;
+   using RealType = std::decay_t< decltype( std::declval< const FetchB& >()( Index{}, Index{} ) ) >;
+
+   __cuda_callable__
+   RealType
+   operator()( IndexType column, IndexType j ) const
+   {
+      return fetchB( column, j );
+   }
+
+   template< int Count >
+   __cuda_callable__
+   void
+   load( IndexType column, IndexType firstJ, RealType ( &b )[ Count ], bool ) const
+   {
+      for( int c = 0; c < Count; c++ )
+         b[ c ] = fetchB( column, firstJ + c );
+   }
+
+   template< int W >
+   [[nodiscard]] bool
+   canLoadVectors() const
+   {
+      return false;
+   }
+
+   FetchB fetchB;
+};
+
+// The access to the elements of B given by DirectFetch: the elements are loaded from the array like from a dense
+// matrix (by vectorized loads for row-major B) and then transformed.
+template< typename DirectFetch >
+struct DirectBAccess
+{
+   using IndexType = std::decay_t< decltype( std::declval< DirectFetch >().stride ) >;
+   using ValueType = std::remove_const_t< std::remove_pointer_t< decltype( std::declval< DirectFetch >().data ) > >;
+   using RealType = std::decay_t< decltype( std::declval< const DirectFetch& >()( IndexType{}, IndexType{} ) ) >;
+
+   __cuda_callable__
+   RealType
+   operator()( IndexType column, IndexType j ) const
+   {
+      return fetch( column, j );
+   }
+
+   template< int Count >
+   __cuda_callable__
+   void
+   load( IndexType column, IndexType firstJ, RealType ( &b )[ Count ], bool vectorLoads ) const
+   {
+      if constexpr( DirectFetch::getOrganization() == Algorithms::Segments::RowMajorOrder ) {
+         ValueType values[ Count ];
+         loadConsecutive< Count >( fetch.data + fetch.getIndex( column, firstJ ), values, vectorLoads );
+         for( int c = 0; c < Count; c++ )
+            b[ c ] = fetch.transform( values[ c ], column, firstJ + c );
+      }
+      else
+         for( int c = 0; c < Count; c++ )
+            b[ c ] = fetch( column, firstJ + c );
+   }
+
+   // The vectorized loads are used only when the values in the array have the type of the elements of B, because
+   // the width W of the vectors, to which the columns of the threads are aligned, is given by the latter.
+   template< int W >
+   [[nodiscard]] bool
+   canLoadVectors() const
+   {
+      if constexpr( DirectFetch::getOrganization() == Algorithms::Segments::RowMajorOrder
+                    && std::is_same_v< ValueType, RealType > )
+      {
+         const auto address = reinterpret_cast< std::uintptr_t >( fetch.data );
+         return address % ( W * sizeof( ValueType ) ) == 0 && fetch.stride % W == 0;
+      }
+      return false;
+   }
+
+   DirectFetch fetch;
+};
+
+// The fetch of the multireduction computing the columns columnOffset + j of A * B, the elements of B are read by
+// BAccess (DenseMatrixBAccess or LambdaBAccess).
 // It is a function object, because nvcc does not allow returning an extended lambda from a function with
 // a deduced return type.
-template< typename SparseMatrixView, typename DenseMatrixBView >
+template< typename SparseMatrixView, typename BAccess >
 struct SparseDenseMatrixProductFetch
 {
    using IndexType = typename SparseMatrixView::IndexType;
    using ComputeRealType = typename SparseMatrixView::ComputeRealType;
 
-   SparseDenseMatrixProductFetch( const SparseMatrixView& A, const DenseMatrixBView& B, IndexType columnOffset )
+   SparseDenseMatrixProductFetch( const SparseMatrixView& A, const BAccess& B, IndexType columnOffset )
    : values( A.getValues().getConstView() ),
      columnIndexes( A.getColumnIndexes().getConstView() ),
      B( B ),
@@ -146,12 +280,7 @@ struct SparseDenseMatrixProductFetch
          }
       }
       BRealType b[ Count ];
-      // the consecutive columns of B are consecutive in memory only in the row-major order
-      if constexpr( DenseMatrixBView::getOrganization() == Algorithms::Segments::RowMajorOrder )
-         loadConsecutive< Count >( &B( column, columnOffset + firstJ ), b, vectorLoads );
-      else
-         for( int c = 0; c < Count; c++ )
-            b[ c ] = B( column, columnOffset + firstJ + c );
+      B.template load< Count >( column, columnOffset + firstJ, b, vectorLoads );
       for( int c = 0; c < Count; c++ ) {
          if constexpr( SparseMatrixView::isBinary() )
             result[ c ] = b[ c ];
@@ -161,11 +290,11 @@ struct SparseDenseMatrixProductFetch
       return result;
    }
 
-   using BRealType = std::remove_const_t< typename DenseMatrixBView::RealType >;
+   using BRealType = typename BAccess::RealType;
 
    std::decay_t< decltype( std::declval< SparseMatrixView >().getValues().getConstView() ) > values;
    std::decay_t< decltype( std::declval< SparseMatrixView >().getColumnIndexes().getConstView() ) > columnIndexes;
-   DenseMatrixBView B;
+   BAccess B;
    IndexType columnOffset;
    // the rows of B are aligned for the vectorized loads of the template operator()
    bool vectorLoads = false;
@@ -212,22 +341,70 @@ checkSparseDenseMatrixProductDimensions( const SparseMatrix& A, const DenseMatri
 
 }  // namespace detail
 
-template< int MaxTileSize, typename SparseMatrix, typename DenseMatrixB, typename DenseMatrixC, typename Real >
+namespace detail {
+
+// sparseDenseMatrixProductLanesOverColumns with the elements of B read by BAccess and the results passed to storer.
+template< int Lanes, int ColumnsPerLane, typename SparseMatrix, typename BAccess, typename Storer >
+void
+sparseDenseMatrixProductLanesOverColumns(
+   const SparseMatrix& A,
+   typename SparseMatrix::IndexType k,
+   const BAccess& B,
+   const Storer& storer,
+   typename SparseMatrix::IndexType maxRowLength )
+{
+   static_assert( ! SparseMatrix::isSymmetric(), "sparseDenseMatrixProduct does not support symmetric matrices yet." );
+   using ComputeRealType = typename SparseMatrix::ComputeRealType;
+   if( k == 0 )
+      return;
+
+   // The vectorized loads of the consecutive columns of B computed by one thread need row-major B with the rows
+   // aligned to the vector width. The tiles and the first columns of the threads start at multiples of the width.
+   constexpr int W = vectorWidth< typename BAccess::RealType, ColumnsPerLane >();
+   bool vectorLoads = false;
+   if constexpr( W > 1 )
+      vectorLoads = B.template canLoadVectors< W >();
+
+   // the default is computed here from the number of elements of A known on the host, so that the multireduction
+   // does not need to read it from the device
+   const auto AView = A.getConstView();
+   using SegmentsViewType = typename std::decay_t< decltype( AView.getSegments() ) >::ConstViewType;
+   if constexpr( Algorithms::Segments::isCSRSegments_v< SegmentsViewType >
+                 && std::is_same_v< typename SparseMatrix::DeviceType, Devices::GPU > )
+      if( maxRowLength <= 0 )
+         maxRowLength = Algorithms::Segments::detail::MultiReducingOperations<
+            SegmentsViewType >::template getDefaultMaxSegmentSize< Lanes >( A.getColumnIndexes().getSize() );
+
+   // all columns are processed at once, the multireduction splits them into tiles processed in parallel
+   if( k > std::numeric_limits< int >::max() )
+      throw std::invalid_argument( "sparseDenseMatrixProductLanesOverColumns: too many columns of B" );
+   SparseDenseMatrixProductFetch< decltype( AView ), BAccess > fetch( AView, B, 0 );
+   fetch.vectorLoads = vectorLoads;
+   Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions< Lanes, ColumnsPerLane >(
+      AView.getSegments(), static_cast< int >( k ), fetch, TNL::Plus{}, storer, ComputeRealType{ 0 }, maxRowLength );
+}
+
+// sparseDenseMatrixProduct with the elements of B read by BAccess and the results passed to storer. Organization
+// tells how B is stored, i.e. whether consecutive columns of B are consecutive in memory.
+template<
+   int MaxTileSize,
+   Algorithms::Segments::ElementsOrganization Organization,
+   typename SparseMatrix,
+   typename BAccess,
+   typename Storer >
 void
 sparseDenseMatrixProduct(
    const SparseMatrix& A,
-   const DenseMatrixB& B,
-   DenseMatrixC& C,
-   Real alpha,
-   Real beta,
+   typename SparseMatrix::IndexType k,
+   const BAccess& B,
+   const Storer& storer,
    const Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    static_assert( MaxTileSize > 0, "The maximal tile size must be positive." );
    static_assert( ! SparseMatrix::isSymmetric(), "sparseDenseMatrixProduct does not support symmetric matrices yet." );
    using IndexType = typename SparseMatrix::IndexType;
-   detail::checkSparseDenseMatrixProductDimensions( A, B, C );
+   using BRealType = typename BAccess::RealType;
 
-   const IndexType k = B.getColumns();
    // For more than 4 columns of row-major B, the default configuration of CSR on GPUs distributes the threads of the
    // rows over the columns, the tile of the columns processed at once is the smallest power of two not smaller than k
    // (from 8 to 128). In single precision, each thread computes up to 4 columns, so that they are loaded by
@@ -244,16 +421,26 @@ sparseDenseMatrixProduct(
       && (std::is_same_v< DeviceType, Devices::GPU > || std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential >) )
    {
       if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
-         if constexpr( DenseMatrixB::getOrganization() == Algorithms::Segments::RowMajorOrder ) {
-            if( k > 4 ) {
+         if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
+            // on the host, all columns of a row are computed at once for any k, with the tile of the smallest power of
+            // two not smaller than k, so that the inner loop over the columns of the tile has a constant trip count
+            constexpr bool host = ! std::is_same_v< DeviceType, Devices::GPU >;
+            if( k > 4 || host ) {
                auto multiply = [ & ]( auto tileSize )
                {
                   constexpr int TileSize = decltype( tileSize )::value;
-                  constexpr bool singlePrecision = sizeof( std::remove_const_t< typename DenseMatrixB::RealType > ) <= 4;
-                  constexpr int Lanes = singlePrecision ? TileSize / TNL::min( 4, TileSize / 4 ) : TNL::min( 32, TileSize );
-                  sparseDenseMatrixProductLanesOverColumns< Lanes, TileSize / Lanes >( A, B, C, alpha, beta );
+                  constexpr bool singlePrecision = sizeof( BRealType ) <= 4;
+                  constexpr int Lanes =
+                     singlePrecision ? TileSize / TNL::max( 1, TNL::min( 4, TileSize / 4 ) ) : TNL::min( 32, TileSize );
+                  sparseDenseMatrixProductLanesOverColumns< Lanes, TileSize / Lanes >( A, k, B, storer, 0 );
                };
-               if( k <= 8 )
+               if( host && k <= 1 )
+                  multiply( std::integral_constant< int, 1 >{} );
+               else if( host && k <= 2 )
+                  multiply( std::integral_constant< int, 2 >{} );
+               else if( host && k <= 4 )
+                  multiply( std::integral_constant< int, 4 >{} );
+               else if( k <= 8 )
                   multiply( std::integral_constant< int, 8 >{} );
                else if( k <= 16 )
                   multiply( std::integral_constant< int, 16 >{} );
@@ -288,16 +475,76 @@ sparseDenseMatrixProduct(
       throw std::invalid_argument( "sparseDenseMatrixProduct: too many columns of B" );
    using ComputeRealType = typename SparseMatrix::ComputeRealType;
    const auto AView = A.getConstView();
+   auto multiply = [ & ]( auto tileSize )
+   {
+      Algorithms::Segments::multiReduceAllSegmentsInTiles< decltype( tileSize )::value >(
+         AView.getSegments(),
+         static_cast< int >( k ),
+         SparseDenseMatrixProductFetch< decltype( AView ), BAccess >( AView, B, 0 ),
+         TNL::Plus{},
+         storer,
+         ComputeRealType{ 0 },
+         config );
+   };
+
+   // On the host, the multireduction with column-major B computes every tile of the columns for all rows before the
+   // next one. The tile is the smallest power of two not smaller than k, so that the inner loop over the columns of the
+   // tile has a constant trip count. The columns of B of one tile are read repeatedly by the rows, so they should fit
+   // in the last-level cache, otherwise smaller tiles (down to 4 columns) are faster although they read A more times.
+   if constexpr( Algorithms::Segments::isCSRSegments_v< SegmentsType >
+                 && ( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > )
+                 && Organization == Algorithms::Segments::ColumnMajorOrder )
+   {
+      if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Default ) {
+         static const std::size_t cacheSize = std::size_t( getCPUCacheSizes().L3 ) * 1024;
+         const std::size_t columnSize = A.getColumns() * sizeof( BRealType );
+         int tileSize = MaxTileSize;
+         while( tileSize > 1 && tileSize / 2 >= k )
+            tileSize /= 2;
+         while( cacheSize > 0 && tileSize > 4 && tileSize * columnSize > cacheSize )
+            tileSize /= 2;
+         auto multiplyBy = [ & ]( auto size )
+         {
+            constexpr int Size = decltype( size )::value;
+            if constexpr( Size < MaxTileSize ) {
+               if( tileSize == Size ) {
+                  multiply( size );
+                  return true;
+               }
+            }
+            return false;
+         };
+         if( multiplyBy( std::integral_constant< int, 1 >{} ) || multiplyBy( std::integral_constant< int, 2 >{} )
+             || multiplyBy( std::integral_constant< int, 4 >{} ) || multiplyBy( std::integral_constant< int, 8 >{} )
+             || multiplyBy( std::integral_constant< int, 16 >{} ) || multiplyBy( std::integral_constant< int, 32 >{} ) )
+            return;
+      }
+   }
+   multiply( std::integral_constant< int, MaxTileSize >{} );
+}
+
+}  // namespace detail
+
+template< int MaxTileSize, typename SparseMatrix, typename DenseMatrixB, typename DenseMatrixC, typename Real >
+void
+sparseDenseMatrixProduct(
+   const SparseMatrix& A,
+   const DenseMatrixB& B,
+   DenseMatrixC& C,
+   Real alpha,
+   Real beta,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig )
+{
+   detail::checkSparseDenseMatrixProductDimensions( A, B, C );
+   using ComputeRealType = typename SparseMatrix::ComputeRealType;
    const auto BView = B.getConstView();
    auto CView = C.getView();
-   Algorithms::Segments::multiReduceAllSegmentsInTiles< MaxTileSize >(
-      AView.getSegments(),
-      static_cast< int >( k ),
-      detail::SparseDenseMatrixProductFetch< decltype( AView ), decltype( BView ) >( AView, BView, 0 ),
-      TNL::Plus{},
+   detail::sparseDenseMatrixProduct< MaxTileSize, DenseMatrixB::getOrganization() >(
+      A,
+      B.getColumns(),
+      detail::DenseMatrixBAccess< decltype( BView ) >{ BView },
       detail::SparseDenseMatrixProductStorer< ComputeRealType, decltype( CView ), Real >{ CView, 0, alpha, beta },
-      ComputeRealType{ 0 },
-      config );
+      launchConfig );
 }
 
 template< int Lanes, int ColumnsPerLane, typename SparseMatrix, typename DenseMatrixB, typename DenseMatrixC, typename Real >
@@ -310,52 +557,52 @@ sparseDenseMatrixProductLanesOverColumns(
    Real beta,
    typename SparseMatrix::IndexType maxRowLength )
 {
-   static_assert( ! SparseMatrix::isSymmetric(), "sparseDenseMatrixProduct does not support symmetric matrices yet." );
-   using IndexType = typename SparseMatrix::IndexType;
-   using ComputeRealType = typename SparseMatrix::ComputeRealType;
    detail::checkSparseDenseMatrixProductDimensions( A, B, C );
-
-   const auto AView = A.getConstView();
+   using ComputeRealType = typename SparseMatrix::ComputeRealType;
    const auto BView = B.getConstView();
    auto CView = C.getView();
-   const IndexType k = B.getColumns();
-   if( k == 0 )
-      return;
-
-   // The vectorized loads of the consecutive columns of B computed by one thread need row-major B with the rows
-   // aligned to the vector width. The tiles and the first columns of the threads start at multiples of the width.
-   using BRealType = std::remove_const_t< typename DenseMatrixB::RealType >;
-   constexpr int W = detail::vectorWidth< BRealType, ColumnsPerLane >();
-   bool vectorLoads = false;
-   if constexpr( W > 1 && DenseMatrixB::getOrganization() == Algorithms::Segments::RowMajorOrder ) {
-      const auto& segments = BView.getSegments();
-      const auto address = reinterpret_cast< std::uintptr_t >( BView.getValues().getData() );
-      vectorLoads = address % ( W * sizeof( BRealType ) ) == 0
-                 && ( BView.getRows() < 2 || ( segments.getGlobalIndex( 1, 0 ) - segments.getGlobalIndex( 0, 0 ) ) % W == 0 );
-   }
-
-   // the default is computed here from the number of elements of A known on the host, so that the multireduction
-   // does not need to read it from the device
-   using SegmentsViewType = typename std::decay_t< decltype( AView.getSegments() ) >::ConstViewType;
-   if constexpr( Algorithms::Segments::isCSRSegments_v< SegmentsViewType >
-                 && std::is_same_v< typename SparseMatrix::DeviceType, Devices::GPU > )
-      if( maxRowLength <= 0 )
-         maxRowLength = Algorithms::Segments::detail::MultiReducingOperations<
-            SegmentsViewType >::template getDefaultMaxSegmentSize< Lanes >( A.getColumnIndexes().getSize() );
-
-   // all columns are processed at once, the multireduction splits them into tiles processed in parallel
-   if( k > std::numeric_limits< int >::max() )
-      throw std::invalid_argument( "sparseDenseMatrixProductLanesOverColumns: too many columns of B" );
-   detail::SparseDenseMatrixProductFetch< decltype( AView ), decltype( BView ) > fetch( AView, BView, 0 );
-   fetch.vectorLoads = vectorLoads;
-   Algorithms::Segments::multiReduceAllSegmentsLanesOverReductions< Lanes, ColumnsPerLane >(
-      AView.getSegments(),
-      static_cast< int >( k ),
-      fetch,
-      TNL::Plus{},
+   detail::sparseDenseMatrixProductLanesOverColumns< Lanes, ColumnsPerLane >(
+      A,
+      B.getColumns(),
+      detail::DenseMatrixBAccess< decltype( BView ) >{ BView },
       detail::SparseDenseMatrixProductStorer< ComputeRealType, decltype( CView ), Real >{ CView, 0, alpha, beta },
-      ComputeRealType{ 0 },
       maxRowLength );
+}
+
+template<
+   Algorithms::Segments::ElementsOrganization Organization,
+   int MaxTileSize,
+   typename SparseMatrix,
+   typename FetchB,
+   typename StoreC >
+void
+sparseDenseMatrixProductWithLambdas(
+   const SparseMatrix& A,
+   typename SparseMatrix::IndexType k,
+   FetchB&& fetchB,
+   StoreC&& storeC,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig )
+{
+   using IndexType = typename SparseMatrix::IndexType;
+   if( k < 0 )
+      throw std::invalid_argument( "sparseDenseMatrixProductWithLambdas: the number of columns of B is negative" );
+   if constexpr( is_dense_matrix_v< std::decay_t< FetchB > > ) {
+      // B given by a dense matrix is read with the vectorized loads in its own organization
+      if( fetchB.getRows() != A.getColumns() || fetchB.getColumns() != k )
+         throw std::invalid_argument( "sparseDenseMatrixProductWithLambdas: wrong dimensions of B" );
+      const auto BView = fetchB.getConstView();
+      detail::sparseDenseMatrixProduct< MaxTileSize, std::decay_t< FetchB >::getOrganization() >(
+         A, k, detail::DenseMatrixBAccess< decltype( BView ) >{ BView }, storeC, launchConfig );
+   }
+   else if constexpr( is_direct_fetch_v< FetchB > ) {
+      // the organization of the array given by DirectFetch selects the kernel
+      using DirectFetchType = std::decay_t< FetchB >;
+      detail::sparseDenseMatrixProduct< MaxTileSize, DirectFetchType::getOrganization() >(
+         A, k, detail::DirectBAccess< DirectFetchType >{ fetchB }, storeC, launchConfig );
+   }
+   else
+      detail::sparseDenseMatrixProduct< MaxTileSize, Organization >(
+         A, k, detail::LambdaBAccess< std::decay_t< FetchB >, IndexType >{ fetchB }, storeC, launchConfig );
 }
 
 }  // namespace TNL::Matrices

@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/SparseDenseOperations.h>
@@ -151,6 +152,148 @@ test_SparseDenseMatrixProductLanesOverColumns()
          add( std::integral_constant< int, 1 >{}, std::integral_constant< int, 3 >{}, 1 );
          add( std::integral_constant< int, 4 >{}, std::integral_constant< int, 2 >{}, 16 );
          add( std::integral_constant< int, 32 >{}, std::integral_constant< int, 1 >{}, 50 );
+         return products;
+      } );
+}
+
+// Computes C = alpha * A * B + beta * C by sparseDenseMatrixProductWithLambdas, the lambda functions read B and update C.
+// The lambda functions are defined in a named function, because nvcc does not allow extended lambdas inside lambdas.
+template< TNL::Algorithms::Segments::ElementsOrganization Organization, typename Matrix, typename DenseMatrix, typename Real >
+void
+sparseDenseMatrixProductByLambdas( const Matrix& A, const DenseMatrix& B, DenseMatrix& C, Real alpha, Real beta )
+{
+   using IndexType = typename Matrix::IndexType;
+   using ComputeRealType = typename Matrix::ComputeRealType;
+   const auto BView = B.getConstView();
+   const auto CSegments = C.getView().getSegments();
+   auto CValues = C.getValues().getView();
+   auto fetchB = [ = ] __cuda_callable__( IndexType column, IndexType j )
+   {
+      return BView( column, j );
+   };
+   auto storeC = [ = ] __cuda_callable__( IndexType row, int j, const ComputeRealType& value ) mutable
+   {
+      auto& element = CValues[ CSegments.getGlobalIndex( row, j ) ];
+      element = alpha * value + beta * element;
+   };
+   TNL::Matrices::sparseDenseMatrixProductWithLambdas< Organization, testMaxTileSize >( A, B.getColumns(), fetchB, storeC );
+}
+
+// The same with B given by the dense matrix and only C by a lambda function.
+template< typename Matrix, typename DenseMatrix, typename Real >
+void
+sparseDenseMatrixProductByStorer( const Matrix& A, const DenseMatrix& B, DenseMatrix& C, Real alpha, Real beta )
+{
+   using IndexType = typename Matrix::IndexType;
+   using ComputeRealType = typename Matrix::ComputeRealType;
+   const auto CSegments = C.getView().getSegments();
+   auto CValues = C.getValues().getView();
+   auto storeC = [ = ] __cuda_callable__( IndexType row, int j, const ComputeRealType& value ) mutable
+   {
+      auto& element = CValues[ CSegments.getGlobalIndex( row, j ) ];
+      element = alpha * value + beta * element;
+   };
+   TNL::Matrices::sparseDenseMatrixProductWithLambdas< TNL::Algorithms::Segments::RowMajorOrder, testMaxTileSize >(
+      A, B.getColumns(), B.getConstView(), storeC );
+}
+
+// The same with B given by DirectFetch. With `transformed`, the values of B are doubled and stored in an array shifted
+// by one element, so that it is not aligned for the vectorized loads, and the transformation halves them.
+template< typename Matrix, typename DenseMatrix, typename Real >
+void
+sparseDenseMatrixProductByDirectFetch(
+   const Matrix& A,
+   const DenseMatrix& B,
+   DenseMatrix& C,
+   Real alpha,
+   Real beta,
+   bool transformed )
+{
+   using IndexType = typename Matrix::IndexType;
+   using RealType = typename DenseMatrix::RealType;
+   using ComputeRealType = typename Matrix::ComputeRealType;
+   constexpr auto Organization = DenseMatrix::getOrganization();
+   const auto BSegments = B.getSegments().getConstView();
+   IndexType stride = 0;
+   if constexpr( Organization == TNL::Algorithms::Segments::RowMajorOrder ) {
+      if( B.getRows() > 1 )
+         stride = BSegments.getGlobalIndex( 1, 0 ) - BSegments.getGlobalIndex( 0, 0 );
+   }
+   else if( B.getColumns() > 1 )
+      stride = BSegments.getGlobalIndex( 0, 1 ) - BSegments.getGlobalIndex( 0, 0 );
+   const auto CSegments = C.getView().getSegments();
+   auto CValues = C.getValues().getView();
+   auto storeC = [ = ] __cuda_callable__( IndexType row, int j, const ComputeRealType& value ) mutable
+   {
+      auto& element = CValues[ CSegments.getGlobalIndex( row, j ) ];
+      element = alpha * value + beta * element;
+   };
+   if( ! transformed ) {
+      TNL::Matrices::sparseDenseMatrixProductWithLambdas< Organization, testMaxTileSize >(
+         A, B.getColumns(), TNL::Matrices::directFetch< Organization >( B.getValues().getData(), stride ), storeC );
+      return;
+   }
+   const auto& values = B.getValues();
+   typename DenseMatrix::ValuesVectorType shifted( values.getSize() + 1 );
+   shifted.setElement( 0, 0 );
+   auto shiftedView = shifted.getView();
+   const auto valuesView = values.getConstView();
+   TNL::Algorithms::parallelFor< typename DenseMatrix::DeviceType >(
+      0,
+      values.getSize(),
+      [ = ] __cuda_callable__( IndexType i ) mutable
+      {
+         shiftedView[ i + 1 ] = RealType( 2 ) * valuesView[ i ];
+      } );
+   auto half = [] __cuda_callable__( const RealType& value, IndexType, IndexType ) -> RealType
+   {
+      return value / RealType( 2 );
+   };
+   TNL::Matrices::sparseDenseMatrixProductWithLambdas< Organization, testMaxTileSize >(
+      A, B.getColumns(), TNL::Matrices::directFetch< Organization >( shifted.getData() + 1, stride, half ), storeC );
+}
+
+// Tests sparseDenseMatrixProductWithLambdas with both organizations, i.e. also with the one not matching B.
+template< typename Matrix, TNL::Algorithms::Segments::ElementsOrganization Organization >
+void
+test_SparseDenseMatrixProductWithLambdas()
+{
+   using RealType = typename Matrix::RealType;
+   using Function = SparseDenseMatrixProductFunction< Matrix, Organization >;
+   test_SparseDenseMatrixProductVariants< Matrix, Organization >(
+      []( const Matrix& A )
+      {
+         std::vector< std::pair< std::string, Function > > products;
+         products.emplace_back(
+            "row-major access",
+            [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+            {
+               sparseDenseMatrixProductByLambdas< TNL::Algorithms::Segments::RowMajorOrder >( A, B, C, alpha, beta );
+            } );
+         products.emplace_back(
+            "column-major access",
+            [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+            {
+               sparseDenseMatrixProductByLambdas< TNL::Algorithms::Segments::ColumnMajorOrder >( A, B, C, alpha, beta );
+            } );
+         products.emplace_back(
+            "dense matrix B",
+            [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+            {
+               sparseDenseMatrixProductByStorer( A, B, C, alpha, beta );
+            } );
+         products.emplace_back(
+            "direct fetch",
+            [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+            {
+               sparseDenseMatrixProductByDirectFetch( A, B, C, alpha, beta, false );
+            } );
+         products.emplace_back(
+            "direct fetch, unaligned and transformed",
+            [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+            {
+               sparseDenseMatrixProductByDirectFetch( A, B, C, alpha, beta, true );
+            } );
          return products;
       } );
 }
