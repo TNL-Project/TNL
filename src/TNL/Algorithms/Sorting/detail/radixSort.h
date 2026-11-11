@@ -143,6 +143,17 @@ constexpr int radixSortAggregatedFillLimit = 1 << 22;
 //! was 100k elements.
 constexpr int radixSortGraphLimit = 1 << 19;
 
+/**
+ * \brief Maximum input-plus-auxiliary working set for deferred lookback.
+ *
+ * Deferring the lookback past staging hides predecessor latency while the
+ * input and auxiliary arrays fit in the L2 cache. Above this limit, the
+ * early-lookback path publishes prefixes before staging to avoid exposing the
+ * prefix dependency in the DRAM-bound regime. The 64 MiB limit is a tuning
+ * candidate for GPUs with a 64 MiB L2 cache, not a hardware query.
+ */
+constexpr std::size_t radixSortDeferredLookbackL2Limit = 64 * 1024 * 1024;
+
 //! \brief Maximum array size for programmatic dependent launches.
 //!
 //! Small sorts can hide launch latency and drain their short grids together;
@@ -785,6 +796,8 @@ constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
  * \param stripEnd is the index one past the last element of the strip.
  * \param numTiles is the number of tiles of the strip.
  * \param pass is the index of the radix sort pass.
+ * \tparam deferLookback tells whether the lookback runs after staging
+ *                       instead of before re-ranking and staging.
  * \tparam blockThreads is the block size of the tile configuration (the
  *                      big configuration of \ref radixSortOnesweepBlockSize
  *                      threads by default).
@@ -795,6 +808,7 @@ template<
    typename Value,
    typename Index,
    bool descending,
+   bool deferLookback,
    int blockThreads = radixSortOnesweepBlockSize,
    int itemsPerThread = radixSortOnesweepItemsPerThread< Value > >
 __global__
@@ -1013,39 +1027,41 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
       }
       __syncthreads();
 
-      // the lookback below needs the tile-local start and end of the
-      // thread's digit run, which are kept in registers: the lookback is
-      // deferred past the staging, whose tile clobbers the digit starts
-      // (see the union)
+      // the deferred lookback needs the tile-local start and end of the
+      // thread's digit run in registers because the staging tile clobbers
+      // the digit starts (see the union); the early lookback reads them
+      // directly from the digit starts on entry below
       int runStart = 0;
       int runEnd = 0;
-      if( digit < radixSortBuckets ) {
-         runStart = s_stage.digitStarts[ digit ];
-         runEnd = s_stage.digitStarts[ digit + 1 ];
+      if constexpr( deferLookback ) {
+         if( digit < radixSortBuckets ) {
+            runStart = s_stage.digitStarts[ digit ];
+            runEnd = s_stage.digitStarts[ digit + 1 ];
+         }
       }
 
       // fold the tile-local digit starts into the running per-(warp, digit)
       // counters (packed two per word, one thread per word); the digit
-      // starts are consumed here and by the reads above, so the staging
-      // tile written afterwards may clobber them (see the union)
+      // starts are consumed here and by the lookback, so the staging tile
+      // written afterwards may clobber them (see the union)
       if( s_singleDigit < 0 && digit < counterWords ) {
          const unsigned int packedStart = static_cast< unsigned int >( s_stage.digitStarts[ 2 * digit ] )
                                         | static_cast< unsigned int >( s_stage.digitStarts[ 2 * digit + 1 ] ) << 16;
          for( int w = 0; w < warps; w++ )
             s_warpCounters[ w * counterWords + digit ] += packedStart;
       }
-      __syncthreads();
+      if constexpr( deferLookback )
+         __syncthreads();
 
       // decoupled lookback: accumulate the aggregates of the preceding
       // tiles until an inclusive prefix is found; the first tile has no
-      // predecessors, so its strip-relative offset is zero; the lookback
-      // runs after the tile is staged (as in CUB's onesweep), so that the
-      // ranking hides the time the predecessors need to publish their
-      // prefixes instead of the block stalling on them
+      // predecessors, so its strip-relative offset is zero
       const auto lookback = [ & ]()
       {
          if( digit >= radixSortBuckets )
             return;
+         const int currentRunStart = deferLookback ? runStart : s_stage.digitStarts[ digit ];
+         const int currentRunEnd = deferLookback ? runEnd : s_stage.digitStarts[ digit + 1 ];
          Index stripExclusive = 0;
          if( tile != 0 ) {
             unsigned int accumulated = 0;
@@ -1077,12 +1093,12 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
          // shared operand (the start of the single-digit run is zero, so
          // the direct writeout path below is unaffected by the shift)
          s_base[ digit ] = digitBase[ static_cast< Index >( pass ) * radixSortBuckets + digit ] + stripExclusive
-                         - static_cast< Index >( runStart );
+                         - static_cast< Index >( currentRunStart );
          // republish with the strip-relative inclusive prefix through this
          // tile, which shortens the lookback of the subsequent blocks; the
          // real count is recovered from the raked starts (the last digit's
          // count includes the padding, which does not belong to the strip)
-         const int realCount = runEnd - runStart - ( digit == radixSortBuckets - 1 ? padCount : 0 );
+         const int realCount = currentRunEnd - currentRunStart - ( digit == radixSortBuckets - 1 ? padCount : 0 );
          // the block of the last tile of the strip publishes the strip's
          // total count of its digit in this counter, from which the driver
          // advances the base offsets of the digit runs for the next strip
@@ -1091,9 +1107,16 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
             radixSortTilePrefix | static_cast< unsigned int >( stripExclusive + realCount ) );
       };
 
-      if( s_singleDigit >= 0 ) {
+      if constexpr( ! deferLookback ) {
          lookback();
          __syncthreads();
+      }
+
+      if( s_singleDigit >= 0 ) {
+         if constexpr( deferLookback ) {
+            lookback();
+            __syncthreads();
+         }
          // all items of the tile fall into the same digit bin: write them
          // out directly from registers, skipping the staged tile; the
          // intra-tile rank of an item is its index in the tile, so the
@@ -1148,7 +1171,8 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
                s_stage.tile[ staged + rank ] = values[ j ];
             }
          }
-         lookback();
+         if constexpr( deferLookback )
+            lookback();
          __syncthreads();
 
          // write the tile out with coalesced stores: consecutive positions
@@ -2097,26 +2121,39 @@ radixSortLaunchSequence(
    launch_config.gridSize.x = static_cast< unsigned >( TNL::min( numTiles, maxBlocks ) );
 
    // the sweep kernel decouples its block size from the bucket count (the
-   // per-digit phases are guarded inside the kernel); the dispatch is a pure
-   // function of the array size and value type, so it is also graph-capturable
+   // per-digit phases are guarded inside the kernel); both dispatches are
+   // pure functions of the array size and value type, so they are also
+   // graph-capturable
    Backend::LaunchConfiguration onesweepConfig = launch_config;
-   constexpr auto onesweepKernelSmall =
-      radixSortOnesweepKernel< Value, Index, descending, radixSortBlockSize, radixSortItemsPerThread >;
-   constexpr auto onesweepKernelMedium = radixSortOnesweepKernel<
+   const bool deferLookback = 2 * static_cast< std::size_t >( n ) * sizeof( Value ) <= radixSortDeferredLookbackL2Limit;
+   constexpr auto onesweepKernelSmallEarly =
+      radixSortOnesweepKernel< Value, Index, descending, false, radixSortBlockSize, radixSortItemsPerThread >;
+   constexpr auto onesweepKernelSmallDeferred =
+      radixSortOnesweepKernel< Value, Index, descending, true, radixSortBlockSize, radixSortItemsPerThread >;
+   constexpr auto onesweepKernelMediumEarly = radixSortOnesweepKernel<
       Value,
       Index,
       descending,
+      false,
       radixSortOnesweepMediumBlockSize,
       radixSortOnesweepMediumItemsPerThread >;
-   constexpr auto onesweepKernelBig = radixSortOnesweepKernel< Value, Index, descending >;
-   auto onesweepKernel = onesweepKernelBig;
+   constexpr auto onesweepKernelMediumDeferred = radixSortOnesweepKernel<
+      Value,
+      Index,
+      descending,
+      true,
+      radixSortOnesweepMediumBlockSize,
+      radixSortOnesweepMediumItemsPerThread >;
+   constexpr auto onesweepKernelBigEarly = radixSortOnesweepKernel< Value, Index, descending, false >;
+   constexpr auto onesweepKernelBigDeferred = radixSortOnesweepKernel< Value, Index, descending, true >;
+   auto onesweepKernel = deferLookback ? onesweepKernelBigDeferred : onesweepKernelBigEarly;
    onesweepConfig.blockSize.x = radixSortOnesweepBlockSize;
    if( n <= static_cast< Index >( radixSortOnesweepSmallTileLimit< Value > ) ) {
-      onesweepKernel = onesweepKernelSmall;
+      onesweepKernel = deferLookback ? onesweepKernelSmallDeferred : onesweepKernelSmallEarly;
       onesweepConfig.blockSize.x = radixSortBlockSize;
    }
    else if( n <= static_cast< Index >( radixSortOnesweepMediumTileLimit ) ) {
-      onesweepKernel = onesweepKernelMedium;
+      onesweepKernel = deferLookback ? onesweepKernelMediumDeferred : onesweepKernelMediumEarly;
       onesweepConfig.blockSize.x = radixSortOnesweepMediumBlockSize;
    }
 
