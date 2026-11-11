@@ -337,8 +337,12 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
       launch_config.blockSize.y = tileDim;
       launch_config.dynamicSharedMemorySize = tileDim * ( tileDim + 1 ) * sizeof( Real );
 
-      const Index rowTiles = Backend::getNumberOfBlocks( resultMatrix.getRows(), tileDim );
-      const Index columnTiles = Backend::getNumberOfBlocks( resultMatrix.getColumns(), tileDim );
+      // the kernel indexes the input matrix by the block indices, i.e.
+      // blockIdx.y tiles the input rows and blockIdx.x the input columns,
+      // so the grid must be sized by the dimensions of the input matrix,
+      // not of the result matrix
+      const Index rowTiles = Backend::getNumberOfBlocks( matrix.getRows(), tileDim );
+      const Index columnTiles = Backend::getNumberOfBlocks( matrix.getColumns(), tileDim );
       // the x-dimension is limited such that the number of threads of the grids
       // with the largest extent in the y-dimension does not exceed the device limit
       const std::size_t maxGridSizeY = Backend::getMaxGridYSize();

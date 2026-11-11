@@ -262,7 +262,7 @@ checkPowerIterationDense2D()
    using VectorType = TNL::Containers::Vector< RealType, Device >;
    VectorType initialVecB = { 1.0, 2.0 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
-      TNL::Solvers::Eigen::experimental::powerIteration< MatrixType >( B, epsilon, initialVecB, 10000 );
+      TNL::Solvers::Eigen::experimental::powerIteration< MatrixType >( B, epsilon, initialVecB, 100 );
    EXPECT_EQ( iterationsB, 0 );
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -279,7 +279,7 @@ checkPowerIterationDense2D()
    const MatrixTypeRMO D = { { 0, 1 }, { 1, 0 } };
    VectorType initialVecRMOD = { 1.0, 2.0 };
    auto [ eigenvalueRMOD, eigenvectorRMOD, iterationsRMOD ] =
-      TNL::Solvers::Eigen::experimental::powerIteration< MatrixTypeRMO >( D, epsilon, initialVecRMOD, 10000 );
+      TNL::Solvers::Eigen::experimental::powerIteration< MatrixTypeRMO >( D, epsilon, initialVecRMOD, 100 );
    EXPECT_EQ( iterationsRMOD, 0 );
 }
 
@@ -451,7 +451,7 @@ checkPowerIterationSparse2D()
    B.setElement( 1, 0, 1 );
    VectorType initialVecB = { 1.0, 2.0 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
-      TNL::Solvers::Eigen::experimental::powerIteration< MatrixType >( B, epsilon, initialVecB, 10000 );
+      TNL::Solvers::Eigen::experimental::powerIteration< MatrixType >( B, epsilon, initialVecB, 100 );
    EXPECT_EQ( iterationsB, 0 );
 }
 

@@ -185,3 +185,41 @@ serialized:
 ```bash
 ctest --preset hip-tests
 ```
+
+## Typed-test lists
+
+Test suites instantiated from `::testing::Types<...>` branch on the compiler:
+the host branch (used in plain C++ builds) can keep the full Cartesian product
+of real and index types, while the `__CUDACC__` and `__HIP__` branches need to
+be reduced to a covering set.
+
+The reason is compile time and memory usage of the compiler. Every device
+instantiation emits its own copy of the same kernels and all instances within a
+translation unit are compiled sequentially, which takes a lot of time and
+memory. Compiling all tests is slow and frequently caused OOM errors on
+memory-limited hosts.
+
+A covering set keeps every axis — real type, index type, and other template
+parameters — covered at least once, pairing the axes across entries instead of
+exploding them into the full product:
+
+```cpp
+#elif defined( __CUDACC__ )
+   TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Cuda, int > >,
+   TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Cuda, long > >
+```
+
+Suites that remain expensive even as a covering set, such as the matrix tests,
+may reduce the real-type axis further to a single floating-point and a single
+integral type, plus a complex type where the host list has one. The index-type
+axis and the remaining template parameters must still be covered.
+
+Examples are the sorted segment test headers (`SegmentsTest_Sorted*.h` and
+their `Reduce`/`Traverse` variants), the sparse matrix-vector product tests,
+and the CSR sparse matrix reduce/traverse tests. Host lists may keep their
+full type lists.
+
+Mesh reader tests restrict the build-config tags similarly: they only read
+files written from `Mesh<DefaultConfig<T>>`, so all resolver candidates except
+the default real and index types are disabled (see the `MyConfigTag`
+specializations in `VTUReaderTest.cpp` and the other reader tests).

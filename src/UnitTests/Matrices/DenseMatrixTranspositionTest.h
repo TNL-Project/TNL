@@ -2,6 +2,8 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <utility>
+#include <vector>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Matrices/DenseMatrix.h>
 
@@ -240,6 +242,42 @@ TYPED_TEST( DenseMatrixTranspositionTest, LargeMatrices )
       check2 = false;
    }
    ASSERT_TRUE( check1 && check2 );
+}
+
+/*
+ * Test of transposition of matrices spanning more than one kernel tile
+ * (tileDim = 16) in at least one dimension, covering non-square and square
+ * multi-tile shapes.
+ */
+TYPED_TEST( DenseMatrixTranspositionTest, TranspositionLargerThanOneTile )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+   using IndexType = typename DenseMatrixType::IndexType;
+
+   // shapes spanning more than one tile (tileDim = 16) in at least one dimension
+   const std::vector< std::pair< IndexType, IndexType > > shapes{ { 1, 40 }, { 40, 1 }, { 17, 33 }, { 33, 17 }, { 40, 40 } };
+
+   for( const auto& shape : shapes ) {
+      const IndexType rows = shape.first;
+      const IndexType columns = shape.second;
+
+      // fill the matrix with row * columns + column + 1 as in the issue
+      DenseMatrixType matrix( rows, columns );
+      for( IndexType i = 0; i < rows; i++ )
+         for( IndexType j = 0; j < columns; j++ )
+            matrix.setElement( i, j, i * columns + j + 1 );
+
+      DenseMatrixType resultMatrix;
+      resultMatrix.getTransposition( matrix );
+
+      // element-wise check as in the issue: result( i, j ) must equal matrix( j, i )
+      IndexType wrongElements = 0;
+      for( IndexType i = 0; i < resultMatrix.getRows(); i++ )
+         for( IndexType j = 0; j < resultMatrix.getColumns(); j++ )
+            if( resultMatrix.getElement( i, j ) != j * columns + i + 1 )
+               wrongElements++;
+      ASSERT_EQ( wrongElements, 0 ) << "wrong transposition of a " << rows << "x" << columns << " matrix";
+   }
 }
 
 #include "../main.h"

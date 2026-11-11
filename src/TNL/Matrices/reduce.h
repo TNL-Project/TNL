@@ -133,6 +133,24 @@ namespace TNL::Matrices {
  * - **Dense/structured matrices**: Column index is implicit, passed by value
  * - Choose fetch lambda signature based on matrix type (see \ref MatrixReduceFetchLambdas)
  *
+ * \section MatrixReductionSymmetricMatrices Symmetric Matrices
+ *
+ * A symmetric sparse matrix is stored as a half-matrix
+ * (the diagonal and the lower triangle),
+ * so a reduction over the stored rows sees only the lower part.
+ * If the reduction must account for the implicit upper part,
+ * the `fetch` or `store` lambda has to perform cross-row updates,
+ * e.g. mirror an element `(row, column)`
+ * into the result slot for `column`.
+ * Since rows are processed in parallel,
+ * such updates can run concurrently
+ * with the `store` lambda of the target row,
+ * so they must be atomic,
+ * or accumulated in a separate array and combined after the reduction.
+ *
+ * \note Modifying the element passed to `fetch` does not need atomics:
+ * each stored element is visited exactly once.
+ *
  * \section MatrixReductionRelatedPages Related Pages
  *
  * - \ref MatrixReductionLambdas - Detailed lambda function signatures

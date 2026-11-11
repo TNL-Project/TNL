@@ -187,6 +187,11 @@ Use `git` for managing the local repository and `glab` for the remote repository
 - **Test labels**: `Matrices`, `MPI`, etc.
 - **Test sources**: generated for each backend, see `src/UnitTests/ARCHITECTURE.md`
 - **Manually registered tests**: link the `TNL_tests` interface target, which provides the test flags and GTest
+- **Typed-test lists**: The host branch of the type list can be complete; the CUDA/HIP
+  branches need to be reduced to a covering set where every real type, index type and
+  other parameters appear at least once. Expensive suites, such as the matrix tests,
+  may be reduced further to one floating-point and one integral real type. See
+  [Unit tests architecture](src/UnitTests/ARCHITECTURE.md)
 
 ### Debugging
 

@@ -15,6 +15,20 @@ struct MyConfigTag
 
 namespace TNL::Meshes::BuildConfigTags {
 
+// The tests only use files written from Mesh<DefaultConfig<T>>, so the resolver reports the
+// real type double and the global index type int. Enabling only that combination avoids
+// instantiating a reader for every candidate type, which made these tests the slowest to
+// compile in the suite.
+template<>
+struct MeshRealTag< MyConfigTag, float >
+{
+   static constexpr bool enabled = false;
+};
+template<>
+struct MeshGlobalIndexTag< MyConfigTag, long int >
+{
+   static constexpr bool enabled = false;
+};
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
 struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
@@ -80,12 +94,9 @@ test_resolveAndLoadMesh( const MeshType& mesh )
       EXPECT_EQ( std::string( TNL::getType< MeshType2 >() ), std::string( TNL::getType< MeshType >() ) );
 
       // operator== does not work for instantiations of the wrapper with MeshType2 != MeshType
-      //      EXPECT_EQ( mesh2, mesh );
-      std::stringstream str1;
-      std::stringstream str2;
-      str1 << mesh;
-      str2 << mesh2;
-      EXPECT_EQ( str2.str(), str1.str() );
+      if constexpr( std::is_same_v< MeshType2, MeshType > ) {
+         EXPECT_EQ( mesh2, mesh );
+      }
    };
 
    resolveAndLoadMesh< ConfigTag, TNL::Devices::Host >( wrapper, TEST_FILE_NAME );

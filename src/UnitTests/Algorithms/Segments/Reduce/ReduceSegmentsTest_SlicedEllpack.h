@@ -25,23 +25,15 @@ using SlicedEllpackSegmentsTypes = ::testing::Types<
    RowMajorSlicedEllpackType< TNL::Devices::Cuda, int, 8 >,
    RowMajorSlicedEllpackType< TNL::Devices::Cuda, int, 1 >,
    RowMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 32 >,
-   RowMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 1 >,
    ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 8 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 1 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, long int, 1 >
+   ColumnMajorSlicedEllpackType< TNL::Devices::Cuda, int, 8 >
 #elif defined( __HIP__ )
    RowMajorSlicedEllpackType< TNL::Devices::Hip, int, 32 >,
    RowMajorSlicedEllpackType< TNL::Devices::Hip, int, 8 >,
    RowMajorSlicedEllpackType< TNL::Devices::Hip, int, 1 >,
    RowMajorSlicedEllpackType< TNL::Devices::Hip, long int, 32 >,
-   RowMajorSlicedEllpackType< TNL::Devices::Hip, long int, 1 >,
    ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 8 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 1 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, long int, 32 >,
-   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, long int, 1 >
+   ColumnMajorSlicedEllpackType< TNL::Devices::Hip, int, 8 >
 #endif
    >;
 
@@ -56,6 +48,7 @@ test_reduceSegments_ReversedRange()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 100;
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount, 3 );
@@ -77,8 +70,9 @@ test_reduceSegments_ReversedRange()
       TNL::Algorithms::Segments::reduceSegments(
          segments, (IndexType) 64, (IndexType) 10, fetch, TNL::Plus{}, keep, 0, launch_config );
 
+      const HostVectorType hostResult( result );
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), -1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostResult[ i ], -1 ) << "segmentIdx = " << i;
    }
 }
 
@@ -90,6 +84,7 @@ test_reduceSegmentsWithArgument_EmptySlices()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    // Blocks of 64 segments alternate between non-empty and empty segments,
    // so each empty block covers whole slices for all tested slice sizes.
@@ -118,8 +113,10 @@ test_reduceSegmentsWithArgument_EmptySlices()
 
    auto check = [ & ]()
    {
+      const HostVectorType hostEmptyFlags( emptyFlags );
+      const HostVectorType hostSegmentsSizes( segmentsSizes );
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( emptyFlags.getElement( i ), segmentsSizes.getElement( i ) == 0 ) << "segmentIdx = " << i;
+         EXPECT_EQ( hostEmptyFlags[ i ], hostSegmentsSizes[ i ] == 0 ) << "segmentIdx = " << i;
    };
 
    auto keep = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType res, bool emptySegment ) mutable
