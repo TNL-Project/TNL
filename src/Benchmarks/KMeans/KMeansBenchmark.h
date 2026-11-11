@@ -15,6 +15,7 @@
 #include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/MatrixReader.h>
+#include <TNL/Timer.h>
 #include <TNL/TypeInfo.h>
 
 #include "SparseKMeans.h"
@@ -83,6 +84,7 @@ benchmarkDevice(
    const int iterations = parameters.getParameter< int >( "iterations" );
    const auto assignments = parameters.getList< std::string >( "assignment" );
    const auto updates = parameters.getList< std::string >( "update" );
+   const auto reorderingPeriods = parameters.getList< int >( "reordering-period" );
    auto isSelected = []( const std::vector< std::string >& list, const std::string& item )
    {
       return std::find( list.begin(), list.end(), "all" ) != list.end()
@@ -95,6 +97,16 @@ benchmarkDevice(
    typename SparseKMeans< Real, Device, Index >::DenseMatrixType initialCentroids;
    initialCentroids = hostCentroids;
    SparseKMeans< Real, Device, Index > kmeans( X, clusters );
+   // the tile of the clusters of the assignment is selected by measuring the assignment before the benchmark
+   kmeans.setCentroids( initialCentroids );
+   Index tileSize = parameters.getParameter< int >( "assignment-tile" );
+   Timer tuningTimer;
+   tuningTimer.start();
+   if( tileSize > 0 )
+      kmeans.setAssignmentTileSize( tileSize );
+   else
+      tileSize = kmeans.tuneAssignment();
+   tuningTimer.stop();
 
    for( const auto& [ assignment, assignmentName ] : { std::pair{ Assignment::Fused, "fused" },
                                                        std::pair{ Assignment::FusedLambda, "fused-lambda" },
@@ -102,29 +114,38 @@ benchmarkDevice(
    {
       if( ! isSelected( assignments, assignmentName ) )
          continue;
-      for( const auto& [ update, updateName ] : { std::pair{ Update::SpMM, "spmm" }, std::pair{ Update::Atomic, "atomic" } } ) {
+      for( const auto& [ update, updateName ] : { std::pair{ Update::SpMM, "spmm" },
+                                                  std::pair{ Update::Atomic, "atomic" },
+                                                  std::pair{ Update::Histogram, "histogram" } } )
+      {
          if( ! isSelected( updates, updateName ) )
             continue;
-         // structured bindings cannot be captured in C++17
-         const Assignment assignmentMethod = assignment;
-         const Update updateMethod = update;
-         auto compute = [ & ]()
-         {
-            kmeans.setCentroids( initialCentroids );
-            for( int i = 0; i < iterations; i++ )
-               kmeans.iterate( assignmentMethod, updateMethod );
-         };
-         // the inertia of the final centroids, like in scikit-learn
-         KMeansResult result(
-            iterations,
-            [ & ]()
+         for( const int period : reorderingPeriods ) {
+            // structured bindings cannot be captured in C++17
+            const Assignment assignmentMethod = assignment;
+            const Update updateMethod = update;
+            auto compute = [ & ]()
             {
-               kmeans.assignFused();
-               return kmeans.getInertia();
-            } );
-         benchmark.setMetadataElement( { "assignment", assignmentName } );
-         benchmark.setMetadataElement( { "update", updateName } );
-         benchmark.time< Device >( "TNL", compute, result );
+               kmeans.setCentroids( initialCentroids );
+               kmeans.setReorderingPeriod( period );
+               for( int i = 0; i < iterations; i++ )
+                  kmeans.iterate( assignmentMethod, updateMethod );
+            };
+            // the inertia of the final centroids, like in scikit-learn
+            KMeansResult result(
+               iterations,
+               [ & ]()
+               {
+                  kmeans.assignFused();
+                  return kmeans.getInertia();
+               } );
+            benchmark.setMetadataElement( { "assignment", assignmentName } );
+            benchmark.setMetadataElement( { "update", updateName } );
+            benchmark.setMetadataElement( { "reordering", std::to_string( period ) } );
+            benchmark.setMetadataElement( { "assignment tile", std::to_string( tileSize ) } );
+            benchmark.setMetadataElement( { "tuning time", std::to_string( tuningTimer.getRealTime() ) } );
+            benchmark.time< Device >( "TNL", compute, result );
+         }
       }
    }
 }

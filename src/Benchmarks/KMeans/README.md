@@ -16,7 +16,8 @@ i.e. the product `X * C^T` with `K` columns. It is computed by
   given by `TNL::Matrices::DirectFetch` (the array of `C^T` and the stride `K`), so that the
   centroids are read by vectorized loads (`fused`), or by a lambda function (`fused-lambda`).
 - `storeC( point, cluster, dot )` computes the distance and updates the packed key
-  (distance, cluster) of the point by an atomic minimum of 64-bit integers. Hence the nearest
+  (distance, cluster) of the point by an atomic minimum of 64-bit integers (only when the key
+  is smaller than the current one, which avoids most atomic operations). Hence the nearest
   centroid is found by the storer and the `n x K` matrix of the distances is never stored
   (`fused` assignment). The `unfused` assignment stores the dot products in a dense matrix by
   `sparseDenseMatrixProduct` and finds the minima in its rows.
@@ -29,6 +30,31 @@ The update computes the sums of the points of the clusters:
   divides the sums by the sizes of the clusters. No atomic operations are needed.
 - `atomic`: the elements of the points are added to the sums of their clusters by atomic
   additions.
+- `histogram`: the sums are computed by the rows of `X^T`, i.e. separately for every feature,
+  so that only `nnz` elements are added (`spmm` computes `nnz * K` products, most of them with
+  zeros) and the sums of one feature are written once. On GPUs, the rows are split into pieces
+  of at most 256 elements, every piece is processed by a group of 32 threads, which add its
+  elements to the `K` sums of its clusters in shared memory. The pieces of the long rows (the
+  frequent features) are then added to the sums by atomic additions. The labels are read as
+  16-bit integers, so that more of them fit in the L2 cache, and only `C^T` is updated (`C` is
+  computed from it when needed). On the host, every row is processed by one thread.
+
+Two optimizations of the fused assignment adapt to the data:
+
+- Tiles of the clusters: the product is computed for tiles of `T` clusters (`T` columns of
+  `C^T`) one after another. Narrower tiles read `X` more times, but the rows of the tile of
+  `C^T` fit better in the cache. The best `T` depends on the data, so
+  `SparseKMeans::tuneAssignment` measures the assignment with `T = K`, 64 and 32 before the
+  benchmark and selects the fastest one (`--assignment-tile 0`, the default). The selected tile
+  and the time of the tuning are logged in the columns `assignment tile` and `tuning time`, the
+  tuning is not included in the measured time.
+- Sorting the points by their clusters (`--reordering-period`): the points of one cluster share
+  their features, so the rows of `C^T` read for the consecutive rows of the sorted copy of `X`
+  are more likely in the cache. The assignment uses the sorted copy, the update and the results
+  use the original order. The points are sorted before the iterations 1, 1 + p, 1 + 2p, ... for
+  the period `p > 0`. With `p = -1` (the default), they are sorted before the iteration 1 and
+  then before every iteration only when the assignment of the iteration 1 including the sorting
+  was faster than the assignment of the iteration 0 (only on GPUs).
 
 The squared norms of the centroids are the sums of `K` rows of `d` elements. On GPUs, the
 reduction of the rows of a dense matrix would use only `K` threads, so the norms are computed

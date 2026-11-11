@@ -21,7 +21,14 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntry< int >( "iterations", "Number of iterations of Lloyd's algorithm.", 10 );
    config.addList< std::string >(
       "assignment", "Methods of the assignment to the nearest centroid: fused, fused-lambda, unfused or all.", { "all" } );
-   config.addList< std::string >( "update", "Methods of the update of the centroids: spmm, atomic or all.", { "all" } );
+   config.addList< std::string >(
+      "update", "Methods of the update of the centroids: spmm, atomic, histogram or all.", { "all" } );
+   config.addList< int >(
+      "reordering-period",
+      "Periods of sorting the points by their clusters for the assignment (0 means never, -1 when it pays off).",
+      { -1 } );
+   config.addEntry< int >(
+      "assignment-tile", "Number of clusters processed at once by the fused assignment (0 means selected by measurement).", 0 );
    config.addEntry< std::string >( "precision", "Precision of the arithmetics.", "float" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
