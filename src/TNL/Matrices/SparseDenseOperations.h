@@ -39,6 +39,8 @@ struct DirectFetchIdentity
  * like for a dense matrix and applies `transform` to the loaded values.
  * A lambda function is called for each element separately,
  * which makes the product up to 2x slower for many columns of row-major `B`.
+ * The values of a type narrower than the elements of `B` (e.g. half precision values transformed to `float`)
+ * are loaded by vectorized loads of their bytes, so that less data is read from the memory.
  * Create it by \ref directFetch.
  *
  * \tparam Organization The organization of the array:
@@ -264,6 +266,41 @@ sparseDenseMatrixProductWithLambdas(
    FetchB&& fetchB,
    StoreC&& storeC,
    const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Computes the product of a sparse matrix and a dense matrix given by lambda functions
+ * with the threads of each row of `A` distributed over the columns of `B` and `C`.
+ *
+ * It is \ref sparseDenseMatrixProductWithLambdas computed by the kernel of
+ * \ref sparseDenseMatrixProductLanesOverColumns with the given number of lanes and columns per lane,
+ * e.g. when the best configuration for the given data is selected by measurement.
+ *
+ * \tparam Organization How `fetchB` accesses the memory when it is a lambda function,
+ *         see \ref sparseDenseMatrixProductWithLambdas.
+ * \tparam Lanes The number of threads per row of `A`, a power of two up to the warp size.
+ * \tparam ColumnsPerLane The number of consecutive columns computed by each thread.
+ * \param A The sparse matrix with `m` rows and `n` columns.
+ * \param k The number of columns of `B` and `C`.
+ * \param fetchB The function returning the element of `B` in the row `column` and the column `j`,
+ *        \ref DirectFetch or the dense matrix `B`.
+ * \param storeC The function storing the element of `C` in the row `row` and the column `j`.
+ * \param maxRowLength The maximal number of elements of the rows processed by one group of
+ *        threads, zero means the default.
+ */
+template<
+   int Lanes,
+   int ColumnsPerLane,
+   Algorithms::Segments::ElementsOrganization Organization = Algorithms::Segments::RowMajorOrder,
+   typename SparseMatrix,
+   typename FetchB,
+   typename StoreC >
+void
+sparseDenseMatrixProductWithLambdasLanesOverColumns(
+   const SparseMatrix& A,
+   typename SparseMatrix::IndexType k,
+   FetchB&& fetchB,
+   StoreC&& storeC,
+   typename SparseMatrix::IndexType maxRowLength = 0 );
 
 }  // namespace TNL::Matrices
 

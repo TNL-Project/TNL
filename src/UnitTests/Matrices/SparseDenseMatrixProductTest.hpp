@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
@@ -9,6 +10,7 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
+#include <TNL/Containers/Array.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/SparseDenseOperations.h>
 
@@ -197,6 +199,21 @@ sparseDenseMatrixProductByStorer( const Matrix& A, const DenseMatrix& B, DenseMa
       A, B.getColumns(), B.getConstView(), storeC );
 }
 
+// Returns the stride of the array of the values of B for DirectFetch.
+template< typename DenseMatrix >
+typename DenseMatrix::IndexType
+getDirectFetchStride( const DenseMatrix& B )
+{
+   const auto BSegments = B.getSegments().getConstView();
+   if constexpr( DenseMatrix::getOrganization() == TNL::Algorithms::Segments::RowMajorOrder ) {
+      if( B.getRows() > 1 )
+         return BSegments.getGlobalIndex( 1, 0 ) - BSegments.getGlobalIndex( 0, 0 );
+   }
+   else if( B.getColumns() > 1 )
+      return BSegments.getGlobalIndex( 0, 1 ) - BSegments.getGlobalIndex( 0, 0 );
+   return 0;
+}
+
 // The same with B given by DirectFetch. With `transformed`, the values of B are doubled and stored in an array shifted
 // by one element, so that it is not aligned for the vectorized loads, and the transformation halves them.
 template< typename Matrix, typename DenseMatrix, typename Real >
@@ -213,14 +230,7 @@ sparseDenseMatrixProductByDirectFetch(
    using RealType = typename DenseMatrix::RealType;
    using ComputeRealType = typename Matrix::ComputeRealType;
    constexpr auto Organization = DenseMatrix::getOrganization();
-   const auto BSegments = B.getSegments().getConstView();
-   IndexType stride = 0;
-   if constexpr( Organization == TNL::Algorithms::Segments::RowMajorOrder ) {
-      if( B.getRows() > 1 )
-         stride = BSegments.getGlobalIndex( 1, 0 ) - BSegments.getGlobalIndex( 0, 0 );
-   }
-   else if( B.getColumns() > 1 )
-      stride = BSegments.getGlobalIndex( 0, 1 ) - BSegments.getGlobalIndex( 0, 0 );
+   const IndexType stride = getDirectFetchStride( B );
    const auto CSegments = C.getView().getSegments();
    auto CValues = C.getValues().getView();
    auto storeC = [ = ] __cuda_callable__( IndexType row, int j, const ComputeRealType& value ) mutable
@@ -251,6 +261,82 @@ sparseDenseMatrixProductByDirectFetch(
    };
    TNL::Matrices::sparseDenseMatrixProductWithLambdas< Organization, testMaxTileSize >(
       A, B.getColumns(), TNL::Matrices::directFetch< Organization >( shifted.getData() + 1, stride, half ), storeC );
+}
+
+// The same with B given by DirectFetch reading an array of 16-bit integers (the values of B are small integers), which
+// are narrower than the elements of B, so they are loaded by the vectorized loads of their bytes.
+template< typename Matrix, typename DenseMatrix, typename Real >
+void
+sparseDenseMatrixProductByNarrowDirectFetch( const Matrix& A, const DenseMatrix& B, DenseMatrix& C, Real alpha, Real beta )
+{
+   using IndexType = typename Matrix::IndexType;
+   using RealType = typename DenseMatrix::RealType;
+   using ComputeRealType = typename Matrix::ComputeRealType;
+   using DeviceType = typename DenseMatrix::DeviceType;
+   constexpr auto Organization = DenseMatrix::getOrganization();
+   const auto CSegments = C.getView().getSegments();
+   auto CValues = C.getValues().getView();
+   auto storeC = [ = ] __cuda_callable__( IndexType row, int j, const ComputeRealType& value ) mutable
+   {
+      auto& element = CValues[ CSegments.getGlobalIndex( row, j ) ];
+      element = alpha * value + beta * element;
+   };
+   const auto valuesView = B.getValues().getConstView();
+   TNL::Containers::Array< std::int16_t, DeviceType, IndexType > narrow( valuesView.getSize() );
+   auto narrowView = narrow.getView();
+   TNL::Algorithms::parallelFor< DeviceType >(
+      0,
+      valuesView.getSize(),
+      [ = ] __cuda_callable__( IndexType i ) mutable
+      {
+         narrowView[ i ] = static_cast< std::int16_t >( valuesView[ i ] );
+      } );
+   auto widen = [] __cuda_callable__( const std::int16_t& value, IndexType, IndexType ) -> RealType
+   {
+      return static_cast< RealType >( value );
+   };
+   TNL::Matrices::sparseDenseMatrixProductWithLambdas< Organization, testMaxTileSize >(
+      A,
+      B.getColumns(),
+      TNL::Matrices::directFetch< Organization >( narrow.getData(), getDirectFetchStride( B ), widen ),
+      storeC );
+}
+
+// The same by sparseDenseMatrixProductWithLambdasLanesOverColumns, B is given by DirectFetch or by a lambda function.
+template< int Lanes, int ColumnsPerLane, typename Matrix, typename DenseMatrix, typename Real >
+void
+sparseDenseMatrixProductByLambdasLanesOverColumns(
+   const Matrix& A,
+   const DenseMatrix& B,
+   DenseMatrix& C,
+   Real alpha,
+   Real beta,
+   bool direct )
+{
+   using IndexType = typename Matrix::IndexType;
+   using ComputeRealType = typename Matrix::ComputeRealType;
+   constexpr auto Organization = DenseMatrix::getOrganization();
+   const auto BView = B.getConstView();
+   const auto CSegments = C.getView().getSegments();
+   auto CValues = C.getValues().getView();
+   auto fetchB = [ = ] __cuda_callable__( IndexType column, IndexType j )
+   {
+      return BView( column, j );
+   };
+   auto storeC = [ = ] __cuda_callable__( IndexType row, int j, const ComputeRealType& value ) mutable
+   {
+      auto& element = CValues[ CSegments.getGlobalIndex( row, j ) ];
+      element = alpha * value + beta * element;
+   };
+   if( direct )
+      TNL::Matrices::sparseDenseMatrixProductWithLambdasLanesOverColumns< Lanes, ColumnsPerLane >(
+         A,
+         B.getColumns(),
+         TNL::Matrices::directFetch< Organization >( B.getValues().getData(), getDirectFetchStride( B ) ),
+         storeC );
+   else
+      TNL::Matrices::sparseDenseMatrixProductWithLambdasLanesOverColumns< Lanes, ColumnsPerLane, Organization >(
+         A, B.getColumns(), fetchB, storeC );
 }
 
 // Tests sparseDenseMatrixProductWithLambdas with both organizations, i.e. also with the one not matching B.
@@ -293,6 +379,25 @@ test_SparseDenseMatrixProductWithLambdas()
             [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
             {
                sparseDenseMatrixProductByDirectFetch( A, B, C, alpha, beta, true );
+            } );
+         if constexpr( std::is_arithmetic_v< RealType > )
+            products.emplace_back(
+               "direct fetch of a narrower type",
+               [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+               {
+                  sparseDenseMatrixProductByNarrowDirectFetch( A, B, C, alpha, beta );
+               } );
+         products.emplace_back(
+            "lanes over columns, Lanes = 4, columns per lane = 2, direct fetch",
+            [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+            {
+               sparseDenseMatrixProductByLambdasLanesOverColumns< 4, 2 >( A, B, C, alpha, beta, true );
+            } );
+         products.emplace_back(
+            "lanes over columns, Lanes = 32, columns per lane = 1, lambda function",
+            [ &A ]( const auto& B, auto& C, RealType alpha, RealType beta )
+            {
+               sparseDenseMatrixProductByLambdasLanesOverColumns< 32, 1 >( A, B, C, alpha, beta, false );
             } );
          return products;
       } );

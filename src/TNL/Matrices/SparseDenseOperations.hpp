@@ -93,6 +93,62 @@ loadConsecutive( const Real* source, Real ( &target )[ N ], bool aligned )
       target[ i ] = source[ i ];
 }
 
+// Native vector types of Bytes bytes for the vectorized loads of the values narrower than the elements of B.
+template< int Bytes >
+struct RawVectorType
+{
+   static constexpr bool exists = false;
+};
+
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+template<>
+struct RawVectorType< 4 >
+{
+   static constexpr bool exists = true;
+   using type = unsigned int;
+};
+
+template<>
+struct RawVectorType< 8 >
+{
+   static constexpr bool exists = true;
+   using type = uint2;
+};
+
+template<>
+struct RawVectorType< 16 >
+{
+   static constexpr bool exists = true;
+   using type = uint4;
+};
+#endif
+
+// Loads N consecutive values by the vectors of W values. When `aligned` is true, the source must be aligned to the
+// size of the vector.
+template< int N, int W, typename Value >
+__cuda_callable__
+void
+loadConsecutiveRaw( const Value* source, Value ( &target )[ N ], bool aligned )
+{
+#if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
+   using Raw = RawVectorType< W * sizeof( Value ) >;
+   if constexpr( W > 1 && N % W == 0 && Raw::exists ) {
+      if( aligned ) {
+         const auto* vectorSource = reinterpret_cast< const typename Raw::type* >( source );
+         for( int i = 0; i < N / W; i++ ) {
+            const typename Raw::type v = vectorSource[ i ];
+            const Value* scalars = reinterpret_cast< const Value* >( &v );
+            for( int j = 0; j < W; j++ )
+               target[ i * W + j ] = scalars[ j ];
+         }
+         return;
+      }
+   }
+#endif
+   for( int i = 0; i < N; i++ )
+      target[ i ] = source[ i ];
+}
+
 // The access to the elements of a dense matrix B for the fetch of the product. The consecutive columns of row-major B
 // are loaded by vectorized loads.
 template< typename DenseMatrixBView >
@@ -197,7 +253,11 @@ struct DirectBAccess
    {
       if constexpr( DirectFetch::getOrganization() == Algorithms::Segments::RowMajorOrder ) {
          ValueType values[ Count ];
-         loadConsecutive< Count >( fetch.data + fetch.getIndex( column, firstJ ), values, vectorLoads );
+         if constexpr( std::is_same_v< ValueType, RealType > )
+            loadConsecutive< Count >( fetch.data + fetch.getIndex( column, firstJ ), values, vectorLoads );
+         else
+            loadConsecutiveRaw< Count, vectorWidth< RealType, Count >() >(
+               fetch.data + fetch.getIndex( column, firstJ ), values, vectorLoads );
          for( int c = 0; c < Count; c++ )
             b[ c ] = fetch.transform( values[ c ], column, firstJ + c );
       }
@@ -206,14 +266,14 @@ struct DirectBAccess
             b[ c ] = fetch( column, firstJ + c );
    }
 
-   // The vectorized loads are used only when the values in the array have the type of the elements of B, because
-   // the width W of the vectors, to which the columns of the threads are aligned, is given by the latter.
+   // The width W of the vectors, to which the columns of the threads are aligned, is given by the type of the elements
+   // of B. The values of other types (e.g. half precision) are loaded by the vectors of W values of the same size.
    template< int W >
    [[nodiscard]] bool
    canLoadVectors() const
    {
       if constexpr( DirectFetch::getOrganization() == Algorithms::Segments::RowMajorOrder
-                    && std::is_same_v< ValueType, RealType > )
+                    && ( std::is_same_v< ValueType, RealType > || RawVectorType< W * sizeof( ValueType ) >::exists ) )
       {
          const auto address = reinterpret_cast< std::uintptr_t >( fetch.data );
          return address % ( W * sizeof( ValueType ) ) == 0 && fetch.stride % W == 0;
@@ -603,6 +663,40 @@ sparseDenseMatrixProductWithLambdas(
    else
       detail::sparseDenseMatrixProduct< MaxTileSize, Organization >(
          A, k, detail::LambdaBAccess< std::decay_t< FetchB >, IndexType >{ fetchB }, storeC, launchConfig );
+}
+
+template<
+   int Lanes,
+   int ColumnsPerLane,
+   Algorithms::Segments::ElementsOrganization Organization,
+   typename SparseMatrix,
+   typename FetchB,
+   typename StoreC >
+void
+sparseDenseMatrixProductWithLambdasLanesOverColumns(
+   const SparseMatrix& A,
+   typename SparseMatrix::IndexType k,
+   FetchB&& fetchB,
+   StoreC&& storeC,
+   typename SparseMatrix::IndexType maxRowLength )
+{
+   using IndexType = typename SparseMatrix::IndexType;
+   if( k < 0 )
+      throw std::invalid_argument(
+         "sparseDenseMatrixProductWithLambdasLanesOverColumns: the number of columns of B is negative" );
+   if constexpr( is_dense_matrix_v< std::decay_t< FetchB > > ) {
+      if( fetchB.getRows() != A.getColumns() || fetchB.getColumns() != k )
+         throw std::invalid_argument( "sparseDenseMatrixProductWithLambdasLanesOverColumns: wrong dimensions of B" );
+      const auto BView = fetchB.getConstView();
+      detail::sparseDenseMatrixProductLanesOverColumns< Lanes, ColumnsPerLane >(
+         A, k, detail::DenseMatrixBAccess< decltype( BView ) >{ BView }, storeC, maxRowLength );
+   }
+   else if constexpr( is_direct_fetch_v< FetchB > )
+      detail::sparseDenseMatrixProductLanesOverColumns< Lanes, ColumnsPerLane >(
+         A, k, detail::DirectBAccess< std::decay_t< FetchB > >{ fetchB }, storeC, maxRowLength );
+   else
+      detail::sparseDenseMatrixProductLanesOverColumns< Lanes, ColumnsPerLane >(
+         A, k, detail::LambdaBAccess< std::decay_t< FetchB >, IndexType >{ fetchB }, storeC, maxRowLength );
 }
 
 }  // namespace TNL::Matrices
