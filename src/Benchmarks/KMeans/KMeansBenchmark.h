@@ -97,23 +97,27 @@ benchmarkDevice(
    typename SparseKMeans< Real, Device, Index >::DenseMatrixType initialCentroids;
    initialCentroids = hostCentroids;
    SparseKMeans< Real, Device, Index > kmeans( X, clusters );
-   // the tile of the clusters of the assignment is selected by measuring the assignment before the benchmark
-   kmeans.setCentroids( initialCentroids );
-   Index tileSize = parameters.getParameter< int >( "assignment-tile" );
-   Timer tuningTimer;
-   tuningTimer.start();
-   if( tileSize > 0 )
-      kmeans.setAssignmentTileSize( tileSize );
-   else
-      tileSize = kmeans.tuneAssignment();
-   tuningTimer.stop();
 
    for( const auto& [ assignment, assignmentName ] : { std::pair{ Assignment::Fused, "fused" },
                                                        std::pair{ Assignment::FusedLambda, "fused-lambda" },
+                                                       std::pair{ Assignment::FusedHalf, "fused-half" },
                                                        std::pair{ Assignment::Unfused, "unfused" } } )
    {
       if( ! isSelected( assignments, assignmentName ) )
          continue;
+      if( assignment == Assignment::FusedHalf && ! SparseKMeans< Real, Device, Index >::isGPU() )
+         continue;
+      // the configuration of the fused assignment is selected by measuring the assignment before the benchmark
+      kmeans.setCentroids( initialCentroids );
+      const Index tileSize = parameters.getParameter< int >( "assignment-tile" );
+      Timer tuningTimer;
+      tuningTimer.start();
+      if( tileSize > 0 )
+         kmeans.setAssignmentTileSize( tileSize );
+      else if( assignment != Assignment::Unfused )
+         kmeans.tuneAssignment( assignment );
+      tuningTimer.stop();
+      const bool fused = assignment != Assignment::Unfused;
       for( const auto& [ update, updateName ] : { std::pair{ Update::SpMM, "spmm" },
                                                   std::pair{ Update::Atomic, "atomic" },
                                                   std::pair{ Update::Histogram, "histogram" } } )
@@ -142,7 +146,10 @@ benchmarkDevice(
             benchmark.setMetadataElement( { "assignment", assignmentName } );
             benchmark.setMetadataElement( { "update", updateName } );
             benchmark.setMetadataElement( { "reordering", std::to_string( period ) } );
-            benchmark.setMetadataElement( { "assignment tile", std::to_string( tileSize ) } );
+            benchmark.setMetadataElement(
+               { "assignment configuration", fused ? kmeans.getAssignmentConfiguration( false ).toString() : "" } );
+            benchmark.setMetadataElement(
+               { "sorted assignment configuration", fused ? kmeans.getAssignmentConfiguration( true ).toString() : "" } );
             benchmark.setMetadataElement( { "tuning time", std::to_string( tuningTimer.getRealTime() ) } );
             benchmark.time< Device >( "TNL", compute, result );
          }

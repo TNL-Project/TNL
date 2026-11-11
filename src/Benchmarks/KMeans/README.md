@@ -21,6 +21,12 @@ i.e. the product `X * C^T` with `K` columns. It is computed by
   centroid is found by the storer and the `n x K` matrix of the distances is never stored
   (`fused` assignment). The `unfused` assignment stores the dot products in a dense matrix by
   `sparseDenseMatrixProduct` and finds the minima in its rows.
+- `fused-half` (only on GPUs) reads the centroids from a copy of `C^T` in half precision, which
+  is made before every assignment (`DirectFetch` with a transformation to `float`, the
+  centroids are loaded by vectorized loads of their bytes). It halves the data read from the
+  cache, which limits the assignment for many clusters. The distances are rounded, so the
+  points with two nearly equally distant centroids may be assigned differently and the
+  inertia differs from `fused` (by about `2e-4` relatively after 10 iterations).
 
 The update computes the sums of the points of the clusters:
 
@@ -41,20 +47,27 @@ The update computes the sums of the points of the clusters:
 
 Two optimizations of the fused assignment adapt to the data:
 
-- Tiles of the clusters: the product is computed for tiles of `T` clusters (`T` columns of
-  `C^T`) one after another. Narrower tiles read `X` more times, but the rows of the tile of
-  `C^T` fit better in the cache. The best `T` depends on the data, so
-  `SparseKMeans::tuneAssignment` measures the assignment with `T = K`, 64 and 32 before the
-  benchmark and selects the fastest one (`--assignment-tile 0`, the default). The selected tile
-  and the time of the tuning are logged in the columns `assignment tile` and `tuning time`, the
-  tuning is not included in the measured time.
+- Tiles of the clusters and the configuration of the product: the product is computed for
+  tiles of `T` clusters (`T` columns of `C^T`) one after another. Narrower tiles read `X` more
+  times, but the rows of the tile of `C^T` fit better in the cache. On GPUs, every row of `X` is
+  processed by `L` threads (lanes), each computing `V` consecutive columns
+  (`sparseDenseMatrixProductWithLambdasLanesOverColumns`). The best configuration depends on
+  the data, so `SparseKMeans::tuneAssignment` measures the assignment before the benchmark:
+  first with `T = K`, 64 and 32 and the default configuration of the product, then with the
+  selected `T` and `L * V` from `T / 4` to `T` (`--assignment-tile 0`, the default). On GPUs,
+  the configuration is selected separately for the points sorted by their clusters (see below).
+  The selected configurations and the time of the tuning are logged in the columns
+  `assignment configuration`, `sorted assignment configuration` and `tuning time`, the tuning
+  is not included in the measured time.
 - Sorting the points by their clusters (`--reordering-period`): the points of one cluster share
   their features, so the rows of `C^T` read for the consecutive rows of the sorted copy of `X`
   are more likely in the cache. The assignment uses the sorted copy, the update and the results
   use the original order. The points are sorted before the iterations 1, 1 + p, 1 + 2p, ... for
-  the period `p > 0`. With `p = -1` (the default), they are sorted before the iteration 1 and
-  then before every iteration only when the assignment of the iteration 1 including the sorting
-  was faster than the assignment of the iteration 0 (only on GPUs).
+  the period `p > 0`. With `p = -1` (the default), they are sorted before every iteration from
+  the iteration 1 only when it pays off (only on GPUs): `tuneAssignment` compares the sorting
+  followed by the assignment with the assignment of the unsorted points. Without the tuning, the
+  points are sorted before the iteration 1 and the assignment including the sorting is compared
+  with the assignment of the iteration 0.
 
 The squared norms of the centroids are the sums of `K` rows of `d` elements. On GPUs, the
 reduction of the rows of a dense matrix would use only `K` threads, so the norms are computed

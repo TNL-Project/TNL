@@ -20,7 +20,9 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addList< int >( "clusters", "Numbers of clusters.", { 8, 32, 128 } );
    config.addEntry< int >( "iterations", "Number of iterations of Lloyd's algorithm.", 10 );
    config.addList< std::string >(
-      "assignment", "Methods of the assignment to the nearest centroid: fused, fused-lambda, unfused or all.", { "all" } );
+      "assignment",
+      "Methods of the assignment to the nearest centroid: fused, fused-lambda, fused-half (GPUs), unfused or all.",
+      { "all" } );
    config.addList< std::string >(
       "update", "Methods of the update of the centroids: spmm, atomic, histogram or all.", { "all" } );
    config.addList< int >(

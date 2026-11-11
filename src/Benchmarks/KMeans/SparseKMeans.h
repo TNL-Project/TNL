@@ -3,11 +3,15 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <limits>
+#include <optional>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <TNL/Algorithms/AtomicOperations.h>
@@ -30,6 +34,12 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/traverse.h>
 #include <TNL/Timer.h>
+
+#if defined( __CUDACC__ )
+   #include <cuda_fp16.h>
+#elif defined( __HIP__ )
+   #include <hip/hip_fp16.h>
+#endif
 
 namespace TNL::Benchmarks::KMeans {
 
@@ -101,6 +111,10 @@ enum class Assignment : std::uint8_t
    Fused,
    //! The same as \ref Fused with the centroids read by a lambda function, i.e. element by element.
    FusedLambda,
+   //! The same as \ref Fused with the centroids read from a copy of `C^T` in half precision, which halves the data read
+   //! from the cache (only on GPUs). The distances are rounded, so a point with two nearly equally distant centroids may
+   //! be assigned to the other one.
+   FusedHalf,
    //! The dot products are stored in a dense matrix by \ref TNL::Matrices::sparseDenseMatrixProduct and the nearest
    //! centroid is found in its rows.
    Unfused
@@ -118,6 +132,26 @@ enum class Update : std::uint8_t
    //! of one feature are accumulated in fast memory (in shared memory on GPUs) and written once. On GPUs, the rows are
    //! split into pieces processed by groups of 32 threads, the pieces of the long rows are added by atomic operations.
    Histogram
+};
+
+//! \brief Configuration of the fused assignment, see \ref SparseKMeans::tuneAssignment.
+struct AssignmentConfiguration
+{
+   //! The number of clusters processed at once, 0 means all.
+   int tileSize = 0;
+   //! The number of lanes of the product on GPUs, 0 means the default configuration of the product.
+   int lanes = 0;
+   //! The number of columns per lane of the product on GPUs.
+   int columnsPerLane = 0;
+
+   [[nodiscard]] std::string
+   toString() const
+   {
+      const std::string tile = "T=" + ( tileSize > 0 ? std::to_string( tileSize ) : std::string( "K" ) );
+      if( lanes == 0 )
+         return tile + " default";
+      return tile + " L=" + std::to_string( lanes ) + " V=" + std::to_string( columnsPerLane );
+   }
 };
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -325,7 +359,7 @@ public:
       centroidsValid = true;
       iteration = 0;
       reordered = false;
-      reorderingPaysOff = false;
+      reorderingPaysOff = tunedReorderingPaysOff.value_or( false );
       const Index K = clusters;
       const Index d = X.getColumns();
       const auto C = centroids.getConstView();
@@ -381,23 +415,66 @@ public:
          Real( 0 ) );
    }
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   /**
+    * \brief Copies `C^T` to \ref halfCentroidsT and computes the squared norms of the rounded centroids, see
+    * \ref Assignment::FusedHalf.
+    */
+   void
+   setHalfCentroids()
+   {
+      const Index K = clusters;
+      halfCentroidsT.setSize( centroidsT.getValues().getSize() );
+      const auto CT = centroidsT.getConstView().getValues();
+      auto halfCT = halfCentroidsT.getView();
+      Algorithms::parallelFor< Device >(
+         0,
+         halfCT.getSize(),
+         [ = ] __cuda_callable__( Index i ) mutable
+         {
+            halfCT[ i ] = __float2half( CT[ i ] );
+         } );
+      auto normsView = centroidNorms.getView();
+      auto square = [] __cuda_callable__( const __half& value, Index, Index ) -> Real
+      {
+         const Real rounded = __half2float( value );
+         return rounded * rounded;
+      };
+      auto storeC = [ = ] __cuda_callable__( Index, int cluster, const Real& value ) mutable
+      {
+         normsView[ cluster ] = value;
+      };
+      Matrices::sparseDenseMatrixProductWithLambdas(
+         ones, K, Matrices::directFetch< Algorithms::Segments::RowMajorOrder >( halfCentroidsT.getData(), K, square ), storeC );
+   }
+#endif
+
    /**
     * \brief Assigns every point to the nearest centroid, see \ref Assignment::Fused.
     *
-    * \param direct Whether the centroids are read by \ref TNL::Matrices::DirectFetch
-    *        (\ref Assignment::Fused) or by a lambda function (\ref Assignment::FusedLambda).
+    * \param method \ref Assignment::Fused, \ref Assignment::FusedLambda or \ref Assignment::FusedHalf.
     */
    void
-   assignFused( bool direct = true )
+   assignFused( Assignment method = Assignment::Fused )
    {
-      computeCentroidNorms();
+      if( method == Assignment::FusedHalf ) {
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+         if constexpr( isGPU() )
+            setHalfCentroids();
+         else
+#endif
+            throw std::invalid_argument( "SparseKMeans: the assignment in half precision runs only on GPUs" );
+      }
+      else
+         computeCentroidNorms();
       keys.setValue( std::numeric_limits< std::uint64_t >::max() );
       const Index K = clusters;
       const auto norms = centroidNorms.getConstView();
       auto keysView = keys.getView();
       const MatrixType& A = getAssignedPoints();
       // the clusters are processed in tiles, see tuneAssignment
-      const Index tileSize = assignmentTileSize > 0 ? assignmentTileSize : K;
+      const Index configuredTileSize = getAssignmentConfiguration( reordered ).tileSize;
+      const Index tileSize = configuredTileSize > 0 ? configuredTileSize : K;
       for( Index first = 0; first < K; first += tileSize ) {
          const auto CT = centroidsT.getConstView().getValues().getData() + first;
          auto fetchB = [ = ] __cuda_callable__( Index feature, Index cluster ) -> Real
@@ -409,56 +486,162 @@ public:
             atomicMinKey( keysView[ row ], packDistance( norms[ first + cluster ] - 2 * dot, first + cluster ) );
          };
          const Index columns = TNL::min( tileSize, K - first );
-         if( direct )
-            Matrices::sparseDenseMatrixProductWithLambdas(
-               A, columns, Matrices::directFetch< Algorithms::Segments::RowMajorOrder >( CT, K ), storeC );
-         else
+         if( method == Assignment::Fused )
+            multiply( A, columns, Matrices::directFetch< Algorithms::Segments::RowMajorOrder >( CT, K ), storeC );
+         else if( method == Assignment::FusedLambda )
             Matrices::sparseDenseMatrixProductWithLambdas< Algorithms::Segments::RowMajorOrder >( A, columns, fetchB, storeC );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+         else if constexpr( isGPU() ) {
+            auto toReal = [] __cuda_callable__( const __half& value, Index, Index ) -> Real
+            {
+               return __half2float( value );
+            };
+            multiply(
+               A,
+               columns,
+               Matrices::directFetch< Algorithms::Segments::RowMajorOrder >( halfCentroidsT.getData() + first, K, toReal ),
+               storeC );
+         }
+#endif
       }
       finishAssignment();
+   }
+
+   //! \brief The numbers of lanes and columns per lane of the product of the fused assignment selected by
+   //! \ref tuneAssignment on GPUs.
+   static constexpr std::array< std::pair< int, int >, 10 > laneConfigurations{
+      { { 8, 1 }, { 4, 2 }, { 16, 1 }, { 8, 2 }, { 32, 1 }, { 16, 2 }, { 8, 4 }, { 32, 2 }, { 16, 4 }, { 32, 4 } }
+   };
+
+   /**
+    * \brief Computes the product of the fused assignment with the numbers of lanes and columns per lane of the current
+    * \ref AssignmentConfiguration, by the default configuration of the product when they are zero.
+    */
+   template< int I = 0, typename FetchB, typename StoreC >
+   void
+   multiply( const MatrixType& A, Index k, const FetchB& fetchB, const StoreC& storeC ) const
+   {
+      if constexpr( isGPU() && I < laneConfigurations.size() ) {
+         constexpr int lanes = laneConfigurations[ I ].first;
+         constexpr int columnsPerLane = laneConfigurations[ I ].second;
+         const AssignmentConfiguration& configuration = getAssignmentConfiguration( reordered );
+         if( configuration.lanes == lanes && configuration.columnsPerLane == columnsPerLane )
+            Matrices::sparseDenseMatrixProductWithLambdasLanesOverColumns< lanes, columnsPerLane >( A, k, fetchB, storeC );
+         else
+            multiply< I + 1 >( A, k, fetchB, storeC );
+      }
+      else
+         Matrices::sparseDenseMatrixProductWithLambdas( A, k, fetchB, storeC );
    }
 
    //! \brief Sets the number of clusters processed at once by \ref assignFused, 0 means all, see \ref tuneAssignment.
    void
    setAssignmentTileSize( Index tileSize )
    {
-      assignmentTileSize = tileSize;
+      for( auto& configuration : assignmentConfigurations )
+         configuration = AssignmentConfiguration{ static_cast< int >( tileSize ) };
+      tunedReorderingPaysOff.reset();
+   }
+
+   //! \brief Returns the configuration of \ref assignFused for the points in the original order or sorted by
+   //! \ref reorder.
+   [[nodiscard]] const AssignmentConfiguration&
+   getAssignmentConfiguration( bool sorted ) const
+   {
+      return assignmentConfigurations[ sorted ? 1 : 0 ];
    }
 
    /**
-    * \brief Selects the number of clusters processed at once by \ref assignFused by measuring the assignment.
+    * \brief Selects the configuration of \ref assignFused by measuring the assignment.
     *
     * The products with tiles of fewer columns of `C^T` read fewer data per element of `X`, which fit better in the cache,
     * but they read `X` more times. The best tile size depends on the data, so the tiles of `K`, 64 and 32 clusters are
-    * measured with the current centroids and the fastest one is used. The result of the assignment does not depend on
-    * the tile size.
+    * measured with the current centroids and the fastest one is used. Then, on GPUs, the products with the numbers of
+    * lanes and columns per lane from \ref laneConfigurations, which compute from a quarter of the tile to the whole tile
+    * at once, are measured with the selected tile size (except \ref Assignment::FusedLambda). The best configuration
+    * of the points sorted by their clusters differs, so on GPUs, it is selected in the same way after \ref reorder. Then
+    * the sorting followed by the assignment is measured, which tells whether the sorting pays off for the negative
+    * reordering period (see \ref setReorderingPeriod), so that it does not need to be tried in the iteration 1. The
+    * result of the assignment does not depend on the configuration.
     *
-    * \return The selected tile size.
+    * \param method The method of the assignment, see \ref assignFused.
     */
-   Index
-   tuneAssignment( int loops = 3 )
+   void
+   tuneAssignment( Assignment method = Assignment::Fused, int loops = 3 )
    {
+      reordered = false;
+      const double unsortedTime = tuneAssignmentConfiguration( method, loops );
+      if constexpr( isGPU() ) {
+         reorder();
+         tuneAssignmentConfiguration( method, loops );
+         Timer timer;
+         timer.start();
+         for( int i = 0; i < loops; i++ ) {
+            reorder();
+            assignFused( method );
+         }
+         timer.stop();
+         tunedReorderingPaysOff = timer.getRealTime() < unsortedTime;
+         reorderingPaysOff = *tunedReorderingPaysOff;
+         reordered = false;
+      }
+   }
+
+   /**
+    * \brief Selects the configuration of \ref assignFused for the current order of the points, see \ref tuneAssignment.
+    *
+    * \return The time of `loops` assignments with the selected configuration.
+    */
+   double
+   tuneAssignmentConfiguration( Assignment method, int loops )
+   {
+      AssignmentConfiguration& configuration = assignmentConfigurations[ reordered ? 1 : 0 ];
+      auto measure = [ & ]()
+      {
+         assignFused( method );
+         Timer timer;
+         timer.start();
+         for( int i = 0; i < loops; i++ )
+            assignFused( method );
+         timer.stop();
+         return timer.getRealTime();
+      };
       std::vector< Index > candidates{ clusters };
       for( Index tileSize : { 64, 32 } )
          if( tileSize < clusters )
             candidates.push_back( tileSize );
+      configuration = {};
       double bestTime = std::numeric_limits< double >::max();
       Index best = clusters;
       for( Index tileSize : candidates ) {
-         assignmentTileSize = tileSize;
-         assignFused();
-         Timer timer;
-         timer.start();
-         for( int i = 0; i < loops; i++ )
-            assignFused();
-         timer.stop();
-         if( timer.getRealTime() < bestTime ) {
-            bestTime = timer.getRealTime();
+         configuration.tileSize = static_cast< int >( tileSize );
+         const double time = measure();
+         if( time < bestTime ) {
+            bestTime = time;
             best = tileSize;
          }
       }
-      assignmentTileSize = best;
-      return best;
+      configuration.tileSize = static_cast< int >( best );
+      if( isGPU() && method != Assignment::FusedLambda ) {
+         Index tileColumns = 1;
+         while( tileColumns < best )
+            tileColumns *= 2;
+         std::pair< int, int > bestLanes{ 0, 0 };
+         for( const auto& [ lanes, columnsPerLane ] : laneConfigurations ) {
+            if( lanes * columnsPerLane > tileColumns || 4 * lanes * columnsPerLane < tileColumns )
+               continue;
+            configuration.lanes = lanes;
+            configuration.columnsPerLane = columnsPerLane;
+            const double time = measure();
+            if( time < bestTime ) {
+               bestTime = time;
+               bestLanes = { lanes, columnsPerLane };
+            }
+         }
+         configuration.lanes = bestLanes.first;
+         configuration.columnsPerLane = bestLanes.second;
+      }
+      return bestTime;
    }
 
    //! \brief Assigns every point to the nearest centroid, see \ref Assignment::Unfused.
@@ -589,8 +772,9 @@ public:
     *
     * \param period The points are sorted before the iterations 1, 1 + period, 1 + 2 * period, ... (counted from 0 after
     *        \ref setCentroids), 0 means never. A negative period means that the points are sorted before every iteration
-    *        when it pays off: the assignment of the iteration 1 with the sorted points (including the sorting) is compared
-    *        with the assignment of the iteration 0. It is used only on GPUs.
+    *        when it pays off, which is measured by \ref tuneAssignment, or otherwise, the assignment of the iteration 1
+    *        with the sorted points (including the sorting) is compared with the assignment of the iteration 0. It is used
+    *        only on GPUs.
     */
    void
    setReorderingPeriod( int period )
@@ -799,15 +983,16 @@ public:
       if( reorderingPeriod > 0 && iteration > 0 && ( iteration - 1 ) % reorderingPeriod == 0 )
          reorder();
       // on the host, the sorting did not pay off in the benchmarks (the caches are large), so it is not tried
-      if( reorderingPeriod < 0 && isGPU() && ( iteration == 1 || ( iteration > 1 && reorderingPaysOff ) ) )
+      const bool adaptive = reorderingPeriod < 0 && isGPU();
+      // whether the sorting pays off is known from tuneAssignment or it is tried in the iteration 1
+      const bool trial = adaptive && ! tunedReorderingPaysOff.has_value();
+      if( adaptive && iteration >= 1 && ( reorderingPaysOff || ( trial && iteration == 1 ) ) )
          reorder();
-      if( assignment == Assignment::Fused )
-         assignFused();
-      else if( assignment == Assignment::FusedLambda )
-         assignFused( false );
-      else
+      if( assignment == Assignment::Unfused )
          assignUnfused();
-      if( reorderingPeriod < 0 && isGPU() && iteration <= 1 ) {
+      else
+         assignFused( assignment );
+      if( trial && iteration <= 1 ) {
          // the assignment ends by a synchronous kernel, so the timer measures its run
          timer.stop();
          if( iteration == 0 )
@@ -859,6 +1044,10 @@ protected:
    //! The labels for \ref Update::Histogram on GPUs, they are smaller, so that more of them fit in the cache.
    Containers::Array< std::uint16_t, Device, Index > shortLabels;
    DenseMatrixType centroidsT, dots;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   //! The copy of `C^T` in half precision for \ref Assignment::FusedHalf.
+   Containers::Array< __half, Device, Index > halfCentroidsT;
+#endif
    //! `C` is not updated by \ref Update::Histogram on GPUs, see \ref syncCentroids.
    mutable DenseMatrixType centroids;
    mutable bool centroidsValid = true;
@@ -867,12 +1056,16 @@ protected:
    IndexVectorType order, positions;
    bool reordered = false;
    int reorderingPeriod = 0;
-   //! The time of the assignment of the iteration 0 and whether the sorting pays off for the negative reordering period.
+   //! The time of the assignment of the iteration 0 and whether the sorting pays off for the negative reordering period,
+   //! see \ref setReorderingPeriod.
    double unsortedAssignmentTime = 0;
    bool reorderingPaysOff = false;
+   //! Whether the sorting pays off as measured by \ref tuneAssignment.
+   std::optional< bool > tunedReorderingPaysOff;
    int iteration = 0;
-   //! The number of clusters processed at once by \ref assignFused, 0 means all, see \ref tuneAssignment.
-   Index assignmentTileSize = 0;
+   //! The configurations of \ref assignFused for the points in the original order and sorted by \ref reorder, see
+   //! \ref tuneAssignment.
+   AssignmentConfiguration assignmentConfigurations[ 2 ];
 };
 
 }  // namespace TNL::Benchmarks::KMeans
