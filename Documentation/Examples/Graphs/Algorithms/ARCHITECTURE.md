@@ -6,20 +6,12 @@ SCC, Trees, MIS, Coloring) ships a single example source file (`GraphExample_<X>
 Doxygen `\snippet` directives in the public headers include named blocks from
 these files into the API documentation.
 
-### `.cu` and `.hip` are symbolic links
+### Backend sources are generated
 
-The `.cpp` file is the **only** real source file.  The `.cu` and `.hip`
-variants are symbolic links to it:
-
-```bash
-ln -s GraphExample_BFS.cpp GraphExample_BFS.cu
-ln -s GraphExample_BFS.cpp GraphExample_BFS.hip
-```
-
-This avoids code duplication: the same source is compiled by the host
-compiler (via `.cpp`), by `nvcc` (via `.cu`), and by `hipcc` (via `.hip`)
-without maintaining three copies.  When editing an example, **always edit
-the `.cpp` file** — never the symlinks.
+The `.cpp` file is the **only** source file of each example.  The CMake
+function `tnl_add_example_with_output` generates the `.cu` and `.hip`
+sources in the build directory, so the same code is compiled by the host
+compiler, by `nvcc` and by `hipcc` without maintaining several copies.
 
 ## Conventions
 

@@ -1,1 +1,0 @@
-SubGraphExample_MaskedSubGraph.cpp
