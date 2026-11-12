@@ -403,6 +403,85 @@ test_SparseDenseMatrixProductWithLambdas()
       } );
 }
 
+// Tests C = alpha * B * op( A ) + beta * C computed by denseSparseMatrixProduct for both op( A ) = A and op( A ) = A^T
+// with the same matrix A as test_SparseDenseMatrixProductVariants. All values are small integers, so the results are
+// exact for all tested types.
+template< typename Matrix, TNL::Algorithms::Segments::ElementsOrganization Organization >
+void
+test_DenseSparseMatrixProduct()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using DenseMatrixType = TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType, Organization >;
+   using HostDenseMatrixType = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType, Organization >;
+
+   const IndexType rows = 300;
+   const IndexType columns = 257;
+   const std::vector< IndexType > rowLengths{ 0, 1, 7, 33, 100, 256, 2, 0, 65, 3 };
+   std::map< std::pair< IndexType, IndexType >, RealType > elements;
+   for( IndexType row = 0; row < rows; row++ ) {
+      const IndexType length = rowLengths[ row % rowLengths.size() ];
+      for( IndexType localIdx = 0; localIdx < length; localIdx++ )
+         elements[ { row, ( row + 3 * localIdx ) % columns } ] = RealType( row % 5 + localIdx % 3 + 1 );
+   }
+   const Matrix A( rows, columns, elements );
+
+   for( const auto transposeA : { TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose } ) {
+      const bool transposed = transposeA == TNL::Matrices::TransposeState::Transpose;
+      // op( A ) has n rows and m columns
+      const IndexType n = transposed ? columns : rows;
+      const IndexType m = transposed ? rows : columns;
+      for( const IndexType k : { 1, 3, 5, 9, 17, 33, 70 } ) {
+         HostDenseMatrixType hostB( k, n );
+         HostDenseMatrixType hostC0( k, m );
+         for( IndexType i = 0; i < k; i++ )
+            for( IndexType j = 0; j < n; j++ )
+               hostB.setElement( i, j, RealType( j % 7 + i + 1 ) );
+         for( IndexType i = 0; i < k; i++ )
+            for( IndexType j = 0; j < m; j++ )
+               hostC0.setElement( i, j, RealType( j % 11 - i ) );
+         DenseMatrixType B;
+         B = hostB;
+
+         for( const auto& [ alpha, beta ] : { std::pair< int, int >{ 1, 0 }, std::pair< int, int >{ 2, -1 } } ) {
+            SCOPED_TRACE(
+               std::string( transposed ? "transposed A" : "A" ) + ", k = " + std::to_string( k )
+               + ", alpha = " + std::to_string( alpha ) + ", beta = " + std::to_string( beta ) );
+            HostDenseMatrixType expected( hostC0 );
+            for( IndexType i = 0; i < k; i++ )
+               for( IndexType j = 0; j < m; j++ )
+                  expected.setElement( i, j, RealType( beta ) * hostC0.getElement( i, j ) );
+            for( const auto& [ position, value ] : elements ) {
+               // the element of op( A ) in the row l and the column j
+               const IndexType l = transposed ? position.second : position.first;
+               const IndexType j = transposed ? position.first : position.second;
+               for( IndexType i = 0; i < k; i++ )
+                  expected.addElement( i, j, RealType( alpha ) * hostB.getElement( i, l ) * value, RealType( 1 ) );
+            }
+
+            DenseMatrixType C;
+            C = hostC0;
+            TNL::Matrices::denseSparseMatrixProduct< testMaxTileSize >(
+               B, A, C, RealType( alpha ), RealType( beta ), transposeA );
+            HostDenseMatrixType hostC;
+            hostC = C;
+            for( IndexType i = 0; i < k; i++ )
+               for( IndexType j = 0; j < m; j++ )
+                  EXPECT_EQ( hostC.getElement( i, j ), expected.getElement( i, j ) ) << "i = " << i << ", j = " << j;
+         }
+      }
+   }
+
+   DenseMatrixType C( 3, columns );
+   EXPECT_THROW( TNL::Matrices::denseSparseMatrixProduct( DenseMatrixType( 3, rows + 1 ), A, C ), std::invalid_argument );
+   EXPECT_THROW( TNL::Matrices::denseSparseMatrixProduct( DenseMatrixType( 4, rows ), A, C ), std::invalid_argument );
+   EXPECT_THROW(
+      TNL::Matrices::denseSparseMatrixProduct(
+         DenseMatrixType( 3, rows ), A, C, RealType( 1 ), RealType( 0 ), TNL::Matrices::TransposeState::Transpose ),
+      std::invalid_argument );
+}
+
 template< typename Matrix >
 void
 test_SparseDenseMatrixProduct_wrongDimensions()

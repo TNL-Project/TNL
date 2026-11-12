@@ -44,6 +44,14 @@ TYPED_TEST( MatrixTest, sparseDenseMatrixProductWithLambdas )
    test_SparseDenseMatrixProductWithLambdas< MatrixType, TNL::Algorithms::Segments::ColumnMajorOrder >();
 }
 
+TYPED_TEST( MatrixTest, denseSparseMatrixProduct )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_DenseSparseMatrixProduct< MatrixType, TNL::Algorithms::Segments::RowMajorOrder >();
+   test_DenseSparseMatrixProduct< MatrixType, TNL::Algorithms::Segments::ColumnMajorOrder >();
+}
+
 TYPED_TEST( MatrixTest, sparseDenseMatrixProduct_wrongDimensions )
 {
    using MatrixType = typename TestFixture::MatrixType;

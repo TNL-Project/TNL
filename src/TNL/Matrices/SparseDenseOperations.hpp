@@ -8,12 +8,15 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include <TNL/Algorithms/AtomicOperations.h>
+#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/multiReduce.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Functional.h>
 #include <TNL/Math.h>
 #include <TNL/Matrices/MatrixBase.h>
+#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/TypeTraits.h>
 #include <TNL/SystemInfo.h>
 #include <TNL/TypeTraits.h>
@@ -697,6 +700,158 @@ sparseDenseMatrixProductWithLambdasLanesOverColumns(
    else
       detail::sparseDenseMatrixProductLanesOverColumns< Lanes, ColumnsPerLane >(
          A, k, detail::LambdaBAccess< std::decay_t< FetchB >, IndexType >{ fetchB }, storeC, maxRowLength );
+}
+
+namespace detail {
+
+// The access to the elements of B^T for the dense matrix B, B^T( column, j ) = B( j, column ). The consecutive columns
+// of B^T are consecutive in memory for column-major B, they are then loaded by vectorized loads.
+template< typename DenseMatrixBView >
+struct TransposedDenseMatrixBAccess
+{
+   using IndexType = typename DenseMatrixBView::IndexType;
+   using RealType = std::remove_const_t< typename DenseMatrixBView::RealType >;
+
+   static constexpr bool consecutive = DenseMatrixBView::getOrganization() == Algorithms::Segments::ColumnMajorOrder;
+
+   __cuda_callable__
+   RealType
+   operator()( IndexType column, IndexType j ) const
+   {
+      return B( j, column );
+   }
+
+   template< int Count >
+   __cuda_callable__
+   void
+   load( IndexType column, IndexType firstJ, RealType ( &b )[ Count ], bool vectorLoads ) const
+   {
+      if constexpr( consecutive )
+         loadConsecutive< Count >( &B( firstJ, column ), b, vectorLoads );
+      else
+         for( int c = 0; c < Count; c++ )
+            b[ c ] = B( firstJ + c, column );
+   }
+
+   // Tells whether W consecutive rows of B starting at multiples of W can be loaded by the vectorized loads, i.e. whether
+   // B is column-major with the columns aligned to the vector width.
+   template< int W >
+   [[nodiscard]] bool
+   canLoadVectors() const
+   {
+      if constexpr( consecutive ) {
+         const auto& segments = B.getSegments();
+         const auto address = reinterpret_cast< std::uintptr_t >( B.getValues().getData() );
+         return address % ( W * sizeof( RealType ) ) == 0
+             && ( B.getColumns() < 2 || ( segments.getGlobalIndex( 0, 1 ) - segments.getGlobalIndex( 0, 0 ) ) % W == 0 );
+      }
+      return false;
+   }
+
+   DenseMatrixBView B;
+};
+
+// The storer of the multireduction computing C^T = alpha * A * B^T + beta * C^T, i.e. the element C( j, row ).
+template< typename ComputeRealType, typename DenseMatrixCView, typename Real >
+struct TransposedProductStorer
+{
+   using IndexType = typename DenseMatrixCView::IndexType;
+
+   __cuda_callable__
+   void
+   operator()( IndexType row, int j, const ComputeRealType& value ) const
+   {
+      auto& element = C( j, row );
+      if( beta == Real{ 0 } )
+         element = alpha * value;
+      else
+         element = alpha * value + beta * element;
+   }
+
+   // mutable, because the operator is const and the view gives a reference to its element only when not const
+   mutable DenseMatrixCView C;
+   Real alpha;
+   Real beta;
+};
+
+}  // namespace detail
+
+template< int MaxTileSize, typename DenseMatrixB, typename SparseMatrix, typename DenseMatrixC, typename Real >
+void
+denseSparseMatrixProduct(
+   const DenseMatrixB& B,
+   const SparseMatrix& A,
+   DenseMatrixC& C,
+   Real alpha,
+   Real beta,
+   TransposeState transposeA,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig )
+{
+   static_assert( ! SparseMatrix::isSymmetric(), "denseSparseMatrixProduct does not support symmetric matrices yet." );
+   using IndexType = typename SparseMatrix::IndexType;
+   using DeviceType = typename SparseMatrix::DeviceType;
+   using ComputeRealType = typename SparseMatrix::ComputeRealType;
+   const IndexType opARows = transposeA == TransposeState::Transpose ? A.getColumns() : A.getRows();
+   const IndexType opAColumns = transposeA == TransposeState::Transpose ? A.getRows() : A.getColumns();
+   if( B.getColumns() != opARows )
+      throw std::invalid_argument(
+         "denseSparseMatrixProduct: the number of columns of B does not match the number of rows of op( A )" );
+   if( C.getRows() != B.getRows() )
+      throw std::invalid_argument( "denseSparseMatrixProduct: the number of rows of B does not match the number of rows of C" );
+   if( C.getColumns() != opAColumns )
+      throw std::invalid_argument(
+         "denseSparseMatrixProduct: the number of columns of op( A ) does not match the number of columns of C" );
+   const auto BView = B.getConstView();
+   auto CView = C.getView();
+
+   if( transposeA == TransposeState::Transpose ) {
+      // C^T = A * B^T is the reduction in the rows of A, the kernel is selected by the organization of B^T
+      constexpr auto organization = DenseMatrixB::getOrganization() == Algorithms::Segments::RowMajorOrder
+                                     ? Algorithms::Segments::ColumnMajorOrder
+                                     : Algorithms::Segments::RowMajorOrder;
+      detail::sparseDenseMatrixProduct< MaxTileSize, organization >(
+         A,
+         B.getRows(),
+         detail::TransposedDenseMatrixBAccess< decltype( BView ) >{ BView },
+         detail::TransposedProductStorer< ComputeRealType, decltype( CView ), Real >{ CView, alpha, beta },
+         launchConfig );
+      return;
+   }
+
+   using RealType = typename DenseMatrixC::RealType;
+   if constexpr( ! std::is_arithmetic_v< RealType > ) {
+      // there are no atomic additions of the other types (e.g. complex numbers), the product is computed with the
+      // transposed matrix
+      TNL::Matrices::SparseMatrix< typename SparseMatrix::RealType, DeviceType, IndexType > AT;
+      AT.getTransposition( A );
+      denseSparseMatrixProduct< MaxTileSize >( B, AT, C, alpha, beta, TransposeState::Transpose, launchConfig );
+   }
+   else {
+      // every element of A is multiplied by a column of B and added to a column of C by atomic additions, the rows of B
+      // are processed by consecutive threads
+      if( beta == Real{ 0 } )
+         C.getValues().setValue( 0 );
+      else if( beta != Real{ 1 } )
+         C.getValues() *= beta;
+      const auto AView = A.getConstView();
+      const IndexType k = B.getRows();
+      Algorithms::parallelFor< DeviceType >(
+         0,
+         A.getRows() * k,
+         [ = ] __cuda_callable__( IndexType index ) mutable
+         {
+            const IndexType row = index / k;
+            const IndexType i = index % k;
+            const auto aRow = AView.getRow( row );
+            const ComputeRealType b = alpha * BView( i, row );
+            for( IndexType l = 0; l < aRow.getSize(); l++ ) {
+               const IndexType column = aRow.getColumnIndex( l );
+               if( column == paddingIndex< IndexType > )
+                  continue;
+               Algorithms::AtomicOperations< DeviceType >::add( CView( i, column ), b * aRow.getValue( l ) );
+            }
+         } );
+   }
 }
 
 }  // namespace TNL::Matrices

@@ -8,6 +8,7 @@
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Backend/Macros.h>
+#include <TNL/Matrices/DenseOperations.h>
 
 namespace TNL::Matrices {
 
@@ -301,6 +302,58 @@ sparseDenseMatrixProductWithLambdasLanesOverColumns(
    FetchB&& fetchB,
    StoreC&& storeC,
    typename SparseMatrix::IndexType maxRowLength = 0 );
+
+/**
+ * \brief Computes the product of a dense and a sparse matrix, `C = alpha * B * op( A ) + beta * C`.
+ *
+ * `op( A )` is `A` or its transposition `A^T` given by `transposeA`. The rows of the sparse matrix are its segments,
+ * so the two cases are computed differently:
+ *
+ * - \ref TransposeState::Transpose: the element `C( i, j )` is the dot product of the row `i` of `B` and the row `j`
+ *   of `A`, i.e. `C^T = A * B^T` is computed by the reduction in the rows of `A` like \ref sparseDenseMatrixProduct,
+ *   without the transpositions of `B` and `C`, which are only read and written in the transposed order. The rows of
+ *   `B` (`k` columns of `B^T`) are processed in tiles of at most `MaxTileSize` rows. Column-major `B` and `C` are read
+ *   and written by consecutive elements (and `B` by vectorized loads), so they are more efficient than row-major ones.
+ *   Hence, when the product with a sparse matrix `A` stored by rows is computed repeatedly, it is efficient to store
+ *   `A^T` and compute the product with its transposition.
+ * - \ref TransposeState::None: the row `j` of `A` contributes `B( :, j ) * A( j, l )` to the columns `l` of `C` given
+ *   by its elements. Every row of `A` and row of `B` is processed by one thread, which adds the contributions by atomic
+ *   additions. For the types without atomic additions (e.g. complex numbers), `A` (which must be \ref SparseMatrix then)
+ *   is transposed and the product is computed as for \ref TransposeState::Transpose.
+ *
+ * Symmetric sparse matrices are not supported yet.
+ *
+ * \tparam MaxTileSize The maximal number of rows of `B` and `C` processed at once for \ref TransposeState::Transpose.
+ * \tparam DenseMatrixB The type of the dense matrix `B` (\ref DenseMatrix or \ref DenseMatrixView).
+ * \tparam SparseMatrix The type of the sparse matrix `A` (\ref SparseMatrix or \ref SparseMatrixView).
+ * \tparam DenseMatrixC The type of the dense matrix `C` (\ref DenseMatrix or \ref DenseMatrixView).
+ * \tparam Real The type of the multiplicators.
+ *
+ * \param B The dense matrix with `k` rows and `n` columns.
+ * \param A The sparse matrix with `n` rows and `m` columns (`m` rows and `n` columns for
+ *        \ref TransposeState::Transpose).
+ * \param C The dense matrix with `k` rows and `m` columns, the result is stored here.
+ * \param alpha The multiplicator of the product `B * op( A )`.
+ * \param beta The multiplicator of the original values of `C`. If it is zero, the original values of `C` are not read.
+ * \param transposeA Whether the product is computed with `A` or with its transposition.
+ * \param launchConfig The launch configuration of the reduction in the segments of `A` for
+ *        \ref TransposeState::Transpose.
+ */
+template<
+   int MaxTileSize = 16,
+   typename DenseMatrixB,
+   typename SparseMatrix,
+   typename DenseMatrixC,
+   typename Real = typename SparseMatrix::ComputeRealType >
+void
+denseSparseMatrixProduct(
+   const DenseMatrixB& B,
+   const SparseMatrix& A,
+   DenseMatrixC& C,
+   Real alpha = 1,
+   Real beta = 0,
+   TransposeState transposeA = TransposeState::None,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Matrices
 
