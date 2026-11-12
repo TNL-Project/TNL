@@ -43,8 +43,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating matrix on CPU ... \n";
    binarySparseMatrixExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA GPU ... \n";
-   binarySparseMatrixExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating matrix on GPU (" << TNL::Backend::getBackendName() << ") ... \n";
+   binarySparseMatrixExample< TNL::Devices::GPU >();
 #endif
 }

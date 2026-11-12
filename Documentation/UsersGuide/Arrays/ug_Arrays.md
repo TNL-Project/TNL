@@ -79,7 +79,7 @@ the indexing operator (`operator[]`) which is more efficient, or using the
 The indexing operator `operator[]` is implemented in both `Array` and
 `ArrayView` and it is defined as `__cuda_callable__`. It means that it can be
 called even in CUDA kernels if the data processing executes on a GPU, i.e. the
-`Device` parameter is `Devices::Cuda`. This operator returns a reference to the
+`Device` parameter is `Devices::GPU`. This operator returns a reference to the
 given array element and so it is very efficient. However, calling this operator
 from host for data allocated on the device (or vice versa) leads to segmentation
 fault (on the host system) or broken state of the device. It means:
@@ -87,7 +87,7 @@ fault (on the host system) or broken state of the device. It means:
 * You may call the `operator[]` on the **host** only for data allocated on the
   **host** (with device `Devices::Host`).
 * You may call the `operator[]` on the **device** only for data allocated on the
-  **device** (with device `Devices::Cuda`).
+  **device** (with device `Devices::GPU`).
 
 The following example shows use of `operator[]`.
 

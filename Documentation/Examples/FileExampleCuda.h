@@ -1,6 +1,8 @@
 #include <iostream>
 #include <TNL/File.h>
-#include <TNL/Allocators/Cuda.h>
+#include <TNL/Allocators/Default.h>
+#include <TNL/Algorithms/copy.h>
+#include <TNL/Devices/GPU.h>
 
 using namespace TNL;
 
@@ -21,26 +23,22 @@ main()
    /***
     * Allocate arrays on host and device
     */
-   double* deviceArray;
-   double* hostArray;
-   cudaMalloc( reinterpret_cast< void** >( &deviceArray ), size * sizeof( double ) );
-   hostArray = new double[ 3 ];
+   using DeviceAllocator = Allocators::Default< Devices::GPU >::Allocator< double >;
+   DeviceAllocator deviceAllocator;
+   double* deviceArray = deviceAllocator.allocate( size );
+   double* hostArray = new double[ 3 ];
 
    /***
     * Read array from the file to device
     */
    file.open( "file-example-cuda-test-file.tnl", std::ios_base::in );
-   file.load< double, double, Allocators::Cuda< double > >( deviceArray, size );
+   file.load< double, double, DeviceAllocator >( deviceArray, size );
    file.close();
 
    /***
     * Copy array from device to host
     */
-   cudaMemcpy(
-      reinterpret_cast< void* >( hostArray ),
-      reinterpret_cast< const void* >( deviceArray ),
-      size * sizeof( double ),
-      cudaMemcpyDeviceToHost );
+   Algorithms::copy< Devices::Host, Devices::GPU >( hostArray, deviceArray, size );
 
    /***
     * Print the array on host
@@ -52,6 +50,6 @@ main()
    /***
     * Free allocated memory
     */
-   cudaFree( deviceArray );
+   deviceAllocator.deallocate( deviceArray, size );
    delete[] hostArray;
 }

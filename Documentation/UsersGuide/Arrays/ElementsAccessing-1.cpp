@@ -7,7 +7,7 @@ using namespace TNL::Containers;
 
 __global__
 void
-initKernel( ArrayView< float, Devices::Cuda > view )
+initKernel( ArrayView< float, Devices::GPU > view )
 {
    int tid = threadIdx.x;
    if( tid < view.getSize() )
@@ -22,7 +22,7 @@ main( int argc, char* argv[] )
     */
    const int size = 5;
    Array< float, Devices::Host > host_array( size );
-   Array< float, Devices::Cuda > device_array( size );
+   Array< float, Devices::GPU > device_array( size );
 
    /****
     * Initiate the host array
@@ -31,14 +31,14 @@ main( int argc, char* argv[] )
       host_array[ i ] = i;
 
    /****
-    * Prepare array view for the device array - we will pass it to a CUDA kernel.
+    * Prepare array view for the device array - we will pass it to a GPU kernel.
     * NOTE: Better way is to use ArrayView::evaluate or ParallelFor, this is just
     * an example.
     */
    auto device_view = device_array.getView();
 
    /****
-    * Call CUDA kernel to initiate the array on the device
+    * Call GPU kernel to initiate the array on the device
     */
    initKernel<<< 1, size >>>( device_view );
 

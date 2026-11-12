@@ -1,7 +1,7 @@
 #include <iostream>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -40,8 +40,8 @@ main( int argc, char* argv[] )
    std::cout << "Setting matrix elements on host:\n";
    setElementsExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Setting matrix elements on CUDA device:\n";
-   setElementsExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Setting matrix elements on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   setElementsExample< TNL::Devices::GPU >();
 #endif
 }

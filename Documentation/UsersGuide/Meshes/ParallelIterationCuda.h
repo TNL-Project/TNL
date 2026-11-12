@@ -32,7 +32,7 @@ task( const HostMesh& hostMesh )
 {
    //! [Parallel iteration CUDA]
    // Copy the mesh from host to the device
-   using DeviceMesh = TNL::Meshes::Mesh< typename HostMesh::Config, TNL::Devices::Cuda >;
+   using DeviceMesh = TNL::Meshes::Mesh< typename HostMesh::Config, TNL::Devices::GPU >;
    DeviceMesh deviceMesh = hostMesh;
 
    // Create a device pointer to the device mesh

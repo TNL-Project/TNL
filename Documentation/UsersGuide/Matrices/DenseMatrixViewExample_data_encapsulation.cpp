@@ -1,5 +1,7 @@
 #include <iostream>
-#ifdef __CUDACC__
+#if defined( __HIP__ )
+   #include <hip/hip_runtime.h>
+#elif defined( __CUDACC__ )
    #include <cuda.h>
 #endif
 #include <TNL/Containers/VectorView.h>
@@ -25,8 +27,13 @@ encapsulation()
       data = new double[ size * size ];
       memcpy( data, host_data, sizeof( double ) * size * size );
    }
-#ifdef __CUDACC__
-   else if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
+#if defined( __HIP__ )
+   else if( std::is_same_v< Device, TNL::Devices::Hip > ) {
+      (void) hipMalloc( (void**) &data, sizeof( double ) * size * size );
+      (void) hipMemcpy( data, host_data, sizeof( double ) * size * size, hipMemcpyHostToDevice );
+   }
+#elif defined( __CUDACC__ )
+   else if( std::is_same_v< Device, TNL::Devices::GPU > ) {
       cudaMalloc( (void**) &data, sizeof( double ) * size * size );
       cudaMemcpy( data, host_data, sizeof( double ) * size * size, cudaMemcpyHostToDevice );
    }
@@ -56,8 +63,11 @@ encapsulation()
    delete[] host_data;
    if( std::is_same_v< Device, TNL::Devices::Host > )
       delete[] data;
-#ifdef __CUDACC__
-   else if( std::is_same_v< Device, TNL::Devices::Cuda > )
+#if defined( __HIP__ )
+   else if( std::is_same_v< Device, TNL::Devices::Hip > )
+      (void) hipFree( data );
+#elif defined( __CUDACC__ )
+   else if( std::is_same_v< Device, TNL::Devices::GPU > )
       cudaFree( data );
 #endif
 }
@@ -68,8 +78,8 @@ main( int argc, char* argv[] )
    std::cout << "Dense matrix encapsulation on host:\n";
    encapsulation< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Dense matrix encapsulation on CUDA device:\n";
-   encapsulation< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Dense matrix encapsulation on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   encapsulation< TNL::Devices::GPU >();
 #endif
 }

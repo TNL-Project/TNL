@@ -207,7 +207,8 @@ workflow:
                   exit 1;
               };
           fi
-        - if [[ ${USE_HIP} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" ) ]]; then
+        # HIP nontests jobs also run the documentation examples (see below), so they need the GPU too
+        - if [[ ${USE_HIP} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" || ${MATRIX_TARGET} == "nontests" ) ]]; then
               /opt/rocm/bin/rocminfo >/dev/null || {
                   echo "ERROR, no AMD GPU in the container, check the runner configuration";
                   exit 1;
@@ -235,6 +236,9 @@ workflow:
                 BUILD_TARGETS=("matrix-tests");
           elif [[ ${MATRIX_TARGET} == "nontests" ]]; then
                 BUILD_TARGETS=("benchmarks" "examples" "tools");
+                if [[ ${USE_HIP} == "yes" ]]; then
+                    BUILD_TARGETS+=("run-doc-examples");
+                fi;
           elif [[ ${BUILD_DOC} == "yes" ]]; then
                 BUILD_TARGETS=("documentation");
           fi

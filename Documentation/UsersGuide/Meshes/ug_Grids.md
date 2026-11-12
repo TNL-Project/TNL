@@ -134,8 +134,8 @@ parameters:
 - `Real` is a precision of the arithmetics used by the grid. It is `double` by
   default.
 - `Device` is the device where the grid shall be allocated. Currently it can be
-  either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::Cuda for CUDA
-  supporting GPUs. It is \ref TNL::Devices::Host by default.
+  either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::GPU for GPUs
+  (CUDA or HIP). It is \ref TNL::Devices::Host by default.
 - `Index` is a type being used for indexing. It is `int` by default.
 
 ## Grid creation

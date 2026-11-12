@@ -4,8 +4,8 @@
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/optimizeRanks.h>
 
-#ifdef __CUDACC__
-using DeviceType = TNL::Devices::Cuda;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+using DeviceType = TNL::Devices::GPU;
 #else
 using DeviceType = TNL::Devices::Host;
 #endif

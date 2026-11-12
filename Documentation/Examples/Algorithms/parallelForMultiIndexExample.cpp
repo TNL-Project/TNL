@@ -40,9 +40,9 @@ main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_v( size );
-   initMeshFunction( xSize, ySize, zSize, cuda_v, 1.0 );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_v( size );
+   initMeshFunction( xSize, ySize, zSize, gpu_v, 1.0 );
 #endif
    return EXIT_SUCCESS;
 }

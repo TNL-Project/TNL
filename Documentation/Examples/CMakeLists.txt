@@ -8,7 +8,7 @@ add_subdirectory(Solvers)
 
 set(COMMON_EXAMPLES)
 
-set(CUDA_EXAMPLES FileExampleCuda)
+set(GPU_EXAMPLES FileExampleCuda)
 
 set(HOST_EXAMPLES
     FileExample
@@ -29,8 +29,8 @@ foreach(target IN ITEMS ${COMMON_EXAMPLES})
     tnl_add_example_with_output(${target} SOURCES ${target}.h)
 endforeach()
 
-foreach(target IN ITEMS ${CUDA_EXAMPLES})
-    tnl_add_example_with_output(${target} SOURCES ${target}.h BACKENDS CUDA)
+foreach(target IN ITEMS ${GPU_EXAMPLES})
+    tnl_add_example_with_output(${target} SOURCES ${target}.h BACKENDS CUDA HIP)
 endforeach()
 
 foreach(target IN ITEMS ${HOST_EXAMPLES})

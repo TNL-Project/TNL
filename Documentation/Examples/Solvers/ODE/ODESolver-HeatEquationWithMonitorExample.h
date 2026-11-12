@@ -97,7 +97,7 @@ main( int argc, char* argv[] )
    file_name += "/ODESolver-HeatEquationExampleWithMonitor-result.out";
 
    solveHeatEquation< TNL::Devices::Host >( file_name.getString() );
-#ifdef __CUDACC__
-   solveHeatEquation< TNL::Devices::Cuda >( file_name.getString() );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   solveHeatEquation< TNL::Devices::GPU >( file_name.getString() );
 #endif
 }

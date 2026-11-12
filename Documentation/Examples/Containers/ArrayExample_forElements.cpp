@@ -50,8 +50,8 @@ main( int argc, char* argv[] )
    std::cout << "Running example on the host system:\n";
    forElementsExample< Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running example on the CUDA device:\n";
-   forElementsExample< Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running example on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   forElementsExample< Devices::GPU >();
 #endif
 }

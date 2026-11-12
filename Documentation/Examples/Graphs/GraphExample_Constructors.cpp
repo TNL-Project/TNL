@@ -2,7 +2,7 @@
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Hip.h>
 #include <TNL/Containers/Vector.h>
 
@@ -146,14 +146,9 @@ main( int argc, char* argv[] )
    std::cout << "Running on host:\n";
    constructorsExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running on CUDA device:\n";
-   constructorsExample< TNL::Devices::Cuda >();
-#endif
-
-#ifdef __HIP__
-   std::cout << "Running on HIP device:\n";
-   constructorsExample< TNL::Devices::Hip >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   constructorsExample< TNL::Devices::GPU >();
 #endif
 
    return EXIT_SUCCESS;

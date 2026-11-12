@@ -45,11 +45,11 @@ main( int argc, char* argv[] )
       std::cout << "The first test runs on CPU ...\n";
    distributedVectorExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL::MPI::Barrier();
 
    if( TNL::MPI::GetRank() == 0 )
       std::cout << "The second test runs on GPU ...\n";
-   distributedVectorExample< TNL::Devices::Cuda >();
+   distributedVectorExample< TNL::Devices::GPU >();
 #endif
 }

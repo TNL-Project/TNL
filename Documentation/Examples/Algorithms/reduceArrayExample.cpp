@@ -46,8 +46,8 @@ main( int argc, char* argv[] )
    std::cout << "Running example on the host system:\n";
    reduceArrayExample< Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running example on the CUDA device:\n";
-   reduceArrayExample< Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running example on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   reduceArrayExample< Devices::GPU >();
 #endif
 }

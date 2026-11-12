@@ -12,8 +12,8 @@ main( int argc, char* argv[] )
     * Create new arrays
     */
    const int size = 10;
-   Array< float, Devices::Cuda > a( size );
-   Array< float, Devices::Cuda > b( size );
+   Array< float, Devices::GPU > a( size );
+   Array< float, Devices::GPU > b( size );
    b = 0;
 
    /****

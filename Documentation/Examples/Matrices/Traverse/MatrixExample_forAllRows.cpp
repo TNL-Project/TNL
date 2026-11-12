@@ -3,7 +3,7 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -70,8 +70,8 @@ main( int argc, char* argv[] )
    std::cout << "Running on host:\n";
    forAllRowsExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running on CUDA device:\n";
-   forAllRowsExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   forAllRowsExample< TNL::Devices::GPU >();
 #endif
 }

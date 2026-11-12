@@ -7,8 +7,8 @@
 #include <TNL/Meshes/Writers/VTIWriter.h>
 
 using Real = double;
-#ifdef __CUDACC__
-using Device = TNL::Devices::Cuda;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+using Device = TNL::Devices::GPU;
 #else
 using Device = TNL::Devices::Host;
 #endif

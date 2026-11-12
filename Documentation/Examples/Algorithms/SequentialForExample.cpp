@@ -32,9 +32,9 @@ main( int argc, char* argv[] )
    std::cout << "Example on the host:\n";
    printVector< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Example on CUDA GPU:\n";
-   printVector< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Example on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   printVector< TNL::Devices::GPU >();
 #endif
    return EXIT_SUCCESS;
 }

@@ -4,12 +4,12 @@
 
 using namespace TNL;
 
-using ArrayCuda = Containers::Array< int, Devices::Cuda >;
+using ArrayGPU = Containers::Array< int, Devices::GPU >;
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 __global__
 void
-printArray( const ArrayCuda* ptr )
+printArray( const ArrayGPU* ptr )
 {
    printf( "Array size is: %d\n", ptr->getSize() );
    for( int i = 0; i < ptr->getSize(); i++ )
@@ -21,21 +21,21 @@ int
 main( int argc, char* argv[] )
 {
    /***
-    * Create an array and print its elements in CUDA kernel
+    * Create an array and print its elements in GPU kernel
     */
-#ifdef __CUDACC__
-   Pointers::UniquePointer< ArrayCuda > array_ptr( 10 );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Pointers::UniquePointer< ArrayGPU > array_ptr( 10 );
    array_ptr.modifyData< Devices::Host >() = 1;
-   Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
-   printArray<<< 1, 1 >>>( &array_ptr.getData< Devices::Cuda >() );
+   Pointers::synchronizeSmartPointersOnDevice< Devices::GPU >();
+   printArray<<< 1, 1 >>>( &array_ptr.getData< Devices::GPU >() );
 
    /***
     * Resize the array and print it again
     */
    array_ptr.modifyData< Devices::Host >().setSize( 5 );
    array_ptr.modifyData< Devices::Host >() = 2;
-   Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
-   printArray<<< 1, 1 >>>( &array_ptr.getData< Devices::Cuda >() );
+   Pointers::synchronizeSmartPointersOnDevice< Devices::GPU >();
+   printArray<<< 1, 1 >>>( &array_ptr.getData< Devices::GPU >() );
 #endif
    return EXIT_SUCCESS;
 }

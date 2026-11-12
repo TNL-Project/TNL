@@ -135,9 +135,9 @@ main( int argc, char* argv[] )
    std::cout << "Traversing grid on CPU...\n";
    writeGrid< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Traversing grid on CUDA GPU...\n";
-   writeGrid< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Traversing grid on GPU (" << TNL::Backend::getBackendName() << ")...\n";
+   writeGrid< TNL::Devices::GPU >();
 #endif
    return EXIT_SUCCESS;
 }

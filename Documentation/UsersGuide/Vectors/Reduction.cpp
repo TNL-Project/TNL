@@ -72,9 +72,9 @@ main( int argc, char* argv[] )
    /****
     * Perform test on GPU
     */
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    std::cout << '\n';
    std::cout << "Expressions on GPU ...\n";
-   expressions< Devices::Cuda >();
+   expressions< Devices::GPU >();
 #endif
 }

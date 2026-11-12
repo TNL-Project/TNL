@@ -4,7 +4,7 @@
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Timer.h>
 
 const int testsCount = 5;
@@ -188,7 +188,7 @@ laplaceOperatorMultidiagonalMatrix()
       timer.stop();
       std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
-      if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
+      if( std::is_same_v< Device, TNL::Devices::GPU > ) {
          std::cout << "   setElement on host and transfer on GPU: ";
          timer.reset();
          timer.start();
@@ -238,8 +238,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating Laplace operator matrix on CPU ...\n";
    laplaceOperatorMultidiagonalMatrix< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating Laplace operator matrix on CUDA GPU ...\n";
-   laplaceOperatorMultidiagonalMatrix< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating Laplace operator matrix on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   laplaceOperatorMultidiagonalMatrix< TNL::Devices::GPU >();
 #endif
 }

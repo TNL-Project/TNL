@@ -4,7 +4,7 @@
 #include <TNL/Containers/DistributedNDArraySynchronizer.h>
 #include <TNL/MPI/ScopedInitializer.h>
 
-// The following works for any device (Host, Cuda, etc.)
+// The following works for any device (Host, GPU, etc.)
 template< typename Device >
 void
 distributedNDArrayExample()
@@ -77,11 +77,11 @@ main( int argc, char* argv[] )
       std::cout << "The first test runs on CPU ...\n";
    distributedNDArrayExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL::MPI::Barrier();
 
    if( TNL::MPI::GetRank() == 0 )
       std::cout << "The second test runs on GPU ...\n";
-   distributedNDArrayExample< TNL::Devices::Cuda >();
+   distributedNDArrayExample< TNL::Devices::GPU >();
 #endif
 }

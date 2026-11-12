@@ -30,11 +30,11 @@ foreach(target IN ITEMS ${MESH_TOOLS})
     target_link_libraries(${target} PUBLIC TNL::TNL)
 endforeach()
 
-# mesh tool with MPI built also for CUDA
+# mesh tool with MPI built also for CUDA and HIP
 tnl_add_backend_executables(
     tnl-test-distributed-mesh
     SOURCES tnl-test-distributed-mesh.h
-    BACKENDS HOST CUDA
+    BACKENDS HOST CUDA HIP
     OPTIONAL_HOST
     OUTPUT_TARGETS DISTRIBUTED_MESH_TOOLS
 )

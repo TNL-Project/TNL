@@ -4,7 +4,7 @@
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Matrices/MatrixWriter.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -65,10 +65,10 @@ main( int argc, char* argv[] )
    matrixWriterExample< TNL::Devices::Host >();
    matrixReaderExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    std::cout << "\n\n";
-   std::cout << "Creating matrices on CUDA GPU ...\n";
-   matrixWriterExample< TNL::Devices::Cuda >();
-   matrixReaderExample< TNL::Devices::Cuda >();
+   std::cout << "Creating matrices on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   matrixWriterExample< TNL::Devices::GPU >();
+   matrixReaderExample< TNL::Devices::GPU >();
 #endif
 }

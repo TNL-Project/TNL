@@ -29,7 +29,7 @@ and can be used as:
 parallelFor< Device >( begin, end, function, arguments... );
 ```
 
-The `Device` can be either \ref TNL::Devices::Host or \ref TNL::Devices::Cuda.
+The `Device` can be either \ref TNL::Devices::Host or \ref TNL::Devices::GPU.
 The first two parameters define the loop bounds in the C style. It means that
 there will be iterations for indices `begin`, `begin+1`, ..., `end-1`. The
 `function` is a lambda function to be called in each iteration. The lambda

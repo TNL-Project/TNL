@@ -65,8 +65,8 @@ main()
 {
    std::cout << "The first test runs on CPU ...\n";
    arrayExample< Devices::Host >();
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    std::cout << "The second test runs on GPU ...\n";
-   arrayExample< Devices::Cuda >();
+   arrayExample< Devices::GPU >();
 #endif
 }

@@ -80,7 +80,7 @@ The following code snippet demonstrates it using \ref "TNL::Algorithms::parallel
 In this example, we assume that all arrays `v1`, `v2` and `sum` were properly
 allocated in the appropriate address space. If `Device` is \ref TNL::Devices::Host,
 the lambda function is processed sequentially or in parallel by several OpenMP
-threads on CPU. If `Device` is \ref TNL::Devices::Cuda, the lambda function is
+threads on CPU. If `Device` is \ref TNL::Devices::GPU, the lambda function is
 called from a CUDA kernel (this is why it is annotated with `__cuda_callable__`,
 which expands to `__host__ __device__`) by appropriate number of CUDA threads.
 
@@ -92,7 +92,7 @@ We will not explain the parallel reduction in TNL at this moment (see the
 section about [flexible parallel reduction](ug_ReductionAndScan)), we hope that
 the idea is intuitively understandable from the code snippet. If `Device` is
 \ref TNL::Devices::Host, the scalar product is evaluated sequentially or in
-parallel by several OpenMP threads on CPU, if `Device` is \ref TNL::Devices::Cuda,
+parallel by several OpenMP threads on CPU, if `Device` is \ref TNL::Devices::GPU,
 the [parallel reduction](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf)
 fine tuned with the lambda functions is performed. Fortunately, there is no
 performance drop. On the contrary, since it is easy to generate CUDA kernels

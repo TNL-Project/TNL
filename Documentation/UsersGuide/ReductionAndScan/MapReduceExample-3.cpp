@@ -35,14 +35,14 @@ main( int argc, char* argv[] )
    timer.stop();
    std::cout << "Host result is:" << result << ". It took " << timer.getRealTime() << " seconds.\n";
 
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_u( 100000 );
-   cuda_u = 1.0;
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_u( 100000 );
+   gpu_u = 1.0;
    timer.reset();
    timer.start();
-   result = mapReduce( cuda_u );
+   result = mapReduce( gpu_u );
    timer.stop();
-   std::cout << "CUDA result is:" << result << ". It took " << timer.getRealTime() << " seconds.\n";
+   std::cout << "GPU result is:" << result << ". It took " << timer.getRealTime() << " seconds.\n";
 #endif
    return EXIT_SUCCESS;
 }

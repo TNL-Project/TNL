@@ -21,12 +21,12 @@ main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef __CUDACC__
-   Array< double, Devices::Cuda > cuda_a( 10 );
-   cuda_a = 1.0;
-   std::cout << "cuda_a = " << cuda_a << '\n';
-   inplaceExclusiveScan( cuda_a );
-   std::cout << "The prefix sum of the CUDA array is " << cuda_a << ".\n";
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Array< double, Devices::GPU > gpu_a( 10 );
+   gpu_a = 1.0;
+   std::cout << "gpu_a = " << gpu_a << '\n';
+   inplaceExclusiveScan( gpu_a );
+   std::cout << "The prefix sum of the GPU array is " << gpu_a << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

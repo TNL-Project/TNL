@@ -3,7 +3,7 @@
 #include <TNL/Graphs/traverse.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Hip.h>
 
 template< typename Device >
@@ -50,14 +50,9 @@ main( int argc, char* argv[] )
    std::cout << "Running on host:\n";
    vertexViewExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running on CUDA device:\n";
-   vertexViewExample< TNL::Devices::Cuda >();
-#endif
-
-#ifdef __HIP__
-   std::cout << "Running on HIP device:\n";
-   vertexViewExample< TNL::Devices::Hip >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   vertexViewExample< TNL::Devices::GPU >();
 #endif
 
    return EXIT_SUCCESS;

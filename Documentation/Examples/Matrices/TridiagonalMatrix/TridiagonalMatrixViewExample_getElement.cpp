@@ -33,8 +33,8 @@ main( int argc, char* argv[] )
    std::cout << "Get elements on host:\n";
    getElements< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Get elements on CUDA device:\n";
-   getElements< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Get elements on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   getElements< TNL::Devices::GPU >();
 #endif
 }

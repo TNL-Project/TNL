@@ -6,7 +6,7 @@
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/Array.h>
 
@@ -89,9 +89,9 @@ main( int argc, char** argv )
    std::cout << "Running example on Host:\n";
    reduceAllExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "\nRunning example on CUDA device:\n";
-   reduceAllExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "\nRunning example on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   reduceAllExample< TNL::Devices::GPU >();
 #endif
    return EXIT_SUCCESS;
 }

@@ -9,7 +9,7 @@
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -102,9 +102,9 @@ main( int argc, char* argv[] )
    std::cout << "Example of launch configurations on host:\n";
    SegmentsExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Example of launch configurations on CUDA device:\n";
-   SegmentsExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Example of launch configurations on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   SegmentsExample< TNL::Devices::GPU >();
 #endif
    return EXIT_SUCCESS;
 }

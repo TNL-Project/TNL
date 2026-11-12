@@ -2,7 +2,7 @@
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Graphs/traverse.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Containers/Vector.h>
 
 template< typename Device >
@@ -59,9 +59,9 @@ main( int argc, char* argv[] )
    std::cout << "Running on host:\n";
    forVerticesWithIndexesExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running on CUDA device:\n";
-   forVerticesWithIndexesExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   forVerticesWithIndexesExample< TNL::Devices::GPU >();
 #endif
 
    return EXIT_SUCCESS;

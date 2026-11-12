@@ -1,7 +1,7 @@
 #include <iostream>
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -38,8 +38,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating Laplace operator matrix on CPU ...\n";
    laplaceOperatorMatrix< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating Laplace operator matrix on CUDA GPU ...\n";
-   laplaceOperatorMatrix< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating Laplace operator matrix on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   laplaceOperatorMatrix< TNL::Devices::GPU >();
 #endif
 }

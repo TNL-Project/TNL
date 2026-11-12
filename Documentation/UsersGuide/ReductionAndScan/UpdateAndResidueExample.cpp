@@ -40,15 +40,15 @@ main( int argc, char* argv[] )
    std::cout << "New host_u is: " << host_u << '\n';
    std::cout << "Residue is: " << residue << '\n';
 
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_u( 10 );
-   Vector< double, Devices::Cuda > cuda_delta_u( 10 );
-   cuda_u = 0.0;
-   cuda_delta_u = 1.0;
-   std::cout << "cuda_u = " << cuda_u << '\n';
-   std::cout << "cuda_delta_u = " << cuda_delta_u << '\n';
-   residue = updateAndResidue( cuda_u, cuda_delta_u, tau );
-   std::cout << "New cuda_u is: " << cuda_u << '\n';
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_u( 10 );
+   Vector< double, Devices::GPU > gpu_delta_u( 10 );
+   gpu_u = 0.0;
+   gpu_delta_u = 1.0;
+   std::cout << "gpu_u = " << gpu_u << '\n';
+   std::cout << "gpu_delta_u = " << gpu_delta_u << '\n';
+   residue = updateAndResidue( gpu_u, gpu_delta_u, tau );
+   std::cout << "New gpu_u is: " << gpu_u << '\n';
    std::cout << "Residue is: " << residue << '\n';
 #endif
    return EXIT_SUCCESS;

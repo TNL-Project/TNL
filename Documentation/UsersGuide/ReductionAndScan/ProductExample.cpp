@@ -41,11 +41,11 @@ main( int argc, char* argv[] )
    /***
     * ... the second test on GPU.
     */
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_v( 10 );
-   cuda_v = 1.0;
-   std::cout << "cuda_v = " << cuda_v << '\n';
-   std::cout << "The product of the CUDA vector elements is " << product( cuda_v ) << ".\n";
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_v( 10 );
+   gpu_v = 1.0;
+   std::cout << "gpu_v = " << gpu_v << '\n';
+   std::cout << "The product of the GPU vector elements is " << product( gpu_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

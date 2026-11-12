@@ -3,7 +3,7 @@
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Timer.h>
 
 const int testsCount = 5;
@@ -108,7 +108,7 @@ setupDenseMatrix()
       timer.stop();
       std::cout << timer.getRealTime() / static_cast< double >( testsCount ) << " sec.\n";
 
-      if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
+      if( std::is_same_v< Device, TNL::Devices::GPU > ) {
          std::cout << "   setElement on host and transfer on GPU: ";
          timer.reset();
          timer.start();
@@ -148,8 +148,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating dense matrix on CPU ...\n";
    setupDenseMatrix< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating dense matrix on CUDA GPU ...\n";
-   setupDenseMatrix< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating dense matrix on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   setupDenseMatrix< TNL::Devices::GPU >();
 #endif
 }

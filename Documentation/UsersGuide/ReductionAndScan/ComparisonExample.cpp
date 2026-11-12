@@ -48,18 +48,18 @@ main( int argc, char* argv[] )
    std::cout << "Comparison of host_u and host_v is: " << ( comparison( host_u, host_v ) ? "'true'" : "'false'" ) << ".\n";
    std::cout << "Comparison of host_u and host_u is: " << ( comparison( host_u, host_u ) ? "'true'" : "'false'" ) << ".\n";
 
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_u( 10 ), cuda_v( 10 );
-   cuda_u = 1.0;
-   cuda_v.forAllElements(
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_u( 10 ), gpu_v( 10 );
+   gpu_u = 1.0;
+   gpu_v.forAllElements(
       [] __cuda_callable__( int i, double& value )
       {
          value = 2 * ( i % 2 ) - 1;
       } );
-   std::cout << "cuda_u = " << cuda_u << '\n';
-   std::cout << "cuda_v = " << cuda_v << '\n';
-   std::cout << "Comparison of cuda_u and cuda_v is: " << ( comparison( cuda_u, cuda_v ) ? "'true'" : "'false'" ) << ".\n";
-   std::cout << "Comparison of cuda_u and cuda_u is: " << ( comparison( cuda_u, cuda_u ) ? "'true'" : "'false'" ) << ".\n";
+   std::cout << "gpu_u = " << gpu_u << '\n';
+   std::cout << "gpu_v = " << gpu_v << '\n';
+   std::cout << "Comparison of gpu_u and gpu_v is: " << ( comparison( gpu_u, gpu_v ) ? "'true'" : "'false'" ) << ".\n";
+   std::cout << "Comparison of gpu_u and gpu_u is: " << ( comparison( gpu_u, gpu_u ) ? "'true'" : "'false'" ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

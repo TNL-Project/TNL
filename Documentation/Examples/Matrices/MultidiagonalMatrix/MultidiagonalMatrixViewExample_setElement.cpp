@@ -2,7 +2,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/MultidiagonalMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Pointers/SmartPointersRegister.h>
 
@@ -43,8 +43,8 @@ main( int argc, char* argv[] )
    std::cout << "Set elements on host:\n";
    setElements< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Set elements on CUDA device:\n";
-   setElements< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Set elements on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   setElements< TNL::Devices::GPU >();
 #endif
 }

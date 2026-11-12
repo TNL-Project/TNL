@@ -349,7 +349,7 @@ In the following parts we will describe how to setup particular matrix types by 
 Dense matrix (\ref TNL::Matrices::DenseMatrix) is a templated class defined in the namespace \ref TNL::Matrices. It has five template parameters:
 
 * `Real` is a type of the matrix elements. It is `double` by default.
-* `Device` is a device where the matrix shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::Cuda for CUDA supporting GPUs. It is \ref TNL::Devices::Host by default.
+* `Device` is a device where the matrix shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::GPU for GPUs (CUDA or HIP). It is \ref TNL::Devices::Host by default.
 * `Index` is a type to be used for indexing of the matrix elements. It is `int` by default.
 * `ElementsOrganization` defines the organization of the matrix elements in memory. It can be \ref TNL::Algorithms::Segments::ColumnMajorOrder or \ref TNL::Algorithms::Segments::RowMajorOrder for column-major and row-major organization respectively. Be default, it is the row-major order if the matrix is allocated on the host system and column major order if it is allocated on GPU.
 * `RealAllocator` is a memory allocator (one from \ref TNL::Allocators) which shall be used for allocation of the matrix elements. By default, it is the default allocator for given `Real` type and `Device` type -- see \ref TNL::Allocators::Default.
@@ -448,7 +448,7 @@ Here we create dense matrix having three rows and four columns. We use TNL vecto
 Major disadvantage of sparse matrices is that there are a lot of different formats for their storage in memory. Though [CSR (Compressed Sparse Row)](https://en.wikipedia.org/wiki/Sparse_matrix#Compressed_sparse_row_(CSR,_CRS_or_Yale_format)) format is the most popular of all, especially for GPUs, there are many other formats. Often their performance differ significantly for various matrices. So it is a good idea to test several sparse matrix formats if you want to get the best performance. In TNL, there is one templated class \ref TNL::Matrices::SparseMatrix representing general sparse matrices. The change of underlying matrix format can be done just by changing one template parameter. The list of the template parameters is as follows:
 
 * `Real` is type if the matrix elements. It is `double` by default.
-* `Device` is a device where the matrix is allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::Cuda for CUDA supporting GPUs. It is \ref TNL::Devices::Host by default.
+* `Device` is a device where the matrix is allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::GPU for GPUs (CUDA or HIP). It is \ref TNL::Devices::Host by default.
 * `Index` is a type to be used for indexing of the matrix elements. It is `int` by default.
 * `MatrixType` tells if the matrix is symmetric (\ref TNL::Matrices::SymmetricMatrix) or general (\ref TNL::Matrices::GeneralMatrix). It is a \ref TNL::Matrices::GeneralMatrix by default.
 * `Segments` define the format of the sparse matrix. It can be one of the following (by default, it is \ref TNL::Algorithms::Segments::CSR):
@@ -765,7 +765,7 @@ An advantage is that we do not store the column indexes explicitly as it is in \
 Tridiagonal matrix is a templated class defined in the namespace \ref TNL::Matrices. It has five template parameters:
 
 * `Real` is a type of the matrix elements. It is `double` by default.
-* `Device` is a device where the matrix shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::Cuda for GPU supporting CUDA. It is \ref TNL::Devices::Host by default.
+* `Device` is a device where the matrix shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::GPU for GPUs (CUDA or HIP). It is \ref TNL::Devices::Host by default.
 * `Index` is a type to be used for indexing of the matrix elements. It is `int` by default.
 * `ElementsOrganization` defines the organization of the matrix elements in memory. It can be \ref TNL::Algorithms::Segments::ColumnMajorOrder or \ref TNL::Algorithms::Segments::RowMajorOrder for column-major and row-major organization respectively. Be default it is the row-major order if the matrix is allocated in the host system and column major order if it is allocated on GPU.
 * `RealAllocator` is a memory allocator (one from \ref TNL::Allocators) which shall be used for allocation of the matrix elements. By default, it is the default allocator for given `Real` type and `Device` type -- see \ref TNL::Allocators::Default.
@@ -1085,7 +1085,7 @@ Multidiagonal matrices are generalization of the tridiagonal ones. It is a speci
 Multidiagonal matrix is a templated class defined in the namespace \ref TNL::Matrices. It has six template parameters:
 
 * `Real` is a type of the matrix elements. It is `double` by default.
-* `Device` is a device where the matrix shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::Cuda for CUDA supporting GPUs. It is \ref TNL::Devices::Host by default.
+* `Device` is a device where the matrix shall be allocated. Currently it can be either \ref TNL::Devices::Host for CPU or \ref TNL::Devices::GPU for GPUs (CUDA or HIP). It is \ref TNL::Devices::Host by default.
 * `Index` is a type to be used for indexing of the matrix elements. It is `int` by default.
 * `ElementsOrganization` defines the organization of the matrix elements in memory. It can be \ref TNL::Algorithms::Segments::ColumnMajorOrder or \ref TNL::Algorithms::Segments::RowMajorOrder for column-major and row-major organization respectively. Be default, it is the row-major order if the matrix is allocated in the host system and column major order if it is allocated on GPU.
 * `RealAllocator` is a memory allocator (one from \ref TNL::Allocators) which shall be used for allocation of the matrix elements. By default, it is the default allocator for given `Real` type and `Device` type -- see \ref TNL::Allocators::Default.

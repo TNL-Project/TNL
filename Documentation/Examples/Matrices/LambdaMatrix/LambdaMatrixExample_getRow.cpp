@@ -3,7 +3,7 @@
 #include <TNL/Matrices/LambdaMatrix.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -88,8 +88,8 @@ main( int argc, char* argv[] )
    std::cout << "Running example on CPU ...\n";
    getRowExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running example on CUDA GPU ...\n";
-   getRowExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running example on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   getRowExample< TNL::Devices::GPU >();
 #endif
 }
