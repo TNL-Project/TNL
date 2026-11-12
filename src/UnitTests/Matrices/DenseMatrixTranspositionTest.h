@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <utility>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Matrices/DenseMatrix.h>
 
@@ -191,6 +192,27 @@ TYPED_TEST( DenseMatrixTranspositionTest, Transposition3 )
 
    bool check = resultMatrix == checkMatrix;
    ASSERT_EQ( check, true );
+}
+
+TYPED_TEST( DenseMatrixTranspositionTest, LargeRectangularMatrices )
+{
+   using DenseMatrixType = typename TestFixture::DenseMatrixType;
+
+   // more tiles in both dimensions, different numbers of tiles of the rows and the columns and incomplete last tiles
+   for( const auto& [ rows, columns ] : { std::pair{ 3, 70 }, std::pair{ 70, 3 }, std::pair{ 50, 37 } } ) {
+      DenseMatrixType matrix( rows, columns );
+      DenseMatrixType checkMatrix( columns, rows );
+      for( int i = 0; i < rows; i++ )
+         for( int j = 0; j < columns; j++ ) {
+            matrix.setElement( i, j, i * columns + j );
+            checkMatrix.setElement( j, i, i * columns + j );
+         }
+
+      DenseMatrixType resultMatrix;
+      resultMatrix.getTransposition( matrix );
+
+      EXPECT_TRUE( resultMatrix == checkMatrix ) << "rows = " << rows << ", columns = " << columns;
+   }
 }
 
 TYPED_TEST( DenseMatrixTranspositionTest, LargeMatrices )

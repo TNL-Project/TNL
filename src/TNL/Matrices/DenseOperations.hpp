@@ -324,15 +324,17 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
       launch_config.blockSize.y = tileDim;
       launch_config.dynamicSharedMemorySize = tileDim * ( tileDim + 1 ) * sizeof( Real );
 
+      // the kernel reads the tiles of the columns of the input matrix (the rows of the result) by blockIdx.x and the
+      // tiles of its rows (the columns of the result) by blockIdx.y
       const Index rowTiles = Backend::getNumberOfBlocks( resultMatrix.getRows(), tileDim );
       const Index columnTiles = Backend::getNumberOfBlocks( resultMatrix.getColumns(), tileDim );
-      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
-      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
+      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridXSize() );
+      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridYSize() );
 
-      for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
-         for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-            launch_config.gridSize.x = Backend::getGridSize( columnTiles, gridIdx_x, Backend::getMaxGridXSize() );
-            launch_config.gridSize.y = Backend::getGridSize( rowTiles, gridIdx_y, Backend::getMaxGridYSize() );
+      for( Index gridIdx_x = 0; gridIdx_x < rowGrids; gridIdx_x++ )
+         for( Index gridIdx_y = 0; gridIdx_y < columnGrids; gridIdx_y++ ) {
+            launch_config.gridSize.x = Backend::getGridSize( rowTiles, gridIdx_x, Backend::getMaxGridXSize() );
+            launch_config.gridSize.y = Backend::getGridSize( columnTiles, gridIdx_y, Backend::getMaxGridYSize() );
 
             constexpr auto kernel =
                DenseTranspositionKernel< tileDim, typename ResultMatrix::ViewType, typename Matrix::ConstViewType, Real, Index >;
