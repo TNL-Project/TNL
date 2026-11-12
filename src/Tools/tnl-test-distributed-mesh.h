@@ -255,11 +255,11 @@ testSynchronizer( const Mesh& mesh )
    testSynchronizerOnDevice< Devices::Host, typename Mesh::Cell >( mesh );
    if( mesh.template getGlobalIndices< 1 >().getSize() > 0 )
       testSynchronizerOnDevice< Devices::Host, typename Mesh::Face >( mesh );
-#ifdef __CUDACC__
-   testSynchronizerOnDevice< Devices::Cuda, typename Mesh::Vertex >( mesh );
-   testSynchronizerOnDevice< Devices::Cuda, typename Mesh::Cell >( mesh );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   testSynchronizerOnDevice< Devices::GPU, typename Mesh::Vertex >( mesh );
+   testSynchronizerOnDevice< Devices::GPU, typename Mesh::Cell >( mesh );
    if( mesh.template getGlobalIndices< 1 >().getSize() > 0 )
-      testSynchronizerOnDevice< Devices::Cuda, typename Mesh::Face >( mesh );
+      testSynchronizerOnDevice< Devices::GPU, typename Mesh::Face >( mesh );
 #endif
 }
 

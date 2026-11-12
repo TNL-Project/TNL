@@ -4,19 +4,19 @@
 
 using namespace TNL;
 
-using ArrayCuda = Containers::Array< int, Devices::Cuda >;
+using ArrayGPU = Containers::Array< int, Devices::GPU >;
 
 struct Tuple
 {
-   Tuple( ArrayCuda& _a1, ArrayCuda& _a2 )
+   Tuple( ArrayGPU& _a1, ArrayGPU& _a2 )
    : a1( _a1 ),
      a2( _a2 )
    {}
 
-   Pointers::DevicePointer< ArrayCuda > a1, a2;
+   Pointers::DevicePointer< ArrayGPU > a1, a2;
 };
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 __global__
 void
 printTuple( const Tuple t )
@@ -33,15 +33,15 @@ int
 main( int argc, char* argv[] )
 {
    /***
-    * Create a tuple of arrays and print them in CUDA kernel
+    * Create a tuple of arrays and print them in GPU kernel
     */
-#ifdef __CUDACC__
-   ArrayCuda a1( 3 );
-   ArrayCuda a2( 3 );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   ArrayGPU a1( 3 );
+   ArrayGPU a2( 3 );
    Tuple t( a1, a2 );
    a1 = 1;
    a2 = 2;
-   Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
+   Pointers::synchronizeSmartPointersOnDevice< Devices::GPU >();
    printTuple<<< 1, 1 >>>( t );
 
    /***
@@ -51,7 +51,7 @@ main( int argc, char* argv[] )
    a2.setSize( 5 );
    a1 = 3;
    a2 = 4;
-   Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
+   Pointers::synchronizeSmartPointersOnDevice< Devices::GPU >();
    printTuple<<< 1, 1 >>>( t );
 #endif
    return EXIT_SUCCESS;

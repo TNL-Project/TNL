@@ -31,7 +31,7 @@ The result is:
 
 \include UniquePointerHostExample.out
 
-If the device is different, e.g. `Devices::Cuda`, the unique pointer creates an
+If the device is different, e.g. `Devices::GPU`, the unique pointer creates an
 image of the object even in the host memory. It allows one to manipulate the
 object on the host. All smart pointers are registered in a special register
 using which they can be synchronised with the host images before calling a CUDA

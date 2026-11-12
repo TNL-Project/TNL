@@ -13,7 +13,7 @@ main( int argc, char* argv[] )
     */
    const int size = 5;
    Array< float, Devices::Host > host_array( size );
-   Array< float, Devices::Cuda > device_array( size );
+   Array< float, Devices::GPU > device_array( size );
 
    /****
     * Initiate the arrays with setElement

@@ -117,7 +117,7 @@ template< typename Value,
           typename Device >
 using NDArray = TNL::Containers::NDArray< Value,
                                           SizesHolder,
-                                          std::conditional_t< std::is_same< Device, TNL::Devices::Cuda >::value,
+                                          std::conditional_t< std::is_same< Device, TNL::Devices::GPU >::value,
                                                               CudaPermutation,
                                                               HostPermutation >,
                                           Device >;

@@ -49,18 +49,18 @@ main( int argc, char* argv[] )
    /***
     * ... the second test on GPU.
     */
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_u( 10 ), cuda_v( 10 );
-   cuda_u = 1.0;
-   cuda_v.forAllElements(
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_u( 10 ), gpu_v( 10 );
+   gpu_u = 1.0;
+   gpu_v.forAllElements(
       [] __cuda_callable__( int i, double& value )
       {
          value = 2 * ( i % 2 ) - 1;
       } );
-   std::cout << "cuda_u = " << cuda_u << '\n';
-   std::cout << "cuda_v = " << cuda_v << '\n';
-   std::cout << "The scalar product ( cuda_u, cuda_v ) is " << scalarProduct( cuda_u, cuda_v ) << ".\n";
-   std::cout << "The scalar product ( cuda_v, cuda_v ) is " << scalarProduct( cuda_v, cuda_v ) << ".\n";
+   std::cout << "gpu_u = " << gpu_u << '\n';
+   std::cout << "gpu_v = " << gpu_v << '\n';
+   std::cout << "The scalar product ( gpu_u, gpu_v ) is " << scalarProduct( gpu_u, gpu_v ) << ".\n";
+   std::cout << "The scalar product ( gpu_v, gpu_v ) is " << scalarProduct( gpu_v, gpu_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

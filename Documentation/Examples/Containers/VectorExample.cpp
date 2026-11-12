@@ -2,7 +2,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 using namespace TNL;
 
@@ -38,8 +38,8 @@ main()
    std::cout << "Running vector example on the host system:\n";
    VectorExample< Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Running vector example on the CUDA device:\n";
-   VectorExample< Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Running vector example on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   VectorExample< Devices::GPU >();
 #endif
 }

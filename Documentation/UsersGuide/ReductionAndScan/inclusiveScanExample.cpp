@@ -22,13 +22,13 @@ main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef __CUDACC__
-   Array< double, Devices::Cuda > cuda_input( 10 );
-   Array< double, Devices::Cuda > cuda_output( 10 );
-   cuda_input = 1.0;
-   std::cout << "cuda_input = " << cuda_input << '\n';
-   inclusiveScan( cuda_input, cuda_output );
-   std::cout << "cuda_output " << cuda_output << '\n';
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Array< double, Devices::GPU > gpu_input( 10 );
+   Array< double, Devices::GPU > gpu_output( 10 );
+   gpu_input = 1.0;
+   std::cout << "gpu_input = " << gpu_input << '\n';
+   inclusiveScan( gpu_input, gpu_output );
+   std::cout << "gpu_output " << gpu_output << '\n';
 #endif
    return EXIT_SUCCESS;
 }

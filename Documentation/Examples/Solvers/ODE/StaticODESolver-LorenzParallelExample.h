@@ -132,7 +132,7 @@ main( int argc, char* argv[] )
    file_name += "/StaticODESolver-LorenzParallelExample-result.out";
 
    solveParallelODEs< TNL::Devices::Host >( file_name.getString() );
-#ifdef __CUDACC__
-   solveParallelODEs< TNL::Devices::Cuda >( file_name.getString() );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   solveParallelODEs< TNL::Devices::GPU >( file_name.getString() );
 #endif
 }

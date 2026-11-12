@@ -27,8 +27,8 @@ main( int argc, char* argv[] )
    std::cout << "Add elements on host:\n";
    addElements< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Add elements on CUDA device:\n";
-   addElements< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Add elements on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   addElements< TNL::Devices::GPU >();
 #endif
 }

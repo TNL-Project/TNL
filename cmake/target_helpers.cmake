@@ -206,7 +206,7 @@ endfunction()
 #
 # - the executable is added with tnl_add_backend_executables with SINGLE, so
 #   at most one executable named <name> is built; BACKENDS defaults to
-#   CUDA HOST
+#   CUDA HIP HOST
 # - the example is executed with the given ARGS and its output is stored in
 #   ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/<name>.out
 # - MPI enables MPI support (like in tnl_add_test_executables) and runs the
@@ -230,7 +230,7 @@ function(tnl_add_example_with_output name)
     endif()
 
     if(NOT ARG_BACKENDS)
-        set(ARG_BACKENDS CUDA HOST)
+        set(ARG_BACKENDS CUDA HIP HOST)
     endif()
 
     set(definitions)

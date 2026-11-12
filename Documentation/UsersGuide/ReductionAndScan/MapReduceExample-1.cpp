@@ -36,11 +36,11 @@ main( int argc, char* argv[] )
    std::cout << "host_u = " << host_u << '\n';
    std::cout << "Sum of the positive numbers is:" << result << '\n';
 
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_u( 10 );
-   cuda_u = host_u;
-   result = mapReduce( cuda_u );
-   std::cout << "cuda_u = " << cuda_u << '\n';
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_u( 10 );
+   gpu_u = host_u;
+   result = mapReduce( gpu_u );
+   std::cout << "gpu_u = " << gpu_u << '\n';
    std::cout << "Sum of the positive numbers is:" << result << '\n';
 #endif
    return EXIT_SUCCESS;

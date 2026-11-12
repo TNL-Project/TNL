@@ -2,7 +2,7 @@
 #include <TNL/Matrices/TridiagonalMatrix.h>
 #include <TNL/Matrices/traverse.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -30,8 +30,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating matrix on host:\n";
    forElementsExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA device:\n";
-   forElementsExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating matrix on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   forElementsExample< TNL::Devices::GPU >();
 #endif
 }

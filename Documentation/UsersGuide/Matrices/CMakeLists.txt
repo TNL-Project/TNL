@@ -19,5 +19,5 @@ endforeach()
 # The following examples/benchmarks run for a very long time, so we just
 # build them and do not run them automatically.
 foreach(target IN ITEMS ${LONG_EXAMPLES})
-    tnl_add_backend_executables(${target} SOURCES ${target}.cpp BACKENDS CUDA HOST SINGLE)
+    tnl_add_backend_executables(${target} SOURCES ${target}.cpp BACKENDS CUDA HIP HOST SINGLE)
 endforeach()

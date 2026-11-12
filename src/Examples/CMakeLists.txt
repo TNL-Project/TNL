@@ -5,7 +5,7 @@ add_subdirectory(Hypre)
 tnl_add_backend_executables(
     tnl-turbulence-generator
     SOURCES tnl-turbulence-generator.cpp
-    BACKENDS HOST CUDA
+    BACKENDS HOST CUDA HIP
     OPTIONAL_HOST
     OUTPUT_TARGETS targets
 )
@@ -19,7 +19,7 @@ endif()
 tnl_add_backend_executables(
     tnl-optimize-ranks
     SOURCES tnl-optimize-ranks.cpp
-    BACKENDS HOST CUDA
+    BACKENDS HOST CUDA HIP
     OPTIONAL_HOST
     ${MPI_OPTIONS}
     OUTPUT_TARGETS OPTIMIZE_RANKS_TARGETS

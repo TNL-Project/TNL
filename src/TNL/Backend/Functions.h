@@ -15,6 +15,19 @@
 
 namespace TNL::Backend {
 
+//! \brief Returns the name of the GPU backend: `"CUDA"`, `"HIP"`, or `"none"` when no GPU backend is available.
+[[nodiscard]] constexpr const char*
+getBackendName()
+{
+#if defined( __CUDACC__ )
+   return "CUDA";
+#elif defined( __HIP__ )
+   return "HIP";
+#else
+   return "none";
+#endif
+}
+
 //! \brief Returns the number of devices available in the system.
 [[nodiscard]] inline int
 getDeviceCount()

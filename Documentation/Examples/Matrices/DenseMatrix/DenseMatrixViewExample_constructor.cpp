@@ -1,7 +1,7 @@
 #include <iostream>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -38,8 +38,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating matrix view on host:\n";
    createMatrixView< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating matrix view on CUDA device:\n";
-   createMatrixView< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating matrix view on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   createMatrixView< TNL::Devices::GPU >();
 #endif
 }

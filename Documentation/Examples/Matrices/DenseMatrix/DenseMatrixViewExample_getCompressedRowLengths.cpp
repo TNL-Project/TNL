@@ -1,7 +1,7 @@
 #include <iostream>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -32,8 +32,8 @@ main( int argc, char* argv[] )
    std::cout << "Getting compressed row lengths on host:\n";
    getCompressedRowLengthsExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Getting compressed row lengths on CUDA device:\n";
-   getCompressedRowLengthsExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Getting compressed row lengths on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   getCompressedRowLengthsExample< TNL::Devices::GPU >();
 #endif
 }

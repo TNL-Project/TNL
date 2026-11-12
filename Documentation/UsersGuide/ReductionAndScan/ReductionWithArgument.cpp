@@ -44,17 +44,17 @@ main( int argc, char* argv[] )
    std::cout << "The maximum norm of the host vector elements is " << maxNormHost.first << " at position " << maxNormHost.second
              << ".\n";
 
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_v( 10 );
-   cuda_v.forAllElements(
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_v( 10 );
+   gpu_v.forAllElements(
       [] __cuda_callable__( int i, double& value )
       {
          value = i - 7;
       } );
-   std::cout << "cuda_v = " << cuda_v << '\n';
-   auto maxNormCuda = maximumNorm( cuda_v );
-   std::cout << "The maximum norm of the device vector elements is " << maxNormCuda.first << " at position "
-             << maxNormCuda.second << ".\n";
+   std::cout << "gpu_v = " << gpu_v << '\n';
+   auto maxNormGPU = maximumNorm( gpu_v );
+   std::cout << "The maximum norm of the device vector elements is " << maxNormGPU.first << " at position " << maxNormGPU.second
+             << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

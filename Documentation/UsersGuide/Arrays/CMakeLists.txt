@@ -1,4 +1,4 @@
-set(CUDA_EXAMPLES
+set(GPU_EXAMPLES
     ArrayAllocation
     ArrayIO
     ArrayView-1
@@ -10,8 +10,8 @@ set(CUDA_EXAMPLES
 )
 set(HOST_EXAMPLES StaticArrayExample)
 
-foreach(target IN ITEMS ${CUDA_EXAMPLES})
-    tnl_add_example_with_output(${target} SOURCES ${target}.cpp BACKENDS CUDA)
+foreach(target IN ITEMS ${GPU_EXAMPLES})
+    tnl_add_example_with_output(${target} SOURCES ${target}.cpp BACKENDS CUDA HIP)
 endforeach()
 
 foreach(target IN ITEMS ${HOST_EXAMPLES})

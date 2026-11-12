@@ -90,7 +90,7 @@ main( int argc, char* argv[] )
    TNL::String file_name( argv[ 1 ] );
    file_name += "/StaticODESolver-SineParallelExample-result.out";
    solveParallelODEs< TNL::Devices::Host >( file_name.getString() );
-#ifdef __CUDACC__
-   solveParallelODEs< TNL::Devices::Cuda >( file_name.getString() );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   solveParallelODEs< TNL::Devices::GPU >( file_name.getString() );
 #endif
 }

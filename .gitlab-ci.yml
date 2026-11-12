@@ -207,7 +207,8 @@ workflow:
                   exit 1;
               };
           fi
-        - if [[ ${USE_HIP} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" ) ]]; then
+        # HIP jobs which run the documentation examples (see below) need the GPU too
+        - if [[ ${USE_HIP} == "yes" && ( ${MATRIX_TARGET} == "tests" || ${MATRIX_TARGET} == "matrix_tests" || ${MATRIX_TARGET} == "doc_examples" ) ]]; then
               /opt/rocm/bin/rocminfo >/dev/null || {
                   echo "ERROR, no AMD GPU in the container, check the runner configuration";
                   exit 1;
@@ -235,6 +236,8 @@ workflow:
                 BUILD_TARGETS=("matrix-tests");
           elif [[ ${MATRIX_TARGET} == "nontests" ]]; then
                 BUILD_TARGETS=("benchmarks" "examples" "tools");
+          elif [[ ${MATRIX_TARGET} == "doc_examples" ]]; then
+                BUILD_TARGETS=("run-doc-examples");
           elif [[ ${BUILD_DOC} == "yes" ]]; then
                 BUILD_TARGETS=("documentation");
           fi
@@ -403,6 +406,25 @@ hip_rocm:
         - .build_template
         - .matrix_template
         - .hip_rocm
+
+# The examples included in the documentation are built and run separately from
+# the nontests jobs, which verify compilation only and do not require a GPU.
+# The documentation job generates the output snippets with CUDA, so the output
+# of this job is not used by the documentation build.
+hip_rocm_doc_examples:
+    extends:
+        - .build_template
+        - .hip_rocm
+    variables:
+        BUILD_TYPE: Debug
+        MATRIX_TARGET: doc_examples
+    rules:
+        - changes:
+            - Documentation/**/*
+            - src/**/*.{h,hpp,cpp,cu,hip}
+            - "**/CMakeLists.txt"
+            - cmake/*
+            - .gitlab-ci.yml
 
 
 gcc:
