@@ -5,6 +5,7 @@ set(COMMON_TESTS
     compressTest
     containsTest
     findTest
+    MultipleReductionsTest
     Reduction2DTest
     Reduction3DTest
 )
