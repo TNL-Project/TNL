@@ -10,6 +10,7 @@
 
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/multiReduce.h>
 #include <TNL/Containers/StaticArray.h>
@@ -519,9 +520,28 @@ sparseDenseMatrixProduct(
          // Otherwise, the multireduction with the threads of the rows distributed over their elements is used. The rows
          // with a few elements on average are processed by the Tiered mapping, which adapts to the irregular lengths of
          // the rows. The longer rows are processed by 16 threads per row, the warp size of the default configuration of
-         // CSR would leave most threads idle.
+         // CSR would leave most threads idle. On GPUs, the Tiered mapping is used also for the longer rows of very
+         // irregular lengths, when the longest row has more than 128 times the average number of elements (e.g. the
+         // transpositions of the matrices of documents and words or users and items, 7-22% faster than 16 threads per
+         // row on RTX 3060, while the less irregular graphs like coPapersDBLP are faster with 16 threads per row). The
+         // longest row is found only for the matrices with at least 2^23 elements, the reduction takes about 15 us.
          const IndexType averageRowLength = A.getRows() > 0 ? A.getColumnIndexes().getSize() / A.getRows() : 0;
-         if( averageRowLength < 16 ) {
+         bool irregular = false;
+         if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
+            if( averageRowLength >= 16 && A.getColumnIndexes().getSize() >= ( IndexType( 1 ) << 23 ) ) {
+               const auto offsets = A.getSegments().getOffsets().getConstView();
+               const IndexType maxRowLength = Algorithms::reduce< DeviceType >(
+                  IndexType( 0 ),
+                  A.getRows(),
+                  [ = ] __cuda_callable__( IndexType row )
+                  {
+                     return offsets[ row + 1 ] - offsets[ row ];
+                  },
+                  TNL::Max{} );
+               irregular = maxRowLength > 128 * averageRowLength;
+            }
+         }
+         if( averageRowLength < 16 || irregular ) {
             config.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Tiered );
             config.setThreadsPerSegmentCount( k <= 8 ? 4 : 2 );
          }
