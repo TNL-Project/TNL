@@ -36,7 +36,9 @@ W + X^T G,   G_ic = -2 C y_ic max(0, 1 - y_ic s_ic),   S = X W.
   stored, and the storer of the second product adds `W`.
 
 `X^T` is transposed before the measurement, so that both products are the reductions in the
-rows of a sparse matrix. The implementation is in `LinearSVMGradient.h`.
+rows of a sparse matrix. On GPUs, the row-major matrices of `spmm` and `spmm-fused` have `K > 4`
+padded by zero columns to a multiple of 4, so that their rows can be read by vectorized loads
+(1.8x faster for `K = 53` on rcv1). The implementation is in `LinearSVMGradient.h`.
 
 ## Reference implementations
 
