@@ -178,6 +178,37 @@ sparseDenseMatrixProduct(
    const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
+ * \brief Computes the product of a sparse matrix and a dense matrix or its transposition,
+ * `C = alpha * A * op( B ) + beta * C`.
+ *
+ * `op( B )` is `B` or its transposition `B^T` given by `transposeB`. The transposition is not
+ * computed, the elements of `B` are read in the transposed order on the fly, so the product with
+ * `B^T` is computed like the product with a matrix of the opposite organization: column-major `B`
+ * like row-major `B^T` (its consecutive columns are consecutive in memory and they are read by
+ * vectorized loads) and row-major `B` like column-major `B^T`. See \ref sparseDenseMatrixProduct
+ * for the details and the other parameters.
+ *
+ * \param B The dense matrix with `n` rows and `k` columns (`k` rows and `n` columns for
+ *        \ref TransposeState::Transpose).
+ * \param transposeB Whether the product is computed with `B` or with its transposition.
+ */
+template<
+   int MaxTileSize = 16,
+   typename SparseMatrix,
+   typename DenseMatrixB,
+   typename DenseMatrixC,
+   typename Real = typename SparseMatrix::ComputeRealType >
+void
+sparseDenseMatrixProduct(
+   const SparseMatrix& A,
+   const DenseMatrixB& B,
+   DenseMatrixC& C,
+   Real alpha,
+   Real beta,
+   TransposeState transposeB,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
  * \brief Computes the product of a sparse and a dense matrix, `C = alpha * A * B + beta * C`,
  * with the threads of each row of `A` distributed over the columns of `B` and `C`.
  *

@@ -28,6 +28,18 @@ TYPED_TEST( MatrixTest, sparseDenseMatrixProduct_columnMajor )
    test_SparseDenseMatrixProduct< MatrixType, TNL::Algorithms::Segments::ColumnMajorOrder >();
 }
 
+TYPED_TEST( MatrixTest, sparseDenseMatrixProduct_transposedB )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+   using TNL::Algorithms::Segments::ColumnMajorOrder;
+   using TNL::Algorithms::Segments::RowMajorOrder;
+
+   test_SparseDenseMatrixProductTransposedB< MatrixType, RowMajorOrder, RowMajorOrder >();
+   test_SparseDenseMatrixProductTransposedB< MatrixType, RowMajorOrder, ColumnMajorOrder >();
+   test_SparseDenseMatrixProductTransposedB< MatrixType, ColumnMajorOrder, RowMajorOrder >();
+   test_SparseDenseMatrixProductTransposedB< MatrixType, ColumnMajorOrder, ColumnMajorOrder >();
+}
+
 TYPED_TEST( MatrixTest, sparseDenseMatrixProductLanesOverColumns )
 {
    using MatrixType = typename TestFixture::MatrixType;

@@ -119,6 +119,38 @@ test_SparseDenseMatrixProduct()
       } );
 }
 
+// Tests sparseDenseMatrixProduct with B given by its transposition B^T of the organization TransposedOrganization
+// (TransposeState::Transpose) with all launch configurations of the segments of the matrix.
+template<
+   typename Matrix,
+   TNL::Algorithms::Segments::ElementsOrganization Organization,
+   TNL::Algorithms::Segments::ElementsOrganization TransposedOrganization >
+void
+test_SparseDenseMatrixProductTransposedB()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using Function = SparseDenseMatrixProductFunction< Matrix, Organization >;
+   using TransposedMatrixType = TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType, TransposedOrganization >;
+   test_SparseDenseMatrixProductVariants< Matrix, Organization >(
+      []( const Matrix& A )
+      {
+         std::vector< std::pair< std::string, Function > > products;
+         for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( A.getSegments() ) )
+            products.emplace_back(
+               tag,
+               [ &A, launch_config = launch_config ]( const auto& B, auto& C, RealType alpha, RealType beta )
+               {
+                  TransposedMatrixType BT;
+                  BT.getTransposition( B );
+                  TNL::Matrices::sparseDenseMatrixProduct< testMaxTileSize >(
+                     A, BT, C, alpha, beta, TNL::Matrices::TransposeState::Transpose, launch_config );
+               } );
+         return products;
+      } );
+}
+
 // Tests sparseDenseMatrixProductLanesOverColumns with several numbers of lanes and columns per lane,
 // so that the tiles of columns are larger than, equal to and smaller than the numbers of columns of B.
 // The small maximal row lengths split the longer rows into pieces (on GPUs), with the piece size equal
@@ -497,4 +529,18 @@ test_SparseDenseMatrixProduct_wrongDimensions()
    EXPECT_THROW( TNL::Matrices::sparseDenseMatrixProduct( A, DenseMatrixType( 4, 2 ), C ), std::invalid_argument );
    DenseMatrixType C2( 6, 3 );
    EXPECT_THROW( TNL::Matrices::sparseDenseMatrixProduct( A, DenseMatrixType( 4, 3 ), C2 ), std::invalid_argument );
+
+   // B^T with k = 3 rows and 4 columns
+   constexpr auto transpose = TNL::Matrices::TransposeState::Transpose;
+   EXPECT_NO_THROW(
+      TNL::Matrices::sparseDenseMatrixProduct( A, DenseMatrixType( 3, 4 ), C, RealType( 1 ), RealType( 0 ), transpose ) );
+   EXPECT_THROW(
+      TNL::Matrices::sparseDenseMatrixProduct( A, DenseMatrixType( 4, 3 ), C, RealType( 1 ), RealType( 0 ), transpose ),
+      std::invalid_argument );
+   EXPECT_THROW(
+      TNL::Matrices::sparseDenseMatrixProduct( A, DenseMatrixType( 2, 4 ), C, RealType( 1 ), RealType( 0 ), transpose ),
+      std::invalid_argument );
+   EXPECT_THROW(
+      TNL::Matrices::sparseDenseMatrixProduct( A, DenseMatrixType( 3, 4 ), C2, RealType( 1 ), RealType( 0 ), transpose ),
+      std::invalid_argument );
 }

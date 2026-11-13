@@ -201,6 +201,53 @@ struct DenseMatrixBAccess
    DenseMatrixBView B;
 };
 
+// The access to the elements of B^T for the dense matrix B, B^T( column, j ) = B( j, column ). The consecutive columns
+// of B^T are consecutive in memory for column-major B, they are then loaded by vectorized loads.
+template< typename DenseMatrixBView >
+struct TransposedDenseMatrixBAccess
+{
+   using IndexType = typename DenseMatrixBView::IndexType;
+   using RealType = std::remove_const_t< typename DenseMatrixBView::RealType >;
+
+   static constexpr bool consecutive = DenseMatrixBView::getOrganization() == Algorithms::Segments::ColumnMajorOrder;
+
+   __cuda_callable__
+   RealType
+   operator()( IndexType column, IndexType j ) const
+   {
+      return B( j, column );
+   }
+
+   template< int Count >
+   __cuda_callable__
+   void
+   load( IndexType column, IndexType firstJ, RealType ( &b )[ Count ], bool vectorLoads ) const
+   {
+      if constexpr( consecutive )
+         loadConsecutive< Count >( &B( firstJ, column ), b, vectorLoads );
+      else
+         for( int c = 0; c < Count; c++ )
+            b[ c ] = B( firstJ + c, column );
+   }
+
+   // Tells whether W consecutive rows of B starting at multiples of W can be loaded by the vectorized loads, i.e. whether
+   // B is column-major with the columns aligned to the vector width.
+   template< int W >
+   [[nodiscard]] bool
+   canLoadVectors() const
+   {
+      if constexpr( consecutive ) {
+         const auto& segments = B.getSegments();
+         const auto address = reinterpret_cast< std::uintptr_t >( B.getValues().getData() );
+         return address % ( W * sizeof( RealType ) ) == 0
+             && ( B.getColumns() < 2 || ( segments.getGlobalIndex( 0, 1 ) - segments.getGlobalIndex( 0, 0 ) ) % W == 0 );
+      }
+      return false;
+   }
+
+   DenseMatrixBView B;
+};
+
 // The access to the elements of B given by the function fetchB( column, j ).
 template< typename FetchB, typename Index >
 struct LambdaBAccess
@@ -630,6 +677,45 @@ sparseDenseMatrixProduct(
       launchConfig );
 }
 
+template< int MaxTileSize, typename SparseMatrix, typename DenseMatrixB, typename DenseMatrixC, typename Real >
+void
+sparseDenseMatrixProduct(
+   const SparseMatrix& A,
+   const DenseMatrixB& B,
+   DenseMatrixC& C,
+   Real alpha,
+   Real beta,
+   TransposeState transposeB,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig )
+{
+   if( transposeB == TransposeState::None ) {
+      sparseDenseMatrixProduct< MaxTileSize >( A, B, C, alpha, beta, launchConfig );
+      return;
+   }
+   if( A.getColumns() != B.getColumns() )
+      throw std::invalid_argument(
+         "sparseDenseMatrixProduct: the number of columns of A does not match the number of rows of B^T" );
+   if( A.getRows() != C.getRows() )
+      throw std::invalid_argument( "sparseDenseMatrixProduct: the number of rows of A does not match the number of rows of C" );
+   if( B.getRows() != C.getColumns() )
+      throw std::invalid_argument(
+         "sparseDenseMatrixProduct: the number of columns of B^T does not match the number of columns of C" );
+   using ComputeRealType = typename SparseMatrix::ComputeRealType;
+   const auto BView = B.getConstView();
+   auto CView = C.getView();
+   // the consecutive columns of B^T are consecutive in memory for column-major B, so the kernel is selected as for
+   // row-major B without the transposition and vice versa
+   constexpr auto organization = DenseMatrixB::getOrganization() == Algorithms::Segments::RowMajorOrder
+                                  ? Algorithms::Segments::ColumnMajorOrder
+                                  : Algorithms::Segments::RowMajorOrder;
+   detail::sparseDenseMatrixProduct< MaxTileSize, organization >(
+      A,
+      B.getRows(),
+      detail::TransposedDenseMatrixBAccess< decltype( BView ) >{ BView },
+      detail::SparseDenseMatrixProductStorer< ComputeRealType, decltype( CView ), Real >{ CView, 0, alpha, beta },
+      launchConfig );
+}
+
 template< int Lanes, int ColumnsPerLane, typename SparseMatrix, typename DenseMatrixB, typename DenseMatrixC, typename Real >
 void
 sparseDenseMatrixProductLanesOverColumns(
@@ -723,53 +809,6 @@ sparseDenseMatrixProductWithLambdasLanesOverColumns(
 }
 
 namespace detail {
-
-// The access to the elements of B^T for the dense matrix B, B^T( column, j ) = B( j, column ). The consecutive columns
-// of B^T are consecutive in memory for column-major B, they are then loaded by vectorized loads.
-template< typename DenseMatrixBView >
-struct TransposedDenseMatrixBAccess
-{
-   using IndexType = typename DenseMatrixBView::IndexType;
-   using RealType = std::remove_const_t< typename DenseMatrixBView::RealType >;
-
-   static constexpr bool consecutive = DenseMatrixBView::getOrganization() == Algorithms::Segments::ColumnMajorOrder;
-
-   __cuda_callable__
-   RealType
-   operator()( IndexType column, IndexType j ) const
-   {
-      return B( j, column );
-   }
-
-   template< int Count >
-   __cuda_callable__
-   void
-   load( IndexType column, IndexType firstJ, RealType ( &b )[ Count ], bool vectorLoads ) const
-   {
-      if constexpr( consecutive )
-         loadConsecutive< Count >( &B( firstJ, column ), b, vectorLoads );
-      else
-         for( int c = 0; c < Count; c++ )
-            b[ c ] = B( firstJ + c, column );
-   }
-
-   // Tells whether W consecutive rows of B starting at multiples of W can be loaded by the vectorized loads, i.e. whether
-   // B is column-major with the columns aligned to the vector width.
-   template< int W >
-   [[nodiscard]] bool
-   canLoadVectors() const
-   {
-      if constexpr( consecutive ) {
-         const auto& segments = B.getSegments();
-         const auto address = reinterpret_cast< std::uintptr_t >( B.getValues().getData() );
-         return address % ( W * sizeof( RealType ) ) == 0
-             && ( B.getColumns() < 2 || ( segments.getGlobalIndex( 0, 1 ) - segments.getGlobalIndex( 0, 0 ) ) % W == 0 );
-      }
-      return false;
-   }
-
-   DenseMatrixBView B;
-};
 
 // The storer of the multireduction computing C^T = alpha * A * B^T + beta * C^T, i.e. the element C( j, row ).
 template< typename ComputeRealType, typename DenseMatrixCView, typename Real >
