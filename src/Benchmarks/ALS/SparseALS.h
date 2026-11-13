@@ -511,6 +511,21 @@ public:
    void
    computeResiduals( Side& side, const Real* X, const Real* Y )
    {
+      if( fused ) {
+         forRowsWith< FusedRow >(
+            side,
+            FusedRowData{ factors,
+                          Weight::Residual,
+                          side.C.getSegments().getOffsets().getData(),
+                          side.C.getColumnIndexes().getData(),
+                          side.C.getValues().getData(),
+                          gram.getData(),
+                          Y,
+                          X,
+                          residuals.getData(),
+                          directions.getData() } );
+         return;
+      }
       sampledProduct( side, X, Y, Weight::Residual );
       const Index k = factors;
       const auto G = gram.getConstView();
@@ -529,6 +544,21 @@ public:
    computeProducts( Side& side, const Real* Y )
    {
       const Real* P = directions.getConstView().getData();
+      if( fused ) {
+         forRowsWith< FusedRow >(
+            side,
+            FusedRowData{ factors,
+                          Weight::Product,
+                          side.C.getSegments().getOffsets().getData(),
+                          side.C.getColumnIndexes().getData(),
+                          side.C.getValues().getData(),
+                          gram.getData(),
+                          Y,
+                          P,
+                          products.getData(),
+                          nullptr } );
+         return;
+      }
       sampledProduct( side, P, Y, Weight::Product );
       const Index k = factors;
       const auto G = gram.getConstView();
@@ -558,14 +588,20 @@ public:
                function( detail::LaneGroup< lanes >{ static_cast< int >( thread % lanes ) }, thread / lanes );
             } );
       }
-      else
-         Algorithms::parallelFor< Device >(
-            0,
-            rows,
-            [ = ] __cuda_callable__( Index row ) mutable
-            {
+      else {
+         // the rows are distributed dynamically, the work of the rows of the fused products is proportional to their
+         // lengths
+#ifdef HAVE_OPENMP
+         if( Devices::Host::isOMPEnabled() && rows > 512 ) {
+   #pragma omp parallel for schedule( dynamic, 64 )
+            for( Index row = 0; row < rows; row++ )
                function( detail::LaneGroup< 1 >{ 0 }, row );
-            } );
+            return;
+         }
+#endif
+         for( Index row = 0; row < rows; row++ )
+            function( detail::LaneGroup< 1 >{ 0 }, row );
+      }
    }
 
    /**
@@ -641,6 +677,112 @@ public:
       Real* norms;
       std::uint8_t* flags;
    };
+
+   //! \brief The data of \ref FusedRow.
+   struct FusedRowData
+   {
+      Index k;
+      //! \ref Weight::Residual or \ref Weight::Product.
+      Weight weight;
+      const Index* offsets;
+      const Index* columns;
+      const Real* confidences;
+      const Real* G;
+      const Real* Y;
+      //! The vectors `v_u` (the factors `X` for the residuals, the search directions `P` for the products).
+      const Real* V;
+      //! The results.
+      Real* out;
+      //! The copy of the results (the search directions for the residuals) or `nullptr`.
+      Real* copy;
+   };
+
+   /**
+    * \brief Computes the residual (\ref Weight::Residual) or the product (\ref Weight::Product) of the row `u` in one pass
+    * over its elements, i.e. the sampled product and the sparse-dense product fused (FusedMM):
+    *
+    *    out_u = sum_i w( c_ui, y_i . v_u ) y_i -+ G v_u.
+    *
+    * Every factor `y_i` is read only once, the dot product and the weighted sum use it from the cache. On the host,
+    * every row is processed by one thread. On GPUs, by a group of `Lanes` threads, each of them accumulates at most
+    * \ref maxColumnsPerLane elements of the sum, see \ref isFusedSupported.
+    */
+   template< int Lanes >
+   struct FusedRow
+   {
+      static constexpr int maxColumnsPerLane = 4;
+
+      __cuda_callable__
+      void
+      operator()( const detail::LaneGroup< Lanes >& group, Index row ) const
+      {
+         const Index k = data.k;
+         const Real* v = &data.V[ row * k ];
+         Real* out = &data.out[ row * k ];
+         const bool residual = data.weight == Weight::Residual;
+         if constexpr( Lanes == 1 ) {
+            // the pointers do not alias, so that the loops are vectorized
+            Real* __restrict__ sum = out;
+            for( Index j = 0; j < k; j++ )
+               sum[ j ] = 0;
+            for( Index element = data.offsets[ row ]; element < data.offsets[ row + 1 ]; element++ ) {
+               const Real* __restrict__ y = &data.Y[ data.columns[ element ] * k ];
+               const Real w = getWeight( data.confidences[ element ], detail::vectorizedDot( v, y, k ), residual );
+               for( Index j = 0; j < k; j++ )
+                  sum[ j ] += w * y[ j ];
+            }
+         }
+         else {
+            Real sum[ maxColumnsPerLane ] = {};
+            for( Index element = data.offsets[ row ]; element < data.offsets[ row + 1 ]; element++ ) {
+               const Real* y = &data.Y[ data.columns[ element ] * k ];
+               const Real t = group.sum( detail::partialDot( group, v, y, k ) );
+               const Real w = getWeight( data.confidences[ element ], t, residual );
+               for( int l = 0; l < maxColumnsPerLane; l++ ) {
+                  const Index j = group.getRank() + l * Lanes;
+                  if( j < k )
+                     sum[ l ] += w * y[ j ];
+               }
+            }
+            for( int l = 0; l < maxColumnsPerLane; l++ ) {
+               const Index j = group.getRank() + l * Lanes;
+               if( j < k )
+                  out[ j ] = sum[ l ];
+            }
+         }
+         for( Index j = group.getRank(); j < k; j += Lanes ) {
+            const Real gv = detail::gramProduct< isGPU() >( data.G, v, j, k );
+            out[ j ] = residual ? out[ j ] - gv : out[ j ] + gv;
+            if( data.copy != nullptr )
+               data.copy[ row * k + j ] = out[ j ];
+         }
+      }
+
+      [[nodiscard]] __cuda_callable__
+      static Real
+      getWeight( Real c, Real t, bool residual )
+      {
+         return residual ? c - ( c - 1 ) * t : ( c - 1 ) * t;
+      }
+
+      FusedRowData data;
+   };
+
+   //! \brief Returns whether the fused products (\ref FusedRow) support the number of factors.
+   [[nodiscard]] bool
+   isFusedSupported() const
+   {
+      return ! isGPU() || factors <= 32 * FusedRow< 32 >::maxColumnsPerLane;
+   }
+
+   //! \brief Selects the fused products (\ref FusedRow) instead of the sampled and sparse-dense products.
+   void
+   setFused( bool value )
+   {
+      if( value && ! isFusedSupported() )
+         throw std::invalid_argument( "SparseALS: the fused products do not support the number of factors" );
+      fused = value;
+   }
 
    //! \brief Calls `function` with the instance of `RowFunction` for the number of lanes of \ref forRows.
    template< template< int > class RowFunction, typename... Args >
@@ -769,6 +911,8 @@ protected:
    Index factors;
    Real regularization;
    int cgSteps;
+   //! Whether the products are computed by \ref FusedRow.
+   bool fused = false;
 
    Side users;
    Side items;

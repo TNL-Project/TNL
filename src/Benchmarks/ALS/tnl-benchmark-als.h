@@ -22,6 +22,14 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntry< int >( "iterations", "Number of iterations of alternating least squares.", 10 );
    config.addEntry< double >( "regularization", "Regularization parameter lambda.", 0.01 );
    config.addEntry< int >( "cg-steps", "Number of steps of the conjugate gradient method.", 3 );
+   config.addList< std::string >(
+      "solver",
+      "Computation of the products of the conjugate gradient method: the sampled and sparse-dense products (spmm), or "
+      "both in one pass over the rows (fused).",
+      { "all" } );
+   config.addEntryEnum( "spmm" );
+   config.addEntryEnum( "fused" );
+   config.addEntryEnum( "all" );
    config.addEntry< std::string >( "precision", "Precision of the arithmetics.", "float" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );

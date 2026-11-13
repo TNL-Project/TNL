@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -114,11 +115,28 @@ benchmarkDevice(
       {
          return als.getLoss();
       } );
-   benchmark.setMetadataElement( { "solver", "spmm" } );
-   benchmark.setMetadataElement( { "users configuration", als.getSide( false ).configuration.toString() } );
-   benchmark.setMetadataElement( { "items configuration", als.getSide( true ).configuration.toString() } );
-   benchmark.setMetadataElement( { "tuning time", std::to_string( tuningTimer.getRealTime() ) } );
-   benchmark.time< Device >( "TNL", compute, result );
+   const auto solvers = parameters.getList< std::string >( "solver" );
+   auto isSelected = [ & ]( const std::string& solver )
+   {
+      return std::find( solvers.begin(), solvers.end(), "all" ) != solvers.end()
+          || std::find( solvers.begin(), solvers.end(), solver ) != solvers.end();
+   };
+   if( isSelected( "spmm" ) ) {
+      als.setFused( false );
+      benchmark.setMetadataElement( { "solver", "spmm" } );
+      benchmark.setMetadataElement( { "users configuration", als.getSide( false ).configuration.toString() } );
+      benchmark.setMetadataElement( { "items configuration", als.getSide( true ).configuration.toString() } );
+      benchmark.setMetadataElement( { "tuning time", std::to_string( tuningTimer.getRealTime() ) } );
+      benchmark.time< Device >( "TNL", compute, result );
+   }
+   if( isSelected( "fused" ) && als.isFusedSupported() ) {
+      als.setFused( true );
+      benchmark.setMetadataElement( { "solver", "fused" } );
+      benchmark.setMetadataElement( { "users configuration", "N/A" } );
+      benchmark.setMetadataElement( { "items configuration", "N/A" } );
+      benchmark.setMetadataElement( { "tuning time", "0" } );
+      benchmark.time< Device >( "TNL", compute, result );
+   }
 }
 
 template< typename Real, typename Index >

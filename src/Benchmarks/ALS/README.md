@@ -45,6 +45,17 @@ products before the benchmark (`SparseALS::tuneProducts`). The selected configur
 time of the tuning are logged in the columns `users configuration`, `items configuration` and
 `tuning time`, the tuning is not included in the measured time.
 
+The option `--solver` selects the computation of the products of the conjugate gradient method
+(the column `solver` of the log):
+
+- `spmm`: the SDDMM and the sparse-dense product described above,
+- `fused`: both in one pass over the rows of `R` (FusedMM), the dot product `y_i . p_u`, the
+  weight and the addition of the weighted `y_i` are computed for every element of the row, so
+  that `y_i` is read only once. On the host, every row is processed by one thread and the rows
+  are distributed dynamically, on GPUs by a group of 32 threads (only for `k <= 128`). It is
+  faster on the host when `Y` does not fit in the cache (Last.fm: 1.4-1.6x on Ryzen 9 5950X),
+  but slower on GPUs (1.1-3x on RTX 3060).
+
 The implementation is in `SparseALS.h`.
 
 ## Reference implementations
