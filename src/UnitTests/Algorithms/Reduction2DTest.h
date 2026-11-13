@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "gtest/gtest.h"
 
 #include <TNL/Containers/Vector.h>
@@ -126,5 +128,56 @@ TYPED_TEST( Reduction2DTest, scalarProduct )
 {
    test_Reduction2D( this->V, this->y, this->result );
 }
+
+template< typename Device, typename Index >
+void
+testReduction2DIndexType( Index size, int n )
+{
+   using Result = long long;
+   Vector< Result, Devices::Host, int > result( n );
+   auto fetch = [ = ] __cuda_callable__( Index i, int k ) -> Result
+   {
+      if constexpr( std::is_signed_v< Index > )
+         TNL_ASSERT_GE( i, 0, "fetcher got negative index" );
+      TNL_ASSERT_LT( i, size, "fetcher got invalid index i" );
+      TNL_ASSERT_LT( k, n, "fetcher got invalid index k" );
+      return static_cast< Result >( i );
+   };
+   Reduction2D< Device >::reduce( Result( 0 ), fetch, std::plus<>{}, size, n, result.getView() );
+   const Result expected = static_cast< Result >( size ) * ( static_cast< Result >( size ) - 1 ) / 2;
+   for( int k = 0; k < n; k++ )
+      EXPECT_EQ( result[ k ], expected );
+}
+
+template< typename Device >
+void
+testReduction2DIndexTypes()
+{
+   testReduction2DIndexType< Device >( static_cast< short >( 1 ), 3 );
+   testReduction2DIndexType< Device >( static_cast< short >( 255 ), 3 );
+   testReduction2DIndexType< Device >( static_cast< short >( 256 ), 3 );
+   testReduction2DIndexType< Device >( static_cast< short >( 257 ), 3 );
+   testReduction2DIndexType< Device >( static_cast< short >( 1000 ), 3 );
+   testReduction2DIndexType< Device >( static_cast< short >( 32767 ), 3 );
+   testReduction2DIndexType< Device >( static_cast< unsigned int >( 1 ), 3 );
+   testReduction2DIndexType< Device >( static_cast< unsigned int >( 257 ), 3 );
+}
+
+TEST( Reduction2DIndexTypes, Sequential )
+{
+   testReduction2DIndexTypes< Devices::Sequential >();
+}
+
+TEST( Reduction2DIndexTypes, Host )
+{
+   testReduction2DIndexTypes< Devices::Host >();
+}
+
+#if defined( __CUDACC__ )
+TEST( Reduction2DIndexTypes, Cuda )
+{
+   testReduction2DIndexTypes< Devices::Cuda >();
+}
+#endif
 
 #include "../main.h"

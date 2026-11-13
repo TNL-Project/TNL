@@ -28,7 +28,7 @@ void constexpr Reduction2D< Devices::Sequential >::reduce(
    int n,
    Output result )
 {
-   TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
+   TNL_ASSERT_GT( size, static_cast< Index >( 0 ), "The size of datasets must be positive." );
    TNL_ASSERT_GT( n, 0, "The number of datasets must be positive." );
 
    constexpr int block_size = 128;

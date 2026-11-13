@@ -23,7 +23,7 @@ template< typename Result, typename Fetch, typename Reduction, typename Index, t
 void constexpr Reduction3D<
    Devices::Sequential >::reduce( Result identity, Fetch fetch, Reduction reduction, Index size, int m, int n, Output result )
 {
-   TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
+   TNL_ASSERT_GT( size, static_cast< Index >( 0 ), "The size of datasets must be positive." );
    TNL_ASSERT_GT( m, 0, "The number of datasets must be positive." );
    TNL_ASSERT_GT( n, 0, "The number of datasets must be positive." );
 
@@ -123,7 +123,7 @@ void constexpr Reduction3D<
 
       for( int i = 0; i < m; i++ ) {
          for( int j = 0; j < n; j++ ) {
-            for( int k = blocks * block_size; k < size; k++ ) {
+            for( Index k = blocks * block_size; k < size; k++ ) {
                result( i, j ) = reduction( result( i, j ), fetch( k, i, j ) );
             }
          }

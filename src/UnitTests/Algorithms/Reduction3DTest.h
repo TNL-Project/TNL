@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "gtest/gtest.h"
 
 #include <TNL/Containers/Vector.h>
@@ -129,5 +131,67 @@ TYPED_TEST( Reduction3DTest, sum )
 {
    test_Reduction3D( this->v, this->y, this->result, this->m, this->n );
 }
+
+template< typename Device, typename Index >
+void
+testReduction3DIndexType( Index size, int m, int n )
+{
+   using Result = long long;
+   Vector< Result, Devices::Host, int > result( m * n );
+   auto fetch = [ = ] __cuda_callable__( Index i, int k, int l ) -> Result
+   {
+      if constexpr( std::is_signed_v< Index > )
+         TNL_ASSERT_GE( i, 0, "fetcher got negative index" );
+      TNL_ASSERT_LT( i, size, "fetcher got invalid index i" );
+      TNL_ASSERT_LT( k, m, "fetcher got invalid index k" );
+      TNL_ASSERT_LT( l, n, "fetcher got invalid index l" );
+      return static_cast< Result >( i );
+   };
+
+   auto result_view = result.getView();
+   auto output = [ = ] __cuda_callable__( Index i, Index j ) mutable -> Result&
+   {
+      return result_view( i * n + j );
+   };
+
+   Reduction3D< Device >::reduce( Result( 0 ), fetch, std::plus<>{}, size, m, n, output );
+   const Result expected = static_cast< Result >( size ) * ( static_cast< Result >( size ) - 1 ) / 2;
+   for( int k = 0; k < m; k++ ) {
+      for( int l = 0; l < n; l++ )
+         EXPECT_EQ( result[ k * n + l ], expected );
+   }
+}
+
+template< typename Device >
+void
+testReduction3DIndexTypes()
+{
+   testReduction3DIndexType< Device >( static_cast< short >( 1 ), 2, 3 );
+   testReduction3DIndexType< Device >( static_cast< short >( 255 ), 2, 3 );
+   testReduction3DIndexType< Device >( static_cast< short >( 256 ), 2, 3 );
+   testReduction3DIndexType< Device >( static_cast< short >( 257 ), 2, 3 );
+   testReduction3DIndexType< Device >( static_cast< short >( 1000 ), 2, 3 );
+   testReduction3DIndexType< Device >( static_cast< short >( 32767 ), 2, 3 );
+   testReduction3DIndexType< Device >( static_cast< short >( 32767 ), 1, 1 );
+   testReduction3DIndexType< Device >( static_cast< unsigned int >( 1 ), 2, 3 );
+   testReduction3DIndexType< Device >( static_cast< unsigned int >( 257 ), 2, 3 );
+}
+
+TEST( Reduction3DIndexTypes, Sequential )
+{
+   testReduction3DIndexTypes< Devices::Sequential >();
+}
+
+TEST( Reduction3DIndexTypes, Host )
+{
+   testReduction3DIndexTypes< Devices::Host >();
+}
+
+#if defined( __CUDACC__ )
+TEST( Reduction3DIndexTypes, Cuda )
+{
+   testReduction3DIndexTypes< Devices::Cuda >();
+}
+#endif
 
 #include "../main.h"
