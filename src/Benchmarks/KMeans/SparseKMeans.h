@@ -54,7 +54,7 @@ inline std::uint64_t
 packDistance( float distance, std::uint32_t cluster )
 {
    std::uint32_t bits;
-   std::memcpy( &bits, &distance, sizeof( bits ) );
+   ::memcpy( &bits, &distance, sizeof( bits ) );
    // the order of the negative floats is reversed, flipping all bits of them and the sign bit of the positive ones gives
    // the order of unsigned integers
    bits = ( bits & 0x80000000u ) != 0 ? ~bits : ( bits | 0x80000000u );
@@ -69,7 +69,7 @@ unpackDistance( std::uint64_t key )
    std::uint32_t bits = key >> 32;
    bits = ( bits & 0x80000000u ) != 0 ? ( bits & 0x7fffffffu ) : ~bits;
    float distance;
-   std::memcpy( &distance, &bits, sizeof( distance ) );
+   ::memcpy( &distance, &bits, sizeof( distance ) );
    return distance;
 }
 

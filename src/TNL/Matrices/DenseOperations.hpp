@@ -282,7 +282,13 @@ DenseTranspositionKernel(
    const typename OutputMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   __shared__ Real tile[ tileDim ][ tileDim + 1 ];
+   // the uninitialized storage, HIP does not allow the __shared__ variables of types with constructors (e.g. complex numbers)
+   struct Tile
+   {
+      Real values[ tileDim ][ tileDim + 1 ];
+   };
+   __shared__ Backend::Uninitialized< Tile > tileStorage;
+   auto& tile = tileStorage.get().values;
 
    const Index matrixColumns = inputMatrix.getColumns();
    const Index matrixRows = inputMatrix.getRows();
