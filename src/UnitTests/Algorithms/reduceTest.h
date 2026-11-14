@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include <gtest/gtest.h>
 
 #include <TNL/Arithmetics/experimental/Quad.h>
@@ -84,6 +86,31 @@ using ArrayTypes = ::testing::Types<
    >;
 
 TYPED_TEST_SUITE( ReduceTest, ArrayTypes );
+
+template< typename Array >
+class ReduceShortTest : public ::testing::Test
+{
+protected:
+   using ArrayType = Array;
+};
+
+// Arrays with short IndexType have a much smaller range than the general tests above.
+using ShortArrayTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   Array< double, Devices::Sequential, short >,
+   Array< CustomScalar< int >, Devices::Sequential, short >,
+   Array< double, Devices::Host, short >,
+   Array< CustomScalar< int >, Devices::Host, short >
+#elif defined( __CUDACC__ )
+   Array< double, Devices::Cuda, short >,
+   Array< CustomScalar< int >, Devices::Cuda, short >
+#elif defined( __HIP__ )
+   Array< double, Devices::Hip, short >,
+   Array< CustomScalar< int >, Devices::Hip, short >
+#endif
+   >;
+
+TYPED_TEST_SUITE( ReduceShortTest, ShortArrayTypes );
 
 template< typename Array >
 void
@@ -196,6 +223,283 @@ TYPED_TEST( ReduceTest, maxWithArg )
       EXPECT_EQ( res.first, size );
       EXPECT_EQ( res.second, size - 1 );
    }
+}
+
+TYPED_TEST( ReduceShortTest, sum )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1, 255, 256, 257, 1000, 32512, 32513, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      a.setSize( size );
+      a.setValue( 1 );
+
+      auto res = reduce< typename ArrayType::DeviceType >( (Index) 0, size, a.getConstView(), TNL::Plus{} );
+      EXPECT_EQ( res, size );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, maxWithArg )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1, 255, 256, 257, 1000, 32512, 32513, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      a.setSize( size );
+      iota( a, 1 );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( (Index) 0, size, a.getConstView(), TNL::MaxWithArg{} );
+      EXPECT_EQ( res.first, size );
+      EXPECT_EQ( res.second, size - 1 );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, minWithArg )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1, 255, 256, 257, 1000, 32512, 32513, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      a.setSize( size );
+      iota( a, 1 );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( (Index) 0, size, a.getConstView(), TNL::MinWithArg{} );
+      EXPECT_EQ( res.first, 1 );
+      EXPECT_EQ( res.second, 0 );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, maxWithArgNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      iota( a, 1 );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MaxWithArg{} );
+      EXPECT_EQ( res.first, size );
+      EXPECT_EQ( res.second, size - 1 );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, sumNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      a.setValue( 1 );
+
+      auto res = reduce< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::Plus{} );
+      EXPECT_EQ( res, size - begin );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, beginNearMax )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   const Index size = 32767;
+   const Index begin = 32000;
+   ArrayType a;
+   a.setSize( size );
+   a.setValue( 1 );
+
+   auto sum = reduce< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::Plus{} );
+   EXPECT_EQ( sum, size - begin );
+
+   iota( a, 1 );
+   auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MaxWithArg{} );
+   EXPECT_EQ( res.first, size );
+   EXPECT_EQ( res.second, size - 1 );
+}
+
+TYPED_TEST( ReduceShortTest, maxWithArgAllIdentityNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   using Value = typename ArrayType::ValueType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      a.setValue( std::numeric_limits< Value >::lowest() );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MaxWithArg{} );
+      EXPECT_EQ( res.first, std::numeric_limits< Value >::lowest() );
+      EXPECT_EQ( res.second, begin );
+   }
+}
+
+TYPED_TEST( ReduceShortTest, minWithArgAllIdentityNonZeroBegin )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using Index = typename ArrayType::IndexType;
+   using Value = typename ArrayType::ValueType;
+   ArrayType a;
+   for( const int sizeInt : { 1000, 32767 } ) {
+      const Index size = static_cast< Index >( sizeInt );
+      const Index begin = 10;
+      a.setSize( size );
+      a.setValue( std::numeric_limits< Value >::max() );
+
+      auto res = reduceWithArgument< typename ArrayType::DeviceType >( begin, size, a.getConstView(), TNL::MinWithArg{} );
+      EXPECT_EQ( res.first, std::numeric_limits< Value >::max() );
+      EXPECT_EQ( res.second, begin );
+   }
+}
+
+template< typename Device >
+void
+testAnyWithArgShort()
+{
+   using Index = short;
+   auto first_true = [] __cuda_callable__( Index i )
+   {
+      return i == 17;
+   };
+   auto res = reduceWithArgument< Device >( (Index) 10, (Index) 100, first_true, TNL::AnyWithArg{} );
+   EXPECT_TRUE( res.first );
+   EXPECT_EQ( res.second, (Index) 17 );
+
+   auto all_false = [] __cuda_callable__( Index )
+   {
+      return false;
+   };
+   res = reduceWithArgument< Device >( (Index) 10, (Index) 100, all_false, TNL::AnyWithArg{} );
+   EXPECT_FALSE( res.first );
+   EXPECT_EQ( res.second, (Index) 10 );
+}
+
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+TEST( ReduceShortAnyTest, anyWithArg )
+{
+   testAnyWithArgShort< Devices::Sequential >();
+   testAnyWithArgShort< Devices::Host >();
+}
+#elif defined( __CUDACC__ )
+TEST( ReduceShortAnyTest, anyWithArg )
+{
+   testAnyWithArgShort< Devices::Cuda >();
+}
+#elif defined( __HIP__ )
+TEST( ReduceShortAnyTest, anyWithArg )
+{
+   testAnyWithArgShort< Devices::Hip >();
+}
+#endif
+
+template< typename Device, typename Index >
+void
+testNonZeroBeginBoundary( const Index begin, const Index end )
+{
+   auto ones = [] __cuda_callable__( Index ) -> int
+   {
+      return 1;
+   };
+   auto values = [] __cuda_callable__( Index i ) -> Index
+   {
+      return i;
+   };
+
+   const auto sum = reduce< Device >( begin, end, ones, TNL::Plus{} );
+   EXPECT_EQ( sum, end - begin );
+
+   const auto max = reduceWithArgument< Device >( begin, end, values, TNL::MaxWithArg{} );
+   EXPECT_EQ( max.first, end - 1 );
+   EXPECT_EQ( max.second, end - 1 );
+
+   const auto lastSum = reduce< Device >( end - 1, end, ones, TNL::Plus{} );
+   EXPECT_EQ( lastSum, 1 );
+
+   const auto lastMax = reduceWithArgument< Device >( end - 1, end, values, TNL::MaxWithArg{} );
+   EXPECT_EQ( lastMax.first, end - 1 );
+   EXPECT_EQ( lastMax.second, end - 1 );
+}
+
+template< typename Device >
+void
+testNonZeroBeginBoundaries()
+{
+   constexpr int rangeSize = 1000000;
+
+   constexpr int intEnd = std::numeric_limits< int >::max();
+   testNonZeroBeginBoundary< Device >( intEnd - rangeSize, intEnd );
+
+   constexpr unsigned int unsignedEnd = std::numeric_limits< unsigned int >::max();
+   testNonZeroBeginBoundary< Device >( unsignedEnd - rangeSize, unsignedEnd );
+
+   if constexpr( sizeof( long ) > sizeof( unsigned int ) ) {
+      constexpr long longBegin = static_cast< long >( std::numeric_limits< unsigned int >::max() ) + 123;
+      testNonZeroBeginBoundary< Device >( longBegin, longBegin + rangeSize );
+   }
+}
+
+template< typename Device >
+void
+testReduceEdgeCases()
+{
+   auto values = [] __cuda_callable__( int i ) -> int
+   {
+      return i + 1;
+   };
+
+   const auto empty = reduce< Device >( 4, 4, values, TNL::Plus{}, 42 );
+   EXPECT_EQ( empty, 42 );
+
+   const auto emptyWithArg = reduceWithArgument< Device >( 4, 4, values, TNL::MaxWithArg{}, -7 );
+   EXPECT_EQ( emptyWithArg.first, -7 );
+   EXPECT_EQ( emptyWithArg.second, 4 );
+
+   const auto one = reduce< Device >( 7, 8, values, TNL::Plus{} );
+   EXPECT_EQ( one, 8 );
+
+   const auto oneWithArg = reduceWithArgument< Device >( 7, 8, values, TNL::MaxWithArg{} );
+   EXPECT_EQ( oneWithArg.first, 8 );
+   EXPECT_EQ( oneWithArg.second, 7 );
+
+   auto identity = [] __cuda_callable__( int ) -> int
+   {
+      return std::numeric_limits< int >::lowest();
+   };
+   const auto tie = reduceWithArgument< Device >( 3, 10000, identity, TNL::MaxWithArg{} );
+   EXPECT_EQ( tie.first, std::numeric_limits< int >::lowest() );
+   EXPECT_EQ( tie.second, 3 );
+}
+
+TEST( ReduceIndexBoundaryTest, nonZeroBegin )
+{
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   testNonZeroBeginBoundaries< Devices::Sequential >();
+   testNonZeroBeginBoundaries< Devices::Host >();
+#elif defined( __CUDACC__ )
+   testNonZeroBeginBoundaries< Devices::Cuda >();
+#elif defined( __HIP__ )
+   testNonZeroBeginBoundaries< Devices::Hip >();
+#endif
+}
+
+TEST( ReduceEdgeCasesTest, emptyOneElementAndIdentityTie )
+{
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   testReduceEdgeCases< Devices::Sequential >();
+   testReduceEdgeCases< Devices::Host >();
+#elif defined( __CUDACC__ )
+   testReduceEdgeCases< Devices::Cuda >();
+#elif defined( __HIP__ )
+   testReduceEdgeCases< Devices::Hip >();
+#endif
 }
 
 TYPED_TEST( ReduceTest, logicalAnd )

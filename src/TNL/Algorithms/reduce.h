@@ -32,6 +32,7 @@ namespace TNL::Algorithms {
  *
  * \param begin defines range `[begin, end)` of indexes which will be used for the reduction.
  * \param end defines range `[begin, end)` of indexes which will be used for the reduction.
+ * \note GPU implementations require `begin >= 0` and `begin <= end`.
  * \param fetch is a lambda function fetching the input data.
  * \param reduction is a function object defining the reduction operation.
  *                  This can be a user-defined lambda function or an instance of
@@ -190,6 +191,7 @@ reduce( const Array& array, Reduction&& reduction = TNL::Plus{} )
  *
  * \param begin defines range `[begin, end)` of indexes which will be used for the reduction.
  * \param end defines range `[begin, end)` of indexes which will be used for the reduction.
+ * \note GPU implementations require `begin >= 0` and `begin <= end`.
  * \param fetch is a lambda function fetching the input data.
  * \param reduction is an instance of lambda function or function object defining the reduction operation.
  *                  This can be a user-defined lambda function or an instance of some \ref ReductionFunctionObjectsWithArgument.
