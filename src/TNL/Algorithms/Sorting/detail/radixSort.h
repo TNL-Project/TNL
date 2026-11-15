@@ -475,6 +475,8 @@ union RadixSortOnesweepStage
 
 #endif
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
 /**
  * \brief Atomically adds the value to the counter of any index type.
  *
@@ -492,6 +494,8 @@ radixSortAtomicAdd( Index* address, Index value )
    else
       atomicAdd( address, value );
 }
+
+#endif
 
 //! \brief Pass-flag value marking a skip flag not yet published by the
 //! current launch of \ref radixSortProcessHistogramsKernel.
@@ -2075,6 +2079,8 @@ public:
 #endif
 };
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
 /**
  * \brief Launches the kernel sequence of the radix sort driver on the
  * given stream.
@@ -2303,6 +2309,8 @@ radixSortLaunchSequence(
    if( cache != nullptr )
       radixSortRecordGraphViewNode( *cache, stream, copyBackKernel, launch_config, view, aux, passFlags.getConstView() );
 }
+
+#endif
 
 /**
  * \brief Implementation of \ref radixSort with an optional use of the
