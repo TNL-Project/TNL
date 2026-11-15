@@ -1,4 +1,5 @@
 tnl_add_test_executables(BubbleSortTest SOURCES BubbleSortTest.cpp BACKENDS HOST)
+tnl_add_test_executables(RadixSortHostTest SOURCES RadixSortHostTest.h BACKENDS HOST)
 
 if(TNL_BUILD_CUDA)
     find_package(CCCL REQUIRED)
