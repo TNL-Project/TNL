@@ -19,6 +19,10 @@
 #include <TNL/Algorithms/Sorting/Quicksort.h>
 #include "generators.h"
 
+#ifdef HAVE_SORTING_REFERENCES
+   #include "ReferenceAlgorithms/IPSSort.h"
+#endif
+
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    #include "ReferenceAlgorithms/CedermanQuicksort.h"
    #include "ReferenceAlgorithms/MancaQuicksort.h"
@@ -79,6 +83,66 @@ run_benchmark_host( Benchmark& benchmark, const char* distribution, const std::v
 
    BenchmarkResult result;
    benchmark.time< Devices::Host >( reset, "STL sort", sort, result );
+
+   // the workspace is reused across the loops, as in a typical application
+   RadixSort::Workspace< ValueType, Devices::Host, std::size_t > workspace;
+   auto sortRadixSort = [ &arr, &workspace ]()
+   {
+      RadixSort::sort( arr, workspace );
+   };
+   benchmark.time< Devices::Host >( reset, "RadixSort", sortRadixSort, result );
+   if( ! Algorithms::isAscending( arr ) )
+      throw std::runtime_error( "RadixSort (host) result is not sorted" );
+
+#ifdef HAVE_SORTING_REFERENCES
+   auto sortIPS2Ra = [ &arr ]()
+   {
+      IPS2RaSort::sort( arr );
+   };
+   benchmark.time< Devices::Host >( reset, "ips2ra", sortIPS2Ra, result );
+   if( ! Algorithms::isAscending( arr ) )
+      throw std::runtime_error( "ips2ra result is not sorted" );
+
+   auto sortIPS4o = [ &arr ]()
+   {
+      IPS4oSort::sort( arr );
+   };
+   benchmark.time< Devices::Host >( reset, "ips4o", sortIPS4o, result );
+   if( ! Algorithms::isAscending( arr ) )
+      throw std::runtime_error( "ips4o result is not sorted" );
+#endif
+
+   Containers::Array< ValueType, Devices::Sequential, std::size_t > arrSeq;
+   RadixSort::Workspace< ValueType, Devices::Sequential, std::size_t > workspaceSeq;
+   auto resetSeq = [ &vec, &arrSeq ]()
+   {
+      arrSeq = vec;
+   };
+   auto sortRadixSortSeq = [ &arrSeq, &workspaceSeq ]()
+   {
+      RadixSort::sort( arrSeq, workspaceSeq );
+   };
+   benchmark.time< Devices::Sequential >( resetSeq, "RadixSort (sequential)", sortRadixSortSeq, result );
+   if( ! Algorithms::isAscending( arrSeq ) )
+      throw std::runtime_error( "RadixSort (sequential) result is not sorted" );
+
+#ifdef HAVE_SORTING_REFERENCES
+   auto sortIPS2RaSeq = [ &arrSeq ]()
+   {
+      IPS2RaSort::sort( arrSeq );
+   };
+   benchmark.time< Devices::Sequential >( resetSeq, "ips2ra (sequential)", sortIPS2RaSeq, result );
+   if( ! Algorithms::isAscending( arrSeq ) )
+      throw std::runtime_error( "ips2ra (sequential) result is not sorted" );
+
+   auto sortIPS4oSeq = [ &arrSeq ]()
+   {
+      IPS4oSort::sort( arrSeq );
+   };
+   benchmark.time< Devices::Sequential >( resetSeq, "ips4o (sequential)", sortIPS4oSeq, result );
+   if( ! Algorithms::isAscending( arrSeq ) )
+      throw std::runtime_error( "ips4o (sequential) result is not sorted" );
+#endif
 }
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )

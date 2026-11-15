@@ -9,6 +9,10 @@ and a benchmark of the three-way `pivotPartition` operation (see
 ### Host
 
 - **STL sort** – C++ standard library `std::sort`
+- **RadixSort** – native TNL LSD radix sort implementation (parallel with OpenMP)
+- **RadixSort (sequential)** – the same implementation on `Devices::Sequential`
+- **ips2ra** – In-place Parallel Super Scalar Radix Sort (parallel and sequential)
+- **ips4o** – In-place Parallel Super Scalar Samplesort (parallel and sequential)
 
 ### CUDA (GPU)
 
@@ -30,6 +34,9 @@ and a benchmark of the three-way `pivotPartition` operation (see
   DOI: [10.1002/cpe.3611](https://doi.org/10.1002/cpe.3611), [SourceForge](https://sourceforge.net/p/cuda-quicksort/)
 
 - **NvidiaBitonicSort**: From [NVIDIA CUDA samples](https://github.com/NVIDIA/cuda-samples), `Samples/2_Concepts_and_Techniques/sortingNetworks/bitonicSort.cu`
+
+- **ips2ra**, **ips4o**: M. Axtmann, S. Witt, D. Ferizovic, P. Sanders. "Engineering In-place (Shared-memory) Sorting Algorithms." *ACM Transactions on Parallel Computing*, 2022.
+  [arXiv:2009.13569](https://arxiv.org/abs/2009.13569), [ips2ra](https://github.com/ips4o/ips2ra), [ips4o](https://github.com/ips4o/ips4o)
 
 #### Known limitations
 
@@ -69,6 +76,18 @@ just build tnl-benchmark-sort-cuda
 
 The benchmark can include an additional reference algorithm: **NvidiaBitonicSort**, a bitonic sort from NVIDIA's CUDA samples repository.
 When building with CUDA support and the `TNL_FETCH_CUDA_SAMPLES` option enabled, the CUDA samples are automatically downloaded via CMake's FetchContent module.
+
+#### Reference CPU algorithms
+
+The host part of the benchmark can include the reference algorithms **ips2ra** and **ips4o**.
+When the `TNL_FETCH_SORTING_REFERENCES` option is enabled, their headers are automatically downloaded via CMake's FetchContent module.
+Their parallel variants require [oneTBB](https://github.com/uxlfoundation/oneTBB), the reference algorithms are disabled when TBB is not found.
+The parallel variants use the number of threads given by the `--openmp-max-threads` option.
+
+```bash
+cmake -B build -S . -DTNL_FETCH_SORTING_REFERENCES=ON
+just build tnl-benchmark-sort
+```
 
 ### Running
 
