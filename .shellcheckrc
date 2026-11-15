@@ -1,0 +1,4 @@
+# Keep the checks independent of the user-level configuration
+# (e.g. ~/.config/shellcheckrc), which could disable the extended analysis
+# and thus produce different diagnostics.
+extended-analysis=true
