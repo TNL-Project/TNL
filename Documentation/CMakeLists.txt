@@ -5,6 +5,9 @@ file(MAKE_DIRECTORY ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH})
 # add a target that will collect all commands to run the code examples
 add_custom_target(run-doc-examples ALL)
 
+# add a target that builds the executables of the code examples without running them
+add_custom_target(build-doc-examples)
+
 # add subdirectories that contain code examples included in the documentation
 add_subdirectory(Examples)
 add_subdirectory(UsersGuide)

@@ -253,11 +253,18 @@ function(tnl_add_example_with_output name)
         SINGLE
         COMPILE_DEFINITIONS ${definitions}
         LINK_LIBRARIES ${libraries}
+        OUTPUT_BACKENDS backend
     )
 
     # all requested backends may be disabled
     if(NOT TARGET ${name})
         return()
+    endif()
+
+    if(ARG_MPI AND backend STREQUAL "HIP" AND NOT ARG_NPROC EQUAL 1)
+        # a multi-process HIP+MPI program deadlocks on a single AMD GPU, see tnl_add_hip_mpi_test
+        message(STATUS "Running the example ${name} with 1 process (HIP+MPI deadlocks on a single AMD GPU)")
+        set(ARG_NPROC 1)
     endif()
 
     set(output "${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${name}.out")
@@ -277,4 +284,8 @@ function(tnl_add_example_with_output name)
     # different directory than the run-doc-examples target
     add_custom_target(${name}.out DEPENDS ${output})
     add_dependencies(run-doc-examples ${name}.out)
+    # allow building all the executables of the examples without running them
+    if(TARGET build-doc-examples)
+        add_dependencies(build-doc-examples ${name})
+    endif()
 endfunction()

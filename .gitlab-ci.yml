@@ -237,7 +237,7 @@ workflow:
           elif [[ ${MATRIX_TARGET} == "nontests" ]]; then
                 BUILD_TARGETS=("benchmarks" "examples" "tools");
           elif [[ ${MATRIX_TARGET} == "doc_examples" ]]; then
-                BUILD_TARGETS=("run-doc-examples");
+                BUILD_TARGETS=("build-doc-examples");
           elif [[ ${BUILD_DOC} == "yes" ]]; then
                 BUILD_TARGETS=("documentation");
           fi
@@ -259,6 +259,11 @@ workflow:
                 -DTNL_USE_CI_FLAGS=yes
         # build the given targets
         - cmake --build "./build/$CI_JOB_NAME_SLUG" --parallel ${NUM_CORES} --target "${BUILD_TARGETS[@]}"
+        # The documentation examples are executed on the single GPU of the runner, so they are
+        # run in a separate step with a limited number of jobs, after the build has finished.
+        - if [[ ${MATRIX_TARGET} == "doc_examples" ]]; then
+              cmake --build "./build/$CI_JOB_NAME_SLUG" --parallel ${RUN_JOBS:-1} --target run-doc-examples;
+          fi
         # the daemon is reaped together with the rest of the script section, so the stats have
         # to be printed here and not in after_script
         - if command -v sccache >/dev/null 2>&1; then sccache --show-stats; fi
@@ -418,6 +423,15 @@ hip_rocm_doc_examples:
     variables:
         BUILD_TYPE: Debug
         MATRIX_TARGET: doc_examples
+        # number of examples executed at the same time by the run step (serialized due to the
+        # shared GPU, whose hardware queues are oversubscribed by concurrent GPU programs)
+        RUN_JOBS: 1
+    # the output of the examples shows how far each one got if it fails
+    artifacts:
+        when: on_failure
+        paths:
+            - build/$CI_JOB_NAME_SLUG/Documentation/output_snippets/
+        expire_in: 7 days
     rules:
         - changes:
             - Documentation/**/*
