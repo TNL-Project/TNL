@@ -34,6 +34,19 @@ if(TNL_USE_CI_FLAGS)
     set(CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -isystem /opt/rocm/include")
 endif()
 
+# ROCm 10.1 (rocm-llvm 24.0) generates invalid typed DWARF expressions
+# (DIOpDeref with a non-pointer operand) for the heterogeneous DWARF extensions.
+# The module verifier then aborts the device LTO link with
+# "Broken module found: DIOpDeref requires input to be pointer typed",
+# so the extensions have to be disabled when debug info is generated.
+# See the workaround used by ROCm:
+# https://github.com/ROCm/rocm-systems/commit/00238f6c365df815d616fa9c6928fe5d58a48cc6
+include(CheckCompilerFlag)
+check_compiler_flag(HIP "-gno-heterogeneous-dwarf" TNL_HIP_HAS_GNO_HETEROGENEOUS_DWARF)
+if(TNL_HIP_HAS_GNO_HETEROGENEOUS_DWARF)
+    set(CMAKE_HIP_FLAGS_DEBUG "${CMAKE_HIP_FLAGS_DEBUG} -Xarch_device -gno-heterogeneous-dwarf")
+endif()
+
 # optimize Release builds for the native CPU arch, unless explicitly disabled
 if(TNL_USE_MARCH_NATIVE_FLAG)
     set(CMAKE_HIP_FLAGS_RELEASE "${CMAKE_HIP_FLAGS_RELEASE} -march=native -mtune=native")
