@@ -28,6 +28,11 @@ option(
     "Fetch CUDA samples from GitHub (enables building sorting benchmark with reference algorithms)"
     OFF
 )
+option(
+    TNL_FETCH_SORTING_REFERENCES
+    "Fetch ips2ra and ips4o from GitHub (enables building sorting benchmark with reference CPU algorithms)"
+    OFF
+)
 option(TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF)
 option(TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF)
 option(TNL_DOXYGEN_USE_CLANG "Instruct Doxygen to use Clang-assisted parsing" OFF)
@@ -217,6 +222,11 @@ include(FetchTinyXML2)
 # Fetch CUDA samples for reference sorting algorithms (only if building CUDA)
 if(TNL_BUILD_CUDA AND TNL_FETCH_CUDA_SAMPLES)
     include(FetchCUDASamples)
+endif()
+
+# Fetch reference CPU sorting algorithms (only if building host targets)
+if(TNL_BUILD_CPP_TARGETS AND TNL_FETCH_SORTING_REFERENCES)
+    include(FetchSortingReferences)
 endif()
 
 ####
