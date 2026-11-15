@@ -160,6 +160,9 @@ Copy< Devices::Cuda, DeviceType >::copy( DestinationElement* destination, const 
 
    if constexpr( std::is_same_v< std::remove_cv_t< DestinationElement >, std::remove_cv_t< SourceElement > > ) {
       Backend::memcpy( destination, source, size * sizeof( DestinationElement ), Backend::MemcpyHostToDevice );
+      // A pageable host-to-device cudaMemcpy may return after staging the data,
+      // before the final DMA to the device memory has finished.
+      Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
    }
    else {
       auto fill = [ = ]( std::size_t offset, DestinationElement* buffer, std::size_t buffer_size )
