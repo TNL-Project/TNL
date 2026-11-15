@@ -93,6 +93,7 @@ public:
     *
     * \param localRange The range of elements in the global array that is owned by this rank.
     * \param ghosts Number of ghost elements allocated by this rank.
+    *               Must be zero when the communicator has a single process.
     * \param globalSize The size of the global array.
     * \param communicator Reference to the MPI communicator on which the array is distributed.
     */

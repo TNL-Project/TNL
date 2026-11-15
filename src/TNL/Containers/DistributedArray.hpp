@@ -59,6 +59,8 @@ DistributedArray< Value, Device, Index, Allocator >::setDistribution(
 {
    if( localRange.getEnd() > globalSize )
       throw std::out_of_range( "setDistribution: end of the local range is outside of the global range" );
+   if( ghosts > 0 && communicator != MPI_COMM_NULL && communicator.size() == 1 )
+      throw std::invalid_argument( "setDistribution: the ghosts count must be zero with a single MPI process" );
    if( communicator != MPI_COMM_NULL )
       localData.setSize( localRange.getSize() + ghosts );
    view.bind( localRange, ghosts, globalSize, communicator, localData.getView() );

@@ -45,6 +45,8 @@ DistributedArrayView< Value, Device, Index >::bind(
       throw std::invalid_argument( "bind: the local array size does not match the local range of the distributed array" );
    if( ghosts < 0 )
       throw std::invalid_argument( "bind: the ghosts count must be non-negative" );
+   if( ghosts > 0 && communicator != MPI_COMM_NULL && communicator.size() == 1 )
+      throw std::invalid_argument( "bind: the ghosts count must be zero with a single MPI process" );
 
    this->localRange = localRange;
    this->ghosts = ghosts;

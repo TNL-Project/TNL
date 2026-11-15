@@ -38,7 +38,7 @@ solveHeatEquation( const char* file_name )
    //! [Domain decomposition]
    const TNL::MPI::Comm communicator = MPI_COMM_WORLD;
    const LocalRangeType localRange = TNL::Containers::splitRange< Index >( n, communicator );
-   const Index ghosts = 2;
+   const Index ghosts = ( communicator.size() > 1 ) ? 2 : 0;
 
    Vector u( localRange, ghosts, n, communicator );
    u.setSynchronizer( std::make_shared< Synchronizer >( localRange, ghosts / 2, communicator ) );

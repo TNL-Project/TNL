@@ -57,6 +57,8 @@ public:
             "DistributedArrayView: the local array size does not match the local range of the distributed array" );
       if( ghosts < 0 )
          throw std::invalid_argument( "DistributedArrayView: the ghosts count must be non-negative" );
+      if( ghosts > 0 && this->communicator != MPI_COMM_NULL && this->communicator.size() == 1 )
+         throw std::invalid_argument( "DistributedArrayView: the ghosts count must be zero with a single MPI process" );
    }
 
    DistributedArrayView() = default;
