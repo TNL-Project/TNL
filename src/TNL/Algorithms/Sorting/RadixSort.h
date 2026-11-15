@@ -7,18 +7,25 @@
 #include <type_traits>
 
 #include <TNL/Algorithms/Sorting/detail/radixSort.h>
+#include <TNL/Algorithms/Sorting/detail/radixSortHost.h>
 
 namespace TNL::Algorithms::Sorting {
 
 /**
- * \brief Least significant digit (LSD) radix sort for GPU.
+ * \brief Least significant digit (LSD) radix sort.
  *
- * This is a native GPU implementation processing 8-bit digits of an
+ * This is a native implementation processing 8-bit digits of an
  * order-preserving sort key, one digit per pass. Each pass builds per-block
  * histograms of digit counts, exclusive-scans them, and scatters the
  * elements to an auxiliary array. Unlike \ref CUBRadixSort, the value type
  * does not need to be directly supported by CUB, but only arithmetic types
  * can be sorted because the key transformation relies on their bit layout.
+ *
+ * \par Supported devices
+ *
+ * The sort is implemented for \ref Devices::GPU (CUDA and HIP),
+ * \ref Devices::Host (parallelized with OpenMP) and \ref Devices::Sequential.
+ * All devices produce the same order of the elements.
  *
  * \par Stability
  *
@@ -26,7 +33,11 @@ namespace TNL::Algorithms::Sorting {
  *
  * \par Space requirements
  *
- * The sort requires an auxiliary array of the same size (\f$N\f$) as the
+ * On all devices, the sort requires an auxiliary array of the same size
+ * (\f$N\f$) as the input array. On the host devices, only small digit
+ * histograms (one per thread and pass) are needed in addition.
+ *
+ * On the GPU, the sort requires an auxiliary array of the same size (\f$N\f$) as the
  * input array, which serves as the ping-pong buffer of the passes, and an
  * array of tile status counters of the decoupled lookback with one region
  * per radix pass, which is at most \f$2^{17}\f$ tiles times 256 counters
@@ -49,6 +60,11 @@ struct RadixSort
 {
    /**
     * \brief Workspace of the temporary device buffers of the radix sort.
+    *
+    * On the host devices (\ref Devices::Host and \ref Devices::Sequential),
+    * the workspace holds just the auxiliary array and the digit histograms
+    * (see detail::RadixSortHostWorkspace), the rest of this description
+    * applies to \ref Devices::GPU.
     *
     * Repeated sorts of arrays of a similar size should reuse one workspace
     * (see detail::RadixSortWorkspace) to remove the per-sort device memory
@@ -78,7 +94,8 @@ struct RadixSort
     * previous launch is still pending).
     *
     * \tparam Value is the value type of the arrays to be sorted.
-    * \tparam Device is the device type, only \ref Devices::GPU is implemented.
+    * \tparam Device is the device type (\ref Devices::GPU, \ref Devices::Host
+    * or \ref Devices::Sequential).
     * \tparam Index is the index type of the arrays to be sorted.
     */
    template< typename Value, typename Device, typename Index >
@@ -121,11 +138,9 @@ struct RadixSort
          detail::is_std_less_v< Compare > || detail::is_std_greater_v< Compare >,
          "RadixSort supports only the std::less and std::greater comparison functors" );
       if constexpr( detail::is_std_greater_v< Compare > )
-         detail::radixSort< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType, true >(
-            array.getView() );
+         radixSortDispatch< true >( array.getView() );
       else
-         detail::radixSort< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType, false >(
-            array.getView() );
+         radixSortDispatch< false >( array.getView() );
    }
 
    /**
@@ -176,11 +191,20 @@ struct RadixSort
          detail::is_std_less_v< Compare > || detail::is_std_greater_v< Compare >,
          "RadixSort supports only the std::less and std::greater comparison functors" );
       if constexpr( detail::is_std_greater_v< Compare > )
-         detail::radixSort< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType, true >(
-            array.getView(), workspace );
+         radixSortDispatch< true >( array.getView(), workspace );
       else
-         detail::radixSort< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType, false >(
-            array.getView(), workspace );
+         radixSortDispatch< false >( array.getView(), workspace );
+   }
+
+private:
+   //! \brief Calls the radix sort implementation of the device of the view.
+   template< bool descending, typename Value, typename Device, typename Index, typename... Workspace >
+   void static radixSortDispatch( Containers::ArrayView< Value, Device, Index > view, Workspace&... workspace )
+   {
+      if constexpr( detail::isRadixSortHostDevice_v< Device > )
+         detail::radixSortHost< Value, Device, Index, descending >( view, workspace... );
+      else
+         detail::radixSort< Value, Device, Index, descending >( view, workspace... );
    }
 };
 

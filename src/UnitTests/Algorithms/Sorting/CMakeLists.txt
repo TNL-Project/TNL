@@ -1,5 +1,5 @@
 set(COMMON_TESTS isSortedTest)
-set(CPP_TESTS BubbleSortTest)
+set(CPP_TESTS BubbleSortTest RadixSortHostTest)
 set(CUDA_TESTS SorterTest RadixSortTest)
 set(HIP_TESTS SorterTest RadixSortTest)
 if(TNL_BUILD_CUDA)
