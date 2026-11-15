@@ -38,7 +38,7 @@ protected:
    const int rank = GetRank( communicator );
    const int nproc = GetSize( communicator );
 
-   // some arbitrary even value (but must be 0 if not distributed)
+   // some arbitrary even value (must be 0 for a single process)
    const int ghosts = ( nproc > 1 ) ? 4 : 0;
 
    DistributedArrayTest()
@@ -175,6 +175,49 @@ TYPED_TEST( DistributedArrayTest, setValueGhosts )
    }
 
    EXPECT_EQ( localArrayView, expected );
+}
+
+TYPED_TEST( DistributedArrayTest, ghostHaloValues )
+{
+   using IndexType = typename TestFixture::IndexType;
+
+   if( this->ghosts == 0 )
+      GTEST_SKIP() << "ghosts are not used with a single process";
+
+   // global indices make the halos differ even when both neighbours are the same process
+   const auto localRange = this->distributedArray.getLocalRange();
+   for( IndexType i = 0; i < localRange.getSize(); i++ ) {
+      const IndexType gi = localRange.getGlobalIndex( i );
+      this->distributedArray.setElement( gi, gi );
+   }
+   this->distributedArray.startSynchronization();
+   this->distributedArray.waitForSynchronization();
+
+   const auto localArrayView = this->distributedArray.getConstLocalViewWithGhosts();
+   for( int o = 0; o < this->ghosts / 2; o++ ) {
+      const IndexType left_i = localRange.getSize() + o;
+      const IndexType left_gi = ( ( this->rank > 0 ) ? localRange.getBegin() : this->globalSize ) - this->ghosts / 2 + o;
+      EXPECT_EQ( localArrayView.getElement( left_i ), left_gi );
+      const IndexType right_i = localRange.getSize() + this->ghosts / 2 + o;
+      const IndexType right_gi = ( ( this->rank < this->nproc - 1 ) ? localRange.getEnd() : 0 ) + o;
+      EXPECT_EQ( localArrayView.getElement( right_i ), right_gi );
+   }
+}
+
+TYPED_TEST( DistributedArrayTest, rejectGhostsWithSingleProcess )
+{
+   using DistributedArrayType = typename TestFixture::DistributedArrayType;
+   using IndexType = typename TestFixture::IndexType;
+   using LocalRangeType = typename DistributedArrayType::LocalRangeType;
+
+   if( this->nproc != 1 )
+      GTEST_SKIP() << "ghosts are allowed with multiple processes";
+
+   const LocalRangeType localRange = splitRange< IndexType >( this->globalSize, this->communicator );
+   EXPECT_THROW( DistributedArrayType( localRange, 4, this->globalSize, this->communicator ), std::invalid_argument );
+
+   DistributedArrayType array;
+   EXPECT_THROW( array.setDistribution( localRange, 4, this->globalSize, this->communicator ), std::invalid_argument );
 }
 
 TYPED_TEST( DistributedArrayTest, elementwiseAccess )

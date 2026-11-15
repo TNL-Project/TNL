@@ -55,3 +55,18 @@ tnl_add_test_executables(
 foreach(test IN ITEMS ${MPI_TESTS})
     tnl_add_test_executables(${test} MPI SOURCES ${test}.h)
 endforeach()
+
+# ghost synchronization must be tested with two processes, where the left and
+# right neighbours are the same process and the halos could get swapped
+tnl_add_mpi_test(
+    NAME DistributedArrayTest_nproc2
+    NPROC 2
+    COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedArrayTest${CMAKE_EXECUTABLE_SUFFIX}"
+)
+if(TNL_BUILD_CUDA)
+    tnl_add_mpi_test(
+        NAME DistributedArrayTest-cuda_nproc2
+        NPROC 2
+        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedArrayTest-cuda${CMAKE_EXECUTABLE_SUFFIX}"
+    )
+endif()
