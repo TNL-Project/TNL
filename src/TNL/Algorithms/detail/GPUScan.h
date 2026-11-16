@@ -26,6 +26,9 @@
  * details and references.
  */
 
+#include <map>
+#include <mutex>
+
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/Array.h>
@@ -44,6 +47,8 @@ namespace TNL::Algorithms::detail {
  *
  * \tparam blockSize  The CUDA block size to be used for kernel launch.
  * \tparam valuesPerThread  Number of elements processed by each thread sequentially.
+ * \tparam lookbackValuesPerThread  Number of elements processed by each thread
+ *         sequentially in the single-pass lookback kernel.
  */
 template<
    ScanType scanType,
@@ -53,7 +58,12 @@ template<
    // to keep shared memory requirements constant
    int blockSize = 256 * 4 / sizeof( ValueType ),
    // valuesPerThread should be odd to avoid shared memory bank conflicts
-   int valuesPerThread = 7 >
+   int valuesPerThread = 7,
+   // Larger tiles pay off in the lookback kernel, because fewer blocks have to
+   // wait for the prefixes of their predecessors. Measured on RTX 3060 for
+   // value types of 1-16 bytes: 15 is the best (or within noise) for types up
+   // to 8 bytes, 11 is the best for 16-byte types. It should be odd as well.
+   int lookbackValuesPerThread = ( sizeof( ValueType ) > 8 ? 11 : 15 ) >
 struct GPUScanKernelLauncher
 {
    /**
@@ -83,7 +93,9 @@ struct GPUScanKernelLauncher
       typename OutputArray::ValueType identity )
    {
       if( end - begin <= blockSize * valuesPerThread ) {
-         const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
+         // the result of the block is not needed, so blockResults are not allocated
+         performSingleBlock( input, output, begin, end, outputBegin, reduction, identity, nullptr );
+         gridsCount() = 1;
          return;
       }
 
@@ -113,10 +125,7 @@ struct GPUScanKernelLauncher
       Reduction&& reduction,
       typename OutputArray::ValueType identity )
    {
-      using Index = typename InputArray::IndexType;
-      const Index n = end - begin;
-
-      performLookbackImpl< valuesPerThread >(
+      performLookbackImpl< lookbackValuesPerThread >(
          input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
    }
 
@@ -135,20 +144,37 @@ struct GPUScanKernelLauncher
       constexpr int maxElementsInBlock = blockSize * elementsPerThread;
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
 
-      // Reuse a thread-local cache of the lookback states array across calls
-      // to avoid cudaMalloc/cudaFree churn. The cache grows as needed; when
-      // the requested size shrinks we keep the existing (larger) allocation
-      // and only reset the actually used prefix. Resetting is still required
-      // because the kernel reads predecessor statuses during the lookback
-      // walk and they must start as Invalid.
-      auto& states = lookbackStatesCache();
-      if( states.getSize() < numberOfBlocks ) {
-         states.setSize( numberOfBlocks );
+      // Reuse a cache of the lookback states array across calls to avoid
+      // cudaMalloc/cudaFree churn. The cache grows as needed; when the requested
+      // size shrinks we keep the existing (larger) allocation. Each call uses a
+      // new epoch, so the states written by previous calls are treated as
+      // Invalid by the kernel and the array does not have to be reset. It is
+      // reset only when it is (re)allocated and when the epoch would overflow.
+      // The cache is per device and the scans which use it are serialized by
+      // its mutex, which is held until the kernel finishes (it is launched
+      // synchronously), so the array cannot be reallocated or its epoch
+      // changed by another host thread while the kernel uses it.
+      auto& cache = lookbackCache();
+      std::lock_guard< std::mutex > lock( cache.mutex );
+      auto& states = cache.states;
+      auto& epoch = cache.epoch;
+      // the size of the array is never negative, so the comparison can be done in Index
+      // (which may be unsigned)
+      const bool grow = static_cast< Index >( states.getSize() ) < numberOfBlocks;
+      if( grow || epoch == maxLookbackEpoch ) {
+         if( grow )
+            states.setSize( numberOfBlocks );
+         Devices::GPU::LaunchConfiguration fillConfig;
+         fillConfig.blockHostUntilFinished = false;
+         Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize(), fillConfig );
+         epoch = 0;
+      }
+      epoch++;
+      if( cache.tileCounter.getSize() == 0 ) {
+         cache.tileCounter.setSize( 1 );
+         cache.tileCounter.setValue( 0 );
       }
 
-      Devices::GPU::LaunchConfiguration fillConfig;
-      fillConfig.blockHostUntilFinished = false;
-      Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, numberOfBlocks, fillConfig );
       constexpr auto kernel = GPUScanKernelLookback<
          scanType,
          blockSize,
@@ -172,9 +198,72 @@ struct GPUScanKernelLauncher
          outputBegin,
          reduction,
          identity,
-         states.getData() );
+         states.getData(),
+         epoch,
+         cache.tileCounter.getData(),
+         cache.tileCounterBase );
+      cache.tileCounterBase += numberOfBlocks;
 
       gridsCount() = 1;
+   }
+
+   /* Scans the input which fits into one tile using one CUDA block. The number
+    * of values per thread is chosen according to the size of the input. If
+    * blockResults is not null, the result of the block is stored in
+    * blockResults[ 0 ].
+    */
+   template< typename InputArray, typename OutputArray, typename Reduction >
+   static void
+   performSingleBlock(
+      const InputArray& input,
+      OutputArray& output,
+      typename InputArray::IndexType begin,
+      typename InputArray::IndexType end,
+      typename OutputArray::IndexType outputBegin,
+      Reduction&& reduction,
+      typename OutputArray::ValueType identity,
+      typename OutputArray::ValueType* blockResults )
+   {
+      if( end - begin <= blockSize )
+         performSingleBlockImpl< 1 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+      else if( end - begin <= blockSize * 3 )
+         performSingleBlockImpl< 3 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+      else if( end - begin <= blockSize * 5 )
+         performSingleBlockImpl< 5 >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+      else
+         performSingleBlockImpl< valuesPerThread >( input, output, begin, end, outputBegin, reduction, identity, blockResults );
+   }
+
+   template< int elementsPerThread, typename InputArray, typename OutputArray, typename Reduction >
+   static void
+   performSingleBlockImpl(
+      const InputArray& input,
+      OutputArray& output,
+      typename InputArray::IndexType begin,
+      typename InputArray::IndexType end,
+      typename OutputArray::IndexType outputBegin,
+      Reduction&& reduction,
+      typename OutputArray::ValueType identity,
+      typename OutputArray::ValueType* blockResults )
+   {
+      constexpr auto kernel = GPUScanKernelParallel<
+         scanType,
+         blockSize,
+         elementsPerThread,
+         typename InputArray::ConstViewType,
+         typename OutputArray::ViewType,
+         std::decay_t< Reduction > >;
+      Backend::launchKernelSync(
+         kernel,
+         Backend::LaunchConfiguration( 1, blockSize ),
+         input.getConstView(),
+         output.getView(),
+         begin,
+         end,
+         outputBegin,
+         reduction,
+         identity,
+         blockResults );
    }
 
    /**
@@ -213,90 +302,8 @@ struct GPUScanKernelLauncher
          blockResults.setElement( 0, identity );
 
          // run the kernel with just 1 block
-         if( end - begin <= blockSize ) {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               1,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
-         else if( end - begin <= blockSize * 3 ) {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               3,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
-         else if( end - begin <= blockSize * 5 ) {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               5,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
-         else {
-            constexpr auto kernel = GPUScanKernelParallel<
-               scanType,
-               blockSize,
-               valuesPerThread,
-               typename InputArray::ConstViewType,
-               typename OutputArray::ViewType,
-               Reduction >;
-            Backend::launchKernelSync(
-               kernel,
-               Backend::LaunchConfiguration( 1, blockSize ),
-               input.getConstView(),
-               output.getView(),
-               begin,
-               end,
-               outputBegin,
-               reduction,
-               identity,
-               // blockResults are shifted by 1, because the 0-th element should stay identity
-               &blockResults.getData()[ 1 ] );
-         }
+         // blockResults are shifted by 1, because the 0-th element should stay identity
+         performSingleBlock( input, output, begin, end, outputBegin, reduction, identity, &blockResults.getData()[ 1 ] );
 
          // Store the number of CUDA grids for the purpose of unit testing, i.e.
          // to check if we test the algorithm with more than one CUDA grid.
@@ -504,13 +511,34 @@ struct GPUScanKernelLauncher
       }
    }
 
-   // Per-instantiation cache of the lookback states array, reused across
-   // calls to performLookbackImpl to avoid cudaMalloc/cudaFree churn.
-   static Containers::Array< LookbackState< ValueType >, Devices::Cuda >&
-   lookbackStatesCache()
+   // Cache of the lookback states array, reused across calls to
+   // performLookbackImpl to avoid cudaMalloc/cudaFree churn.
+   struct LookbackCache
    {
-      static Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
-      return states;
+      std::mutex mutex;
+      Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
+      // epoch of the last scan which used the states, see LookbackStatus
+      unsigned int epoch = 0;
+      // counter used by the kernel to assign the tiles to the blocks; it is
+      // never reset, each scan uses the values starting at tileCounterBase
+      Containers::Array< unsigned long long, Devices::Cuda > tileCounter;
+      unsigned long long tileCounterBase = 0;
+   };
+
+   // Returns the per-instantiation cache for the active device. The caches are
+   // intentionally never destroyed: the destructor of the array would free the
+   // device memory at exit, when the GPU runtime may be already shut down (e.g.
+   // after cudaDeviceReset) and the resulting exception would terminate the
+   // program.
+   static LookbackCache&
+   lookbackCache()
+   {
+      static std::mutex mutex;
+      static auto* caches = new std::map< int, LookbackCache >;
+      const int device = Backend::getDevice();
+      std::lock_guard< std::mutex > lock( mutex );
+      // std::map does not invalidate references to its elements on insertion
+      return ( *caches )[ device ];
    }
 
    // The number of grids used by the last launch, which serves for checking
