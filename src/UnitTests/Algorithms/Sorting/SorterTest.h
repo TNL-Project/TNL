@@ -5,6 +5,7 @@
 #include <numeric>
 #include <random>
 #include <cstdlib>
+#include <cstdint>
 
 #include <TNL/Backend/DeviceInfo.h>
 #include <TNL/Containers/Array.h>
@@ -809,6 +810,77 @@ TEST( BitonicSortFetchAndSwap, narrowSignedIndex )
    TNL::Containers::Array< int, TNL::Devices::GPU, Index > arr( vec );
    fetchAndSwapSorter( arr.getView() );
    EXPECT_TRUE( Algorithms::isAscending( arr.getView() ) );
+}
+
+// Value types large enough to reduce the block size or to force the global memory fallback
+template< int Padding >
+struct LargeValue
+{
+   std::uint8_t m_data[ Padding ]{};
+   __cuda_callable__
+   LargeValue()
+   {
+      m_data[ 0 ] = 0;
+   }
+   __cuda_callable__
+   LargeValue( int val )
+   {
+      m_data[ 0 ] = static_cast< std::uint8_t >( val );
+   }
+   __cuda_callable__
+   bool
+   operator<( const LargeValue& other ) const
+   {
+      return m_data[ 0 ] < other.m_data[ 0 ];
+   }
+   // Assigning the whole padding inside the sorting kernels exceeds the
+   // launch resource limit for the 576 B case, so only the key is copied.
+   __cuda_callable__
+   LargeValue&
+   operator=( const LargeValue& other )
+   {
+      m_data[ 0 ] = other.m_data[ 0 ];
+      return *this;
+   }
+};
+
+template< int Padding >
+std::ostream&
+operator<<( std::ostream& out, const LargeValue< Padding >& data )
+{
+   return out << static_cast< unsigned >( data.m_data[ 0 ] );
+}
+
+template< int Padding >
+void
+sortLargeValues( int size, std::mt19937& rng )
+{
+   std::vector< LargeValue< Padding > > vec( size );
+   for( auto& x : vec )
+      x = LargeValue< Padding >( rng() % 256 );
+
+   TNL::Containers::Array< LargeValue< Padding >, TNL::Devices::GPU > arr( vec );
+   auto view = arr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for " << sizeof( LargeValue< Padding > ) << " B values";
+}
+
+TEST( BitonicSortLargeValue, value128B )
+{
+   std::mt19937 rng( 1 );
+   sortLargeValues< 128 >( 4096, rng );
+}
+
+TEST( BitonicSortLargeValue, value256B )
+{
+   std::mt19937 rng( 2 );
+   sortLargeValues< 256 >( 4096, rng );
+}
+
+TEST( BitonicSortLargeValue, value576B )
+{
+   std::mt19937 rng( 3 );
+   sortLargeValues< 576 >( 4096, rng );
 }
 
 #endif
