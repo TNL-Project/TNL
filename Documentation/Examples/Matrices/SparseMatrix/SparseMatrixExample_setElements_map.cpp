@@ -33,8 +33,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating matrices on CPU ...\n";
    setElementsExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ...\n";
-   setElementsExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating matrices on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   setElementsExample< TNL::Devices::GPU >();
 #endif
 }

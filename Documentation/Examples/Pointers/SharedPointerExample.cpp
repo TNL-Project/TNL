@@ -4,7 +4,7 @@
 
 using namespace TNL;
 
-using ArrayCuda = Containers::Array< int, Devices::Cuda >;
+using ArrayGPU = Containers::Array< int, Devices::GPU >;
 
 struct Tuple
 {
@@ -20,10 +20,10 @@ struct Tuple
       a2->setSize( size );
    }
 
-   Pointers::SharedPointer< ArrayCuda > a1, a2;
+   Pointers::SharedPointer< ArrayGPU > a1, a2;
 };
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
 __global__
 void
 printTuple( const Tuple t )
@@ -40,13 +40,13 @@ int
 main( int argc, char* argv[] )
 {
    /***
-    * Create a tuple of arrays and print them in CUDA kernel
+    * Create a tuple of arrays and print them in GPU kernel
     */
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    Tuple t( 3 );
    *t.a1 = 1;
    *t.a2 = 2;
-   Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
+   Pointers::synchronizeSmartPointersOnDevice< Devices::GPU >();
    printTuple<<< 1, 1 >>>( t );
 
    /***
@@ -55,7 +55,7 @@ main( int argc, char* argv[] )
    t.setSize( 5 );
    *t.a1 = 3;
    *t.a2 = 4;
-   Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
+   Pointers::synchronizeSmartPointersOnDevice< Devices::GPU >();
    printTuple<<< 1, 1 >>>( t );
 #endif
    return EXIT_SUCCESS;

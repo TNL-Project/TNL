@@ -6,7 +6,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -126,8 +126,8 @@ main( int argc, char* argv[] )
    std::cout << "Running on host:\n";
    reduceRowsWithArgumentExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "\nRunning on CUDA device:\n";
-   reduceRowsWithArgumentExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "\nRunning on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   reduceRowsWithArgumentExample< TNL::Devices::GPU >();
 #endif
 }

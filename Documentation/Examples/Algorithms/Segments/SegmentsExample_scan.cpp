@@ -125,9 +125,9 @@ main( int argc, char* argv[] )
    std::cout << "Running example on Host:\n";
    scanExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "\nRunning example on Cuda:\n";
-   scanExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "\nRunning example on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   scanExample< TNL::Devices::GPU >();
 #endif
 
    return 0;

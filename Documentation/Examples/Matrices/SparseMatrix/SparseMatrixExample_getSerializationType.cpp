@@ -17,8 +17,8 @@ main( int argc, char* argv[] )
    std::cout << "Get serialization type on CPU ...\n";
    getSerializationTypeExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Get serialization type on CUDA GPU ...\n";
-   getSerializationTypeExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Get serialization type on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   getSerializationTypeExample< TNL::Devices::GPU >();
 #endif
 }

@@ -1,10 +1,13 @@
 #include <iostream>
-#ifdef __CUDACC__
-   #include <cuda.h>
+#if defined( __CUDACC__ )
+   #include <cuda_runtime.h>
+#elif defined( __HIP__ )
+   #include <hip/hip_runtime.h>
 #endif
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
@@ -25,10 +28,15 @@ encapsulation()
       data = new double[ size * size ];
       memcpy( data, host_data, sizeof( double ) * size * size );
    }
-#ifdef __CUDACC__
-   else if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
-      cudaMalloc( (void**) &data, sizeof( double ) * size * size );
-      cudaMemcpy( data, host_data, sizeof( double ) * size * size, cudaMemcpyHostToDevice );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   else if( std::is_same_v< Device, TNL::Devices::GPU > ) {
+   #if defined( __CUDACC__ )
+      TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &data, sizeof( double ) * size * size ) );
+      TNL_BACKEND_SAFE_CALL( cudaMemcpy( data, host_data, sizeof( double ) * size * size, cudaMemcpyHostToDevice ) );
+   #else
+      TNL_BACKEND_SAFE_CALL( hipMalloc( (void**) &data, sizeof( double ) * size * size ) );
+      TNL_BACKEND_SAFE_CALL( hipMemcpy( data, host_data, sizeof( double ) * size * size, hipMemcpyHostToDevice ) );
+   #endif
    }
 #endif
 
@@ -56,9 +64,14 @@ encapsulation()
    delete[] host_data;
    if( std::is_same_v< Device, TNL::Devices::Host > )
       delete[] data;
-#ifdef __CUDACC__
-   else if( std::is_same_v< Device, TNL::Devices::Cuda > )
-      cudaFree( data );
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   else if( std::is_same_v< Device, TNL::Devices::GPU > ) {
+   #if defined( __CUDACC__ )
+      TNL_BACKEND_SAFE_CALL( cudaFree( data ) );
+   #else
+      TNL_BACKEND_SAFE_CALL( hipFree( data ) );
+   #endif
+   }
 #endif
 }
 
@@ -68,8 +81,8 @@ main( int argc, char* argv[] )
    std::cout << "Dense matrix encapsulation on host:\n";
    encapsulation< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Dense matrix encapsulation on CUDA device:\n";
-   encapsulation< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Dense matrix encapsulation on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   encapsulation< TNL::Devices::GPU >();
 #endif
 }

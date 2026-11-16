@@ -80,8 +80,8 @@ main( int argc, char* argv[] )
    std::cout << "Rows reduction on host:\n";
    reduceAllRows< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Rows reduction on CUDA device:\n";
-   reduceAllRows< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Rows reduction on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   reduceAllRows< TNL::Devices::GPU >();
 #endif
 }

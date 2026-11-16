@@ -51,13 +51,13 @@ main( int argc, char* argv[] )
    Array< int, Devices::Host > host_array;
    sort( host_array );
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    /***
     * And then also on GPU.
     */
    std::cout << "Sorting on GPU ...\n";
-   Array< int, Devices::Cuda > cuda_array;
-   sort( cuda_array );
+   Array< int, Devices::GPU > gpu_array;
+   sort( gpu_array );
 #endif
    return EXIT_SUCCESS;
 }

@@ -35,15 +35,15 @@ main( int argc, char* argv[] )
    std::cout << "host_v = " << host_v << '\n';
    std::cout << "The maximum norm of the host vector elements is " << maximumNorm( host_v ) << ".\n";
 
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_v( 10 );
-   cuda_v.forAllElements(
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_v( 10 );
+   gpu_v.forAllElements(
       [] __cuda_callable__( int i, double& value )
       {
          value = i - 7;
       } );
-   std::cout << "cuda_v = " << cuda_v << '\n';
-   std::cout << "The maximum norm of the CUDA vector elements is " << maximumNorm( cuda_v ) << ".\n";
+   std::cout << "gpu_v = " << gpu_v << '\n';
+   std::cout << "The maximum norm of the GPU vector elements is " << maximumNorm( gpu_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

@@ -2,7 +2,7 @@
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/MatrixWrapping.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -40,8 +40,8 @@ main( int argc, char* argv[] )
    std::cout << "Wrapping matrix view on host:\n";
    wrapMatrixView< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Wrapping matrix view on CUDA device:\n";
-   wrapMatrixView< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Wrapping matrix view on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   wrapMatrixView< TNL::Devices::GPU >();
 #endif
 }

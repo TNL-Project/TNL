@@ -5,7 +5,7 @@
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Segments >
 void
@@ -62,18 +62,18 @@ main( int argc, char* argv[] )
    std::cout << "Example of BiEllpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::BiEllpack< TNL::Devices::Host, int > >();
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    std::cout << "Example of CSR segments on host:\n";
-   SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
+   SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::GPU, int > >();
 
    std::cout << "Example of Ellpack segments on host:\n";
-   SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
+   SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::GPU, int > >();
 
    std::cout << "Example of ChunkedEllpack segments on host:\n";
-   SegmentsExample< TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Cuda, int > >();
+   SegmentsExample< TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::GPU, int > >();
 
    std::cout << "Example of BiEllpack segments on host:\n";
-   SegmentsExample< TNL::Algorithms::Segments::BiEllpack< TNL::Devices::Cuda, int > >();
+   SegmentsExample< TNL::Algorithms::Segments::BiEllpack< TNL::Devices::GPU, int > >();
 #endif
    return EXIT_SUCCESS;
 }

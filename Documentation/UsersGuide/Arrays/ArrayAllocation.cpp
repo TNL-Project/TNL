@@ -13,7 +13,7 @@ main( int argc, char* argv[] )
     * Create one array on host and one array on device.
     */
    Array< int > host_array( 10 );
-   Array< int, Devices::Cuda > device_array;
+   Array< int, Devices::GPU > device_array;
 
    /***
     * Initiate the host array with number three and assign it to the device array.
@@ -35,9 +35,9 @@ main( int argc, char* argv[] )
    std::list< int > list{ 1, 2, 3, 4, 5 };
    std::vector< int > vector{ 6, 7, 8, 9, 10 };
 
-   Array< int, Devices::Cuda > device_array_list( list );
-   Array< int, Devices::Cuda > device_array_vector( vector );
-   Array< int, Devices::Cuda > device_array_init_list{ 11, 12, 13, 14, 15 };
+   Array< int, Devices::GPU > device_array_list( list );
+   Array< int, Devices::GPU > device_array_vector( vector );
+   Array< int, Devices::GPU > device_array_init_list{ 11, 12, 13, 14, 15 };
 
    /****
     * ... and print them all

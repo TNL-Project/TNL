@@ -54,11 +54,11 @@ main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-#ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_v( 10 );
-   cuda_v = 1.0;
-   std::cout << "cuda_v = " << cuda_v << '\n';
-   std::cout << "The sum of the CUDA vector elements is " << sum( cuda_v ) << ".\n";
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   Vector< double, Devices::GPU > gpu_v( 10 );
+   gpu_v = 1.0;
+   std::cout << "gpu_v = " << gpu_v << '\n';
+   std::cout << "The sum of the GPU vector elements is " << sum( gpu_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

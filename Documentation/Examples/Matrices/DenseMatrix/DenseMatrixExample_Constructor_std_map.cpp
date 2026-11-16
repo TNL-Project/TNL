@@ -61,8 +61,8 @@ main( int argc, char* argv[] )
    std::cout << "Creating matrices on CPU ...\n";
    stdMapConstructorExample< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ...\n";
-   stdMapConstructorExample< TNL::Devices::Cuda >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Creating matrices on GPU (" << TNL::Backend::getBackendName() << ") ...\n";
+   stdMapConstructorExample< TNL::Devices::GPU >();
 #endif
 }

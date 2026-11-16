@@ -3,7 +3,7 @@
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Segments >
 void
@@ -57,13 +57,13 @@ main( int argc, char* argv[] )
    SegmentsExample<
       TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > > >();
 
-#ifdef __CUDACC__
-   std::cout << "Example of sorted CSR segments on CUDA GPU:\n";
-   SegmentsExample< TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > > >();
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   std::cout << "Example of sorted CSR segments on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   SegmentsExample< TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::CSR< TNL::Devices::GPU, int > > >();
 
-   std::cout << "Example of sorted Ellpack segments on CUDA GPU:\n";
+   std::cout << "Example of sorted Ellpack segments on GPU (" << TNL::Backend::getBackendName() << "):\n";
    SegmentsExample<
-      TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > > >();
+      TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::Ellpack< TNL::Devices::GPU, int > > >();
 #endif
    return EXIT_SUCCESS;
 }

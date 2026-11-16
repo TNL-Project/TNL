@@ -2,7 +2,7 @@
 #include <functional>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/GPU.h>
 
 template< typename Device >
 void
@@ -70,9 +70,9 @@ main( int argc, char* argv[] )
    std::cout << "Rows reduction on host:\n";
    reduceRows< TNL::Devices::Host >();
 
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    std::cout << '\n';
-   std::cout << "Rows reduction on CUDA device:\n";
-   reduceRows< TNL::Devices::Cuda >();
+   std::cout << "Rows reduction on GPU (" << TNL::Backend::getBackendName() << "):\n";
+   reduceRows< TNL::Devices::GPU >();
 #endif
 }

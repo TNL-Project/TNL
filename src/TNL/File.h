@@ -100,9 +100,9 @@ public:
     * The following example shows how to load data directly to GPU.
     *
     * \par Example
-    * \include FileExampleCuda.h
+    * \include FileExampleGPU.h
     * \par Output
-    * \include FileExampleCuda.out
+    * \include FileExampleGPU.out
     *
     * The following example shows how to do on-the-fly data conversion.
     *

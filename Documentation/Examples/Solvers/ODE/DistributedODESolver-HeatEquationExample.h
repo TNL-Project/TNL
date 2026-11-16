@@ -122,8 +122,8 @@ main( int argc, char* argv[] )
    file_name += ".out";
 
    solveHeatEquation< TNL::Devices::Host >( file_name.getString() );
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL::MPI::Barrier();
-   solveHeatEquation< TNL::Devices::Cuda >( file_name.getString() );
+   solveHeatEquation< TNL::Devices::GPU >( file_name.getString() );
 #endif
 }
