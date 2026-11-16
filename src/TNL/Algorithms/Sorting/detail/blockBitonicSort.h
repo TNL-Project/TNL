@@ -53,16 +53,16 @@ bitonicSort_Block(
    //------------------------------------------
    // Bitonic sort phase
    {
-      const Index paddedSize = closestPow2_ptx( src.getSize() );
+      const unsigned int logPaddedSize = closestPow2Log2( src.getSize() );
 
-      for( Index monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
-         for( Index bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
+      for( unsigned int logMonotonicSeqLen = 1; logMonotonicSeqLen <= logPaddedSize; ++logMonotonicSeqLen ) {
+         for( unsigned int logBitonicLen = logMonotonicSeqLen; logBitonicLen > 0; --logBitonicLen ) {
+            const Index halfBitonicLen = Index( 1 ) << ( logBitonicLen - 1 );
             // Iterate over all pairs in this bitonic merge step
             // Loop handles cases where src.size > blockDim.x*2 by simulating multiple blocks
             for( Index i = threadIdx.x;; i += blockDim.x ) {
-               Index halfBitonicLen = bitonicLen / 2;
-               Index p = i / halfBitonicLen;
-               Index s = p * bitonicLen + ( i & ( halfBitonicLen - 1 ) );
+               Index p = i >> ( logBitonicLen - 1 );
+               Index s = ( p << logBitonicLen ) | ( i & ( halfBitonicLen - 1 ) );
                Index e = s + halfBitonicLen;
 
                // Bounds check - avoid touching virtual padding
@@ -70,11 +70,10 @@ bitonicSort_Block(
                   break;
 
                // Determine sorting direction
-               Index halfMonotonicSeqLen = monotonicSeqLen / 2;
-               Index monotonicSeqIdx = i / halfMonotonicSeqLen;
+               Index monotonicSeqIdx = i >> ( logMonotonicSeqLen - 1 );
                bool ascending = ( monotonicSeqIdx & 1 ) != 0;
                // Special case: last part has no "partner"
-               if( ( monotonicSeqIdx + 1 ) * monotonicSeqLen >= src.getSize() )
+               if( ( monotonicSeqIdx + 1 ) << logMonotonicSeqLen >= src.getSize() )
                   ascending = true;
 
                if( ascending == compare( sharedMem[ e ], sharedMem[ s ] ) )
@@ -106,16 +105,16 @@ __device__
 void
 bitonicSort_Block( Containers::ArrayView< Value, Devices::GPU, Index > src, const CMP& compare )
 {
-   const Index paddedSize = closestPow2_ptx( src.getSize() );
+   const unsigned int logPaddedSize = closestPow2Log2( src.getSize() );
 
-   for( Index monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
-      for( Index bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
+   for( unsigned int logMonotonicSeqLen = 1; logMonotonicSeqLen <= logPaddedSize; ++logMonotonicSeqLen ) {
+      for( unsigned int logBitonicLen = logMonotonicSeqLen; logBitonicLen > 0; --logBitonicLen ) {
+         const Index halfBitonicLen = Index( 1 ) << ( logBitonicLen - 1 );
          // Iterate over all pairs in this bitonic merge step
          // Loop handles cases where src.size > blockDim.x*2 by simulating multiple blocks
          for( Index i = threadIdx.x;; i += blockDim.x ) {
-            Index halfBitonicLen = bitonicLen / 2;
-            Index p = i / halfBitonicLen;
-            Index s = p * bitonicLen + ( i & ( halfBitonicLen - 1 ) );
+            Index p = i >> ( logBitonicLen - 1 );
+            Index s = ( p << logBitonicLen ) | ( i & ( halfBitonicLen - 1 ) );
             Index e = s + halfBitonicLen;
 
             // Bounds check - avoid touching virtual padding
@@ -123,11 +122,10 @@ bitonicSort_Block( Containers::ArrayView< Value, Devices::GPU, Index > src, cons
                break;
 
             // Determine sorting direction
-            Index halfMonotonicSeqLen = monotonicSeqLen / 2;
-            Index monotonicSeqIdx = i / halfMonotonicSeqLen;
+            Index monotonicSeqIdx = i >> ( logMonotonicSeqLen - 1 );
             bool ascending = ( monotonicSeqIdx & 1 ) != 0;
             // Special case: last part has no "partner"
-            if( ( monotonicSeqIdx + 1 ) * monotonicSeqLen >= src.getSize() )
+            if( ( monotonicSeqIdx + 1 ) << logMonotonicSeqLen >= src.getSize() )
                ascending = true;
 
             if( ascending == compare( src[ e ], src[ s ] ) )
