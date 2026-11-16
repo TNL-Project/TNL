@@ -1016,6 +1016,11 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_view )
 // scans with a mutex. Each thread scans its own array with a different value,
 // so mixing the states of different scans would change the results (or the
 // kernel would wait forever for a state of another scan).
+//
+// is_memcpy_copyable gates CustomScalar out of the lookback (see GPUScan.h),
+// so for CustomScalar this test instead exercises the concurrent two-phase
+// fallback and its own block-shifts cache - still a meaningful check of
+// concurrent host threads, just not of the lookback kernel itself.
 TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
 {
    using ArrayType = typename TestFixture::ArrayType;
