@@ -811,6 +811,75 @@ TEST( BitonicSortFetchAndSwap, narrowSignedIndex )
    EXPECT_TRUE( Algorithms::isAscending( arr.getView() ) );
 }
 
+// Value types large enough to reduce the block size or to force the global memory fallback
+template< int Padding >
+struct LargeValue
+{
+   uint8_t m_data[ Padding ];
+   __cuda_callable__
+   LargeValue()
+   {
+      m_data[ 0 ] = 0;
+   }
+   __cuda_callable__
+   LargeValue( int val )
+   {
+      m_data[ 0 ] = static_cast< uint8_t >( val );
+   }
+   __cuda_callable__
+   bool
+   operator<( const LargeValue& other ) const
+   {
+      return m_data[ 0 ] < other.m_data[ 0 ];
+   }
+   __cuda_callable__
+   LargeValue&
+   operator=( const LargeValue& other )
+   {
+      m_data[ 0 ] = other.m_data[ 0 ];
+      return *this;
+   }
+};
+
+template< int Padding >
+std::ostream&
+operator<<( std::ostream& out, const LargeValue< Padding >& data )
+{
+   return out << static_cast< unsigned >( data.m_data[ 0 ] );
+}
+
+template< int Padding >
+void
+sortLargeValues( int size, std::mt19937& rng )
+{
+   std::vector< LargeValue< Padding > > vec( size );
+   for( auto& x : vec )
+      x = LargeValue< Padding >( rng() % 512 );
+
+   TNL::Containers::Array< LargeValue< Padding >, TNL::Devices::GPU > arr( vec );
+   auto view = arr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for " << sizeof( LargeValue< Padding > ) << " B values";
+}
+
+TEST( BitonicSortLargeValue, blockSize128 )
+{
+   std::mt19937 rng( 1 );
+   sortLargeValues< 128 >( 4096, rng );
+}
+
+TEST( BitonicSortLargeValue, blockSize64 )
+{
+   std::mt19937 rng( 2 );
+   sortLargeValues< 256 >( 4096, rng );
+}
+
+TEST( BitonicSortLargeValue, globalFallback )
+{
+   std::mt19937 rng( 3 );
+   sortLargeValues< 576 >( 4096, rng );
+}
+
 #endif
 
 #include "../../main.h"
