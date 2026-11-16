@@ -183,7 +183,7 @@ bitonicSortFirstStepSharedMemory( Containers::ArrayView< Value, Devices::GPU, Ar
    int sharedMemLen = 2 * blockDim.x;
 
    // Range of elements this block processes
-   Index myBlockStart = blockIdx.x * sharedMemLen;
+   Index myBlockStart = static_cast< Index >( blockIdx.x ) * static_cast< Index >( sharedMemLen );
    Index myBlockEnd = TNL::min( arr.getSize(), myBlockStart + sharedMemLen );
 
    // Copy from global memory to shared memory
