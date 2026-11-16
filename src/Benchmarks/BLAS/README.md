@@ -17,8 +17,8 @@ The benchmark consists of three parts:
    including host-to-device and device-to-host copies.
 2. **Vector operations** measure reductions and in-place operations on
    `TNL::Containers::Vector`: `max`, `min`, `absMax`, `absMin`, `sum`, l1, l2, and l3 norms,
-   scalar product, scalar multiplication, addition of one, two, or three vectors, and inclusive
-   and exclusive scans (in-place and with one, two, or three input vectors).
+   scalar product, scalar multiplication, and addition of one, two, or three vectors. The scans
+   (prefix sums) are measured by the separate scan benchmark (`src/Benchmarks/Scan`).
 3. **Triad** (GPU builds only) measures the STREAM-triad operation `a[i] = b[i] + scalar * c[i]`
    combined with copying the input data from the host memory to the device and the result back.
    The variants differ in the memory allocation used: pageable, pinned, zero-copy, and unified
@@ -29,16 +29,19 @@ The benchmark consists of three parts:
 Depending on the operation, the following implementations are measured:
 
 - TNL legacy static functions (`CommonVectorOperations`, `VectorOperations`),
-- TNL expression templates, labeled `ET`,
+- TNL expression templates, labeled `ET` where they are compared with other TNL implementations,
 - TNL `Algorithms::parallelFor` kernels,
 - TNL `Containers::linearCombination` expressions,
 - C++ standard library algorithms (`std::max_element`, `std::min_element`, `std::reduce`,
-  `std::transform_reduce`, `std::partial_sum`, `std::inclusive_scan`, `std::exclusive_scan`),
-  executed with parallel execution policies when TBB is available,
+  `std::transform_reduce`),
+  executed with parallel execution policies when TBB is available (they are then reported on the
+  `host` device, otherwise on the `sequential` device),
 - reference BLAS routines via the CBLAS interface on the host, when a BLAS library with the CBLAS
   interface is found at build time,
 - cuBLAS on CUDA GPUs or hipBLAS on AMD GPUs,
-- Thrust host and device algorithms, when Thrust is available at build time.
+- Thrust host and device algorithms, when Thrust is available at build time. The host algorithms
+  are reported on the `host` device when the Thrust host backend is parallel (TBB or OpenMP),
+  otherwise on the `sequential` device.
 
 The optional comparisons (reference BLAS, TBB, Thrust) are enabled automatically when the
 respective library is found by CMake during configuration.
@@ -63,6 +66,7 @@ The benchmark-specific options are:
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--precision <type>` | Precision of the arithmetics (`float`, `double`, or `all`) | `double` |
+| `--device <device>` | Device to run the benchmarks on (`sequential`, `host`, `cuda`, `hip`, or `all`) | `all` |
 | `--min-size <n>` | Minimum size of arrays/vectors used in the benchmark | `100000` |
 | `--max-size <n>` | Maximum size of arrays/vectors used in the benchmark | `10000000` |
 | `--size-step-factor <n>` | Factor determining the size of arrays/vectors used in the benchmark. First size is `min-size` and each following size is `size-step-factor * previous size`, up to `max-size` | `2` |
@@ -70,6 +74,10 @@ The benchmark-specific options are:
 The value of `--size-step-factor` must be greater than 1. Note that the step factor applies only
 to the vector operations; the array operations and the triad always double the array size between
 two measurements.
+
+For each precision, the benchmarks are run for one device after another: first the sequential
+ones, then the host ones, and finally the GPU ones. The array operations and the triad have no
+sequential variants.
 
 In addition, the common benchmark settings (e.g. `--loops`, `--log-file`, `--verbose`) and the
 device settings (`--openmp-enabled`, `--openmp-max-threads` and `--cuda-device` or
@@ -91,3 +99,10 @@ just build tnl-benchmark-blas-cuda
 
 The benchmark outputs timing measurements in the JSONL format to the log file
 (`<program>.log` by default) and prints a summary table to the terminal.
+
+The log can be converted to an HTML report with tables and plots by the general tool
+`src/Tools/tnl-benchmark-to-html.py`:
+
+```bash
+src/Tools/tnl-benchmark-to-html.py tnl-benchmark-blas-cuda.log
+```
