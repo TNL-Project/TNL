@@ -6,11 +6,55 @@
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/Array.h>
+#include <TNL/TypeTraits.h>
+#include <TNL/Algorithms/fill.h>
 #include "ScanType.h"
 
 namespace TNL::Algorithms::detail {
 
+/* Status flags used in the decoupled lookback synchronisation between CUDA
+ * blocks. Each block publishes its per-block aggregate first, optionally
+ * followed by its prefix once all predecessor aggregates are known. Other
+ * blocks spin on these flags to consume the partial results.
+ *
+ * It is used in CudaScanKernelLookback function.
+ */
+enum class LookbackStatus : int
+{
+   Invalid = 0,    // block has not published anything yet
+   Aggregate = 1,  // block has published its per-block aggregate only
+   Prefix = 2,     // block has published its complete prefix
+};
+
+/* Per-block state published in global memory for the decoupled lookback
+ * synchronisation. One entry is allocated per CUDA block.
+ *
+ * The 128-byte alignment matches the GPU cache-line size on recent NVIDIA
+ * architectures. It guarantees that no two blocks ever share a cache line,
+ * preventing false sharing between concurrent atomicExch/atomicAdd operations
+ * issued by independent blocks. Without it, an atomic write from one block
+ * would invalidate the cache line also holding another block's state, forcing
+ * redundant memory traffic and serialising otherwise independent blocks.
+ *
+ * It is used in CudaScanKernelLookback function.
+ */
+template< typename ValueType >
+struct alignas( 128 ) LookbackState
+{
+   int status = static_cast< int >( LookbackStatus::Invalid );
+   ValueType aggregate{};  // written once in 5a, never overwritten
+   ValueType prefix{};     // written once in 5c, never overwritten
+};
+
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+
+// 16-byte vector type used for vectorized loads/stores in the lookback scan
+// kernel. int4 is available on all CUDA targets and supports all value types
+// whose sizeof divides 16 (1, 2, 4, 8, 16 bytes).
+struct alignas( 16 ) Vec4
+{
+   int x, y, z, w;
+};
 
 // Keeping the following storage structures outside of CudaScan objects make
 // them independent of the scan operation type. This allows to reuse the same
@@ -32,7 +76,7 @@ struct CudaScanShflStorage
 template< typename ValueType, typename BlockStorage, int BlockSize, int ValuesPerThread >
 struct CudaTileScanStorage
 {
-   ValueType data[ BlockSize * ValuesPerThread ];
+   alignas( 16 ) ValueType data[ BlockSize * ValuesPerThread ];
    BlockStorage blockScanStorage;
 };
 
@@ -82,7 +126,7 @@ struct CudaBlockScan
       const int lane_id = tid % Backend::getWarpSize();
       const int warp_id = tid / Backend::getWarpSize();
       auto warp = cg::tiled_partition< Backend::getWarpSize() >( cg::this_thread_block() );
-      #pragma unroll
+   #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          ValueType result;
          if( lane_id >= stride )
@@ -103,7 +147,7 @@ struct CudaBlockScan
 
       // perform the scan of warpResults using one warp
       if( warp_id == 0 ) {
-         #pragma unroll
+   #pragma unroll
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             ValueType result;
             if( lane_id >= stride )
@@ -201,8 +245,8 @@ struct CudaBlockScanShfl
    static ValueType
    warpScan( const Reduction& reduction, ValueType identity, ValueType threadValue, int lane_id, ValueType& total )
    {
-      // perform an inclusive scan
-      #pragma unroll
+   // perform an inclusive scan
+   #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          const ValueType otherValue = Backend::warp_shuffle_up( threadValue, stride );
          if( lane_id >= stride )
@@ -343,7 +387,7 @@ struct CudaTileScan
       // Perform sequential reduction of the thread's chunk in shared memory.
       const int chunkOffset = threadIdx.x * valuesPerThread;
       ValueType value = storage.data[ chunkOffset ];
-      #pragma unroll
+   #pragma unroll
       for( int i = 1; i < valuesPerThread; i++ )
          value = reduction( value, storage.data[ chunkOffset + i ] );
 
@@ -353,8 +397,8 @@ struct CudaTileScan
       // Apply the global shift.
       value = reduction( value, shift );
 
-      // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
-      #pragma unroll
+   // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
+   #pragma unroll
       for( int i = 0; i < valuesPerThread; i++ ) {
          const ValueType inputValue = storage.data[ chunkOffset + i ];
          if( scanType == ScanType::Exclusive )
@@ -569,6 +613,239 @@ CudaScanKernelUniformShift(
 #endif
 }
 
+/* CudaScanKernelLookback - single-pass parallel prefix scan using decoupled
+ * lookback synchronisation between CUDA blocks. Each block computes its local
+ * scan and per-block aggregate, publishes the aggregate via the LookbackState
+ * array, then walks predecessor aggregates to assemble its own prefix. Blocks
+ * that finish their prefix early advertise it so later blocks can stop the
+ * lookback walk sooner. No second kernel launch is needed.
+ *
+ * Reference: D. Merrill and M. Garland, "Single-pass Parallel Prefix Sum with
+ * Decoupled Lookback", NVIDIA Research 2016.
+ * https://research.nvidia.com/publication/2016-03_Single-pass-Parallel-Prefix-Sum-Decoupled-Lookback
+ */
+template<
+   ScanType scanType,
+   int blockSize,
+   int valuesPerThread,
+   typename InputView,
+   typename OutputView,
+   typename Reduction,
+   typename ValueType >
+__global__
+void
+CudaScanKernelLookback(
+   const InputView input,
+   OutputView output,
+   typename InputView::IndexType begin,
+   typename InputView::IndexType end,
+   typename OutputView::IndexType outputBegin,
+   Reduction reduction,
+   ValueType identity,
+   LookbackState< ValueType >* states )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using TileScan = CudaTileScan< scanType, blockSize, valuesPerThread, Reduction, ValueType >;
+   using BlockScan = CudaBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
+
+   __shared__ Backend::Uninitialized< typename TileScan::Storage > tileStorage;
+   __shared__ Backend::Uninitialized< ValueType > sharedAggregateStorage;
+   __shared__ Backend::Uninitialized< ValueType > sharedPrefixStorage;
+
+   constexpr int maxElementsInBlock = blockSize * valuesPerThread;
+   const int remainingElements = end - begin - blockIdx.x * maxElementsInBlock;
+   const int elementsInBlock = TNL::min( remainingElements, maxElementsInBlock );
+
+   const int threadOffset = blockIdx.x * maxElementsInBlock + threadIdx.x;
+   begin += threadOffset;
+   outputBegin += threadOffset;
+
+   auto& storage = tileStorage.get();
+   auto& sharedAggregate = sharedAggregateStorage.get();
+   auto& sharedPrefix = sharedPrefixStorage.get();
+
+   // Phase 1: strided load of the block tile into shared memory; pad the
+   // remainder with identity so the last block runs the same code path.
+   // Vectorized int4 loads (16 bytes) cut load instructions for contiguous
+   // arrays whose value type size divides 16. When the tile origin is not
+   // 16-byte aligned (e.g. scan of a sub-array with an unaligned begin), the
+   // unaligned prefix and suffix are loaded scalarly and only the aligned
+   // middle uses Vec4 loads (with scalar shared stores, since the middle does
+   // not start at a 16B boundary in shared memory). Expression templates fall
+   // back to the fully scalar path (no getData()). frontPeel is uniform across
+   // the block, so no warp divergence.
+   {
+      constexpr bool canVectorize = ( sizeof( ValueType ) == 1 || sizeof( ValueType ) == 2 || sizeof( ValueType ) == 4
+                                      || sizeof( ValueType ) == 8 || sizeof( ValueType ) == 16 )
+                                 && 16 % sizeof( ValueType ) == 0 && IsArrayType< InputView >::value;
+      if constexpr( canVectorize ) {
+         constexpr int vecWidth = 16 / sizeof( ValueType );
+         const int tileOrigin = begin - threadIdx.x;
+         const int frontPeel = ( vecWidth - ( tileOrigin % vecWidth ) ) % vecWidth;
+         const int actualFrontPeel = frontPeel < elementsInBlock ? frontPeel : elementsInBlock;
+         const int alignedVecs = ( elementsInBlock - actualFrontPeel ) / vecWidth;
+         const int alignedEnd = actualFrontPeel + alignedVecs * vecWidth;
+
+         // Scalar load: unaligned front peel (0 to vecWidth-1 elements)
+         for( int i = threadIdx.x; i < actualFrontPeel; i += blockDim.x )
+            storage.data[ i ] = input[ tileOrigin + i ];
+
+         // Vec4 load from aligned global address + scalar shared stores.
+         // storage.data[actualFrontPeel] is not 16B aligned when actualFrontPeel
+         // is not a multiple of vecWidth, so we store component-by-component.
+         if( alignedVecs > 0 ) {
+            const Vec4* inputVec = reinterpret_cast< const Vec4* >( input.getData() + tileOrigin + actualFrontPeel );
+            for( int v = threadIdx.x; v < alignedVecs; v += blockDim.x ) {
+               const Vec4 vec = inputVec[ v ];
+               const ValueType* vals = reinterpret_cast< const ValueType* >( &vec );
+   #pragma unroll
+               for( int c = 0; c < vecWidth; c++ )
+                  storage.data[ actualFrontPeel + v * vecWidth + c ] = vals[ c ];
+            }
+         }
+
+         // Scalar load: unaligned tail (0 to vecWidth-1 elements)
+         for( int i = alignedEnd + threadIdx.x; i < elementsInBlock; i += blockDim.x )
+            storage.data[ i ] = input[ tileOrigin + i ];
+
+         // Identity padding
+         for( int i = elementsInBlock + threadIdx.x; i < maxElementsInBlock; i += blockDim.x )
+            storage.data[ i ] = identity;
+      }
+      else {
+         int idx = threadIdx.x;
+         while( idx < elementsInBlock ) {
+            storage.data[ idx ] = input[ begin ];
+            begin += blockDim.x;
+            idx += blockDim.x;
+         }
+         while( idx < maxElementsInBlock ) {
+            storage.data[ idx ] = identity;
+            idx += blockDim.x;
+         }
+      }
+   }
+   __syncthreads();
+
+   // Phase 2: per-thread local reduction over its valuesPerThread chunk.
+   const int chunkOffset = threadIdx.x * valuesPerThread;
+   ValueType chunkSum = storage.data[ chunkOffset ];
+   #pragma unroll
+   for( int i = 1; i < valuesPerThread; i++ )
+      chunkSum = reduction( chunkSum, storage.data[ chunkOffset + i ] );
+
+   // Phase 3: cooperative block-wide exclusive scan of the per-thread chunk
+   // sums; exclusivePrefix is the sum of all chunks before this thread.
+   ValueType exclusivePrefix = BlockScan::scan( reduction, identity, chunkSum, threadIdx.x, storage.blockScanStorage );
+
+   // Phase 4: the last thread publishes the block aggregate (sum of all
+   // elements in the block) via shared memory.
+   if( threadIdx.x == blockSize - 1 )
+      sharedAggregate = reduction( exclusivePrefix, chunkSum );
+   __syncthreads();
+
+   // Phase 5: decoupled lookback - performed by thread 0 only.
+   if( threadIdx.x == 0 ) {
+      ValueType blockAggregate = sharedAggregate;
+
+      // 5a: publish the block aggregate, then flip the status from Invalid to
+      // Aggregate so successors can start consuming it.
+      states[ blockIdx.x ].aggregate = blockAggregate;
+      __threadfence();
+      atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Aggregate ) );
+
+      // 5b: walk predecessors right-to-left, accumulating their aggregates.
+      // Stop as soon as a predecessor advertises Prefix (its prefix field
+      // already contains the sum of all blocks up to and including it).
+      ValueType prefix = identity;
+      for( int pred = blockIdx.x - 1; pred >= 0; pred-- ) {
+         int status;
+         do {
+            status = atomicAdd( &states[ pred ].status, 0 );
+         } while( status == static_cast< int >( LookbackStatus::Invalid ) );
+
+         ValueType predValue =
+            ( status == static_cast< int >( LookbackStatus::Prefix ) ) ? states[ pred ].prefix : states[ pred ].aggregate;
+         prefix = reduction( predValue, prefix );
+
+         if( status == static_cast< int >( LookbackStatus::Prefix ) )
+            break;
+      }
+
+      // 5c: publish the inclusive prefix (sum up to and including this block)
+      // so successors can stop their walk early. sharedPrefix stays exclusive
+      // (sum of previous blocks only) to avoid double-counting in Phase 6.
+      states[ blockIdx.x ].prefix = reduction( prefix, blockAggregate );
+      __threadfence();
+      atomicExch( &states[ blockIdx.x ].status, static_cast< int >( LookbackStatus::Prefix ) );
+
+      sharedPrefix = prefix;
+   }
+   __syncthreads();
+
+   // Phase 6: combine the block-wide prefix with the per-thread exclusive
+   // prefix and write the final scan values back into shared memory.
+   ValueType value = reduction( exclusivePrefix, sharedPrefix );
+
+   #pragma unroll
+   for( int i = 0; i < valuesPerThread; i++ ) {
+      const ValueType inputValue = storage.data[ chunkOffset + i ];
+      if( scanType == ScanType::Exclusive )
+         storage.data[ chunkOffset + i ] = value;
+      value = reduction( value, inputValue );
+      if( scanType == ScanType::Inclusive )
+         storage.data[ chunkOffset + i ] = value;
+   }
+   __syncthreads();
+   // Phase 7: strided store of the scanned tile back to global memory.
+   // Mirrors Phase 1: peel front/back scalarly, Vec4 global stores for the
+   // aligned middle (with scalar shared reads, since the middle does not
+   // start at a 16B boundary in shared memory).
+   {
+      constexpr bool canVectorize = ( sizeof( ValueType ) == 1 || sizeof( ValueType ) == 2 || sizeof( ValueType ) == 4
+                                      || sizeof( ValueType ) == 8 || sizeof( ValueType ) == 16 )
+                                 && 16 % sizeof( ValueType ) == 0 && IsArrayType< OutputView >::value;
+      if constexpr( canVectorize ) {
+         constexpr int vecWidth = 16 / sizeof( ValueType );
+         const int outputTileOrigin = outputBegin - threadIdx.x;
+         const int frontPeel = ( vecWidth - ( outputTileOrigin % vecWidth ) ) % vecWidth;
+         const int actualFrontPeel = frontPeel < elementsInBlock ? frontPeel : elementsInBlock;
+         const int alignedVecs = ( elementsInBlock - actualFrontPeel ) / vecWidth;
+         const int alignedEnd = actualFrontPeel + alignedVecs * vecWidth;
+
+         // Scalar store: unaligned front peel
+         for( int i = threadIdx.x; i < actualFrontPeel; i += blockDim.x )
+            output[ outputTileOrigin + i ] = storage.data[ i ];
+
+         // Scalar shared reads + Vec4 global store: aligned middle
+         if( alignedVecs > 0 ) {
+            Vec4* outputVec = reinterpret_cast< Vec4* >( output.getData() + outputTileOrigin + actualFrontPeel );
+            for( int v = threadIdx.x; v < alignedVecs; v += blockDim.x ) {
+               Vec4 vec;
+               ValueType* vals = reinterpret_cast< ValueType* >( &vec );
+   #pragma unroll
+               for( int c = 0; c < vecWidth; c++ )
+                  vals[ c ] = storage.data[ actualFrontPeel + v * vecWidth + c ];
+               outputVec[ v ] = vec;
+            }
+         }
+
+         // Scalar store: unaligned tail
+         for( int i = alignedEnd + threadIdx.x; i < elementsInBlock; i += blockDim.x )
+            output[ outputTileOrigin + i ] = storage.data[ i ];
+      }
+      else {
+         int idx = threadIdx.x;
+         while( idx < elementsInBlock ) {
+            output[ outputBegin ] = storage.data[ idx ];
+            outputBegin += blockDim.x;
+            idx += blockDim.x;
+         }
+      }
+   }
+#endif
+}
+
 /**
  * \brief Launcher for CUDA scan kernels.
  *
@@ -612,13 +889,99 @@ struct CudaScanKernelLauncher
       Reduction&& reduction,
       typename OutputArray::ValueType identity )
    {
-      const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
-
-      // if the first-phase kernel was launched with just one block, skip the second phase
-      if( blockShifts.getSize() <= 2 )
+      if( end - begin <= blockSize * valuesPerThread ) {
+         const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
          return;
+      }
 
-      performSecondPhase( input, output, blockShifts, begin, end, outputBegin, reduction, identity, identity );
+      using Index = typename InputArray::IndexType;
+      constexpr int maxElementsInBlock = blockSize * valuesPerThread;
+      const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
+      const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
+
+      if( numberOfGrids == 1 ) {
+         performLookback( input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+         return;
+      }
+
+      const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity );
+      if( blockShifts.getSize() > 2 )
+         performSecondPhase( input, output, blockShifts, begin, end, outputBegin, reduction, identity, identity );
+   }
+
+   template< typename InputArray, typename OutputArray, typename Reduction >
+   static void
+   performLookback(
+      const InputArray& input,
+      OutputArray& output,
+      typename InputArray::IndexType begin,
+      typename InputArray::IndexType end,
+      typename InputArray::IndexType outputBegin,
+      Reduction&& reduction,
+      typename OutputArray::ValueType identity )
+   {
+      using Index = typename InputArray::IndexType;
+      const Index n = end - begin;
+
+      performLookbackImpl< valuesPerThread >(
+         input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+   }
+
+   template< int elementsPerThread, typename InputArray, typename OutputArray, typename Reduction >
+   static void
+   performLookbackImpl(
+      const InputArray& input,
+      OutputArray& output,
+      typename InputArray::IndexType begin,
+      typename InputArray::IndexType end,
+      typename InputArray::IndexType outputBegin,
+      Reduction&& reduction,
+      typename OutputArray::ValueType identity )
+   {
+      using Index = typename InputArray::IndexType;
+      constexpr int maxElementsInBlock = blockSize * elementsPerThread;
+      const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
+
+      // Reuse a thread-local cache of the lookback states array across calls
+      // to avoid cudaMalloc/cudaFree churn. The cache grows as needed; when
+      // the requested size shrinks we keep the existing (larger) allocation
+      // and only reset the actually used prefix. Resetting is still required
+      // because the kernel reads predecessor statuses during the lookback
+      // walk and they must start as Invalid.
+      auto& states = lookbackStatesCache();
+      if( states.getSize() < numberOfBlocks ) {
+         states.setSize( numberOfBlocks );
+      }
+
+      Devices::GPU::LaunchConfiguration fillConfig;
+      fillConfig.blockHostUntilFinished = false;
+      Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, numberOfBlocks, fillConfig );
+      constexpr auto kernel = CudaScanKernelLookback<
+         scanType,
+         blockSize,
+         elementsPerThread,
+         typename InputArray::ConstViewType,
+         typename OutputArray::ViewType,
+         std::decay_t< Reduction >,
+         ValueType >;
+
+      Backend::LaunchConfiguration launch_config;
+      launch_config.blockSize.x = blockSize;
+      launch_config.gridSize.x = numberOfBlocks;
+
+      Backend::launchKernelSync(
+         kernel,
+         launch_config,
+         input.getConstView(),
+         output.getView(),
+         begin,
+         end,
+         outputBegin,
+         reduction,
+         identity,
+         states.getData() );
+
+      gridsCount() = 1;
    }
 
    /**
@@ -818,11 +1181,7 @@ struct CudaScanKernelLauncher
             }
          }
 
-         // synchronize the null-stream after all grids
-         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
-
-         // blockResults now contains scan results for each block. The first phase
-         // ends by computing an exclusive scan of this array.
+         // No sync needed: null-stream kernel launches are implicitly ordered.
          CudaScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::perform(
             blockResults, blockResults, 0, blockResults.getSize(), 0, reduction, identity );
 
@@ -950,6 +1309,15 @@ struct CudaScanKernelLauncher
          // synchronize the null-stream after all grids
          Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
       }
+   }
+
+   // Per-instantiation cache of the lookback states array, reused across
+   // calls to performLookbackImpl to avoid cudaMalloc/cudaFree churn.
+   static Containers::Array< LookbackState< ValueType >, Devices::Cuda >&
+   lookbackStatesCache()
+   {
+      static Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
+      return states;
    }
 
    // The number of grids used by the last launch, which serves for checking
