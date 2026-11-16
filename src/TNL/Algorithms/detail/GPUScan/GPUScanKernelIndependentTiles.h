@@ -3,8 +3,8 @@
 
 #pragma once
 
-/* GPUScanKernelParallel - independent scan of the input tiles (the first phase
- * of the "scan-then-propagate" strategy).
+/* GPUScanKernelIndependentTiles - independent scan of the input tiles (the
+ * first phase of the "scan-then-propagate" strategy).
  *
  * Each CUDA block scans its tile of blockSize * valuesPerThread elements with
  * GPUTileScan, writes the scanned tile to the output, and stores the block
@@ -20,8 +20,8 @@
  *   grid or the scan is performed in two phases explicitly (the distributed
  *   scan).
  *
- * Global memory traffic of the two-phase variant (Parallel + UniformShift) is
- * 2n reads and 2n writes. The input is read only once, so the variant is
+ * Global memory traffic of the two-phase variant (IndependentTiles +
+ * UniformShift) is 2n reads and 2n writes. The input is read only once, so the variant is
  * suitable for expensive expressions (see ScanPhaseType).
  *
  * References:
@@ -42,7 +42,7 @@ namespace TNL::Algorithms::detail {
 template< ScanType scanType, int blockSize, int valuesPerThread, typename InputView, typename OutputView, typename Reduction >
 __global__
 void
-GPUScanKernelParallel(
+GPUScanKernelIndependentTiles(
    const InputView input,
    OutputView output,
    typename InputView::IndexType begin,
