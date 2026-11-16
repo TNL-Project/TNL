@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <complex>
 #include <type_traits>
 #include <utility>
@@ -245,6 +246,52 @@ struct IsStaticArrayType
             HasConstexprGetSizeMethod< T >::value &&
             HasSubscriptOperator< T >::value >
 {};
+
+/**
+ * \brief Type trait for the types whose copy is equivalent to copying their
+ * object representation.
+ *
+ * The values of such types can be split into words, the words transferred
+ * separately (e.g. by warp shuffles or volatile loads) and the value
+ * assembled again. The trait is true for:
+ *
+ * - all trivially copyable types,
+ * - static array types (see \ref IsStaticArrayType), e.g.
+ *   \ref TNL::Containers::StaticArray "StaticArray" and
+ *   \ref TNL::Containers::StaticVector "StaticVector", whose elements satisfy
+ *   this trait, which consist only of their elements and which are trivially
+ *   destructible. They are not trivially copyable, since they have a
+ *   user-provided copy constructor, but it only copies the elements.
+ *
+ * - `std::array` whose elements satisfy this trait.
+ *
+ * Other aggregates of such types (e.g. structures with `StaticVector` data
+ * members) are not detected and the trait has to be specialized for them.
+ */
+template< typename T, typename = void >
+struct is_nested_trivially_copyable : public std::is_trivially_copyable< T >
+{};
+
+template< typename T >
+struct is_nested_trivially_copyable< T,
+                                     std::enable_if_t< ! std::is_trivially_copyable_v< T > && IsStaticArrayType< T >::value > >
+{
+private:
+   using ElementType = std::decay_t< decltype( std::declval< const T& >()[ 0 ] ) >;
+
+public:
+   static constexpr bool value = sizeof( T ) == T::getSize() * sizeof( ElementType ) && std::is_trivially_destructible_v< T >
+                              && is_nested_trivially_copyable< ElementType >::value;
+};
+
+template< typename T, std::size_t N >
+struct is_nested_trivially_copyable< std::array< T, N >, std::enable_if_t< ! std::is_trivially_copyable_v< std::array< T, N > > > >
+: public is_nested_trivially_copyable< T >
+{};
+
+//! \brief Value of \ref is_nested_trivially_copyable.
+template< typename T >
+inline constexpr bool is_nested_trivially_copyable_v = is_nested_trivially_copyable< T >::value;
 
 /**
  * \brief Type trait for checking if `T` is a view type.

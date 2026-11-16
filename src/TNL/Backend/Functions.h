@@ -11,6 +11,7 @@
 #include "Types.h"
 
 #include <TNL/DiscreteMath.h>
+#include <TNL/TypeTraits.h>
 #include <TNL/Exceptions/BackendSupportMissing.h>
 
 namespace TNL::Backend {
@@ -321,21 +322,22 @@ public:
 };
 
 /**
- * \brief Generic warp shuffle xor for any bit-copyable type.
+ * \brief Generic warp shuffle xor for any type which satisfies \ref TNL::is_nested_trivially_copyable.
  *
  * CUDA's `__shfl_xor_sync` only has overloads for a fixed set of primitive
  * types (see \ref is_warp_shuffle_native_v). This wrapper splits any other type
  * into an array of words and shuffles each word separately, the same pattern
  * used by NVIDIA's CUB and libcu++ libraries. Works for
- * \ref TNL::Arithmetics::Complex and any other trivially copyable struct with
- * `sizeof <= 32`.
+ * \ref TNL::Arithmetics::Complex, \ref TNL::Containers::StaticVector "StaticVector"
+ * and any other type which satisfies \ref TNL::is_nested_trivially_copyable.
  */
 template< typename T >
 __device__
 T
 warp_shuffle_xor( T val, int laneMask )
 {
-   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+   static_assert(
+      is_nested_trivially_copyable_v< T >, "warp shuffle requires types which satisfy is_nested_trivially_copyable" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    if constexpr( is_warp_shuffle_native_v< T > ) {
       return __shfl_xor_sync( getWarpFullMask(), val, laneMask );
@@ -360,7 +362,7 @@ warp_shuffle_xor( T val, int laneMask )
 }
 
 /**
- * \brief Generic warp shuffle down for any bit-copyable type.
+ * \brief Generic warp shuffle down for any type which satisfies \ref TNL::is_nested_trivially_copyable.
  *
  * See \ref warp_shuffle_xor for details.
  */
@@ -369,7 +371,8 @@ __device__
 T
 warp_shuffle_down( T val, int delta )
 {
-   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+   static_assert(
+      is_nested_trivially_copyable_v< T >, "warp shuffle requires types which satisfy is_nested_trivially_copyable" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    if constexpr( is_warp_shuffle_native_v< T > ) {
       return __shfl_down_sync( getWarpFullMask(), val, delta );
@@ -390,7 +393,7 @@ warp_shuffle_down( T val, int delta )
 }
 
 /**
- * \brief Generic warp shuffle up for any bit-copyable type.
+ * \brief Generic warp shuffle up for any type which satisfies \ref TNL::is_nested_trivially_copyable.
  *
  * See \ref warp_shuffle_xor for details.
  */
@@ -399,7 +402,8 @@ __device__
 T
 warp_shuffle_up( T val, int delta )
 {
-   static_assert( std::is_trivially_copyable_v< T >, "warp shuffle requires trivially copyable types" );
+   static_assert(
+      is_nested_trivially_copyable_v< T >, "warp shuffle requires types which satisfy is_nested_trivially_copyable" );
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    if constexpr( is_warp_shuffle_native_v< T > ) {
       return __shfl_up_sync( getWarpFullMask(), val, delta );
@@ -416,6 +420,26 @@ warp_shuffle_up( T val, int delta )
    }
 #else
    return val;
+#endif
+}
+
+/**
+ * \brief Returns the mask of the lanes of the calling warp for which the
+ * predicate is true.
+ *
+ * All lanes of the warp must call it. The mask is 64-bit, since the
+ * wavefronts of AMD GPUs may have 64 lanes; lane `i` corresponds to bit `i`.
+ */
+__device__
+inline std::uint64_t
+warp_ballot( bool predicate )
+{
+#if defined( __HIP_DEVICE_COMPILE__ )
+   return __ballot( static_cast< int >( predicate ) );
+#elif defined( __CUDA_ARCH__ )
+   return __ballot_sync( getWarpFullMask(), static_cast< int >( predicate ) );
+#else
+   return 0;
 #endif
 }
 
