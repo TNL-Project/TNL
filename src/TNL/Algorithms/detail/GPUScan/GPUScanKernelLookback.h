@@ -7,15 +7,47 @@
  *
  * Each CUDA block loads its tile of blockSize * valuesPerThread elements into
  * shared memory, computes the per-thread chunk sums and their block-wide scan,
- * and publishes the block aggregate in the LookbackState array. Thread 0 then
- * walks the states of the preceding blocks from right to left, accumulating
- * their aggregates until it reaches a block which has already published its
- * complete prefix. The block publishes its own prefix, so that the succeeding
- * blocks can stop their walk early, and finally scans the tile with the prefix
- * as the initial value and writes the result to the output. The whole scan is
- * done by one kernel launch. The tiles are assigned to the blocks dynamically
- * via an atomic counter in the order in which the blocks start, so that the
- * lookback does not depend on the order in which the blocks are scheduled.
+ * and publishes the block aggregate in the LookbackState array. The block then
+ * looks back at the states of the preceding blocks from right to left,
+ * accumulating their aggregates until it reaches a block which has already
+ * published its complete prefix. The block publishes its own prefix, so that
+ * the succeeding blocks can stop their lookback early, and finally scans the
+ * tile with the prefix as the initial value and writes the result to the
+ * output. The whole scan is done by one kernel launch. The tiles are assigned
+ * to the blocks dynamically via an atomic counter in the order in which the
+ * blocks start, so that the lookback does not depend on the order in which
+ * the blocks are scheduled.
+ *
+ * The lookback is performed in one of two ways (see LookbackStrategy):
+ *
+ * - Thread: thread 0 inspects the preceding tiles one by one. Each step waits
+ *   for one load from the L2 cache, so a lookback over k tiles takes k
+ *   sequential load latencies.
+ * - Warp: the first warp inspects a window of warpSize preceding tiles at
+ *   once, lane i takes the tile tileIdx - 1 - i (the paragraph "Parallelized
+ *   look-back" of the reference below). Each lane waits for the state of its
+ *   tile and loads its prefix or aggregate. A ballot over the lanes whose tile
+ *   has a prefix finds the nearest such tile (the lowest set bit), the values
+ *   of the farther tiles are replaced by the identity (they are included in
+ *   that prefix), and the window is reduced by warp shuffles. The reduction
+ *   preserves the order of the tiles (the higher lanes hold the preceding
+ *   tiles), so the reduction does not have to be commutative. This replaces
+ *   the segmented reduction of the paper. If no tile of the window has a
+ *   prefix, the window is moved warpSize tiles back. A lookback over k tiles
+ *   takes about k / warpSize load latencies, but each window loads warpSize
+ *   states and waits until all of them are valid, even when the nearest tile
+ *   already has a prefix.
+ *
+ * The length of the lookback grows with the number of tiles processed
+ * concurrently, i.e. with the number of multiprocessors. Measured on seven
+ * GPUs, the warp lookback is 20-35 % faster on large GPUs (A100, RTX 5080),
+ * 8-20 % on the RX 7900 GRE and a few percent on small GPUs (RTX 2070 Super,
+ * RTX 3060). On the RTX 3060, the thread lookback is even 3-8 % faster for
+ * 8- and 16-byte value types, where the states of the whole window take
+ * 1-1.5 kB. The paper considers the extra work of the parallel lookback
+ * often negligible, but it pays off only when the lookback is long. The warp
+ * lookback is the default (see GPUScanDefaults in GPUScan.h), the
+ * thread lookback is used for blocks smaller than a warp.
  *
  * Usage (see GPUScanKernelLauncher in GPUScan.h): the complete scan in
  * GPUScanKernelLauncher::perform when the input is larger than one tile and
@@ -36,8 +68,8 @@
  * mutex which is held until the synchronously launched kernel finishes.
  *
  * Reference:
- * D. Merrill, M. Garland, "Single-pass Parallel Prefix Sum with Decoupled
- * Lookback", NVIDIA Technical Report NVR-2016-002, 2016.
+ * D. Merrill, M. Garland, "Single-pass Parallel Prefix Scan with Decoupled
+ * Look-back", NVIDIA Technical Report NVR-2016-002, 2016.
  * https://research.nvidia.com/sites/default/files/pubs/2016-03_Single-pass-Parallel-Prefix/nvr-2016-002.pdf
  */
 
@@ -73,8 +105,24 @@ enum class LookbackStatus : std::uint8_t
    Prefix = 2,     // block has published its complete prefix
 };
 
+/* Mapping of the lookback (Phase 5 of GPUScanKernelLookback) to the threads
+ * of the block, see the description at the top of this file.
+ *
+ * - Thread: thread 0 walks the preceding tiles one by one.
+ * - Warp: the first warp inspects a window of warpSize preceding tiles at
+ *   once (one tile per lane), finds the nearest tile with a published prefix
+ *   by a ballot, and reduces the window up to this tile by warp shuffles.
+ *   This is the parallelized lookback described by Merrill and Garland and
+ *   used in CUB. It requires the block size to be at least warpSize.
+ */
+enum class LookbackStrategy : std::uint8_t
+{
+   Thread,
+   Warp,
+};
+
 // The largest epoch which fits into the status word together with the flag.
-constexpr unsigned int maxLookbackEpoch = ~0u >> 2;
+inline constexpr unsigned int maxLookbackEpoch = ~0U >> 2;
 
 __cuda_callable__
 constexpr unsigned int
@@ -116,32 +164,36 @@ loadAcquire( const unsigned int* ptr )
 {
    #if defined( __HIP__ )
    return __hip_atomic_load( ptr, __ATOMIC_ACQUIRE, __HIP_MEMORY_SCOPE_AGENT );
-   #elif defined( __CUDA_ARCH__ ) && __CUDA_ARCH__ >= 700
+   #elif defined( __CUDA_ARCH__ )
+   // the acquire load needs compute capability 7.0 (Volta) or newer, the older
+   // GPUs are not supported
    unsigned int value;
    asm volatile( "ld.acquire.gpu.global.u32 %0, [%1];" : "=r"( value ) : "l"( ptr ) : "memory" );
    return value;
    #else
-   const unsigned int value = *reinterpret_cast< const volatile unsigned int* >( ptr );
-   __threadfence();
-   return value;
+   // host compilation pass, the function is never called on the host
+   return *ptr;
    #endif
 }
 
 /* Loads a value written by another CUDA block during the same kernel. The L1
  * cache is not coherent between the multiprocessors, so the load must be
  * volatile to read the value from the L2 cache. Class types are loaded word by
- * word and copied bitwise, the same way as the kernel arguments are passed
- * (the value type does not have to be trivially copyable, but it must be
- * bitwise copyable).
+ * word and assembled by memcpy, so they must satisfy
+ * is_nested_trivially_copyable (e.g. StaticVector, which is not trivially
+ * copyable).
  */
 template< typename T >
 __device__
 T
 loadVolatile( const T& ref )
 {
-   if constexpr( std::is_arithmetic_v< T > )
+   if constexpr( std::is_arithmetic_v< T > ) {
       return *reinterpret_cast< const volatile T* >( &ref );
+   }
    else {
+      static_assert(
+         is_nested_trivially_copyable_v< T >, "loadVolatile requires types which satisfy is_nested_trivially_copyable" );
       static_assert(
          sizeof( T ) % sizeof( int ) == 0,
          "loadVolatile supports only arithmetic types and types whose size is a multiple of sizeof(int)" );
@@ -157,12 +209,90 @@ loadVolatile( const T& ref )
    }
 }
 
+/* Phase 5 of GPUScanKernelLookback with LookbackStrategy::Warp. It must be
+ * called by all lanes of the first warp of the block. Returns the exclusive
+ * prefix of the tile (the reduction of all preceding tiles) in lane 0; the
+ * return value of the other lanes is undefined.
+ */
+template< typename ValueType, typename Reduction >
+__device__
+ValueType
+warpLookback(
+   const Reduction& reduction,
+   ValueType identity,
+   ValueType blockAggregate,
+   LookbackState< ValueType >* states,
+   unsigned int tileIdx,
+   unsigned int epoch )
+{
+   constexpr int warpSize = Backend::getWarpSize();
+   const int lane = threadIdx.x;
+   const unsigned int aggregateStatus = makeLookbackStatus( epoch, LookbackStatus::Aggregate );
+   const unsigned int prefixStatus = makeLookbackStatus( epoch, LookbackStatus::Prefix );
+
+   // 5a: publish the block aggregate
+   if( lane == 0 ) {
+      states[ tileIdx ].aggregate = blockAggregate;
+      __threadfence();
+      atomicExch( &states[ tileIdx ].status, aggregateStatus );
+   }
+
+   // The prefix is accumulated in lane 0, the other lanes only help with the
+   // windows.
+   ValueType prefix = identity;
+
+   // 5b: inspect the windows of warpSize preceding tiles from right to left,
+   // lane 0 takes the nearest tile of the window. The tiles before the first
+   // one behave as if they published the identity as their prefix.
+   for( long windowEnd = tileIdx; windowEnd > 0; windowEnd -= warpSize ) {
+      const long pred = windowEnd - 1 - lane;
+      ValueType value = identity;
+      bool hasPrefix = true;
+      if( pred >= 0 ) {
+         unsigned int status;
+         do {
+            status = loadAcquire( &states[ pred ].status );
+         } while( status != aggregateStatus && status != prefixStatus );
+         hasPrefix = status == prefixStatus;
+         value = hasPrefix ? loadVolatile( states[ pred ].prefix ) : loadVolatile( states[ pred ].aggregate );
+      }
+
+      // only the tiles up to the nearest one with a prefix are reduced
+      const std::uint64_t prefixMask = Backend::warp_ballot( hasPrefix );
+      const int stopLane = prefixMask != 0 ? __ffsll( static_cast< long long >( prefixMask ) ) - 1 : warpSize - 1;
+      if( lane > stopLane )
+         value = identity;
+
+      // reduction of the window preserving the order of the tiles: the tiles
+      // of the higher lanes precede the tiles of the lower lanes
+      #pragma unroll
+      for( int offset = 1; offset < warpSize; offset *= 2 ) {
+         const ValueType other = Backend::warp_shuffle_down( value, offset );
+         if( lane + offset < warpSize )
+            value = reduction( other, value );
+      }
+      prefix = reduction( value, prefix );
+
+      if( prefixMask != 0 )
+         break;
+   }
+
+   // 5c: publish the inclusive prefix
+   if( lane == 0 ) {
+      states[ tileIdx ].prefix = reduction( prefix, blockAggregate );
+      __threadfence();
+      atomicExch( &states[ tileIdx ].status, prefixStatus );
+   }
+   return prefix;
+}
+
 #endif
 
 template<
    ScanType scanType,
    int blockSize,
    int valuesPerThread,
+   LookbackStrategy lookbackStrategy,
    typename InputView,
    typename OutputView,
    typename Reduction,
@@ -198,7 +328,7 @@ GPUScanKernelLookback(
    // with lower blockIdx.x are not scheduled first, which is not guaranteed
    // (e.g. on AMD GPUs).
    if( threadIdx.x == 0 )
-      sharedTileIdx = static_cast< unsigned int >( atomicAdd( tileCounter, 1ull ) - tileCounterBase );
+      sharedTileIdx = static_cast< unsigned int >( atomicAdd( tileCounter, 1ULL ) - tileCounterBase );
    __syncthreads();
    const unsigned int tileIdx = sharedTileIdx;
 
@@ -231,8 +361,16 @@ GPUScanKernelLookback(
       sharedAggregate = reduction( exclusivePrefix, chunkSum );
    __syncthreads();
 
+   // Phase 5: decoupled lookback - performed by the first warp, see warpLookback.
+   if constexpr( lookbackStrategy == LookbackStrategy::Warp ) {
+      if( threadIdx.x < Backend::getWarpSize() ) {
+         const ValueType prefix = warpLookback( reduction, identity, sharedAggregate, states, tileIdx, epoch );
+         if( threadIdx.x == 0 )
+            sharedPrefix = prefix;
+      }
+   }
    // Phase 5: decoupled lookback - performed by thread 0 only.
-   if( threadIdx.x == 0 ) {
+   else if( threadIdx.x == 0 ) {
       ValueType blockAggregate = sharedAggregate;
       const unsigned int aggregateStatus = makeLookbackStatus( epoch, LookbackStatus::Aggregate );
       const unsigned int prefixStatus = makeLookbackStatus( epoch, LookbackStatus::Prefix );
