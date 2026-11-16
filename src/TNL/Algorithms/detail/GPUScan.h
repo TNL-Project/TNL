@@ -39,6 +39,12 @@
  *    input fits into one CUDA grid   ->  2. decoupled lookback
  *    otherwise                       ->  3. or 4., selected by ScanPhaseType
  *
+ * The lookback transfers the values between the blocks (volatile loads) and
+ * between the lanes of a warp (warp shuffles) word by word, so it is used
+ * only for the value types which satisfy Backend::is_memcpy_copyable (e.g.
+ * arithmetic types and StaticVector). The other value types use the
+ * two-phase strategies also for the inputs which fit into one CUDA grid.
+ *
  * One CUDA grid has up to 2^31 - 1 blocks, so in practice the lookback is
  * used for all local scans larger than one tile, including the scans of
  * expressions. The two-phase strategies are kept for the distributed scan
@@ -67,7 +73,7 @@
  *
  * The lookback kernel has its own block size and uses larger tiles
  * (lookbackBlockSize and lookbackValuesPerThread instead of blockSize and
- * valuesPerThread, see GPUScanLookbackDefaults and the template parameters of
+ * valuesPerThread, see GPUScanDefaults and the template parameters of
  * GPUScanKernelLauncher), and the single tile uses fewer values per thread for
  * small inputs.
  *
@@ -95,11 +101,19 @@
 namespace TNL::Algorithms::detail {
 
 /**
- * \brief Default configuration of the single-pass lookback kernel.
+ * \brief Default configuration of the GPU scan kernels.
  *
  * \tparam ValueType The type of the scanned values.
  *
- * The configuration was measured by the scan benchmark
+ * The two-phase kernels and the single-tile scan use \ref blockSize threads
+ * per block and \ref valuesPerThread values per thread. The block size is
+ * scaled with `sizeof( ValueType )` to keep the shared memory requirements
+ * constant (256 threads for 4-byte types). The number of values per thread
+ * was selected a long time ago and was not tuned systematically.
+ *
+ * The single-pass lookback kernel has its own configuration
+ * (\ref lookbackBlockSize, \ref getLookbackValuesPerThread and
+ * \ref lookbackStrategy), which was measured by the scan benchmark
  * (`--gpu-kernels lookback lookback-warp`) on A100, Instinct MI210,
  * RTX 2070 Super, RTX 3060, RTX 5060 Ti, RTX 5080 and Radeon RX 7900 GRE
  * for value types of 1-16 bytes:
@@ -123,14 +137,24 @@ namespace TNL::Algorithms::detail {
  * and the thread lookback (which does not need a full warp in the block).
  */
 template< typename ValueType >
-struct GPUScanLookbackDefaults
+struct GPUScanDefaults
 {
-   //! \brief Maximum size of the tile in bytes.
+   //! \brief The CUDA block size of the two-phase kernels and of the single-tile scan.
+   static constexpr int blockSize = 256 * 4 / sizeof( ValueType );
+
+   /**
+    * \brief Number of values per thread of the two-phase kernels and of the single-tile scan.
+    *
+    * It should be odd to avoid shared memory bank conflicts.
+    */
+   static constexpr int valuesPerThread = 7;
+
+   //! \brief Maximum size of the tile of the lookback kernel in bytes.
    static constexpr std::size_t maxTileBytes = 36 * 1024;
 
    //! \brief Returns the CUDA block size of the lookback kernel.
    static constexpr int
-   getBlockSize()
+   getLookbackBlockSize()
    {
       if( sizeof( ValueType ) <= 8 )
          return 256;
@@ -140,11 +164,11 @@ struct GPUScanLookbackDefaults
    }
 
    //! \brief The CUDA block size of the lookback kernel.
-   static constexpr int blockSize = getBlockSize();
+   static constexpr int lookbackBlockSize = getLookbackBlockSize();
 
    //! \brief The mapping of the lookback to the threads of the block.
-   static constexpr LookbackStrategy strategy =
-      blockSize >= Backend::getMaxWarpSize() ? LookbackStrategy::Warp : LookbackStrategy::Thread;
+   static constexpr LookbackStrategy lookbackStrategy =
+      lookbackBlockSize >= Backend::getMaxWarpSize() ? LookbackStrategy::Warp : LookbackStrategy::Thread;
 
    /**
     * \brief Returns the number of values per thread of the lookback kernel.
@@ -153,7 +177,7 @@ struct GPUScanLookbackDefaults
     * \return The number of values per thread (odd, at least 1).
     */
    static constexpr int
-   getValuesPerThread( int lookbackBlockSize )
+   getLookbackValuesPerThread( int lookbackBlockSize )
    {
       if( sizeof( ValueType ) <= 2 )
          return 31;
@@ -183,20 +207,17 @@ struct GPUScanLookbackDefaults
  * \tparam lookbackStrategy  Mapping of the lookback in the single-pass lookback
  *         kernel to the threads of the block, see \ref LookbackStrategy.
  *
- * The defaults of the lookback kernel are described in \ref GPUScanLookbackDefaults.
+ * The defaults are described in \ref GPUScanDefaults.
  */
 template<
    ScanType scanType,
    ScanPhaseType phaseType,
    typename ValueType,
-   // use blockSize=256 for 32-bit value types, scale with sizeof(ValueType)
-   // to keep shared memory requirements constant
-   int blockSize = 256 * 4 / sizeof( ValueType ),
-   // valuesPerThread should be odd to avoid shared memory bank conflicts
-   int valuesPerThread = 7,
-   int lookbackBlockSize = GPUScanLookbackDefaults< ValueType >::blockSize,
-   int lookbackValuesPerThread = GPUScanLookbackDefaults< ValueType >::getValuesPerThread( lookbackBlockSize ),
-   LookbackStrategy lookbackStrategy = GPUScanLookbackDefaults< ValueType >::strategy >
+   int blockSize = GPUScanDefaults< ValueType >::blockSize,
+   int valuesPerThread = GPUScanDefaults< ValueType >::valuesPerThread,
+   int lookbackBlockSize = GPUScanDefaults< ValueType >::lookbackBlockSize,
+   int lookbackValuesPerThread = GPUScanDefaults< ValueType >::getLookbackValuesPerThread( lookbackBlockSize ),
+   LookbackStrategy lookbackStrategy = GPUScanDefaults< ValueType >::lookbackStrategy >
 struct GPUScanKernelLauncher
 {
    /**
@@ -247,10 +268,14 @@ struct GPUScanKernelLauncher
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
       const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, Backend::getMaxGridXSize( blockSize ) );
 
-      if( numberOfGrids == 1 ) {
-         performLookback(
-            input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
-         return;
+      // the lookback kernel transfers the values between the blocks and the
+      // lanes of a warp word by word, see Backend::is_memcpy_copyable
+      if constexpr( Backend::is_memcpy_copyable_v< ValueType > ) {
+         if( numberOfGrids == 1 ) {
+            performLookback(
+               input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
+            return;
+         }
       }
 
       const auto blockShifts = performFirstPhase( input, output, begin, end, outputBegin, reduction, identity, launch_config );
@@ -275,6 +300,9 @@ struct GPUScanKernelLauncher
       static_assert(
          lookbackStrategy == LookbackStrategy::Thread || lookbackBlockSize >= Backend::getMaxWarpSize(),
          "the warp lookback needs at least one full warp in the block" );
+      static_assert(
+         Backend::is_memcpy_copyable_v< ValueType >,
+         "the lookback scan requires value types which satisfy Backend::is_memcpy_copyable" );
       constexpr int maxElementsInBlock = lookbackBlockSize * lookbackValuesPerThread;
       const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
 
