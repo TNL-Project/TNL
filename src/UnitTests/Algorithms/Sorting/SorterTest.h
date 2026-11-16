@@ -645,11 +645,10 @@ TYPED_TEST( SorterTest, large_index_size2To32 )
 // =============================================================================
 
 namespace {
-template< typename ValueType >
+template< typename ValueType, typename Index >
 void
-fetchAndSwapSorter( TNL::Containers::ArrayView< ValueType, TNL::Devices::GPU > view )
+fetchAndSwapSorter( TNL::Containers::ArrayView< ValueType, TNL::Devices::GPU, Index > view )
 {
-   using Index = typename decltype( view )::IndexType;
    auto Cmp = [ = ] __cuda_callable__( Index i, Index j )
    {
       return view[ i ] < view[ j ];
@@ -673,6 +672,24 @@ fetchAndSwap_sortMiddle( TNL::Containers::ArrayView< int, TNL::Devices::GPU > vi
       TNL::swap( view[ i ], view[ j ] );
    };
    Sorting::detail::bitonicSort( from, to, Cmp, Swap );
+}
+
+void
+fetchAndSwap_trackPayload(
+   TNL::Containers::ArrayView< int, TNL::Devices::GPU > keys,
+   TNL::Containers::ArrayView< int, TNL::Devices::GPU > payload )
+{
+   using Index = typename decltype( keys )::IndexType;
+   auto Cmp = [ = ] __cuda_callable__( Index i, Index j )
+   {
+      return keys[ i ] < keys[ j ];
+   };
+   auto Swap = [ = ] __cuda_callable__( Index i, Index j ) mutable
+   {
+      TNL::swap( keys[ i ], keys[ j ] );
+      TNL::swap( payload[ i ], payload[ j ] );
+   };
+   Sorting::detail::bitonicSort( Index{ 0 }, keys.getSize(), Cmp, Swap );
 }
 
 }  // namespace
@@ -739,6 +756,59 @@ TEST( BitonicSortFetchAndSwap, largeArray )
    auto view = arr.getView();
    fetchAndSwapSorter( view );
    EXPECT_TRUE( Algorithms::isAscending( view ) );
+}
+
+TEST( BitonicSortFetchAndSwap, trackPermutation )
+{
+   const int size = 64;
+   std::mt19937 rng( 12345 );
+
+   // unique keys make the tracked position of every key unambiguous
+   std::vector< int > keys( size );
+   std::iota( keys.begin(), keys.end(), 0 );
+   std::shuffle( keys.begin(), keys.end(), rng );
+   std::vector< int > payload( size );
+   std::iota( payload.begin(), payload.end(), 0 );
+
+   TNL::Containers::Array< int, TNL::Devices::GPU > keysArr( keys );
+   TNL::Containers::Array< int, TNL::Devices::GPU > payloadArr( payload );
+
+   auto keysView = keysArr.getView();
+   auto payloadView = payloadArr.getView();
+   fetchAndSwap_trackPayload( keysView, payloadView );
+
+   EXPECT_TRUE( Algorithms::isAscending( keysView ) );
+
+   // the payload has to stay a permutation and to keep the original position of each key
+   std::vector< bool > seen( size, false );
+   for( int i = 0; i < size; i++ ) {
+      const int originalIndex = payloadView.getElement( i );
+      ASSERT_GE( originalIndex, 0 );
+      ASSERT_LT( originalIndex, size );
+      EXPECT_FALSE( seen[ originalIndex ] );
+      seen[ originalIndex ] = true;
+      EXPECT_EQ( keys[ originalIndex ], keysView.getElement( i ) );
+   }
+   EXPECT_EQ( std::count( seen.begin(), seen.end(), true ), size );
+}
+
+// The padded sequence length has to fit the type used for indexing inside the kernels,
+// which is widened to at least 32 bits even when the range is given by a narrow signed type
+TEST( BitonicSortFetchAndSwap, narrowSignedIndex )
+{
+   using Index = std::int16_t;
+   // 2^14 + 1 elements need a padded length of 2^15, which does not fit in int16_t
+   // but does fit in the 32-bit index type used by the kernels
+   const Index size = ( 1 << 14 ) + 1;
+
+   std::mt19937 rng( 12345 );
+   std::vector< int > vec( size );
+   for( auto& x : vec )
+      x = rng() % 1000;
+
+   TNL::Containers::Array< int, TNL::Devices::GPU, Index > arr( vec );
+   fetchAndSwapSorter( arr.getView() );
+   EXPECT_TRUE( Algorithms::isAscending( arr.getView() ) );
 }
 
 #endif
