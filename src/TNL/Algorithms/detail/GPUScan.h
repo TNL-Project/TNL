@@ -73,14 +73,14 @@
  * details and references.
  */
 
-#include <map>
-#include <mutex>
+#include <atomic>
 
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/fill.h>
 #include <TNL/Algorithms/detail/ScanType.h>
+#include <TNL/Algorithms/detail/GPUScan/CachePool.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelDownsweep.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelLookback.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUScanKernelIndependentTiles.h>
@@ -181,13 +181,14 @@ struct GPUScanKernelLauncher
       // size shrinks we keep the existing (larger) allocation. Each call uses a
       // new epoch, so the states written by previous calls are treated as
       // Invalid by the kernel and the array does not have to be reset. It is
-      // reset only when it is (re)allocated and when the epoch would overflow.
+      // reset (together with the tile counter) only when it is (re)allocated,
+      // when the epoch would overflow, and after a failed kernel launch.
       // The cache is per device and the scans which use it are serialized by
       // its mutex, which is held until the kernel finishes (it is launched
       // synchronously), so the array cannot be reallocated or its epoch
       // changed by another host thread while the kernel uses it.
-      auto& cache = lookbackCache();
-      std::lock_guard< std::mutex > lock( cache.mutex );
+      auto& cache = LookbackCachePool< ValueType >::getInstance().getCache();
+      std::scoped_lock lock( cache.mutex );
       auto& states = cache.states;
       auto& epoch = cache.epoch;
       // the size of the array is never negative, so the comparison can be done in Index
@@ -200,12 +201,11 @@ struct GPUScanKernelLauncher
          fillConfig.blockHostUntilFinished = false;
          Algorithms::fill< Devices::GPU >( states.getData(), LookbackState< ValueType >{}, states.getSize(), fillConfig );
          epoch = 0;
-      }
-      epoch++;
-      if( cache.tileCounter.getSize() == 0 ) {
          cache.tileCounter.setSize( 1 );
          cache.tileCounter.setValue( 0 );
+         cache.tileCounterBase = 0;
       }
+      epoch++;
 
       constexpr auto kernel = GPUScanKernelLookback<
          scanType,
@@ -220,20 +220,31 @@ struct GPUScanKernelLauncher
       launch_config.blockSize.x = blockSize;
       launch_config.gridSize.x = numberOfBlocks;
 
-      Backend::launchKernelSync(
-         kernel,
-         launch_config,
-         input.getConstView(),
-         output.getView(),
-         begin,
-         end,
-         outputBegin,
-         reduction,
-         identity,
-         states.getData(),
-         epoch,
-         cache.tileCounter.getData(),
-         cache.tileCounterBase );
+      try {
+         Backend::launchKernelSync(
+            kernel,
+            launch_config,
+            input.getConstView(),
+            output.getView(),
+            begin,
+            end,
+            outputBegin,
+            reduction,
+            identity,
+            states.getData(),
+            epoch,
+            cache.tileCounter.getData(),
+            cache.tileCounterBase );
+      }
+      catch( ... ) {
+         // It is not known how many tiles the kernel took from the counter (an
+         // error reported by the launch may come from an earlier operation),
+         // so the counter and tileCounterBase might not match. The next scan
+         // resets the states and the counter (no GPU call is made here, since
+         // the GPU may be in an error state).
+         epoch = maxLookbackEpoch;
+         throw;
+      }
       cache.tileCounterBase += numberOfBlocks;
 
       gridsCount() = 1;
@@ -547,43 +558,15 @@ struct GPUScanKernelLauncher
       }
    }
 
-   // Cache of the lookback states array, reused across calls to
-   // performLookback to avoid cudaMalloc/cudaFree churn.
-   struct LookbackCache
-   {
-      std::mutex mutex;
-      Containers::Array< LookbackState< ValueType >, Devices::Cuda > states;
-      // epoch of the last scan which used the states, see LookbackStatus
-      unsigned int epoch = 0;
-      // counter used by the kernel to assign the tiles to the blocks; it is
-      // never reset, each scan uses the values starting at tileCounterBase
-      Containers::Array< unsigned long long, Devices::Cuda > tileCounter;
-      unsigned long long tileCounterBase = 0;
-   };
-
-   // Returns the per-instantiation cache for the active device. The caches are
-   // intentionally never destroyed: the destructor of the array would free the
-   // device memory at exit, when the GPU runtime may be already shut down (e.g.
-   // after cudaDeviceReset) and the resulting exception would terminate the
-   // program.
-   static LookbackCache&
-   lookbackCache()
-   {
-      static std::mutex mutex;
-      static auto* caches = new std::map< int, LookbackCache >;
-      const int device = Backend::getDevice();
-      std::lock_guard< std::mutex > lock( mutex );
-      // std::map does not invalidate references to its elements on insertion
-      return ( *caches )[ device ];
-   }
-
    // The number of grids used by the last launch, which serves for checking
    // in unit tests that the scan in CUDA runs with more than one grid. The
    // maximal grid size can be made smaller by Backend::detail::MaxGridXSizeOverride.
-   static int&
+   // It is atomic, since the scans may be performed concurrently by several
+   // host threads.
+   static std::atomic< int >&
    gridsCount()
    {
-      static int gridsCount = -1;
+      static std::atomic< int > gridsCount = -1;
       return gridsCount;
    }
 };

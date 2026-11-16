@@ -185,7 +185,7 @@ struct GPUTileScan
          for( int v = threadIdx.x; v < ( vecEnd - vecBegin ) / vecWidth; v += blockDim.x ) {
             const Vec4 vec = inputVec[ v ];
             const ValueType* values = reinterpret_cast< const ValueType* >( &vec );
-   #pragma unroll
+            #pragma unroll
             for( int c = 0; c < vecWidth; c++ )
                storage.data[ vecBegin + v * vecWidth + c ] = values[ c ];
          }
@@ -218,7 +218,7 @@ struct GPUTileScan
          for( int v = threadIdx.x; v < ( vecEnd - vecBegin ) / vecWidth; v += blockDim.x ) {
             Vec4 vec;
             ValueType* values = reinterpret_cast< ValueType* >( &vec );
-   #pragma unroll
+            #pragma unroll
             for( int c = 0; c < vecWidth; c++ )
                values[ c ] = storage.data[ vecBegin + v * vecWidth + c ];
             outputVec[ v ] = vec;
@@ -238,7 +238,7 @@ struct GPUTileScan
    {
       const int chunkOffset = threadIdx.x * valuesPerThread;
       ValueType value = storage.data[ chunkOffset ];
-   #pragma unroll
+      #pragma unroll
       for( int i = 1; i < valuesPerThread; i++ )
          value = reduction( value, storage.data[ chunkOffset + i ] );
       return value;
@@ -252,7 +252,7 @@ struct GPUTileScan
    scanChunk( const Reduction& reduction, ValueType value, Storage& storage )
    {
       const int chunkOffset = threadIdx.x * valuesPerThread;
-   #pragma unroll
+      #pragma unroll
       for( int i = 0; i < valuesPerThread; i++ ) {
          const ValueType inputValue = storage.data[ chunkOffset + i ];
          if( scanType == ScanType::Exclusive )

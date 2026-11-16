@@ -24,9 +24,16 @@
  *
  * Global memory traffic is n reads and n writes (plus the small LookbackState
  * array). The tile loads and stores are vectorized (16-byte accesses) for
- * arrays whose value type size divides 16, see GPUTileScan. The LookbackState
- * array is reused across the scans without resetting, the states written by a
- * previous scan are recognized by the epoch stored in the status word.
+ * arrays whose value type size divides 16, see GPUTileScan.
+ *
+ * The LookbackState array and the tile counter are owned by the launcher,
+ * which caches them per device and reuses them across the scans without
+ * resetting (the states written by a previous scan are recognized by the
+ * epoch stored in the status word). Hence, two scans must not use the same
+ * array concurrently: the blocks of one scan could overwrite the states of
+ * the other one, so it would wait forever for its own states or combine
+ * prefixes of different scans. The launcher serializes the scans with a
+ * mutex which is held until the synchronously launched kernel finishes.
  *
  * Reference:
  * D. Merrill, M. Garland, "Single-pass Parallel Prefix Sum with Decoupled
@@ -34,6 +41,7 @@
  * https://research.nvidia.com/publication/2016-03_Single-pass-Parallel-Prefix-Sum-Decoupled-Lookback
  */
 
+#include <cstdint>
 #include <cstring>  // memcpy
 #include <type_traits>
 
@@ -58,7 +66,7 @@ namespace TNL::Algorithms::detail {
  *
  * It is used in GPUScanKernelLookback function.
  */
-enum class LookbackStatus : unsigned int
+enum class LookbackStatus : std::uint8_t
 {
    Invalid = 0,    // block has not published anything yet
    Aggregate = 1,  // block has published its per-block aggregate only
@@ -140,7 +148,7 @@ loadVolatile( const T& ref )
       constexpr int words = sizeof( T ) / sizeof( int );
       const volatile int* src = reinterpret_cast< const volatile int* >( &ref );
       alignas( T ) int buffer[ words ];
-   #pragma unroll
+      #pragma unroll
       for( int i = 0; i < words; i++ )
          buffer[ i ] = src[ i ];
       T result;
