@@ -124,6 +124,7 @@ streamDestroy( stream_t stream )
 #endif
 }
 
+//! \brief Blocks the host until all operations in the given stream are finished.
 inline void
 streamSynchronize( stream_t stream )
 {
