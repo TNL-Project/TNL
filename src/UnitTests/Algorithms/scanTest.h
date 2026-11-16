@@ -844,13 +844,8 @@ TYPED_TEST( ScanTest, lookback_kernel_linear_sequence )
    using DeviceType = typename TestFixture::DeviceType;
 
    // The fixture constrains maxGridSize to 3, which would route to the
-   // three-phase path. Reset it so the lookback kernel is selected.
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   // three-phase path. Disable it so the lookback kernel is selected.
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    // Choose size large enough to span multiple blocks with the default
    // maxElementsInBlock (= blockSize * lookbackValuesPerThread). A prime
@@ -922,14 +917,8 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_begin )
 {
    using ValueType = typename TestFixture::ValueType;
    using IndexType = typename TestFixture::IndexType;
-   using DeviceType = typename TestFixture::DeviceType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    // begin=3 breaks 16-byte alignment for double (3*8=24) and int (3*4=12).
    const IndexType size = 9377;
@@ -976,14 +965,8 @@ TYPED_TEST( ScanTest, lookback_kernel_unaligned_view )
 {
    using ValueType = typename TestFixture::ValueType;
    using IndexType = typename TestFixture::IndexType;
-   using DeviceType = typename TestFixture::DeviceType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    const IndexType size = 9377;
    const IndexType inputOffset = 1;
@@ -1038,13 +1021,9 @@ TYPED_TEST( ScanTest, lookback_kernel_concurrent_host_threads )
    using ArrayType = typename TestFixture::ArrayType;
    using ValueType = typename TestFixture::ValueType;
    using IndexType = typename TestFixture::IndexType;
-   using DeviceType = typename TestFixture::DeviceType;
    using HostArrayType = typename TestFixture::HostArrayType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    const IndexType size = 9377;
    const int threadsCount = 4;
@@ -1199,16 +1178,11 @@ TYPED_TEST( ScanTest, inplaceScan_lookback_nonblocking )
    using IndexType = typename TestFixture::IndexType;
    using DeviceType = typename TestFixture::DeviceType;
 
-   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInFirstPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-      GPUScanKernelLauncher< ScanType::Exclusive, ScanPhaseType::WriteInSecondPhase, ValueType >::resetMaxGridSize();
-   }
-   else {
-      // the lookback kernel exists only on the GPU
+   // the lookback kernel exists only on the GPU
+   if constexpr( ! std::is_same_v< DeviceType, Devices::Cuda > )
       return;
-   }
+
+   Backend::detail::MaxGridXSizeOverride maxGridSizeOverride( 0 );
 
    typename DeviceType::LaunchConfiguration launch_config;
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > )
@@ -1398,6 +1372,129 @@ TEST( ScanStaticVectorTest, lookback_kernel_16_byte_value_type )
       result = input;
       EXPECT_EQ( result, inclusive_host ) << "in-place inclusive scan with offset " << offset;
    }
+}
+
+// Test of both lookback strategies with small tiles, so that there are many
+// more tiles than lanes in a warp and the warp lookback has to inspect several
+// windows of the preceding tiles. The thread lookback is not used by default,
+// so it is tested here explicitly.
+template< typename ValueType, ScanType scanType, LookbackStrategy strategy >
+void
+testLookbackStrategy()
+{
+   using DeviceType = Devices::GPU;
+   using IndexType = int;
+   using HostArrayType = Array< ValueType, Devices::Sequential, IndexType >;
+   using Launcher = GPUScanKernelLauncher<
+      scanType,
+      ScanPhaseType::WriteInSecondPhase,
+      ValueType,
+      GPUScanLookbackDefaults< ValueType >::blockSize,
+      7,
+      Backend::getMaxWarpSize(),
+      3,
+      strategy >;
+
+   for( const IndexType size : { 100, 10007, 100003 } ) {
+      HostArrayType input_host( size );
+      for( IndexType i = 0; i < size; i++ )
+         input_host[ i ] = ValueType( i % 7 );
+      HostArrayType expected_host;
+      expected_host = input_host;
+      if constexpr( scanType == ScanType::Inclusive )
+         inplaceInclusiveScan( expected_host, 0, size, std::plus<>{}, ValueType( 0 ) );
+      else
+         inplaceExclusiveScan( expected_host, 0, size, std::plus<>{}, ValueType( 0 ) );
+
+      Array< ValueType, DeviceType, IndexType > input;
+      Array< ValueType, DeviceType, IndexType > output( size );
+      input = input_host;
+      HostArrayType result;
+
+      // the scan is repeated to check that the states of the previous scan are not used
+      for( int repetition = 0; repetition < 3; repetition++ ) {
+         output.setValue( ValueType( -1 ) );
+         Launcher::performLookback( input, output, 0, size, 0, std::plus<>{}, ValueType( 0 ) );
+         result = output;
+         EXPECT_EQ( result, expected_host ) << "size " << size << ", repetition " << repetition;
+      }
+   }
+}
+
+TEST( ScanLookbackStrategyTest, thread_int )
+{
+   testLookbackStrategy< int, ScanType::Inclusive, LookbackStrategy::Thread >();
+   testLookbackStrategy< int, ScanType::Exclusive, LookbackStrategy::Thread >();
+}
+
+TEST( ScanLookbackStrategyTest, warp_int )
+{
+   testLookbackStrategy< int, ScanType::Inclusive, LookbackStrategy::Warp >();
+   testLookbackStrategy< int, ScanType::Exclusive, LookbackStrategy::Warp >();
+}
+
+TEST( ScanLookbackStrategyTest, thread_static_vector )
+{
+   using ValueType = StaticVector< 2, double >;
+   testLookbackStrategy< ValueType, ScanType::Inclusive, LookbackStrategy::Thread >();
+   testLookbackStrategy< ValueType, ScanType::Exclusive, LookbackStrategy::Thread >();
+}
+
+TEST( ScanLookbackStrategyTest, warp_static_vector )
+{
+   using ValueType = StaticVector< 2, double >;
+   testLookbackStrategy< ValueType, ScanType::Inclusive, LookbackStrategy::Warp >();
+   testLookbackStrategy< ValueType, ScanType::Exclusive, LookbackStrategy::Warp >();
+}
+
+// Test of the lookback scan when the epoch of the cached states reaches its
+// maximum: the last epoch must still be usable and the next scan must reset
+// the states and start again from the first epoch.
+TEST( ScanLookbackStrategyTest, epoch_overflow )
+{
+   using ValueType = int;
+   using DeviceType = Devices::GPU;
+   using IndexType = int;
+   using HostArrayType = Array< ValueType, Devices::Sequential, IndexType >;
+   using Launcher = GPUScanKernelLauncher< ScanType::Inclusive, ScanPhaseType::WriteInSecondPhase, ValueType >;
+
+   const IndexType size = 100003;
+   HostArrayType input_host( size );
+   for( IndexType i = 0; i < size; i++ )
+      input_host[ i ] = i % 7;
+   HostArrayType expected_host;
+   expected_host = input_host;
+   inplaceInclusiveScan( expected_host, 0, size, std::plus<>{}, 0 );
+
+   Array< ValueType, DeviceType, IndexType > input;
+   Array< ValueType, DeviceType, IndexType > output( size );
+   input = input_host;
+   HostArrayType result;
+
+   auto scan = [ & ]( const std::string& message )
+   {
+      output.setValue( -1 );
+      Launcher::performLookback( input, output, 0, size, 0, std::plus<>{}, 0 );
+      result = output;
+      EXPECT_EQ( result, expected_host ) << message;
+   };
+
+   // the first scan allocates the cached states
+   scan( "first scan" );
+   auto& cache = LookbackCachePool< ValueType >::getInstance().getCache( Backend::LaunchConfiguration{}.stream );
+
+   // the next scan uses the last epoch
+   cache.epoch = maxLookbackEpoch - 1;
+   scan( "scan with the last epoch" );
+   EXPECT_EQ( cache.epoch, maxLookbackEpoch );
+
+   // the next scan resets the states and uses the first epoch
+   scan( "scan after the reset of the states" );
+   EXPECT_EQ( cache.epoch, 1U );
+
+   // the states of the scan with the last epoch must not be used
+   scan( "second scan after the reset of the states" );
+   EXPECT_EQ( cache.epoch, 2U );
 }
 #endif
 

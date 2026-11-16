@@ -107,7 +107,7 @@ inclusiveScan(
    typename InputArray::IndexType begin = 0,
    typename InputArray::IndexType end = 0,
    typename OutputArray::IndexType outputBegin = 0,
-   Reduction&& reduction = TNL::Plus{},
+   Reduction&& reduction = TNL::Plus(),
    typename OutputArray::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
@@ -212,7 +212,7 @@ exclusiveScan(
    typename InputArray::IndexType begin = 0,
    typename InputArray::IndexType end = 0,
    typename OutputArray::IndexType outputBegin = 0,
-   Reduction&& reduction = TNL::Plus{},
+   Reduction&& reduction = TNL::Plus(),
    typename OutputArray::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
@@ -299,7 +299,7 @@ inplaceInclusiveScan(
    Array& array,
    typename Array::IndexType begin = 0,
    typename Array::IndexType end = 0,
-   Reduction&& reduction = TNL::Plus{},
+   Reduction&& reduction = TNL::Plus(),
    typename Array::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
@@ -386,7 +386,7 @@ inplaceExclusiveScan(
    Array& array,
    typename Array::IndexType begin = 0,
    typename Array::IndexType end = 0,
-   Reduction&& reduction = TNL::Plus{},
+   Reduction&& reduction = TNL::Plus(),
    typename Array::DeviceType::LaunchConfiguration launch_config = {} )
 {
    if( end == 0 )
