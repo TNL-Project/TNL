@@ -1,31 +1,10 @@
 #pragma once
 
-#include <TNL/Algorithms/Segments/Ellpack.h>
-#include <gtest/gtest.h>
+// Ellpack-specific tests, included in the generated SegmentsTest_Ellpack sources
+// (see tnl_add_format_tests in CMakeLists.txt)
 
-// Types for which SegmentsTest is instantiated - Ellpack segments
-using EllpackSegmentsTypes = ::testing::Types<
-#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
-   TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Host, int >,
-   TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Host, long >,
-   TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Host, int >,
-   TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Host, long >
-#elif defined( __CUDACC__ )
-   TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Cuda, int >,
-   TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Cuda, long >,
-   TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Cuda, int >,
-   TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Cuda, long >
-#elif defined( __HIP__ )
-   TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Hip, int >,
-   TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Hip, long >,
-   TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Hip, int >,
-   TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Hip, long >
-#endif
-   >;
-
+#include "SegmentsTestFormats.h"
 #include "SegmentsTestSuite.hpp"
-
-INSTANTIATE_TYPED_TEST_SUITE_P( EllpackSegments, SegmentsTest, EllpackSegmentsTypes );
 
 // Ellpack-specific test fixture
 template< typename Segments >
@@ -35,11 +14,12 @@ protected:
    using SegmentsType = Segments;
 };
 
+using EllpackSegmentsTypes =
+   TNL::UnitTests::SegmentsTestTypes< TNL::UnitTests::EllpackFormat, TNL::UnitTests::TestDevice, int, long >;
+
 TYPED_TEST_SUITE( EllpackSegmentsTest, EllpackSegmentsTypes );
 
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
 {
    test_setSegmentsSizes_EqualSizes_EllpackOnly< typename TestFixture::SegmentsType >();
 }
-
-#include "../../main.h"
