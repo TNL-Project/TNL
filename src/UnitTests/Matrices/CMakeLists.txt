@@ -1,4 +1,4 @@
-# formats of segments for which the tests of the reduction and traversal of sparse matrices are
+# formats of segments for which the tests of the reduction, traversal and vector product of sparse matrices are
 # instantiated (see ../Algorithms/Segments/SegmentsTestFormats.h and SparseMatrixTestTypes.h)
 set(SPARSE_MATRIX_TEST_FORMATS
     CSR
@@ -22,6 +22,26 @@ set(SPARSE_MATRIX_TEST_GPU_TYPES
 add_subdirectory(Factorization)
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
+
+# generates the SparseMatrixVectorProductTest executables for all formats of segments in
+# SPARSE_MATRIX_TEST_FORMATS, with all variants of each format (e.g. row-major and column-major)
+tnl_add_format_tests(
+    SparseMatrixVectorProductTest
+    SUITE MatrixTest
+    PREFIX SparseMatrix<FORMAT>
+    TYPES
+        "TNL::UnitTests::SparseMatrixVariantsTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< long, long >,
+        TNL::UnitTests::MatrixElementTypes< float, int >, TNL::UnitTests::MatrixElementTypes< double, long >,
+        TNL::UnitTests::MatrixElementTypes< TNL::Arithmetics::Complex< float >, long > >"
+    GPU_TYPES
+        "TNL::UnitTests::SparseMatrixVariantsCoveringTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< double, long >,
+        TNL::UnitTests::MatrixElementTypes< TNL::Arithmetics::Complex< float >, long > >"
+    HEADERS SparseMatrixTestTypes.h SparseMatrixVectorProductTest.h
+    FORMATS ${SPARSE_MATRIX_TEST_FORMATS}
+    LABELS Matrices
+)
 
 # generates the BinarySparseMatrixTest executables for the formats of segments supported by
 # binary sparse matrices
@@ -56,12 +76,6 @@ set(TESTS
     SparseMatrixTest_SortedChunkedEllpack
     SparseMatrixTest_SortedEllpack
     SparseMatrixTest_SortedSlicedEllpack
-    SparseMatrixVectorProductTest_CSR
-    SparseMatrixVectorProductTest_AdaptiveCSR
-    SparseMatrixVectorProductTest_Ellpack
-    SparseMatrixVectorProductTest_SlicedEllpack
-    SparseMatrixVectorProductTest_ChunkedEllpack
-    SparseMatrixVectorProductTest_BiEllpack
     SparseMatrixCopyTest
     BinarySparseMatrixCopyTest
     SymmetricSparseMatrixTest_CSR
