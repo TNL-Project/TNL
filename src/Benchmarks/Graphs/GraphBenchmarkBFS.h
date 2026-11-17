@@ -62,8 +62,8 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       config.addEntry< bool >( "deterministic", "Use deterministic predecessor selection (smallest source per layer).", false );
    }
 
-   GraphBenchmarkBFS( const TNL::Config::ParameterContainer& parameters )
-   : Base( parameters )
+   GraphBenchmarkBFS( const TNL::Config::ParameterContainer& parameters, GraphBenchmarkProgress& progress )
+   : Base( parameters, progress )
    {
       withBoost = this->parameters.template getParameter< bool >( "with-boost" );
       withGunrock = this->parameters.template getParameter< bool >( "with-gunrock" );
@@ -92,19 +92,25 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       IndexType largestNode,
       TNL::Benchmarks::Benchmark& benchmark )
    {
-      if( withGapbs ) {
-         if( this->runDirected )
-            runGapbsBFS( this->directedInputFile, digraph, true, benchmark );
-         if( this->runUndirected )
-            runGapbsBFS( this->undirectedInputFile, graph, false, benchmark );
+      // gapbs and Boost are CPU-only, so with several MPI ranks splitting the GPU kernel sweep
+      // between them, only rank 0 bothers with them (confirmed with the user). Gunrock runs on
+      // the GPU, so it is instead split between ranks via the same ownership hash as the TNL
+      // segment types (see runTNLBenchmarks()).
+      if( this->rank == 0 ) {
+         if( withGapbs ) {
+            if( this->runDirected )
+               runGapbsBFS( this->directedInputFile, digraph, true, benchmark );
+            if( this->runUndirected )
+               runGapbsBFS( this->undirectedInputFile, graph, false, benchmark );
+         }
+         if( withBoost ) {
+            if( this->runDirected )
+               runBoostBFS( digraph, true, benchmark );
+            if( this->runUndirected )
+               runBoostBFS( graph, false, benchmark );
+         }
       }
-      if( withBoost ) {
-         if( this->runDirected )
-            runBoostBFS( digraph, true, benchmark );
-         if( this->runUndirected )
-            runBoostBFS( graph, false, benchmark );
-      }
-      if( withGunrock ) {
+      if( withGunrock && this->progress.isMine( "Gunrock" ) ) {
          if( this->runDirected )
             runGunrockBFS( digraph, true, benchmark );
          if( this->runUndirected )
@@ -163,7 +169,16 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
                } );
          };
          this->template timeSingleSourceTrials< TNL::Devices::Host >(
-            benchmark, "gapbs", directed, "gapbs " + problemName( directed ), reset, compute, check );
+            benchmark,
+            "gapbs",
+            directed,
+            "gapbs " + problemName( directed ),
+            reset,
+            compute,
+            check,
+            "N/A",
+            "",
+            "direction-optimizing" );
       }
       catch( const std::exception& e ) {
          std::cerr << "gapbs BFS failed: " << e.what() << '\n';
@@ -208,7 +223,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             } );
       };
       this->template timeSingleSourceTrials< TNL::Devices::Sequential >(
-         benchmark, "Boost", directed, "Boost " + problemName( directed ), reset, compute, check );
+         benchmark, "Boost", directed, "Boost " + problemName( directed ), reset, compute, check, "N/A", "", "N/A" );
 #endif  // HAVE_BOOST
    }
 
@@ -283,7 +298,16 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             };
             try {
                this->template timeSingleSourceTrials< TNL::Devices::GPU >(
-                  benchmark, "Gunrock", directed, "Gunrock " + problemName( directed ) + " " + tag, reset, compute, check );
+                  benchmark,
+                  "Gunrock",
+                  directed,
+                  "Gunrock " + problemName( directed ) + " " + tag,
+                  reset,
+                  compute,
+                  check,
+                  "N/A",
+                  tag,
+                  "N/A" );
             }
             catch( const std::exception& e ) {
                std::cerr << "Gunrock " << problemName( directed ) << " with load balance '" << tag << "' failed: " << e.what()
@@ -438,7 +462,10 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
                "TNL " + problemName( directed ) + " " + std::string( segments ) + " " + tag + " " + mode.tag,
                reset,
                compute,
-               check );
+               check,
+               segments,
+               tag,
+               mode.tag );
          }
       }
 
@@ -473,7 +500,10 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             "TNL Semiring " + problemName( directed ) + " " + std::string( segments ),
             reset,
             compute,
-            check );
+            check,
+            segments,
+            "",
+            "N/A" );
       }
    }
 

@@ -16,21 +16,12 @@ DEBUG="no"
 SIZE_LIMIT=-1 # no size limit
 PRECISION="double"
 log_file="graphs-benchmark.log"
+progress_dir="progress"
 continue_benchmark="no"
-
-# Function to execute a command and continue on segfault
-run_command() {
-    echo "$@"
-    "$@"
-    local status=$?
-    if [ $status -eq 139 ]; then
-        echo "Caught segfault, but continuing script execution."
-        touch segfaults.log
-        echo "$@" >> segfaults.log
-    fi
-    rm -f core*
-    return $status
-}
+MPI_ENABLED="no"
+MPI_PROCESSES=1
+MPI_EXTRA_ARGS=""
+MAX_CONSECUTIVE_FAILURES=3
 
 # Loop through all the positional arguments
 while [[ "$#" -gt 0 ]]; do
@@ -49,6 +40,10 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         -l|--log-file)  # Log file
             log_file="$2"
+            shift
+            ;;
+        -g|--progress-dir)  # Directory for the per-graph progress files
+            progress_dir="$2"
             shift
             ;;
         -c|--continue)  # Continue from a previous run
@@ -71,8 +66,24 @@ while [[ "$#" -gt 0 ]]; do
             MAX_OMP_THREADS="$2"
             shift
             ;;
-        -p|--precision) # Arithmetical precision
+        -m|--mpi-enabled)  # Enable MPI
+            MPI_ENABLED="$2"
+            shift
+            ;;
+        -p|--mpi-processes)  # Number of MPI processes
+            MPI_PROCESSES="$2"
+            shift
+            ;;
+        -e|--mpi-extra-args)  # Extra arguments passed to mpirun, before -np
+            MPI_EXTRA_ARGS="$2"
+            shift
+            ;;
+        -r|--precision) # Arithmetical precision
             PRECISION="$2"
+            shift
+            ;;
+        --max-consecutive-failures)  # Give up on a graph after this many crashes with no progress
+            MAX_CONSECUTIVE_FAILURES="$2"
             shift
             ;;
         -h|--help)  # Display help
@@ -82,12 +93,19 @@ while [[ "$#" -gt 0 ]]; do
             echo "  -i, --input-dir DIR           Input directory. Default: ./"
             echo "  -I, --input-files FILE        Input file containing list of graphs to benchmark. Default: input-files (created if not exists)"
             echo "  -l, --log-file FILE           Log file. Default: graphs-benchmark.log"
+            echo "  -g, --progress-dir DIR        Directory for the per-graph progress files. Default: progress"
             echo "  -c, --continue yes/no         Continue from a previous run. Default: no"
             echo "  -s, --size-limit SIZE         Size limit for input files, -1 for no limit. Default: -1"
             echo "  -d, --debug  yes/no           Debug mode. Default: no"
             echo "  -o, --openmp-enabled yes/no   Enable OpenMP. Default: yes"
             echo "  -t, --openmp-max-threads MAX  Maximum number of OpenMP threads. Default: auto"
-            echo "  -p, --precision               Arithmetical precision - float or double. Default: double"
+            echo "  -m, --mpi-enabled yes/no      Run the benchmark via mpirun. Default: no"
+            echo "  -p, --mpi-processes NUM       Number of MPI processes (mpirun -np). Default: 1"
+            echo "  -e, --mpi-extra-args STRING   Extra mpirun arguments, inserted before -np. Default: (none)"
+            echo "  -r, --precision               Arithmetical precision - float or double. Default: double"
+            echo "      --max-consecutive-failures NUM"
+            echo "                                Give up on (and skip) a graph after this many consecutive"
+            echo "                                crashes with no progress recorded for it. Default: 3"
             echo "  -h, --help                    Display help"
             exit 0
             ;;
@@ -146,7 +164,24 @@ if [[ "$MAX_OMP_THREADS" == "auto" ]]; then
 fi
 
 # set parameters for the benchmark
-COMMAND=("$BENCHMARK" --precision "$PRECISION" --log-file "$log_file" --output-mode append --verbose 1)
+COMMAND=()
+if [[ "$MPI_ENABLED" == "yes" ]]; then
+    COMMAND+=(mpirun)
+    # mpirun binds each process to one core by default (Open MPI does so for
+    # up to two processes), so all OpenMP threads of the process would share
+    # this core
+    if [[ "$OMP_ENABLED" == "yes" && "$MPI_EXTRA_ARGS" != *bind-to* ]]; then
+        COMMAND+=(--bind-to none)
+    fi
+    if [[ -n "$MPI_EXTRA_ARGS" ]]; then
+        # split the extra arguments on whitespace
+        read -r -a mpi_extra_args <<< "$MPI_EXTRA_ARGS"
+        COMMAND+=("${mpi_extra_args[@]}")
+    fi
+    COMMAND+=(-np "$MPI_PROCESSES")
+fi
+COMMAND+=("$BENCHMARK" --precision "$PRECISION" --log-file "$log_file" --output-mode append --verbose 1)
+COMMAND+=(--graph-list "$input_files" --graph-list-base-path "$graphs_base_path" --progress-dir "$progress_dir")
 
 if [[ "$OMP_ENABLED" == "yes" ]]; then
     COMMAND+=(--openmp-enabled yes)
@@ -157,18 +192,50 @@ else
     COMMAND+=(--openmp-enabled no)
 fi
 
-total_lines=$(wc -l < "$input_files")
-while [[ -s "$input_files" ]];
-do
-   file=$(head -n 1 "$input_files")
-   lines=$(wc -l < "$input_files")
-   lines=$((total_lines - lines))
-   echo "$lines / $total_lines : Benchmarking graph $file ..."
+# The binary now manages the whole list itself in one process (see --graph-list above), removing
+# each graph only once it is fully benchmarked - a crash (e.g. a segfault) leaves it at the head
+# of the list, so simply re-running the same command resumes from there, continuing mid-graph via
+# its progress file. This loop only matters when that happens: the common case is a single pass
+# through it. consecutive_failures guards against spinning forever on one graph that crashes
+# before ever recording any progress for itself.
+consecutive_failures=0
+while [[ -s "$input_files" ]]; do
+   before_count=$(wc -l < "$input_files")
+   head_graph=$(head -n 1 "$input_files")
+
+   echo "${COMMAND[@]}"
    if [[ "$DEBUG" == "yes" ]]; then
-      gdb --args "${COMMAND[@]}" --input-file "$file"
+      gdb --args "${COMMAND[@]}"
+      status=$?
    else
-      run_command "${COMMAND[@]}" --input-file "$file"
+      "${COMMAND[@]}"
+      status=$?
    fi
-   sed -i '1d' "$input_files"
+   if [ $status -eq 139 ]; then
+      echo "Caught segfault, but continuing script execution."
+      touch segfaults.log
+      echo "${COMMAND[@]}" >> segfaults.log
+   fi
+   rm -f core*
+
+   if [[ ! -s "$input_files" ]]; then
+      break
+   fi
+   after_count=$(wc -l < "$input_files")
+   after_head=$(head -n 1 "$input_files")
+   if [[ "$after_count" -lt "$before_count" || "$after_head" != "$head_graph" ]]; then
+      # at least one graph got fully processed since the last attempt
+      consecutive_failures=0
+   else
+      consecutive_failures=$((consecutive_failures + 1))
+      echo "No progress on graph $head_graph after exit status $status (consecutive failures: $consecutive_failures)"
+      if [[ $consecutive_failures -ge $MAX_CONSECUTIVE_FAILURES ]]; then
+         echo "WARNING: giving up on $head_graph after $consecutive_failures consecutive failures with no progress - skipping it."
+         touch failed-graphs.txt
+         echo "$head_graph" >> failed-graphs.txt
+         sed -i.bak '1d' "$input_files" && rm -f "$input_files.bak"
+         consecutive_failures=0
+      fi
+   fi
 done
-rm "$input_files"
+rm -f "$input_files"

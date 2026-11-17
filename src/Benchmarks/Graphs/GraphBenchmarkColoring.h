@@ -20,13 +20,18 @@ struct GraphBenchmarkColoring : public GraphBenchmarkBase< Real, Index, GraphBen
    using SequentialGraph = TNL::Graphs::Graph< Real, TNL::Devices::Sequential, Index, TNL::Graphs::UndirectedGraph >;
    using SequentialIndexVector = TNL::Containers::Vector< Index, TNL::Devices::Sequential, Index >;
 
-   GraphBenchmarkColoring( const TNL::Config::ParameterContainer& parameters )
-   : Base( parameters )
+   GraphBenchmarkColoring( const TNL::Config::ParameterContainer& parameters, GraphBenchmarkProgress& progress )
+   : Base( parameters, progress )
    {}
 
    void
    runOtherBenchmarks( const HostDigraph&, const HostGraph& graph, IndexType, IndexType, TNL::Benchmarks::Benchmark& benchmark )
    {
+      // Sequential is CPU-only, so with several MPI ranks splitting the GPU kernel sweep between
+      // them, only rank 0 bothers with it (confirmed with the user).
+      if( this->rank != 0 )
+         return;
+
       SequentialGraph sequentialGraph( graph );
       SequentialIndexVector sequentialColors( sequentialGraph.getVertexCount(), 0 );
       SequentialIndexVector sequentialLubyColors( sequentialGraph.getVertexCount(), 0 );
@@ -36,28 +41,41 @@ struct GraphBenchmarkColoring : public GraphBenchmarkBase< Real, Index, GraphBen
       benchmark.setMetadataElement( { "kernel", "N/A" } );
       benchmark.setMetadataElement( { "launch cfg.", "N/A" } );
 
-      benchmark.setMetadataElement( { "problem", "coloring seq" } );
-      auto coloringSequential = [ & ]() mutable
+      const std::string precision = TNL::getType< Real >();
+      if( ! this->progress.isDone(
+             TNL::getType< TNL::Devices::Sequential >(), precision, "undirected", "TNL", "N/A", "N/A", "greedy" ) )
       {
-         TNL::Graphs::Algorithms::graphColoring( sequentialGraph, sequentialColors );
-      };
-      benchmark.time< TNL::Devices::Sequential >( "TNL", coloringSequential );
+         benchmark.setMetadataElement( { "problem", "coloring seq" } );
+         auto coloringSequential = [ & ]() mutable
+         {
+            TNL::Graphs::Algorithms::graphColoring( sequentialGraph, sequentialColors );
+         };
+         benchmark.time< TNL::Devices::Sequential >( "TNL", coloringSequential );
+         this->progress.markDone(
+            TNL::getType< TNL::Devices::Sequential >(), precision, "undirected", "TNL", "N/A", "N/A", "greedy" );
 
-      if( ! TNL::Graphs::Algorithms::isProperlyColored( sequentialGraph, sequentialColors ) ) {
-         std::cout << "Sequential graph coloring produced an invalid coloring.\n";
-         this->errors++;
+         if( ! TNL::Graphs::Algorithms::isProperlyColored( sequentialGraph, sequentialColors ) ) {
+            std::cout << "Sequential graph coloring produced an invalid coloring.\n";
+            this->errors++;
+         }
       }
 
-      benchmark.setMetadataElement( { "problem", "coloring luby seq" } );
-      auto coloringLubySequential = [ & ]() mutable
+      if( ! this->progress.isDone(
+             TNL::getType< TNL::Devices::Sequential >(), precision, "undirected", "TNL", "N/A", "N/A", "luby" ) )
       {
-         TNL::Graphs::Algorithms::graphColoringLuby( sequentialGraph, sequentialLubyColors );
-      };
-      benchmark.time< TNL::Devices::Sequential >( "TNL", coloringLubySequential );
+         benchmark.setMetadataElement( { "problem", "coloring luby seq" } );
+         auto coloringLubySequential = [ & ]() mutable
+         {
+            TNL::Graphs::Algorithms::graphColoringLuby( sequentialGraph, sequentialLubyColors );
+         };
+         benchmark.time< TNL::Devices::Sequential >( "TNL", coloringLubySequential );
+         this->progress.markDone(
+            TNL::getType< TNL::Devices::Sequential >(), precision, "undirected", "TNL", "N/A", "N/A", "luby" );
 
-      if( ! TNL::Graphs::Algorithms::isProperlyColored( sequentialGraph, sequentialLubyColors ) ) {
-         std::cout << "Sequential Luby graph coloring produced an invalid coloring.\n";
-         this->errors++;
+         if( ! TNL::Graphs::Algorithms::isProperlyColored( sequentialGraph, sequentialLubyColors ) ) {
+            std::cout << "Sequential Luby graph coloring produced an invalid coloring.\n";
+            this->errors++;
+         }
       }
    }
 
@@ -83,31 +101,38 @@ struct GraphBenchmarkColoring : public GraphBenchmarkBase< Real, Index, GraphBen
          Vector lubiColors( graph.getVertexCount(), 0 );
          benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
          benchmark.setMetadataElement( { "kernel", segments } );
+         const std::string precision = TNL::getType< Real >();
 
-         benchmark.setMetadataElement( { "problem", "coloring" } );
-         benchmark.setMetadataElement( { "launch cfg.", "N/A" } );
-         auto coloring = [ & ]() mutable
-         {
-            TNL::Graphs::Algorithms::graphColoring( graph, colors );
-         };
-         benchmark.time< Device >( "TNL", coloring );
+         if( ! this->progress.isDone( TNL::getType< Device >(), precision, "undirected", "TNL", segments, "N/A", "greedy" ) ) {
+            benchmark.setMetadataElement( { "problem", "coloring" } );
+            benchmark.setMetadataElement( { "launch cfg.", "N/A" } );
+            auto coloring = [ & ]() mutable
+            {
+               TNL::Graphs::Algorithms::graphColoring( graph, colors );
+            };
+            benchmark.time< Device >( "TNL", coloring );
+            this->progress.markDone( TNL::getType< Device >(), precision, "undirected", "TNL", segments, "N/A", "greedy" );
 
-         if( ! TNL::Graphs::Algorithms::isProperlyColored( graph, colors ) ) {
-            std::cout << "Graph coloring produced an invalid coloring on device " << TNL::getType< Device >() << ".\n";
-            this->errors++;
+            if( ! TNL::Graphs::Algorithms::isProperlyColored( graph, colors ) ) {
+               std::cout << "Graph coloring produced an invalid coloring on device " << TNL::getType< Device >() << ".\n";
+               this->errors++;
+            }
          }
 
-         benchmark.setMetadataElement( { "problem", "coloring luby" } );
-         benchmark.setMetadataElement( { "launch cfg.", "N/A" } );
-         auto coloringLuby = [ & ]() mutable
-         {
-            TNL::Graphs::Algorithms::graphColoringLuby( graph, lubiColors );
-         };
-         benchmark.time< Device >( "TNL", coloringLuby );
+         if( ! this->progress.isDone( TNL::getType< Device >(), precision, "undirected", "TNL", segments, "N/A", "luby" ) ) {
+            benchmark.setMetadataElement( { "problem", "coloring luby" } );
+            benchmark.setMetadataElement( { "launch cfg.", "N/A" } );
+            auto coloringLuby = [ & ]() mutable
+            {
+               TNL::Graphs::Algorithms::graphColoringLuby( graph, lubiColors );
+            };
+            benchmark.time< Device >( "TNL", coloringLuby );
+            this->progress.markDone( TNL::getType< Device >(), precision, "undirected", "TNL", segments, "N/A", "luby" );
 
-         if( ! TNL::Graphs::Algorithms::isProperlyColored( graph, lubiColors ) ) {
-            std::cout << "Luby graph coloring produced an invalid coloring on device " << TNL::getType< Device >() << ".\n";
-            this->errors++;
+            if( ! TNL::Graphs::Algorithms::isProperlyColored( graph, lubiColors ) ) {
+               std::cout << "Luby graph coloring produced an invalid coloring on device " << TNL::getType< Device >() << ".\n";
+               this->errors++;
+            }
          }
       }
    }

@@ -29,8 +29,8 @@ public:
       config.addEntry< bool >( "with-boost", "Run Boost benchmarks.", true );
    }
 
-   GraphBenchmarkMST( const TNL::Config::ParameterContainer& parameters )
-   : Base( parameters ),
+   GraphBenchmarkMST( const TNL::Config::ParameterContainer& parameters, GraphBenchmarkProgress& progress )
+   : Base( parameters, progress ),
      boostMSTTotalWeight( 0.0 )
    {
       withBoost = this->parameters.template getParameter< bool >( "with-boost" );
@@ -44,7 +44,9 @@ public:
       IndexType largestNode,
       TNL::Benchmarks::Benchmark& benchmark )
    {
-      if( withBoost )
+      // Boost is CPU-only, so with several MPI ranks splitting the GPU kernel sweep between
+      // them, only rank 0 bothers with it (confirmed with the user).
+      if( withBoost && this->rank == 0 )
          runBoostBenchmarks( digraph, graph, smallestNode, largestNode, benchmark );
       runGunrockBenchmarks( digraph, graph, smallestNode, largestNode, benchmark );
    }
@@ -72,7 +74,18 @@ public:
       {
          boostGraph.minimumSpanningTree( boostMstEdges );
       };
-      benchmark.time< TNL::Devices::Sequential >( "Boost", mst_boost );
+      // boostMstEdges/boostMSTTotalWeight are needed below as the reference for every TNL MST
+      // comparison in this process run, even one resumed past this cell - so they must always be
+      // (re)computed; only the timed measurement + log row is skipped if already done.
+      const std::string precision = TNL::getType< Real >();
+      if( this->progress.isDone(
+             TNL::getType< TNL::Devices::Sequential >(), precision, "undirected", "Boost", "N/A", "N/A", "N/A" ) )
+         mst_boost();
+      else {
+         benchmark.time< TNL::Devices::Sequential >( "Boost", mst_boost );
+         this->progress.markDone(
+            TNL::getType< TNL::Devices::Sequential >(), precision, "undirected", "Boost", "N/A", "N/A", "N/A" );
+      }
       this->boostMSTTotalWeight = 0.0;
       for( auto& edge : boostMstEdges ) {
          Real weight = boost::get( boost::edge_weight, boostGraph.getGraph(), edge );
@@ -109,6 +122,12 @@ public:
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
 
+      // This whole cell (measurement, output file, verification) is skipped as one unit on
+      // resume - the verification was already done truthfully in the run that completed it.
+      const std::string precision = TNL::getType< Real >();
+      if( this->progress.isDone( TNL::getType< Device >(), precision, "undirected", "TNL", segments, "N/A", "N/A" ) )
+         return;
+
       // Benchmarking minimum spanning tree
       Graph mstGraph;
       IndexVector roots;
@@ -121,6 +140,7 @@ public:
          TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, mstGraph, roots );
       };
       benchmark.time< Device >( "TNL", mst_tnl );
+      this->progress.markDone( TNL::getType< Device >(), precision, "undirected", "TNL", segments, "N/A", "N/A" );
 
       auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );

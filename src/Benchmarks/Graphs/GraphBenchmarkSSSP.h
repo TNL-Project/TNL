@@ -65,8 +65,8 @@ public:
          "bitmap-threshold", "Frontier fraction below which top-down bitmap mode is used (0 = disabled).", 0.0 );
    }
 
-   GraphBenchmarkSSSP( const TNL::Config::ParameterContainer& parameters )
-   : Base( parameters )
+   GraphBenchmarkSSSP( const TNL::Config::ParameterContainer& parameters, GraphBenchmarkProgress& progress )
+   : Base( parameters, progress )
    {
       withBoost = this->parameters.template getParameter< bool >( "with-boost" );
       withGunrock = this->parameters.template getParameter< bool >( "with-gunrock" );
@@ -91,19 +91,25 @@ public:
       IndexType largestNode,
       TNL::Benchmarks::Benchmark& benchmark )
    {
-      if( withGapbs ) {
-         if( this->runDirected )
-            runGapbsSSSP( this->directedInputFile, digraph, true, benchmark );
-         if( this->runUndirected )
-            runGapbsSSSP( this->undirectedInputFile, graph, false, benchmark );
+      // gapbs and Boost are CPU-only, so with several MPI ranks splitting the GPU kernel sweep
+      // between them, only rank 0 bothers with them (confirmed with the user). Gunrock runs on
+      // the GPU, so it is instead split between ranks via the same ownership hash as the TNL
+      // segment types (see runTNLBenchmarks()).
+      if( this->rank == 0 ) {
+         if( withGapbs ) {
+            if( this->runDirected )
+               runGapbsSSSP( this->directedInputFile, digraph, true, benchmark );
+            if( this->runUndirected )
+               runGapbsSSSP( this->undirectedInputFile, graph, false, benchmark );
+         }
+         if( withBoost ) {
+            if( this->runDirected )
+               runBoostSSSP( digraph, true, benchmark );
+            if( this->runUndirected )
+               runBoostSSSP( graph, false, benchmark );
+         }
       }
-      if( withBoost ) {
-         if( this->runDirected )
-            runBoostSSSP( digraph, true, benchmark );
-         if( this->runUndirected )
-            runBoostSSSP( graph, false, benchmark );
-      }
-      if( withGunrock ) {
+      if( withGunrock && this->progress.isMine( "Gunrock" ) ) {
          if( this->runDirected )
             runGunrockSSSP( digraph, true, benchmark );
          if( this->runUndirected )
@@ -196,7 +202,16 @@ public:
             return checkDistances( hostGraph, source, distances, std::numeric_limits< std::int64_t >::max() );
          };
          this->template timeSingleSourceTrials< TNL::Devices::Host >(
-            benchmark, "gapbs", directed, "gapbs " + problemName( directed ), reset, compute, check );
+            benchmark,
+            "gapbs",
+            directed,
+            "gapbs " + problemName( directed ),
+            reset,
+            compute,
+            check,
+            "N/A",
+            "",
+            "delta-stepping " + std::to_string( delta ) );
       }
       catch( const std::exception& e ) {
          std::cerr << "gapbs SSSP failed: " << e.what() << '\n';
@@ -231,7 +246,7 @@ public:
          return checkDistances( hostGraph, source, distances, std::numeric_limits< Real >::max() );
       };
       this->template timeSingleSourceTrials< TNL::Devices::Sequential >(
-         benchmark, "Boost", directed, "Boost " + problemName( directed ), reset, compute, check );
+         benchmark, "Boost", directed, "Boost " + problemName( directed ), reset, compute, check, "N/A", "", "N/A" );
 #endif  // HAVE_BOOST
    }
 
@@ -277,7 +292,16 @@ public:
             };
             try {
                this->template timeSingleSourceTrials< TNL::Devices::GPU >(
-                  benchmark, "Gunrock", directed, "Gunrock " + problemName( directed ) + " " + tag, reset, compute, check );
+                  benchmark,
+                  "Gunrock",
+                  directed,
+                  "Gunrock " + problemName( directed ) + " " + tag,
+                  reset,
+                  compute,
+                  check,
+                  "N/A",
+                  tag,
+                  "N/A" );
             }
             catch( const std::exception& e ) {
                std::cerr << "Gunrock " << problemName( directed ) << " with load balance '" << tag << "' failed: " << e.what()
@@ -349,7 +373,10 @@ public:
                "TNL " + problemName( directed ) + " " + std::string( segments ) + " " + tag + " " + modeTag,
                reset,
                compute,
-               check );
+               check,
+               segments,
+               tag,
+               modeTag );
          }
       }
 
@@ -371,7 +398,10 @@ public:
             "TNL Semiring " + problemName( directed ) + " " + std::string( segments ),
             reset,
             compute,
-            check );
+            check,
+            segments,
+            "Default",
+            "N/A" );
       }
    }
 

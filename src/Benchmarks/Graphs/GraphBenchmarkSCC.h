@@ -20,8 +20,8 @@ struct GraphBenchmarkSCC : public GraphBenchmarkBase< Real, Index, GraphBenchmar
    using SequentialDigraph = TNL::Graphs::Graph< Real, TNL::Devices::Sequential, Index, TNL::Graphs::DirectedGraph >;
    using SequentialIndexVector = TNL::Containers::Vector< Index, TNL::Devices::Sequential, Index >;
 
-   GraphBenchmarkSCC( const TNL::Config::ParameterContainer& parameters )
-   : Base( parameters )
+   GraphBenchmarkSCC( const TNL::Config::ParameterContainer& parameters, GraphBenchmarkProgress& progress )
+   : Base( parameters, progress )
    {}
 
    void
@@ -45,7 +45,21 @@ struct GraphBenchmarkSCC : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       {
          TNL::Graphs::Algorithms::stronglyConnectedComponents( sequentialDigraph, sequentialReferenceComponents );
       };
-      benchmark.time< TNL::Devices::Sequential >( "TNL", sccSequential );
+      // referenceComponents is needed below by every rank's own GPU verification, even one that
+      // does not own (or, with several MPI ranks, is not rank 0 for) this Sequential measurement
+      // - so it must always be computed; only the timed measurement + log row is rank 0's job,
+      // skipped if already done.
+      const std::string precision = TNL::getType< Real >();
+      if( this->rank == 0
+          && ! this->progress.isDone(
+             TNL::getType< TNL::Devices::Sequential >(), precision, "directed", "TNL", "N/A", "N/A", "N/A" ) )
+      {
+         benchmark.time< TNL::Devices::Sequential >( "TNL", sccSequential );
+         this->progress.markDone(
+            TNL::getType< TNL::Devices::Sequential >(), precision, "directed", "TNL", "N/A", "N/A", "N/A" );
+      }
+      else
+         sccSequential();
 
       referenceComponents = sequentialReferenceComponents;
    }
@@ -84,11 +98,16 @@ struct GraphBenchmarkSCC : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
             benchmark.setMetadataElement( { "launch cfg.", tag } );
 
+            const std::string precision = TNL::getType< Real >();
+            if( this->progress.isDone( TNL::getType< Device >(), precision, "directed", "TNL", segments, tag, "N/A" ) )
+               continue;
+
             auto scc = [ &, launchConfig ]() mutable
             {
                TNL::Graphs::Algorithms::stronglyConnectedComponents( digraph, components, launchConfig );
             };
             benchmark.time< Device >( "TNL", scc );
+            this->progress.markDone( TNL::getType< Device >(), precision, "directed", "TNL", segments, tag, "N/A" );
 
             if( components != deviceReferenceComponents ) {
                std::cout << "Strongly connected components mismatch for production implementation.\n";

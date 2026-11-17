@@ -43,8 +43,8 @@ public:
       config.addEntry< bool >( "with-gapbs", "Run the GAP reference code (gapbs) benchmarks.", true );
    }
 
-   GraphBenchmarkCC( const TNL::Config::ParameterContainer& parameters )
-   : Base( parameters )
+   GraphBenchmarkCC( const TNL::Config::ParameterContainer& parameters, GraphBenchmarkProgress& progress )
+   : Base( parameters, progress )
    {
       withGapbs = this->parameters.template getParameter< bool >( "with-gapbs" );
    }
@@ -57,9 +57,16 @@ public:
                       "both.\n";
          return;
       }
+      // Needed by every rank for the verification of its own share of the GPU kernels below, not
+      // just by the rank-0-only CPU benchmarks further down.
       std::cout << "Counting the connected components for the verification ...\n";
       components = countConnectedComponents( graph.getAdjacencyMatrix() );
       std::cout << "The graph has " << components << " connected components.\n";
+
+      // gapbs and the Sequential device are CPU-only, so with several MPI ranks splitting the
+      // GPU kernel sweep between them, only rank 0 bothers with them (confirmed with the user).
+      if( this->rank != 0 )
+         return;
 
       if( withGapbs )
          runGapbsCC( graph, benchmark );
@@ -83,7 +90,7 @@ public:
          return verify( graph, sequentialComponents.getSize(), sequentialComponents.getData() );
       };
       this->template timeWholeGraphTrials< TNL::Devices::Sequential >(
-         benchmark, "TNL", "TNL CC seq", reset, ccSequential, check );
+         benchmark, "TNL", "TNL CC seq", reset, ccSequential, check, "undirected", "N/A", "N/A", "N/A" );
    }
 
    template< typename Label >
@@ -128,7 +135,8 @@ public:
             gapbs.getComponents( labels );
             return verify( graph, labels.size(), labels.data() );
          };
-         this->template timeWholeGraphTrials< TNL::Devices::Host >( benchmark, "gapbs", "gapbs CC", reset, compute, check );
+         this->template timeWholeGraphTrials< TNL::Devices::Host >(
+            benchmark, "gapbs", "gapbs CC", reset, compute, check, "undirected", "N/A", "Afforest", "N/A" );
       }
       catch( const std::exception& e ) {
          std::cerr << "gapbs CC failed: " << e.what() << '\n';
@@ -186,7 +194,16 @@ public:
                return verify( *this->hostGraphPointer, hostLabels.getSize(), hostLabels.getData() );
             };
             this->template timeWholeGraphTrials< Device >(
-               benchmark, "TNL", "TNL CC par " + std::string( segments ) + " " + tag, reset, cc, check );
+               benchmark,
+               "TNL",
+               "TNL CC par " + std::string( segments ) + " " + tag,
+               reset,
+               cc,
+               check,
+               "undirected",
+               segments,
+               tag,
+               "N/A" );
          }
       }
    }

@@ -7,6 +7,18 @@ set(GRAPH_BENCHMARKS
     mst
 )
 
+# Links MPI and defines HAVE_MPI for a target, when MPI is available. Lets several MPI ranks
+# split one graph's GPU kernel sweep between them, each bound to its own GPU via
+# TNL::MPI::selectGPU() (see each tnl-benchmark-graphs-*.h) - a single-rank run (no mpirun) is
+# unaffected either way.
+find_package(MPI COMPONENTS CXX)
+function(add_mpi_support target)
+    if(MPI_CXX_FOUND)
+        target_compile_definitions(${target} PUBLIC HAVE_MPI)
+        target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
+    endif()
+endfunction()
+
 find_package(Boost OPTIONAL_COMPONENTS graph)
 if(Boost_GRAPH_FOUND)
     message(STATUS "Boost found ${Boost_INCLUDE_DIRS}")
@@ -124,6 +136,7 @@ foreach(bench IN LISTS GRAPH_BENCHMARKS)
 
     foreach(target IN LISTS targets)
         tnl_graph_benchmark_add_gapbs(${target} ${bench})
+        add_mpi_support(${target})
     endforeach()
 
     # options and libraries for the CUDA variants

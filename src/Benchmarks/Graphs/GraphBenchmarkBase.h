@@ -23,6 +23,7 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Graphs/Algorithms/breadthFirstSearch.h>
+#include <TNL/MPI/Comm.h>
 #include <climits>
 #include <new>
 #include <iostream>
@@ -32,6 +33,7 @@
 #include <vector>
 
 #include "GapGraphReader.h"
+#include "GraphBenchmarkProgress.h"
 #include "GraphBenchmarkTools.h"
 
 //#define WITH_ROW_MAJOR_SLICED_ELLPACK
@@ -141,10 +143,28 @@ public:
    {
       Benchmark::configSetup( config );
       config.addDelimiter( "Graph benchmark settings:" );
-      config.addRequiredEntry< TNL::String >(
+      config.addEntry< TNL::String >(
          "input-file",
          "Input file with the graph: .sg or .wsg file of the GAP benchmark (see get-gap-graphs.py), .mtx file, or edge "
-         "list. The undirected variant of an .mtx file or an edge list is computed by symmetrization." );
+         "list. The undirected variant of an .mtx file or an edge list is computed by symmetrization. Required, unless "
+         "--graph-list is given instead.",
+         "" );
+      config.addEntry< TNL::String >( "graph-name", "Graph name used in the log. Defaults to the input file name.", "" );
+      config.addEntry< TNL::String >(
+         "graph-list",
+         "File listing the remaining graphs to benchmark, one path per line. When given, takes priority over "
+         "--input-file: every graph in the list is benchmarked in this single process, and removed from the list "
+         "only once it is fully done, so a crash leaves it at the head of the list for the next run to resume "
+         "(together with --progress-dir).",
+         "" );
+      config.addEntry< TNL::String >(
+         "graph-list-base-path", "Base path stripped from each --graph-list entry to derive its graph name.", "./" );
+      config.addEntry< TNL::String >(
+         "progress-dir",
+         "Directory for the per-graph progress files, used to resume a graph that was interrupted partway through "
+         "its sweep of kernels/launch configs instead of redoing it from scratch. Each benchmark uses its own "
+         "subdirectory (e.g. progress/bfs). The progress files of a graph are deleted once the graph is fully done.",
+         "progress" );
       config.addEntry< TNL::String >(
          "undirected-input-file",
          "Input file with the undirected (symmetrized) graph for a directed .sg or .wsg input file. The default is "
@@ -185,8 +205,11 @@ public:
       TNL::Devices::GPU::configSetup( config );
    }
 
-   GraphBenchmarkBase( const TNL::Config::ParameterContainer& parameters_ )
-   : parameters( parameters_ )
+   GraphBenchmarkBase( const TNL::Config::ParameterContainer& parameters_, GraphBenchmarkProgress& progress_ )
+   : parameters( parameters_ ),
+     progress( progress_ ),
+     rank( mpiRank() ),
+     worldSize( mpiSize() )
    {}
 
    virtual ~GraphBenchmarkBase() = default;
@@ -237,6 +260,8 @@ public:
    runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const std::string& programName = "" )
    {
       const std::string inputFile = parameters.getParameter< TNL::String >( "input-file" );
+      const TNL::String graphNameParam = parameters.getParameter< TNL::String >( "graph-name" );
+      const std::string graphName = graphNameParam.empty() ? inputFile : graphNameParam.getString();
 #ifdef WITH_SORTED_SEGMENTS
       withSortedSegments = parameters.getParameter< bool >( "with-sorted-segments" );
 #endif
@@ -326,7 +351,7 @@ public:
 
       benchmark.setMetadataColumns(
          {
-            { "graph name", inputFile },
+            { "graph name", graphName },
             { "precision", getType< Real >() },
             { "index type", TNL::getType< Index >() },
             { "nodes", convertToString( adjacencyMatrix.getRows() ) },
@@ -348,10 +373,15 @@ public:
       // Run benchmarks for different libraries and devices
       derived.runOtherBenchmarks( digraph, graph, smallest, largest, benchmark );
 
-      if( device == "sequential" || device == "all" )
-         runTNLBenchmarks< TNL::Devices::Sequential, CSRSegments >( digraph, graph, smallest, largest, benchmark );
-      if( device == "host" || device == "all" )
-         runTNLBenchmarks< TNL::Devices::Host, CSRSegments >( digraph, graph, smallest, largest, benchmark );
+      // The Sequential/Host device runs are CPU-only, so with several MPI ranks splitting a
+      // graph's GPU kernel sweep between them, only rank 0 bothers with them (confirmed with
+      // the user) - the others skip straight to their own share of the GPU kernels below.
+      if( rank == 0 ) {
+         if( device == "sequential" || device == "all" )
+            runTNLBenchmarks< TNL::Devices::Sequential, CSRSegments >( digraph, graph, smallest, largest, benchmark );
+         if( device == "host" || device == "all" )
+            runTNLBenchmarks< TNL::Devices::Host, CSRSegments >( digraph, graph, smallest, largest, benchmark );
+      }
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       if( device == "cuda" || device == "hip" || device == "all" ) {
@@ -447,6 +477,16 @@ protected:
       using Digraph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::DirectedGraph, Segments >;
 
       const std::string segments = typename Graph::AdjacencyMatrixType::SegmentsType{}.getSegmentsType();
+
+      // With several MPI ranks splitting a graph's GPU kernel sweep between them, each GPU
+      // segments type is owned by exactly one rank (see GraphBenchmarkProgress::isMine()) -
+      // skip entirely, before the potentially large graph conversion/allocation below, if this
+      // rank does not own it. Sequential/Host are gated separately in runBenchmark() instead,
+      // since they are restricted to rank 0 rather than split by a hash.
+      if constexpr( std::is_same_v< Device, TNL::Devices::GPU > )
+         if( ! progress.isMine( segments ) )
+            return;
+
       try {
          // A segments format may need too much memory for a graph (e.g. Ellpack pads all rows to the largest degree),
          // such a format is skipped.
@@ -545,8 +585,16 @@ protected:
       const std::string& what,
       Reset&& reset,
       Compute&& compute,
-      Check&& check )
+      Check&& check,
+      const std::string& kernel,
+      const std::string& launchConfig,
+      const std::string& mode )
    {
+      const std::string precision = TNL::getType< Real >();
+      const std::string orientation = directed ? "directed" : "undirected";
+      if( progress.isDone( TNL::getType< Device >(), precision, orientation, performer, kernel, launchConfig, mode ) )
+         return;
+
       const auto& sources = directed ? directedSources : undirectedSources;
       const auto& traversedEdges = directed ? directedTraversedEdges : undirectedTraversedEdges;
       benchmark.setLoops( 1 );
@@ -569,6 +617,7 @@ protected:
       }
       benchmark.setLoops( loops );
       benchmark.setWarmupLoops( warmupLoops );
+      progress.markDone( TNL::getType< Device >(), precision, orientation, performer, kernel, launchConfig, mode );
    }
 
    /**
@@ -585,8 +634,16 @@ protected:
       const std::string& what,
       Reset&& reset,
       Compute&& compute,
-      Check&& check )
+      Check&& check,
+      const std::string& orientation,
+      const std::string& kernel,
+      const std::string& launchConfig,
+      const std::string& mode )
    {
+      const std::string precision = TNL::getType< Real >();
+      if( progress.isDone( TNL::getType< Device >(), precision, orientation, performer, kernel, launchConfig, mode ) )
+         return;
+
       benchmark.setMetadataElement( { "trial", "all" } );
       benchmark.setMetadataElement( { "source", "N/A" } );
       benchmark.setLoops( trials );
@@ -596,10 +653,14 @@ protected:
       if( verifyMode != "none" )
          reportVerification( check(), what );
       benchmark.setLoops( loops );
+      progress.markDone( TNL::getType< Device >(), precision, orientation, performer, kernel, launchConfig, mode );
    }
 
    // Common data members
    const TNL::Config::ParameterContainer& parameters;
+   GraphBenchmarkProgress& progress;
+   int rank;
+   int worldSize;
    int errors = 0;
    bool withSortedSegments = false;
 
