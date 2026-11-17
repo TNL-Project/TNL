@@ -15,6 +15,9 @@
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
+// Number of elements sampled to estimate the median of a partitioned range.
+constexpr int maxPivotSamples = 64;
+
 template< typename Value, typename Index >
 template< typename Array, typename Compare >
 void
@@ -186,15 +189,22 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
        *
        * move elements smaller than pivot to the left and bigger to the right
        * note: pivot isnt inserted in the middle yet
+       *
+       * The partitioning, the pivot fill and the task creation are launched
+       * asynchronously and serialized by the stream: the host does not need any
+       * of their results until the new task counters are read in processNewTasks,
+       * so synchronizing after each of them would only leave the GPU idle.
        */
       if( launch_config.dynamicSharedMemorySize <= maxSharable ) {
          constexpr auto kernel = cudaQuickSortFirstPhase< Value, Index, Compare, true >;
-         Backend::launchKernelSync( kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
+         Backend::launchKernelAsync(
+            kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
       }
       else {
          launch_config.dynamicSharedMemorySize = sizeof( Value );
          constexpr auto kernel = cudaQuickSortFirstPhase< Value, Index, Compare, false >;
-         Backend::launchKernelSync( kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
+         Backend::launchKernelAsync(
+            kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
       }
 
       /*
@@ -209,7 +219,7 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
       launch_config.gridSize.x = host_firstPhaseTasksAmount;
       launch_config.dynamicSharedMemorySize = sizeof( Value );
       constexpr auto kernel = cudaWritePivot< Value, Index >;
-      Backend::launchKernelSync(
+      Backend::launchKernelAsync(
          kernel,
          launch_config,
          arr,
@@ -221,6 +231,7 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
          cuda_secondPhaseTasks,
          cuda_secondPhaseTasksAmount.getData() );
 
+      // reads the task counters, which also waits for the kernels launched above
       processNewTasks();
       iteration++;
    }
@@ -309,14 +320,22 @@ Quicksorter< Value, Devices::Cuda, Index >::initTasks( int elementsPerBlock, con
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = threadsPerBlock;
    launch_config.gridSize.x = host_firstPhaseTasksAmount;
-   Backend::launchKernelSync(
+   const int nSamples = TNL::min( threadsPerBlock, maxPivotSamples );
+   const std::size_t sampleBufferSize = static_cast< std::size_t >( nSamples ) * sizeof( Value );
+   const bool canBufferSamples = sampleBufferSize <= maxSharable;
+   launch_config.dynamicSharedMemorySize = canBufferSamples ? static_cast< int >( sampleBufferSize ) : 0;
+   // asynchronous on purpose: the partitioning kernel that reads the tasks is
+   // launched right after it on the same stream, so there is nothing to wait for
+   Backend::launchKernelAsync(
       cudaInitTask< Value, Index, Compare >,
       launch_config,
       tasks.getView( 0, host_firstPhaseTasksAmount ),                      // task to read from
       cuda_blockToTaskMapping.getView( 0, blocksNeeded ),                  // maps block to a certain task
       cuda_reductionTaskInitMem.getView( 0, host_firstPhaseTasksAmount ),  // has how many each task need blocks precalculated
       src,
-      compare );  // used to pick pivot
+      compare,  // used to pick pivot
+      nSamples,
+      canBufferSamples );
 
    cuda_newTasksAmount.setElement( 0, 0 );  // resets new element counter
    return blocksNeeded;
