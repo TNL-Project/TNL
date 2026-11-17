@@ -1,6 +1,12 @@
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Containers/Array.h>
 
+#if defined( __HIP__ )
+   #include <TNL/Allocators/HipHost.h>
+#else
+   #include <TNL/Allocators/CudaHost.h>
+#endif
+
 #include "gtest/gtest.h"
 #include <type_traits>
 
@@ -91,10 +97,21 @@ test_isSorted_withDuplicates()
    EXPECT_FALSE( isDescending( array ) );
 }
 
+template< typename Array >
+void
+checkIsSorted( Array& array, int exp, typename Array::IndexType size )
+{
+   array.setValue( 0 );
+   EXPECT_TRUE( isSorted( array, std::less<>{} ) ) << "failed for size 2^" << exp << " + 1 = " << size;
+   EXPECT_TRUE( isAscending( array ) ) << "failed for size 2^" << exp << " + 1 = " << size;
+   EXPECT_TRUE( isDescending( array ) ) << "failed for size 2^" << exp << " + 1 = " << size;
+}
+
 template< typename ArrayType >
 void
 test_isSorted_powersOfTwoSizes()
 {
+   using ValueType = typename ArrayType::ValueType;
    using DeviceType = typename ArrayType::DeviceType;
    using IndexType = typename ArrayType::IndexType;
 
@@ -102,13 +119,28 @@ test_isSorted_powersOfTwoSizes()
    // For host and sequential, it is just 2^16 + 1 to keep the test reasonably fast.
    // (the +1 is because isSorted performs size-1 comparisons)
    constexpr int max_exp = std::is_same_v< DeviceType, Devices::GPU > ? sizeof( IndexType ) * 4 : sizeof( int ) * 4;
+   // sizes above this threshold are always allocated in page-locked host memory
+   constexpr std::size_t pinnedMemoryThreshold = 1UL << 30;
    for( int exp = max_exp; exp >= 0; exp -= 4 ) {
       const IndexType size = ( static_cast< IndexType >( 1 ) << exp ) + 1;
+      const bool bigAllocation = static_cast< std::size_t >( size ) * sizeof( ValueType ) >= pinnedMemoryThreshold;
+      if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
+         // The big allocation needs several GiB, which may not be free on shared CI runners.
+         // The test makes a single pass and needs no scratch buffers,
+         // so the same kernels can process page-locked host memory mapped into the device address space.
+         if( bigAllocation ) {
+#if defined( __HIP__ )
+            using PinnedAllocator = Allocators::HipHost< ValueType >;
+#else
+            using PinnedAllocator = Allocators::CudaHost< ValueType >;
+#endif
+            Array< ValueType, DeviceType, IndexType, PinnedAllocator > array( size );
+            checkIsSorted( array, exp, size );
+            continue;
+         }
+      }
       ArrayType array( size );
-      array.setValue( 0 );
-      EXPECT_TRUE( isSorted( array, std::less<>{} ) ) << "failed for size 2^" << exp << " + 1 = " << size;
-      EXPECT_TRUE( isAscending( array ) ) << "failed for size 2^" << exp << " + 1 = " << size;
-      EXPECT_TRUE( isDescending( array ) ) << "failed for size 2^" << exp << " + 1 = " << size;
+      checkIsSorted( array, exp, size );
    }
 }
 
