@@ -713,8 +713,10 @@ TEST( HypreTest, ParCSRMatrix_fromMasterRank )
    constexpr int global_size = 97;
    auto matrix = getGlobalMatrix< Matrices::HypreCSRMatrix >( global_size );
 
+   const int ghosts = ( nproc > 1 ) ? 2 : 0;
+
    using DistributedVector = Containers::DistributedVector< double, HYPRE_Device >;
-   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
+   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, ghosts );
    Containers::HypreParVector hypre_x;
    hypre_x.bind( x );
 
@@ -758,8 +760,10 @@ TEST( HypreTest, ParCSRMatrix_fromLocalBlocks )
 
    constexpr int global_size = 97;
 
+   const int ghosts = ( nproc > 1 ) ? 2 : 0;
+
    using DistributedVector = Containers::DistributedVector< double, HYPRE_Device >;
-   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
+   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, ghosts );
 
    auto matrix = getLocalBlock< Matrices::HypreCSRMatrix >( global_size, x.getLocalRange() );
 
@@ -867,10 +871,12 @@ TEST( HypreTest, solve_distributed_fromMasterRank )
 
    constexpr int global_size = 97;
 
+   const int ghosts = ( TNL::MPI::GetSize( MPI_COMM_WORLD ) > 1 ) ? 2 : 0;
+
    // create the dofs and right-hand-side vectors
    using DistributedVector = Containers::DistributedVector< double, HYPRE_Device >;
-   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
-   auto b = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
+   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, ghosts );
+   auto b = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, ghosts );
 
    // bind parallel Hypre vectors
    Containers::HypreParVector hypre_x;
@@ -905,10 +911,12 @@ TEST( HypreTest, solve_distributed_fromLocalBlock )
 
    constexpr int global_size = 97;
 
+   const int ghosts = ( TNL::MPI::GetSize( MPI_COMM_WORLD ) > 1 ) ? 2 : 0;
+
    // create the dofs and right-hand-side vectors
    using DistributedVector = Containers::DistributedVector< double, HYPRE_Device >;
-   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
-   auto b = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, 2 );
+   auto x = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, ghosts );
+   auto b = getDistributedArray< DistributedVector >( MPI_COMM_WORLD, global_size, ghosts );
 
    // bind parallel Hypre vectors
    Containers::HypreParVector hypre_x;

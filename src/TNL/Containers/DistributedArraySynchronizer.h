@@ -60,29 +60,39 @@ public:
       const int left = ( rank > 0 ) ? rank - 1 : nproc - 1;
       const int right = ( rank < nproc - 1 ) ? rank + 1 : 0;
 
+      // The left and right halos must use distinct communication tags. With two
+      // processes, both neighbours are the same process, so MPI would match the
+      // messages only by their order and the halos would get swapped.
+      constexpr int left_halo_tag = 1;
+      constexpr int right_halo_tag = 0;
+
       // buffer for asynchronous communication requests
       RequestsVector requests;
 
       // issue all async receive operations
       requests.push_back(
          MPI::Irecv(
-            array.getData() + bytesPerValue * localRange.getSize(), bytesPerValue * overlaps, left, 0, communicator ) );
+            array.getData() + bytesPerValue * localRange.getSize(),
+            bytesPerValue * overlaps,
+            left,
+            right_halo_tag,
+            communicator ) );
       requests.push_back(
          MPI::Irecv(
             array.getData() + bytesPerValue * ( localRange.getSize() + overlaps ),
             bytesPerValue * overlaps,
             right,
-            0,
+            left_halo_tag,
             communicator ) );
 
       // issue all async send operations
-      requests.push_back( MPI::Isend( array.getData(), bytesPerValue * overlaps, left, 0, communicator ) );
+      requests.push_back( MPI::Isend( array.getData(), bytesPerValue * overlaps, left, left_halo_tag, communicator ) );
       requests.push_back(
          MPI::Isend(
             array.getData() + bytesPerValue * ( localRange.getSize() - overlaps ),
             bytesPerValue * overlaps,
             right,
-            0,
+            right_halo_tag,
             communicator ) );
 
       return requests;
