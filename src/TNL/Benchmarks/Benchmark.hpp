@@ -42,8 +42,9 @@ Benchmark::setup( const Config::ParameterContainer& parameters, const std::strin
    const int verbose = parameters.getParameter< int >( "verbose" );
    this->catchExceptions = parameters.getParameter< bool >( "catch-exceptions" );
 
-   // Only root rank initializes loggers
-   const int rank = TNL::MPI::GetRank();
+   // Only root rank initializes loggers (some benchmarks do not initialize MPI even when they are
+   // built with HAVE_MPI and thus MPI::GetRank() cannot be used blindly)
+   const int rank = TNL::MPI::Initialized() ? TNL::MPI::GetRank() : 0;
    if( rank > 0 )
       return;
 
