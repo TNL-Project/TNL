@@ -16,6 +16,10 @@
 #include <TNL/Algorithms/Sorting/CUBRadixSort.h>
 #include <TNL/Algorithms/Sorting/RadixSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
+#if defined( __HIPCC__ )
+   #include <TNL/Algorithms/Sorting/RocPrimMergeSort.h>
+   #include <TNL/Algorithms/Sorting/RocPrimRadixSort.h>
+#endif
 #include <TNL/Algorithms/Sorting/Quicksort.h>
 #include "generators.h"
 
@@ -23,7 +27,7 @@
    #include "ReferenceAlgorithms/IPSSort.h"
 #endif
 
-#if defined( __CUDACC__ ) || defined( __HIP__ )
+#if defined( __CUDACC__ )
    #include "ReferenceAlgorithms/CedermanQuicksort.h"
    #include "ReferenceAlgorithms/MancaQuicksort.h"
    #ifdef HAVE_CUDA_SAMPLES
@@ -157,7 +161,16 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
            { "value type", TNL::getType< ValueType >() } } ) );
    benchmark.setDatasetSize( vec.size() * sizeof( ValueType ) );
 
-   Containers::Array< ValueType, Devices::GPU, std::size_t > arr;
+   using GPUArray = Containers::Array< ValueType, Devices::GPU, std::size_t >;
+   GPUArray arr;
+
+   #if defined( __HIPCC__ )
+   using GPUArrayView = decltype( arr.getView() );
+   CUBRadixSort::Workspace< GPUArrayView > cubRadixWorkspace;
+   RocPrimMergeSort::Workspace< GPUArrayView > rocPrimMergeWorkspace;
+   RocPrimRadixSort::Workspace< GPUArrayView > rocPrimRadixWorkspace;
+   RadixSort::Workspace< ValueType, Devices::GPU, std::size_t > radixSortWorkspace;
+   #endif
 
    auto reset = [ &vec, &arr ]()
    {
@@ -185,6 +198,7 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
    if( ! Algorithms::isAscending( arr ) )
       throw std::runtime_error( "quicksort result is not sorted" );
 
+   #if defined( __CUDACC__ )
    auto sortCederman = [ &arr ]()
    {
       CedermanQuicksort::sort( arr );
@@ -204,6 +218,7 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
 
    if( ! Algorithms::isAscending( arr ) )
       throw std::runtime_error( "MancaQuicksort result is not sorted" );
+   #endif
 
    #ifdef HAVE_CUDA_SAMPLES
    if constexpr( std::is_same_v< ValueType, unsigned int > ) {
@@ -225,7 +240,7 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
    }
    #endif
 
-   #if defined( __CUDACC__ )
+   #if defined( __CUDACC__ ) || defined( __HIPCC__ )
    auto sortCUBMergeSort = [ &arr ]()
    {
       CUBMergeSort::sort( arr );
@@ -235,12 +250,22 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
 
    if( ! Algorithms::isAscending( arr ) )
       throw std::runtime_error( "CUBMergeSort result is not sorted" );
+   #endif
 
+   #if defined( __CUDACC__ ) || defined( __HIPCC__ )
+      #if defined( __HIPCC__ )
+   auto sortCUBRadixSort = [ &arr, &cubRadixWorkspace ]()
+   {
+      auto view = arr.getView();
+      Algorithms::Sorting::CUBRadixSort::sort( view, cubRadixWorkspace );
+   };
+      #else
    auto sortCUBRadixSort = [ &arr ]()
    {
       auto view = arr.getView();
       Algorithms::Sorting::CUBRadixSort::sort( view );
    };
+      #endif
 
    benchmark.time< Devices::GPU >( reset, "CUBRadixSort", sortCUBRadixSort, result );
 
@@ -248,10 +273,41 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
       throw std::runtime_error( "CUBRadixSort result is not sorted" );
    #endif
 
+   #if defined( __HIPCC__ )
+   auto sortRocPrimMergeSort = [ &arr, &rocPrimMergeWorkspace ]()
+   {
+      auto view = arr.getView();
+      RocPrimMergeSort::sort( view, rocPrimMergeWorkspace );
+   };
+
+   benchmark.time< Devices::GPU >( reset, "RocPrimMergeSort", sortRocPrimMergeSort, result );
+
+   if( ! Algorithms::isAscending( arr ) )
+      throw std::runtime_error( "RocPrimMergeSort result is not sorted" );
+
+   auto sortRocPrimRadixSort = [ &arr, &rocPrimRadixWorkspace ]()
+   {
+      auto view = arr.getView();
+      RocPrimRadixSort::sort( view, rocPrimRadixWorkspace );
+   };
+
+   benchmark.time< Devices::GPU >( reset, "RocPrimRadixSort", sortRocPrimRadixSort, result );
+
+   if( ! Algorithms::isAscending( arr ) )
+      throw std::runtime_error( "RocPrimRadixSort result is not sorted" );
+   #endif
+
+   #if defined( __HIPCC__ )
+   auto sortRadixSort = [ &arr, &radixSortWorkspace ]()
+   {
+      Algorithms::Sorting::RadixSort::sort( arr, radixSortWorkspace );
+   };
+   #else
    auto sortRadixSort = [ &arr ]()
    {
       Algorithms::Sorting::RadixSort::sort( arr );
    };
+   #endif
 
    benchmark.time< Devices::GPU >( reset, "RadixSort", sortRadixSort, result );
 
