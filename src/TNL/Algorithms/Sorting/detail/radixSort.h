@@ -8,6 +8,8 @@
 #include <cstring>
 #include <deque>
 #include <functional>
+#include <map>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 
@@ -144,15 +146,102 @@ constexpr int radixSortAggregatedFillLimit = 1 << 22;
 constexpr int radixSortGraphLimit = 1 << 19;
 
 /**
- * \brief Maximum input-plus-auxiliary working set for deferred lookback.
+ * \brief Default maximum input-plus-auxiliary working set for the deferred
+ * lookback, used for devices without a measured entry in
+ * \ref radixSortDeferredLookbackLimit.
  *
- * Deferring the lookback past staging hides predecessor latency while the
- * input and auxiliary arrays fit in the L2 cache. Above this limit, the
- * early-lookback path publishes prefixes before staging to avoid exposing the
- * prefix dependency in the DRAM-bound regime. The 64 MiB limit is a tuning
- * candidate for GPUs with a 64 MiB L2 cache, not a hardware query.
+ * The value was measured on GPUs whose last-level cache holds 64 MiB (RTX
+ * 5080, Radeon RX 7900 GRE with its Infinity Cache). It is a tuning
+ * candidate, not a hardware capacity.
  */
-constexpr std::size_t radixSortDeferredLookbackL2Limit = 64 * 1024 * 1024;
+constexpr std::size_t radixSortDeferredLookbackDefaultLimit = 64 * 1024 * 1024;
+
+#if defined( __CUDACC__ )
+
+/**
+ * \brief Returns the maximum input-plus-auxiliary working set for which the
+ * radix sort defers the decoupled lookback past the staging on the given
+ * CUDA device.
+ *
+ * Deferring the lookback past staging hides the predecessor-prefix latency
+ * behind the staging traffic while the working set stays cache-resident.
+ * Above the limit, the early-lookback path publishes the tile prefixes
+ * before staging to avoid exposing the prefix dependency in the DRAM-bound
+ * regime. The limit is a measured tuning quantity per GPU architecture
+ * family (the fallback for unlisted families is
+ * \ref radixSortDeferredLookbackDefaultLimit):
+ *
+ * - compute capability 7.5 (Turing, measured on RTX 2070 SUPER): the
+ *   deferred placement is never slower and up to 5% faster than the early
+ *   one for working sets of 2-384 MiB across the value types, with the
+ *   advantage growing with the size, so the deferred placement is never
+ *   abandoned;
+ * - compute capability 8.6 (GA10x, measured on RTX 3060): the early
+ *   placement wins robustly for 4-byte values from 8 MiB working sets (about
+ *   2% for floats), while 8-byte values prefer the deferred placement
+ *   throughout, so the limit is set to the 4-byte crossing of 8 MiB;
+ * - compute capability 12.0 (Blackwell, measured on RTX 5080 and RTX
+ *   5060 Ti): the boundary is the L2 size on the 64 MiB-L2 RTX 5080;
+ *   the 32 MiB-L2 RTX 5060 Ti uses 36 MiB because deferred lookback
+ *   still wins for floats there, while doubles prefer the early
+ *   placement at 40 MiB and integers are tied around the transition;
+ * - other devices keep the default limit.
+ *
+ * The result is cached per device, so the host predicate of
+ * \ref radixSortLaunchSequence stays O(1) and free of driver calls after
+ * the first sort on the device. The one-time property query is valid also
+ * inside CUDA graph capture: it allocates nothing and enqueues no work on
+ * the stream, like the multiprocessor-count query of the launch sequence.
+ */
+inline std::size_t
+radixSortDeferredLookbackLimit( int device )
+{
+   static std::mutex mutex;
+   static std::map< int, std::size_t > limits;
+   std::scoped_lock< std::mutex > lock( mutex );
+   if( auto it = limits.find( device ); it != limits.end() )
+      return it->second;
+   cudaDeviceProp properties{};
+   TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, device ) );
+   std::size_t limit = radixSortDeferredLookbackDefaultLimit;
+   if( properties.major == 7 && properties.minor == 5 ) {
+      // Turing: deferred measured at least as fast as the early placement
+      // for working sets of up to 384 MiB (96x the 4 MiB L2 of the RTX 2070)
+      limit = SIZE_MAX;
+   }
+   else if( properties.major == 8 && properties.minor == 6 ) {
+      // GA10x: early wins robustly for 4-byte values from 8 MiB (about 2%
+      // for floats on the RTX 3060 with a 2.25 MiB L2); 8-byte values keep
+      // the deferred placement throughout
+      limit = 8 * 1024 * 1024;
+   }
+   else if( properties.major == 12 ) {
+      // Blackwell: the measured 32 MiB-L2 RTX 5060 Ti has a mixed transition
+      // between 32 and 40 MiB; 36 MiB is the best common limit. The measured
+      // 64 MiB-L2 RTX 5080 switches element-exactly at its L2 size.
+      if( properties.l2CacheSize == 32 * 1024 * 1024 )
+         limit = 36 * 1024 * 1024;
+      else
+         limit = properties.l2CacheSize != 0 ? properties.l2CacheSize : radixSortDeferredLookbackDefaultLimit;
+   }
+   limits.emplace( device, limit );
+   return limit;
+}
+
+#else
+
+inline std::size_t
+radixSortDeferredLookbackLimit( int device )
+{
+   // the HIP path keeps the placement measured on the Radeon RX 7900 GRE
+   // (the 64 MiB boundary of its 64 MiB Infinity Cache): the CUDA
+   // measurements above do not transfer to the AMD cache hierarchy with a
+   // separate L3
+   (void) device;
+   return radixSortDeferredLookbackDefaultLimit;
+}
+
+#endif
 
 //! \brief Maximum array size for programmatic dependent launches.
 //!
@@ -284,10 +373,6 @@ radixSortDigit( const Value& value, int pass )
 
 //! \brief Type of the warp synchronization mask, following
 //! \ref Backend::getWarpFullMask (32-bit on CUDA, 64-bit on HIP).
-//!
-//! \note The warp match intrinsic used by the single-tile kernel and by
-//! the HIP fallback of \ref radixSortWarpMatchAny requires compute
-//! capability 7.0 or newer on CUDA and gfx8 or newer on HIP.
 using RadixSortWarpMask = decltype( Backend::getWarpFullMask() );
 
 /**
@@ -315,11 +400,10 @@ radixSortPopcount( RadixSortWarpMask mask )
  * \ref radixSortOnesweepKernel (it was measured as the dominant bottleneck
  * of the sweep kernel), while the ballot sequence interleaves with the
  * surrounding instructions much better. This is the same trade-off made by
- * CUB's warp matcher (`cub/util_ptx.cuh`). On HIP, the native intrinsic is
- * also uses the ballot sequence: on RDNA3 the native intrinsic is emulated
- * in software with a dependent readfirstlane loop. The intrinsic stays in
- * the single-tile kernel, which can run on partial warps and is outside this
- * full-warp helper.
+ * CUB's warp matcher (`cub/util_ptx.cuh`). On HIP the ballot sequence is used
+ * as well: on RDNA3 the native intrinsic is emulated in software with a
+ * dependent readfirstlane loop. The masked overload of
+ * \ref radixSortWarpMatchAny uses the same sequence for partial warps.
  *
  * All lanes of the warp must participate in the call - the binning kernel
  * pads the partial tiles so that its warp collectives always run on full
@@ -337,7 +421,7 @@ radixSortWarpMatchAny( unsigned int label )
    #pragma unroll
    for( int bit = 0; bit < radixSortBits; bit++ ) {
       unsigned int mask;
-      const unsigned int currentBit = 1u << bit;
+      const unsigned int currentBit = 1U << bit;
       asm(
          "{\n"
          "   .reg .pred p;\n"
@@ -359,14 +443,60 @@ radixSortWarpMatchAny( unsigned int label )
    auto match = fullMask;
    #pragma unroll
    for( int bit = 0; bit < radixSortBits; bit++ ) {
-      const bool p = ( label & ( 1u << bit ) ) != 0;
+      const bool p = ( label & ( 1U << bit ) ) != 0;
       const auto peers = __ballot_sync( fullMask, p );
       match &= p ? peers : ~peers;
    }
    return match & fullMask;
-   #else
-   return __match_any_sync( Backend::getWarpFullMask(), static_cast< int >( label ) );
    #endif
+}
+
+/**
+ * \brief Masked variant of \ref radixSortWarpMatchAny for warps that may be
+ * partial.
+ *
+ * The lanes named by \p activeMask may be any subset of the warp: the lanes
+ * outside the mask do not participate in the collectives and may even skip
+ * the call. Like the full-warp helper, the match is computed by a sequence of
+ * `radixSortBits` warp ballots; the member mask is passed as a register
+ * operand instead of the immediate used for full warps.
+ *
+ * \param activeMask is the mask of the lanes participating in the match.
+ * \param label is the label whose equal-lane peers are searched for; only
+ *              the low `radixSortBits` bits are significant.
+ */
+[[nodiscard]] __device__
+__forceinline__ RadixSortWarpMask
+radixSortWarpMatchAny( RadixSortWarpMask activeMask, unsigned int label )
+{
+   #if defined( __CUDACC__ )
+   RadixSortWarpMask match = activeMask;
+   #pragma unroll
+   for( int bit = 0; bit < radixSortBits; bit++ ) {
+      unsigned int peers;
+      const unsigned int currentBit = 1U << bit;
+      asm(
+         "{\n"
+         "   .reg .pred p;\n"
+         "   and.b32 %0, %1, %2;\n"
+         "   setp.ne.u32 p, %0, 0;\n"
+         "   vote.ballot.sync.b32 %0, p, %3;\n"
+         "   @!p not.b32 %0, %0;\n"
+         "}\n"
+         : "=r"( peers )
+         : "r"( label ), "r"( currentBit ), "r"( static_cast< unsigned int >( activeMask ) ) );
+      match &= peers;
+   }
+   #else
+   RadixSortWarpMask match = activeMask;
+   #pragma unroll
+   for( int bit = 0; bit < radixSortBits; bit++ ) {
+      const bool p = ( label & ( 1U << bit ) ) != 0;
+      const auto peers = __ballot_sync( activeMask, static_cast< int >( p ) );
+      match &= p ? peers : ~peers;
+   }
+   #endif
+   return match & activeMask;
 }
 
 /**
@@ -406,8 +536,8 @@ radixSortWarpFirstLane( RadixSortWarpMask mask )
 __forceinline__ unsigned int
 radixSortPackedCounterAdd( unsigned int* packedCounters, unsigned int digit, unsigned int count )
 {
-   const unsigned int shift = 16u * ( digit & 1u );
-   return ( atomicAdd( packedCounters, count << shift ) >> shift ) & 0xFFFFu;
+   const unsigned int shift = 16U * ( digit & 1U );
+   return ( atomicAdd( packedCounters, count << shift ) >> shift ) & 0xFFFFU;
 }
 
 #endif
@@ -433,11 +563,11 @@ radixSortPaddingValue()
       // negative NaN, inverted to zero by the key mapping)
 #if defined( __CUDA_ARCH__ ) || defined( __HIP__ )
       if constexpr( sizeof( Value ) == 4 )
-         return __uint_as_float( descending ? 0xFFFFFFFFu : 0x7FFFFFFFu );
+         return __uint_as_float( descending ? 0xFFFFFFFFU : 0x7FFFFFFFU );
       else
          return __longlong_as_double(
-            descending ? static_cast< long long >( 0xFFFFFFFFFFFFFFFFull )
-                       : static_cast< long long >( 0x7FFFFFFFFFFFFFFFull ) );
+            descending ? static_cast< long long >( 0xFFFFFFFFFFFFFFFFULL )
+                       : static_cast< long long >( 0x7FFFFFFFFFFFFFFFULL ) );
 #else
       using Key = RadixSortKey< Value >;
       constexpr Key signBit = Key( 1 ) << ( 8 * sizeof( Value ) - 1 );
@@ -582,7 +712,7 @@ radixSortTotalHistogramKernel(
          if( valid[ j ] ) {
             #pragma unroll
             for( int p = 0; p < passes; p++ )
-               atomicAdd( &s_counts[ p ][ radixSortDigit< Value, descending >( values[ j ], p ) ], 1u );
+               atomicAdd( &s_counts[ p ][ radixSortDigit< Value, descending >( values[ j ], p ) ], 1U );
          }
       }
    }
@@ -699,9 +829,9 @@ radixSortProcessHistogramsKernel(
  * subsequent blocks. The two most significant bits hold the status, the
  * lower 30 bits hold the value.
  */
-constexpr unsigned int radixSortTileAggregate = 1u << 30;
-constexpr unsigned int radixSortTilePrefix = 1u << 31;
-constexpr unsigned int radixSortTileValueMask = ( 1u << 30 ) - 1;
+constexpr unsigned int radixSortTileAggregate = 1U << 30;
+constexpr unsigned int radixSortTilePrefix = 1U << 31;
+constexpr unsigned int radixSortTileValueMask = ( 1U << 30 ) - 1;
 
 // the launch bounds keep the occupancy of the binning kernel from silently
 // dropping when a change grows the register count: the medium configuration
@@ -890,7 +1020,7 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
    // processing a tile can rely on all its predecessors being claimed
    while( true ) {
       if( threadIdx.x == 0 )
-         s_claimedTile = static_cast< Index >( atomicAdd( workCounter, 1u ) );
+         s_claimedTile = static_cast< Index >( atomicAdd( workCounter, 1U ) );
       __syncthreads();
       const Index tile = s_claimedTile;
       if( tile >= numTiles )
@@ -978,7 +1108,7 @@ RADIX_SORT_LAUNCH_BOUNDS( blockThreads, itemsPerThread ) radixSortOnesweepKernel
          // the counts of the real items (the staging below still uses the
          // padded counts, which place the padding at the tail of the last
          // digit's run)
-         const int countLow = static_cast< int >( exclusive & 0xFFFFu );
+         const int countLow = static_cast< int >( exclusive & 0xFFFFU );
          const int countHigh = static_cast< int >( exclusive >> 16 );
          s_stage.digitStarts[ 2 * digit + 1 ] = static_cast< unsigned short >( countLow );
          s_stage.digitStarts[ 2 * digit + 2 ] = static_cast< unsigned short >( countHigh );
@@ -1303,9 +1433,9 @@ radixSortCopyBackKernel(
  * passes there, and writes the sorted data back, so the sort costs a single
  * kernel launch and needs no temporary buffers at all. The stable ranking
  * of the items follows \ref radixSortOnesweepKernel (warp match + raking
- * scan), except that the match keeps the native intrinsic: the last round
- * of a partial tile runs on a partial warp, which
- * \ref radixSortWarpMatchAny does not support. The permutations of the
+ * scan); the last round of a partial tile runs on a partial warp, which the
+ * masked overload of \ref radixSortWarpMatchAny handles by passing the active
+ * lanes as the member mask. The permutations of the
  * passes ping-pong between two
  * shared-memory tiles. A pass mapping all elements to the same digit is the
  * identity permutation, so its permute is skipped and the tiles are not
@@ -1385,7 +1515,7 @@ radixSortSingleTileKernel( Containers::ArrayView< Value, Devices::GPU, Index > v
                activeInWarp >= static_cast< int >( warpSize )
                   ? fullMask
                   : ( static_cast< RadixSortWarpMask >( 1 ) << activeInWarp ) - static_cast< RadixSortWarpMask >( 1 );
-            const RadixSortWarpMask match = __match_any_sync( activeMask, static_cast< int >( digits[ j ] ) );
+            const RadixSortWarpMask match = radixSortWarpMatchAny( activeMask, digits[ j ] );
             const int rank = radixSortPopcount( match & laneMaskLt );
             volatile int* counter = &s_warpOffsets[ warpId * radixSortBuckets + digits[ j ] ];
             const int roundOffset = *counter;
@@ -1557,7 +1687,7 @@ radixSortGraphLastNode( Backend::stream_t stream )
    std::size_t dependenciesCount = 0;
    TNL_BACKEND_SAFE_CALL( hipStreamGetCaptureInfo_v2( stream, &status, nullptr, &graph, &dependencies, &dependenciesCount ) );
    #endif
-   TNL_ASSERT_EQ( dependenciesCount, 1u, "the captured sequence is a linear chain" );
+   TNL_ASSERT_EQ( dependenciesCount, 1U, "the captured sequence is a linear chain" );
    return dependencies[ 0 ];
 }
 
@@ -2140,10 +2270,11 @@ radixSortLaunchSequence(
 
    // the sweep kernel decouples its block size from the bucket count (the
    // per-digit phases are guarded inside the kernel); both dispatches are
-   // pure functions of the array size and value type, so they are also
-   // graph-capturable
+   // pure functions of the array size, value type and device properties, so
+   // they are also graph-capturable
    Backend::LaunchConfiguration onesweepConfig = launch_config;
-   const bool deferLookback = 2 * static_cast< std::size_t >( n ) * sizeof( Value ) <= radixSortDeferredLookbackL2Limit;
+   const bool deferLookback =
+      2 * static_cast< std::size_t >( n ) * sizeof( Value ) <= radixSortDeferredLookbackLimit( Backend::getDevice() );
    constexpr auto onesweepKernelSmallEarly =
       radixSortOnesweepKernel< Value, Index, descending, false, radixSortBlockSize, radixSortItemsPerThread >;
    constexpr auto onesweepKernelSmallDeferred =
@@ -2243,7 +2374,7 @@ radixSortLaunchSequence(
    // also resets the work counter of each region
    const bool aggregateFill = n <= static_cast< Index >( radixSortAggregatedFillLimit );
    if( aggregateFill )
-      Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0u, static_cast< Index >( passes ) * tileStatusSize, fillConfig );
+      Algorithms::fill< Devices::GPU >( tileStatus.getData(), 0U, static_cast< Index >( passes ) * tileStatusSize, fillConfig );
 
    // the host launches the sweeps of all passes: the sweeps of a skipped
    // pass exit immediately, so they permute the array by the identity
@@ -2270,7 +2401,7 @@ radixSortLaunchSequence(
          const Index regionBegin = aggregateFill ? pass * tileStatusSize : 0;
          auto tileStatusRegion = tileStatus.getView( regionBegin, regionBegin + tileStatusSize );
          if( ! aggregateFill || strip > 0 )
-            Algorithms::fill< Devices::GPU >( tileStatus.getData() + regionBegin, 0u, tileStatusSize, fillConfig );
+            Algorithms::fill< Devices::GPU >( tileStatus.getData() + regionBegin, 0U, tileStatusSize, fillConfig );
          onesweepConfig.gridSize.x = static_cast< unsigned >( TNL::min( stripNumTiles, maxBlocks ) );
          Backend::launchKernelAsyncWithAttributes(
             onesweepKernel,
@@ -2382,7 +2513,7 @@ radixSortImpl(
          if( cache.viewData != static_cast< const void* >( view.getData() ) )
             cache.patchViews( view.getData() );
          radixSortGraphLaunch( cache.graphExec, 0 );
-         Backend::streamSynchronize( 0 );
+         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
          return;
       }
 
@@ -2406,12 +2537,12 @@ radixSortImpl(
       cache.passFlagsData = workspace.passFlags.getData();
       cache.viewData = view.getData();
       radixSortGraphLaunch( cache.graphExec, 0 );
-      Backend::streamSynchronize( 0 );
+      Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
       return;
    }
 
    radixSortLaunchSequence< Value, Device, Index, descending >( view, workspace, n, 0, nullptr );
-   Backend::streamSynchronize( 0 );
+   Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
 #else
    (void) useGraphCache;
    throw Exceptions::NotImplementedError( "RadixSort is supported only when CUDA or HIP is enabled." );
