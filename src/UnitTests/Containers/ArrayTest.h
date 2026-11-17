@@ -299,6 +299,62 @@ TYPED_TEST( ArrayTest, setSize )
    }
 }
 
+// Element type that counts how many times it is constructed and assigned.
+struct ConstructionCounter
+{
+   int value = 0;
+   inline static int constructed = 0;
+   inline static int assigned = 0;
+
+   ConstructionCounter()
+   {
+      ++constructed;
+   }
+
+   explicit ConstructionCounter( int v )
+   : value( v )
+   {
+      ++constructed;
+   }
+
+   ConstructionCounter&
+   operator=( const ConstructionCounter& other )
+   {
+      ++assigned;
+      value = other.value;
+      return *this;
+   }
+};
+
+TEST( ArrayElementConstruction, noRedundantConstruction )
+{
+   using ArrayType = Array< ConstructionCounter, Devices::Host >;
+
+   ConstructionCounter::constructed = 0;
+   ArrayType array;
+   array.setSize( 100 );
+   EXPECT_EQ( array.getSize(), 100 );
+   // the initial allocation must construct every element exactly once
+   EXPECT_EQ( ConstructionCounter::constructed, 100 );
+
+   ConstructionCounter::constructed = 0;
+   array.resize( 150 );
+   EXPECT_EQ( array.getSize(), 150 );
+   // growing reallocates into a new array, but no element may be constructed twice
+   EXPECT_LE( ConstructionCounter::constructed, 150 );
+
+   ConstructionCounter::constructed = 0;
+   ConstructionCounter::assigned = 0;
+   ArrayType filled;
+   filled.resize( 10, ConstructionCounter( 7 ) );
+   // 10 elements plus the temporary passed by value
+   EXPECT_EQ( ConstructionCounter::constructed, 11 );
+   // the appended elements must be assigned the value, not copy-constructed
+   EXPECT_EQ( ConstructionCounter::assigned, 10 );
+   for( int i = 0; i < 10; i++ )
+      EXPECT_EQ( filled.getElement( i ).value, 7 );
+}
+
 TYPED_TEST( ArrayTest, empty )
 {
    using ArrayType = typename TestFixture::ArrayType;
