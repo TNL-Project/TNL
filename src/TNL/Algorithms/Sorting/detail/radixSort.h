@@ -8,6 +8,8 @@
 #include <cstring>
 #include <deque>
 #include <functional>
+#include <map>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 
@@ -144,15 +146,102 @@ constexpr int radixSortAggregatedFillLimit = 1 << 22;
 constexpr int radixSortGraphLimit = 1 << 19;
 
 /**
- * \brief Maximum input-plus-auxiliary working set for deferred lookback.
+ * \brief Default maximum input-plus-auxiliary working set for the deferred
+ * lookback, used for devices without a measured entry in
+ * \ref radixSortDeferredLookbackLimit.
  *
- * Deferring the lookback past staging hides predecessor latency while the
- * input and auxiliary arrays fit in the L2 cache. Above this limit, the
- * early-lookback path publishes prefixes before staging to avoid exposing the
- * prefix dependency in the DRAM-bound regime. The 64 MiB limit is a tuning
- * candidate for GPUs with a 64 MiB L2 cache, not a hardware query.
+ * The value was measured on GPUs whose last-level cache holds 64 MiB (RTX
+ * 5080, Radeon RX 7900 GRE with its Infinity Cache). It is a tuning
+ * candidate, not a hardware capacity.
  */
-constexpr std::size_t radixSortDeferredLookbackL2Limit = 64 * 1024 * 1024;
+constexpr std::size_t radixSortDeferredLookbackDefaultLimit = 64 * 1024 * 1024;
+
+#if defined( __CUDACC__ )
+
+/**
+ * \brief Returns the maximum input-plus-auxiliary working set for which the
+ * radix sort defers the decoupled lookback past the staging on the given
+ * CUDA device.
+ *
+ * Deferring the lookback past staging hides the predecessor-prefix latency
+ * behind the staging traffic while the working set stays cache-resident.
+ * Above the limit, the early-lookback path publishes the tile prefixes
+ * before staging to avoid exposing the prefix dependency in the DRAM-bound
+ * regime. The limit is a measured tuning quantity per GPU architecture
+ * family (the fallback for unlisted families is
+ * \ref radixSortDeferredLookbackDefaultLimit):
+ *
+ * - compute capability 7.5 (Turing, measured on RTX 2070 SUPER): the
+ *   deferred placement is never slower and up to 5% faster than the early
+ *   one for working sets of 2-384 MiB across the value types, with the
+ *   advantage growing with the size, so the deferred placement is never
+ *   abandoned;
+ * - compute capability 8.6 (GA10x, measured on RTX 3060): the early
+ *   placement wins robustly for 4-byte values from 8 MiB working sets (about
+ *   2% for floats), while 8-byte values prefer the deferred placement
+ *   throughout, so the limit is set to the 4-byte crossing of 8 MiB;
+ * - compute capability 12.0 (Blackwell, measured on RTX 5080 and RTX
+ *   5060 Ti): the boundary is the L2 size on the 64 MiB-L2 RTX 5080;
+ *   the 32 MiB-L2 RTX 5060 Ti uses 36 MiB because deferred lookback
+ *   still wins for floats there, while doubles prefer the early
+ *   placement at 40 MiB and integers are tied around the transition;
+ * - other devices keep the default limit.
+ *
+ * The result is cached per device, so the host predicate of
+ * \ref radixSortLaunchSequence stays O(1) and free of driver calls after
+ * the first sort on the device. The one-time property query is valid also
+ * inside CUDA graph capture: it allocates nothing and enqueues no work on
+ * the stream, like the multiprocessor-count query of the launch sequence.
+ */
+inline std::size_t
+radixSortDeferredLookbackLimit( int device )
+{
+   static std::mutex mutex;
+   static std::map< int, std::size_t > limits;
+   std::lock_guard< std::mutex > lock( mutex );
+   if( auto it = limits.find( device ); it != limits.end() )
+      return it->second;
+   cudaDeviceProp properties{};
+   TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, device ) );
+   std::size_t limit = radixSortDeferredLookbackDefaultLimit;
+   if( properties.major == 7 && properties.minor == 5 ) {
+      // Turing: deferred measured at least as fast as the early placement
+      // for working sets of up to 384 MiB (96x the 4 MiB L2 of the RTX 2070)
+      limit = SIZE_MAX;
+   }
+   else if( properties.major == 8 && properties.minor == 6 ) {
+      // GA10x: early wins robustly for 4-byte values from 8 MiB (about 2%
+      // for floats on the RTX 3060 with a 2.25 MiB L2); 8-byte values keep
+      // the deferred placement throughout
+      limit = 8 * 1024 * 1024;
+   }
+   else if( properties.major == 12 ) {
+      // Blackwell: the measured 32 MiB-L2 RTX 5060 Ti has a mixed transition
+      // between 32 and 40 MiB; 36 MiB is the best common limit. The measured
+      // 64 MiB-L2 RTX 5080 switches element-exactly at its L2 size.
+      if( properties.l2CacheSize == 32 * 1024 * 1024 )
+         limit = 36 * 1024 * 1024;
+      else
+         limit = properties.l2CacheSize != 0 ? properties.l2CacheSize : radixSortDeferredLookbackDefaultLimit;
+   }
+   limits.emplace( device, limit );
+   return limit;
+}
+
+#else
+
+inline std::size_t
+radixSortDeferredLookbackLimit( int device )
+{
+   // the HIP path keeps the placement measured on the Radeon RX 7900 GRE
+   // (the 64 MiB boundary of its 64 MiB Infinity Cache): the CUDA
+   // measurements above do not transfer to the AMD cache hierarchy with a
+   // separate L3
+   (void) device;
+   return radixSortDeferredLookbackDefaultLimit;
+}
+
+#endif
 
 //! \brief Maximum array size for programmatic dependent launches.
 //!
@@ -2140,10 +2229,11 @@ radixSortLaunchSequence(
 
    // the sweep kernel decouples its block size from the bucket count (the
    // per-digit phases are guarded inside the kernel); both dispatches are
-   // pure functions of the array size and value type, so they are also
-   // graph-capturable
+   // pure functions of the array size, value type and device properties, so
+   // they are also graph-capturable
    Backend::LaunchConfiguration onesweepConfig = launch_config;
-   const bool deferLookback = 2 * static_cast< std::size_t >( n ) * sizeof( Value ) <= radixSortDeferredLookbackL2Limit;
+   const bool deferLookback =
+      2 * static_cast< std::size_t >( n ) * sizeof( Value ) <= radixSortDeferredLookbackLimit( Backend::getDevice() );
    constexpr auto onesweepKernelSmallEarly =
       radixSortOnesweepKernel< Value, Index, descending, false, radixSortBlockSize, radixSortItemsPerThread >;
    constexpr auto onesweepKernelSmallDeferred =
