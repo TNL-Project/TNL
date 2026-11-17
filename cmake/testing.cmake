@@ -246,7 +246,7 @@ endfunction()
 # (e.g. formats of segments)
 # usage:
 #   tnl_add_format_tests(<name>
-#       SUITE <suite> PREFIX <prefix> TYPES <types>
+#       SUITE <suite> PREFIX <prefix> TYPES <types> [GPU_TYPES <types>]
 #       HEADERS <header>... FORMATS <format>...
 #       [FORMAT_TYPES <format>:<types>...]
 #       [EXTRA <format>:<header>...]
@@ -255,15 +255,18 @@ endfunction()
 #   it includes the HEADERS and the EXTRA headers of the format, instantiates the
 #   test suite SUITE for the type list TYPES with the PREFIX and includes the main
 #   function of the unit tests
-# - the placeholder <FORMAT> in TYPES and PREFIX is replaced by the name of the
-#   format and FORMAT_TYPES replaces TYPES for some formats
+# - GPU_TYPES replaces TYPES in the CUDA and HIP builds, e.g. for a covering set
+#   of the types (see src/UnitTests/ARCHITECTURE.md)
+# - the placeholder <FORMAT> in TYPES, GPU_TYPES and PREFIX is replaced by the
+#   name of the format and FORMAT_TYPES replaces TYPES and GPU_TYPES for some
+#   formats
 # - the test executables are added with tnl_add_test_executables from the
 #   generated header, so they are named <name>_<format> (host),
 #   <name>_<format>-cuda and <name>_<format>-hip
 # - LABELS are added to all registered tests
 function(tnl_add_format_tests name)
     set(options)
-    set(oneValueArgs SUITE PREFIX TYPES)
+    set(oneValueArgs SUITE PREFIX TYPES GPU_TYPES)
     set(multiValueArgs
         HEADERS
         FORMATS
@@ -293,9 +296,15 @@ function(tnl_add_format_tests name)
     foreach(format IN LISTS ARG_FORMATS)
         # resolve the type list, the prefix and the extra headers of the format
         string(REPLACE "<FORMAT>" "${format}" types "${ARG_TYPES}")
+        if(ARG_GPU_TYPES)
+            string(REPLACE "<FORMAT>" "${format}" gpu_types "${ARG_GPU_TYPES}")
+        else()
+            set(gpu_types "${types}")
+        endif()
         foreach(item IN LISTS ARG_FORMAT_TYPES)
             if(item MATCHES "^${format}:(.+)$")
                 set(types "${CMAKE_MATCH_1}")
+                set(gpu_types "${CMAKE_MATCH_1}")
             endif()
         endforeach()
         string(REPLACE "<FORMAT>" "${format}" prefix "${ARG_PREFIX}")
@@ -314,9 +323,20 @@ function(tnl_add_format_tests name)
             endif()
             string(APPEND content "#include \"${header}\"\n")
         endforeach()
+        if(gpu_types STREQUAL types)
+            string(APPEND content "\nusing InstantiatedTestTypes = ${types};\n")
+        else()
+            string(
+                APPEND content
+                "\n#if defined( __CUDACC__ ) || defined( __HIP__ )\n"
+                "using InstantiatedTestTypes = ${gpu_types};\n"
+                "#else\n"
+                "using InstantiatedTestTypes = ${types};\n"
+                "#endif\n"
+            )
+        endif()
         string(
             APPEND content
-            "\nusing InstantiatedTestTypes = ${types};\n"
             "INSTANTIATE_TYPED_TEST_SUITE_P( ${prefix}, ${ARG_SUITE}, InstantiatedTestTypes );\n\n"
             "#include \"${PROJECT_SOURCE_DIR}/src/UnitTests/main.h\"\n"
         )

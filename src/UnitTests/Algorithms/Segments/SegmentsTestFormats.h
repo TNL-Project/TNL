@@ -4,10 +4,11 @@
 #pragma once
 
 // Formats of segments for which the unit tests of segments (and of the algorithms and
-// data structures based on segments) are instantiated. Each format is a list of segment
+// data structures based on segments) are instantiated. Each format consists of segment
 // templates with the signature < Device, Index, IndexAllocator >, which is the same as
 // the signature of the Segments template parameter of SparseMatrix. The type lists for
-// a test suite are generated with SegmentsTestTypes.
+// the tests of segments are generated with SegmentsTestTypes, the type lists for the
+// tests of sparse matrices with SparseMatrixTestTypes (see Matrices/SparseMatrixTestTypes.h).
 
 #include <algorithm>
 #include <cstddef>
@@ -40,35 +41,60 @@ using TestDevice = Devices::GPU;
 using TestDevice = Devices::Host;
 #endif
 
-//! \brief List of segment templates that make up one format.
-template< template< typename Device, typename Index, typename IndexAllocator > class... Segments >
+/**
+ * \brief Format of segments.
+ *
+ * \tparam DefaultSegments is the segments template with the default organization for the
+ *         device. It is used in the tests of the data structures based on segments, such as
+ *         sparse matrices.
+ * \tparam Segments are all variants of the format (e.g. row-major and column-major), which
+ *         are used in the tests of segments (see \ref SegmentsTestTypes).
+ */
+template<
+   template< typename Device, typename Index, typename IndexAllocator > class DefaultSegments,
+   template< typename Device, typename Index, typename IndexAllocator > class... Segments >
 struct SegmentsFormat
 {};
 
 /**
- * \brief List of segment templates that make up one format of sorted segments.
+ * \brief Format of sorted segments.
  *
- * Sorted segments wrap the segments of another format, which is tested on its own. Hence,
- * the tests of sorted segments on GPUs are instantiated only for a covering set of the
- * segment templates and index types (see \ref SegmentsTestTypes).
+ * The template parameters are the same as for \ref SegmentsFormat. Sorted segments wrap the
+ * segments of another format, which is tested on its own. Hence, the tests of sorted segments
+ * on GPUs are instantiated only for a covering set of the segment templates and index types
+ * (see \ref SegmentsTestTypes).
  */
-template< template< typename Device, typename Index, typename IndexAllocator > class... Segments >
+template<
+   template< typename Device, typename Index, typename IndexAllocator > class DefaultSegments,
+   template< typename Device, typename Index, typename IndexAllocator > class... Segments >
 struct SortedSegmentsFormat
 {};
 
 // clang-format off
-using CSRFormat = SegmentsFormat< Algorithms::Segments::CSR >;
-using AdaptiveCSRFormat = SegmentsFormat< Algorithms::Segments::AdaptiveCSR >;
-using EllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorEllpack, Algorithms::Segments::ColumnMajorEllpack >;
-using SlicedEllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorSlicedEllpack, Algorithms::Segments::ColumnMajorSlicedEllpack >;
-using ChunkedEllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorChunkedEllpack, Algorithms::Segments::ColumnMajorChunkedEllpack >;
-using BiEllpackFormat = SegmentsFormat< Algorithms::Segments::RowMajorBiEllpack, Algorithms::Segments::ColumnMajorBiEllpack >;
-using SortedCSRFormat = SortedSegmentsFormat< Algorithms::Segments::SortedCSR >;
-using SortedAdaptiveCSRFormat = SortedSegmentsFormat< Algorithms::Segments::SortedAdaptiveCSR >;
-using SortedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedRowMajorEllpack, Algorithms::Segments::SortedColumnMajorEllpack >;
-using SortedSlicedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedRowMajorSlicedEllpack, Algorithms::Segments::SortedColumnMajorSlicedEllpack >;
-using SortedChunkedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedRowMajorChunkedEllpack, Algorithms::Segments::SortedColumnMajorChunkedEllpack >;
-using SortedBiEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedRowMajorBiEllpack, Algorithms::Segments::SortedColumnMajorBiEllpack >;
+using CSRFormat = SegmentsFormat< Algorithms::Segments::CSR,
+                                  Algorithms::Segments::CSR >;
+using AdaptiveCSRFormat = SegmentsFormat< Algorithms::Segments::AdaptiveCSR,
+                                          Algorithms::Segments::AdaptiveCSR >;
+using EllpackFormat = SegmentsFormat< Algorithms::Segments::Ellpack,
+                                      Algorithms::Segments::RowMajorEllpack, Algorithms::Segments::ColumnMajorEllpack >;
+using SlicedEllpackFormat = SegmentsFormat< Algorithms::Segments::SlicedEllpack,
+                                            Algorithms::Segments::RowMajorSlicedEllpack, Algorithms::Segments::ColumnMajorSlicedEllpack >;
+using ChunkedEllpackFormat = SegmentsFormat< Algorithms::Segments::ChunkedEllpack,
+                                             Algorithms::Segments::RowMajorChunkedEllpack, Algorithms::Segments::ColumnMajorChunkedEllpack >;
+using BiEllpackFormat = SegmentsFormat< Algorithms::Segments::BiEllpack,
+                                        Algorithms::Segments::RowMajorBiEllpack, Algorithms::Segments::ColumnMajorBiEllpack >;
+using SortedCSRFormat = SortedSegmentsFormat< Algorithms::Segments::SortedCSR,
+                                              Algorithms::Segments::SortedCSR >;
+using SortedAdaptiveCSRFormat = SortedSegmentsFormat< Algorithms::Segments::SortedAdaptiveCSR,
+                                                      Algorithms::Segments::SortedAdaptiveCSR >;
+using SortedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedEllpack,
+                                                  Algorithms::Segments::SortedRowMajorEllpack, Algorithms::Segments::SortedColumnMajorEllpack >;
+using SortedSlicedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedSlicedEllpack,
+                                                        Algorithms::Segments::SortedRowMajorSlicedEllpack, Algorithms::Segments::SortedColumnMajorSlicedEllpack >;
+using SortedChunkedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedChunkedEllpack,
+                                                         Algorithms::Segments::SortedRowMajorChunkedEllpack, Algorithms::Segments::SortedColumnMajorChunkedEllpack >;
+using SortedBiEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedBiEllpack,
+                                                    Algorithms::Segments::SortedRowMajorBiEllpack, Algorithms::Segments::SortedColumnMajorBiEllpack >;
 // clang-format on
 
 namespace detail {
@@ -158,14 +184,22 @@ using SegmentsCoveringTypes =
 template< typename Format, typename Device, typename... Indices >
 struct SegmentsTestTypes;
 
-template< template< typename, typename, typename > class... Segments, typename Device, typename... Indices >
-struct SegmentsTestTypes< SegmentsFormat< Segments... >, Device, Indices... >
+template<
+   template< typename, typename, typename > class DefaultSegments,
+   template< typename, typename, typename > class... Segments,
+   typename Device,
+   typename... Indices >
+struct SegmentsTestTypes< SegmentsFormat< DefaultSegments, Segments... >, Device, Indices... >
 {
    using type = typename SegmentsProductTypes< Device, std::tuple< Indices... >, Segments... >::type;
 };
 
-template< template< typename, typename, typename > class... Segments, typename Device, typename... Indices >
-struct SegmentsTestTypes< SortedSegmentsFormat< Segments... >, Device, Indices... >
+template<
+   template< typename, typename, typename > class DefaultSegments,
+   template< typename, typename, typename > class... Segments,
+   typename Device,
+   typename... Indices >
+struct SegmentsTestTypes< SortedSegmentsFormat< DefaultSegments, Segments... >, Device, Indices... >
 {
    using type = typename std::conditional_t<
       std::is_same_v< Device, Devices::Host >,
