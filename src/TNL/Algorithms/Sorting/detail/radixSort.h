@@ -316,8 +316,10 @@ radixSortPopcount( RadixSortWarpMask mask )
  * of the sweep kernel), while the ballot sequence interleaves with the
  * surrounding instructions much better. This is the same trade-off made by
  * CUB's warp matcher (`cub/util_ptx.cuh`). On HIP, the native intrinsic is
- * kept: the ballot sequence is written in CUDA's inline PTX and the measured
- * latency pathology is specific to the CUDA GPUs of the current generation.
+ * also uses the ballot sequence: on RDNA3 the native intrinsic is emulated
+ * in software with a dependent readfirstlane loop. The intrinsic stays in
+ * the single-tile kernel, which can run on partial warps and is outside this
+ * full-warp helper.
  *
  * All lanes of the warp must participate in the call - the binning kernel
  * pads the partial tiles so that its warp collectives always run on full
@@ -352,6 +354,16 @@ radixSortWarpMatchAny( unsigned int label )
          match &= mask;
    }
    return match;
+   #elif defined( __HIP__ )
+   const auto fullMask = Backend::getWarpFullMask();
+   auto match = fullMask;
+   #pragma unroll
+   for( int bit = 0; bit < radixSortBits; bit++ ) {
+      const bool p = ( label & ( 1u << bit ) ) != 0;
+      const auto peers = __ballot_sync( fullMask, p );
+      match &= p ? peers : ~peers;
+   }
+   return match & fullMask;
    #else
    return __match_any_sync( Backend::getWarpFullMask(), static_cast< int >( label ) );
    #endif
