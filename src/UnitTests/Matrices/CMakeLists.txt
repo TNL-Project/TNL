@@ -23,6 +23,20 @@ add_subdirectory(Factorization)
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
+# generates the BinarySparseMatrixTest executables for the formats of segments supported by
+# binary sparse matrices
+tnl_add_format_tests(
+    BinarySparseMatrixTest
+    SUITE BinaryMatrixTest
+    PREFIX BinarySparseMatrix<FORMAT>
+    TYPES
+        "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        TNL::UnitTests::MatrixElementTypes< bool, int, int >, TNL::UnitTests::MatrixElementTypes< bool, long, int > >"
+    HEADERS SparseMatrixTestTypes.h BinarySparseMatrixTestSuite.hpp
+    FORMATS CSR AdaptiveCSR Ellpack SlicedEllpack
+    LABELS Matrices
+)
+
 set(TESTS
     DenseMatrixTest
     DenseMatrixCopyTest
@@ -49,10 +63,6 @@ set(TESTS
     SparseMatrixVectorProductTest_ChunkedEllpack
     SparseMatrixVectorProductTest_BiEllpack
     SparseMatrixCopyTest
-    BinarySparseMatrixTest_CSR
-    BinarySparseMatrixTest_AdaptiveCSR
-    BinarySparseMatrixTest_Ellpack
-    BinarySparseMatrixTest_SlicedEllpack
     BinarySparseMatrixCopyTest
     SymmetricSparseMatrixTest_CSR
     LambdaMatrixTest

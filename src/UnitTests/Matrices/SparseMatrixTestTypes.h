@@ -5,14 +5,17 @@
 
 // Type lists of sparse matrices for the formats of segments defined in SegmentsTestFormats.h.
 
+#include <type_traits>
+
 #include <TNL/Matrices/SparseMatrix.h>
 
 #include "../Algorithms/Segments/SegmentsTestFormats.h"
 
 namespace TNL::UnitTests {
 
-//! \brief Pair of the real and index type of a sparse matrix.
-template< typename Real, typename Index >
+//! \brief Real, index and compute real type of a sparse matrix (the default compute real type is the
+//! same as in SparseMatrix).
+template< typename Real, typename Index, typename ComputeReal = std::conditional_t< std::is_same_v< Real, bool >, Index, Real > >
 struct MatrixElementTypes
 {};
 
@@ -21,10 +24,16 @@ namespace detail {
 template< template< typename, typename, typename > class Segments, typename Device, typename... ElementTypes >
 struct SparseMatrixSegmentsTypes;
 
-template< template< typename, typename, typename > class Segments, typename Device, typename... Reals, typename... Indices >
-struct SparseMatrixSegmentsTypes< Segments, Device, MatrixElementTypes< Reals, Indices >... >
+template<
+   template< typename, typename, typename > class Segments,
+   typename Device,
+   typename... Reals,
+   typename... Indices,
+   typename... ComputeReals >
+struct SparseMatrixSegmentsTypes< Segments, Device, MatrixElementTypes< Reals, Indices, ComputeReals >... >
 {
-   using type = ::testing::Types< Matrices::SparseMatrix< Reals, Device, Indices, Matrices::GeneralMatrix, Segments >... >;
+   using type =
+      ::testing::Types< Matrices::SparseMatrix< Reals, Device, Indices, Matrices::GeneralMatrix, Segments, ComputeReals >... >;
 };
 
 template< typename Format, typename Device, typename... ElementTypes >
@@ -52,7 +61,7 @@ struct SparseMatrixTestTypes< SortedSegmentsFormat< DefaultSegments, Segments...
 
 /**
  * \brief Type list with general sparse matrices with the default segments of the given format
- * for the given device and pairs of real and index types.
+ * for the given device and element types (see \ref MatrixElementTypes).
  *
  * For example, `SparseMatrixTestTypes< EllpackFormat, Devices::Host, MatrixElementTypes< float, int > >`
  * gives `::testing::Types< SparseMatrix< float, Host, int, GeneralMatrix, Ellpack > >`.
