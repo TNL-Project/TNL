@@ -1,3 +1,8 @@
+#pragma once
+
+// Types of the SlicedEllpack segments for the ReduceSegmentsTest, included in the generated
+// ReduceSegmentsTest_SlicedEllpack sources (see tnl_add_format_tests in CMakeLists.txt)
+
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 
 #include <gtest/gtest.h>
@@ -13,8 +18,8 @@ using ColumnMajorSlicedEllpackType = TNL::Algorithms::Segments::ColumnMajorSlice
    typename TNL::Allocators::Default< Device >::template Allocator< Index >,
    SliceSize >;
 
-// types for which MatrixTest is instantiated
-using SlicedEllpackSegmentsTypes = ::testing::Types<
+// more slice sizes are tested on GPUs
+using SlicedEllpackReduceSegmentsTestTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int >,
    TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long >,
@@ -38,8 +43,6 @@ using SlicedEllpackSegmentsTypes = ::testing::Types<
    >;
 
 #include "ReduceSegmentsTestSuite.hpp"
-
-INSTANTIATE_TYPED_TEST_SUITE_P( SlicedEllpackSegments, ReduceSegmentsTest, SlicedEllpackSegmentsTypes );
 
 // Reduction over a range with end < begin must not touch any segment.
 template< typename Segments >
@@ -141,7 +144,7 @@ template< typename Segments >
 class SlicedEllpackReduceSegmentsTest : public ::testing::Test
 {};
 
-TYPED_TEST_SUITE( SlicedEllpackReduceSegmentsTest, SlicedEllpackSegmentsTypes );
+TYPED_TEST_SUITE( SlicedEllpackReduceSegmentsTest, SlicedEllpackReduceSegmentsTestTypes );
 
 TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegments_ReversedRange )
 {
@@ -152,5 +155,3 @@ TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegmentsWithArgument_EmptySli
 {
    test_reduceSegmentsWithArgument_EmptySlices< TypeParam >();
 }
-
-#include "../../../main.h"

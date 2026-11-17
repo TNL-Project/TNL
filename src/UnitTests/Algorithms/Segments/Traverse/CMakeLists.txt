@@ -1,18 +1,10 @@
-set(FORMATS
-    AdaptiveCSR
-    BiEllpack
-    ChunkedEllpack
-    CSR
-    Ellpack
-    SlicedEllpack
-    SortedAdaptiveCSR
-    SortedBiEllpack
-    SortedChunkedEllpack
-    SortedCSR
-    SortedEllpack
-    SortedSlicedEllpack
+# generates the TraverseSegmentsTest executables for all formats of segments in SEGMENTS_TEST_FORMATS
+# (see ../CMakeLists.txt)
+tnl_add_format_tests(
+    TraverseSegmentsTest
+    SUITE TraverseSegmentsTest
+    PREFIX <FORMAT>Segments
+    TYPES "${SEGMENTS_TEST_TYPES}"
+    HEADERS ../SegmentsTestFormats.h TraverseSegmentsTestSuite.hpp
+    FORMATS ${SEGMENTS_TEST_FORMATS}
 )
-
-foreach(format IN ITEMS ${FORMATS})
-    tnl_add_test_executables(TraverseSegmentsTest_${format} SOURCES TraverseSegmentsTest_${format}.h)
-endforeach()

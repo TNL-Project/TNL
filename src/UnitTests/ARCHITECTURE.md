@@ -56,6 +56,35 @@ tnl_add_test_executables(VectorBinaryOperationsTest SOURCES VectorBinaryOperatio
 tnl_add_test_executables(DenseMatrixTest SOURCES DenseMatrixTest.h LABELS Matrices)
 ```
 
+### `tnl_add_format_tests`
+
+```cmake
+tnl_add_format_tests(<name>
+    SUITE <suite> PREFIX <prefix> TYPES <types>
+    HEADERS <header>... FORMATS <format>...
+    [FORMAT_TYPES <format>:<types>...]
+    [EXTRA <format>:<header>...]
+    [LABELS <label>...])
+```
+
+The tests of segments are written once as a type-parameterized test suite
+(e.g. `SegmentsTestSuite.hpp`) and instantiated for all formats of segments
+(CSR, Ellpack, their sorted variants, ...). The function generates the header
+`<build_dir>/generated/<name>_<format>.h` for each format, which includes the
+`HEADERS` and the `EXTRA` headers of the format, instantiates the suite `SUITE`
+for the type list `TYPES` and includes `main.h`. The test executables are then
+added with `tnl_add_test_executables`, so they are named `<name>_<format>`,
+`<name>_<format>-cuda` and `<name>_<format>-hip`.
+
+- The placeholder `<FORMAT>` in `TYPES` and `PREFIX` is replaced by the name of
+  the format. `FORMAT_TYPES` replaces `TYPES` for some formats.
+- `EXTRA` adds format-specific tests, e.g. `Ellpack:SegmentsTest_Ellpack.h`.
+
+The formats and the generator of their type lists `SegmentsTestTypes` are
+defined in `Algorithms/Segments/SegmentsTestFormats.h`. A new format is tested
+by adding it there and to `SEGMENTS_TEST_FORMATS` in
+`Algorithms/Segments/CMakeLists.txt`.
+
 ## CMake test registration
 
 TNL provides four wrapper functions in `cmake/testing.cmake` for registering
@@ -214,8 +243,9 @@ may reduce the real-type axis further to a single floating-point and a single
 integral type, plus a complex type where the host list has one. The index-type
 axis and the remaining template parameters must still be covered.
 
-Examples are the sorted segment test headers (`SegmentsTest_Sorted*.h` and
-their `Reduce`/`Traverse` variants), the sparse matrix-vector product tests,
+Examples are the tests of sorted segments, whose type lists are reduced by
+`SegmentsTestTypes` for `SortedSegmentsFormat` (see
+`Algorithms/Segments/SegmentsTestFormats.h`), the sparse matrix-vector product tests,
 and the CSR sparse matrix reduce/traverse tests. Host lists may keep their
 full type lists.
 
