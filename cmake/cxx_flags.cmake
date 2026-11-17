@@ -33,6 +33,21 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
 endif()
 
+# Workaround for a GCC 16+ ICE in the IPA inliner when building with OpenMP at -O3
+# (internal compiler error in cgraph_edge::redirect_callee while inlining code
+# containing OpenMP regions). The crash is independent of the code being compiled
+# and moves between translation units when the code is modified only slightly.
+# GCC 15 and older are not affected. Disabling the Identical Code Folding pass
+# avoids the crash. Upstream bug report:
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=128853
+# The bug is not fixed yet: GCC 17 compiles the code only because the default
+# IPA-CP heuristics changed (raising the parameter ipa-cp-eval-threshold to
+# 1100), and the crash still reproduces with lower values of that parameter.
+# Remove this workaround once GCC is fixed upstream.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-ipa-icf")
+endif()
+
 # disable false compiler warnings for NVHPC - see the cuda_flags.cmake file
 target_compile_options(
     TNL
