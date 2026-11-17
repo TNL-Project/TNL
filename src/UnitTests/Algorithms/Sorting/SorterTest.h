@@ -6,6 +6,7 @@
 #include <random>
 #include <cstdlib>
 #include <cstdint>
+#include <type_traits>
 
 #include <TNL/Backend/DeviceInfo.h>
 #include <TNL/Containers/Array.h>
@@ -13,6 +14,8 @@
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>
+
+#include "../../DeviceMemory.h"
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -655,6 +658,14 @@ TYPED_TEST( SorterTest, large_index_size2To32 )
       #endif
 
    const std::size_t size = 1UL << 32;
+   // Quicksort allocates an auxiliary array of the same size,
+   // the CUB sorts need temporary storage of a similar size,
+   // and the bitonic sort needs no auxiliary buffer.
+   constexpr int auxiliaryBuffers = std::is_same_v< TypeParam, BitonicSort > ? 0 : 1;
+   if( TNL::UnitTests::isRunningInCi()
+       && ! TNL::UnitTests::hasEnoughDeviceMemory( size * sizeof( std::uint8_t ), auxiliaryBuffers ) )
+      GTEST_SKIP() << "requires about " << ( auxiliaryBuffers + 1 ) * size / ( 1UL << 30 ) << " GiB of free device memory";
+
    TNL::Containers::Array< std::uint8_t, TNL::Devices::GPU, std::size_t > arr( size );
    arr.setValue( 0 );
    arr.setElement( 0, 1 );
