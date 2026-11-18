@@ -59,7 +59,7 @@ PVTIWriter< Grid >::writeImageData( const Grid& globalGrid, const unsigned Ghost
    std::stringstream origin;
    std::stringstream spacing;
 
-   const auto& dims = globalGrid.getDimensions();
+   const auto& dims = globalGrid.getSizes();
    for( int j = 0; j < dims.getSize(); j++ )
       extent << "0 " << dims[ j ] << " ";
    // VTK knows only 3D grids

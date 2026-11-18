@@ -31,7 +31,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
 
    const TNL::Benchmarks::Benchmark::MetadataColumns columns = {
       { "precision", TNL::getType< typename Grid::RealType >() },
-      { "dimensions", TNL::convertToString( grid.getDimensions() ) },
+      { "dimensions", TNL::convertToString( grid.getSizes() ) },
       { "entity dimension", TNL::convertToString( EntityDimension ) },
       { "entities count", TNL::convertToString( grid.getEntitiesCount( EntityDimension ) ) },
       { "operation", operation }
@@ -79,7 +79,7 @@ runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::Paramete
 
    Grid grid;
 
-   grid.setDimensions( dimensions );
+   grid.setSizes( dimensions );
 
    auto forEachEntityDimension = [ & ]( const auto entityDimension )
    {

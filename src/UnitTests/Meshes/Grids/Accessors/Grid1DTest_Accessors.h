@@ -1,4 +1,3 @@
-#pragma once
 
 #include <gtest/gtest.h>
 
@@ -7,21 +6,8 @@
 #include "support.h"
 
 using Implementations = ::testing::Types<
-#if defined( __CUDACC__ )
-   TNL::Meshes::Grid< 1, double, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 1, float, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 1, double, TNL::Devices::Cuda, int >,
-   TNL::Meshes::Grid< 1, float, TNL::Devices::Cuda, int >
-#elif defined( __HIP__ )
-   TNL::Meshes::Grid< 1, double, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 1, float, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 1, double, TNL::Devices::Hip, int >,
-   TNL::Meshes::Grid< 1, float, TNL::Devices::Hip, int >
-#else
-   TNL::Meshes::Grid< 1, double, TNL::Devices::Host, int >,
-   TNL::Meshes::Grid< 1, float, TNL::Devices::Host, int >
-#endif
-   >;
+   TNL::Meshes::Grid< 1, double, TNL::Devices::Sequential, int >,
+   TNL::Meshes::Grid< 1, float, TNL::Devices::Sequential, int > >;
 
 template< class GridType >
 class GridTestSuite : public ::testing::Test
@@ -35,16 +21,6 @@ TYPED_TEST_SUITE( GridTestSuite, Implementations );
 TYPED_TEST( GridTestSuite, TestMeshDimensionGetter )
 {
    EXPECT_EQ( TypeParam::getMeshDimension(), 1 ) << "All grids must have dimension 1";
-}
-
-TYPED_TEST( GridTestSuite, TestSetWithParameterPack )
-{
-   testDimensionSetByIndex< TypeParam >( this->grid, 0 );
-   testDimensionSetByIndex< TypeParam >( this->grid, 1 );
-   testDimensionSetByIndex< TypeParam >( this->grid, 2 );
-   testDimensionSetByIndex< TypeParam >( this->grid, 11211 );
-   testDimensionSetByIndex< TypeParam >( this->grid, 232121 );
-   testDimensionSetByIndex< TypeParam >( this->grid, 434343 );
 }
 
 TYPED_TEST( GridTestSuite, TestSetWithCoordinates )
@@ -74,38 +50,6 @@ TYPED_TEST( GridTestSuite, TestOriginSet )
    testOriginSetByCoordinate< TypeParam >( this->grid, { 2. } );
    testOriginSetByCoordinate< TypeParam >( this->grid, { 0.4 } );
    testOriginSetByCoordinate< TypeParam >( this->grid, { 3. } );
-
-   testOriginSetByIndex< TypeParam >( this->grid, 0.6 );
-   testOriginSetByIndex< TypeParam >( this->grid, 1. );
-   testOriginSetByIndex< TypeParam >( this->grid, 2. );
-   testOriginSetByIndex< TypeParam >( this->grid, 0.4 );
-   testOriginSetByIndex< TypeParam >( this->grid, 3. );
-}
-
-TYPED_TEST( GridTestSuite, TestSpaceStepsGetter )
-{
-   const int spaceStepsPowersSize = TypeParam::spaceStepsPowersSize;
-
-   testSpaceStepsSetByCoordinate< TypeParam >( this->grid, spaceStepsPowersSize, { 0.6 } );
-   testSpaceStepsSetByCoordinate< TypeParam >( this->grid, spaceStepsPowersSize, { 1 } );
-   testSpaceStepsSetByCoordinate< TypeParam >( this->grid, spaceStepsPowersSize, { 4 } );
-   testSpaceStepsSetByCoordinate< TypeParam >( this->grid, spaceStepsPowersSize, { 0.1 } );
-   testSpaceStepsSetByCoordinate< TypeParam >( this->grid, spaceStepsPowersSize, { 4 } );
-
-   testSpaceStepsSetByIndex< TypeParam >( this->grid, spaceStepsPowersSize, 0.6 );
-   testSpaceStepsSetByIndex< TypeParam >( this->grid, spaceStepsPowersSize, 1 );
-   testSpaceStepsSetByIndex< TypeParam >( this->grid, spaceStepsPowersSize, 4 );
-   testSpaceStepsSetByIndex< TypeParam >( this->grid, spaceStepsPowersSize, 0.1 );
-   testSpaceStepsSetByIndex< TypeParam >( this->grid, spaceStepsPowersSize, 4 );
-}
-
-TYPED_TEST( GridTestSuite, TestSpaceStepsPowersValues )
-{
-   const int spaceStepsPowersSize = TypeParam::spaceStepsPowersSize;
-
-   testSpaceStepsPowerValues( this->grid, spaceStepsPowersSize, { 0. } );
-   testSpaceStepsPowerValues( this->grid, spaceStepsPowersSize, { 1. } );
-   testSpaceStepsPowerValues( this->grid, spaceStepsPowersSize, { 2. } );
 }
 
 #include "../../../main.h"

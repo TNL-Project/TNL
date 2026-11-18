@@ -29,7 +29,7 @@ VectorFieldGnuplotWriter<
    const MeshType& mesh = vectorField.getMesh();
    typename MeshType::Cell entity( mesh );
    auto& c = entity.getCoordinates();
-   for( c.x() = 0; c.x() < mesh.getDimensions().x(); c.x()++ ) {
+   for( c.x() = 0; c.x() < mesh.getSizes().x(); c.x()++ ) {
       entity.refresh();
       typename MeshType::PointType v = entity.getCenter();
       str << v.x();
@@ -52,7 +52,7 @@ VectorFieldGnuplotWriter<
    const MeshType& mesh = vectorField.getMesh();
    typename MeshType::Vertex entity( mesh );
    auto& c = entity.getCoordinates();
-   for( c.x() = 0; c.x() <= mesh.getDimensions().x(); c.x()++ ) {
+   for( c.x() = 0; c.x() <= mesh.getSizes().x(); c.x()++ ) {
       entity.refresh();
       typename MeshType::PointType v = entity.getCenter();
       str << v.x();
@@ -75,8 +75,8 @@ VectorFieldGnuplotWriter<
    const MeshType& mesh = vectorField.getMesh();
    typename MeshType::Cell entity( mesh );
    auto& c = entity.getCoordinates();
-   for( c.y() = 0; c.y() < mesh.getDimensions().y(); c.y()++ ) {
-      for( c.x() = 0; c.x() < mesh.getDimensions().x(); c.x()++ ) {
+   for( c.y() = 0; c.y() < mesh.getSizes().y(); c.y()++ ) {
+      for( c.x() = 0; c.x() < mesh.getSizes().x(); c.x()++ ) {
          entity.refresh();
          typename MeshType::PointType v = entity.getCenter();
          str << v.x() << " " << v.y();
@@ -105,8 +105,8 @@ VectorFieldGnuplotWriter<
    auto& c = entity.getCoordinates();
 
    entity.setOrientation( EntityOrientation( 1.0, 0.0 ) );
-   for( c.y() = 0; c.y() < mesh.getDimensions().y(); c.y()++ ) {
-      for( c.x() = 0; c.x() <= mesh.getDimensions().x(); c.x()++ ) {
+   for( c.y() = 0; c.y() < mesh.getSizes().y(); c.y()++ ) {
+      for( c.x() = 0; c.x() <= mesh.getSizes().x(); c.x()++ ) {
          entity.refresh();
          typename MeshType::PointType v = entity.getCenter();
          str << v.x() << " " << v.y();
@@ -118,8 +118,8 @@ VectorFieldGnuplotWriter<
    }
 
    entity.setOrientation( EntityOrientation( 0.0, 1.0 ) );
-   for( c.x() = 0; c.x() < mesh.getDimensions().x(); c.x()++ ) {
-      for( c.y() = 0; c.y() <= mesh.getDimensions().y(); c.y()++ ) {
+   for( c.x() = 0; c.x() < mesh.getSizes().x(); c.x()++ ) {
+      for( c.y() = 0; c.y() <= mesh.getSizes().y(); c.y()++ ) {
          entity.refresh();
          typename MeshType::PointType v = entity.getCenter();
          str << v.x() << " " << v.y();
@@ -144,8 +144,8 @@ VectorFieldGnuplotWriter<
    const MeshType& mesh = vectorField.getMesh();
    typename MeshType::Vertex entity( mesh );
    auto& c = entity.getCoordinates();
-   for( c.y() = 0; c.y() <= mesh.getDimensions().y(); c.y()++ ) {
-      for( c.x() = 0; c.x() <= mesh.getDimensions().x(); c.x()++ ) {
+   for( c.y() = 0; c.y() <= mesh.getSizes().y(); c.y()++ ) {
+      for( c.x() = 0; c.x() <= mesh.getSizes().x(); c.x()++ ) {
          entity.refresh();
          typename MeshType::PointType v = entity.getCenter();
          str << v.x() << " " << v.y();
@@ -170,9 +170,9 @@ VectorFieldGnuplotWriter<
    const MeshType& mesh = vectorField.getMesh();
    typename MeshType::Cell entity( mesh );
    auto& c = entity.getCoordinates();
-   for( c.z() = 0; c.z() < mesh.getDimensions().z(); c.z()++ )
-      for( c.y() = 0; c.y() < mesh.getDimensions().y(); c.y()++ ) {
-         for( c.x() = 0; c.x() < mesh.getDimensions().x(); c.x()++ ) {
+   for( c.z() = 0; c.z() < mesh.getSizes().z(); c.z()++ )
+      for( c.y() = 0; c.y() < mesh.getSizes().y(); c.y()++ ) {
+         for( c.x() = 0; c.x() < mesh.getSizes().x(); c.x()++ ) {
             entity.refresh();
             typename MeshType::PointType v = entity.getCenter();
             str << v.x() << " " << v.y() << " " << v.z();
@@ -201,9 +201,9 @@ VectorFieldGnuplotWriter<
    auto& c = entity.getCoordinates();
 
    entity.setOrientation( EntityOrientation( 1.0, 0.0, 0.0 ) );
-   for( c.z() = 0; c.z() < mesh.getDimensions().z(); c.z()++ )
-      for( c.y() = 0; c.y() < mesh.getDimensions().y(); c.y()++ ) {
-         for( c.x() = 0; c.x() <= mesh.getDimensions().x(); c.x()++ ) {
+   for( c.z() = 0; c.z() < mesh.getSizes().z(); c.z()++ )
+      for( c.y() = 0; c.y() < mesh.getSizes().y(); c.y()++ ) {
+         for( c.x() = 0; c.x() <= mesh.getSizes().x(); c.x()++ ) {
             entity.refresh();
             typename MeshType::PointType v = entity.getCenter();
             str << v.x() << " " << v.y() << " " << v.z();
@@ -215,9 +215,9 @@ VectorFieldGnuplotWriter<
       }
 
    entity.setOrientation( EntityOrientation( 0.0, 1.0, 0.0 ) );
-   for( c.z() = 0; c.z() < mesh.getDimensions().z(); c.z()++ )
-      for( c.x() = 0; c.x() < mesh.getDimensions().x(); c.x()++ ) {
-         for( c.y() = 0; c.y() <= mesh.getDimensions().y(); c.y()++ ) {
+   for( c.z() = 0; c.z() < mesh.getSizes().z(); c.z()++ )
+      for( c.x() = 0; c.x() < mesh.getSizes().x(); c.x()++ ) {
+         for( c.y() = 0; c.y() <= mesh.getSizes().y(); c.y()++ ) {
             entity.refresh();
             typename MeshType::PointType v = entity.getCenter();
             str << v.x() << " " << v.y() << " " << v.z();
@@ -229,9 +229,9 @@ VectorFieldGnuplotWriter<
       }
 
    entity.setOrientation( EntityOrientation( 0.0, 0.0, 1.0 ) );
-   for( c.x() = 0; c.x() < mesh.getDimensions().x(); c.x()++ )
-      for( c.y() = 0; c.y() <= mesh.getDimensions().y(); c.y()++ ) {
-         for( c.z() = 0; c.z() < mesh.getDimensions().z(); c.z()++ ) {
+   for( c.x() = 0; c.x() < mesh.getSizes().x(); c.x()++ )
+      for( c.y() = 0; c.y() <= mesh.getSizes().y(); c.y()++ ) {
+         for( c.z() = 0; c.z() < mesh.getSizes().z(); c.z()++ ) {
             entity.refresh();
             typename MeshType::PointType v = entity.getCenter();
             str << v.x() << " " << v.y() << " " << v.z();
@@ -256,9 +256,9 @@ VectorFieldGnuplotWriter<
    const MeshType& mesh = vectorField.getMesh();
    typename MeshType::Vertex entity( mesh );
    auto& c = entity.getCoordinates();
-   for( c.z() = 0; c.z() <= mesh.getDimensions().z(); c.z()++ )
-      for( c.y() = 0; c.y() <= mesh.getDimensions().y(); c.y()++ ) {
-         for( c.x() = 0; c.x() <= mesh.getDimensions().x(); c.x()++ ) {
+   for( c.z() = 0; c.z() <= mesh.getSizes().z(); c.z()++ )
+      for( c.y() = 0; c.y() <= mesh.getSizes().y(); c.y()++ ) {
+         for( c.x() = 0; c.x() <= mesh.getSizes().x(); c.x()++ ) {
             entity.refresh();
             typename MeshType::PointType v = entity.getCenter();
             str << v.x() << " " << v.y() << " " << v.z();

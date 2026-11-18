@@ -94,7 +94,7 @@ public:
       template< typename Entity >
       __cuda_callable__
       void
-      store( const Entity& entity )
+      store( const Entity entity )
       {
          this->store( entity, entity.getIndex() );
       }
@@ -107,7 +107,7 @@ public:
          calls[ index ] += 1;
          indices[ index ] = entity.getIndex();
          isBoundary[ index ] = entity.isBoundary();
-         orientations[ index ] = entity.getOrientation();
+         orientations[ index ] = entity.getOrientationIndex();
          measure[ index ] = entity.getMeasure();
 
          const auto& coordinates = entity.getCoordinates();

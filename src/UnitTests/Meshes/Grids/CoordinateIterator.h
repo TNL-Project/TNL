@@ -25,11 +25,8 @@ public:
    next()
    {
       current[ 0 ] += 1;
-
       Index carry = 0;
-
       bool isEnded = false;
-
       for( Index i = 0; i < current.getSize(); i++ ) {
          current[ i ] += carry;
 
@@ -40,10 +37,8 @@ public:
             isEnded = i == current.getSize() - 1;
             continue;
          }
-
          break;
       }
-
       return isEnded;
    }
 
@@ -53,7 +48,6 @@ public:
       for( Index i = 0; i < current.getSize(); i++ )
          if( current[ i ] >= end[ i ] )
             return false;
-
       return true;
    }
 

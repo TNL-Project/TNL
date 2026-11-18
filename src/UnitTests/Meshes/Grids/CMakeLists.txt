@@ -3,3 +3,9 @@ add_subdirectory(Indexing)
 add_subdirectory(Traverse)
 add_subdirectory(Neighbours)
 add_subdirectory(Utils)
+
+tnl_add_test_executables(GridEntitiesOrientationsTest SOURCES GridEntitiesOrientationsTest.cpp BACKENDS HOST)
+
+tnl_add_test_executables(GridWritersTest SOURCES GridWritersTest.cpp BACKENDS HOST)
+
+tnl_add_test_executables(GridBoundaryTraverseTest SOURCES GridBoundaryTraverseTest.cpp BACKENDS HOST)

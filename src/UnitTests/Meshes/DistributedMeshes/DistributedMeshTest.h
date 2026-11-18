@@ -65,13 +65,13 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
       const CoordinatesType rank_coordinates = { rank % rank_sizes.x(), rank / rank_sizes.x() };
 
       // local mesh
-      local_size = grid.getDimensions() / rank_sizes;
-      ASSERT_EQ( local_size * rank_sizes, grid.getDimensions() );
+      local_size = grid.getSizes() / rank_sizes;
+      ASSERT_EQ( local_size * rank_sizes, grid.getSizes() );
       // ranges for local (owned) cells
       cell_begin = rank_coordinates * local_size;
       cell_end = ( rank_coordinates + 1 ) * local_size;
-      ASSERT_TRUE( all( lessEqual( cell_begin, grid.getDimensions() ) ) );
-      ASSERT_TRUE( all( lessEqual( cell_end, grid.getDimensions() ) ) );
+      ASSERT_TRUE( all( lessEqual( cell_begin, grid.getSizes() ) ) );
+      ASSERT_TRUE( all( lessEqual( cell_end, grid.getSizes() ) ) );
       // ranges for local (owned) vertices
       vert_begin = cell_begin + 1;
       if( rank_coordinates.x() == 0 )
@@ -110,11 +110,12 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
       Index idx = 0;
       auto add_vertex = [ & ]( Index x, Index y )
       {
-         if( x < 0 || x > grid.getDimensions().x() )
+         if( x < 0 || x > grid.getSizes().x() )
             return;
-         if( y < 0 || y > grid.getDimensions().y() )
+         if( y < 0 || y > grid.getSizes().y() )
             return;
-         typename GridType::Vertex vertex( grid );
+         typename GridType::Vertex vertex;
+         vertex.setGrid( grid );
          vertex.setCoordinates( { x, y } );
          vertex.refresh();
          if( vert_global_to_local.count( vertex.getIndex() ) == 0 ) {
@@ -125,22 +126,23 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
       };
       auto add_cell = [ & ]( Index x, Index y )
       {
-         if( x < 0 || x >= grid.getDimensions().x() )
+         if( x < 0 || x >= grid.getSizes().x() )
             return;
-         if( y < 0 || y >= grid.getDimensions().y() )
+         if( y < 0 || y >= grid.getSizes().y() )
             return;
-         typename GridType::Cell cell( grid );
+         typename GridType::Cell cell;
+         cell.setGrid( grid );
          cell.setCoordinates( { x, y } );
          cell.refresh();
          if( cell_global_to_local.count( cell.getIndex() ) == 0 ) {
             meshBuilder.getCellSeed( idx ).setCornerId(
-               0, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 0, 0 } ).getIndex() ] );
+               0, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 0, 0 }, 0 ) ] );
             meshBuilder.getCellSeed( idx ).setCornerId(
-               1, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 1, 0 } ).getIndex() ] );
+               1, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 1, 0 }, 0 ) ] );
             meshBuilder.getCellSeed( idx ).setCornerId(
-               2, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 1, 1 } ).getIndex() ] );
+               2, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 1, 1 }, 0 ) ] );
             meshBuilder.getCellSeed( idx ).setCornerId(
-               3, vert_global_to_local[ cell.template getNeighbourEntity< 0 >( { 0, 1 } ).getIndex() ] );
+               3, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 0, 1 }, 0 ) ] );
             cell_global_to_local.insert( { cell.getIndex(), idx } );
             idx++;
          }
@@ -290,7 +292,7 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
    {
       std::map< Index, Index > result;
       Index idx = 0;
-      const CoordinatesType local_size = grid.getDimensions() / rank_sizes;
+      const CoordinatesType local_size = grid.getSizes() / rank_sizes;
       CoordinatesType rank_coordinates;
       for( rank_coordinates.y() = 0; rank_coordinates.y() < rank_sizes.y(); rank_coordinates.y()++ )
          for( rank_coordinates.x() = 0; rank_coordinates.x() < rank_sizes.x(); rank_coordinates.x()++ ) {
@@ -305,7 +307,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
 
             for( Index y = vert_begin.y(); y < vert_end.y(); y++ )
                for( Index x = vert_begin.x(); x < vert_end.x(); x++ ) {
-                  typename GridType::Vertex vertex( grid );
+                  typename GridType::Vertex vertex;
+                  vertex.setGrid( grid );
                   vertex.setCoordinates( { x, y } );
                   vertex.refresh();
                   result.insert( { vertex.getIndex(), idx } );
@@ -320,7 +323,7 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
    {
       Index idx = 0;
       std::map< Index, Index > result;
-      const CoordinatesType local_size = grid.getDimensions() / rank_sizes;
+      const CoordinatesType local_size = grid.getSizes() / rank_sizes;
       CoordinatesType rank_coordinates;
       for( rank_coordinates.y() = 0; rank_coordinates.y() < rank_sizes.y(); rank_coordinates.y()++ )
          for( rank_coordinates.x() = 0; rank_coordinates.x() < rank_sizes.x(); rank_coordinates.x()++ ) {
@@ -329,7 +332,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
 
             for( Index y = cell_begin.y(); y < cell_end.y(); y++ )
                for( Index x = cell_begin.x(); x < cell_end.x(); x++ ) {
-                  typename GridType::Cell cell( grid );
+                  typename GridType::Cell cell;
+                  cell.setGrid( grid );
                   cell.setCoordinates( { x, y } );
                   cell.refresh();
                   result.insert( { cell.getIndex(), idx } );
@@ -761,7 +765,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel0 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 0;
@@ -778,7 +782,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel1 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 1;
@@ -796,7 +800,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel2 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 2;
@@ -814,7 +818,7 @@ TEST( DistributedMeshTest, PVTUWriterReader )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setDimensions( nproc, nproc );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 2;

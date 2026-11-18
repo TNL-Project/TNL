@@ -37,7 +37,7 @@ generate( Real X, Real Y, Real Z, int Nx, int Ny, int Nz, int ntimes, double tim
 
    using Grid = TNL::Meshes::NDMetaGrid< 3, Real, int >;
    Grid grid;
-   grid.setDimensions( { Nx, Ny, Nz } );
+   grid.setSizes( { Nx, Ny, Nz } );
    grid.setDomain( { 0, 0, 0 }, { X, Y, Z } );
 
    for( int t = 0; t < ntimes; t++ ) {
