@@ -16,13 +16,13 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
 
       Grid2D grid;
 
-      grid.setDimensions( xSize, ySize );
+      grid.setSizes( { xSize, ySize } );
       grid.setDomain( { 0.0, 0.0 }, { this->xDomainSize, this->yDomainSize } );
 
-      const Real hx = grid.template getSpaceStepsProducts< 1, 0 >();
-      const Real hy = grid.template getSpaceStepsProducts< 0, 1 >();
-      const Real hx_inv = grid.template getSpaceStepsProducts< -2, 0 >();
-      const Real hy_inv = grid.template getSpaceStepsProducts< 0, -2 >();
+      const Real hx = grid.getSpaceSteps().x();
+      const Real hy = grid.getSpaceSteps().y();
+      const Real hx_inv = 1.0 / ( hx * hx );
+      const Real hy_inv = 1.0 / ( hy * hy );
 
       TNL_ASSERT_EQ( hx, this->xDomainSize / (Real) xSize, "computed wrong hx on the grid" );
       TNL_ASSERT_EQ( hy, this->yDomainSize / (Real) ySize, "computed wrong hy on the grid" );
@@ -33,7 +33,7 @@ struct HeatEquationSolverBenchmarkGrid : public HeatEquationSolverBenchmark< Rea
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         auto width = grid.getDimensions().x();
+         auto width = grid.getSizes().x();
          auto next = [ = ] __cuda_callable__( const typename Grid2D::template EntityType< 2 >& entity ) mutable
          {
             auto index = entity.getIndex();

@@ -24,7 +24,7 @@ SetUpDistributedGrid(
    globalOrigin.setValue( -0.5 );
    globalProportions.setValue( size );
 
-   globalGrid.setDimensions( size );
+   globalGrid.setSizes( size );
    globalGrid.setDomain( globalOrigin, globalProportions );
 
    distributedGrid.setDomainDecomposition( distribution );
@@ -77,7 +77,7 @@ TEST( CutDistributedGridTest_2D, GlobalGridDimension )
           distributedGrid, StaticVector< 1, int >( 1 ), StaticVector< 1, int >( 0 ), StaticVector< 1, int >( 5 ) ) )
    {
       EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getMeshDimension(), 1 ) << "Dimenze globálního gridu neodpovídajá řezu";
-      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getDimensions().x(), 10 ) << "Rozměry globálního gridu neodpovídají";
+      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getSizes().x(), 10 ) << "Rozměry globálního gridu neodpovídají";
    }
 }
 
@@ -164,7 +164,7 @@ TEST( CutDistributedGridTest_3D, GlobalGridDimension_1D )
           distributedGrid, StaticVector< 1, int >( 2 ), StaticVector< 2, int >( 0, 1 ), StaticVector< 2, int >( 2, 2 ) ) )
    {
       EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getMeshDimension(), 1 ) << "Dimenze globálního gridu neodpovídajá řezu";
-      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getDimensions().x(), 10 ) << "Rozměry globálního gridu neodpovídají";
+      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getSizes().x(), 10 ) << "Rozměry globálního gridu neodpovídají";
    }
 }
 
@@ -252,8 +252,8 @@ TEST( CutDistributedGridTest_3D, GlobalGridDimension_2D )
           distributedGrid, StaticVector< 2, int >( 0, 1 ), StaticVector< 1, int >( 2 ), StaticVector< 1, int >( 5 ) ) )
    {
       EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getMeshDimension(), 2 ) << "Dimenze globálního gridu neodpovídajá řezu";
-      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getDimensions().x(), 10 ) << "Rozměry globálního gridu neodpovídají";
-      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getDimensions().y(), 10 ) << "Rozměry globálního gridu neodpovídají";
+      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getSizes().x(), 10 ) << "Rozměry globálního gridu neodpovídají";
+      EXPECT_EQ( cutDistributedGrid.getGlobalGrid().getSizes().y(), 10 ) << "Rozměry globálního gridu neodpovídají";
    }
 }
 

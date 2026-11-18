@@ -77,25 +77,21 @@ writeGrid()
       {
          double sum = 0.0;
          double count = 0.0;
-         auto grid_dimensions = vertex.getGrid().getDimensions();
+         auto grid_dimensions = vertex.getGrid().getSizes();
          if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1, -1 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { -1, -1 }, 0 ) ];
             count++;
          }
          if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { -1, 0 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { -1, 0 }, 0 ) ];
             count++;
          }
          if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0, -1 } );
-            sum += cells_view[ neighbour.getIndex() ];
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0, -1 }, 0 ) ];
             count++;
          }
-         if( TNL::all( less( vertex.getCoordinates(), vertex.getGrid().getDimensions() ) ) ) {
-            auto neighbour = vertex.template getNeighbourEntity< Dimension >( { 0, 0 } );
-            sum += cells_view[ neighbour.getIndex() ];
+         if( TNL::all( less( vertex.getCoordinates(), vertex.getGrid().getSizes() ) ) ) {
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
             count++;
          }
          vertices_view[ vertex.getIndex() ] = sum / count;

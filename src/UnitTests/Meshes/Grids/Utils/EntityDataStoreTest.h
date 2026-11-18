@@ -22,7 +22,7 @@ testTraverse( const Grid& grid, DataStore& dataStore, int entitiesCount )
 
          coordinate = i;
 
-         GridEntity entity( grid, coordinate, normals, orientation );
+         GridEntity entity( grid, coordinate, orientation );
 
          view.store( entity, i );
 
@@ -34,7 +34,7 @@ testTraverse( const Grid& grid, DataStore& dataStore, int entitiesCount )
          EXPECT_EQ( entity.getCoordinates(), prototype.coordinate );
          EXPECT_EQ( entity.getNormals(), prototype.normals );
          EXPECT_EQ( entity.getIndex(), prototype.index );
-         EXPECT_EQ( entity.getOrientation(), prototype.orientation );
+         EXPECT_EQ( entity.getOrientationIndex(), prototype.orientation );
          EXPECT_EQ( entity.isBoundary(), prototype.isBoundary );
          EXPECT_EQ( entity.getCenter(), prototype.center );
          EXPECT_EQ( entity.getMeasure(), prototype.measure );
@@ -73,7 +73,7 @@ TEST( EntityDataStoreTest, DataStore1DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setDimensions( entitiesCount + 1 );
+   grid.setSizes( entitiesCount + 1 );
    grid.setSpaceSteps( 1. );
 
    DataStore store( entitiesCount );
@@ -96,8 +96,8 @@ TEST( EntityDataStoreTest, DataStore2DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setDimensions( entitiesCount + 1, entitiesCount + 1 );
-   grid.setSpaceSteps( 1., 1. );
+   grid.setSizes( { entitiesCount + 1, entitiesCount + 1 } );
+   grid.setSpaceSteps( { 1., 1. } );
 
    DataStore store( entitiesCount );
 
@@ -121,8 +121,8 @@ TEST( EntityDataStoreTest, DataStore3DTest )
    Index entitiesCount = 10;
 
    Grid grid;
-   grid.setDimensions( entitiesCount + 1, entitiesCount + 1, entitiesCount + 1 );
-   grid.setSpaceSteps( 1., 1., 1. );
+   grid.setSizes( { entitiesCount + 1, entitiesCount + 1, entitiesCount + 1 } );
+   grid.setSpaceSteps( { 1., 1., 1. } );
 
    DataStore store( entitiesCount );
 

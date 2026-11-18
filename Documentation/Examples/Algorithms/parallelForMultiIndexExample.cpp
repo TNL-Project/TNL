@@ -24,7 +24,7 @@ int
 main( int argc, char* argv[] )
 {
    /***
-    * Define dimensions of a 3D mesh function.
+    * Define sizes of a 3D mesh function.
     */
    const int xSize = 10;
    const int ySize = 10;

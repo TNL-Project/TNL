@@ -5,8 +5,10 @@
 
 #include <TNL/Logger.h>
 #include <TNL/Containers/StaticVector.h>
+#include <TNL/Meshes/GridEntitiesOrientations.h>
 #include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 #include <TNL/Meshes/GridDetails/Templates/Functions.h>
+#include <TNL/Meshes/GridDetails/GridEntityBase.h>
 
 namespace TNL::Meshes {
 
@@ -18,7 +20,9 @@ class GridEntity;
  *
  * This data structure represents regular orthogonal numerical mesh. It provides indexing of mesh
  * entities like vertices, edges, faces or cells together with parallel traversing of all, interior
- * or boundary mesh entities.
+ * or boundary mesh entities. The grid entities defined by their dimension but also their
+ * orientation. For example faces or edges in 2D grid can horizontal or vertical. The system
+ * of grid entities in TNL is described in \ref TNL::Meshes::GridEntitiesOrientations.
  *
  * \tparam Dimension is grid dimension.
  * \tparam Real is type of the floating point numbers.
@@ -52,16 +56,49 @@ public:
    using GlobalIndexType = Index;
 
    /**
+    * \brief Type for grid entities orientations.
+    *
+    * This structure provides functions related to grid entities orientations
+    * especially conversions between packed normals vectors, orientation and
+    * total orientation indexes.
+    *
+    * See. \ref TNL::Meshes::GridEntitiesOrientations.
+    */
+   using EntitiesOrientations = GridEntitiesOrientations< Dimension >;
+
+   /**
     * \brief Type for grid entities coordinates.
     */
-   using CoordinatesType = Containers::StaticVector< Dimension, Index >;
+   using CoordinatesType = Containers::StaticVector< Dimension, IndexType >;
 
    /**
     * \brief Type for world coordinates.
     */
    using PointType = Containers::StaticVector< Dimension, Real >;
 
+   /**
+    * \brief Type for packed normal vectors.
+    */
+   using NormalsType = Containers::StaticVector< Dimension, short int >;
+
+   /**
+    * \brief Type of container holding number of grid entities with given dimension.
+    */
    using EntitiesCounts = Containers::StaticVector< Dimension + 1, Index >;
+
+   /**
+    * \brief Gives number of orientations of all grid entities.
+    *
+    *  See. \ref TNL::Meshes::GridEntitiesOrientations for details.
+    */
+   static constexpr IndexType
+   getTotalOrientationsCount()
+   {
+      return EntitiesOrientations::getTotalOrientationsCount();
+   }
+
+   template< int EntityDimension, int SuperentityDimension >
+   using SuperentitiesContainer = Containers::StaticVector< 1 << ( SuperentityDimension - Dimension - 1 ), IndexType >;
 
    /**
     * \brief Alias for grid entities with given dimension.
@@ -70,8 +107,6 @@ public:
     */
    template< int EntityDimension >
    using EntityType = GridEntity< Grid, EntityDimension >;
-
-   using OrientationNormalsContainer = Containers::StaticVector< 1 << Dimension, CoordinatesType >;
 
    /**
     * \brief Type of grid entity expressing vertices, i.e. grid entity with dimension equal to zero.
@@ -102,31 +137,9 @@ public:
    getMeshDimension();
 
    /**
-    * \brief Returns the coefficient powers size.
-    */
-   // TODO: Move this to FDM = Finite Difference Method implementation
-   static constexpr int spaceStepsPowersSize = 5;
-
-   using SpaceProductsContainer =
-      Containers::StaticVector< std::integral_constant< Index, discretePow( spaceStepsPowersSize, Dimension ) >::value, Real >;
-
-   /**
     * \brief Grid constructor with no parameters.
     */
-   Grid();
-
-   /**
-    * \brief Grid constructor with grid dimensions parameters.
-    *
-    * \tparam Dimensions is variadic template pack.
-    * \param dimensions are dimensions along particular axes of the grid. The number of parameters must
-    *    be equal to the size od the grid.
-    */
-   template<
-      typename... Dimensions,
-      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
-      std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
-   Grid( Dimensions... dimensions );
+   Grid() = default;
 
    /**
     * \brief Grid constructor with grid dimensions given as \ref TNL::Meshes::Grid::CoordinatesType.
@@ -134,6 +147,10 @@ public:
     * \param dimensions are dimensions along particular axes of the grid.
     */
    Grid( const CoordinatesType& dimensions );
+
+   __cuda_callable__
+   const EntitiesOrientations&
+   getEntitiesOrientations() const;
 
    /**
     * \brief Returns the number of orientations for entity dimension.
@@ -145,37 +162,21 @@ public:
    getEntityOrientationsCount( IndexType entityDimension );
 
    /**
-    * \brief Set the dimensions (or resolution) of the grid.
-    *    The resolution must be given in terms on grid cells not grid vertices. The
-    *    method accepts as many indexes for the dimensions as the dimension of the grid.
+    * \brief Set the sizes of the grid.
     *
-    * \tparam Dimensions variadic template accepting a series of indexes.
-    * \param[in] dimensions series of indexes defining resolution of the grid.
-    */
-   template<
-      typename... Dimensions,
-      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
-      std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
-   void
-   setDimensions( Dimensions... dimensions );
-
-   /**
-    * \brief Set the dimensions (or resolution) of the grid.
-    *    This method accepts particular dimensions packed in a static vector.
-    *
-    * \param dimensions grid dimensions given in a form of coordinate vector.
+    * \param sizes grid sizes given in a form of coordinate vector.
     */
    void
-   setDimensions( const CoordinatesType& dimensions );
+   setSizes( const CoordinatesType& sizes );
 
    /**
-    * \brief Returns dimensions as a number of edges along each axis in a form of coordinate vector.
+    * \brief Returns grid sizes in a form of coordinate vector.
     *
     *\return Coordinate vector with number of edges along each axis.
     */
    [[nodiscard]] __cuda_callable__
    const CoordinatesType&
-   getDimensions() const noexcept;
+   getSizes() const noexcept;
 
    /**
     * \brief Returns number of entities of specific dimension.
@@ -185,7 +186,7 @@ public:
     */
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount( IndexType dimension ) const;
+   getEntitiesCount( IndexType dimension ) const noexcept;
 
    /**
     * \brief Returns number of entities of specific dimension given as a template parameter.
@@ -194,12 +195,10 @@ public:
     *
     * \return Number of grid entities with given dimension.
     */
-   template<
-      int EntityDimension,
-      std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
+   template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount() const noexcept;
+   getEntitiesCount() const noexcept;  // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns number of entities of specific entity type as a template parameter.
@@ -208,27 +207,10 @@ public:
     *
     * \return Number of grid entities with given dimension.
     */
-   template<
-      typename Entity,
-      std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
+   template< typename Entity >
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount() const noexcept;
-
-   /**
-    * \brief Returns count of entities of specific dimensions.
-    *
-    * \tparam DimensionsIndex variadic template parameter for a list of dimensions.
-    * \param[in] indices is a list of dimensions of grid entities to be counted.
-    * \return count of entities of specific dimensions.
-    */
-   template<
-      typename... DimensionIndex,
-      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
-      std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
-   [[nodiscard]] __cuda_callable__
-   Containers::StaticVector< sizeof...( DimensionIndex ), Index >
-   getEntitiesCounts( DimensionIndex... indices ) const;
+   getEntitiesCount() const noexcept;  // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns count of entities for all dimensions.
@@ -254,81 +236,66 @@ public:
     * \brief Returns number of entities of specific dimension and orientation given as template parameters.
     *
     * \tparam EntityDimension is dimension of the grid entities.
-    * \tparam EntityOrientation is orientation of the grid entity.
+    * \tparam EntityOrientation is orientation of the grid entities.
     * \return number of entities of specific dimension and orientation.
     */
-   template<
-      int EntityDimension,
-      int EntityOrientation,
-      std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true,
-      std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension ), bool > = true >
+   template< int EntityDimension, int EntityOrientation >
    [[nodiscard]] __cuda_callable__
    Index
    getOrientedEntitiesCount() const noexcept;
 
    /**
-    * \brief Returns normals of the entity with the specific orientation.
+    * \brief Returns packed normals vector of the entity based on a dimension specific orientation index.
     *
-    * Normals is integer vector having ones for axis along which the entity has zero length.
-    * For example in 3D grid we have the following possibilities:
-    *
-    * | Entity                     | Normals        |
-    * |---------------------------:|-------------:|
-    * | Cells                      | ( 0, 0, 0 )  |
-    * | Faces along x- and y- axes | ( 0, 0, 1 )  |
-    * | Faces along x- and z- axes | ( 0, 1, 0 )  |
-    * | Faces along y- and z- axes | ( 0, 1, 1 )  |
-    * | Edges along x-axis         | ( 0, 1, 1 )  |
-    * | Edges along y-axis         | ( 1, 0, 1 )  |
-    * | Edges along z-axis         | ( 1, 1, 0 )  |
-    * | Vertices                   | ( 1, 1, 1 )  |
+    * See \ref TNL::Meshes::GridEntitiesOrientations for details about packed normals.
     *
     * \tparam EntityDimension is dimensions of grid entity.
-    * \param[in] orientation is orientation of the entity
+    * \param[in] orientationIndex is orientation of the entity
     * \return normals of the grid entity.
     */
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
-   CoordinatesType
-   getNormals( Index orientation ) const noexcept;
+   NormalsType
+   getNormals( Index orientationIndex ) const noexcept;
+
+   /**
+    * \brief Returns packed normals vector of the based on the total orientation index.
+    *
+    * See \ref TNL::Meshes::GridEntitiesOrientations for details about packed normals.
+    *
+    * \param[in] totalOrientationIndex is orientation of the entity
+    * \return normals of the grid entity.
+    */
+   __cuda_callable__
+   NormalsType
+   getNormals( Index totalOrientationIndex ) const noexcept;
 
    /**
     * \brief Returns basis of the entity with the specific orientation.
     *
-    * Basis is integer vector having ones for axis along which the entity has non-zero lengths.
-    * For example in 3D grid we have the following possibilities:
-    *
-    * | Entity                     | Basis       |
-    * |---------------------------:|-------------:|
-    * | Cells                      | ( 1, 1, 1 )  |
-    * | Faces along x- and y- axes | ( 1, 1, 0 )  |
-    * | Faces along x- and z- axes | ( 1, 0, 1 )  |
-    * | Faces along y- and z- axes | ( 0, 1, 1 )  |
-    * | Edges along x-axis         | ( 1, 0, 0 )  |
-    * | Edges along y-axis         | ( 0, 1, 0 )  |
-    * | Edges along z-axis         | ( 0, 0, 1 )  |
-    * | Vertices                   | ( 0, 0, 0 )  |
+    * See \ref TNL::Meshes::GridEntitiesOrientations for details about packed basis vectors.
     *
     * \tparam EntityDimension is dimensions of grid entity.
-    * \param[in] orientation is orientation of the entity
+    * \param[in] orientationIndex is orientation of the entity
     * \return normals of the grid entity.
     */
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    CoordinatesType
-   getBasis( Index orientation ) const noexcept;
+   getBasis( Index orientationIndex ) const noexcept;
 
    /**
-    * \brief Computes orientation index of a grid entity based on normals.
+    * \brief Computes orientation index of a grid entity based on packed normals.
     *
-    * \tparam EntityDimension is dimension of the grid entity.
+    * See \ref TNL::Meshes::GridEntitiesOrientations for details about packed normals.
+    *
     * \param normals defines the orientation of an entity.
     * \return index of grid entity orientation.
     */
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    IndexType
-   getOrientation( const CoordinatesType& normals ) const noexcept;
+   getOrientationIndex( const NormalsType& normals ) const noexcept;
 
    /**
     * \brief Computes coordinates of a grid entity based on an index of the entity.
@@ -337,15 +304,14 @@ public:
     *  is **highly inefficient** and it should not be used at critical parts of algorithms.
     *
     * \tparam EntityDimension is dimension of an entity.
-    * \param entityIdx is an index of the entity.
-    * \param normals this parameter is filled with the grid entity orientation in a form of normals.
-    * \param orientation is an index of the grid entity orientation.
+    * \param[in] entityIdx is an index of the entity.
+    * \param[out] totalOrientationIndex is an index of the grid entity orientation.
     * \return coordinates of the grid entity.
     */
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    CoordinatesType
-   getEntityCoordinates( IndexType entityIdx, CoordinatesType& normals, Index& orientation ) const noexcept;
+   getEntityCoordinates( IndexType entityIdx, IndexType& totalOrientationIndex ) const noexcept;
 
    /**
     * \brief Sets the origin and proportions of this grid.
@@ -363,19 +329,6 @@ public:
     */
    void
    setOrigin( const PointType& origin ) noexcept;
-
-   /**
-    * \brief Set the origin of the grid in a form of a pack of real numbers.
-    *
-    * \tparam Coordinates is a pack of templates types.
-    * \param[in] coordinates is a pack of real numbers defining the origin.
-    */
-   template<
-      typename... Coordinates,
-      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Coordinates >... >, bool > = true,
-      std::enable_if_t< sizeof...( Coordinates ) == Dimension, bool > = true >
-   void
-   setOrigin( Coordinates... coordinates ) noexcept;
 
    /**
     * \brief Returns the origin of the grid.
@@ -397,19 +350,6 @@ public:
    setSpaceSteps( const PointType& spaceSteps ) noexcept;
 
    /**
-    * \brief Set the space steps along each dimension of the grid in a form of a pack of real numbers.
-    *
-    * \tparam Steps is a pack of template types.
-    * \param[in] spaceSteps is a pack of real numbers defining the space steps of the grid.
-    */
-   template<
-      typename... Steps,
-      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Steps >... >, bool > = true,
-      std::enable_if_t< sizeof...( Steps ) == Dimension, bool > = true >
-   void
-   setSpaceSteps( Steps... spaceSteps ) noexcept;
-
-   /**
     * \brief Returns the space steps of the grid.
     *
     * \return the space steps of the grid.
@@ -417,66 +357,6 @@ public:
    [[nodiscard]] __cuda_callable__
    const PointType&
    getSpaceSteps() const noexcept;
-
-   /**
-    * \brief Returns product of given space steps powers.
-    *
-    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
-    *
-    * \tparam Powers is a pack of template types.
-    * \param[in] powers is a pack of numbers telling power of particular space steps.
-    * \return product of given space steps powers.
-    */
-   template<
-      typename... Powers,
-      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
-      std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
-   [[nodiscard]] __cuda_callable__
-   Real
-   getSpaceStepsProducts( Powers... powers ) const;
-
-   /**
-    * \brief Returns product of space steps powers.
-    *
-    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
-    *
-    * \param[in] powers is vector of numbers telling power of particular space steps.
-    * \return product of given space steps powers.
-    */
-   [[nodiscard]] __cuda_callable__
-   Real
-   getSpaceStepsProducts( const CoordinatesType& powers ) const;
-
-   [[nodiscard]] __cuda_callable__
-   Real
-   getCellMeasure() const
-   {
-      return this->getSpaceStepsProducts( CoordinatesType( 1 ) );
-   }
-
-   /**
-    * \brief Returns product of space step powers given as template parameters.
-    *
-    * The powers can be only integers.
-    *
-    * For example in 3D grid if powers are \f$ 1, 2, 3 \f$ the methods returns \f$ h_x^1 \cdot h_y^2 \cdot h_z^3\f$.
-    *
-    * \tparam Powers is a pack of indexes.
-    * \return product of given space steps powers.
-    */
-   template< Index... Powers, std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
-   [[nodiscard]] __cuda_callable__
-   Real
-   getSpaceStepsProducts() const noexcept;
-
-   /**
-    * \brief Get the smallest space step.
-    *
-    * \return the smallest space step.
-    */
-   [[nodiscard]] __cuda_callable__
-   Real
-   getSmallestSpaceStep() const noexcept;
 
    /**
     * \brief Get the proportions of the grid.
@@ -548,7 +428,7 @@ public:
    getEntity( const CoordinatesType& coordinates ) const;
 
    /**
-    * \brief Gets entity index using entity type.
+    * \brief Computes the entity index based on its type, orientation and coordinates.
     *
     * \tparam Entity is a type of the entity.
     * \param entity is instance of the entity.
@@ -560,6 +440,203 @@ public:
    getEntityIndex( const Entity& entity ) const;
 
    /**
+    * \brief Computes index of an entity shifted by \e offset from the original \e entity.
+    *
+    * The function returns index of an entity having the same dimension and orientation as the
+    * original \e entity and with coordinates given as \e entity.getCoordinates()+offset.
+    *
+    * \tparam Entity is entity type.
+    * \param entity instance of the original entity
+    * \param offset offset of the entity index of which is returned.
+    * \return index of entity shifted by \e offset from the original \e entity.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   Index
+   getEntityIndex( const Entity& entity, const CoordinatesType& offset ) const;
+
+   /**
+    * \brief Computes index of an entity shifted by \e offset from the original \e entity,
+    *  with dimension given by \e OtherEntityDimension and the orientation given by
+    *  orientation index \e otherEntityOrientationIndex.
+    *
+    * The function returns index of an entity having the same dimension and orientation as the
+    * original \e entity and with coordinates given as \e entity.getCoordinates()+offset.
+    *
+    * \tparam OtherEntityDimension is dimension of the neighbour entity.
+    * \tparam Entity is entity type.
+    * \param entity instance of the original entity
+    * \param offset offset of the entity index of which is returned.
+    * \param otherEntityOrientationIndex orientation index of the entity index of which is returned.
+    * \return index of entity shifted by \e offset from the original \e entity.
+    */
+   template< int OtherEntityDimension, typename Entity >
+   __cuda_callable__
+   Index
+   getEntityIndex( const Entity& entity, const CoordinatesType& offset, Index otherEntityOrientationIndex ) const;
+
+   /**
+    * \brief Creates an entity shifted by \e offset from the original \e entity.
+    *
+    * The function returns an entity having the same dimension and orientation as the
+    * original \e entity and with coordinates given as \e entity.getCoordinates()+offset.
+    *
+    * \tparam Entity is entity type.
+    * \param entity instance of the original entity
+    * \param offset offset of the entity index of which is returned.
+    * \return entity shifted by \e offset from the original \e entity.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   Entity
+   getEntity( const Entity& entity, const CoordinatesType& offset ) const;
+
+   /**
+    * \brief Creates an entity shifted by \e offset from the original \e entity,
+    *  with dimension given by \e OtherEntityDimension and the orientation given by
+    *  orientation index \e otherEntityOrientationIndex.
+    *
+    * The function returns index of an entity having the same dimension and orientation as the
+    * original \e entity and with coordinates given as \e entity.getCoordinates()+offset.
+    *
+    * \tparam OtherEntityDimension is dimension of the neighbour entity.
+    * \tparam Entity is entity type.
+    * \param entity instance of the original entity
+    * \param offset offset of the entity index of which is returned.
+    * \param otherEntityOrientation orientation index of the entity index of which is returned.
+    * \return index of entity shifted by \e offset from the original \e entity.
+    */
+   template< int OtherEntityDimension, typename Entity >
+   __cuda_callable__
+   EntityType< OtherEntityDimension >
+   getEntity( const Entity& entity, const CoordinatesType& offset, const NormalsType& otherEntityOrientation ) const;
+
+   /**
+    * \brief Computes index of an entity shifted in a direction of one given axis from the
+    *    original \e entity.
+    *
+    * \tparam Direction is an index of the axis along which the new entity is supposed to be shifted. For
+    *    example \e Direction set 0 means shift along x-axis, \e Direction set 1 means shift along y-axis,
+    *    \e Direction set to 2 means shift along z-axis and so on.
+    * \tparam Step says how far the new entity is supposed to be shifted. For example, if \e Direction is 0
+    *    and \e Step is 2 the function returns index of entity with coordinates \e entity.getCoordinates()+(2,0,0).
+    * \tparam Entity is a type of the original grid entity.
+    * \param entity is an instance of the original grid entity.
+    * \return index of the shifted grid entity.
+    */
+   template< int Direction, int Step, typename Entity >
+   __cuda_callable__
+   IndexType
+   getAdjacentEntityIndex( const Entity& entity ) const;
+
+   /**
+    * \brief Computes indexes of cells adjacent to a face.
+    *
+    * \tparam Entity is an entity type.
+    * \param entity is an instance of the entity.
+    * \param closer is an index of a cell closer to the origin of the grid.
+    * \param remoter is an index of a cell remoter from the origin of the grid.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   void
+   getAdjacentCells( const Entity& entity, IndexType& closer, IndexType& remoter ) const;
+
+   /**
+    * \brief Gives indexes of all superentities of given entity.
+    *
+    * Super entity is entity with higher dimension containing the original entity. In terms
+    * of basis vectors the superentity must have ones everywhere where the entity has ones.
+    * In addition, the superentity must have more ones. For example
+    *
+    * entity with basis (0,1) is vertical face in 2D grid
+    * superentity with basis (1,1) is cell in 2D grid
+    *
+    * \tparam Entity
+    * \param entity
+    * \param closer
+    * \param remoter
+    */
+   template< int SuperentityDimension, typename Entity >
+   __cuda_callable__
+   void
+   getSuperentitiesIndexes(
+      const Entity& entity,
+      SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& closer,
+      SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& remoter ) const;
+
+   /**
+    * \brief Computes indexes of faces belonging to given cell.
+    *
+    * \tparam Entity is the entity type.
+    * \param entity is an instance of the entity.
+    * \param closer are indexes of the faces closer to the origin of the grid.
+    * \param remoter are indexes of the faces remoter from the origin of the grid.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   void
+   getAdjacentFacesIndexes( const Entity& entity, CoordinatesType& closer, CoordinatesType& remoter ) const;
+
+   /**
+    * \brief Computes point at the entity which closest to the origin of the grid.
+    *
+    * \tparam Entity is the entity type.
+    * \param entity is an instance of the entity.
+    * \return point closest to the origin of the grid.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   PointType
+   getEntityOrigin( const Entity& entity ) const;
+
+   /**
+    * \brief Computes point at the center of the entity.
+    *
+    * \tparam Entity is the entity type.
+    * \param entity is an instance of the entity.
+    * \return center of the entity.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   PointType
+   getEntityCenter( const Entity& entity ) const;
+
+   /**
+    * \brief Computes measure of the entity. i.e. volume of cell in 3D, surface of cell in 2D or faces in 3D,
+    *    length of cells in 1D, faces in 2D or edges in 3D and so on.
+    *
+    * \tparam Entity is the entity type.
+    * \param entity is an instance of the entity.
+    * \return measure of the entity.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   RealType
+   getEntityMeasure( const Entity& entity ) const;
+
+   /**
+    * \brief Computes measure of a cell, i.e. volume of cell in 3D, surface of cell 2D, length of cell in 1D
+    *
+    * \return measure of the cell.
+    */
+   [[nodiscard]] __cuda_callable__
+   Real
+   getCellMeasure() const;
+
+   /**
+    * \brief Returns \e true if given entity is a boundary entity.
+    *
+    * \tparam Entity is the entity type.
+    * \param entity is an instance of the entity.
+    * \return \e true if the entity os boundary entity, \e false otherwise.
+    */
+   template< typename Entity >
+   __cuda_callable__
+   bool
+   isBoundaryEntity( const Entity& entity ) const;
+
+   /**
     * \brief Sets the subdomain of distributed grid.
     *
     * \param begin is "lower left" corner of the subdomain.
@@ -569,7 +646,7 @@ public:
    setLocalSubdomain( const CoordinatesType& begin, const CoordinatesType& end );
 
    /**
-    * \brief Sets the "lower left" corfner of subdomain of distributed grid.
+    * \brief Sets the "lower left" corner of subdomain of distributed grid.
     *
     * \param begin is "lower left" corner of the subdomain.
     */
@@ -577,7 +654,7 @@ public:
    setLocalBegin( const CoordinatesType& begin );
 
    /**
-    * \brief Sets the "upper right" corfner of subdomain of distributed grid.
+    * \brief Sets the "upper right" corner of subdomain of distributed grid.
     *
     * \param end is "upper right" corner of the subdomain.
     */
@@ -769,21 +846,57 @@ public:
    void
    forLocalEntities( Func func, FuncArgs... args ) const;
 
+   /**
+    * \brief Takes vector of values related to all grid entities with given dimension and returns constant
+    *    vector view containing only values related to grid entities with specific orientation.
+    *
+    * With this function, we can for example easily separate vertical or horizontal faces from all faces in 2D grid.
+    *
+    * \tparam Vector is the type of vector holding values related to grid entities with given dimension.
+    * \param allEntities is an instance if the vector holding values related to with given dimension.
+    * \param entitiesDimension is the dimension of the grid entities the values are related to.
+    * \param entitiesOrientationIndex is orientation index of entities that are supposed to be in the
+    *    vector view.
+    * \return constant vector view holding values related only to grid entities with specific orientation.
+    */
+   template< typename Vector >
+   typename Vector::ConstViewType
+   partitionEntities( const Vector& allEntities, int entitiesDimension, int entitiesOrientationIndex ) const;
+
+   /**
+    * \brief Takes vector of values related to all grid entities with given dimension and returns a
+    *    vector view containing only values related to grid entities with specific orientation.
+    *
+    * With this function, we can for example easily separate vertical or horizontal faces from all faces in 2D grid.
+    *
+    * \tparam Vector is the type of vector holding values related to grid entities with given dimension.
+    * \param allEntities is an instance if the vector holding values related to with given dimension.
+    * \param entitiesDimension is the dimension of the grid entities the values are related to.
+    * \param entitiesOrientationIndex is orientation index of entities that are supposed to be in the
+    *    vector view.
+    * \return vector view holding values related only to grid entities with specific orientation.
+    */
+   template< typename Vector >
+   typename Vector::ViewType
+   partitionEntities( Vector& allEntities, int entitiesDimension, int entitiesOrientationIndex ) const;
+
 protected:
+   using CoordinatesMultiplicatorsContainer = Containers::StaticVector< getTotalOrientationsCount(), CoordinatesType >;
+
    void
-   fillEntitiesCount();
+   setEntitiesIndexesOffsets();
+
+   /**
+    * \brief Precompute the coordinate multiplicators vectors.
+    */
+   void
+   setCoordinatesMultiplicators();
 
    void
    fillSpaceSteps();
 
    void
-   fillSpaceStepsPowers();
-
-   void
    fillProportions();
-
-   void
-   fillNormals();
 
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
@@ -812,45 +925,155 @@ protected:
    /**
     * \brief Grid dimensions.
     */
-   CoordinatesType dimensions;
+   CoordinatesType sizes = 0;
 
-   PointType origin, proportions, spaceSteps;
+   PointType origin = 0, proportions = 0, spaceSteps = 0;
 
    /**
     * \brief Region of subdomain if this grid represents one sudbdomain of distributed grid.
     */
-   CoordinatesType localBegin, localEnd;
+   CoordinatesType localBegin = 0, localEnd = 0;
 
-   CoordinatesType interiorBegin, interiorEnd;  // TODO: Why we needt it?
+   CoordinatesType interiorBegin = 0, interiorEnd = 0;  // TODO: Why we need it?
 
-   /**
-    * \brief A list of elements count along specific directions.
+   EntitiesCounts entitiesCounts = 0;
+
+   /***
+    * \brief Container holding offsets of entities with various orientations.
     *
-    * First, elements will contain the count of 0 dimension elements.
-    * Second, elements will contain the count of 1-dimension elements and so on.
+    * The grid is mapping all entities of the same dimension into one linear container. For
+    * entities other then cells and vertices this includes entities with various orientations.
+    * The following figure shows the mapping on an example of faces in 2D grid having sizes 4x4:
     *
-    * For example, let's have a 3-d grid, then the map indexing will
-    * be the next: 0 - 0 - count of vertices 1, 2, 3 - count of edges in x, y,
-    * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
-    * in z y x plane
     *
-    * \warning The ordering of is lexicographical.
+    * ```
+    *   +-( 36)-+-( 37)-+-( 38)-+-( 39)-+
+    *   |       |       |       |       |
+    * ( 15)   ( 16)   ( 17)   ( 18)   ( 19)
+    *   |       |       |       |       |
+    *   +-( 32)-+-( 33)-+-( 34)-+-( 35)-+
+    *   |       |       |       |       |
+    * ( 10)   ( 11)   ( 12)   ( 13)   ( 14)
+    *   |       |       |       |        |
+    *   +-( 28)-+-( 29)-+-( 30)-+-( 31)-+
+    *   |       |       |       |       |
+    * ( 5 )   ( 6 )   ( 7 )   ( 8 )   ( 9 )
+    *   |       |       |       |       |
+    *   +-( 24)-+-( 25)-+-( 26)-+-( 27)-+
+    *   |       |       |       |       |
+    * ( 0 )   ( 1 )   ( 2 )   ( 3 )   ( 4 )
+    *   |       |       |       |       |
+    *   +-( 20)-+-( 21)-+-( 22)-+-( 23)-+
+    *```
+    *
+    * We can see that there are 4*5=20 horizontal faces and 5*4=20 vertical faces.
+    * The horizontal faces are mapped to indexes 0..19 and the vertical to 20..39. When it comes
+    * to other entities of the 2D grid with sizes 4x4, we have:
+    *
+    * 1. 5*5 vertices indexed as 0..24
+    * 2. 5*4 vertical faces going along y-axis indexed as 0..19
+    * 3. 4*5 horizontal faces going along x-axis indexed as 20..39
+    * 4. 4*4 cells indexed as 0..15
+    *
+    * We encode the indexing offsets of the entities depending on their dimension an orientation as follows:
+    *
+    * [0,25],       [0,20,40],  [0,16].
+    * ^-> vertices  ^-> faces   ^-> cells
+    *
+    * Here each bracket is related to entities with the same dimension and within the bracket we have
+    * indexing offsets of entities with given orientation. Number of all different entities orientations
+    * is \e 2^grid-dimension and for each entity dimension there is one more index at the end of the
+    * bracket telling the total number of all entities with given dimension. Therefore the size of
+    * the container is \e 2^grid-dimension+(grid-dimension+1) where \e grid-dimension+1 is number of
+    * different entities dimensions. The container is therefore organized as follows:
+    *
+    * [0,25,0,20,40,0,16]
+    *
+    * The indexing offset of entity with dimension \e EntityDimensions and orientation given by
+    * \e totalOrientationIndex can be obtained as \e totalOrientationIndex+EntityDimension.
+    *
+    * We summarize with one more example with 3D grid having sizes 4x4x4. In this case we have
+    *
+    * 1. 5*5*5 vertices indexed as 0..124
+    * 2. 5*4*4 faces along y and z axes indexed as 0..79
+    * 3. 4*5*4 faces along x and z axes indexed as 80..159
+    * 4. 4*4*5 faces along x and y axes indexed as 160..239
+    * 5. 5*5*4 edges along z axis indexed as 0..99
+    * 6. 5*4*5 edges along y axis indexed as 100..199
+    * 7. 4*5*5 edges along x axis indexed as 200..299
+    * 8. 4*4*4 cells indexed as 0..63
+    *
+    * The indexing offsets can be therefore encoded as:
+    *
+    * [0,125],[0,80,160,240],[0,100,200,300],[0,64].
     */
-   Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals;
+   Containers::StaticVector< ( 1 << Dimension ) + Dimension + 1, Index > entitiesIndexesOffsets = 0;
 
-   /**
-    * \brief A cumulative map over dimensions.
-    */
-   Containers::StaticVector< Dimension + 1, Index > cumulativeEntitiesCountAlongNormals;
-
-   /**
-    * \brief Container with normals defining grid entity orientations.
+   /***
+    * \brief This container helps with computation of entities indexes.
     *
-    * `normals[ orientationIdx ]` gives normals for given orientation index.
+    * We explain meaning of this container on an example. Consider again a 3D grid with sizes
+    * \e xSize , \e ySize and \e zSize. Consider cell with coordinates
+    *
+    * ```
+    * c = ( i, j, k )
+    * ```
+    *
+    * its index can be computed as
+    *
+    * ```
+    * cell_idx = k * ySize * xSize + j * xSize + i
+    * ```
+    *
+    * If we define a vector \e m as
+    *
+    * ```
+    * m = ( 1, xSize, xSize * ySize )
+    * ```
+    *
+    * we may write
+    *
+    * ```
+    * cell_idx = ( m, c)
+    * ```
+    *
+    * i.e. the index can be computed just as scalar product of the vector of cell coordinates and
+    * vector \e m which we refer as coordinates multiplicator.
+    *
+    * One more example. Consider a face along axes \e y and \e z. There are \e xSize+1 of such faces along
+    * x axis, \e ySize along y axis and \e zSize along z axis. The index of such a faces with coordinates
+    *
+    * ```
+    * c = ( i, j, k)
+    * ```
+    *
+    * can be computed as
+    *
+    * ```
+    * faces_idx = k * ( xSize + 1 ) * ySize + j * ( xSize + 1 ) + i
+    * ```
+    *
+    * or by defining the coordinates multiplicator vector \e m as
+    *
+    * ```
+    * m = ( 1, xSize+1,  (xSize+1) * ySize )
+    * ```
+    *
+    * we may write
+    *
+    * ```
+    * face_idx = ( c, m )
+    * ```
+    *
+    * The coordinates multiplicator vector therefore depends on the entity dimension and its orientation,
+    * or simply on the total orientation index. The following container holds appropriate coordinates
+    * multiplicator vector for each index of total orientation. The container is precomputed every time
+    * the when sizes of the grid change in method \ref TNL::Meshes::Grid::setCoordinatesMultiplicators.
+    * After that, it makes the evaluation if the grid entity index much simpler and more efficient.
     */
-   OrientationNormalsContainer normals;
+   CoordinatesMultiplicatorsContainer coordinatesMultiplicators;
 
-   SpaceProductsContainer spaceStepsProducts;
+   EntitiesOrientations entitiesOrientations;  // TODO: make this static - I do not know any good solution working with CUDA
 };
 
 /**
@@ -891,7 +1114,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 bool
 operator==( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimension, Real, Device, Index >& rhs )
 {
-   return lhs.getDimensions() == rhs.getDimensions() && lhs.getOrigin() == rhs.getOrigin()
+   return lhs.getSizes() == rhs.getSizes() && lhs.getOrigin() == rhs.getOrigin()
        && lhs.getProportions() == rhs.getProportions();
 }
 

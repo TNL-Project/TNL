@@ -21,14 +21,13 @@ grid entities in 1D, 2D and 3D.
 
 ### Bases and normals
 
-Grid entities in 1D are as follows:
 
 | Entities in 1D             | Basis       | Normals     | Unpacked normal vectors |
 |---------------------------:|------------:|:-----------:|:-----------------------:|
 | Cells                      | ( 1 )       | ( 0 )       |  N/a                    |
 | Vertices                   | ( 0 )       | ( 1 )       |  ( 1 )                  |
 
-Grid entities in 2D are as follows:
+The grid entities can be described by their dimension, coordinates and orientation. For example in 2D grid we can have horizontal and vertical faces. The orientation can be represented by vectors of standard basis with the same direction as the grid entity. For more efficient representation we may merge or pack all these vector into one which we refer as *packed basis vector*. The following table shows examples for grids in 1D, 2D and 3D.
 
 | Entities in 2D             | Basis       | Normals     | Unpacked normal vectors |
 |---------------------------:|------------:|:-----------:|:-----------------------:|
@@ -37,7 +36,7 @@ Grid entities in 2D are as follows:
 | Faces along y- axis        | ( 0, 1 )    | ( 1, 0 )    | ( 1, 0 )                |
 | Vertices                   | ( 0, 0 )    | ( 1, 1 )    | ( 1, 0 ), ( 0, 1 )      |
 
-Grid entities in 3D are as follows:
+Another useful way to represent the grid entity orientation uses vectors of standard basis which are normal or orthogonal to the grid entity. These vector can be also packed into one which we refer as *packed normal vectors* or *vector of packed normals*. The following table shows examples for grids in 1D, 2D and 3D.
 
 | Entities in 3D             | Basis       | Normals     | Unpacked normal vectors               |
 |---------------------------:|------------:|:-----------:|:-------------------------------------:|
