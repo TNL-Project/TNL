@@ -1,40 +1,37 @@
 # Heat Equation Benchmark
 
-This benchmark measures the performance of solvers for the two-dimensional heat equation
+This benchmark measures the performance of solvers for the heat equation
 
 $$
-\frac{\partial u}{\partial t} = \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}
+\frac{\partial u}{\partial t} = \Delta u
 $$
 
-on a rectangular domain $\langle -L_x/2, L_x/2 \rangle \times \langle -L_y/2, L_y/2 \rangle$, where $L_x$ and $L_y$
-are the domain sizes along the x and y axes. The boundary conditions are homogeneous Dirichlet, i.e. $u = 0$ on the
-boundary. The initial condition is a bump-shaped function
+in one, two, or three dimensions on the domain
+$\langle -L_x/2, L_x/2 \rangle \times \langle -L_y/2, L_y/2 \rangle \times \langle -L_z/2, L_z/2 \rangle$,
+where $L_x$, $L_y$, and $L_z$ are the domain sizes along the axes.
+The boundary conditions are homogeneous Dirichlet, i.e. $u = 0$ on the boundary.
+The initial condition is a bump-shaped function controlled by the parameters $\alpha$, $\beta$, $\gamma$, and $\delta$.
 
-$$
-u(x, y, 0) = \max\left( \frac{x^2}{\alpha} + \frac{y^2}{\beta} + \gamma, 0 \right) \cdot 0.2
-$$
-
-with the parameters $\alpha$, $\beta$, and $\gamma$ settable from the command line.
-
-The equation is discretized by the explicit finite difference scheme (forward Euler in time, centered differences in
-space) on a regular grid. The time step is either fixed by the user or, by default, chosen as $0.1 \cdot \min(h_x^2, h_y^2)$,
-where $h_x$ and $h_y$ are the space steps. The benchmark then measures the wall time of the full time integration.
+The equation is discretized explicitly in time on a regular grid,
+either by the finite difference method (FDM) or by the finite volume method (FVM).
+The benchmark measures the wall time of the full time integration.
 
 ## Solver implementations
 
-The benchmark compares four implementations of the same numerical scheme. They differ in how the grid is represented
-and how the interior grid points are traversed:
+The benchmark compares several implementations of the same numerical scheme.
+They differ in how the grid is represented and how the grid points are traversed:
 
-1. `parallel-for` — the state is stored in raw `TNL::Containers::Vector` and the interior points are iterated
-   directly with `TNL::Algorithms::parallelFor`.
-2. `simple-grid` — a minimal hand-written 2D grid and entity abstraction on top of `parallelFor`.
-3. `grid` — the TNL structured grid `TNL::Meshes::Grid` with the `forInteriorEntities` traversal.
-4. `nd-grid` — a prototype of a general N-dimensional grid with its own traversal mechanism.
+1. `parallel-for` — the state is stored in raw `TNL::Containers::Vector`
+   and the grid points are iterated directly with `TNL::Algorithms::parallelFor`.
+2. `nd-array` — the state is stored in `TNL::Containers::NDArray` (FDM only).
+3. `grid` — the TNL structured grid `TNL::Meshes::Grid` with its entity traversals.
 
-The benchmark runs each implementation for a series of grid dimensions: the size along each axis starts at the
-minimum dimension and each following size is the step factor times the previous one, up to the maximum dimension.
-Each combination of the x and y sizes is measured separately. The results include the precision, the grid dimensions,
-and the implementation as metadata, and the dataset size is set to the size of one state vector.
+The benchmark runs each implementation for a series of grid sizes:
+the size along each axis starts at the minimum dimension
+and each following size is the step factor times the previous one, up to the maximum dimension.
+Each combination of the sizes is measured separately.
+The results include the precision, the scheme, the dimension, the grid sizes, and the implementation as metadata,
+and the dataset size is set to the size of one state vector in bytes.
 
 ## Executables
 
@@ -68,51 +65,43 @@ Options specific to the heat equation benchmark are:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--implementation` | Implementation of the heat equation solver: `parallel-for`, `simple-grid`, `grid`, or `nd-grid` | `grid` |
+| `--implementation` | Implementation of the solver: `parallel-for`, `nd-array`, or `grid` | `grid` |
+| `--scheme` | Numerical scheme: `fdm` or `fvm` | `fdm` |
+| `--dimension` | Dimension of the problem: `1`, `2`, or `3` | `2` |
 | `--device` | Device the computation will run on: `sequential`, `host`, `cuda`, `hip`, or `all` | `all` |
 | `--precision` | Precision of the arithmetics: `float`, `double`, or `all` | `double` |
 | `--min-x-dimension` | Minimum dimension over the x axis used in the benchmark | `100` |
 | `--max-x-dimension` | Maximum dimension over the x axis used in the benchmark | `200` |
 | `--x-size-step-factor` | Factor determining how the dimension grows over the x axis | `2` |
-| `--min-y-dimension` | Minimum dimension over the y axis used in the benchmark | `100` |
-| `--max-y-dimension` | Maximum dimension over the y axis used in the benchmark | `200` |
-| `--y-size-step-factor` | Factor determining how the dimension grows over the y axis | `2` |
+| `--min-y-dimension`, `--max-y-dimension`, `--y-size-step-factor` | The same for the y axis | `100`, `200`, `2` |
+| `--min-z-dimension`, `--max-z-dimension`, `--z-size-step-factor` | The same for the z axis | `100`, `200`, `2` |
 | `--write-data` | Write initial condition and final state to a file | `false` |
-| `--domain-x-size` | Domain size along the x axis | `2.0` |
-| `--domain-y-size` | Domain size along the y axis | `2.0` |
-| `--alpha` | Alpha value in the initial condition | `-0.05` |
-| `--beta` | Beta value in the initial condition | `-0.05` |
-| `--gamma` | Gamma value in the initial condition | `5.0` |
-| `--time-step` | Time step; when set to `0`, the time step is chosen as `0.1 * min(h_x^2, h_y^2)` | `0.0` |
+| `--domain-x-size`, `--domain-y-size`, `--domain-z-size` | Domain sizes along the axes | `2.0` |
+| `--alpha`, `--beta`, `--gamma`, `--delta` | Parameters of the initial condition | `0.25` |
+| `--time-step` | Time step; when set to `0`, it is chosen according to the space steps | `0.0` |
 | `--final-time` | Final time of the simulation | `0.01` |
 | `--max-iterations` | Maximum time iterations (`0` means no limit) | `0` |
 
-Note that the step factors must be greater than 1. The values `cuda` and `hip` of `--device` are effective only in
-binaries built with CUDA or HIP support; the device options `host` and `sequential` are always available.
+Note that the step factors of the axes used by the given dimension must be greater than 1.
+The values `cuda` and `hip` of `--device` are effective only in binaries built with CUDA or HIP support;
+the device options `host` and `sequential` are always available.
 
-In addition, the benchmark accepts the common options of the `TNL::Benchmarks::Benchmark` framework (such as
-`--loops`, `--log-file`, or `--verbose`) and the device setup options of `TNL::Devices::Host` and `TNL::Devices::GPU`.
+In addition, the benchmark accepts the common options of the `TNL::Benchmarks::Benchmark` framework
+(such as `--loops`, `--log-file`, or `--verbose`)
+and the device setup options of `TNL::Devices::Host` and `TNL::Devices::GPU`.
 See the `--help` output for the full list.
 
-With `--write-data true`, the initial condition and the final state are written to Gnuplot files named
-`initial-<implementation>-<x-size>-<y-size>.gplt` and `final-<implementation>-<x-size>-<y-size>.gplt`.
+With `--write-data true`, the initial condition and the final state are written to Gnuplot files.
 
-## Processing results
+## Running and processing results
 
-The benchmark writes its results to a JSON-lines log file (by default `tnl-benchmark-heat-equation.log`). The log can
-be processed into HTML tables with the post-processing script:
+The scripts `run-tnl-benchmark-heat-equation-1d`, `run-tnl-benchmark-heat-equation-2d`,
+and `run-tnl-benchmark-heat-equation-3d` run the benchmark for all implementations, schemes, and precisions
+and write one JSON-lines log file per run, named
+`tnl-benchmark-heat-equation-<implementation>-<device>-<precision>-<scheme>-<dimension>d.json`.
 
-```bash
-python3 src/Benchmarks/HeatEquation/process-tnl-benchmark-heat-equation.py tnl-benchmark-heat-equation.log
-```
-
-The script accepts one or more input log files as positional arguments and writes to an output directory set by
-`-o`/`--output-dir` (default: `heat-equation-plots`). It produces:
-
-1. `tnl-benchmark-heat-equation-raw.html` — a table with all records from the input logs.
-2. `tnl-benchmark-heat-equation-{float,double}.html` — a table per precision, with the measured times grouped by
-   implementation and device, including the speed-up of each implementation over `parallel-for` and the speed-up of
-   the CUDA device over the host device.
-
-The script requires `pandas` and the TNL Python utilities from `src/Python` (providing the `TNL` module with the
-`BenchmarkLogs` log parser).
+The script `process-tnl-benchmark-heat-equation.py`, executed in the directory with the log files,
+produces HTML tables `tnl-benchmark-heat-equation-<scheme>-<precision>-<dimension>d.html`
+with the measured times grouped by implementation and device,
+including the speed-up of each implementation over `parallel-for` and the speed-up of the CUDA device over the host.
+The script requires `pandas`.

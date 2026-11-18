@@ -1,105 +1,143 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Devices/Sequential.h>
+#include <TNL/Benchmarks/Benchmark.h>
+#include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/GPU.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Devices/Sequential.h>
 
-#include "HeatEquationSolverBenchmarkParallelFor.h"
-#include "HeatEquationSolverBenchmarkSimpleGrid.h"
-#include "HeatEquationSolverBenchmarkGrid.h"
-#include "HeatEquationSolverBenchmarkNdGrid.h"
+#include "HeatEquationSolverBenchmarkFDMParallelFor.h"
+#include "HeatEquationSolverBenchmarkFDMNDArray.h"
+#include "HeatEquationSolverBenchmarkFDMGrid.h"
+#include "HeatEquationSolverBenchmarkFVMParallelFor.h"
+#include "HeatEquationSolverBenchmarkFVMGrid.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
 {
    TNL::Benchmarks::Benchmark::configSetup( config );
+
    config.addDelimiter( "Heat equation benchmark settings:" );
    config.addEntry< TNL::String >( "implementation", "Implementation of the heat equation solver.", "grid" );
    config.addEntryEnum< TNL::String >( "parallel-for" );
-   config.addEntryEnum< TNL::String >( "simple-grid" );
+   config.addEntryEnum< TNL::String >( "nd-array" );
    config.addEntryEnum< TNL::String >( "grid" );
-   config.addEntryEnum< TNL::String >( "nd-grid" );
+   config.addEntry< TNL::String >( "scheme", "Numerical scheme used for the discretization.", "fdm" );
+   config.addEntryEnum< TNL::String >( "fdm" );
+   config.addEntryEnum< TNL::String >( "fvm" );
 
-   config.addDelimiter( "Device settings:" );
-   config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
-   config.addEntryEnum< TNL::String >( "host" );
-   config.addEntryEnum< TNL::String >( "cuda" );
-   config.addEntryEnum< TNL::String >( "hip" );
-   config.addEntryEnum< TNL::String >( "sequential" );
-   config.addEntryEnum< TNL::String >( "all" );
-   TNL::Devices::Host::configSetup( config );
-   TNL::Devices::GPU::configSetup( config );
-
-   config.addDelimiter( "Precision settings:" );
    config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
 
+   config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
+   config.addEntryEnum( "sequential" );
+   config.addEntryEnum( "host" );
+   config.addEntryEnum( "cuda" );
+   config.addEntryEnum( "hip" );
+   config.addEntryEnum( "all" );
+
    HeatEquationSolverBenchmark<>::configSetup( config );
+
+   config.addDelimiter( "Device settings:" );
+   TNL::Devices::Host::configSetup( config );
+   TNL::Devices::GPU::configSetup( config );
 }
 
-template< typename Real, typename Device >
+template< int Dimension, typename Real, typename Device >
 bool
-startBenchmark( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
+runImplementation( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
-   auto implementation = parameters.getParameter< TNL::String >( "implementation" );
-   if( implementation == "parallel-for" ) {
-      HeatEquationSolverBenchmarkParallelFor< Real, Device > solver;
-      return solver.runBenchmark( benchmark, parameters );
+   const auto scheme = parameters.getParameter< TNL::String >( "scheme" );
+   const auto implementation = parameters.getParameter< TNL::String >( "implementation" );
+   if( scheme == "fdm" ) {
+      if( implementation == "parallel-for" ) {
+         HeatEquationSolverBenchmarkFDMParallelFor< Dimension, Real, Device > solver;
+         return solver.runBenchmark( benchmark, parameters );
+      }
+      if( implementation == "nd-array" ) {
+         HeatEquationSolverBenchmarkFDMNDArray< Dimension, Real, Device > solver;
+         return solver.runBenchmark( benchmark, parameters );
+      }
+      if( implementation == "grid" ) {
+         HeatEquationSolverBenchmarkFDMGrid< Dimension, Real, Device > solver;
+         return solver.runBenchmark( benchmark, parameters );
+      }
+      std::cerr << "Unknown implementation " << implementation << " for " << scheme << " numerical scheme.\n";
+      return false;
    }
-   if( implementation == "simple-grid" ) {
-      HeatEquationSolverBenchmarkSimpleGrid< Real, Device > solver;
-      return solver.runBenchmark( benchmark, parameters );
+   if( scheme == "fvm" ) {
+      if( implementation == "parallel-for" ) {
+         HeatEquationSolverBenchmarkFVMParallelFor< Dimension, Real, Device > solver;
+         return solver.runBenchmark( benchmark, parameters );
+      }
+      if( implementation == "grid" ) {
+         HeatEquationSolverBenchmarkFVMGrid< Dimension, Real, Device > solver;
+         return solver.runBenchmark( benchmark, parameters );
+      }
+      if( implementation == "nd-array" )
+         std::cerr << "\"nd-array\" implementation cannot be used for \"fvm\" numerical scheme.\n";
+      else
+         std::cerr << "Unknown implementation " << implementation << " for " << scheme << " numerical scheme.\n";
+      return false;
    }
-   if( implementation == "grid" ) {
-      HeatEquationSolverBenchmarkGrid< Real, Device > solver;
-      return solver.runBenchmark( benchmark, parameters );
-   }
-   if( implementation == "nd-grid" ) {
-      HeatEquationSolverBenchmarkNdGrid< Real, Device > solver;
-      return solver.runBenchmark( benchmark, parameters );
-   }
+   std::cerr << "Unknown numerical scheme " << scheme << '\n';
    return false;
 }
 
-template< typename Real >
+template< int Dimension, typename Real >
 bool
-resolveDevice( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
+resolveDevice( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
-   auto device = parameters.getParameter< TNL::String >( "device" );
+   const auto device = parameters.getParameter< TNL::String >( "device" );
    bool result = true;
    if( device == "sequential" || device == "all" )
-      result = startBenchmark< Real, TNL::Devices::Sequential >( benchmark, parameters ) && result;
+      result = runImplementation< Dimension, Real, TNL::Devices::Sequential >( benchmark, parameters ) && result;
    if( device == "host" || device == "all" )
-      result = startBenchmark< Real, TNL::Devices::Host >( benchmark, parameters ) && result;
+      result = runImplementation< Dimension, Real, TNL::Devices::Host >( benchmark, parameters ) && result;
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    if( device == "cuda" || device == "hip" || device == "all" )
-      result = startBenchmark< Real, TNL::Devices::GPU >( benchmark, parameters ) && result;
+      result = runImplementation< Dimension, Real, TNL::Devices::GPU >( benchmark, parameters ) && result;
 #endif
    return result;
 }
 
+template< typename Real >
 bool
-resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, TNL::Config::ParameterContainer& parameters )
+resolveDimension( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
 {
-   auto precision = parameters.getParameter< TNL::String >( "precision" );
+   const int dimension = parameters.getParameter< int >( "dimension" );
+   if( dimension == 1 )
+      return resolveDevice< 1, Real >( benchmark, parameters );
+   if( dimension == 2 )
+      return resolveDevice< 2, Real >( benchmark, parameters );
+   if( dimension == 3 )
+      return resolveDevice< 3, Real >( benchmark, parameters );
+   std::cerr << "Wrong dimension " << dimension << ", only 1D, 2D and 3D problems are allowed.\n";
+   return false;
+}
+
+bool
+resolvePrecision( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
+{
+   const auto precision = parameters.getParameter< TNL::String >( "precision" );
    bool result = true;
    if( precision == "all" || precision == "float" )
-      result = resolveDevice< float >( benchmark, parameters ) && result;
+      result = resolveDimension< float >( benchmark, parameters ) && result;
    if( precision == "all" || precision == "double" )
-      result = resolveDevice< double >( benchmark, parameters ) && result;
+      result = resolveDimension< double >( benchmark, parameters ) && result;
    return result;
 }
 
 int
 main( int argc, char* argv[] )
 {
-   TNL::Config::ConfigDescription config;
-   configSetup( config );
-
    TNL::Config::ParameterContainer parameters;
+   TNL::Config::ConfigDescription config;
+
+   configSetup( config );
 
    if( ! parseCommandLine( argc, argv, config, parameters ) )
       return EXIT_FAILURE;
