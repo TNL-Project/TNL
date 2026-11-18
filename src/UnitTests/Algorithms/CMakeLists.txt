@@ -6,6 +6,7 @@ set(COMMON_TESTS
     compressTest
     containsTest
     findTest
+    ParallelForNDTest
     Reduction2DTest
     Reduction3DTest
 )
