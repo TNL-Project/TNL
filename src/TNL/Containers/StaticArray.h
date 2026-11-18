@@ -283,6 +283,21 @@ public:
    operator=( const T& v );
 
    /**
+    * \brief Assigns an object `v` of type `T` starting at given `position`.
+    *
+    * The size of `T` must be lower or equal to `Size - position`.
+    * `T` can be:
+    *
+    * 1. Static linear container implementing `operator[]` and having the same size.
+    *    In this case, `v` is copied to this array elementwise.
+    * 2. An object that can be converted to `Value` type.
+    *    In this case all elements are set to `v`.
+    */
+   template< typename T >
+   constexpr StaticArray< Size, Value >&
+   assignAt( const T& v, int position = 0 );
+
+   /**
     * \brief This function checks whether this static array is equal to another `array`.
     *
     * Return `true` if the arrays are equal in size. Otherwise returns `false`.
