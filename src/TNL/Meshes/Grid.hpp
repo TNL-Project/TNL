@@ -18,6 +18,52 @@
 
 namespace TNL::Meshes {
 
+namespace detail {
+
+/**
+ * \brief Kernel of the traversals of the grid entities with the given total orientation index.
+ *
+ * The orientation is a template parameter, so that it is a compile-time constant in the kernel. With a run-time
+ * orientation, the tables of the grid indexed by the orientation (e.g. in \ref Grid::getEntityIndex) are copied
+ * to the local memory on the GPU, which made the traversals of faces three times slower.
+ */
+template< typename GridEntityType, typename Grid, int TotalOrientationIndex, typename Func >
+struct OrientedEntitiesKernel
+{
+   Func func;
+
+   template< typename... FuncArgs >
+   __cuda_callable__
+   void
+   operator()( GridEntityType& entity, const Grid& grid, FuncArgs... args )
+   {
+      entity.setTotalOrientationIndex( TotalOrientationIndex );
+      entity.setGrid( grid );
+      entity.refresh();
+      func( entity, args... );
+   }
+};
+
+/**
+ * \brief Computes the scalar product of the coordinates and the coordinates multiplicators of the grid.
+ *
+ * The first multiplicator is always one (see \ref Grid::setCoordinatesMultiplicators). The compiler cannot know
+ * it, so with the plain scalar product, the step between the neighbouring entities along the first axis is
+ * a run-time value and the compilers do not vectorize the loops over the entities (e.g. GCC with `-fno-math-errno`).
+ */
+template< typename Coordinates, typename Multiplicators >
+__cuda_callable__
+auto
+getLinearIndex( const Coordinates& coordinates, const Multiplicators& multiplicators ) -> typename Coordinates::ValueType
+{
+   typename Coordinates::ValueType result = coordinates[ 0 ];
+   for( int i = 1; i < Coordinates::getSize(); i++ )
+      result += coordinates[ i ] * multiplicators[ i ];
+   return result;
+}
+
+}  // namespace detail
+
 template< int Dimension, typename Real, typename Device, typename Index >
 constexpr int
 Grid< Dimension, Real, Device, Index >::getMeshDimension()
@@ -451,13 +497,16 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) c
    TNL_ASSERT_LT( entity.getCoordinates(), this->getSizes() + entity.getNormals(), "Wrong entity coordinates" );
 
    if constexpr( Entity::getEntityDimension() == Dimension ) {
-      return ( entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] );
+      return detail::getLinearIndex(
+         entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] );
    }
    else if constexpr( Entity::getEntityDimension() == 0 ) {
-      return ( entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] );
+      return detail::getLinearIndex(
+         entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] );
    }
    else {
-      return ( entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] )
+      return detail::getLinearIndex(
+                entity.getCoordinates(), this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] )
            + this->entitiesIndexesOffsets[ entity.getTotalOrientationIndex() + Entity::getEntityDimension() ];
    }
 }
@@ -510,7 +559,8 @@ __cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity, const CoordinatesType& offset ) const -> Index
 {
-   return ( offset, this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] ) + entity.getIndex();
+   return detail::getLinearIndex( offset, this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ] )
+        + entity.getIndex();
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -523,12 +573,14 @@ Grid< Dimension, Real, Device, Index >::getEntityIndex(
    Index otherEntityOrientationIdx ) const -> Index
 {
    const IndexType totalOrientationIndex =
-      EntitiesOrientations::getTotalOrientationIndex( OtherEntityDimension, otherEntityOrientationIdx );
+      EntitiesOrientations::template getTotalOrientationIndex< OtherEntityDimension >( otherEntityOrientationIdx );
    if constexpr( OtherEntityDimension == getMeshDimension() || OtherEntityDimension == 0 ) {
-      return ( entity.getCoordinates() + offset, this->coordinatesMultiplicators[ totalOrientationIndex ] );
+      return detail::getLinearIndex(
+         CoordinatesType( entity.getCoordinates() + offset ), this->coordinatesMultiplicators[ totalOrientationIndex ] );
    }
    else
-      return ( entity.getCoordinates() + offset, this->coordinatesMultiplicators[ totalOrientationIndex ] )
+      return detail::getLinearIndex(
+                CoordinatesType( entity.getCoordinates() + offset ), this->coordinatesMultiplicators[ totalOrientationIndex ] )
            + this->entitiesIndexesOffsets[ totalOrientationIndex + OtherEntityDimension ];
 }
 
@@ -560,7 +612,11 @@ __cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::getAdjacentEntityIndex( const Entity& entity ) const -> IndexType
 {
-   return entity.getIndex() + Step * this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ][ Direction ];
+   // the first coordinates multiplicator is always one, see detail::getLinearIndex
+   if constexpr( Direction == 0 )
+      return entity.getIndex() + Step;
+   else
+      return entity.getIndex() + Step * this->coordinatesMultiplicators[ entity.getTotalOrientationIndex() ][ Direction ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -570,7 +626,8 @@ void
 Grid< Dimension, Real, Device, Index >::getAdjacentCells( const Entity& entity, IndexType& closer, IndexType& remoter ) const
 {
    static_assert( Entity::getEntityDimension() == Dimension - 1, "This method works only for faces." );
-   remoter = ( entity.getCoordinates(), this->coordinatesMultiplicators[ getTotalOrientationsCount() - 1 ] );
+   remoter =
+      detail::getLinearIndex( entity.getCoordinates(), this->coordinatesMultiplicators[ getTotalOrientationsCount() - 1 ] );
    TNL_ASSERT_LT( entity.getOrientationIndex(), Dimension, "" );
    closer = remoter - this->coordinatesMultiplicators[ getTotalOrientationsCount() - 1 ][ entity.getOrientationIndex() ];
 }
@@ -606,8 +663,9 @@ Grid< Dimension, Real, Device, Index >::getAdjacentFacesIndexes(
       [ & ]( IndexType totalOrientationIndex ) mutable
       {
          const IndexType i = totalOrientationIndex - begin;
-         closer[ i ] = ( entity.getCoordinates(), this->coordinatesMultiplicators[ totalOrientationIndex ] )
-                     + this->entitiesIndexesOffsets[ totalOrientationIndex + Dimension - 1 ];
+         closer[ i ] =
+            detail::getLinearIndex( entity.getCoordinates(), this->coordinatesMultiplicators[ totalOrientationIndex ] )
+            + this->entitiesIndexesOffsets[ totalOrientationIndex + Dimension - 1 ];
          remoter[ i ] = closer[ i ] + this->coordinatesMultiplicators[ totalOrientationIndex ][ i ];
       } );
 }
@@ -897,29 +955,19 @@ Grid< Dimension, Real, Device, Index >::forEntities(
       false
       >::exec( begin, end, exec, *this, args... );*/
 
-      const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
-      const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-      const IndexType totalOrientationsEnd =
-         EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
+      constexpr int orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
+      constexpr int totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
 
-      for( IndexType totalOrientationIdx = totalOrientationsBegin; totalOrientationIdx < totalOrientationsEnd;
-           totalOrientationIdx++ )
-      {
-         auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid, FuncArgs... args ) mutable
+      // the orientations are traversed at compile time, see detail::OrientedEntitiesKernel
+      Algorithms::staticFor< int, 0, orientationsCount >(
+         [ & ]( auto orientation )
          {
-            entity.setTotalOrientationIndex( totalOrientationIdx );
-            entity.setGrid( grid );
-            entity.refresh();
-            function( entity, args... );
-         };
-         //const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
-         //const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-         //const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension,
-         //orientationsCount );
-         GridEntityType begin( begin_ );
-         GridEntityType end( end_ + entitiesOrientations.getNormals( totalOrientationIdx ) );
-         Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
-      }
+            constexpr int totalOrientationIdx = totalOrientationsBegin + decltype( orientation )::value;
+            const detail::OrientedEntitiesKernel< GridEntityType, Grid, totalOrientationIdx, Func > exec{ function };
+            GridEntityType begin( begin_ );
+            GridEntityType end( end_ + entitiesOrientations.getNormals( totalOrientationIdx ) );
+            Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
+         } );
    }
 }
 
@@ -947,56 +995,51 @@ Grid< Dimension, Real, Device, Index >::forBoundaryEntities(
    // agrees with isBoundaryEntity. The layers of the k-th boundary axis exclude the first and the last
    // positions along the previous boundary axes, which were already traversed.
    using GridEntityType = typename Grid::template EntityType< EntityDimension >;
-   const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-   const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex(
-      EntityDimension, EntitiesOrientations::template getOrientationsCount< EntityDimension >() );
+   constexpr int orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
+   constexpr int totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
 
-   for( IndexType totalOrientationIdx = totalOrientationsBegin; totalOrientationIdx < totalOrientationsEnd;
-        totalOrientationIdx++ )
-   {
-      auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid, FuncArgs... args ) mutable
+   // the orientations are traversed at compile time, see detail::OrientedEntitiesKernel
+   Algorithms::staticFor< int, 0, orientationsCount >(
+      [ & ]( auto orientation )
       {
-         entity.setTotalOrientationIndex( totalOrientationIdx );
-         entity.setGrid( grid );
-         entity.refresh();
-         func( entity, args... );
-      };
-      auto traverseLayer = [ & ]( const CoordinatesType& layerBegin, const CoordinatesType& layerEnd )
-      {
-         for( int i = 0; i < Dimension; i++ )
-            if( layerEnd[ i ] <= layerBegin[ i ] )
-               return;
-         Algorithms::ParallelForND< Device, false >::exec(
-            GridEntityType( layerBegin ), GridEntityType( layerEnd ), exec, *this, args... );
-      };
+         constexpr int totalOrientationIdx = totalOrientationsBegin + decltype( orientation )::value;
+         const detail::OrientedEntitiesKernel< GridEntityType, Grid, totalOrientationIdx, Func > exec{ func };
+         auto traverseLayer = [ & ]( const CoordinatesType& layerBegin, const CoordinatesType& layerEnd )
+         {
+            for( int i = 0; i < Dimension; i++ )
+               if( layerEnd[ i ] <= layerBegin[ i ] )
+                  return;
+            Algorithms::ParallelForND< Device, false >::exec(
+               GridEntityType( layerBegin ), GridEntityType( layerEnd ), exec, *this, args... );
+         };
 
-      const NormalsType normals = entitiesOrientations.getNormals( totalOrientationIdx );
-      const CoordinatesType regionBegin = begin_;
-      const CoordinatesType regionEnd = end_ + normals;
-      CoordinatesType rangeBegin = regionBegin;
-      CoordinatesType rangeEnd = regionEnd;
-      for( int axis = 0; axis < Dimension; axis++ ) {
-         if( EntityDimension != Dimension && ! normals[ axis ] )
-            continue;
-         if( regionEnd[ axis ] <= regionBegin[ axis ] )
-            break;
+         const NormalsType normals = entitiesOrientations.getNormals( totalOrientationIdx );
+         const CoordinatesType regionBegin = begin_;
+         const CoordinatesType regionEnd = end_ + normals;
+         CoordinatesType rangeBegin = regionBegin;
+         CoordinatesType rangeEnd = regionEnd;
+         for( int axis = 0; axis < Dimension; axis++ ) {
+            if( EntityDimension != Dimension && ! normals[ axis ] )
+               continue;
+            if( regionEnd[ axis ] <= regionBegin[ axis ] )
+               break;
 
-         CoordinatesType layerBegin = rangeBegin;
-         CoordinatesType layerEnd = rangeEnd;
-         layerBegin[ axis ] = regionBegin[ axis ];
-         layerEnd[ axis ] = regionBegin[ axis ] + 1;
-         traverseLayer( layerBegin, layerEnd );
-
-         if( regionEnd[ axis ] - 1 > regionBegin[ axis ] ) {
-            layerBegin[ axis ] = regionEnd[ axis ] - 1;
-            layerEnd[ axis ] = regionEnd[ axis ];
+            CoordinatesType layerBegin = rangeBegin;
+            CoordinatesType layerEnd = rangeEnd;
+            layerBegin[ axis ] = regionBegin[ axis ];
+            layerEnd[ axis ] = regionBegin[ axis ] + 1;
             traverseLayer( layerBegin, layerEnd );
-         }
 
-         rangeBegin[ axis ] = regionBegin[ axis ] + 1;
-         rangeEnd[ axis ] = regionEnd[ axis ] - 1;
-      }
-   }
+            if( regionEnd[ axis ] - 1 > regionBegin[ axis ] ) {
+               layerBegin[ axis ] = regionEnd[ axis ] - 1;
+               layerEnd[ axis ] = regionEnd[ axis ];
+               traverseLayer( layerBegin, layerEnd );
+            }
+
+            rangeBegin[ axis ] = regionBegin[ axis ] + 1;
+            rangeEnd[ axis ] = regionEnd[ axis ] - 1;
+         }
+      } );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -1047,38 +1090,19 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
       Grid::getMeshDimension() ] = totalOrientationsBegin; end[ Grid::getMeshDimension() ] = totalOrientationsEnd;
       Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );*/
 
-      const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
-      const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-      const IndexType totalOrientationsEnd =
-         EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount );
+      constexpr int orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
+      constexpr int totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
 
-      for( IndexType totalOrientationIdx = totalOrientationsBegin; totalOrientationIdx < totalOrientationsEnd;
-           totalOrientationIdx++ )
-      {
-         auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid, FuncArgs... args ) mutable
+      // the orientations are traversed at compile time, see detail::OrientedEntitiesKernel
+      Algorithms::staticFor< int, 0, orientationsCount >(
+         [ & ]( auto orientation )
          {
-            entity.setTotalOrientationIndex( totalOrientationIdx );
-            entity.setGrid( grid );
-            entity.refresh();
-            func( entity, args... );
-         };
-         GridEntityType begin( entitiesOrientations.getNormals( totalOrientationIdx ) );
-         GridEntityType end( CoordinatesType( this->getSizes() ) );
-         /*if constexpr( Devices::isCuda< Device >() ) {
-#ifdef __CUDACC__
-            cudaStream_t stream;
-            cudaStreamCreate( &stream );
-            Devices::Cuda::LaunchConfiguration launch_config;
-            launch_config.stream = stream;
-            Algorithms::ParallelForND< Device, false >::exec( begin, end, launch_config, exec, *this, args... );
-            cudaStreamDestroy( stream );
-#endif
-         }
-         else {
+            constexpr int totalOrientationIdx = totalOrientationsBegin + decltype( orientation )::value;
+            const detail::OrientedEntitiesKernel< GridEntityType, Grid, totalOrientationIdx, Func > exec{ func };
+            GridEntityType begin( entitiesOrientations.getNormals( totalOrientationIdx ) );
+            GridEntityType end( CoordinatesType( this->getSizes() ) );
             Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
-         }*/
-         Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
-      }
+         } );
    }
 }
 

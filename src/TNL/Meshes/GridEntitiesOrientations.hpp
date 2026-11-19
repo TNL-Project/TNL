@@ -55,7 +55,9 @@ template< int EntityDimension >
 constexpr int
 GridEntitiesOrientations< GridDimension >::getOrientationIndex( int totalOrientationIndex )
 {
-   return totalOrientationIndex - cumulativeCombinationsCount( EntityDimension - 1, GridDimension );
+   // evaluated at compile time, so that the function is small enough to be inlined into the kernels
+   constexpr int firstTotalOrientationIndex = cumulativeCombinationsCount( EntityDimension - 1, GridDimension );
+   return totalOrientationIndex - firstTotalOrientationIndex;
 }
 
 template< int GridDimension >
@@ -79,7 +81,9 @@ template< int EntityDimension >
 constexpr int
 GridEntitiesOrientations< GridDimension >::getTotalOrientationIndex( int orientationIndex )
 {
-   return cumulativeCombinationsCount( EntityDimension - 1, GridDimension ) + orientationIndex;
+   // evaluated at compile time, so that the function is small enough to be inlined into the kernels
+   constexpr int firstTotalOrientationIndex = cumulativeCombinationsCount( EntityDimension - 1, GridDimension );
+   return firstTotalOrientationIndex + orientationIndex;
 }
 
 template< int GridDimension >
