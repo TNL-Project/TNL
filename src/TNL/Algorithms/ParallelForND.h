@@ -118,7 +118,7 @@ struct ParallelForND< Devices::Host, expand >
       FunctionArgs... args )
    {
 #ifdef HAVE_OPENMP
-      using Index = typename Coordinates::IndexType;
+      using Index = typename Coordinates::ValueType;
       constexpr int Dimension = Coordinates::getSize();
       if constexpr( Dimension == 1 ) {
          // Benchmarks show that this is significantly faster compared
@@ -226,7 +226,7 @@ void
 ParallelForNDKernel( const Coordinates begin, const Coordinates end, Function f, FunctionArgs... args )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using Index = typename Coordinates::IndexType;
+   using Index = typename Coordinates::ValueType;
    constexpr int Dimension = Coordinates::getSize();
    Coordinates i( begin );
    if constexpr( Dimension == 1 ) {
@@ -347,7 +347,7 @@ struct ParallelForND< Devices::Cuda, expand >
       Function f,
       FunctionArgs... args )
    {
-      using Index = typename Coordinates::IndexType;
+      using Index = typename Coordinates::ValueType;
       constexpr int Dimension = Coordinates::getSize();
       if constexpr( Dimension == 1 ) {
          if( end.x() <= begin.x() )
