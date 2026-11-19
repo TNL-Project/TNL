@@ -52,7 +52,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >
    }
 
    void
-   getSolution( VectorType& u ) const override
+   getSolution( VectorType& u ) const
    {
       // the solution is copied to the host, because it may be stored on the GPU
       HostNDArrayType hostUx;
@@ -147,7 +147,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >
    }
 
    void
-   getSolution( VectorType& u ) const override
+   getSolution( VectorType& u ) const
    {
       // the solution is copied to the host, because it may be stored on the GPU, and reordered,
       // because the last index of the array changes fastest
@@ -257,7 +257,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >
    }
 
    void
-   getSolution( VectorType& u ) const override
+   getSolution( VectorType& u ) const
    {
       // the solution is copied to the host, because it may be stored on the GPU, and reordered,
       // because the last index of the array changes fastest
