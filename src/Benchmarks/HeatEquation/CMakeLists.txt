@@ -5,7 +5,9 @@ tnl_add_backend_executables(
     BACKENDS CUDA HIP HOST
     OPTIONAL_HOST
     OUTPUT_TARGETS BENCHMARKS
+    OUTPUT_BACKENDS BENCHMARK_BACKENDS
 )
+tnl_benchmark_link_comparison_libraries(TARGETS ${BENCHMARKS} BACKENDS ${BENCHMARK_BACKENDS})
 # NOTE: the following parameters are just for performance debugging of the CUDA build
 # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#printing-code-generation-statistics
 #target_compile_options( tnl-benchmark-heat-equation-cuda PUBLIC --resource-usage )

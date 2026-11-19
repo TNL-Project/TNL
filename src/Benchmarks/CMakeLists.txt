@@ -1,3 +1,78 @@
+# Optional third-party libraries used for the comparison in the grid benchmarks (heat equation and
+# mean-curvature flow). Each installation of Kokkos and AMReX supports one backend, so the library is
+# linked only to the benchmark executable built for the same backend. Use Kokkos_ROOT and AMReX_ROOT
+# to select the installation, e.g. -DKokkos_ROOT=$HOME/.local/kokkos-4.7.04-cuda for a CUDA build.
+option(TNL_BENCHMARKS_USE_KOKKOS "Build the Kokkos implementations of the grid benchmarks" OFF)
+option(TNL_BENCHMARKS_USE_AMREX "Build the AMReX implementations of the grid benchmarks" OFF)
+
+if(TNL_BENCHMARKS_USE_KOKKOS)
+    find_package(Kokkos 4.7 REQUIRED CONFIG)
+    if("CUDA" IN_LIST Kokkos_DEVICES)
+        set(TNL_BENCHMARKS_KOKKOS_BACKEND cuda)
+    elseif("HIP" IN_LIST Kokkos_DEVICES)
+        set(TNL_BENCHMARKS_KOKKOS_BACKEND hip)
+    else()
+        set(TNL_BENCHMARKS_KOKKOS_BACKEND host)
+    endif()
+    message(STATUS "Kokkos ${Kokkos_VERSION} (${Kokkos_DEVICES}) used for the ${TNL_BENCHMARKS_KOKKOS_BACKEND} benchmarks")
+endif()
+
+if(TNL_BENCHMARKS_USE_AMREX)
+    find_package(AMReX REQUIRED CONFIG)
+    if(NOT 3 IN_LIST AMReX_SPACEDIM)
+        message(FATAL_ERROR "The grid benchmarks require AMReX built with AMReX_SPACEDIM=3")
+    endif()
+    if(AMReX_GPU_BACKEND STREQUAL "CUDA")
+        set(TNL_BENCHMARKS_AMREX_BACKEND cuda)
+    elseif(AMReX_GPU_BACKEND STREQUAL "HIP")
+        set(TNL_BENCHMARKS_AMREX_BACKEND hip)
+    elseif(AMReX_GPU_BACKEND STREQUAL "NONE")
+        set(TNL_BENCHMARKS_AMREX_BACKEND host)
+    else()
+        message(FATAL_ERROR "Unsupported AMReX GPU backend ${AMReX_GPU_BACKEND}")
+    endif()
+    message(STATUS "AMReX ${AMReX_VERSION} (${AMReX_GPU_BACKEND}) used for the ${TNL_BENCHMARKS_AMREX_BACKEND} benchmarks")
+endif()
+
+# GridTools is header-only and selects the backend by the compiler, so one installation serves all backends.
+option(TNL_BENCHMARKS_USE_GRIDTOOLS "Build the GridTools implementations of the grid benchmarks" OFF)
+if(TNL_BENCHMARKS_USE_GRIDTOOLS)
+    find_package(GridTools 2.3 REQUIRED CONFIG)
+    # GridTools probes for CUDA with check_language, which stores CMAKE_CUDA_COMPILER in the cache even
+    # when the project does not enable CUDA; the next configuration would then treat the build as a CUDA build
+    get_property(enabled_languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+    if(NOT "CUDA" IN_LIST enabled_languages)
+        unset(CMAKE_CUDA_COMPILER CACHE)
+        unset(CMAKE_CUDA_COMPILER)
+    endif()
+    message(STATUS "GridTools ${GridTools_VERSION} used for all benchmark backends")
+endif()
+
+# Links Kokkos and AMReX to the benchmark executables built for the same backend as the library
+# and GridTools to all benchmark executables.
+# usage: tnl_benchmark_link_comparison_libraries(TARGETS <target>... BACKENDS <backend>...)
+# where the lists are the OUTPUT_TARGETS and OUTPUT_BACKENDS of tnl_add_backend_executables.
+function(tnl_benchmark_link_comparison_libraries)
+    cmake_parse_arguments(ARG "" "" "TARGETS;BACKENDS" ${ARGN})
+    foreach(target backend IN ZIP_LISTS ARG_TARGETS ARG_BACKENDS)
+        string(TOLOWER "${backend}" backend)
+        if(TNL_BENCHMARKS_USE_KOKKOS AND backend STREQUAL TNL_BENCHMARKS_KOKKOS_BACKEND)
+            target_link_libraries(${target} PRIVATE Kokkos::kokkos)
+            target_compile_definitions(${target} PRIVATE TNL_BENCHMARKS_HAVE_KOKKOS)
+        endif()
+        if(TNL_BENCHMARKS_USE_AMREX AND backend STREQUAL TNL_BENCHMARKS_AMREX_BACKEND)
+            target_link_libraries(${target} PRIVATE AMReX::amrex_3d)
+            target_compile_definitions(${target} PRIVATE TNL_BENCHMARKS_HAVE_AMREX)
+            # AMReX requires C++20, but its compile feature applies only to C++ sources, not to CUDA and HIP
+            set_target_properties(${target} PROPERTIES CXX_STANDARD 20 CUDA_STANDARD 20 HIP_STANDARD 20)
+        endif()
+        if(TNL_BENCHMARKS_USE_GRIDTOOLS)
+            target_link_libraries(${target} PRIVATE GridTools::gridtools)
+            target_compile_definitions(${target} PRIVATE TNL_BENCHMARKS_HAVE_GRIDTOOLS)
+        endif()
+    endforeach()
+endfunction()
+
 add_subdirectory(Algorithms)
 add_subdirectory(HeatEquation)
 add_subdirectory(DenseLinearSolvers)

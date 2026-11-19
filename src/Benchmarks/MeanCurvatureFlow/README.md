@@ -13,6 +13,19 @@ and it is integrated in time by the explicit Euler method.
 Each time step consists of two traversals of the grid:
 the computation of the gradient norms and the update of the solution.
 
+The benchmark compares the following implementations of the same scheme:
+
+1. `grid` — the TNL structured grid `TNL::Meshes::Grid` with its entity traversals.
+2. `parallel-for` — the state is stored in raw `TNL::Containers::Vector` objects
+   and the cells are traversed by the multi-dimensional `TNL::Algorithms::parallelFor`.
+3. `kokkos` — the scheme implemented with [Kokkos](https://kokkos.org/).
+4. `amrex` — the scheme implemented with [AMReX](https://amrex-codes.github.io/amrex/).
+5. `gridtools` — the scheme implemented with [GridTools](https://github.com/GridTools/gridtools).
+
+The implementations `kokkos`, `amrex`, and `gridtools` are built only with the CMake options
+`TNL_BENCHMARKS_USE_KOKKOS`, `TNL_BENCHMARKS_USE_AMREX`, and `TNL_BENCHMARKS_USE_GRIDTOOLS`, see the section *Comparison with other libraries*
+in the README of the heat equation benchmark for the supported library versions, backends, and devices.
+
 The benchmark runs the solver for a series of grid sizes:
 the size along each axis starts at the minimum dimension
 and each following size is the step factor times the previous one, up to the maximum dimension.
@@ -46,6 +59,7 @@ The most important options specific to this benchmark are:
 
 | Option | Description | Default |
 |--------|-------------|---------|
+| `--implementation` | Implementation of the solver: `grid`, `parallel-for`, `kokkos`, `amrex`, or `gridtools` | `grid` |
 | `--dimension` | Dimension of the problem: `1`, `2`, or `3` | `2` |
 | `--device` | Device the computation will run on: `sequential`, `host`, `cuda`, `hip`, or `all` | `all` |
 | `--precision` | Precision of the arithmetics: `float`, `double`, or `all` | `double` |
