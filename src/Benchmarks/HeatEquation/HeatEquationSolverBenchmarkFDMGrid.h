@@ -33,10 +33,10 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >
       this->grid.setDomain( { 0.0 }, { this->xDomainSize } );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize );
+      u = this->ux;
    }
 
    void
@@ -103,10 +103,10 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
       this->grid.setDomain( { 0.0, 0.0 }, { this->xDomainSize, this->yDomainSize } );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize );
+      u = this->ux;
    }
 
    void
@@ -189,11 +189,10 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
       grid.setDomain( { 0.0, 0.0, 0.0 }, { this->xDomainSize, this->yDomainSize, this->zDomainSize } );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
-      const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize, zSize, zSlice );
+      u = this->ux;
    }
 
    void

@@ -35,10 +35,10 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >
       faces.setSize( this->grid.template getEntitiesCount< 0 >() );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize );
+      u = this->ux;
    }
 
    void
@@ -112,10 +112,10 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >
       faces.setSize( this->grid.template getEntitiesCount< 1 >() );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize );
+      u = this->ux;
    }
 
    void
@@ -211,11 +211,10 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >
       faces.setSize( this->grid.template getEntitiesCount< 2 >() );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
-      const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize, zSize, zSlice );
+      u = this->ux;
    }
 
    void

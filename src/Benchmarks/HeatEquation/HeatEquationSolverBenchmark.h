@@ -8,6 +8,7 @@
 #include <TNL/Benchmarks/Devices.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/StaticArray.h>
+#include <TNL/Containers/Vector.h>
 
 template< typename Real = double, typename Index = int >
 struct HeatEquationSolverBenchmarkBase
@@ -48,17 +49,104 @@ struct HeatEquationSolverBenchmarkBase
       config.addEntry< double >( "domain-y-size", "Domain size along y-axis.", 2.0 );
       config.addEntry< double >( "domain-z-size", "Domain size along z-axis.", 2.0 );
 
-      config.addDelimiter( "Initial condition settings delta * ( 1-sign( x^2/alpha + y^2/beta + z^2/gamma - 1)):" );
-      config.addEntry< double >( "alpha", "Alpha value in initial condition", 0.25 );
-      config.addEntry< double >( "beta", "Beta value in initial condition", 0.25 );
-      config.addEntry< double >( "gamma", "Gamma value in initial condition", 0.25 );
+      config.addDelimiter( "Initial condition settings delta * exp( -( x^2/alpha + y^2/beta + z^2/gamma ) ):" );
+      config.addEntry< double >( "alpha", "Alpha value in initial condition", 0.02 );
+      config.addEntry< double >( "beta", "Beta value in initial condition", 0.02 );
+      config.addEntry< double >( "gamma", "Gamma value in initial condition", 0.02 );
       config.addEntry< double >( "delta", "Delta value in initial condition", 0.25 );
-
-      config.addEntry< double >( "sigma", "Sigma in exponential initial condition.", 1.0 );
 
       config.addEntry< double >( "time-step", "Time step. By default it is proportional to one over space step square.", 0.0 );
       config.addEntry< double >( "final-time", "Final time of the simulation.", 0.01 );
       config.addEntry< int >( "max-iterations", "Maximum time iterations.", 0 );
+      config.addEntry< bool >(
+         "check-solution",
+         "Compute the maximal difference from the exact solution of the heat equation in the whole space "
+         "after one extra run and add it to the log.",
+         false );
+   }
+
+   /**
+    * \brief Returns the initial condition `delta * exp( -( x^2/alpha + y^2/beta + z^2/gamma ) )`.
+    *
+    * The same function is used by all implementations, so that their results can be compared.
+    */
+   __cuda_callable__
+   static Real
+   getInitialCondition( Real x, Real y, Real z, Real alpha, Real beta, Real gamma, Real delta )
+   {
+      return delta * TNL::exp( -( x * x / alpha + y * y / beta + z * z / gamma ) );
+   }
+
+   /**
+    * \brief Returns the exact solution of the heat equation in the whole space with the initial condition
+    * \ref getInitialCondition at the time `t`.
+    *
+    * The solution is the product of one-dimensional Gaussian functions, each of them spreads independently:
+    * `delta * prod_i sqrt( a_i / ( a_i + 4t ) ) * exp( -x_i^2 / ( a_i + 4t ) )` for `a_i` = `alpha`, `beta`, `gamma`.
+    * It approximates the solution with the homogeneous Dirichlet boundary conditions while the function is negligible
+    * on the boundary.
+    */
+   double
+   getExactSolution( int dimension, double x, double y, double z, double t ) const
+   {
+      const double coordinates[ 3 ] = { x, y, z };
+      const double a[ 3 ] = { (double) alpha, (double) beta, (double) gamma };
+      double result = delta;
+      for( int i = 0; i < dimension; i++ )
+         result *= std::sqrt( a[ i ] / ( a[ i ] + 4.0 * t ) )
+                 * std::exp( -coordinates[ i ] * coordinates[ i ] / ( a[ i ] + 4.0 * t ) );
+      return result;
+   }
+
+   /**
+    * \brief Returns the time reached by the time loop of the solvers with the time step `tau`.
+    *
+    * The loop is the same as in the solvers, including the accumulation of the time in the precision `Real`.
+    */
+   Real
+   getReachedTime( Real tau ) const
+   {
+      Real time = 0;
+      Index iterations = 0;
+      while( time < finalTime && ( ! maxIterations || iterations < maxIterations ) ) {
+         time += tau;
+         iterations++;
+      }
+      return time;
+   }
+
+   /**
+    * \brief Returns the maximal difference of the solution `u` from the exact solution \ref getExactSolution.
+    *
+    * The time is the time reached by the solvers with their default time step (one tenth of the smallest
+    * space step squared) or with the time step given by the user.
+    */
+   template< typename Vector >
+   double
+   getMaxError( const Vector& u, int dimension, Index xSize, Index ySize, Index zSize ) const
+   {
+      const TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostU( u );
+      const Real hx = xDomainSize / (Real) xSize;
+      const Real hy = yDomainSize / (Real) ySize;
+      const Real hz = zDomainSize / (Real) zSize;
+      Real hMin = hx;
+      if( dimension > 1 )
+         hMin = std::min( hMin, hy );
+      if( dimension > 2 )
+         hMin = std::min( hMin, hz );
+      const Real tau = timeStep ? timeStep : 0.1 * hMin * hMin;
+      const double t = getReachedTime( tau );
+      double error = 0;
+      for( Index k = 0; k < zSize; k++ )
+         for( Index j = 0; j < ySize; j++ )
+            for( Index i = 0; i < xSize; i++ ) {
+               const double x = i * hx - xDomainSize / 2.0;
+               const double y = dimension > 1 ? j * hy - yDomainSize / 2.0 : 0.0;
+               const double z = dimension > 2 ? k * hz - zDomainSize / 2.0 : 0.0;
+               const double value = hostU[ ( k * ySize + j ) * xSize + i ];
+               error = std::max( error, std::abs( value - getExactSolution( dimension, x, y, z, t ) ) );
+            }
+      return error;
    }
 
    bool
@@ -104,6 +192,7 @@ struct HeatEquationSolverBenchmarkBase
       this->timeStep = parameters.getParameter< Real >( "time-step" );
       this->finalTime = parameters.getParameter< Real >( "final-time" );
       this->maxIterations = parameters.getParameter< int >( "max-iterations" );
+      this->checkSolution = parameters.getParameter< bool >( "check-solution" );
 
       return true;
    }
@@ -111,6 +200,7 @@ struct HeatEquationSolverBenchmarkBase
 protected:
    TNL::String implementation;
    bool writeData;
+   bool checkSolution = false;
 
    Index minXDimension, maxXDimension, xSizeStepFactor;
    Index minYDimension, maxYDimension, ySizeStepFactor;
@@ -142,8 +232,9 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
    virtual void
    exec( const Index xSize ) = 0;
 
-   virtual bool
-   writeGnuplot( const std::string& filename, const Index xSize ) const = 0;
+   //! \brief Copies the current solution to `u`, with the first index changing fastest.
+   virtual void
+   getSolution( VectorType& u ) const = 0;
 
    void
    init( const Index xSize, VectorType& ux, VectorType& aux )
@@ -162,7 +253,7 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
       auto init = [ = ] __cuda_callable__( Index i ) mutable
       {
          auto x = i * hx - xDomainSize_ / 2.0;
-         uxView[ i ] = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ - 1.0 ) );
+         uxView[ i ] = HeatEquationSolverBenchmarkBase< Real, Index >::getInitialCondition( x, 0, 0, alpha_, 1, 1, delta_ );
       };
       TNL::Algorithms::parallelFor< Device >( 1, xSize - 1, init );
    }
@@ -181,6 +272,15 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
    }
 
    bool
+   writeGnuplot( const std::string& filename, const Index xSize ) const
+   {
+      VectorType u;
+      getSolution( u );
+      const TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostU( u );
+      return writeGnuplot( filename, hostU, xSize );
+   }
+
+   bool
    runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
    {
       if( ! HeatEquationSolverBenchmarkBase< Real, Index >::setup( parameters, Dimension ) )
@@ -194,15 +294,22 @@ struct HeatEquationSolverBenchmark< 1, Real, Device, Index > : public HeatEquati
                 << ", precision = " << precision << ", device = " << device << std::endl;
 
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
-         benchmark.setMetadataColumns(
-            TNL::Benchmarks::Benchmark::MetadataColumns(
-               { { "precision", precision },
-                 { "scheme", scheme },
-                 { "dimension", TNL::convertToString( 1 ) },
-                 { "x size", TNL::convertToString( xSize ) },
-                 { "y size", TNL::convertToString( 1 ) },
-                 { "z size", TNL::convertToString( 1 ) },
-                 { "implementation", this->implementation } } ) );
+         TNL::Benchmarks::Benchmark::MetadataColumns metadata(
+            { { "precision", precision },
+              { "scheme", scheme },
+              { "dimension", TNL::convertToString( 1 ) },
+              { "x size", TNL::convertToString( xSize ) },
+              { "y size", TNL::convertToString( 1 ) },
+              { "z size", TNL::convertToString( 1 ) },
+              { "implementation", this->implementation } } );
+         if( this->checkSolution ) {
+            this->init( xSize );
+            this->exec( xSize );
+            VectorType u;
+            getSolution( u );
+            metadata.emplace_back( "max error", TNL::convertToString( this->getMaxError( u, Dimension, xSize, 1, 1 ) ) );
+         }
+         benchmark.setMetadataColumns( metadata );
 
          benchmark.setDatasetSize( xSize * sizeof( Real ) );
          this->init( xSize );
@@ -242,8 +349,9 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
    virtual void
    exec( const Index xSize, const Index ySize ) = 0;
 
-   virtual bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const = 0;
+   //! \brief Copies the current solution to `u`, with the first index changing fastest.
+   virtual void
+   getSolution( VectorType& u ) const = 0;
 
    void
    init( const Index xSize, const Index ySize, VectorType& ux, VectorType& aux )
@@ -260,21 +368,30 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
       auto uxView = ux.getView();
       auto xDomainSize_ = this->xDomainSize;
       auto yDomainSize_ = this->yDomainSize;
+      auto delta_ = this->delta;
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
-      auto gamma_ = this->gamma;
       auto init = [ = ] __cuda_callable__( const CoordinatesType& idx ) mutable
       {
          const Index& i = idx.x();
          const Index& j = idx.y();
          auto index = j * xSize + i;
 
-         auto x = i * hx - xDomainSize_ / 2.;
-         auto y = j * hy - yDomainSize_ / 2.;
-
-         uxView[ index ] = TNL::max( ( ( ( x * x / alpha_ ) + ( y * y / beta_ ) ) + gamma_ ) * 0.2, 0.0 );
+         auto x = i * hx - xDomainSize_ / 2.0;
+         auto y = j * hy - yDomainSize_ / 2.0;
+         uxView[ index ] =
+            HeatEquationSolverBenchmarkBase< Real, Index >::getInitialCondition( x, y, 0, alpha_, beta_, 1, delta_ );
       };
       TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, init );
+   }
+
+   bool
+   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const
+   {
+      VectorType u;
+      getSolution( u );
+      const TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostU( u );
+      return writeGnuplot( filename, hostU, xSize, ySize );
    }
 
    template< typename Vector >
@@ -310,15 +427,22 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
 
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          for( Index ySize = this->minYDimension; ySize <= this->maxYDimension; ySize *= this->ySizeStepFactor ) {
-            benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark::MetadataColumns(
-                  { { "precision", precision },
-                    { "scheme", scheme },
-                    { "dimension", TNL::convertToString( 2 ) },
-                    { "x size", TNL::convertToString( xSize ) },
-                    { "y size", TNL::convertToString( ySize ) },
-                    { "z size", TNL::convertToString( 1 ) },
-                    { "implementation", this->implementation } } ) );
+            TNL::Benchmarks::Benchmark::MetadataColumns metadata(
+               { { "precision", precision },
+                 { "scheme", scheme },
+                 { "dimension", TNL::convertToString( 2 ) },
+                 { "x size", TNL::convertToString( xSize ) },
+                 { "y size", TNL::convertToString( ySize ) },
+                 { "z size", TNL::convertToString( 1 ) },
+                 { "implementation", this->implementation } } );
+            if( this->checkSolution ) {
+               this->init( xSize, ySize );
+               this->exec( xSize, ySize );
+               VectorType u;
+               getSolution( u );
+               metadata.emplace_back( "max error", TNL::convertToString( this->getMaxError( u, Dimension, xSize, ySize, 1 ) ) );
+            }
+            benchmark.setMetadataColumns( metadata );
 
             benchmark.setDatasetSize( xSize * ySize * sizeof( Real ) );
             this->init( xSize, ySize );
@@ -359,9 +483,19 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
    virtual void
    exec( const Index xSize, const Index ySize, const Index zSize ) = 0;
 
-   virtual bool
+   //! \brief Copies the current solution to `u`, with the first index changing fastest.
+   virtual void
+   getSolution( VectorType& u ) const = 0;
+
+   bool
    writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
-      const = 0;
+      const
+   {
+      VectorType u;
+      getSolution( u );
+      const TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostU( u );
+      return writeGnuplot( filename, hostU, xSize, ySize, zSize, zSlice );
+   }
 
    void
    init( const Index xSize, const Index ySize, const Index zSize, VectorType& ux, VectorType& aux )
@@ -394,7 +528,8 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
          auto x = i * hx - xDomainSize_ / 2.0;
          auto y = j * hy - yDomainSize_ / 2.0;
          auto z = k * hz - zDomainSize_ / 2.0;
-         uxView[ index ] = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ + y * y / beta_ + z * z / gamma_ - 1.0 ) );
+         uxView[ index ] =
+            HeatEquationSolverBenchmarkBase< Real, Index >::getInitialCondition( x, y, z, alpha_, beta_, gamma_, delta_ );
       };
       TNL::Algorithms::parallelFor< Device >(
          CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, init );
@@ -440,15 +575,23 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       for( Index xSize = this->minXDimension; xSize <= this->maxXDimension; xSize *= this->xSizeStepFactor ) {
          for( Index ySize = this->minYDimension; ySize <= this->maxYDimension; ySize *= this->ySizeStepFactor ) {
             for( Index zSize = this->minZDimension; zSize <= this->maxZDimension; zSize *= this->zSizeStepFactor ) {
-               benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark::MetadataColumns(
-                     { { "precision", precision },
-                       { "scheme", scheme },
-                       { "dimension", TNL::convertToString( 3 ) },
-                       { "x size", TNL::convertToString( xSize ) },
-                       { "y size", TNL::convertToString( ySize ) },
-                       { "z size", TNL::convertToString( zSize ) },
-                       { "implementation", this->implementation } } ) );
+               TNL::Benchmarks::Benchmark::MetadataColumns metadata(
+                  { { "precision", precision },
+                    { "scheme", scheme },
+                    { "dimension", TNL::convertToString( 3 ) },
+                    { "x size", TNL::convertToString( xSize ) },
+                    { "y size", TNL::convertToString( ySize ) },
+                    { "z size", TNL::convertToString( zSize ) },
+                    { "implementation", this->implementation } } );
+               if( this->checkSolution ) {
+                  this->init( xSize, ySize, zSize );
+                  this->exec( xSize, ySize, zSize );
+                  VectorType u;
+                  getSolution( u );
+                  metadata.emplace_back(
+                     "max error", TNL::convertToString( this->getMaxError( u, Dimension, xSize, ySize, zSize ) ) );
+               }
+               benchmark.setMetadataColumns( metadata );
 
                benchmark.setDatasetSize( xSize * ySize * zSize * sizeof( Real ) );
                this->init( xSize, ySize, zSize );

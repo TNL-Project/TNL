@@ -31,10 +31,10 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 1, Real, Device, Index >
       BaseBenchmarkType::init( xSize, ux, aux );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize );
+      u = this->ux;
    }
 
    void
@@ -89,10 +89,10 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 2, Real, Device, Index >
       BaseBenchmarkType::init( xSize, ySize, ux, aux );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize );
+      u = this->ux;
    }
 
    void
@@ -153,11 +153,10 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 3, Real, Device, Index >
       BaseBenchmarkType::init( xSize, ySize, zSize, ux, aux );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
-      const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize, zSize, zSlice );
+      u = this->ux;
    }
 
    void

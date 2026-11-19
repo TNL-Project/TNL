@@ -29,10 +29,10 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index >
       faces.setSize( xSize + 1 );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize );
+      u = this->ux;
    }
 
    void
@@ -95,10 +95,10 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index >
       y_faces = 0.0;
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, this->ux, xSize, ySize );
+      u = this->ux;
    }
 
    bool
@@ -278,11 +278,10 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index >
       xy_faces = 0.0;
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
-      const
+   void
+   getSolution( VectorType& u ) const
    {
-      return BaseBenchmarkType::writeGnuplot( filename, ux, xSize, ySize, zSize, zSlice );
+      u = this->ux;
    }
 
    void

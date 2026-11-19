@@ -19,6 +19,8 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType =
       TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0 >, std::index_sequence< 0 >, Device >;
+   using HostNDArrayType =
+      TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0 >, std::index_sequence< 0 >, TNL::Devices::Host >;
 
    TNL::String
    scheme()
@@ -44,21 +46,22 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >
       auto init = [ = ] __cuda_callable__( Index i ) mutable
       {
          auto x = i * hx - xDomainSize_ / 2.0;
-         uxView( i ) = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ - 1.0 ) );
+         uxView( i ) = HeatEquationSolverBenchmarkBase< Real, Index >::getInitialCondition( x, 0, 0, alpha_, 1, 1, delta_ );
       };
       TNL::Algorithms::parallelFor< Device >( 1, xSize - 1, init );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize ) const
+   void
+   getSolution( VectorType& u ) const override
    {
-      std::ofstream out( filename, std::ios::out );
-      if( ! out.is_open() )
-         return false;
-      const Real hx = this->xDomainSize / (Real) xSize;
+      // the solution is copied to the host, because it may be stored on the GPU
+      HostNDArrayType hostUx;
+      hostUx = ux;
+      const Index xSize = hostUx.template getSize< 0 >();
+      TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostU( xSize );
       for( Index i = 0; i < xSize; i++ )
-         out << i * hx - this->xDomainSize / 2. << " " << ux( i ) << std::endl;
-      return out.good();
+         hostU[ i ] = hostUx( i );
+      u = hostU;
    }
 
    void
@@ -77,8 +80,9 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >
          auto auxView = this->aux.getView();
          auto next = [ = ] __cuda_callable__( Index i ) mutable
          {
-            const Real& center = (Real) 2.0 * uxView( i );
-            auxView( i ) = center + ( uxView( i - 1 ) - center + uxView( i + 1 ) ) * hx_inv * timestep;
+            auto element = uxView( i );
+            auto center = (Real) 2.0 * element;
+            auxView( i ) = element + ( ( uxView( i - 1 ) - center + uxView( i + 1 ) ) * hx_inv ) * timestep;
          };
 
          //TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, next );
@@ -102,6 +106,8 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType =
       TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0 >, std::index_sequence< 0, 1 >, Device >;
+   using HostNDArrayType = TNL::Containers::
+      NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0 >, std::index_sequence< 0, 1 >, TNL::Devices::Host >;
    using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    TNL::String
@@ -134,23 +140,26 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >
          const Index& j = idx.y();
          auto x = i * hx - xDomainSize_ / 2.0;
          auto y = j * hy - yDomainSize_ / 2.0;
-         uxView( i, j ) = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ + y * y / beta_ - 1.0 ) );
+         uxView( i, j ) =
+            HeatEquationSolverBenchmarkBase< Real, Index >::getInitialCondition( x, y, 0, alpha_, beta_, 1, delta_ );
       };
       TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, init );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const
+   void
+   getSolution( VectorType& u ) const override
    {
-      std::ofstream out( filename, std::ios::out );
-      if( ! out.is_open() )
-         return false;
-      const Real hx = this->xDomainSize / (Real) xSize;
-      const Real hy = this->yDomainSize / (Real) ySize;
+      // the solution is copied to the host, because it may be stored on the GPU, and reordered,
+      // because the last index of the array changes fastest
+      HostNDArrayType hostUx;
+      hostUx = ux;
+      const Index xSize = hostUx.template getSize< 0 >();
+      const Index ySize = hostUx.template getSize< 1 >();
+      TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostU( xSize * ySize );
       for( Index j = 0; j < ySize; j++ )
          for( Index i = 0; i < xSize; i++ )
-            out << i * hx - this->xDomainSize / 2. << " " << j * hy - this->yDomainSize / 2. << " " << ux( i, j ) << std::endl;
-      return out.good();
+            hostU[ j * xSize + i ] = hostUx( i, j );
+      u = hostU;
    }
 
    void
@@ -201,6 +210,8 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >
    using VectorType = typename BaseBenchmarkType::VectorType;
    using NDArrayType =
       TNL::Containers::NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0, 0 >, std::index_sequence< 0, 1, 2 >, Device >;
+   using HostNDArrayType = TNL::Containers::
+      NDArray< Real, TNL::Containers::SizesHolder< Index, 0, 0, 0 >, std::index_sequence< 0, 1, 2 >, TNL::Devices::Host >;
    using CoordinatesType = TNL::Containers::StaticArray< Dimension, Index >;
 
    TNL::String
@@ -238,26 +249,29 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >
          auto x = i * hx - xDomainSize_ / 2.0;
          auto y = j * hy - yDomainSize_ / 2.0;
          auto z = k * hz - zDomainSize_ / 2.0;
-         uxView( i, j, k ) = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ + y * y / beta_ + z * z / gamma_ - 1.0 ) );
+         uxView( i, j, k ) =
+            HeatEquationSolverBenchmarkBase< Real, Index >::getInitialCondition( x, y, z, alpha_, beta_, gamma_, delta_ );
       };
       TNL::Algorithms::parallelFor< Device >(
          CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, init );
    }
 
-   bool
-   writeGnuplot( const std::string& filename, const Index xSize, const Index ySize, const Index zSize, const Index zSlice )
-      const
+   void
+   getSolution( VectorType& u ) const override
    {
-      std::ofstream out( filename, std::ios::out );
-      if( ! out.is_open() )
-         return false;
-      const Real hx = this->xDomainSize / (Real) xSize;
-      const Real hy = this->yDomainSize / (Real) ySize;
-      for( Index j = 0; j < ySize; j++ )
-         for( Index i = 0; i < xSize; i++ )
-            out << i * hx - this->xDomainSize / 2. << " " << j * hy - this->yDomainSize / 2. << " " << ux( i, j, zSlice )
-                << std::endl;
-      return out.good();
+      // the solution is copied to the host, because it may be stored on the GPU, and reordered,
+      // because the last index of the array changes fastest
+      HostNDArrayType hostUx;
+      hostUx = ux;
+      const Index xSize = hostUx.template getSize< 0 >();
+      const Index ySize = hostUx.template getSize< 1 >();
+      const Index zSize = hostUx.template getSize< 2 >();
+      TNL::Containers::Vector< Real, TNL::Devices::Host, Index > hostU( xSize * ySize * zSize );
+      for( Index k = 0; k < zSize; k++ )
+         for( Index j = 0; j < ySize; j++ )
+            for( Index i = 0; i < xSize; i++ )
+               hostU[ ( k * ySize + j ) * xSize + i ] = hostUx( i, j, k );
+      u = hostU;
    }
 
    void
