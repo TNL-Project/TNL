@@ -107,4 +107,68 @@ TEST( GridBoundaryTraverseTest, RegionBoundary_3D )
    testRegionBoundaryForAllEntities< 3 >();
 }
 
+// Checks that the traversals with a launch configuration visit the same entities as the traversals without it.
+template< int Dimension >
+void
+testLaunchConfiguration()
+{
+   using Grid = TNL::Meshes::Grid< Dimension, double, TNL::Devices::Sequential, int >;
+   using Coordinates = typename Grid::CoordinatesType;
+   using LaunchConfiguration = typename Grid::DeviceType::LaunchConfiguration;
+   Grid grid;
+   Coordinates sizes;
+   Coordinates regionBegin;
+   for( int i = 0; i < Dimension; i++ ) {
+      sizes[ i ] = 4 + i;
+      regionBegin[ i ] = 1;
+   }
+   grid.setSizes( sizes );
+
+   TNL::Algorithms::staticFor< int, 0, Dimension + 1 >(
+      [ & ]( auto entityDimension )
+      {
+         constexpr int EntityDimension = decltype( entityDimension )::value;
+         using Entity = typename Grid::template EntityType< EntityDimension >;
+         const int count = grid.template getEntitiesCount< EntityDimension >();
+         std::vector< int > expected( count, 0 );
+         std::vector< int > calls( count, 0 );
+         auto expect = [ & ]( const Entity& entity )
+         {
+            expected.at( entity.getIndex() )++;
+         };
+         auto call = [ & ]( const Entity& entity )
+         {
+            calls.at( entity.getIndex() )++;
+         };
+         const LaunchConfiguration launchConfiguration;
+
+         grid.template forAllEntities< EntityDimension >( expect );
+         grid.template forAllEntities< EntityDimension >( launchConfiguration, call );
+         grid.template forInteriorEntities< EntityDimension >( expect );
+         grid.template forInteriorEntities< EntityDimension >( launchConfiguration, call );
+         grid.template forBoundaryEntities< EntityDimension >( expect );
+         grid.template forBoundaryEntities< EntityDimension >( launchConfiguration, call );
+         grid.template forEntities< EntityDimension >( regionBegin, sizes, expect );
+         grid.template forEntities< EntityDimension >( regionBegin, sizes, launchConfiguration, call );
+         grid.template forBoundaryEntities< EntityDimension >( regionBegin, sizes, expect );
+         grid.template forBoundaryEntities< EntityDimension >( regionBegin, sizes, launchConfiguration, call );
+         EXPECT_EQ( calls, expected ) << "Entity dimension: " << EntityDimension;
+      } );
+}
+
+TEST( GridBoundaryTraverseTest, LaunchConfiguration_1D )
+{
+   testLaunchConfiguration< 1 >();
+}
+
+TEST( GridBoundaryTraverseTest, LaunchConfiguration_2D )
+{
+   testLaunchConfiguration< 2 >();
+}
+
+TEST( GridBoundaryTraverseTest, LaunchConfiguration_3D )
+{
+   testLaunchConfiguration< 3 >();
+}
+
 #include "../../main.h"

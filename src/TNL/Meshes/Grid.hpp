@@ -911,7 +911,30 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forAllEntities( Func function, FuncArgs... args ) const
 {
-   this->forEntities< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), function, args... );
+   this->forAllEntities< EntityDimension >( typename Device::LaunchConfiguration{}, function, args... );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+template< int EntityDimension, typename Func, typename... FuncArgs >
+void
+Grid< Dimension, Real, Device, Index >::forAllEntities(
+   typename Device::LaunchConfiguration launchConfiguration,
+   Func function,
+   FuncArgs... args ) const
+{
+   this->forEntities< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), launchConfiguration, function, args... );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+template< int EntityDimension, typename Func, typename... FuncArgs >
+void
+Grid< Dimension, Real, Device, Index >::forEntities(
+   const CoordinatesType& begin,
+   const CoordinatesType& end,
+   Func function,
+   FuncArgs... args ) const
+{
+   this->forEntities< EntityDimension >( begin, end, typename Device::LaunchConfiguration{}, function, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -920,6 +943,7 @@ void
 Grid< Dimension, Real, Device, Index >::forEntities(
    const CoordinatesType& begin_,
    const CoordinatesType& end_,
+   typename Device::LaunchConfiguration launchConfiguration,
    Func function,
    FuncArgs... args ) const
 {
@@ -932,7 +956,12 @@ Grid< Dimension, Real, Device, Index >::forEntities(
          function( entity, args... );
       };
       Algorithms::ParallelForND< Device, false >::exec(
-         GridEntityType( begin_ ), GridEntityType( end_ + CoordinatesType( EntityDimension == 0 ) ), exec, *this, args... );
+         GridEntityType( begin_ ),
+         GridEntityType( end_ + CoordinatesType( EntityDimension == 0 ) ),
+         launchConfiguration,
+         exec,
+         *this,
+         args... );
    }
    else {
       /*auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid,
@@ -966,7 +995,7 @@ Grid< Dimension, Real, Device, Index >::forEntities(
             const detail::OrientedEntitiesKernel< GridEntityType, Grid, totalOrientationIdx, Func > exec{ function };
             GridEntityType begin( begin_ );
             GridEntityType end( end_ + entitiesOrientations.getNormals( totalOrientationIdx ) );
-            Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
+            Algorithms::ParallelForND< Device, false >::exec( begin, end, launchConfiguration, exec, *this, args... );
          } );
    }
 }
@@ -976,7 +1005,30 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forBoundaryEntities( Func func, FuncArgs... args ) const
 {
-   this->forBoundaryEntities< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), func, args... );
+   this->forBoundaryEntities< EntityDimension >( typename Device::LaunchConfiguration{}, func, args... );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+template< int EntityDimension, typename Func, typename... FuncArgs >
+void
+Grid< Dimension, Real, Device, Index >::forBoundaryEntities(
+   typename Device::LaunchConfiguration launchConfiguration,
+   Func func,
+   FuncArgs... args ) const
+{
+   this->forBoundaryEntities< EntityDimension >( CoordinatesType( 0 ), this->getSizes(), launchConfiguration, func, args... );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+template< int EntityDimension, typename Func, typename... FuncArgs >
+void
+Grid< Dimension, Real, Device, Index >::forBoundaryEntities(
+   const CoordinatesType& begin,
+   const CoordinatesType& end,
+   Func func,
+   FuncArgs... args ) const
+{
+   this->forBoundaryEntities< EntityDimension >( begin, end, typename Device::LaunchConfiguration{}, func, args... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -985,6 +1037,7 @@ void
 Grid< Dimension, Real, Device, Index >::forBoundaryEntities(
    const CoordinatesType& begin_,
    const CoordinatesType& end_,
+   typename Device::LaunchConfiguration launchConfiguration,
    Func func,
    FuncArgs... args ) const
 {
@@ -1010,7 +1063,7 @@ Grid< Dimension, Real, Device, Index >::forBoundaryEntities(
                if( layerEnd[ i ] <= layerBegin[ i ] )
                   return;
             Algorithms::ParallelForND< Device, false >::exec(
-               GridEntityType( layerBegin ), GridEntityType( layerEnd ), exec, *this, args... );
+               GridEntityType( layerBegin ), GridEntityType( layerEnd ), launchConfiguration, exec, *this, args... );
          };
 
          const NormalsType normals = entitiesOrientations.getNormals( totalOrientationIdx );
@@ -1047,6 +1100,17 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs... args ) const
 {
+   this->forInteriorEntities< EntityDimension >( typename Device::LaunchConfiguration{}, func, args... );
+}
+
+template< int Dimension, typename Real, typename Device, typename Index >
+template< int EntityDimension, typename Func, typename... FuncArgs >
+void
+Grid< Dimension, Real, Device, Index >::forInteriorEntities(
+   typename Device::LaunchConfiguration launchConfiguration,
+   Func func,
+   FuncArgs... args ) const
+{
    using GridEntityType = typename Grid::template EntityType< EntityDimension >;
    if constexpr( EntityDimension == getMeshDimension() || EntityDimension == 0 ) {
       auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid, FuncArgs... args ) mutable
@@ -1058,6 +1122,7 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
       Algorithms::ParallelForND< Device, false >::exec(
          GridEntityType( CoordinatesType( 1 ) ),
          GridEntityType( CoordinatesType( this->getSizes() - CoordinatesType( EntityDimension != 0 ) ) ),
+         launchConfiguration,
          exec,
          *this,
          args... );
@@ -1101,7 +1166,7 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
             const detail::OrientedEntitiesKernel< GridEntityType, Grid, totalOrientationIdx, Func > exec{ func };
             GridEntityType begin( entitiesOrientations.getNormals( totalOrientationIdx ) );
             GridEntityType end( CoordinatesType( this->getSizes() ) );
-            Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );
+            Algorithms::ParallelForND< Device, false >::exec( begin, end, launchConfiguration, exec, *this, args... );
          } );
    }
 }

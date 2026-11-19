@@ -741,6 +741,24 @@ public:
    forAllEntities( Func func, FuncArgs... args ) const;
 
    /**
+    * \brief Iterate over all mesh entities with given dimension and perform given lambda function
+    *    on each of them, with the given launch configuration.
+    *
+    * The same as \ref forAllEntities without the launch configuration.
+    * The launch configuration is used for all kernels of the traversal.
+    * For example, with `blockHostUntilFinished` set to `false`,
+    * the method does not wait for the kernels on the GPU to finish.
+    *
+    * \tparam EntityDimension is dimension of the grid entities.
+    * \param launchConfiguration is the configuration of the kernel launches.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args are packed arguments that are going to be passed to the lambda function.
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   void
+   forAllEntities( typename Device::LaunchConfiguration launchConfiguration, Func func, FuncArgs... args ) const;
+
+   /**
     * \brief Iterate over all mesh entities within given region with given dimension and perform given lambda function
     *    on each of them.
     *
@@ -762,6 +780,29 @@ public:
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
+
+   /**
+    * \brief Iterate over all mesh entities within given region with given dimension and perform given lambda function
+    *    on each of them, with the given launch configuration.
+    *
+    * The same as \ref forEntities without the launch configuration.
+    * The launch configuration is used for all kernels of the traversal.
+    *
+    * \tparam EntityDimension is dimension of the grid entities.
+    * \param begin is the 'lower left' corner of the region.
+    * \param end is the 'upper right' corner of the region.
+    * \param launchConfiguration is the configuration of the kernel launches.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args are packed arguments that are going to be passed to the lambda function.
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   void
+   forEntities(
+      const CoordinatesType& begin,
+      const CoordinatesType& end,
+      typename Device::LaunchConfiguration launchConfiguration,
+      Func func,
+      FuncArgs... args ) const;
 
    /**
     * \brief Iterate over all interior mesh entities with given dimension and perform given lambda function
@@ -786,6 +827,22 @@ public:
    forInteriorEntities( Func func, FuncArgs... args ) const;
 
    /**
+    * \brief Iterate over all interior mesh entities with given dimension and perform given lambda function
+    *    on each of them, with the given launch configuration.
+    *
+    * The same as \ref forInteriorEntities without the launch configuration.
+    * The launch configuration is used for all kernels of the traversal.
+    *
+    * \tparam EntityDimension is dimension of the grid entities.
+    * \param launchConfiguration is the configuration of the kernel launches.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args are packed arguments that are going to be passed to the lambda function.
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   void
+   forInteriorEntities( typename Device::LaunchConfiguration launchConfiguration, Func func, FuncArgs... args ) const;
+
+   /**
     * \brief Iterate over all boundary mesh entities with given dimension and perform given lambda function
     *    on each of them.
     *
@@ -803,6 +860,22 @@ public:
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forBoundaryEntities( Func func, FuncArgs... args ) const;
+
+   /**
+    * \brief Iterate over all boundary mesh entities with given dimension and perform given lambda function
+    *    on each of them, with the given launch configuration.
+    *
+    * The same as \ref forBoundaryEntities without the launch configuration.
+    * The launch configuration is used for all kernels of the traversal.
+    *
+    * \tparam EntityDimension is dimension of the grid entities.
+    * \param launchConfiguration is the configuration of the kernel launches.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args are packed arguments that are going to be passed to the lambda function.
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   void
+   forBoundaryEntities( typename Device::LaunchConfiguration launchConfiguration, Func func, FuncArgs... args ) const;
 
    /**
     * \brief Iterate over all boundary mesh entities of given region with given dimension and perform given lambda function
@@ -824,6 +897,29 @@ public:
    template< int EntityDimension, typename Func, typename... FuncArgs >
    void
    forBoundaryEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
+
+   /**
+    * \brief Iterate over all boundary mesh entities of given region with given dimension and perform given lambda function
+    *    on each of them, with the given launch configuration.
+    *
+    * The same as \ref forBoundaryEntities without the launch configuration.
+    * The launch configuration is used for all kernels of the traversal.
+    *
+    * \tparam EntityDimension is dimension of the grid entities.
+    * \param begin is the 'lower left' corner of the region.
+    * \param end is the 'upper right' corner of the region.
+    * \param launchConfiguration is the configuration of the kernel launches.
+    * \param func is an instance of the lambda function to be performed on each grid entity.
+    * \param args are packed arguments that are going to be passed to the lambda function.
+    */
+   template< int EntityDimension, typename Func, typename... FuncArgs >
+   void
+   forBoundaryEntities(
+      const CoordinatesType& begin,
+      const CoordinatesType& end,
+      typename Device::LaunchConfiguration launchConfiguration,
+      Func func,
+      FuncArgs... args ) const;
 
    /**
     * \brief Iterate over all mesh entities within the local subdomain with given dimension and perform given lambda function
