@@ -42,7 +42,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    benchmark.setMetadataColumns( forAllColumns );
    auto measureAll = [ = ]()
    {
-      grid.template forAllEntities< EntityDimension >( exec );
+      TNL::Meshes::forAllEntities< EntityDimension >( grid, exec );
    };
    benchmark.time< typename Grid::DeviceType >( "TNL", measureAll );
 
@@ -51,7 +51,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    benchmark.setMetadataColumns( forInteriorColumns );
    auto measureInterior = [ = ]()
    {
-      grid.template forInteriorEntities< EntityDimension >( exec );
+      TNL::Meshes::forInteriorEntities< EntityDimension >( grid, exec );
    };
    benchmark.time< typename Grid::DeviceType >( "TNL", measureInterior );
 
@@ -60,7 +60,7 @@ timeTraverse( TNL::Benchmarks::Benchmark& benchmark, const Grid& grid )
    benchmark.setMetadataColumns( forBoundaryColumns );
    auto measureBoundary = [ = ]()
    {
-      grid.template forBoundaryEntities< EntityDimension >( exec );
+      TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, exec );
    };
    benchmark.time< typename Grid::DeviceType >( "TNL", measureBoundary );
 }

@@ -65,8 +65,8 @@ struct MeanCurvatureFlowFDMGrid
       auto qView = q.getView();
       auto qBarView = qBar.getView();
       // the host does not wait for the kernel; Benchmark::time synchronizes the device after the time loop
-      grid.template forInteriorEntities< Dimension >(
-         TNL::Benchmarks::getAsyncLaunchConfiguration< DeviceType >(),
+      TNL::Meshes::forInteriorEntities< Dimension >(
+         grid,
          [ = ] __cuda_callable__( const Cell& cell ) mutable
          {
             const IndexType c = cell.getIndex();
@@ -81,7 +81,8 @@ struct MeanCurvatureFlowFDMGrid
             }
             qView[ c ] = TNL::sqrt( 1.0 + forwardSum );
             qBarView[ c ] = TNL::sqrt( 1.0 + 0.5 * ( forwardSum + backwardSum ) );
-         } );
+         },
+         TNL::Benchmarks::getAsyncLaunchConfiguration< DeviceType >() );
    }
 
    /**
@@ -102,8 +103,8 @@ struct MeanCurvatureFlowFDMGrid
       const auto qBarView = qBar.getConstView();
       auto uNewView = uNew.getView();
       // the host does not wait for the kernel; Benchmark::time synchronizes the device after the time loop
-      grid.template forInteriorEntities< Dimension >(
-         TNL::Benchmarks::getAsyncLaunchConfiguration< DeviceType >(),
+      TNL::Meshes::forInteriorEntities< Dimension >(
+         grid,
          [ = ] __cuda_callable__( const Cell& cell ) mutable
          {
             const IndexType c = cell.getIndex();
@@ -115,7 +116,8 @@ struct MeanCurvatureFlowFDMGrid
                divergence += ( ( uView[ east ] - u_c ) / qView[ c ] - ( u_c - uView[ west ] ) / qView[ west ] ) * hSqrInv[ i ];
             }
             uNewView[ c ] = u_c + tau * qBarView[ c ] * divergence;
-         } );
+         },
+         TNL::Benchmarks::getAsyncLaunchConfiguration< DeviceType >() );
    }
 
    /**

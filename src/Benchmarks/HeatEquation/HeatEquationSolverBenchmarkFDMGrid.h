@@ -69,7 +69,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >
                                                 uxView[ centerIdx + 1 ] ) * hx_inv ) * timestep;*/
          };
 
-         this->grid.template forInteriorEntities< 1 >( launchConfiguration, next );
+         TNL::Meshes::forInteriorEntities< 1 >( this->grid, next, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -157,7 +157,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
                                                 2.0 * center +
                                                 uxView[ centerIdx + xSize ] ) * hy_inv ) * timestep;*/
          };
-         this->grid.template forInteriorEntities< 2 >( launchConfiguration, next );
+         TNL::Meshes::forInteriorEntities< 2 >( this->grid, next, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -242,7 +242,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
                hx_inv + ( uxView[ centerIdx - xSize ] -     2.0 * center + uxView[ centerIdx + xSize ] ) * hy_inv + ( uxView[
                centerIdx - xySize ] -     2.0 * center + uxView[ centerIdx + xySize ] ) * hy_inv ) * timestep;*/
          };
-         grid.template forInteriorEntities< 3 >( launchConfiguration, next );
+         TNL::Meshes::forInteriorEntities< 3 >( grid, next, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

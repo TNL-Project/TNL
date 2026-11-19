@@ -718,228 +718,90 @@ public:
    writeProlog( TNL::Logger& logger ) const noexcept;
 
    /**
-    * \brief Iterate over all mesh entities with given dimension and perform given lambda function
-    *    on each of them.
+    * \brief Iterates over all grid entities with the given dimension and calls the function `func` for each of them.
     *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ origin \leq c < origin +
-    * proportions\f$.
+    * \deprecated Use \ref TNL::Meshes::forAllEntities.
     *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    *     It is supposed to have the following form:
-    *
-    * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
-    * EntityDimension >&entity ) mutable {};
-    * ```
-    * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
-    *
-    * \param args are packed arguments that are going to be passed to the lambda function.
+    * \tparam EntityDimension is the dimension of the grid entities.
+    * \param func is the function called as `func( entity, args... )` for each entity.
+    * \param args are additional arguments passed to the function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
+   [[deprecated( "Use TNL::Meshes::forAllEntities instead" )]] void
    forAllEntities( Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Iterate over all mesh entities with given dimension and perform given lambda function
-    *    on each of them, with the given launch configuration.
+    * \brief Iterates over the grid entities with the given dimension within the region `[ begin, end )`
+    * and calls the function `func` for each of them.
     *
-    * The same as \ref forAllEntities without the launch configuration.
-    * The launch configuration is used for all kernels of the traversal.
-    * For example, with `blockHostUntilFinished` set to `false`,
-    * the method does not wait for the kernels on the GPU to finish.
+    * \deprecated Use \ref TNL::Meshes::forEntities.
     *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param launchConfiguration is the configuration of the kernel launches.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
-    */
-   template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
-   forAllEntities( typename Device::LaunchConfiguration launchConfiguration, Func func, FuncArgs... args ) const;
-
-   /**
-    * \brief Iterate over all mesh entities within given region with given dimension and perform given lambda function
-    *    on each of them.
-    *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ begin \leq c < end\f$.
-    *
-    * \tparam EntityDimension is dimension of the grid entities.
+    * \tparam EntityDimension is the dimension of the grid entities.
     * \param begin is the 'lower left' corner of the region.
     * \param end is the 'upper right' corner of the region.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    *     It is supposed to have the following form:
-    *
-    * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
-    * EntityDimension >&entity ) mutable {};
-    * ```
-    * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
+    * \param func is the function called as `func( entity, args... )` for each entity.
+    * \param args are additional arguments passed to the function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
+   [[deprecated( "Use TNL::Meshes::forEntities instead" )]] void
    forEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Iterate over all mesh entities within given region with given dimension and perform given lambda function
-    *    on each of them, with the given launch configuration.
+    * \brief Iterates over the interior grid entities with the given dimension
+    * and calls the function `func` for each of them.
     *
-    * The same as \ref forEntities without the launch configuration.
-    * The launch configuration is used for all kernels of the traversal.
+    * \deprecated Use \ref TNL::Meshes::forInteriorEntities.
     *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param begin is the 'lower left' corner of the region.
-    * \param end is the 'upper right' corner of the region.
-    * \param launchConfiguration is the configuration of the kernel launches.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
+    * \tparam EntityDimension is the dimension of the grid entities.
+    * \param func is the function called as `func( entity, args... )` for each entity.
+    * \param args are additional arguments passed to the function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
-   forEntities(
-      const CoordinatesType& begin,
-      const CoordinatesType& end,
-      typename Device::LaunchConfiguration launchConfiguration,
-      Func func,
-      FuncArgs... args ) const;
-
-   /**
-    * \brief Iterate over all interior mesh entities with given dimension and perform given lambda function
-    *    on each of them.
-    *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ origin < c < origin + proportions -
-    * 1\f$.
-    *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    *     It is supposed to have the following form:
-    *
-    * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
-    * EntityDimension >&entity ) mutable {};
-    * ```
-    * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
-    */
-   template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
+   [[deprecated( "Use TNL::Meshes::forInteriorEntities instead" )]] void
    forInteriorEntities( Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Iterate over all interior mesh entities with given dimension and perform given lambda function
-    *    on each of them, with the given launch configuration.
+    * \brief Iterates over the boundary grid entities with the given dimension
+    * and calls the function `func` for each of them.
     *
-    * The same as \ref forInteriorEntities without the launch configuration.
-    * The launch configuration is used for all kernels of the traversal.
+    * \deprecated Use \ref TNL::Meshes::forBoundaryEntities.
     *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param launchConfiguration is the configuration of the kernel launches.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
+    * \tparam EntityDimension is the dimension of the grid entities.
+    * \param func is the function called as `func( entity, args... )` for each entity.
+    * \param args are additional arguments passed to the function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
-   forInteriorEntities( typename Device::LaunchConfiguration launchConfiguration, Func func, FuncArgs... args ) const;
-
-   /**
-    * \brief Iterate over all boundary mesh entities with given dimension and perform given lambda function
-    *    on each of them.
-    *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    *     It is supposed to have the following form:
-    *
-    * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
-    * EntityDimension >&entity ) mutable {};
-    * ```
-    * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
-    */
-   template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
+   [[deprecated( "Use TNL::Meshes::forBoundaryEntities instead" )]] void
    forBoundaryEntities( Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Iterate over all boundary mesh entities with given dimension and perform given lambda function
-    *    on each of them, with the given launch configuration.
+    * \brief Iterates over the grid entities with the given dimension on the boundary of the region `[ begin, end )`
+    * and calls the function `func` for each of them.
     *
-    * The same as \ref forBoundaryEntities without the launch configuration.
-    * The launch configuration is used for all kernels of the traversal.
+    * \deprecated Use \ref TNL::Meshes::forBoundaryEntities.
     *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param launchConfiguration is the configuration of the kernel launches.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
-    */
-   template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
-   forBoundaryEntities( typename Device::LaunchConfiguration launchConfiguration, Func func, FuncArgs... args ) const;
-
-   /**
-    * \brief Iterate over all boundary mesh entities of given region with given dimension and perform given lambda function
-    *    on each of them.
-    *
-    * \tparam EntityDimension is dimension of the grid entities.
+    * \tparam EntityDimension is the dimension of the grid entities.
     * \param begin is the 'lower left' corner of the region.
     * \param end is the 'upper right' corner of the region.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    *     It is supposed to have the following form:
-    *
-    * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
-    * EntityDimension >&entity ) mutable {};
-    * ```
-    * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
+    * \param func is the function called as `func( entity, args... )` for each entity.
+    * \param args are additional arguments passed to the function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
+   [[deprecated( "Use TNL::Meshes::forBoundaryEntities instead" )]] void
    forBoundaryEntities( const CoordinatesType& begin, const CoordinatesType& end, Func func, FuncArgs... args ) const;
 
    /**
-    * \brief Iterate over all boundary mesh entities of given region with given dimension and perform given lambda function
-    *    on each of them, with the given launch configuration.
+    * \brief Iterates over the grid entities with the given dimension within the local subdomain
+    * and calls the function `func` for each of them.
     *
-    * The same as \ref forBoundaryEntities without the launch configuration.
-    * The launch configuration is used for all kernels of the traversal.
+    * \deprecated Use \ref TNL::Meshes::forLocalEntities.
     *
-    * \tparam EntityDimension is dimension of the grid entities.
-    * \param begin is the 'lower left' corner of the region.
-    * \param end is the 'upper right' corner of the region.
-    * \param launchConfiguration is the configuration of the kernel launches.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
+    * \tparam EntityDimension is the dimension of the grid entities.
+    * \param func is the function called as `func( entity, args... )` for each entity.
+    * \param args are additional arguments passed to the function.
     */
    template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
-   forBoundaryEntities(
-      const CoordinatesType& begin,
-      const CoordinatesType& end,
-      typename Device::LaunchConfiguration launchConfiguration,
-      Func func,
-      FuncArgs... args ) const;
-
-   /**
-    * \brief Iterate over all mesh entities within the local subdomain with given dimension and perform given lambda function
-    *    on each of them.
-    *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ localBegin \leq c < localEnd\f$.
-    *
-    * \tparam EntityDimension is dimension of the grid entities.
-    *     It is supposed to have the following form:
-    *
-    * ```
-    * auto func = [=] __cuda_callable__( const typename Grid< Dimension, Real, Device, Index >::template EntityType<
-    * EntityDimension >&entity ) mutable {};
-    * ```
-    * where \e entity represents given grid entity. See \ref TNL::Meshes::GridEntity.
-    * \param func is an instance of the lambda function to be performed on each grid entity.
-    * \param args are packed arguments that are going to be passed to the lambda function.
-    */
-   template< int EntityDimension, typename Func, typename... FuncArgs >
-   void
+   [[deprecated( "Use TNL::Meshes::forLocalEntities instead" )]] void
    forLocalEntities( Func func, FuncArgs... args ) const;
 
    /**
@@ -1237,3 +1099,4 @@ operator!=( const Grid< Dimension, Real, Device, Index >& lhs, const Grid< Dimen
 
 #include <TNL/Meshes/Grid.hpp>
 #include <TNL/Meshes/GridEntity.h>
+#include <TNL/Meshes/traverse.h>

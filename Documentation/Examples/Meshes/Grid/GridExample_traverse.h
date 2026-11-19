@@ -49,7 +49,8 @@ traverseGrid()
 
    //! [initialize cells]
    // Setup value of each cell to its index in the grid.
-   grid.template forAllEntities< Dimension >(
+   TNL::Meshes::forAllEntities< Dimension >(
+      grid,
       [ = ] __cuda_callable__( const GridCell& cell ) mutable
       {
          cells_view[ cell.getIndex() ] = cell.getIndex();
@@ -72,7 +73,8 @@ traverseGrid()
 
    //! [initialize faces]
    // Setup values of all faces to an average value of its neighbour cells.
-   grid.template forAllEntities< Dimension - 1 >(
+   TNL::Meshes::forAllEntities< Dimension - 1 >(
+      grid,
       [ = ] __cuda_callable__( const GridFace& face ) mutable
       {
          const CoordinatesType normal = face.getNormals();
@@ -113,7 +115,8 @@ traverseGrid()
 
    //! [initialize vertices]
    // Setup values of all vertices to an average value of its neighboring cells
-   grid.template forAllEntities< 0 >(
+   TNL::Meshes::forAllEntities< 0 >(
+      grid,
       [ = ] __cuda_callable__( const GridVertex& vertex ) mutable
       {
          double sum = 0.0;

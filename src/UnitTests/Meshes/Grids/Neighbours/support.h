@@ -73,7 +73,7 @@ public:
             }
          }
       };
-      grid.template forAllEntities< EntityDimension >( check );
+      TNL::Meshes::forAllEntities< EntityDimension >( grid, check );
    }
 
    void
@@ -101,7 +101,7 @@ public:
          }
       };
 
-      grid.template forAllEntities< EntityDimension >( update );
+      TNL::Meshes::forAllEntities< EntityDimension >( grid, update );
    }
 
    template< int NeighbourEntityOrientation >
@@ -126,7 +126,7 @@ public:
             view.store( neighbour, entity.getIndex() );
          }
       };
-      grid.template forAllEntities< EntityDimension >( update );
+      TNL::Meshes::forAllEntities< EntityDimension >( grid, update );
    }
 
    void

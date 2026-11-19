@@ -17,7 +17,8 @@ testGetEntityFromIndex(
 
    SCOPED_TRACE( "Entity dimension: " + TNL::convertToString( EntityDimension ) );
 
-   grid.template forAllEntities< EntityDimension >(
+   TNL::Meshes::forAllEntities< EntityDimension >(
+      grid,
       [ = ]( TNL::Meshes::GridEntity< Grid, EntityDimension >& entity ) mutable
       {
          auto new_entity = TNL::Meshes::GridEntity< Grid, EntityDimension >( entity.getGrid(), entity.getIndex() );

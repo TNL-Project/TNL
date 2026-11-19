@@ -102,7 +102,7 @@ computeGrid(
          uView[ cell.template getAdjacentEntityIndex< 2, -1 >() ],
          uView[ cell.template getAdjacentEntityIndex< 2, 1 >() ] );
    };
-   grid.template forInteriorEntities< 3 >( kernel );
+   TNL::Meshes::forInteriorEntities< 3 >( grid, kernel );
 }
 
 /**

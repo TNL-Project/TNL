@@ -209,10 +209,10 @@ The whole example consists of the following steps:
 
    \snippet GridExample_traverse.h prepare vector views
 
-5. We iterate over all grid cells using templated method
-   \ref TNL::Meshes::Grid::forAllEntities. The template parameter again says
-   the dimension of the grid entities we want to iterate over. The method takes
-   one parameter which is a lambda function that is supposed to be evaluated
+5. We iterate over all grid cells using templated function
+   \ref TNL::Meshes::forAllEntities. The template parameter again says
+   the dimension of the grid entities we want to iterate over. The function takes
+   the grid and a lambda function that is supposed to be evaluated
    for each cell. The lambda function receives one parameter, type of which is
    \ref TNL::Meshes::GridEntity. This grid entity represents particular cells
    over which we iterate. The index of the cell is obtained by method
@@ -221,7 +221,7 @@ The whole example consists of the following steps:
    \snippet GridExample_traverse.h initialize cells
 
 6. Next we print the values of all cells. This must be done sequentially on the
-   CPU and therefore we do not use parallel for (\ref TNL::Meshes::Grid::forAllEntities)
+   CPU and therefore we do not use parallel for (\ref TNL::Meshes::forAllEntities)
    anymore. Now we iterate over all cells sequentially row by row:
 
    \snippet GridExample_traverse.h print cells
@@ -230,8 +230,8 @@ The whole example consists of the following steps:
    its global index which we use for access to the vector with cell values (`cell`).
    The result of this is a matrix of cell values printed to the standard output.
 
-7. We iterate over all faces of the grid. Again we use the method
-   \ref TNL::Meshes::Grid::forAllEntities but now the template parameter
+7. We iterate over all faces of the grid. Again we use the function
+   \ref TNL::Meshes::forAllEntities but now the template parameter
    specifying the dimension of the entities is `Dimension-1`. The lambda
    function being performed for each face now gets one parameter which is a
    grid entity (\ref TNL::Meshes::GridEntity) with dimension equal to one:
@@ -267,7 +267,7 @@ The whole example consists of the following steps:
    first horizontal faces with row index equal to five, followed by vertical
    faces with row index equal to five, next horizontal faces with row index
    equal to four, and so on. As before, this must be done sequentially on the
-   CPU so we do not use parallel for (\ref TNL::Meshes::Grid::forAllEntities):
+   CPU so we do not use parallel for (\ref TNL::Meshes::forAllEntities):
 
    \snippet GridExample_traverse.h print faces
 
@@ -281,7 +281,7 @@ The whole example consists of the following steps:
    neighboring cells. The vertices have no orientation so we do not need to
    care about the normals. We only check the number of neighbor cells based on
    the vertex coordinates. To iterate over all vertices in parallel, we use the
-   method \ref TNL::Meshes::Grid::forAllEntities with entity dimension set to
+   function \ref TNL::Meshes::forAllEntities with entity dimension set to
    zero:
 
    \snippet GridExample_traverse.h initialize vertices

@@ -169,7 +169,7 @@ public:
          view.store( entity );
       };
 
-      grid.template forAllEntities< EntityDimension >( update );
+      TNL::Meshes::forAllEntities< EntityDimension >( grid, update );
    }
    void
    storeBoundary( const Grid& grid, DataStore& store ) const
@@ -183,7 +183,7 @@ public:
          view.store( entity );
       };
 
-      grid.template forBoundaryEntities< EntityDimension >( update );
+      TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, update );
    }
    void
    storeInterior( const Grid& grid, DataStore& store ) const
@@ -197,7 +197,7 @@ public:
          view.store( entity );
       };
 
-      grid.template forInteriorEntities< EntityDimension >( update );
+      TNL::Meshes::forInteriorEntities< EntityDimension >( grid, update );
    }
    void
    clearAll( const Grid& grid, DataStore& store ) const
@@ -211,7 +211,7 @@ public:
          view.clear( entity );
       };
 
-      grid.template forAllEntities< EntityDimension >( update );
+      TNL::Meshes::forAllEntities< EntityDimension >( grid, update );
    }
    void
    clearBoundary( const Grid& grid, DataStore& store ) const
@@ -225,7 +225,7 @@ public:
          view.clear( entity );
       };
 
-      grid.template forBoundaryEntities< EntityDimension >( update );
+      TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, update );
    }
    void
    clearInterior( const Grid& grid, DataStore& store ) const
@@ -239,7 +239,7 @@ public:
          view.clear( entity );
       };
 
-      grid.template forInteriorEntities< EntityDimension >( update );
+      TNL::Meshes::forInteriorEntities< EntityDimension >( grid, update );
    }
 
    void

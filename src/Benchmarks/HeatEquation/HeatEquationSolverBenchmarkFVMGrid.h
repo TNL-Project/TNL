@@ -62,7 +62,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >
                                               - ux_view[ face.template getEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
                                           * h_inv[ face.getOrientationIndex() ];
          };
-         this->grid.template forInteriorEntities< 0 >( launchConfiguration, gradient );
+         TNL::Meshes::forInteriorEntities< 0 >( this->grid, gradient, launchConfiguration );
 
          auto update = [ = ] __cuda_callable__( const typename Grid::Cell& cell ) mutable
          {
@@ -75,7 +75,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 1, Real, Device, Index >
                                            - faces_view[ cell.template getEntityIndex< 0 >( { 0 }, 0 ) ] )
                                          * h_inv.x() );
          };
-         this->grid.template forInteriorEntities< 1 >( launchConfiguration, update );
+         TNL::Meshes::forInteriorEntities< 1 >( this->grid, update, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -152,7 +152,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >
             //                                * h_inv[ face.getOrientationIndex() ] ;
             faces_view[ face.getIndex() ] = ( ux_view[ remoter ] - ux_view[ closer ] ) * h_inv[ face.getOrientationIndex() ];
          };
-         this->grid.template forInteriorEntities< 1 >( launchConfiguration, gradient );
+         TNL::Meshes::forInteriorEntities< 1 >( this->grid, gradient, launchConfiguration );
 
          auto update = [ = ] __cuda_callable__( const typename Grid::Cell& cell ) mutable
          {
@@ -175,7 +175,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 2, Real, Device, Index >
             //                                    faces_view[ cell.template getNeighbourEntityIndex< 1 >( { 0, 0 }, x_faces ) ]
             //                                    ) * h_inv.y() )  * timestep;
          };
-         this->grid.template forInteriorEntities< 2 >( launchConfiguration, update );
+         TNL::Meshes::forInteriorEntities< 2 >( this->grid, update, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -244,7 +244,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >
                                               - ux_view[ face.template getEntityIndex< Dimension >( -face.getNormals(), 0 ) ] )
                                           * h_inv[ face.getOrientationIndex() ];
          };
-         this->grid.template forInteriorEntities< 2 >( launchConfiguration, gradient );
+         TNL::Meshes::forInteriorEntities< 2 >( this->grid, gradient, launchConfiguration );
 
          constexpr Index yz_faces = EntitiesOrientations::template getOrientationIndex< 2, 1, 0, 0 >();
          constexpr Index xz_faces = EntitiesOrientations::template getOrientationIndex< 2, 0, 1, 0 >();
@@ -265,7 +265,7 @@ struct HeatEquationSolverBenchmarkFVMGrid< 3, Real, Device, Index >
                                               - faces_view[ cell.template getEntityIndex< 2 >( { 0, 0, 0 }, xy_faces ) ] )
                                                * h_inv.z() );
          };
-         grid.template forInteriorEntities< 3 >( launchConfiguration, update );
+         TNL::Meshes::forInteriorEntities< 3 >( grid, update, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

@@ -42,7 +42,8 @@ testRegionBoundary( const Grid& grid, const typename Grid::CoordinatesType& begi
       + std::string( TNL::convertToString( end ).getString() ) );
 
    std::vector< int > calls( grid.template getEntitiesCount< EntityDimension >(), 0 );
-   grid.template forBoundaryEntities< EntityDimension >(
+   TNL::Meshes::forBoundaryEntities< EntityDimension >(
+      grid,
       begin,
       end,
       [ & ]( const Entity& entity )
@@ -50,7 +51,8 @@ testRegionBoundary( const Grid& grid, const typename Grid::CoordinatesType& begi
          calls.at( entity.getIndex() )++;
       } );
 
-   grid.template forAllEntities< EntityDimension >(
+   TNL::Meshes::forAllEntities< EntityDimension >(
+      grid,
       [ & ]( const Entity& entity )
       {
          const int expectedCalls = isOnRegionBoundary( entity, begin, end ) ? 1 : 0;
@@ -142,18 +144,87 @@ testLaunchConfiguration()
          };
          const LaunchConfiguration launchConfiguration;
 
-         grid.template forAllEntities< EntityDimension >( expect );
-         grid.template forAllEntities< EntityDimension >( launchConfiguration, call );
-         grid.template forInteriorEntities< EntityDimension >( expect );
-         grid.template forInteriorEntities< EntityDimension >( launchConfiguration, call );
-         grid.template forBoundaryEntities< EntityDimension >( expect );
-         grid.template forBoundaryEntities< EntityDimension >( launchConfiguration, call );
-         grid.template forEntities< EntityDimension >( regionBegin, sizes, expect );
-         grid.template forEntities< EntityDimension >( regionBegin, sizes, launchConfiguration, call );
-         grid.template forBoundaryEntities< EntityDimension >( regionBegin, sizes, expect );
-         grid.template forBoundaryEntities< EntityDimension >( regionBegin, sizes, launchConfiguration, call );
+         TNL::Meshes::forAllEntities< EntityDimension >( grid, expect );
+         TNL::Meshes::forAllEntities< EntityDimension >( grid, call, launchConfiguration );
+         TNL::Meshes::forInteriorEntities< EntityDimension >( grid, expect );
+         TNL::Meshes::forInteriorEntities< EntityDimension >( grid, call, launchConfiguration );
+         TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, expect );
+         TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, call, launchConfiguration );
+         TNL::Meshes::forEntities< EntityDimension >( grid, regionBegin, sizes, expect );
+         TNL::Meshes::forEntities< EntityDimension >( grid, regionBegin, sizes, call, launchConfiguration );
+         TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, regionBegin, sizes, expect );
+         TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, regionBegin, sizes, call, launchConfiguration );
          EXPECT_EQ( calls, expected ) << "Entity dimension: " << EntityDimension;
       } );
+}
+
+// Checks that the deprecated member functions of the grid, which pass additional arguments to the function,
+// visit the same entities as the free functions.
+template< int Dimension >
+void
+testDeprecatedMemberFunctions()
+{
+   using Grid = TNL::Meshes::Grid< Dimension, double, TNL::Devices::Sequential, int >;
+   using Coordinates = typename Grid::CoordinatesType;
+   Grid grid;
+   Coordinates sizes;
+   Coordinates regionBegin;
+   for( int i = 0; i < Dimension; i++ ) {
+      sizes[ i ] = 4 + i;
+      regionBegin[ i ] = 1;
+   }
+   grid.setSizes( sizes );
+   grid.setLocalSubdomain( regionBegin, sizes );
+
+   TNL::Algorithms::staticFor< int, 0, Dimension + 1 >(
+      [ & ]( auto entityDimension )
+      {
+         constexpr int EntityDimension = decltype( entityDimension )::value;
+         using Entity = typename Grid::template EntityType< EntityDimension >;
+         const int count = grid.template getEntitiesCount< EntityDimension >();
+         std::vector< int > expected( count, 0 );
+         std::vector< int > calls( count, 0 );
+         auto expect = [ & ]( const Entity& entity )
+         {
+            expected.at( entity.getIndex() )++;
+         };
+         auto call = [ & ]( const Entity& entity, int increment )
+         {
+            calls.at( entity.getIndex() ) += increment;
+         };
+
+         TNL::Meshes::forAllEntities< EntityDimension >( grid, expect );
+         TNL::Meshes::forInteriorEntities< EntityDimension >( grid, expect );
+         TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, expect );
+         TNL::Meshes::forEntities< EntityDimension >( grid, regionBegin, sizes, expect );
+         TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, regionBegin, sizes, expect );
+         TNL::Meshes::forLocalEntities< EntityDimension >( grid, expect );
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+         grid.template forAllEntities< EntityDimension >( call, 1 );
+         grid.template forInteriorEntities< EntityDimension >( call, 1 );
+         grid.template forBoundaryEntities< EntityDimension >( call, 1 );
+         grid.template forEntities< EntityDimension >( regionBegin, sizes, call, 1 );
+         grid.template forBoundaryEntities< EntityDimension >( regionBegin, sizes, call, 1 );
+         grid.template forLocalEntities< EntityDimension >( call, 1 );
+#pragma GCC diagnostic pop
+         EXPECT_EQ( calls, expected ) << "Entity dimension: " << EntityDimension;
+      } );
+}
+
+TEST( GridBoundaryTraverseTest, DeprecatedMemberFunctions_1D )
+{
+   testDeprecatedMemberFunctions< 1 >();
+}
+
+TEST( GridBoundaryTraverseTest, DeprecatedMemberFunctions_2D )
+{
+   testDeprecatedMemberFunctions< 2 >();
+}
+
+TEST( GridBoundaryTraverseTest, DeprecatedMemberFunctions_3D )
+{
+   testDeprecatedMemberFunctions< 3 >();
 }
 
 TEST( GridBoundaryTraverseTest, LaunchConfiguration_1D )

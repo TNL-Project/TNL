@@ -11,7 +11,7 @@ The result is a weighted sum of the variables.
 The same kernel is evaluated by two implementations:
 
 1. `parallel-for` — `TNL::Algorithms::parallelFor` over plain multi-indices with linear indexing of the neighbours.
-2. `grid` — `TNL::Meshes::Grid::forInteriorEntities` with the neighbours given by `getAdjacentEntityIndex`.
+2. `grid` — `TNL::Meshes::forInteriorEntities` with the neighbours given by `getAdjacentEntityIndex`.
 
 The benchmark runs $K = 8, 16, 32, 48, 64, 96$, and $128$ for each selected precision and device.
 Both implementations must give the same results;

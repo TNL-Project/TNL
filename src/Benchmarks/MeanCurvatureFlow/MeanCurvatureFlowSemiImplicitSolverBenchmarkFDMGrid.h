@@ -65,7 +65,8 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 1, Real, Device, Ind
          auto auxView = this->aux.getView();
          auto q_view = this->q.getView();
          auto q_bar_view = this->q_bar.getView();
-         this->grid.template forInteriorEntities< 1 >(
+         TNL::Meshes::forInteriorEntities< 1 >(
+            this->grid,
             [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
             {
                // c stands for center
@@ -81,7 +82,8 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 1, Real, Device, Ind
                q_view[ c ] = sqrt( 1.0 + u_x_f * u_x_f );
             } );
 
-         this->grid.template forInteriorEntities< 1 >(
+         TNL::Meshes::forInteriorEntities< 1 >(
+            this->grid,
             [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
             {
                const Index c = entity.getIndex();
@@ -203,7 +205,8 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 2, Real, Device, Ind
          auto uxView = this->ux.getView();
          auto q_view = this->q.getView();
          auto q_bar_view = this->q_bar.getView();
-         this->grid.template forInteriorEntities< 2 >(
+         TNL::Meshes::forInteriorEntities< 2 >(
+            this->grid,
             [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
             {
                // c stands for center
@@ -227,7 +230,8 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 2, Real, Device, Ind
 
          auto A_view = A->getView();
          auto b_view = b.getView();
-         this->grid.template forInteriorEntities< 2 >(
+         TNL::Meshes::forInteriorEntities< 2 >(
+            this->grid,
             [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
             {
                const Index c = entity.getIndex();
@@ -353,7 +357,7 @@ struct MeanCurvatureFlowSemiImplicitSolverBenchmarkFDMGrid< 3, Real, Device, Ind
                hx_inv + ( uxView[ centerIdx - xSize ] -     2.0 * center + uxView[ centerIdx + xSize ] ) * hy_inv + ( uxView[
                centerIdx - xySize ] -     2.0 * center + uxView[ centerIdx + xySize ] ) * hy_inv ) * timestep;*/
          };
-         grid.template forInteriorEntities< 3 >( next );
+         TNL::Meshes::forInteriorEntities< 3 >( grid, next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
