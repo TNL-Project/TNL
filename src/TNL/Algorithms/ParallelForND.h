@@ -157,16 +157,18 @@ struct ParallelForND< Devices::Host, expand >
          // Benchmarks show that this is significantly faster compared
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
          if( Devices::Host::isOMPEnabled() ) {
-   #pragma omp parallel for
-            for( Index k = begin[ 2 ]; k < end[ 2 ]; k++ ) {
-               Coordinates c{ 0, 0, k };  // TODO: Move this outside the loop like in sequential version
-               for( c[ 1 ] = begin[ 1 ]; c[ 1 ] < end[ 1 ]; c[ 1 ]++ )
+            // the rows along the first axis are distributed among the threads, so that the work is balanced
+            // also when the number of layers along the last axis is not much larger than the number of threads
+   #pragma omp parallel for collapse( 2 )
+            for( Index k = begin[ 2 ]; k < end[ 2 ]; k++ )
+               for( Index j = begin[ 1 ]; j < end[ 1 ]; j++ ) {
+                  Coordinates c{ 0, j, k };  // TODO: Move this outside the loop like in sequential version
                   for( c[ 0 ] = begin[ 0 ]; c[ 0 ] < end[ 0 ]; c[ 0 ]++ )
                      if constexpr( expand )
                         f( c[ 0 ], c[ 1 ], c[ 2 ], args... );
                      else
                         f( c, args... );
-            }
+               }
          }
          else
             ParallelForND< Devices::Sequential, expand >::exec( begin, end, f, args... );
