@@ -47,6 +47,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * hx * hx;
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
@@ -67,7 +69,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 1, Real, Device, Index >
                                                 uxView[ centerIdx + 1 ] ) * hx_inv ) * timestep;*/
          };
 
-         this->grid.template forInteriorEntities< 1 >( next );
+         this->grid.template forInteriorEntities< 1 >( launchConfiguration, next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -119,6 +121,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, hy * hy );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
@@ -153,7 +157,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
                                                 2.0 * center +
                                                 uxView[ centerIdx + xSize ] ) * hy_inv ) * timestep;*/
          };
-         this->grid.template forInteriorEntities< 2 >( next );
+         this->grid.template forInteriorEntities< 2 >( launchConfiguration, next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -207,6 +211,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, std::min( hy * hy, hz * hz ) );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
@@ -236,7 +242,7 @@ struct HeatEquationSolverBenchmarkFDMGrid< 3, Real, Device, Index >
                hx_inv + ( uxView[ centerIdx - xSize ] -     2.0 * center + uxView[ centerIdx + xSize ] ) * hy_inv + ( uxView[
                centerIdx - xySize ] -     2.0 * center + uxView[ centerIdx + xySize ] ) * hy_inv ) * timestep;*/
          };
-         grid.template forInteriorEntities< 3 >( next );
+         grid.template forInteriorEntities< 3 >( launchConfiguration, next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

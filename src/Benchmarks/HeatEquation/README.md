@@ -30,6 +30,9 @@ which approximates the solution with the Dirichlet boundary conditions as long a
 The equation is discretized explicitly in time on a regular grid,
 either by the finite difference method (FDM) or by the finite volume method (FVM).
 The benchmark measures the wall time of the full time integration.
+The TNL implementations launch the kernels of the time loop on GPUs without waiting for each of them to finish
+(see `TNL::Benchmarks::getAsyncLaunchConfiguration`), like the other libraries;
+the device is synchronized after the time integration.
 
 ## Solver implementations
 

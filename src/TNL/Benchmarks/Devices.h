@@ -88,4 +88,28 @@ checkDevice( const Config::ParameterContainer& parameters )
       return false;
 }
 
+/**
+ * \brief Returns the launch configuration of the given device
+ * with which the host does not wait for the kernels to finish.
+ *
+ * On GPUs, the kernels launched with this configuration in the same stream
+ * run in the order of their launches,
+ * but the host has to synchronize the device before it reads the results.
+ * The time measurement by \ref Benchmark::time synchronizes the device
+ * after each measured function.
+ * The configurations of the other devices are the default ones.
+ *
+ * \tparam Device A device type from `TNL::Devices`
+ * \return The launch configuration.
+ */
+template< typename Device >
+typename Device::LaunchConfiguration
+getAsyncLaunchConfiguration()
+{
+   typename Device::LaunchConfiguration launchConfiguration;
+   if constexpr( std::is_same_v< Device, Devices::GPU > )
+      launchConfiguration.blockHostUntilFinished = false;
+   return launchConfiguration;
+}
+
 }  // namespace TNL::Benchmarks

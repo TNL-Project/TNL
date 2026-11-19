@@ -43,6 +43,8 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * hx * hx;
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto ux_view = this->ux.getView();
@@ -53,13 +55,13 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 1, Real, Device, Index >
          {
             faces_view[ i ] = ( ux_view[ i ] - ux_view[ i - 1 ] ) * hx_inv;
          };
-         TNL::Algorithms::parallelFor< Device >( 1, xSize, gradients );
+         TNL::Algorithms::parallelFor< Device >( 1, xSize, launchConfiguration, gradients );
 
          auto update = [ = ] __cuda_callable__( Index i ) mutable
          {
             aux_view[ i ] = ux_view[ i ] + timestep * ( faces_view[ i + 1 ] - faces_view[ i ] ) * hx_inv;
          };
-         TNL::Algorithms::parallelFor< Device >( 1, xSize - 1, update );
+         TNL::Algorithms::parallelFor< Device >( 1, xSize - 1, launchConfiguration, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -117,6 +119,8 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, hy * hy );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto ux_view = this->ux.getView();
@@ -159,7 +163,8 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index >
             const Index cell_idx = row * xSize + column;
             y_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - 1 ] ) * hx_inv;
          };
-         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize, ySize - 1 }, x_gradients );
+         TNL::Algorithms::parallelFor< Device >(
+            CoordinatesType{ 1, 1 }, CoordinatesType{ xSize, ySize - 1 }, launchConfiguration, x_gradients );
 
          /////
          // Next we iterate over horizontal faces of interior cells. Their coordinates and
@@ -196,7 +201,8 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index >
             const Index i = row * xSize + column;
             x_faces_view[ i ] = ( ux_view[ i ] - ux_view[ i - xSize ] ) * hy_inv;
          };
-         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize }, y_gradients );
+         TNL::Algorithms::parallelFor< Device >(
+            CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize }, launchConfiguration, y_gradients );
 
          ////
          // From the first derivatives stored on the faces, we will now compute the laplacian:
@@ -240,7 +246,8 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 2, Real, Device, Index >
                                    * ( ( y_faces_view[ y_face_idx + 1 ] - y_faces_view[ y_face_idx ] ) * hx_inv
                                        + ( x_faces_view[ index + xSize ] - x_faces_view[ index ] ) * hy_inv );
          };
-         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, update );
+         TNL::Algorithms::parallelFor< Device >(
+            CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, launchConfiguration, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -297,6 +304,8 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, std::min( hy * hy, hz * hz ) );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto ux_view = this->ux.getView();
@@ -315,7 +324,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index >
             yz_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - 1 ] ) * hx_inv;
          };
          TNL::Algorithms::parallelFor< Device >(
-            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize, ySize - 1, zSize - 1 }, x_gradients );
+            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize, ySize - 1, zSize - 1 }, launchConfiguration, x_gradients );
 
          auto y_gradients = [ = ] __cuda_callable__( const CoordinatesType& idx ) mutable
          {
@@ -327,7 +336,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index >
             xz_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - xSize ] ) * hy_inv;
          };
          TNL::Algorithms::parallelFor< Device >(
-            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize, zSize - 1 }, y_gradients );
+            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize, zSize - 1 }, launchConfiguration, y_gradients );
 
          auto z_gradients = [ = ] __cuda_callable__( const CoordinatesType& idx ) mutable
          {
@@ -339,7 +348,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index >
             xy_faces_view[ face_idx ] = ( ux_view[ cell_idx ] - ux_view[ cell_idx - xySize ] ) * hz_inv;
          };
          TNL::Algorithms::parallelFor< Device >(
-            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize }, z_gradients );
+            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize }, launchConfiguration, z_gradients );
 
          auto update = [ = ] __cuda_callable__( const CoordinatesType& idx ) mutable
          {
@@ -358,7 +367,7 @@ struct HeatEquationSolverBenchmarkFVMParallelFor< 3, Real, Device, Index >
                                           + ( xy_faces_view[ xy_face_idx + xySize ] - xy_faces_view[ xy_face_idx ] ) * hz_inv );
          };
          TNL::Algorithms::parallelFor< Device >(
-            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, update );
+            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, launchConfiguration, update );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

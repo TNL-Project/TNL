@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Benchmarks/Devices.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Math.h>
 #include <TNL/Meshes/Grid.h>
@@ -63,7 +64,9 @@ struct MeanCurvatureFlowFDMGrid
       const auto uView = u.getConstView();
       auto qView = q.getView();
       auto qBarView = qBar.getView();
+      // the host does not wait for the kernel; Benchmark::time synchronizes the device after the time loop
       grid.template forInteriorEntities< Dimension >(
+         TNL::Benchmarks::getAsyncLaunchConfiguration< DeviceType >(),
          [ = ] __cuda_callable__( const Cell& cell ) mutable
          {
             const IndexType c = cell.getIndex();
@@ -98,7 +101,9 @@ struct MeanCurvatureFlowFDMGrid
       const auto qView = q.getConstView();
       const auto qBarView = qBar.getConstView();
       auto uNewView = uNew.getView();
+      // the host does not wait for the kernel; Benchmark::time synchronizes the device after the time loop
       grid.template forInteriorEntities< Dimension >(
+         TNL::Benchmarks::getAsyncLaunchConfiguration< DeviceType >(),
          [ = ] __cuda_callable__( const Cell& cell ) mutable
          {
             const IndexType c = cell.getIndex();

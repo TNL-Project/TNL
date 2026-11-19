@@ -12,6 +12,9 @@ The same discretization is used in all dimensions, see `MeanCurvatureFlowFDMGrid
 and it is integrated in time by the explicit Euler method.
 Each time step consists of two traversals of the grid:
 the computation of the gradient norms and the update of the solution.
+The TNL implementations launch these kernels on GPUs without waiting for each of them to finish
+(see `TNL::Benchmarks::getAsyncLaunchConfiguration`), like the other libraries;
+the device is synchronized after the time integration.
 
 The benchmark compares the following implementations of the same scheme:
 

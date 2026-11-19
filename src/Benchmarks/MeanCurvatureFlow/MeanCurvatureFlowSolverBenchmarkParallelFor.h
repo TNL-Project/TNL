@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Benchmarks/Devices.h>
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Math.h>
@@ -118,7 +119,9 @@ public:
          qView[ c ] = TNL::sqrt( 1.0 + forwardSum );
          qBarView[ c ] = TNL::sqrt( 1.0 + 0.5 * ( forwardSum + backwardSum ) );
       };
-      TNL::Algorithms::parallelFor< Device >( Sizes( 1 ), Sizes( sizes - 1 ), kernel );
+      // the host does not wait for the kernel; Benchmark::time synchronizes the device after the time loop
+      TNL::Algorithms::parallelFor< Device >(
+         Sizes( 1 ), Sizes( sizes - 1 ), TNL::Benchmarks::getAsyncLaunchConfiguration< Device >(), kernel );
    }
 
    void
@@ -142,7 +145,9 @@ public:
          }
          uNewView[ c ] = u_c + tau * qBarView[ c ] * divergence;
       };
-      TNL::Algorithms::parallelFor< Device >( Sizes( 1 ), Sizes( sizes - 1 ), kernel );
+      // the host does not wait for the kernel; Benchmark::time synchronizes the device after the time loop
+      TNL::Algorithms::parallelFor< Device >(
+         Sizes( 1 ), Sizes( sizes - 1 ), TNL::Benchmarks::getAsyncLaunchConfiguration< Device >(), kernel );
    }
 
 protected:

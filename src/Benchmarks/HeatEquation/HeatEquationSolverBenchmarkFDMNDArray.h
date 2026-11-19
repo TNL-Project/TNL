@@ -74,6 +74,8 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * hx * hx;
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
@@ -86,7 +88,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 1, Real, Device, Index >
          };
 
          //TNL::Algorithms::ParallelFor< Device >::exec( 1, xSize - 1, next );
-         ux.forInterior( next );
+         ux.forInterior( next, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -172,6 +174,8 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, hy * hy );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
@@ -190,7 +194,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 2, Real, Device, Index >
          };
 
          //TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, next );
-         ux.forInterior( next );
+         ux.forInterior( next, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
@@ -286,6 +290,8 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >
 
       Real start = 0;
       Index iterations = 0;
+      // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
+      const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
       auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, std::min( hy * hy, hz * hz ) );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
@@ -306,7 +312,7 @@ struct HeatEquationSolverBenchmarkFDMNDArray< 3, Real, Device, Index >
          };
          //TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1
          //}, next );
-         ux.forInterior( next );
+         ux.forInterior( next, launchConfiguration );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;
