@@ -9,3 +9,5 @@ tnl_add_test_executables(GridEntitiesOrientationsTest SOURCES GridEntitiesOrient
 tnl_add_test_executables(GridWritersTest SOURCES GridWritersTest.cpp BACKENDS HOST)
 
 tnl_add_test_executables(GridBoundaryTraverseTest SOURCES GridBoundaryTraverseTest.cpp BACKENDS HOST)
+
+tnl_add_test_executables(GridReduceTest SOURCES GridReduceTest.h BACKENDS CUDA HIP HOST SINGLE)
