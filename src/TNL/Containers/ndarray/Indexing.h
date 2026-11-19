@@ -76,30 +76,35 @@ call_with_unshifted_indices( const SizesHolder& begins, Func&& f, Indices&&... i
       begins, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
+template< typename StridesHolder, typename Overlaps, std::size_t... Levels, typename... Indices >
+__cuda_callable__
+typename StridesHolder::IndexType
+getStorageIndexHelper(
+   const StridesHolder& strides,
+   const Overlaps& overlaps,
+   std::index_sequence< Levels... >,
+   Indices&&... indices )
+{
+   using Index = typename StridesHolder::IndexType;
+   // calculation based on NumPy's ndarray memory layout
+   // https://numpy.org/doc/stable/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray
+   return (
+      ...
+      + ( strides.template getSize< Levels >()
+          * ( static_cast< Index >( indices ) + static_cast< Index >( overlaps.template getSize< Levels >() ) ) ) );
+}
+
 template< typename StridesHolder, typename Overlaps, typename... Indices >
 __cuda_callable__
 typename StridesHolder::IndexType
 getStorageIndex( const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
 {
-   using Index = typename StridesHolder::IndexType;
-
-   Index result = 0;
-   TNL::Algorithms::staticFor< std::size_t, 0, StridesHolder::getDimension() >(
-      [ & ]( auto level )
-      {
-         // calculation based on NumPy's ndarray memory layout
-         // https://numpy.org/doc/stable/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray
-         const Index overlap = overlaps.template getSize< level >();
-         const Index alpha = get_from_pack< level >( std::forward< Indices >( indices )... );
-
-         if constexpr( level == 0 ) {
-            result = strides.template getSize< level >() * ( alpha + overlap );
-         }
-         else {
-            result += strides.template getSize< level >() * ( alpha + overlap );
-         }
-      } );
-   return result;
+   // A fold expression instead of a loop with a lambda function, so that the function does not need
+   // any temporary objects. GCC estimates the stack frame of a function before removing them and does
+   // not inline large functions with a large stack frame into small ones (e.g. into OpenMP regions).
+   static_assert( sizeof...( Indices ) == StridesHolder::getDimension(), "wrong number of indices" );
+   return getStorageIndexHelper(
+      strides, overlaps, std::make_index_sequence< StridesHolder::getDimension() >{}, std::forward< Indices >( indices )... );
 }
 
 template< typename SizesHolder, typename Overlaps >
