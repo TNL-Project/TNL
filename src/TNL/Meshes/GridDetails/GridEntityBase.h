@@ -3,22 +3,26 @@
 
 #pragma once
 
-#include <TNL/Algorithms/staticFor.h>
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/GridEntitiesOrientations.h>
 
 namespace TNL {
 namespace Meshes {
 
+/**
+ * \brief Coordinates and orientation of a grid entity.
+ *
+ * The orientation is stored only for the entities with more orientations,
+ * i.e. not for vertices and cells (see the partial specializations).
+ *
+ * \tparam Grid is the type of the grid.
+ * \tparam GridDimension is the dimension of the grid.
+ * \tparam EntityDimension is the dimension of the entity.
+ */
 template< typename Grid, int GridDimension, int EntityDimension >
-class GridEntityBase : public Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >
-//class GridEntityBase : public Containers::StaticVector< Grid::getMeshDimension()+1, typename Grid::IndexType >
-// +1 stands here for total orientation index
+class GridEntityBase
 {
 public:
-   //using BaseType = Containers::StaticVector< Grid::getMeshDimension()+1, typename Grid::IndexType >;
-   using BaseType = Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >;
-
    static constexpr int
    getMeshDimension()
    {
@@ -39,50 +43,45 @@ public:
    template< typename Value >
    __cuda_callable__
    GridEntityBase( const std::initializer_list< Value >& elems )
-   : BaseType( elems )
+   : coordinates( elems )
    {}
 
    __cuda_callable__
    GridEntityBase( IndexType totalOrientationIdx )
-   {
-      this->totalOrientationIndex = totalOrientationIdx;
-      //BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
-   }
+   : totalOrientationIndex( totalOrientationIdx )
+   {}
 
    __cuda_callable__
    GridEntityBase( const CoordinatesType& coordinates, IndexType totalOrientationIdx = getDefaultTotalOrientationIndex() )
-   {
-      this->assignAt( coordinates );
-      //BaseType::operator[]( getMeshDimension() ) = totalOrientationIdx;
-      this->totalOrientationIndex = totalOrientationIdx;
-   }
+   : coordinates( coordinates ),
+     totalOrientationIndex( totalOrientationIdx )
+   {}
 
    __cuda_callable__
    void
    setCoordinates( const CoordinatesType& coordinates )
    {
-      this->assignAt( coordinates );
+      this->coordinates = coordinates;
    }
 
    __cuda_callable__
    const CoordinatesType&
    getCoordinates() const
    {
-      return *static_cast< const CoordinatesType* >( (const void*) this );
+      return coordinates;
    }
 
    __cuda_callable__
    CoordinatesType&
    getCoordinates()
    {
-      return *static_cast< CoordinatesType* >( (void*) this );
+      return coordinates;
    }
 
    __cuda_callable__
    void
    setTotalOrientationIndex( IndexType idx )
    {
-      //BaseType::operator[]( getMeshDimension() ) = idx;
       this->totalOrientationIndex = idx;
    }
 
@@ -90,7 +89,6 @@ public:
    IndexType
    getTotalOrientationIndex() const
    {
-      //return this->operator[]( getMeshDimension() );
       return this->totalOrientationIndex;
    }
 
@@ -109,16 +107,15 @@ protected:
       return EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( 0 );
    }
 
+   CoordinatesType coordinates;
+
    IndexType totalOrientationIndex = getDefaultTotalOrientationIndex();
 };
 
 template< typename Grid, int GridDimension >
 class GridEntityBase< Grid, GridDimension, 0 >
-: public Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >
 {
 public:
-   using BaseType = Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >;
-
    static constexpr int
    getMeshDimension()
    {
@@ -139,18 +136,13 @@ public:
    template< typename Value >
    __cuda_callable__
    GridEntityBase( const std::initializer_list< Value >& elems )
-   : BaseType( elems )
+   : coordinates( elems )
    {}
 
    __cuda_callable__
    GridEntityBase( const CoordinatesType& coordinates, IndexType totalOrientationIdx = 0 )
-   {
-      Algorithms::staticFor< int, 0, getMeshDimension() >(
-         [ & ]( int i )
-         {
-            BaseType::operator[]( i ) = coordinates[ i ];
-         } );
-   }
+   : coordinates( coordinates )
+   {}
 
    __cuda_callable__
    GridEntityBase( IndexType orientationIdx ) {}
@@ -159,21 +151,21 @@ public:
    void
    setCoordinates( const CoordinatesType& coordinates )
    {
-      *this = coordinates;
+      this->coordinates = coordinates;
    }
 
    __cuda_callable__
    const CoordinatesType&
    getCoordinates() const
    {
-      return *this;
+      return coordinates;
    }
 
    __cuda_callable__
    CoordinatesType&
    getCoordinates()
    {
-      return *this;
+      return coordinates;
    }
 
    __cuda_callable__
@@ -196,15 +188,15 @@ public:
    {
       return 0;
    }
+
+protected:
+   CoordinatesType coordinates;
 };
 
 template< typename Grid, int GridDimension >
 class GridEntityBase< Grid, GridDimension, GridDimension >
-: public Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >
 {
 public:
-   using BaseType = Containers::StaticVector< Grid::getMeshDimension(), typename Grid::IndexType >;
-
    static constexpr int
    getMeshDimension()
    {
@@ -225,7 +217,7 @@ public:
    template< typename Value >
    __cuda_callable__
    GridEntityBase( const std::initializer_list< Value >& elems )
-   : BaseType( elems )
+   : coordinates( elems )
    {}
 
    __cuda_callable__
@@ -233,33 +225,28 @@ public:
 
    __cuda_callable__
    GridEntityBase( const CoordinatesType& coordinates, IndexType totalOrientationIdx = 0 )
-   {
-      Algorithms::staticFor< int, 0, getMeshDimension() >(
-         [ & ]( int i )
-         {
-            this->operator[]( i ) = coordinates[ i ];
-         } );
-   }
+   : coordinates( coordinates )
+   {}
 
    __cuda_callable__
    void
    setCoordinates( const CoordinatesType& coordinates )
    {
-      *this = coordinates;
+      this->coordinates = coordinates;
    }
 
    __cuda_callable__
    const CoordinatesType&
    getCoordinates() const
    {
-      return *static_cast< const CoordinatesType* >( (const void*) this );
+      return coordinates;
    }
 
    __cuda_callable__
    CoordinatesType&
    getCoordinates()
    {
-      return *static_cast< CoordinatesType* >( (void*) this );
+      return coordinates;
    }
 
    __cuda_callable__
@@ -285,6 +272,9 @@ public:
    {
       return 0;
    }
+
+protected:
+   CoordinatesType coordinates;
 };
 
 }  // namespace Meshes
