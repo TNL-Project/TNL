@@ -327,3 +327,138 @@ linked with the grid cells using a method `writeCellData`
 (\ref TNL::Meshes::Writers::VTIWriter::writeCellData,
 \ref TNL::Meshes::Writers::VTKWriter::writeCellData). In the same way, we
 export data linked with vertices.
+
+## Distributed grids
+
+A grid can be decomposed into rectangular subdomains, one per MPI rank, by
+\ref TNL::Meshes::DistributedMeshes::DistributedMesh "DistributedMesh< Grid >".
+Each rank stores its subdomain as a local grid, which consists of the cells
+owned by the rank and the layers of *ghost cells* along the sides adjoining the
+neighboring subdomains. There are no ghost cells beyond the boundary of the
+global grid.
+
+### Ownership of the grid entities
+
+The cells are distributed among the ranks uniquely, but the entities of lower
+dimensions which lie on the interface of two subdomains belong to the local
+grids of both ranks. For example, with two ranks and no ghost cells:
+
+```
+vertices:  0   1   2   3   4   5   6   7   8
+           |---|---|---|---|---|---|---|---|
+cells:       0   1   2   3 | 4   5   6   7
+           <--- rank 0 --->|<--- rank 1 --->
+                           ^
+                 vertex 4 is in both local grids
+```
+
+To synchronize the values, to compute reductions, or to write the data, each
+entity must have exactly one *owner*. In the grid, an entity has the same
+coordinates as the cell it is attached to, e.g. the vertex `( i, j )` is the
+lower left corner of the cell `( i, j )` and the face `( i, j )` with the normal
+`( 1, 0 )` is the left face of the cell `( i, j )`. Hence, the rule is:
+
+**The entity with coordinates `c` is owned by the rank which owns the cell `c`.**
+
+The entities on the upper boundary of the global grid have no such cell, they
+are owned by the last rank along the axis. In the example above, rank 0 owns
+the vertices 0 to 3 and rank 1 owns the vertices 4 to 8. With one layer of ghost
+cells, rank 0 receives the vertices 4 and 5 from rank 1 and rank 1 receives the
+vertex 3 from rank 0.
+
+The traversals of the local grid respect the ownership:
+
+- \ref TNL::Meshes::forLocalEntities traverses the entities owned by the rank,
+- \ref TNL::Meshes::forInteriorEntities traverses the owned entities which do
+  not lie on the boundary of the global grid,
+- \ref TNL::Meshes::forBoundaryEntities traverses the owned entities on the
+  boundary of the global grid,
+- \ref TNL::Meshes::forAllEntities traverses all entities of the local grid,
+  including the ghost entities.
+
+For a grid which is not distributed, they behave in the same way as before.
+
+### Synchronization and reduction
+
+The values of the ghost entities are copied from their owners by
+\ref TNL::Meshes::DistributedMeshes::DistributedGridSynchronizer "DistributedGridSynchronizer".
+The values are not stored in the synchronizer, they are accessed by two
+functions `read( entity )` and `write( entity, value )`, so they can be stored
+in any container. The synchronization is done for the entities with given
+dimension, optionally only for one orientation of the entities. The values are
+exchanged with all neighbors including the diagonal ones.
+
+The function \ref TNL::Meshes::reduce for distributed grids computes the
+reduction over the owned entities of each rank (see
+\ref TNL::Meshes::reduceLocalEntities) and combines the results of all ranks, so
+that each entity of the global grid is counted exactly once.
+
+### Example: heat equation solved by the finite volume method
+
+The following example solves the heat equation on the domain
+\f$ \Omega = [ 0, 1 ] \times [ 0, 1 ] \f$ with the homogeneous Dirichlet boundary
+condition,
+
+\f[
+\frac{\partial u}{\partial t} = \Delta u \quad \text{in } \Omega, \qquad
+u = 0 \quad \text{on } \partial\Omega,
+\f]
+
+by the finite volume method with the explicit Euler time stepping. The solution
+is stored in the cells and the fluxes \f$ \nabla u \cdot \mathbf{n} \f$ are
+stored in the faces.
+
+\includelineno DistributedGridExample_heatEquation.h
+
+The example consists of the following steps:
+
+1. The global grid is created and decomposed into the subdomains with one layer
+   of ghost cells:
+
+   \snippet DistributedGridExample_heatEquation.h create distributed grid
+
+   The local grid has the origin and the space steps of the subdomain, so the
+   centers of its cells are points of the global domain.
+
+2. The vectors for the values in the cells and the fluxes in the faces are
+   allocated for all entities of the local grid, including the ghost entities:
+
+   \snippet DistributedGridExample_heatEquation.h allocate vectors
+
+3. The initial condition is set only on the interior cells owned by the rank.
+   The cells on the boundary of the global grid keep the zero value, which is
+   the boundary condition:
+
+   \snippet DistributedGridExample_heatEquation.h initial condition
+
+4. The synchronizer of the distributed grid is created together with the
+   functions which read and write the values of the cells and the faces:
+
+   \snippet DistributedGridExample_heatEquation.h synchronizers
+
+5. The total heat is computed by the distributed reduction of the heat in the
+   cells:
+
+   \snippet DistributedGridExample_heatEquation.h total heat
+
+6. Each time step consists of four parts:
+
+   \snippet DistributedGridExample_heatEquation.h time loop
+
+   1. The values in the ghost cells are synchronized, because the fluxes on the
+      faces on the lower sides of the subdomain need the values of the cells of
+      the neighbors.
+   2. The fluxes are computed on the owned faces which do not lie on the
+      boundary of the global grid. Each face is computed by exactly one rank.
+   3. The fluxes on the ghost faces are synchronized. The cells on the upper
+      sides of the subdomain need the fluxes on the faces owned by the upper
+      neighbors.
+   4. The owned interior cells are updated by the fluxes on their faces.
+
+   Alternatively, the fluxes on the ghost faces could be computed redundantly
+   by both ranks, but the synchronization of the faces shows how the ownership
+   of the entities works.
+
+The output of the example does not depend on the number of the MPI ranks:
+
+\include DistributedGridExample_heatEquation.out

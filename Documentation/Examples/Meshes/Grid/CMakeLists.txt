@@ -9,3 +9,5 @@ endforeach()
 foreach(target IN ITEMS ${CPU_EXAMPLES})
     tnl_add_example_with_output(${target} SOURCES ${target}.cpp BACKENDS HOST)
 endforeach()
+
+tnl_add_example_with_output(DistributedGridExample_heatEquation SOURCES DistributedGridExample_heatEquation.h MPI)
