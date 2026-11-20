@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include "DistributedGrid.h"
-#include <TNL/Meshes/DistributedMeshes/SubdomainOverlapsGetter.h>
+#include <stdexcept>
+
 #include <TNL/MPI/Wrappers.h>
+#include <TNL/Meshes/DistributedMeshes/DistributedGrid.h>
 
 namespace TNL::Meshes::DistributedMeshes {
 
@@ -30,23 +31,17 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
    this->globalGrid = globalGrid;
    this->isSet = true;
 
-   for( int i = 0; i < getNeighborsCount(); i++ )
-      this->neighbors[ i ] = -1;
-
    // use MPI only if have more than one process
    this->distributed = MPI::GetSize( communicator ) > 1;
 
    if( ! this->distributed ) {
       this->subdomainCoordinates.setValue( 0 );
-      this->domainDecomposition.setValue( 0 );
-      localGrid.setOrigin( globalGrid.getOrigin() );
-      localGrid.setSizes( globalGrid.getSizes() );
+      this->domainDecomposition.setValue( 1 );
       this->localSize = globalGrid.getSizes();
       this->globalBegin = 0;
    }
    else {
-      CoordinatesType numberOfLarger;
-      // compute node distribution
+      // compute the decomposition
       int dims[ Dimension ];
       for( int i = 0; i < Dimension; i++ )
          dims[ i ] = this->domainDecomposition[ i ];
@@ -54,6 +49,7 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
       for( int i = 0; i < Dimension; i++ )
          this->domainDecomposition[ i ] = dims[ i ];
 
+      // the subdomain coordinates, the x-coordinate changes the fastest with the rank
       int size = MPI::GetSize( communicator );
       int tmp = MPI::GetRank( communicator );
       for( int i = Dimension - 1; i >= 0; i-- ) {
@@ -62,27 +58,21 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
          tmp = tmp % size;
       }
 
+      // the first subdomains along each axis get one cell more if the sizes are not divisible
       for( int i = 0; i < Dimension; i++ ) {
-         numberOfLarger[ i ] = globalGrid.getSizes()[ i ] % this->domainDecomposition[ i ];
-
+         const Index numberOfLarger = globalGrid.getSizes()[ i ] % this->domainDecomposition[ i ];
          this->localSize[ i ] = globalGrid.getSizes()[ i ] / this->domainDecomposition[ i ];
-
-         if( numberOfLarger[ i ] > this->subdomainCoordinates[ i ] )
+         if( numberOfLarger > this->subdomainCoordinates[ i ] ) {
             this->localSize[ i ] += 1;
-
-         if( numberOfLarger[ i ] > this->subdomainCoordinates[ i ] )
             this->globalBegin[ i ] = this->subdomainCoordinates[ i ] * this->localSize[ i ];
+         }
          else
-            this->globalBegin[ i ] = numberOfLarger[ i ] * ( this->localSize[ i ] + 1 )
-                                   + ( this->subdomainCoordinates[ i ] - numberOfLarger[ i ] ) * this->localSize[ i ];
+            this->globalBegin[ i ] = numberOfLarger * ( this->localSize[ i ] + 1 )
+                                   + ( this->subdomainCoordinates[ i ] - numberOfLarger ) * this->localSize[ i ];
       }
-
-      localGrid.setSizes( this->localSize );
-      this->setupNeighbors();
    }
-
-   // setting space steps computes the grid proportions as a side effect
-   localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );
+   this->setupNeighbors();
+   this->setOverlaps( 0, 0 );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -91,46 +81,57 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setOverlaps(
    const SubdomainOverlapsType& lower,
    const SubdomainOverlapsType& upper )
 {
+   if( ! this->isSet )
+      throw std::logic_error( "DistributedGrid: the global grid must be set before the overlaps." );
+   typename GridType::BoundarySidesType lowerGlobalBoundarySides;
+   typename GridType::BoundarySidesType upperGlobalBoundarySides;
+   for( int i = 0; i < Dimension; i++ ) {
+      CoordinatesType direction = 0;
+      direction[ i ] = -1;
+      lowerGlobalBoundarySides[ i ] = ! this->isThereNeighbor( direction );
+      direction[ i ] = 1;
+      upperGlobalBoundarySides[ i ] = ! this->isThereNeighbor( direction );
+      if( ( lowerGlobalBoundarySides[ i ] && lower[ i ] != 0 ) || ( upperGlobalBoundarySides[ i ] && upper[ i ] != 0 ) )
+         throw std::invalid_argument( "DistributedGrid: overlaps on the global boundary are not supported." );
+      if( lower[ i ] < 0 || upper[ i ] < 0 )
+         throw std::invalid_argument( "DistributedGrid: overlaps must be non-negative." );
+      // The ghost entities must be owned by the neighbors, i.e. the overlaps must not reach the entities owned by
+      // the neighbors of the neighbors. All subdomains along the axis have at least minimalSize cells.
+      const Index minimalSize = this->globalGrid.getSizes()[ i ] / this->domainDecomposition[ i ];
+      if( ( lower[ i ] > 0 && lower[ i ] >= minimalSize ) || ( upper[ i ] > 0 && upper[ i ] >= minimalSize ) )
+         throw std::invalid_argument( "DistributedGrid: overlaps must be smaller than the sizes of all subdomains." );
+   }
+
    this->lowerOverlap = lower;
    this->upperOverlap = upper;
+   localGrid.setSizes( this->localSize + this->lowerOverlap + this->upperOverlap );
    localGrid.setOrigin(
       this->globalGrid.getOrigin() + this->globalGrid.getSpaceSteps() * ( this->globalBegin - this->lowerOverlap ) );
-   localGrid.setSizes( this->localSize + this->lowerOverlap + this->upperOverlap );
    // setting space steps computes the grid proportions as a side effect
    localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );
 
-   // update local begin and end
+   // the owned cells and the sides on the global boundary
    localGrid.setLocalBegin( this->lowerOverlap );
    localGrid.setLocalEnd( localGrid.getSizes() - this->upperOverlap );
-
-   // update interior begin and end
-   CoordinatesType interiorBegin = this->lowerOverlap;
-   CoordinatesType interiorEnd = localGrid.getSizes() - this->upperOverlap;
-   const int* neighbors = getNeighbors();
-   if( neighbors[ ZzYzXm ] == -1 )
-      interiorBegin[ 0 ] += 1;
-   if( neighbors[ ZzYzXp ] == -1 )
-      interiorEnd[ 0 ] -= 1;
-   if( ZzYmXz < getNeighborsCount() && neighbors[ ZzYmXz ] == -1 )
-      interiorBegin[ 1 ] += 1;
-   if( ZzYpXz < getNeighborsCount() && neighbors[ ZzYpXz ] == -1 )
-      interiorEnd[ 1 ] -= 1;
-   if( ZmYzXz < getNeighborsCount() && neighbors[ ZmYzXz ] == -1 )
-      interiorBegin[ 2 ] += 1;
-   if( ZpYzXz < getNeighborsCount() && neighbors[ ZpYzXz ] == -1 )
-      interiorEnd[ 2 ] -= 1;
-   localGrid.setInteriorBegin( interiorBegin );
-   localGrid.setInteriorEnd( interiorEnd );
+   localGrid.setGlobalBoundarySides( lowerGlobalBoundarySides, upperGlobalBoundarySides );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
 DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGhostLevels( int levels )
 {
-   SubdomainOverlapsType lowerOverlap;
-   SubdomainOverlapsType upperOverlap;
-   SubdomainOverlapsGetter< GridType >::getOverlaps( this, lowerOverlap, upperOverlap, levels );
-   setOverlaps( lowerOverlap, upperOverlap );
+   SubdomainOverlapsType lower = 0;
+   SubdomainOverlapsType upper = 0;
+   for( int i = 0; i < Dimension; i++ ) {
+      CoordinatesType direction = 0;
+      direction[ i ] = -1;
+      if( this->isThereNeighbor( direction ) )
+         lower[ i ] = levels;
+      direction[ i ] = 1;
+      if( this->isThereNeighbor( direction ) )
+         upper[ i ] = levels;
+   }
+   setOverlaps( lower, upper );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -247,11 +248,11 @@ template< int Dimension, typename Real, typename Device, typename Index >
 int
 DistributedMesh< Grid< Dimension, Real, Device, Index > >::getRankOfProcCoord( const CoordinatesType& nodeCoordinates ) const
 {
-   int DimensionOffset = 1;
+   int dimensionOffset = 1;
    int ret = 0;
    for( int i = 0; i < Dimension; i++ ) {
-      ret += DimensionOffset * nodeCoordinates[ i ];
-      DimensionOffset *= this->domainDecomposition[ i ];
+      ret += dimensionOffset * nodeCoordinates[ i ];
+      dimensionOffset *= this->domainDecomposition[ i ];
    }
    return ret;
 }
@@ -264,7 +265,6 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::isThereNeighbor( cons
    for( int i = 0; i < Dimension; i++ ) {
       if( direction[ i ] == -1 )
          res &= this->subdomainCoordinates[ i ] > 0;
-
       if( direction[ i ] == 1 )
          res &= this->subdomainCoordinates[ i ] < this->domainDecomposition[ i ] - 1;
    }
@@ -276,123 +276,20 @@ void
 DistributedMesh< Grid< Dimension, Real, Device, Index > >::setupNeighbors()
 {
    for( int i = 0; i < getNeighborsCount(); i++ ) {
-      auto direction = Directions::template getXYZ< Dimension >( i );
-      CoordinatesType coordinates = this->subdomainCoordinates + direction;
+      const CoordinatesType direction( Directions::template getXYZ< Dimension >( i ) );
       if( this->isThereNeighbor( direction ) )
-         this->neighbors[ i ] = this->getRankOfProcCoord( coordinates );
+         this->neighbors[ i ] = this->getRankOfProcCoord( this->subdomainCoordinates + direction );
       else
          this->neighbors[ i ] = -1;
-
-      // Handling periodic neighbors
-      for( int d = 0; d < Dimension; d++ ) {
-         if( coordinates[ d ] == -1 )
-            coordinates[ d ] = this->domainDecomposition[ d ] - 1;
-         if( coordinates[ d ] == this->domainDecomposition[ d ] )
-            coordinates[ d ] = 0;
-         this->periodicNeighbors[ i ] = this->getRankOfProcCoord( coordinates );
-      }
-
-      // std::cout << "Setting i-th neighbour to " << neighbors[ i ] << " and " << periodicNeighbors[ i ] << '\n';
    }
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-const int*
+const typename DistributedMesh< Grid< Dimension, Real, Device, Index > >::NeighborsType&
 DistributedMesh< Grid< Dimension, Real, Device, Index > >::getNeighbors() const
 {
    TNL_ASSERT_TRUE( this->isSet, "DistributedGrid is not set, but used by getNeighbors" );
    return this->neighbors;
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
-const int*
-DistributedMesh< Grid< Dimension, Real, Device, Index > >::getPeriodicNeighbors() const
-{
-   TNL_ASSERT_TRUE( this->isSet, "DistributedGrid is not set, but used by getNeighbors" );
-   return this->periodicNeighbors;
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
-template< typename DistributedGridType >
-bool
-DistributedMesh< Grid< Dimension, Real, Device, Index > >::SetupByCut(
-   DistributedGridType& inputDistributedGrid,
-   Containers::StaticVector< Dimension, int > savedDimensions,
-   Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, int > reducedDimensions,
-   Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexes )
-{
-   bool isInCut = true;
-   const int coDimension = DistributedGridType::getMeshDimension() - Dimension;
-   for( int i = 0; i < coDimension; i++ ) {
-      auto begin = inputDistributedGrid.getGlobalBegin();
-      auto size = inputDistributedGrid.getLocalSize();
-      isInCut &= fixedIndexes[ i ] > begin[ reducedDimensions[ i ] ]
-              && fixedIndexes[ i ] < begin[ reducedDimensions[ i ] ] + size[ reducedDimensions[ i ] ];
-   }
-
-   // create new communicator with used nodes
-   const MPI::Comm oldCommunicator = inputDistributedGrid.getCommunicator();
-   if( isInCut ) {
-      this->isSet = true;
-
-      auto fromGlobalMesh = inputDistributedGrid.getGlobalGrid();
-      // set global grid
-      typename GridType::PointType outOrigin;
-      typename GridType::PointType outProportions;
-      typename GridType::CoordinatesType outDimensions;
-      // set local grid
-      typename GridType::PointType localOrigin;
-      typename GridType::CoordinatesType localBegin;
-      typename GridType::CoordinatesType localGridSize;
-
-      for( int i = 0; i < Dimension; i++ ) {
-         outOrigin[ i ] = fromGlobalMesh.getOrigin()[ savedDimensions[ i ] ];
-         outProportions[ i ] = fromGlobalMesh.getProportions()[ savedDimensions[ i ] ];
-         outDimensions[ i ] = fromGlobalMesh.getSizes()[ savedDimensions[ i ] ];
-
-         this->domainDecomposition[ i ] = inputDistributedGrid.getDomainDecomposition()[ savedDimensions[ i ] ];
-         this->subdomainCoordinates[ i ] = inputDistributedGrid.getSubdomainCoordinates()[ savedDimensions[ i ] ];
-
-         this->lowerOverlap[ i ] = inputDistributedGrid.getLowerOverlap()[ savedDimensions[ i ] ];
-         this->upperOverlap[ i ] = inputDistributedGrid.getUpperOverlap()[ savedDimensions[ i ] ];
-         this->localSize[ i ] = inputDistributedGrid.getLocalSize()[ savedDimensions[ i ] ];
-         this->globalBegin[ i ] = inputDistributedGrid.getGlobalBegin()[ savedDimensions[ i ] ];
-         localGridSize[ i ] = inputDistributedGrid.getLocalMesh().getSizes()[ savedDimensions[ i ] ];
-         localBegin[ i ] = inputDistributedGrid.getLocalMesh().getLocalBegin()[ savedDimensions[ i ] ];
-         localOrigin[ i ] = inputDistributedGrid.getLocalMesh().getOrigin()[ savedDimensions[ i ] ];
-      }
-
-      this->globalGrid.setSizes( outDimensions );
-      this->globalGrid.setDomain( outOrigin, outProportions );
-
-      // setOverlaps resets the local grid
-      //      setOverlaps( this->lowerOverlap, this->upperOverlap );
-
-      localGrid.setSizes( localGridSize );
-      localGrid.setOrigin( localOrigin );
-      // setting space steps computes the grid proportions as a side effect
-      localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );
-      localGrid.setLocalBegin( localBegin );
-      localGrid.setLocalEnd( localBegin + localSize );
-      // TODO: set interiorBegin, interiorEnd
-
-      const int newRank = getRankOfProcCoord( this->subdomainCoordinates );
-      this->communicator = oldCommunicator.split( 1, newRank );
-
-      setupNeighbors();
-
-      bool isDistributed = false;
-      for( int i = 0; i < Dimension; i++ ) {
-         isDistributed |= domainDecomposition[ i ] > 1;
-      }
-      this->distributed = isDistributed;
-
-      return true;
-   }
-   else {
-      this->communicator = oldCommunicator.split( MPI_UNDEFINED, 0 );
-      return false;
-   }
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -443,27 +340,24 @@ template< int Dimension, typename Real, typename Device, typename Index >
 std::ostream&
 operator<<( std::ostream& str, const DistributedMesh< Grid< Dimension, Real, Device, Index > >& grid )
 {
-   for( int j = 0; j < MPI::GetSize(); j++ ) {
-      if( j == MPI::GetRank() ) {
-         str << "Node : " << MPI::GetRank() << '\n'
+   const MPI::Comm& communicator = grid.getCommunicator();
+   for( int j = 0; j < communicator.size(); j++ ) {
+      if( j == communicator.rank() ) {
+         str << "Node : " << communicator.rank() << '\n'
              << " globalGrid : " << grid.getGlobalGrid() << '\n'
              << " localGrid : " << grid.getLocalMesh() << '\n'
              << " localSize : " << grid.getLocalSize() << '\n'
-             << " globalBegin : " << grid.globalBegin << '\n'
-             << " lowerOverlap : " << grid.lowerOverlap << '\n'
-             << " upperOverlap : " << grid.upperOverlap << '\n'
-             << " domainDecomposition : " << grid.domainDecomposition << '\n'
-             << " subdomainCoordinates : " << grid.subdomainCoordinates << '\n'
+             << " globalBegin : " << grid.getGlobalBegin() << '\n'
+             << " lowerOverlap : " << grid.getLowerOverlap() << '\n'
+             << " upperOverlap : " << grid.getUpperOverlap() << '\n'
+             << " domainDecomposition : " << grid.getDomainDecomposition() << '\n'
+             << " subdomainCoordinates : " << grid.getSubdomainCoordinates() << '\n'
              << " neighbors : ";
          for( int i = 0; i < grid.getNeighborsCount(); i++ )
             str << " " << grid.getNeighbors()[ i ];
          str << '\n';
-         str << " periodicNeighbours : ";
-         for( int i = 0; i < grid.getNeighborsCount(); i++ )
-            str << " " << grid.getPeriodicNeighbors()[ i ];
-         str << '\n';
       }
-      MPI::Barrier();
+      communicator.barrier();
    }
    return str;
 }

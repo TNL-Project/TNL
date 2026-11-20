@@ -82,8 +82,8 @@ Grid< Dimension, Real, Device, Index >::setSizes(
    fillSpaceSteps();
    this->localBegin = 0;
    this->localEnd = this->getSizes();
-   this->interiorBegin = 1;
-   this->interiorEnd = this->getSizes() - 1;
+   this->lowerGlobalBoundarySides = true;
+   this->upperGlobalBoundarySides = true;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -695,13 +695,17 @@ __cuda_callable__
 bool
 Grid< Dimension, Real, Device, Index >::isBoundaryEntity( const Entity& entity ) const
 {
+   // Only the sides on the global boundary are considered. There are no ghost entities beyond the global boundary,
+   // so the global boundary is at the first and the last position of the grid along the axis.
    bool result( false );
    const auto& coordinates = entity.getCoordinates();
+   const auto& lower = this->getLowerGlobalBoundarySides();
+   const auto& upper = this->getUpperGlobalBoundarySides();
    if constexpr( Entity::getEntityDimension() == Dimension ) {
       Algorithms::staticFor< IndexType, 0, Dimension >(
          [ & ]( Index i ) mutable
          {
-            if( coordinates[ i ] == 0 || coordinates[ i ] == this->getSizes()[ i ] - 1 )
+            if( ( lower[ i ] && coordinates[ i ] == 0 ) || ( upper[ i ] && coordinates[ i ] == this->getSizes()[ i ] - 1 ) )
                result = true;  // return true does not work here
          } );
    }
@@ -709,7 +713,7 @@ Grid< Dimension, Real, Device, Index >::isBoundaryEntity( const Entity& entity )
       Algorithms::staticFor< IndexType, 0, Dimension >(
          [ & ]( Index i ) mutable
          {
-            if( coordinates[ i ] == 0 || coordinates[ i ] == ( this->getSizes()[ i ] ) )
+            if( ( lower[ i ] && coordinates[ i ] == 0 ) || ( upper[ i ] && coordinates[ i ] == this->getSizes()[ i ] ) )
                result = true;  // return true does not work here
          } );
    }
@@ -718,7 +722,8 @@ Grid< Dimension, Real, Device, Index >::isBoundaryEntity( const Entity& entity )
       Algorithms::staticFor< IndexType, 0, Dimension >(
          [ & ]( Index i ) mutable
          {
-            if( normals[ i ] && ( coordinates[ i ] == 0 || coordinates[ i ] == this->getSizes()[ i ] ) )
+            if( normals[ i ]
+                && ( ( lower[ i ] && coordinates[ i ] == 0 ) || ( upper[ i ] && coordinates[ i ] == this->getSizes()[ i ] ) ) )
                result = true;  // return true does not work here
          } );
    }
@@ -763,30 +768,26 @@ Grid< Dimension, Real, Device, Index >::getLocalEnd() const -> const Coordinates
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-Grid< Dimension, Real, Device, Index >::setInteriorBegin( const CoordinatesType& begin )
+Grid< Dimension, Real, Device, Index >::setGlobalBoundarySides( const BoundarySidesType& lower, const BoundarySidesType& upper )
 {
-   this->interiorBegin = begin;
+   this->lowerGlobalBoundarySides = lower;
+   this->upperGlobalBoundarySides = upper;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-void
-Grid< Dimension, Real, Device, Index >::setInteriorEnd( const CoordinatesType& end )
-{
-   this->interiorEnd = end;
-}
-
-template< int Dimension, typename Real, typename Device, typename Index >
+__cuda_callable__
 auto
-Grid< Dimension, Real, Device, Index >::getInteriorBegin() const -> const CoordinatesType&
+Grid< Dimension, Real, Device, Index >::getLowerGlobalBoundarySides() const -> const BoundarySidesType&
 {
-   return this->interiorBegin;
+   return this->lowerGlobalBoundarySides;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
+__cuda_callable__
 auto
-Grid< Dimension, Real, Device, Index >::getInteriorEnd() const -> const CoordinatesType&
+Grid< Dimension, Real, Device, Index >::getUpperGlobalBoundarySides() const -> const BoundarySidesType&
 {
-   return this->interiorEnd;
+   return this->upperGlobalBoundarySides;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

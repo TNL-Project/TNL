@@ -68,7 +68,10 @@ forEntities(
 /**
  * \brief Calls the function `func` for the interior grid entities with the given dimension.
  *
- * The interior entities are the entities which do not lie on the boundary of the grid.
+ * The interior entities are the local entities (see \ref forLocalEntities)
+ * which do not lie on the boundary of the grid (see \ref Grid::isBoundaryEntity).
+ * For a grid which is not a subdomain of a distributed grid,
+ * these are all entities which do not lie on the boundary of the grid.
  *
  * \tparam EntityDimension is the dimension of the grid entities.
  * \param grid is the grid.
@@ -84,6 +87,12 @@ forInteriorEntities(
 
 /**
  * \brief Calls the function `func` for the boundary grid entities with the given dimension.
+ *
+ * The boundary entities are the local entities (see \ref forLocalEntities)
+ * which lie on the boundary of the grid (see \ref Grid::isBoundaryEntity).
+ * For a subdomain of a distributed grid,
+ * only the sides of the grid on the global boundary are considered
+ * (see \ref Grid::setGlobalBoundarySides).
  *
  * \tparam EntityDimension is the dimension of the grid entities.
  * \param grid is the grid.
@@ -124,10 +133,22 @@ forBoundaryEntities(
 
 /**
  * \brief Calls the function `func` for the grid entities with the given dimension
- * within the local subdomain of the grid.
+ * owned by the local subdomain of the grid.
  *
- * The local subdomain is the region `[ grid.getLocalBegin(), grid.getLocalEnd() )`,
- * see \ref forEntities.
+ * The local subdomain consists of the cells in the region `[ grid.getLocalBegin(), grid.getLocalEnd() )`.
+ * The other cells of the grid are the ghost cells of a subdomain of a distributed grid
+ * (see \ref TNL::Meshes::DistributedMeshes::DistributedMesh).
+ * An entity with the coordinates `c` is owned by the subdomain which owns the cell `c`,
+ * i.e. the subdomain owns the entities with the normals `normals`
+ * and coordinates `c` such that `getLocalBegin() <= c < getLocalEnd()`.
+ * The entities with `c[ i ] == getLocalEnd()[ i ]` and `normals[ i ] == 1` have no cell in the grid
+ * and they are owned by the subdomain only if the upper side along the axis `i`
+ * lies on the global boundary (see \ref Grid::setGlobalBoundarySides).
+ * Otherwise, they are owned by the neighboring subdomain.
+ * Hence, each entity of a distributed grid is owned by exactly one subdomain.
+ *
+ * For a grid which is not a subdomain of a distributed grid,
+ * the function is called for all entities of the grid.
  *
  * \tparam EntityDimension is the dimension of the grid entities.
  * \param grid is the grid.

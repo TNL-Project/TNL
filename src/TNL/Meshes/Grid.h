@@ -81,6 +81,9 @@ public:
     */
    using NormalsType = Containers::StaticVector< Dimension, short int >;
 
+   //! \brief Type for the flags of the sides of the grid along each axis, see \ref setGlobalBoundarySides.
+   using BoundarySidesType = Containers::StaticVector< Dimension, bool >;
+
    /**
     * \brief Type of container holding number of grid entities with given dimension.
     */
@@ -627,6 +630,9 @@ public:
    /**
     * \brief Returns \e true if given entity is a boundary entity.
     *
+    * Only the sides of the grid on the global boundary are considered,
+    * see \ref setGlobalBoundarySides.
+    *
     * \tparam Entity is the entity type.
     * \param entity is an instance of the entity.
     * \return \e true if the entity os boundary entity, \e false otherwise.
@@ -678,36 +684,37 @@ public:
    getLocalEnd() const;
 
    /**
-    * \brief Sets begin of the region of interior cells, i.e. all cells without the boundary cells.
+    * \brief Sets which sides of the grid lie on the boundary of the global domain.
     *
-    * \param begin is begin of the region of interior cells.
+    * A grid which is a subdomain of a distributed grid
+    * (see \ref TNL::Meshes::DistributedMeshes::DistributedMesh)
+    * has the global boundary only on some of its sides.
+    * The other sides adjoin the subdomains of the neighboring ranks.
+    * The flags determine the entities owned by the subdomain
+    * (see \ref forLocalEntities)
+    * and the interior and boundary entities
+    * (see \ref forInteriorEntities, \ref forBoundaryEntities and \ref isBoundaryEntity).
+    *
+    * All sides are on the global boundary by default
+    * and \ref setSizes resets the flags to the default.
+    *
+    * \param lower are the flags of the sides with the lowest coordinates along each axis.
+    * \param upper are the flags of the sides with the highest coordinates along each axis.
     */
    void
-   setInteriorBegin( const CoordinatesType& begin );
+   setGlobalBoundarySides( const BoundarySidesType& lower, const BoundarySidesType& upper );
 
-   /**
-    * \brief Sets end of the region of interior cells, i.e. all cells without the boundary cells.
-    *
-    * \param end is end of the region of interior cells.
-    */
-   void
-   setInteriorEnd( const CoordinatesType& end );
+   //! \brief Returns the flags of the lower sides of the grid which lie on the global boundary,
+   //! see \ref setGlobalBoundarySides.
+   [[nodiscard]] __cuda_callable__
+   const BoundarySidesType&
+   getLowerGlobalBoundarySides() const;
 
-   /**
-    * \brief Gets begin of the region of interior cells, i.e. all cells without the boundary cells.
-    *
-    * \return begin of the region of interior cells.
-    */
-   [[nodiscard]] const CoordinatesType&
-   getInteriorBegin() const;
-
-   /**
-    * \brief Gets end of the region of interior cells, i.e. all cells without the boundary cells.
-    *
-    * \return end of the region of interior cells.
-    */
-   [[nodiscard]] const CoordinatesType&
-   getInteriorEnd() const;
+   //! \brief Returns the flags of the upper sides of the grid which lie on the global boundary,
+   //! see \ref setGlobalBoundarySides.
+   [[nodiscard]] __cuda_callable__
+   const BoundarySidesType&
+   getUpperGlobalBoundarySides() const;
 
    /**
     * \brief Writes info about the grid.
@@ -892,7 +899,11 @@ protected:
     */
    CoordinatesType localBegin = 0, localEnd = 0;
 
-   CoordinatesType interiorBegin = 0, interiorEnd = 0;  // TODO: Why we need it?
+   /**
+    * \brief Flags of the sides of the grid which lie on the boundary of the global domain,
+    * see \ref setGlobalBoundarySides.
+    */
+   BoundarySidesType lowerGlobalBoundarySides = true, upperGlobalBoundarySides = true;
 
    EntitiesCounts entitiesCounts = 0;
 

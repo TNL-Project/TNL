@@ -541,5 +541,3 @@ protected:
 };
 
 }  // namespace TNL::Meshes::DistributedMeshes
-
-#include <TNL/Meshes/DistributedMeshes/DistributedGridSynchronizer.h>

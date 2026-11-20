@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/staticFor.h>
 #include <TNL/Meshes/traverse.h>
@@ -57,6 +59,135 @@ forOrientedEntities( const Grid& grid, Func func, Traverse&& traverse )
          constexpr int totalOrientationIdx = totalOrientationsBegin + decltype( orientation )::value;
          const OrientedEntitiesKernel< GridEntityType, Grid, totalOrientationIdx, Func > kernel{ func };
          traverse( kernel, grid.getNormals( totalOrientationIdx ) );
+      } );
+}
+
+/**
+ * \brief Kernel of the traversals of cells or vertices, which have only one orientation.
+ */
+template< typename GridEntityType, typename Grid, typename Func >
+struct EntitiesKernel
+{
+   Func func;
+
+   __cuda_callable__
+   void
+   operator()( const typename Grid::CoordinatesType& coordinates, const Grid& grid )
+   {
+      GridEntityType entity( grid, coordinates );
+      func( entity );
+   }
+};
+
+/**
+ * \brief Traverses the entities with the given dimension within the boxes given by `getBox`.
+ *
+ * For each orientation of the entities, `getBox( normals )` returns the pair `( begin, end )`
+ * of the box `[ begin, end )` with the entities to be traversed,
+ * where `normals` are the normals of the entities.
+ */
+template< int EntityDimension, typename Grid, typename Func, typename GetBox >
+void
+forEntitiesInBoxes(
+   const Grid& grid,
+   Func func,
+   typename Grid::DeviceType::LaunchConfiguration launchConfiguration,
+   GetBox&& getBox )
+{
+   // The kernels are function objects instead of lambda functions, because nvcc does not allow local types
+   // (such as the type of getBox) in the template arguments of the functions with extended lambda functions.
+   using CoordinatesType = typename Grid::CoordinatesType;
+   using GridEntityType = typename Grid::template EntityType< EntityDimension >;
+   if constexpr( EntityDimension == Grid::getMeshDimension() || EntityDimension == 0 ) {
+      const EntitiesKernel< GridEntityType, Grid, Func > kernel{ func };
+      const auto box = getBox( CoordinatesType( EntityDimension == 0 ) );
+      Algorithms::parallelFor< typename Grid::DeviceType >( box.first, box.second, launchConfiguration, kernel, grid );
+   }
+   else {
+      forOrientedEntities< EntityDimension >(
+         grid,
+         func,
+         [ & ]( const auto& kernel, const auto& normals )
+         {
+            const auto box = getBox( normals );
+            Algorithms::parallelFor< typename Grid::DeviceType >( box.first, box.second, launchConfiguration, kernel, grid );
+         } );
+   }
+}
+
+/**
+ * \brief Traverses the entities on the boundary of the region `[ begin, end )`.
+ *
+ * Only the sides of the region given by the flags `lowerSides` and `upperSides` are considered as the boundary,
+ * see \ref TNL::Meshes::forBoundaryEntities. The region contains the entities with the normals `normals`
+ * and coordinates `c` such that `begin <= c < end + normals * upperSides`, i.e. the entities with nonzero
+ * normals at `end` belong to the region only if the upper side is on the boundary. This agrees with the
+ * local entities of a subdomain (see \ref TNL::Meshes::forLocalEntities) and, if all sides are on the boundary,
+ * with the region of \ref TNL::Meshes::forEntities.
+ */
+template< int EntityDimension, typename Grid, typename Func >
+void
+forBoundaryEntitiesOfRegion(
+   const Grid& grid,
+   const typename Grid::CoordinatesType& begin,
+   const typename Grid::CoordinatesType& end,
+   const typename Grid::BoundarySidesType& lowerSides,
+   const typename Grid::BoundarySidesType& upperSides,
+   Func func,
+   typename Grid::DeviceType::LaunchConfiguration launchConfiguration )
+{
+   // The boundary of the region is decomposed into disjoint layers, so that only the boundary entities are
+   // traversed. For each orientation, the entities lie in the box [ begin, end + normals * upperSides ). An entity is on
+   // the boundary if its coordinate along some boundary axis is the first one in the box and the lower side
+   // is on the boundary, or the last one and the upper side is on the boundary. The boundary axes are all axes
+   // for cells and the axes with nonzero normals for the other entities, which agrees with isBoundaryEntity.
+   // The layers of the k-th boundary axis exclude the boundary layers of the previous boundary axes, which were
+   // already traversed.
+   constexpr int Dimension = Grid::getMeshDimension();
+   using CoordinatesType = typename Grid::CoordinatesType;
+   forOrientedEntities< EntityDimension >(
+      grid,
+      func,
+      [ & ]( const auto& kernel, const auto& normals )
+      {
+         auto traverseLayer = [ & ]( const CoordinatesType& layerBegin, const CoordinatesType& layerEnd )
+         {
+            for( int i = 0; i < Dimension; i++ )
+               if( layerEnd[ i ] <= layerBegin[ i ] )
+                  return;
+            Algorithms::parallelFor< typename Grid::DeviceType >( layerBegin, layerEnd, launchConfiguration, kernel, grid );
+         };
+
+         const CoordinatesType regionBegin = begin;
+         CoordinatesType regionEnd = end;
+         for( int i = 0; i < Dimension; i++ )
+            if( upperSides[ i ] )
+               regionEnd[ i ] += normals[ i ];
+         CoordinatesType rangeBegin = regionBegin;
+         CoordinatesType rangeEnd = regionEnd;
+         for( int axis = 0; axis < Dimension; axis++ ) {
+            if( EntityDimension != Dimension && ! normals[ axis ] )
+               continue;
+            if( regionEnd[ axis ] <= regionBegin[ axis ] )
+               break;
+
+            CoordinatesType layerBegin = rangeBegin;
+            CoordinatesType layerEnd = rangeEnd;
+            if( lowerSides[ axis ] ) {
+               layerBegin[ axis ] = regionBegin[ axis ];
+               layerEnd[ axis ] = regionBegin[ axis ] + 1;
+               traverseLayer( layerBegin, layerEnd );
+            }
+
+            if( upperSides[ axis ] && ( ! lowerSides[ axis ] || regionEnd[ axis ] - 1 > regionBegin[ axis ] ) ) {
+               layerBegin[ axis ] = regionEnd[ axis ] - 1;
+               layerEnd[ axis ] = regionEnd[ axis ];
+               traverseLayer( layerBegin, layerEnd );
+            }
+
+            rangeBegin[ axis ] = regionBegin[ axis ] + ( lowerSides[ axis ] ? 1 : 0 );
+            rangeEnd[ axis ] = regionEnd[ axis ] - ( upperSides[ axis ] ? 1 : 0 );
+         }
       } );
 }
 
@@ -166,32 +297,32 @@ forInteriorEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
-   using GridType = Grid< Dimension, Real, Device, Index >;
-   using CoordinatesType = typename GridType::CoordinatesType;
-   using GridEntityType = typename GridType::template EntityType< EntityDimension >;
-   if constexpr( EntityDimension == Dimension || EntityDimension == 0 ) {
-      auto kernel = [ = ] __cuda_callable__( const CoordinatesType& coordinates, const GridType& kernelGrid ) mutable
+   // The interior entities are the local entities (see forLocalEntities) without the entities on the global
+   // boundary. Along an axis, the first layer is excluded if the lower side is on the global boundary and it is
+   // a boundary axis of the entity (all axes for cells, axes with nonzero normals for the other entities). The
+   // last layer of the cells is excluded if the upper side is on the global boundary. The local entities with
+   // nonzero normals along the axis do not reach beyond localEnd unless they lie on the global boundary.
+   using CoordinatesType = typename Grid< Dimension, Real, Device, Index >::CoordinatesType;
+   const CoordinatesType& localBegin = grid.getLocalBegin();
+   const CoordinatesType& localEnd = grid.getLocalEnd();
+   const auto& lower = grid.getLowerGlobalBoundarySides();
+   const auto& upper = grid.getUpperGlobalBoundarySides();
+   detail::forEntitiesInBoxes< EntityDimension >(
+      grid,
+      func,
+      launchConfiguration,
+      [ & ]( const auto& normals )
       {
-         GridEntityType entity( kernelGrid, coordinates );
-         func( entity );
-      };
-      Algorithms::parallelFor< Device >(
-         CoordinatesType( 1 ),
-         CoordinatesType( grid.getSizes() - CoordinatesType( EntityDimension != 0 ) ),
-         launchConfiguration,
-         kernel,
-         grid );
-   }
-   else {
-      detail::forOrientedEntities< EntityDimension >(
-         grid,
-         func,
-         [ & ]( const auto& kernel, const auto& normals )
-         {
-            const CoordinatesType orientedBegin = CoordinatesType( 0 ) + normals;
-            Algorithms::parallelFor< Device >( orientedBegin, grid.getSizes(), launchConfiguration, kernel, grid );
-         } );
-   }
+         CoordinatesType begin = localBegin;
+         CoordinatesType end = localEnd;
+         for( int i = 0; i < Dimension; i++ ) {
+            if( lower[ i ] && ( EntityDimension == Dimension || normals[ i ] ) )
+               begin[ i ]++;
+            if( upper[ i ] && EntityDimension == Dimension )
+               end[ i ]--;
+         }
+         return std::make_pair( begin, end );
+      } );
 }
 
 template< int EntityDimension, int Dimension, typename Real, typename Device, typename Index, typename Func >
@@ -201,8 +332,15 @@ forBoundaryEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
-   using CoordinatesType = typename Grid< Dimension, Real, Device, Index >::CoordinatesType;
-   forBoundaryEntities< EntityDimension >( grid, CoordinatesType( 0 ), grid.getSizes(), func, launchConfiguration );
+   // The boundary entities are the local entities (see forLocalEntities) on the sides on the global boundary.
+   detail::forBoundaryEntitiesOfRegion< EntityDimension >(
+      grid,
+      grid.getLocalBegin(),
+      grid.getLocalEnd(),
+      grid.getLowerGlobalBoundarySides(),
+      grid.getUpperGlobalBoundarySides(),
+      func,
+      launchConfiguration );
 }
 
 template< int EntityDimension, int Dimension, typename Real, typename Device, typename Index, typename Func >
@@ -214,52 +352,9 @@ forBoundaryEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
-   // The boundary of the region is decomposed into disjoint layers, so that only the boundary entities are
-   // traversed. For each orientation, the entities lie in the box [ begin, end + normals ). An entity is on
-   // the boundary if its coordinate along some boundary axis is the first or the last one in the box. The
-   // boundary axes are all axes for cells and the axes with nonzero normals for the other entities, which
-   // agrees with isBoundaryEntity. The layers of the k-th boundary axis exclude the first and the last
-   // positions along the previous boundary axes, which were already traversed.
-   using CoordinatesType = typename Grid< Dimension, Real, Device, Index >::CoordinatesType;
-   detail::forOrientedEntities< EntityDimension >(
-      grid,
-      func,
-      [ & ]( const auto& kernel, const auto& normals )
-      {
-         auto traverseLayer = [ & ]( const CoordinatesType& layerBegin, const CoordinatesType& layerEnd )
-         {
-            for( int i = 0; i < Dimension; i++ )
-               if( layerEnd[ i ] <= layerBegin[ i ] )
-                  return;
-            Algorithms::parallelFor< Device >( layerBegin, layerEnd, launchConfiguration, kernel, grid );
-         };
-
-         const CoordinatesType regionBegin = begin;
-         const CoordinatesType regionEnd = end + normals;
-         CoordinatesType rangeBegin = regionBegin;
-         CoordinatesType rangeEnd = regionEnd;
-         for( int axis = 0; axis < Dimension; axis++ ) {
-            if( EntityDimension != Dimension && ! normals[ axis ] )
-               continue;
-            if( regionEnd[ axis ] <= regionBegin[ axis ] )
-               break;
-
-            CoordinatesType layerBegin = rangeBegin;
-            CoordinatesType layerEnd = rangeEnd;
-            layerBegin[ axis ] = regionBegin[ axis ];
-            layerEnd[ axis ] = regionBegin[ axis ] + 1;
-            traverseLayer( layerBegin, layerEnd );
-
-            if( regionEnd[ axis ] - 1 > regionBegin[ axis ] ) {
-               layerBegin[ axis ] = regionEnd[ axis ] - 1;
-               layerEnd[ axis ] = regionEnd[ axis ];
-               traverseLayer( layerBegin, layerEnd );
-            }
-
-            rangeBegin[ axis ] = regionBegin[ axis ] + 1;
-            rangeEnd[ axis ] = regionEnd[ axis ] - 1;
-         }
-      } );
+   using BoundarySidesType = typename Grid< Dimension, Real, Device, Index >::BoundarySidesType;
+   detail::forBoundaryEntitiesOfRegion< EntityDimension >(
+      grid, begin, end, BoundarySidesType( true ), BoundarySidesType( true ), func, launchConfiguration );
 }
 
 template< int EntityDimension, int Dimension, typename Real, typename Device, typename Index, typename Func >
@@ -269,7 +364,24 @@ forLocalEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
-   forEntities< EntityDimension >( grid, grid.getLocalBegin(), grid.getLocalEnd(), func, launchConfiguration );
+   // The entities with coordinates c are owned by the subdomain which owns the cell c. The entities with nonzero
+   // normals at localEnd have no cell in the subdomain, they are owned by this subdomain only on the global boundary.
+   using CoordinatesType = typename Grid< Dimension, Real, Device, Index >::CoordinatesType;
+   const CoordinatesType& localBegin = grid.getLocalBegin();
+   const CoordinatesType& localEnd = grid.getLocalEnd();
+   const auto& upper = grid.getUpperGlobalBoundarySides();
+   detail::forEntitiesInBoxes< EntityDimension >(
+      grid,
+      func,
+      launchConfiguration,
+      [ & ]( const auto& normals )
+      {
+         CoordinatesType end = localEnd;
+         for( int i = 0; i < Dimension; i++ )
+            if( upper[ i ] )
+               end[ i ] += normals[ i ];
+         return std::make_pair( localBegin, end );
+      } );
 }
 
 // Deprecated member functions of Grid. They are defined here, because they call the free functions declared above.
