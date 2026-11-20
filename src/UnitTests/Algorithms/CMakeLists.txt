@@ -30,6 +30,7 @@ endforeach()
 
 tnl_add_test_executables(AtomicOperationsTest SOURCES AtomicOperationsTest.cpp BACKENDS HOST)
 tnl_add_test_executables(SegmentedScanTest SOURCES SegmentedScanTest.h BACKENDS HOST)
+tnl_add_test_executables(pivotPartitionTest SOURCES pivotPartitionTest.h BACKENDS HOST)
 
 foreach(test IN ITEMS ${BACKEND_TESTS})
     tnl_add_test_executables(${test} SOURCES ${test}.h)
