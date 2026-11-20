@@ -306,4 +306,29 @@ Alltoall( const T* sendData, int sendCount, T* receiveData, int receiveCount, MP
 #endif
 }
 
+template< typename T >
+void
+Allgather( const T* sendData, int sendCount, T* receiveData, int receiveCount, MPI_Comm communicator = MPI_COMM_WORLD )
+{
+   if( communicator == MPI_COMM_NULL )
+      throw std::invalid_argument( "Allgather cannot be called with MPI_COMM_NULL" );
+#ifdef HAVE_MPI
+   if( ! Initialized() || Finalized() )
+      throw std::logic_error( "MPI is not initialized" );
+   MPI_Allgather(
+      reinterpret_cast< const void* >( sendData ),
+      sendCount,
+      getDataType< T >(),
+      reinterpret_cast< void* >( receiveData ),
+      receiveCount,
+      getDataType< T >(),
+      communicator );
+#else
+   if( sendCount != receiveCount )
+      throw std::invalid_argument( "Allgather: sendCount must be equal to receiveCount when running without MPI" );
+   std::memcpy(
+      reinterpret_cast< void* >( receiveData ), reinterpret_cast< const void* >( sendData ), sendCount * sizeof( T ) );
+#endif
+}
+
 }  // namespace TNL::MPI

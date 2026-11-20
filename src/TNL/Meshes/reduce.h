@@ -155,6 +155,68 @@ template<
 auto
 reduce( const Grid< Dimension, Real, Device, Index >& grid, Fetch fetch, Reduction reduction = TNL::Plus{} );
 
+/**
+ * \brief Computes the reduction of values given by the function `fetch` over the grid entities
+ * with the given dimension owned by the local subdomain of the grid.
+ *
+ * The entities are the same as in \ref forLocalEntities.
+ * For a subdomain of a distributed grid,
+ * each entity of the global grid is owned by exactly one subdomain,
+ * so the results of all subdomains can be combined to the reduction over the global grid
+ * (see \ref TNL::Meshes::reduce for \ref TNL::Meshes::DistributedMeshes::DistributedMesh "distributed grids").
+ * For a grid which is not a subdomain of a distributed grid,
+ * the reduction is computed over all entities of the grid.
+ * The functions are called in the same way as in \ref reduce.
+ *
+ * \tparam EntityDimension is the dimension of the grid entities.
+ * \param grid is the grid.
+ * \param fetch is the function called as `fetch( entity )` returning the value of each entity.
+ * \param reduction is the function combining two values, for example \ref TNL::Plus.
+ * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
+ *        of the reduction operation.
+ * \return The result of the reduction, `identity` if there are no local entities.
+ */
+template<
+   int EntityDimension,
+   int Dimension,
+   typename Real,
+   typename Device,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename Result >
+Result
+reduceLocalEntities(
+   const Grid< Dimension, Real, Device, Index >& grid,
+   Fetch fetch,
+   Reduction reduction,
+   const Result& identity );
+
+/**
+ * \brief Computes the reduction of values given by the function `fetch` over the grid entities
+ * with the given dimension owned by the local subdomain of the grid, with a reduction function object.
+ *
+ * The identity element is obtained from the reduction function object
+ * (see \ref ReductionFunctionObjects).
+ * Otherwise, it is the same as the \ref reduceLocalEntities function with the identity element.
+ *
+ * \tparam EntityDimension is the dimension of the grid entities.
+ * \param grid is the grid.
+ * \param fetch is the function called as `fetch( entity )` returning the value of each entity.
+ * \param reduction is the reduction function object, for example \ref TNL::Plus or \ref TNL::Max.
+ * \return The result of the reduction.
+ */
+template<
+   int EntityDimension,
+   int Dimension,
+   typename Real,
+   typename Device,
+   typename Index,
+   typename Fetch,
+   typename Reduction = TNL::Plus >
+auto
+reduceLocalEntities( const Grid< Dimension, Real, Device, Index >& grid, Fetch fetch, Reduction reduction = TNL::Plus{} );
+
 }  // namespace TNL::Meshes
 
 #include <TNL/Meshes/GridDetails/reduce.hpp>

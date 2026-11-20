@@ -192,4 +192,66 @@ reduce( const Grid< Dimension, Real, Device, Index >& grid, Fetch fetch, Reducti
    return reduce< EntityDimension >( grid, CoordinatesType( 0 ), grid.getSizes(), fetch, reduction );
 }
 
+template<
+   int EntityDimension,
+   int Dimension,
+   typename Real,
+   typename Device,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename Result >
+Result
+reduceLocalEntities(
+   const Grid< Dimension, Real, Device, Index >& grid,
+   Fetch fetch,
+   Reduction reduction,
+   const Result& identity )
+{
+   // The local entities with the normal vector `normals` lie in the box [ localBegin, localEnd + normals * upper ),
+   // where upper are the flags of the upper sides on the global boundary, see forLocalEntities.
+   using GridType = Grid< Dimension, Real, Device, Index >;
+   using CoordinatesType = typename GridType::CoordinatesType;
+   using GridEntityType = typename GridType::template EntityType< EntityDimension >;
+   const CoordinatesType& localBegin = grid.getLocalBegin();
+   const auto& upper = grid.getUpperGlobalBoundarySides();
+   auto getEnd = [ & ]( const auto& normals )
+   {
+      CoordinatesType end = grid.getLocalEnd();
+      for( int i = 0; i < Dimension; i++ )
+         if( upper[ i ] )
+            end[ i ] += normals[ i ];
+      return end;
+   };
+   if constexpr( EntityDimension == Dimension || EntityDimension == 0 ) {
+      return detail::reduceBox< GridEntityType, -1 >(
+         grid, localBegin, getEnd( CoordinatesType( EntityDimension == 0 ) ), fetch, reduction, identity );
+   }
+   else {
+      using EntitiesOrientations = typename GridType::EntitiesOrientations;
+      constexpr int orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
+      constexpr int totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
+      Result result = identity;
+      Algorithms::staticFor< int, 0, orientationsCount >(
+         [ & ]( auto orientation )
+         {
+            constexpr int totalOrientationIdx = totalOrientationsBegin + decltype( orientation )::value;
+            result = reduction(
+               result,
+               detail::reduceBox< GridEntityType, totalOrientationIdx >(
+                  grid, localBegin, getEnd( grid.getNormals( totalOrientationIdx ) ), fetch, reduction, identity ) );
+         } );
+      return result;
+   }
+}
+
+template< int EntityDimension, int Dimension, typename Real, typename Device, typename Index, typename Fetch, typename Reduction >
+auto
+reduceLocalEntities( const Grid< Dimension, Real, Device, Index >& grid, Fetch fetch, Reduction reduction )
+{
+   using GridEntityType = typename Grid< Dimension, Real, Device, Index >::template EntityType< EntityDimension >;
+   using Result = std::decay_t< decltype( fetch( std::declval< GridEntityType& >() ) ) >;
+   return reduceLocalEntities< EntityDimension >( grid, fetch, reduction, reduction.template getIdentity< Result >() );
+}
+
 }  // namespace TNL::Meshes
