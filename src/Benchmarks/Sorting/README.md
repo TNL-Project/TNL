@@ -1,6 +1,8 @@
 # Sorting Benchmark
 
-Performance benchmark for comparing different sorting algorithms on CPU and GPU.
+Performance benchmark for comparing different sorting algorithms on CPU and GPU,
+and a benchmark of the three-way `pivotPartition` operation (see
+[Pivot partition benchmark](#pivot-partition-benchmark)).
 
 ## Supported algorithms
 
@@ -120,3 +122,78 @@ Use the `plot-results.py` script to generate performance plots:
 
 The script generates PDF plots showing time vs. array size for each algorithm and distribution.
 Different line styles represent different value types.
+
+## Pivot partition benchmark
+
+The `tnl-benchmark-pivot-partition` executable benchmarks the
+`TNL::Algorithms::pivotPartition` operation, which splits an array into elements
+less than, equivalent to, and greater than a pivot value. No full sort is
+measured - each timed invocation performs only the partitioning.
+
+### Performers
+
+Host:
+
+- **std::partition x2** – two applications of `std::partition`: the first one on
+  `compare(value, pivot)`, the second one on the remaining range with
+  `!compare(pivot, value)`
+- **TNL in-place** – `pivotPartition(data, pivot)`
+- **TNL out-of-place** – `pivotPartition(input, output, pivot)` with the output
+  array preallocated outside of the timed operation
+
+CUDA (GPU):
+
+- **TNL in-place** – `pivotPartition(data, pivot)`, including the internal
+  scratch allocation (the scratch array of `N` elements is part of the real
+  cost of the in-place GPU overload)
+- **TNL out-of-place** – `pivotPartition(input, output, pivot)` with the output
+  array preallocated outside of the timed operation
+
+Every performer partitions the same input with the same pivot (the middle
+element of the input). The input is reset before each timed invocation, outside
+of the timed section.
+
+The result of each performer is verified after the timing, outside of the timed
+lambda: every output element must satisfy the predicate of its bucket and the
+output must be a permutation of the input (compared via sorted host copies).
+The order of the elements within the buckets is not checked, since the
+partitioning is not stable.
+
+### Distributions
+
+The benchmark uses a subset of the distributions listed above: `random`,
+`sorted`, `decreasing`, `bucket` and `zero-entropy`.
+
+### Compilation
+
+```bash
+# Build CPU-only benchmark
+just build tnl-benchmark-pivot-partition
+
+# Build CUDA-enabled benchmark
+just build tnl-benchmark-pivot-partition-cuda
+```
+
+### Running
+
+```bash
+# Run with default parameters (1M elements, int type) on the host
+./build/bin/tnl-benchmark-pivot-partition --device host
+
+# Run on the GPU with a custom size
+./build/bin/tnl-benchmark-pivot-partition-cuda --device cuda --size 1048576
+```
+
+The benchmark supports the same general options as the sorting benchmark
+(`--log-file`, `--output-mode`, `--loops`, `--verbose`) and the following
+benchmark-specific options:
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--size <n>` | Array size | `1048576` (2^20) |
+| `--device <device>` | Device to use (`host`, `cuda`, `hip`, `all`) | `all` |
+| `--value-type <type>` | Value type (`int`, `uint`, `double`, `all`) | `int` |
+
+The benchmark outputs timing measurements in the same JSONL format as the
+sorting benchmark, with the same metadata keys (distribution, value type,
+device, performer, time, ...).

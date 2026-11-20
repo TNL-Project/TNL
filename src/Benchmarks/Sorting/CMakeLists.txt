@@ -17,6 +17,16 @@ if(TARGET tnl-benchmark-sort-cuda AND CUDA_SAMPLES_FOUND)
     target_compile_definitions(tnl-benchmark-sort-cuda PRIVATE HAVE_CUDA_SAMPLES)
 endif()
 
+# OPTIONAL_HOST skips building host-only targets in CUDA-enabled CI jobs
+tnl_add_backend_executables(
+    tnl-benchmark-pivot-partition
+    SOURCES tnl-benchmark-pivot-partition.h
+    OPTIONAL_HOST
+    OUTPUT_TARGETS PIVOT_PARTITION_BENCHMARKS
+)
+
+list(APPEND BENCHMARKS ${PIVOT_PARTITION_BENCHMARKS})
+
 if(BENCHMARKS)
     install(TARGETS ${BENCHMARKS} RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
