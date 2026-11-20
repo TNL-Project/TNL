@@ -6,9 +6,8 @@
 #include <utility>
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
+#include <TNL/Algorithms/detail/PivotPartitionBlock.h>
 #include <TNL/Atomic.h>
-#include <TNL/Functional.h>
 #include "QuicksortTask.h"
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
@@ -47,78 +46,6 @@ pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare
    }
 }
 
-template< typename Value, typename Index, typename Compare >
-__device__
-void
-countElements(
-   Containers::ArrayView< Value, Devices::Cuda, Index > arr,
-   const Compare& compare,
-   int& smaller,
-   int& bigger,
-   const Value& pivot )
-{
-   for( Index i = threadIdx.x; i < arr.getSize(); i += blockDim.x ) {
-      const Value& data = arr[ i ];
-      if( compare( data, pivot ) )
-         smaller++;
-      else if( compare( pivot, data ) )
-         bigger++;
-   }
-}
-
-template< typename Value, typename Index, typename Compare >
-__device__
-void
-copyDataShared(
-   Containers::ArrayView< Value, Devices::Cuda, Index > src,
-   Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-   const Compare& compare,
-   Value* sharedMem,
-   typename QuicksortTask< Index >::Offset smallerStart,
-   typename QuicksortTask< Index >::Offset biggerStart,
-   int smallerTotal,
-   int biggerTotal,
-   int smallerOffset,
-   int biggerOffset,  // exclusive prefix sum of elements
-   const Value& pivot )
-{
-   for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
-      const Value& data = src[ i ];
-      if( compare( data, pivot ) )
-         sharedMem[ smallerOffset++ ] = data;
-      else if( compare( pivot, data ) )
-         sharedMem[ smallerTotal + biggerOffset++ ] = data;
-   }
-   __syncthreads();
-
-   for( int i = threadIdx.x; i < smallerTotal + biggerTotal; i += blockDim.x ) {
-      if( i < smallerTotal )
-         dst[ smallerStart + i ] = sharedMem[ i ];
-      else
-         dst[ biggerStart + i - smallerTotal ] = sharedMem[ i ];
-   }
-}
-
-template< typename Value, typename Index, typename Compare >
-__device__
-void
-copyData(
-   Containers::ArrayView< Value, Devices::Cuda, Index > src,
-   Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-   const Compare& compare,
-   typename QuicksortTask< Index >::Offset smallerStart,
-   typename QuicksortTask< Index >::Offset biggerStart,
-   const Value& pivot )
-{
-   for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
-      const Value& data = src[ i ];
-      if( compare( data, pivot ) )
-         dst[ smallerStart++ ] = data;
-      else if( compare( pivot, data ) )
-         dst[ biggerStart++ ] = data;
-   }
-}
-
 template< typename Value, typename Index, typename Compare, bool useShared >
 __device__
 void
@@ -141,51 +68,28 @@ cudaPartition(
 
    auto srcView = src.getView( myBegin, myEnd );
 
-   int smaller = 0;
-   int bigger = 0;
-   countElements( srcView, compare, smaller, bigger, pivot );
-
-   // synchronization is in this function already
-   using BlockScan = Algorithms::detail::GPUBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
-   __shared__ BlockScan::Storage storage;
-   int smallerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, smaller, threadIdx.x, storage );
-   int biggerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, bigger, threadIdx.x, storage );
+   const auto scan =
+      Algorithms::detail::scanPivotPartitionBlock< Algorithms::detail::PivotPartitionEqualPolicy::FillLater, int >(
+         srcView, pivot, compare );
 
    if( threadIdx.x == blockDim.x - 1 )  // last thread in block has sum of all values
    {
-      smallerStart = atomicAdd( &( task.dstBegin ), static_cast< Offset >( smallerPrefSumInc ) );
-      biggerStart =
-         atomicAdd( &( task.dstEnd ), -static_cast< Offset >( biggerPrefSumInc ) ) - static_cast< Offset >( biggerPrefSumInc );
+      smallerStart = atomicAdd( &( task.dstBegin ), static_cast< Offset >( scan.inclusive.less ) );
+      biggerStart = atomicAdd( &( task.dstEnd ), -static_cast< Offset >( scan.inclusive.greater ) )
+                  - static_cast< Offset >( scan.inclusive.greater );
    }
    __syncthreads();
 
-   if( useShared ) {
-      static __shared__ int smallerTotal;
-      static __shared__ int biggerTotal;
-      if( threadIdx.x == blockDim.x - 1 ) {
-         smallerTotal = smallerPrefSumInc;
-         biggerTotal = biggerPrefSumInc;
-      }
-      __syncthreads();
-
-      copyDataShared(
-         srcView,
-         dst,
-         compare,
-         sharedMem,
-         smallerStart,
-         biggerStart,
-         smallerTotal,
-         biggerTotal,
-         smallerPrefSumInc - smaller,
-         biggerPrefSumInc - bigger,  // exclusive prefix sum of elements
-         pivot );
-   }
-   else {
-      Offset destSmaller = smallerStart + static_cast< Offset >( smallerPrefSumInc - smaller );
-      Offset destBigger = biggerStart + static_cast< Offset >( biggerPrefSumInc - bigger );
-      copyData( srcView, dst, compare, destSmaller, destBigger, pivot );
-   }
+   Algorithms::detail::scatterPivotPartitionBlock< Algorithms::detail::PivotPartitionEqualPolicy::FillLater, useShared >(
+      srcView,
+      dst,
+      pivot,
+      compare,
+      scan,
+      static_cast< Index >( smallerStart ),
+      0,
+      static_cast< Index >( biggerStart ),
+      sharedMem );
 }
 
 #endif

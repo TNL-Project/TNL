@@ -439,6 +439,46 @@ TYPED_TEST( SorterTest, noLostElement_bigSizedArray )
 }
 
 // =============================================================================
+// Quicksort partition-boundary tests
+// =============================================================================
+
+// Sizes around the quicksort phase boundaries (elements per block, maximum
+// bitonic size) and around whole tiles of the first phase. The values are
+// drawn from a small range, so many elements are equivalent to the pivot and
+// the equal ranges are filled with the pivot instead of being scattered.
+class QuicksortBoundarySizes : public ::testing::TestWithParam< int >
+{};
+
+TEST_P( QuicksortBoundarySizes, quicksortDuplicates )
+{
+   const int size = GetParam();
+   std::mt19937 rng( size );
+   std::vector< int > vec( size );
+   std::generate(
+      vec.begin(),
+      vec.end(),
+      [ & ]()
+      {
+         return rng() % 16;
+      } );
+
+   TNL::Containers::Array< int, TNL::Devices::GPU > arr( vec );
+   auto view = arr.getView();
+   experimental::Quicksort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for size " << size;
+
+   // the sorted array must be an exact permutation (multiset) of the input
+   std::sort( vec.begin(), vec.end() );
+   TNL::Containers::Array< int, TNL::Devices::GPU > sortedArr( vec );
+   EXPECT_TRUE( view == sortedArr.getView() ) << "failed for size " << size;
+}
+
+INSTANTIATE_TEST_SUITE_P(
+   sorterTests,
+   QuicksortBoundarySizes,
+   ::testing::Values( 1023, 1024, 1025, 4095, 4096, 4097, 8191, 8192, 8193 ) );
+
+// =============================================================================
 // Value type tests
 // =============================================================================
 

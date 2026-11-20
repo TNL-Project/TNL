@@ -6,8 +6,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Assert.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
-#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
-#include <TNL/Functional.h>
+#include <TNL/Algorithms/detail/PivotPartitionBlock.h>
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
@@ -130,20 +129,14 @@ singleBlockQuickSort(
       __syncthreads();
       Value& pivot = *piv;
 
-      int smaller = 0;
-      int bigger = 0;
-      countElements( src.getView( begin, end ), compare, smaller, bigger, pivot );
-
-      // synchronization is in this function already
-      using BlockScan = Algorithms::detail::GPUBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
-      __shared__ BlockScan::Storage storage;
-      int smallerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, smaller, threadIdx.x, storage );
-      int biggerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, bigger, threadIdx.x, storage );
+      const auto scan =
+         Algorithms::detail::scanPivotPartitionBlock< Algorithms::detail::PivotPartitionEqualPolicy::FillLater, int >(
+            src.getView( begin, end ), pivot, compare );
 
       if( threadIdx.x == blockDim.x - 1 )  // has sum of all smaller and greater elements than pivot in src
       {
-         pivotBegin = static_cast< Index >( smallerPrefSumInc );
-         pivotEnd = size - static_cast< Index >( biggerPrefSumInc );
+         pivotBegin = static_cast< Index >( scan.total.less );
+         pivotEnd = size - static_cast< Index >( scan.total.greater );
       }
       __syncthreads();
 
@@ -152,36 +145,36 @@ singleBlockQuickSort(
       auto& dst = ( iteration & 1 ) == 0 ? aux : arr;
 
       if( useShared && size <= memSize ) {
-         static __shared__ int smallerTotal;
-         static __shared__ int biggerTotal;
-         if( threadIdx.x == blockDim.x - 1 ) {
-            smallerTotal = smallerPrefSumInc;
-            biggerTotal = biggerPrefSumInc;
-         }
-         __syncthreads();
-
-         copyDataShared(
+         Algorithms::detail::scatterPivotPartitionBlock< Algorithms::detail::PivotPartitionEqualPolicy::FillLater, true >(
             src.getView( begin, end ),
             dst.getView( begin, end ),
+            pivot,
             compare,
-            sharedMem,
-            static_cast< Index >( 0 ),
+            scan,
+            0,
+            0,  // equalOutputBegin is unused with FillLater
             pivotEnd,
-            smallerTotal,
-            biggerTotal,
-            smallerPrefSumInc - smaller,
-            biggerPrefSumInc - bigger,  // exclusive prefix sum of elements
-            pivot );
+            sharedMem );
       }
       else {
-         Index destSmaller = static_cast< Index >( smallerPrefSumInc - smaller );
-         Index destBigger = pivotEnd + static_cast< Index >( biggerPrefSumInc - bigger );
-
-         copyData( src.getView( begin, end ), dst.getView( begin, end ), compare, destSmaller, destBigger, pivot );
+         Algorithms::detail::scatterPivotPartitionBlock< Algorithms::detail::PivotPartitionEqualPolicy::FillLater, false >(
+            src.getView( begin, end ),
+            dst.getView( begin, end ),
+            pivot,
+            compare,
+            scan,
+            0,
+            0,  // equalOutputBegin is unused with FillLater
+            pivotEnd,
+            sharedMem );
       }
 
       __syncthreads();
 
+      // arr is the canonical output buffer of this sorter and aux is only
+      // scratch: the partition scatters into dst (the other buffer) and the
+      // sub-partitions are resolved back into arr, so the equal middle must
+      // be filled in arr, never in dst
       for( Index i = pivotBegin + threadIdx.x; i < pivotEnd; i += blockDim.x )
          arr[ begin + i ] = pivot;
 
