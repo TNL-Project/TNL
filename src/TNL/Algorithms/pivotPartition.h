@@ -79,8 +79,12 @@ struct PivotPartitionResult
  * The operation completes synchronously - when the function returns, `data`
  * contains the partitioned data.
  *
- * Complexity: `O( N )` time and `O( 1 )` auxiliary storage, where `N` is the
- * size of `data`.
+ * Complexity: `O( N )` time, where `N` is the size of `data`. The auxiliary
+ * storage depends on the device: the host implementation partitions in
+ * place with `O( 1 )` auxiliary storage, while the GPU implementation
+ * partitions into a scratch array of `N` elements and copies the result
+ * back to `data`, i.e. it needs `O( N + B )` auxiliary storage in total,
+ * where `B = ceil( N / 1024 )` is the number of GPU blocks.
  *
  * \tparam Array is a type of container to be partitioned. It can be, for
  *         example, \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -155,8 +159,12 @@ pivotPartition( Array& data, const typename Array::ValueType& pivot, const Compa
  * The operation completes synchronously - when the function returns,
  * `output` contains the partitioned data.
  *
- * Complexity: `O( N )` time, two passes over the input and `O( 1 )`
- * auxiliary storage, where `N` is the size of `input`.
+ * Complexity: `O( N )` time, where `N` is the size of `input`. The host
+ * implementation makes two passes over the input and needs `O( 1 )`
+ * auxiliary storage. The GPU implementation processes the input in two
+ * kernel passes with a device-wide scan of the per-block counts, i.e.
+ * `O( N + B )` work and `O( B )` auxiliary storage (excluding the supplied
+ * output), where `B = ceil( N / 1024 )` is the number of GPU blocks.
  *
  * \tparam InputArray is a type of container with the input elements. It can
  *         be, for example, \ref TNL::Containers::Array,
