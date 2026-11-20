@@ -1046,7 +1046,7 @@ static int kperf_init(){
 }
 
 // This is for testing of counters_mapping
-bool test_kperf_counters_mapping()
+inline bool test_kperf_counters_mapping()
 {
     for (usize i = 0; i < ev_count; i++) {
         const event_alias *alias = profile_events + i;
@@ -1067,7 +1067,7 @@ bool test_kperf_counters_mapping()
     return true;
 }
 
-bool start_kperf_counters()
+inline bool start_kperf_counters()
 {
     // start counting
     int ret = 0;
@@ -1082,7 +1082,7 @@ bool start_kperf_counters()
     return true;
 }
 
-void stop_kperf_counters()
+inline void stop_kperf_counters()
 {
     // stop counting
     kpc_set_counting(0);
@@ -1090,7 +1090,7 @@ void stop_kperf_counters()
     kpc_force_all_ctrs_set(0);
 }
 
-bool get_kperf_counters( unsigned long long int& cpu_cycles,
+inline bool get_kperf_counters( unsigned long long int& cpu_cycles,
                          unsigned long long int& instructions,
                          unsigned long long int& branches,
                          unsigned long long int& branch_misses )

@@ -4,8 +4,9 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Atomic.h>
+#include <TNL/Functional.h>
 #include "QuicksortTask.h"
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
@@ -175,7 +176,7 @@ cudaPartition(
    countElements( srcView, compare, smaller, bigger, pivot );
 
    // synchronization is in this function already
-   using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
+   using BlockScan = Algorithms::detail::GPUBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
    __shared__ BlockScan::Storage storage;
    int smallerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, smaller, threadIdx.x, storage );
    int biggerPrefSumInc = BlockScan::scan( TNL::Plus(), 0, bigger, threadIdx.x, storage );

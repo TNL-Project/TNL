@@ -13,7 +13,11 @@ namespace TNL::Algorithms::detail {
 template< typename Element, typename Index >
 __cuda_callable__
 void
-Fill< Devices::Sequential >::fill( Element* data, const Element& value, Index size )
+Fill< Devices::Sequential >::fill(
+   Element* data,
+   const Element& value,
+   Index size,
+   [[maybe_unused]] Devices::Sequential::LaunchConfiguration launch_config )
 {
    if( size == 0 )
       return;
@@ -24,7 +28,7 @@ Fill< Devices::Sequential >::fill( Element* data, const Element& value, Index si
 
 template< typename Element, typename Index >
 void
-Fill< Devices::Host >::fill( Element* data, const Element& value, Index size )
+Fill< Devices::Host >::fill( Element* data, const Element& value, Index size, Devices::Host::LaunchConfiguration launch_config )
 {
    if( size == 0 )
       return;
@@ -33,12 +37,12 @@ Fill< Devices::Host >::fill( Element* data, const Element& value, Index size )
    {
       data[ i ] = value;
    };
-   parallelFor< Devices::Host >( 0, size, kernel );
+   parallelFor< Devices::Host >( 0, size, launch_config, kernel );
 }
 
 template< typename Element, typename Index >
 void
-Fill< Devices::Cuda >::fill( Element* data, const Element& value, Index size )
+Fill< Devices::Cuda >::fill( Element* data, const Element& value, Index size, Devices::Cuda::LaunchConfiguration launch_config )
 {
    if( size == 0 )
       return;
@@ -47,7 +51,7 @@ Fill< Devices::Cuda >::fill( Element* data, const Element& value, Index size )
    {
       data[ i ] = value;
    };
-   parallelFor< Devices::Cuda >( 0, size, kernel );
+   parallelFor< Devices::Cuda >( 0, size, launch_config, kernel );
 }
 
 }  // namespace TNL::Algorithms::detail

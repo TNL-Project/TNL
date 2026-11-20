@@ -6,7 +6,7 @@
 #include <utility>  // std::forward
 
 #include "Scan.h"
-#include "CudaScanKernel.h"
+#include "GPUScan.h"
 
 #include <TNL/Assert.h>
 #include <TNL/Containers/Array.h>
@@ -25,7 +25,8 @@ Scan< Devices::Sequential, Type, PhaseType >::perform(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   [[maybe_unused]] Devices::Sequential::LaunchConfiguration launch_config )
 {
    using ValueType = typename OutputArray::ValueType;
 
@@ -38,7 +39,9 @@ Scan< Devices::Sequential, Type, PhaseType >::perform(
    else  // Exclusive scan
    {
       for( ; begin < end; begin++, outputBegin++ ) {
-         const ValueType x = input[ begin ];
+         // the copy is necessary for the in-place scan, where writing the
+         // output overwrites the input
+         const ValueType x = input[ begin ];  // NOLINT(performance-unnecessary-copy-initialization)
          output[ outputBegin ] = aux;
          aux = reduction( aux, x );
       }
@@ -119,7 +122,8 @@ Scan< Devices::Host, Type, PhaseType >::perform(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   [[maybe_unused]] Devices::Host::LaunchConfiguration launch_config )
 {
 #ifdef HAVE_OPENMP
    using ValueType = typename OutputArray::ValueType;
@@ -324,13 +328,14 @@ Scan< Devices::Cuda, Type, PhaseType >::perform(
    typename InputArray::IndexType end,
    typename OutputArray::IndexType outputBegin,
    Reduction&& reduction,
-   typename OutputArray::ValueType identity )
+   typename OutputArray::ValueType identity,
+   Devices::Cuda::LaunchConfiguration launch_config )
 {
    if( end <= begin )
       return;
 
-   detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::perform(
-      input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
+   detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::perform(
+      input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, launch_config );
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >
@@ -345,13 +350,7 @@ Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase(
    Reduction&& reduction,
    typename OutputArray::ValueType identity )
 {
-   if( end <= begin ) {
-      Containers::Array< typename OutputArray::ValueType, Devices::Cuda > block_results( 1 );
-      block_results.setValue( identity );
-      return block_results;
-   }
-
-   return detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performFirstPhase(
+   return detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performFirstPhase(
       input, output, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity );
 }
 
@@ -372,7 +371,7 @@ Scan< Devices::Cuda, Type, PhaseType >::performSecondPhase(
    if( end <= begin )
       return;
 
-   detail::CudaScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performSecondPhase(
+   detail::GPUScanKernelLauncher< Type, PhaseType, typename OutputArray::ValueType >::performSecondPhase(
       input, output, blockShifts, begin, end, outputBegin, std::forward< Reduction >( reduction ), identity, shift );
 }
 
