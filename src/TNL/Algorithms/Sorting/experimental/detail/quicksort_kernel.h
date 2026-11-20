@@ -154,7 +154,7 @@ cudaInitTask(
       pivotIdx = pickSampledPivotIdx( task.partitionBegin, taskSize, nSamples, samples, compare );
    }
    else {
-      pivotIdx = task.partitionBegin + pickPivotIdx( src.getView( task.partitionBegin, task.partitionEnd ), compare );
+      pivotIdx = task.partitionBegin + pickPivot( src.getView( task.partitionBegin, task.partitionEnd ), compare ).second;
    }
 
    if( threadIdx.x == 0 )

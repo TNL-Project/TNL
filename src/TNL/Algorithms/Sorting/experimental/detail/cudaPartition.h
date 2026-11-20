@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/detail/GPUScan/GPUBlockScan.h>
 #include <TNL/Atomic.h>
@@ -15,43 +17,11 @@ namespace TNL::Algorithms::Sorting::experimental::detail {
 
 template< typename Value, typename Index, typename Device, typename Compare >
 __device__
-Value
+std::pair< Value, Index >
 pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare& compare )
 {
-   if( src.getSize() == 1 )
-      return src[ 0 ];
-
-   const Value& a = src[ 0 ];
-   const Value& b = src[ src.getSize() / 2 ];
-   const Value& c = src[ src.getSize() - 1 ];
-
-   if( compare( a, b ) )  // ..a..b..
-   {
-      if( compare( b, c ) )  // ..a..b..c
-         return b;
-      else if( compare( c, a ) )  //..c..a..b..
-         return a;
-      else  //..a..c..b..
-         return c;
-   }
-   else  //..b..a..
-   {
-      if( compare( a, c ) )  //..b..a..c
-         return a;
-      else if( compare( c, b ) )  //..c..b..a..
-         return b;
-      else  //..b..c..a..
-         return c;
-   }
-}
-
-template< typename Value, typename Index, typename Device, typename Compare >
-__device__
-Index
-pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare& compare )
-{
    if( src.getSize() <= 1 )
-      return 0;
+      return { src[ 0 ], 0 };
 
    const Value& a = src[ 0 ];
    const Value& b = src[ src.getSize() / 2 ];
@@ -60,20 +30,20 @@ pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const Comp
    if( compare( a, b ) )  // ..a..b..
    {
       if( compare( b, c ) )  // ..a..b..c
-         return src.getSize() / 2;
+         return { b, src.getSize() / 2 };
       else if( compare( c, a ) )  //..c..a..b..
-         return 0;
+         return { a, 0 };
       else  //..a..c..b..
-         return src.getSize() - 1;
+         return { c, src.getSize() - 1 };
    }
    else  //..b..a..
    {
       if( compare( a, c ) )  //..b..a..c
-         return 0;
+         return { a, 0 };
       else if( compare( c, b ) )  //..c..b..a..
-         return src.getSize() / 2;
+         return { b, src.getSize() / 2 };
       else  //..b..c..a..
-         return src.getSize() - 1;
+         return { c, src.getSize() - 1 };
    }
 }
 

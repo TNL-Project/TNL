@@ -126,7 +126,7 @@ singleBlockQuickSort(
       }
 
       if( threadIdx.x == 0 )
-         *piv = pickPivot( src.getView( begin, end ), compare );
+         *piv = pickPivot( src.getView( begin, end ), compare ).first;
       __syncthreads();
       Value& pivot = *piv;
 
