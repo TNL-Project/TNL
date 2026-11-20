@@ -13,7 +13,7 @@ set(COMMON_EXAMPLES
     reduceWithArgumentArrayExample
 )
 
-set(HOST_EXAMPLES staticForExample unrolledForExample)
+set(HOST_EXAMPLES staticForExample unrolledForExample pivotPartitionExample)
 
 set(CUDA_EXAMPLES SortingCUBMergeSort SortingCUBRadixSort)
 

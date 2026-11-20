@@ -59,3 +59,50 @@ Note that we do not swap only elements of array `array`, but also `index` array.
 The result looks as follows:
 
 \include SortingExample3.out
+
+## Three-way partitioning
+
+Sometimes sorting the whole array is not necessary. When only the elements
+ordered before, equivalent to, and ordered after a given *pivot* value need to
+be separated, TNL provides the \ref TNL::Algorithms::pivotPartition
+"pivotPartition" function with two overloads:
+
+* an in-place overload `pivotPartition( data, pivot, compare )`, which
+  rearranges the elements of `data`,
+* an out-of-place overload `pivotPartition( input, output, pivot, compare )`,
+  which writes the partitioned elements to `output` and leaves `input`
+  unchanged. The input and output ranges must not overlap.
+
+Both return a \ref TNL::Algorithms::PivotPartitionResult "PivotPartitionResult"
+structure which supports structured bindings. Its `lessEnd` and
+`greaterBegin` fields are boundaries relative to the beginning of the output
+range, so the three buckets are `[0, lessEnd)`, `[lessEnd, greaterBegin)` and
+`[greaterBegin, size)`.
+
+Equivalence with respect to the pivot is defined by two comparator calls: an
+element is equivalent to the pivot if neither `compare( value, pivot )` nor
+`compare( pivot, value )` is true (`operator==` is not used). The comparator
+must impose a strict weak ordering.
+
+Every input element is preserved exactly once - the output is a permutation
+of the input. In particular, pivot-equivalent elements are moved or copied
+rather than reconstructed from the pivot, so comparison-equivalent elements
+may carry distinct payloads. This is demonstrated by the following example,
+where several elements share the comparison key but each has a unique id:
+
+\includelineno pivotPartitionExample.cpp
+
+The result looks as follows:
+
+\include pivotPartitionExample.out
+
+Note that the operation is not stable - the order of the elements within each
+bucket is unspecified (the example shows the order produced by the host
+implementation).
+
+The complexity is `O( N )` for all overloads. The auxiliary storage depends
+on the device and the overload: the host in-place overload needs only `O( 1 )`
+auxiliary storage, the GPU out-of-place overload needs `O( B )` auxiliary
+storage for the per-block counts, where `B = ceil( N / 1024 )`, and the GPU
+in-place overload partitions into a scratch array of `N` elements and copies
+the result back, i.e. it needs `O( N + B )` auxiliary storage in total.
