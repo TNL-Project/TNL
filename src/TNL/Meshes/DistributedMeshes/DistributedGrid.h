@@ -106,6 +106,8 @@ public:
     * call \ref setGhostLevels or \ref setOverlaps to add the ghost cells.
     *
     * \param globalGrid is the global grid.
+    * \throws std::invalid_argument if the global grid has less cells than subdomains along some axis.
+    *         The object is not changed in this case.
     */
    void
    setGlobalGrid( const GridType& globalGrid );

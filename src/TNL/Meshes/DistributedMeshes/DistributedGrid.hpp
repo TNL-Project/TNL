@@ -4,6 +4,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
 
 #include <TNL/MPI/Wrappers.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.h>
@@ -28,27 +29,35 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const GridType& globalGrid )
 {
-   this->globalGrid = globalGrid;
-   this->isSet = true;
-
    // use MPI only if have more than one process
-   this->distributed = MPI::GetSize( communicator ) > 1;
+   const bool distributed = MPI::GetSize( communicator ) > 1;
 
-   if( ! this->distributed ) {
-      this->subdomainCoordinates.setValue( 0 );
-      this->domainDecomposition.setValue( 1 );
-      this->localSize = globalGrid.getSizes();
-      this->globalBegin = 0;
-   }
-   else {
-      // compute the decomposition
+   // compute the decomposition and check that every subdomain gets at least one cell
+   CoordinatesType decomposition = 1;
+   if( distributed ) {
       int dims[ Dimension ];
       for( int i = 0; i < Dimension; i++ )
          dims[ i ] = this->domainDecomposition[ i ];
       MPI::Compute_dims( MPI::GetSize( communicator ), Dimension, dims );
       for( int i = 0; i < Dimension; i++ )
-         this->domainDecomposition[ i ] = dims[ i ];
+         decomposition[ i ] = dims[ i ];
+   }
+   for( int i = 0; i < Dimension; i++ )
+      if( globalGrid.getSizes()[ i ] < decomposition[ i ] )
+         throw std::invalid_argument(
+            "DistributedGrid: the global grid has less cells than subdomains along axis " + std::to_string( i ) + "." );
 
+   this->globalGrid = globalGrid;
+   this->isSet = true;
+   this->distributed = distributed;
+   this->domainDecomposition = decomposition;
+
+   if( ! this->distributed ) {
+      this->subdomainCoordinates.setValue( 0 );
+      this->localSize = globalGrid.getSizes();
+      this->globalBegin = 0;
+   }
+   else {
       // the subdomain coordinates, the x-coordinate changes the fastest with the rank
       int size = MPI::GetSize( communicator );
       int tmp = MPI::GetRank( communicator );

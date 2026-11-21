@@ -632,14 +632,16 @@ public:
    getCellMeasure() const;
 
    /**
-    * \brief Returns \e true if given entity is a boundary entity.
+    * \brief Returns `true` if given entity is a boundary entity.
     *
-    * Only the sides of the grid on the global boundary are considered,
-    * see \ref setGlobalBoundarySides.
+    * The boundary is the boundary of the owned region given by \ref getLocalBegin and \ref getLocalEnd,
+    * and only its sides on the global boundary are considered, see \ref setGlobalBoundarySides.
+    * For a grid which is not distributed, it is the boundary of the whole grid.
+    * The boundary entities are the same as the entities visited by \ref TNL::Meshes::forBoundaryEntities.
     *
     * \tparam Entity is the entity type.
     * \param entity is an instance of the entity.
-    * \return \e true if the entity os boundary entity, \e false otherwise.
+    * \return `true` if the entity is a boundary entity, `false` otherwise.
     */
    template< typename Entity >
    __cuda_callable__
@@ -676,7 +678,8 @@ public:
     *
     * \return const CoordinatesType& is "lower left" corner of subdomain for distributed grid.
     */
-   [[nodiscard]] const CoordinatesType&
+   [[nodiscard]] __cuda_callable__
+   const CoordinatesType&
    getLocalBegin() const;
 
    /**
@@ -684,7 +687,8 @@ public:
     *
     * \return const CoordinatesType& is "upper right" corner of subdomain for distributed grid.
     */
-   [[nodiscard]] const CoordinatesType&
+   [[nodiscard]] __cuda_callable__
+   const CoordinatesType&
    getLocalEnd() const;
 
    /**

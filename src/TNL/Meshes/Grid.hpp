@@ -700,17 +700,21 @@ __cuda_callable__
 bool
 Grid< Dimension, Real, Device, Index >::isBoundaryEntity( const Entity& entity ) const
 {
-   // Only the sides on the global boundary are considered. There are no ghost entities beyond the global boundary,
-   // so the global boundary is at the first and the last position of the grid along the axis.
+   // Only the sides on the global boundary are considered. The boundary is given by the owned region (the local
+   // subdomain), the same way as in forBoundaryEntities. For grids which are not distributed, the owned region is the
+   // whole grid. For distributed grids, it reaches the first and the last position of the local grid on the sides
+   // on the global boundary, since there are no ghost entities beyond the global boundary.
    bool result( false );
    const auto& coordinates = entity.getCoordinates();
-   const auto& lower = this->getLowerGlobalBoundarySides();
-   const auto& upper = this->getUpperGlobalBoundarySides();
+   const auto& lower = this->lowerGlobalBoundarySides;
+   const auto& upper = this->upperGlobalBoundarySides;
+   const auto& begin = this->localBegin;
+   const auto& end = this->localEnd;
    if constexpr( Entity::getEntityDimension() == Dimension ) {
       Algorithms::staticFor< IndexType, 0, Dimension >(
          [ & ]( Index i ) mutable
          {
-            if( ( lower[ i ] && coordinates[ i ] == 0 ) || ( upper[ i ] && coordinates[ i ] == this->getSizes()[ i ] - 1 ) )
+            if( ( lower[ i ] && coordinates[ i ] == begin[ i ] ) || ( upper[ i ] && coordinates[ i ] == end[ i ] - 1 ) )
                result = true;  // return true does not work here
          } );
    }
@@ -718,7 +722,7 @@ Grid< Dimension, Real, Device, Index >::isBoundaryEntity( const Entity& entity )
       Algorithms::staticFor< IndexType, 0, Dimension >(
          [ & ]( Index i ) mutable
          {
-            if( ( lower[ i ] && coordinates[ i ] == 0 ) || ( upper[ i ] && coordinates[ i ] == this->getSizes()[ i ] ) )
+            if( ( lower[ i ] && coordinates[ i ] == begin[ i ] ) || ( upper[ i ] && coordinates[ i ] == end[ i ] ) )
                result = true;  // return true does not work here
          } );
    }
@@ -728,7 +732,7 @@ Grid< Dimension, Real, Device, Index >::isBoundaryEntity( const Entity& entity )
          [ & ]( Index i ) mutable
          {
             if( normals[ i ]
-                && ( ( lower[ i ] && coordinates[ i ] == 0 ) || ( upper[ i ] && coordinates[ i ] == this->getSizes()[ i ] ) ) )
+                && ( ( lower[ i ] && coordinates[ i ] == begin[ i ] ) || ( upper[ i ] && coordinates[ i ] == end[ i ] ) ) )
                result = true;  // return true does not work here
          } );
    }
@@ -758,6 +762,7 @@ Grid< Dimension, Real, Device, Index >::setLocalEnd( const CoordinatesType& end 
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
+__cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::getLocalBegin() const -> const CoordinatesType&
 {
@@ -765,6 +770,7 @@ Grid< Dimension, Real, Device, Index >::getLocalBegin() const -> const Coordinat
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
+__cuda_callable__
 auto
 Grid< Dimension, Real, Device, Index >::getLocalEnd() const -> const CoordinatesType&
 {
