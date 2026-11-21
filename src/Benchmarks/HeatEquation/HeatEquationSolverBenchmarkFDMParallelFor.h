@@ -47,7 +47,7 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 1, Real, Device, Index >
       Index iterations = 0;
       // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
       const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
-      auto timestep = this->timeStep ? this->timeStep : 0.1 * hx * hx;
+      const Real timestep = this->timeStep ? this->timeStep : 0.1 * hx * hx;
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
@@ -109,7 +109,7 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 2, Real, Device, Index >
       Index iterations = 0;
       // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
       const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
-      auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, hy * hy );
+      const Real timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, hy * hy );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
@@ -179,7 +179,7 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 3, Real, Device, Index >
       Index iterations = 0;
       // the host does not wait for each kernel; Benchmark::time synchronizes the device after the time loop
       const auto launchConfiguration = TNL::Benchmarks::getAsyncLaunchConfiguration< Device >();
-      auto timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, std::min( hy * hy, hz * hz ) );
+      const Real timestep = this->timeStep ? this->timeStep : 0.1 * std::min( hx * hx, std::min( hy * hy, hz * hz ) );
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();

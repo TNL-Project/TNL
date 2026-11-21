@@ -79,8 +79,8 @@ struct MeanCurvatureFlowFDMGrid
                forwardSum += forward * forward;
                backwardSum += backward * backward;
             }
-            qView[ c ] = TNL::sqrt( 1.0 + forwardSum );
-            qBarView[ c ] = TNL::sqrt( 1.0 + 0.5 * ( forwardSum + backwardSum ) );
+            qView[ c ] = TNL::sqrt( RealType( 1 ) + forwardSum );
+            qBarView[ c ] = TNL::sqrt( RealType( 1 ) + RealType( 0.5 ) * ( forwardSum + backwardSum ) );
          },
          TNL::Benchmarks::getAsyncLaunchConfiguration< DeviceType >() );
    }

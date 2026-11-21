@@ -182,12 +182,25 @@ In the finite volume scheme, the gradients on the faces are GridTools temporarie
 ## Running and processing results
 
 The scripts `run-tnl-benchmark-heat-equation-1d`, `run-tnl-benchmark-heat-equation-2d`,
-and `run-tnl-benchmark-heat-equation-3d` run the benchmark for all implementations, schemes, and precisions
+and `run-tnl-benchmark-heat-equation-3d` run the benchmark for all implementations, schemes, precisions, and devices
 and write one JSON-lines log file per run, named
 `tnl-benchmark-heat-equation-<implementation>-<device>-<precision>-<scheme>-<dimension>d.json`.
+The devices can be selected by the environment variable `DEVICES` (by default `sequential host cuda`).
+The `nd-array` implementation is run only with the finite difference scheme.
 
-The script `process-tnl-benchmark-heat-equation.py`, executed in the directory with the log files,
-produces HTML tables `tnl-benchmark-heat-equation-<scheme>-<precision>-<dimension>d.html`
-with the measured times grouped by implementation and device,
-including the speed-up of each implementation over `parallel-for` and the speed-up of the CUDA device over the host.
-The script requires `pandas`.
+The log files can be processed into HTML tables with the post-processing script:
+
+```bash
+python3 src/Benchmarks/HeatEquation/process-tnl-benchmark-heat-equation.py tnl-benchmark-heat-equation-*.json
+```
+
+The script accepts one or more input log files as positional arguments and writes to an output directory set by
+`-o`/`--output-dir` (default: `heat-equation-plots`). It produces:
+
+1. `tnl-benchmark-heat-equation-raw.html` — a table with all records from the input logs.
+2. `tnl-benchmark-heat-equation-<scheme>-<precision>-<dimension>d.html` — a table per scheme, precision and
+   dimension, with the measured times grouped by implementation and device, including the speed-up of each
+   implementation over `parallel-for` and the speed-up of the GPU devices (CUDA or HIP) over the host device.
+
+The script requires `pandas` and the TNL Python utilities from `src/Python` (providing the `TNL` module with the
+`BenchmarkLogs` log parser).

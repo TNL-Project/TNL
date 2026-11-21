@@ -1,37 +1,49 @@
-#/bin/bash
+#!/bin/bash
 
-devices="sequential host"
-#devices="cuda"
+# Runs the 1D heat equation benchmark for all implementations, schemes, precisions and devices.
+# The devices can be set by the environment variable DEVICES, e.g. DEVICES="host cuda".
+# The benchmark reports the implementations of the comparison libraries which were not built.
+
+set -u
+
+devices="${DEVICES:-sequential host cuda}"
 precisions="float double"
 schemes="fdm fvm"
-tests="parallel-for nd-array grid"
+implementations="parallel-for nd-array grid kokkos amrex gridtools"
 min_x_dimension="50"
 max_x_dimension="102400"
 base="tnl-benchmark-heat-equation"
 
-for device in ${devices}
-do
-   for precision in ${precisions}
-   do
-      for scheme in ${schemes}
-      do
-         for test in ${tests}
-         do
-            command="${base}
-               --implementation ${test}
-               --precision ${precision}
-               --scheme ${scheme}
+for device in ${devices}; do
+   # the GPU benchmarks are separate executables
+   case "${device}" in
+      cuda | hip) solver="${base}-${device}" ;;
+      *) solver="${base}" ;;
+   esac
+   for precision in ${precisions}; do
+      for scheme in ${schemes}; do
+         for implementation in ${implementations}; do
+            # the NDArray implementation supports only the finite difference scheme
+            if [[ "${implementation}" == "nd-array" && "${scheme}" == "fvm" ]]; then
+               continue
+            fi
+            command=(
+               "${solver}"
+               --implementation "${implementation}"
+               --precision "${precision}"
+               --scheme "${scheme}"
                --dimension 1
-               --min-x-dimension ${min_x_dimension}
-               --max-x-dimension ${max_x_dimension}
+               --min-x-dimension "${min_x_dimension}"
+               --max-x-dimension "${max_x_dimension}"
                --max-iterations 500
                --loops 100
                --final-time 0.1
-               --device ${device}
-               --log-file ${base}-${test}-${device}-${precision}-${scheme}-1d.json
-               --write-data no"
-            echo $command
-            $command
+               --device "${device}"
+               --log-file "${base}-${implementation}-${device}-${precision}-${scheme}-1d.json"
+               --write-data no
+            )
+            echo "${command[@]}"
+            "${command[@]}"
          done
       done
    done

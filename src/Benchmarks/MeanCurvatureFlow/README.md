@@ -54,7 +54,9 @@ just build tnl-benchmark-mean-curvature-flow
 ```
 
 The scripts `run-tnl-benchmark-mean-curvature-flow-1d` and `run-tnl-benchmark-mean-curvature-flow-2d`
-run the benchmark for a predefined set of parameters.
+run the benchmark for all implementations, precisions and devices and write one JSON-lines log file per run,
+named `tnl-benchmark-mean-curvature-flow-<implementation>-<device>-<precision>-<scheme>-<dimension>d.json`.
+The devices can be selected by the environment variable `DEVICES` (by default `sequential host cuda`).
 
 ## Command-line options
 
