@@ -169,7 +169,7 @@ Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount() const noexcep
    static_assert( EntityDimension >= 0 && EntityDimension <= Dimension, "Wrong entity dimension." );
    static_assert(
       EntityOrientationIdx >= 0
-         && EntityOrientationIdx <= EntitiesOrientations::template getOrientationsCount< EntityDimension >(),
+         && EntityOrientationIdx < EntitiesOrientations::template getOrientationsCount< EntityDimension >(),
       "Wrong entity orientation index." );
    if constexpr( EntityDimension == 0 || EntityDimension == Dimension )
       return this->getEntitiesCount( EntityDimension );
@@ -601,10 +601,15 @@ void
 Grid< Dimension, Real, Device, Index >::getAdjacentCells( const Entity& entity, IndexType& closer, IndexType& remoter ) const
 {
    static_assert( Entity::getEntityDimension() == Dimension - 1, "This method works only for faces." );
+   // the face with the orientation index i has the normal along the axis i
+   const IndexType axis = entity.getOrientationIndex();
+   TNL_ASSERT_LT( axis, Dimension, "Wrong orientation index of the face." );
+   TNL_ASSERT_GT( entity.getCoordinates()[ axis ], 0, "The face lies on the lower boundary of the grid." );
+   TNL_ASSERT_LT(
+      entity.getCoordinates()[ axis ], this->getSizes()[ axis ], "The face lies on the upper boundary of the grid." );
    remoter =
       detail::getLinearIndex( entity.getCoordinates(), this->coordinatesMultiplicators[ getTotalOrientationsCount() - 1 ] );
-   TNL_ASSERT_LT( entity.getOrientationIndex(), Dimension, "" );
-   closer = remoter - this->coordinatesMultiplicators[ getTotalOrientationsCount() - 1 ][ entity.getOrientationIndex() ];
+   closer = remoter - this->coordinatesMultiplicators[ getTotalOrientationsCount() - 1 ][ axis ];
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

@@ -60,6 +60,9 @@ GridEntity< Grid, EntityDimension >::GridEntity(
 : GridEntityBaseType( coordinates, grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) ),
   grid( &grid )
 {
+   // the entity has one normal for each axis along which it does not lie
+   TNL_ASSERT_EQ( getMeshDimension() - TNL::sum( normals ), EntityDimension, "The normals do not match the entity dimension." );
+   TNL_ASSERT_GE( grid.getEntitiesOrientations().getTotalOrientationIndex( normals ), 0, "Wrong normals of the entity." );
    this->refresh();
 }
 

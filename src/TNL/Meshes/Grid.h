@@ -535,10 +535,14 @@ public:
    /**
     * \brief Computes indexes of cells adjacent to a face.
     *
-    * \tparam Entity is an entity type.
-    * \param entity is an instance of the entity.
-    * \param closer is an index of a cell closer to the origin of the grid.
-    * \param remoter is an index of a cell remoter from the origin of the grid.
+    * The face must not lie on the boundary of the grid, since one of the cells would be outside of the grid.
+    * The cells are the one with the same coordinates as the face (_remoter_) and the one below it along the normal
+    * of the face (_closer_).
+    *
+    * \tparam Entity is the type of the face.
+    * \param entity is the face, it must not lie on the boundary of the grid.
+    * \param closer is the index of the cell closer to the origin of the grid.
+    * \param remoter is the index of the cell remoter from the origin of the grid.
     */
    template< typename Entity >
    __cuda_callable__
