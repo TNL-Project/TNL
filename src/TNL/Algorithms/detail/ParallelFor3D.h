@@ -72,10 +72,15 @@ void
 ParallelFor3DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   using Index = typename MultiIndex::ValueType;
+
+   // the products of block and grid dimensions must be evaluated in the Index type:
+   // in 32 bits they would wrap around in grids with more than 2^32 threads
+
    // shift begin to the thread's initial position
-   begin.x() += blockIdx.x * blockDim.x + threadIdx.x;
-   begin.y() += blockIdx.y * blockDim.y + threadIdx.y;
-   begin.z() += blockIdx.z * blockDim.z + threadIdx.z;
+   begin.x() += static_cast< Index >( blockIdx.x ) * blockDim.x + threadIdx.x;
+   begin.y() += static_cast< Index >( blockIdx.y ) * blockDim.y + threadIdx.y;
+   begin.z() += static_cast< Index >( blockIdx.z ) * blockDim.z + threadIdx.z;
 
    // initialize iteration index
    MultiIndex i = begin;
@@ -85,13 +90,13 @@ ParallelFor3DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs.
          while( i.x() < end.x() ) {
             f( i, args... );
             if( gridStride )
-               i.x() += blockDim.x * gridDim.x;
+               i.x() += static_cast< Index >( blockDim.x ) * gridDim.x;
             else
                break;
          }
          if( gridStride ) {
             i.x() = begin.x();
-            i.y() += blockDim.y * gridDim.y;
+            i.y() += static_cast< Index >( blockDim.y ) * gridDim.y;
          }
          else {
             break;
@@ -99,7 +104,7 @@ ParallelFor3DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs.
       }
       if( gridStride ) {
          i.y() = begin.y();
-         i.z() += blockDim.z * gridDim.z;
+         i.z() += static_cast< Index >( blockDim.z ) * gridDim.z;
       }
       else {
          break;
@@ -128,33 +133,33 @@ struct ParallelFor3D< Devices::Cuda >
 
       // check default-initialized blockSize, otherwise use the user-specified value
       if( launch_config.blockSize.x == 1 && launch_config.blockSize.y == 1 && launch_config.blockSize.z == 1 ) {
-         if( sizeX >= sizeY * sizeY * sizeZ * sizeZ ) {
+         if( sizeX / sizeY / sizeY / sizeZ / sizeZ >= 1 ) {
             launch_config.blockSize.x = TNL::min( 256, sizeX );
             launch_config.blockSize.y = 1;
             launch_config.blockSize.z = 1;
          }
-         else if( sizeY >= sizeX * sizeX * sizeZ * sizeZ ) {
+         else if( sizeY / sizeX / sizeX / sizeZ / sizeZ >= 1 ) {
             launch_config.blockSize.x = 1;
             launch_config.blockSize.y = TNL::min( 256, sizeY );
             launch_config.blockSize.z = 1;
          }
-         else if( sizeZ >= sizeX * sizeX * sizeY * sizeY ) {
+         else if( sizeZ / sizeX / sizeX / sizeY / sizeY >= 1 ) {
             launch_config.blockSize.x = TNL::min( 2, sizeX );
             launch_config.blockSize.y = TNL::min( 2, sizeY );
             // CUDA allows max 64 for launch_config.blockSize.z
             launch_config.blockSize.z = TNL::min( 64, sizeZ );
          }
-         else if( sizeX >= sizeZ * sizeZ && sizeY >= sizeZ * sizeZ ) {
+         else if( sizeX / sizeZ >= sizeZ && sizeY / sizeZ >= sizeZ ) {
             launch_config.blockSize.x = TNL::min( 32, sizeX );
             launch_config.blockSize.y = TNL::min( 8, sizeY );
             launch_config.blockSize.z = 1;
          }
-         else if( sizeX >= sizeY * sizeY && sizeZ >= sizeY * sizeY ) {
+         else if( sizeX / sizeY >= sizeY && sizeZ / sizeY >= sizeY ) {
             launch_config.blockSize.x = TNL::min( 32, sizeX );
             launch_config.blockSize.y = 1;
             launch_config.blockSize.z = TNL::min( 8, sizeZ );
          }
-         else if( sizeY >= sizeX * sizeX && sizeZ >= sizeX * sizeX ) {
+         else if( sizeY / sizeX >= sizeX && sizeZ / sizeX >= sizeX ) {
             launch_config.blockSize.x = 1;
             launch_config.blockSize.y = TNL::min( 32, sizeY );
             launch_config.blockSize.z = TNL::min( 8, sizeZ );
@@ -185,11 +190,17 @@ struct ParallelFor3D< Devices::Cuda >
                               * launch_config.gridSize.y * launch_config.gridSize.z;
       const bool needsGridStride = totalThreads > Backend::getMaxThreadsPerGrid();
 
-      // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow
+      // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow.
+      // The grid count is computed from the block counts: the product of the
+      // block size and the grid size would be evaluated in 32 bits and could
+      // wrap around (or be zero) for grids with more than 2^32 threads.
       MultiIndex gridCount;
-      gridCount.x() = Backend::getNumberOfGrids( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
-      gridCount.y() = Backend::getNumberOfGrids( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
-      gridCount.z() = Backend::getNumberOfGrids( sizeZ, launch_config.blockSize.z * launch_config.gridSize.z );
+      const auto blocksX = Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x );
+      gridCount.x() = Backend::getNumberOfGrids( blocksX, launch_config.gridSize.x );
+      const auto blocksY = Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y );
+      gridCount.y() = Backend::getNumberOfGrids( blocksY, launch_config.gridSize.y );
+      const auto blocksZ = Backend::getNumberOfBlocks( sizeZ, launch_config.blockSize.z );
+      gridCount.z() = Backend::getNumberOfGrids( blocksZ, launch_config.gridSize.z );
 
       if( ! needsGridStride && gridCount.x() == 1 && gridCount.y() == 1 && gridCount.z() == 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< false, MultiIndex, Function, FunctionArgs... >;

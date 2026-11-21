@@ -55,11 +55,13 @@ void
 ParallelFor1DKernel( Index begin, Index end, Function f, FunctionArgs... args )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   Index i = begin + blockIdx.x * blockDim.x + threadIdx.x;
+   // the products of block and grid dimensions must be evaluated in the Index type:
+   // in 32 bits they would wrap around in grids with more than 2^32 threads
+   Index i = begin + static_cast< Index >( blockIdx.x ) * blockDim.x + threadIdx.x;
    while( i < end ) {
       f( i, args... );
       if( gridStride )
-         i += blockDim.x * gridDim.x;
+         i += static_cast< Index >( blockDim.x ) * gridDim.x;
       else
          break;
    }

@@ -310,4 +310,84 @@ TEST( ParallelForTest, 3D_empty_range_hip )
    EXPECT_EQ( ah.getElement( 0 ), 0 );
 }
 
+// see the CUDA variant of this test for the documentation
+TEST( ParallelForTest, 1D_above_32bit_range_hip )
+{
+   constexpr std::size_t size = ( 1UL << 32 ) + 1024;
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;  // == 2^32
+
+   using Array = Containers::Array< int, Devices::Hip, std::size_t >;
+   using ArrayHost = Containers::Array< int, Devices::Host, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ] __cuda_callable__( std::size_t i ) mutable
+   {
+      if( i >= offset )
+         view[ i - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Hip >( 0, size, kernel );
+
+   ArrayHost ah;
+   ah = a;
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( ah[ j ], 1 ) << "The iteration i = 2^32 + " << j << " was not processed exactly once";
+}
+
+// see the CUDA variant of this test for the documentation
+TEST( ParallelForTest, 2D_above_32bit_range_hip )
+{
+   constexpr std::size_t size = ( 1UL << 32 ) + ( 1UL << 31 );
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;
+
+   using Array = Containers::Array< int, Devices::Hip, std::size_t >;
+   using ArrayHost = Containers::Array< int, Devices::Host, std::size_t >;
+   using MultiIndex = Containers::StaticArray< 2, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
+   {
+      if( i.x() >= offset )
+         view[ i.x() - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Hip >( MultiIndex{ 0, 0 }, MultiIndex{ size, 1 }, kernel );
+
+   ArrayHost ah;
+   ah = a;
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( ah[ j ], 1 ) << "The 2D iteration with i.x() = " << offset + j << " was not processed exactly once";
+}
+
+// see the CUDA variant of this test for the documentation
+TEST( ParallelForTest, 3D_above_32bit_range_hip )
+{
+   constexpr std::size_t size = ( 1UL << 32 ) + ( 1UL << 31 );
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;
+
+   using Array = Containers::Array< int, Devices::Hip, std::size_t >;
+   using ArrayHost = Containers::Array< int, Devices::Host, std::size_t >;
+   using MultiIndex = Containers::StaticArray< 3, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
+   {
+      if( i.x() >= offset )
+         view[ i.x() - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Hip >( MultiIndex{ 0, 0, 0 }, MultiIndex{ size, 1, 1 }, kernel );
+
+   ArrayHost ah;
+   ah = a;
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( ah[ j ], 1 ) << "The 3D iteration with i.x() = " << offset + j << " was not processed exactly once";
+}
+
 #include "../main.h"

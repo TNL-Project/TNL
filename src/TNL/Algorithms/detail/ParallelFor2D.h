@@ -70,9 +70,14 @@ void
 ParallelFor2DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs... args )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   using Index = typename MultiIndex::ValueType;
+
+   // the products of block and grid dimensions must be evaluated in the Index type:
+   // in 32 bits they would wrap around in grids with more than 2^32 threads
+
    // shift begin to the thread's initial position
-   begin.x() += blockIdx.x * blockDim.x + threadIdx.x;
-   begin.y() += blockIdx.y * blockDim.y + threadIdx.y;
+   begin.x() += static_cast< Index >( blockIdx.x ) * blockDim.x + threadIdx.x;
+   begin.y() += static_cast< Index >( blockIdx.y ) * blockDim.y + threadIdx.y;
 
    // initialize iteration index
    MultiIndex i = begin;
@@ -81,13 +86,13 @@ ParallelFor2DKernel( MultiIndex begin, MultiIndex end, Function f, FunctionArgs.
       while( i.x() < end.x() ) {
          f( i, args... );
          if( gridStride )
-            i.x() += blockDim.x * gridDim.x;
+            i.x() += static_cast< Index >( blockDim.x ) * gridDim.x;
          else
             break;
       }
       if( gridStride ) {
          i.x() = begin.x();
-         i.y() += blockDim.y * gridDim.y;
+         i.y() += static_cast< Index >( blockDim.y ) * gridDim.y;
       }
       else {
          break;
@@ -115,11 +120,11 @@ struct ParallelFor2D< Devices::Cuda >
 
       // check default-initialized blockSize, otherwise use the user-specified value
       if( launch_config.blockSize.x == 1 && launch_config.blockSize.y == 1 ) {
-         if( sizeX >= sizeY * sizeY ) {
+         if( sizeX / sizeY >= sizeY ) {
             launch_config.blockSize.x = TNL::min( 256, sizeX );
             launch_config.blockSize.y = 1;
          }
-         else if( sizeY >= sizeX * sizeX ) {
+         else if( sizeY / sizeX >= sizeX ) {
             launch_config.blockSize.x = 1;
             launch_config.blockSize.y = TNL::min( 256, sizeY );
          }
@@ -143,10 +148,15 @@ struct ParallelFor2D< Devices::Cuda >
                               * static_cast< std::size_t >( launch_config.gridSize.x ) * launch_config.gridSize.y;
       const bool needsGridStride = totalThreads > Backend::getMaxThreadsPerGrid();
 
-      // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow
+      // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow.
+      // The grid count is computed from the block counts: the product of the
+      // block size and the grid size would be evaluated in 32 bits and could
+      // wrap around (or be zero) for grids with more than 2^32 threads.
       MultiIndex gridCount;
-      gridCount.x() = Backend::getNumberOfGrids( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
-      gridCount.y() = Backend::getNumberOfGrids( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
+      const auto blocksX = Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x );
+      gridCount.x() = Backend::getNumberOfGrids( blocksX, launch_config.gridSize.x );
+      const auto blocksY = Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y );
+      gridCount.y() = Backend::getNumberOfGrids( blocksY, launch_config.gridSize.y );
 
       if( ! needsGridStride && gridCount.x() == 1 && gridCount.y() == 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< false, MultiIndex, Function, FunctionArgs... >;

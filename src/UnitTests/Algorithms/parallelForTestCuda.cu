@@ -161,6 +161,117 @@ TEST( ParallelForTest, 3D_cuda )
    test_3D_cuda();
 }
 
+// nvcc does not allow __cuda_callable__ lambdas inside private regions
+void
+test_1D_above_32bit_range_cuda()
+{
+   // Regression test for a 32-bit overflow in the parallel-for kernel: in a
+   // grid with more than 2^32 threads, the products of the block and thread
+   // indices evaluated in 32 bits wrapped around, so the iterations above
+   // 2^32 were never processed. Only the last `tail` iterations write into a
+   // small array, so the test does not need large allocations.
+   constexpr std::size_t size = ( 1UL << 32 ) + 1024;
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;  // == 2^32
+
+   using Array = Containers::Array< int, Devices::Cuda, std::size_t >;
+   using ArrayHost = Containers::Array< int, Devices::Host, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ] __cuda_callable__( std::size_t i ) mutable
+   {
+      if( i >= offset )
+         view[ i - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
+
+   ArrayHost ah;
+   ah = a;
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( ah[ j ], 1 ) << "The iteration i = 2^32 + " << j << " was not processed exactly once";
+}
+
+TEST( ParallelForTest, 1D_above_32bit_range_cuda )
+{
+   test_1D_above_32bit_range_cuda();
+}
+
+// nvcc does not allow __cuda_callable__ lambdas inside private regions
+void
+test_2D_above_32bit_range_cuda()
+{
+   // Analogous to the 1D test, but the x-dimension of the 2D range exceeds
+   // 2^32 threads, where the products of the block and grid dimensions
+   // evaluated in 32 bits wrapped around. The size is a multiple of 2^31 above
+   // 2^32, so the whole range still fits into a single grid. Only the last
+   // `tail` iterations in the x-dimension write into a small array, so the
+   // test does not need large allocations.
+   constexpr std::size_t size = ( 1UL << 32 ) + ( 1UL << 31 );
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;
+
+   using Array = Containers::Array< int, Devices::Cuda, std::size_t >;
+   using ArrayHost = Containers::Array< int, Devices::Host, std::size_t >;
+   using MultiIndex = Containers::StaticArray< 2, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
+   {
+      if( i.x() >= offset )
+         view[ i.x() - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Cuda >( MultiIndex{ 0, 0 }, MultiIndex{ size, 1 }, kernel );
+
+   ArrayHost ah;
+   ah = a;
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( ah[ j ], 1 ) << "The 2D iteration with i.x() = " << offset + j << " was not processed exactly once";
+}
+
+TEST( ParallelForTest, 2D_above_32bit_range_cuda )
+{
+   test_2D_above_32bit_range_cuda();
+}
+
+// nvcc does not allow __cuda_callable__ lambdas inside private regions
+void
+test_3D_above_32bit_range_cuda()
+{
+   // Analogous to the 2D test, but for a 3D range
+   // (the x-dimension exceeds 2^32 threads, the others are trivial).
+   constexpr std::size_t size = ( 1UL << 32 ) + ( 1UL << 31 );
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;
+
+   using Array = Containers::Array< int, Devices::Cuda, std::size_t >;
+   using ArrayHost = Containers::Array< int, Devices::Host, std::size_t >;
+   using MultiIndex = Containers::StaticArray< 3, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
+   {
+      if( i.x() >= offset )
+         view[ i.x() - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Cuda >( MultiIndex{ 0, 0, 0 }, MultiIndex{ size, 1, 1 }, kernel );
+
+   ArrayHost ah;
+   ah = a;
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( ah[ j ], 1 ) << "The 3D iteration with i.x() = " << offset + j << " was not processed exactly once";
+}
+
+TEST( ParallelForTest, 3D_above_32bit_range_cuda )
+{
+   test_3D_above_32bit_range_cuda();
+}
+
 void
 test_1D_empty_range_cuda()
 {

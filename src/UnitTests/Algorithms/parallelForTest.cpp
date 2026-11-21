@@ -271,4 +271,81 @@ TEST( ParallelForTest, 3D_empty_range_host )
    EXPECT_EQ( a.getElement( 0 ), 0 );
 }
 
+TEST( ParallelForTest, 1D_above_32bit_range_host )
+{
+   GTEST_SKIP() << "iterating over more than 2^32 indices would be too slow on the host";
+
+   // see the CUDA variant of this test for the documentation
+   constexpr std::size_t size = ( 1UL << 32 ) + 1024;
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;  // == 2^32
+
+   using Array = Containers::Array< int, Devices::Host, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ]( std::size_t i ) mutable
+   {
+      if( i >= offset )
+         view[ i - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Host >( 0, size, kernel );
+
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( a[ j ], 1 ) << "The iteration i = 2^32 + " << j << " was not processed exactly once";
+}
+
+TEST( ParallelForTest, 2D_above_32bit_range_host )
+{
+   GTEST_SKIP() << "iterating over more than 2^32 indices would be too slow on the host";
+
+   // see the CUDA variant of this test for the documentation
+   constexpr std::size_t size = ( 1UL << 32 ) + ( 1UL << 31 );
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;
+
+   using Array = Containers::Array< int, Devices::Host, std::size_t >;
+   using MultiIndex = Containers::StaticArray< 2, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ]( const MultiIndex& i ) mutable
+   {
+      if( i.x() >= offset )
+         view[ i.x() - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Host >( MultiIndex{ 0, 0 }, MultiIndex{ size, 1 }, kernel );
+
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( a[ j ], 1 ) << "The 2D iteration with i.x() = " << offset + j << " was not processed exactly once";
+}
+
+TEST( ParallelForTest, 3D_above_32bit_range_host )
+{
+   GTEST_SKIP() << "iterating over more than 2^32 indices would be too slow on the host";
+
+   // see the CUDA variant of this test for the documentation
+   constexpr std::size_t size = ( 1UL << 32 ) + ( 1UL << 31 );
+   constexpr std::size_t tail = 1024;
+   constexpr std::size_t offset = size - tail;
+
+   using Array = Containers::Array< int, Devices::Host, std::size_t >;
+   using MultiIndex = Containers::StaticArray< 3, std::size_t >;
+
+   Array a( tail );
+   a.setValue( 0 );
+   auto view = a.getView();
+   auto kernel = [ = ]( const MultiIndex& i ) mutable
+   {
+      if( i.x() >= offset )
+         view[ i.x() - offset ] += 1;
+   };
+   Algorithms::parallelFor< Devices::Host >( MultiIndex{ 0, 0, 0 }, MultiIndex{ size, 1, 1 }, kernel );
+
+   for( std::size_t j = 0; j < tail; j++ )
+      ASSERT_EQ( a[ j ], 1 ) << "The 3D iteration with i.x() = " << offset + j << " was not processed exactly once";
+}
+
 #include "../main.h"
