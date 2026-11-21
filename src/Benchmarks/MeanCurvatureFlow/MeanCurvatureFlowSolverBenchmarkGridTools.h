@@ -61,8 +61,8 @@ struct GradientNormsStage
          forwardSum += forward * forward;
          backwardSum += backward * backward;
       }
-      eval( q() ) = gridtools::math::sqrt( 1.0 + forwardSum );
-      eval( qBar() ) = gridtools::math::sqrt( 1.0 + 0.5 * ( forwardSum + backwardSum ) );
+      eval( q() ) = gridtools::math::sqrt( Real( 1 ) + forwardSum );
+      eval( qBar() ) = gridtools::math::sqrt( Real( 1 ) + Real( 0.5 ) * ( forwardSum + backwardSum ) );
    }
 };
 

@@ -92,8 +92,8 @@ public:
                forwardSum += forward * forward;
                backwardSum += backward * backward;
             }
-            at( q, c ) = Kokkos::sqrt( 1.0 + forwardSum );
-            at( qBar, c ) = Kokkos::sqrt( 1.0 + 0.5 * ( forwardSum + backwardSum ) );
+            at( q, c ) = Kokkos::sqrt( Real( 1 ) + forwardSum );
+            at( qBar, c ) = Kokkos::sqrt( Real( 1 ) + Real( 0.5 ) * ( forwardSum + backwardSum ) );
          } );
    }
 

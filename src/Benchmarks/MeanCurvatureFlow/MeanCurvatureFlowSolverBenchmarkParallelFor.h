@@ -116,8 +116,8 @@ public:
             forwardSum += forward * forward;
             backwardSum += backward * backward;
          }
-         qView[ c ] = TNL::sqrt( 1.0 + forwardSum );
-         qBarView[ c ] = TNL::sqrt( 1.0 + 0.5 * ( forwardSum + backwardSum ) );
+         qView[ c ] = TNL::sqrt( Real( 1 ) + forwardSum );
+         qBarView[ c ] = TNL::sqrt( Real( 1 ) + Real( 0.5 ) * ( forwardSum + backwardSum ) );
       };
       // the host does not wait for the kernel; Benchmark::time synchronizes the device after the time loop
       TNL::Algorithms::parallelFor< Device >(

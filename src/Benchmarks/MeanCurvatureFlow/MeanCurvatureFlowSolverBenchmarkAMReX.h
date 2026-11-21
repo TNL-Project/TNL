@@ -111,8 +111,8 @@ public:
                   forwardSum += forward * forward;
                   backwardSum += backward * backward;
                }
-               qArray( c ) = std::sqrt( 1.0 + forwardSum );
-               qBarArray( c ) = std::sqrt( 1.0 + 0.5 * ( forwardSum + backwardSum ) );
+               qArray( c ) = std::sqrt( Real( 1 ) + forwardSum );
+               qBarArray( c ) = std::sqrt( Real( 1 ) + Real( 0.5 ) * ( forwardSum + backwardSum ) );
             } );
       }
    }
