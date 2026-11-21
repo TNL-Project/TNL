@@ -11,7 +11,7 @@
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Devices/GPU.h>
 #include <TNL/Math.h>
-#include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
+#include <TNL/Algorithms/Sorting/detail/BitonicSortBlock.h>
 
 #define MAXTHREADS 256
 #define MAXBLOCKS 2048
@@ -492,10 +492,10 @@ lqsort( element* adata, element* adata2, LQSortParams* bs, unsigned int phase )
                TNL::Containers::ArrayView< element, TNL::Devices::GPU > view_data( data + from, to - from );
                TNL::Containers::ArrayView< element, TNL::Devices::GPU > view_adata( adata + from, to - from );
 
-               // Use TNL's bitonicSort_Block with shared memory
+               // Use TNL's bitonicSortBlock with shared memory
                // The comparator uses standard less-than for ascending sort
                auto* shared = TNL::Backend::getSharedMemory< element >();
-               TNL::Algorithms::Sorting::detail::bitonicSort_Block(
+               TNL::Algorithms::Sorting::detail::bitonicSortBlock(
                   view_data,
                   view_adata,
                   shared,

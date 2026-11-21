@@ -15,7 +15,7 @@
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 #include <TNL/Algorithms/Sorting/CUBRadixSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
-#include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
+#include <TNL/Algorithms/Sorting/Quicksort.h>
 #include "generators.h"
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -112,7 +112,7 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
 
    auto sortQuicksort = [ &arr ]()
    {
-      experimental::Quicksort::sort( arr );
+      Quicksort::sort( arr );
    };
 
    benchmark.time< Devices::GPU >( reset, "quicksort", sortQuicksort, result );

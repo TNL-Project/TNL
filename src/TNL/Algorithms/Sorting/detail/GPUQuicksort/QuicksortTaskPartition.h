@@ -3,61 +3,26 @@
 
 #pragma once
 
-#include <utility>
-
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/detail/PivotPartitionBlock.h>
 #include <TNL/Atomic.h>
 #include "QuicksortTask.h"
 
-namespace TNL::Algorithms::Sorting::experimental::detail {
-
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
-template< typename Value, typename Index, typename Device, typename Compare >
-__device__
-std::pair< Value, Index >
-pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const Compare& compare )
-{
-   if( src.getSize() <= 1 )
-      return { src[ 0 ], 0 };
-
-   const Value& a = src[ 0 ];
-   const Value& b = src[ src.getSize() / 2 ];
-   const Value& c = src[ src.getSize() - 1 ];
-
-   if( compare( a, b ) )  // ..a..b..
-   {
-      if( compare( b, c ) )  // ..a..b..c
-         return { b, src.getSize() / 2 };
-      else if( compare( c, a ) )  //..c..a..b..
-         return { a, 0 };
-      else  //..a..c..b..
-         return { c, src.getSize() - 1 };
-   }
-   else  //..b..a..
-   {
-      if( compare( a, c ) )  //..b..a..c
-         return { a, 0 };
-      else if( compare( c, b ) )  //..c..b..a..
-         return { b, src.getSize() / 2 };
-      else  //..b..c..a..
-         return { c, src.getSize() - 1 };
-   }
-}
+namespace TNL::Algorithms::Sorting::detail {
 
 template< typename Value, typename Index, typename Compare, bool useShared >
 __device__
 void
-cudaPartition(
-   Containers::ArrayView< Value, Devices::Cuda, Index > src,
-   Containers::ArrayView< Value, Devices::Cuda, Index > dst,
+partitionTaskBlock(
+   Containers::ArrayView< Value, Devices::GPU, Index > src,
+   Containers::ArrayView< Value, Devices::GPU, Index > dst,
    const Compare& compare,
    Value* sharedMem,
    const Value& pivot,
    int elementsPerBlock,
    QuicksortTask< Index >& task )
 {
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using Offset = typename QuicksortTask< Index >::Offset;
 
    static __shared__ Offset smallerStart;
@@ -90,8 +55,7 @@ cudaPartition(
       0,
       static_cast< Index >( biggerStart ),
       sharedMem );
+#endif
 }
 
-#endif
-
-}  // namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::detail

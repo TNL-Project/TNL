@@ -9,11 +9,15 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
-#include "QuicksortTask.h"
-#include "quicksort_kernel.h"
-#include "Quicksorter.h"
+#include "GPUQuicksort/QuicksortTask.h"
+#include "GPUQuicksort/GPUQuicksortKernelCompleteTasks.h"
+#include "GPUQuicksort/GPUQuicksortKernelPartitionTasks.h"
+#include "GPUQuicksort/GPUQuicksortKernelPrepareTasks.h"
+#include "GPUQuicksort/GPUQuicksortKernelSortTaskLists.h"
+#include "GPUQuicksort/GPUQuicksortKernelSortTasks.h"
+#include "GPUQuicksort.h"
 
-namespace TNL::Algorithms::Sorting::experimental::detail {
+namespace TNL::Algorithms::Sorting::detail {
 
 // Number of elements sampled to estimate the median of a partitioned range.
 constexpr int maxPivotSamples = 64;
@@ -21,7 +25,7 @@ constexpr int maxPivotSamples = 64;
 template< typename Value, typename Index >
 template< typename Array, typename Compare >
 void
-Quicksorter< Value, Devices::Cuda, Index >::sort( Array& arr, const Compare& cmp )
+GPUQuicksort< Value, Index >::sort( Array& arr, const Compare& cmp )
 {
    if( arr.getSize() <= 1 ) {
       return;  // nothing to sort
@@ -72,15 +76,15 @@ Quicksorter< Value, Devices::Cuda, Index >::sort( Array& arr, const Compare& cmp
 template< typename Value, typename Index >
 template< typename Array >
 void
-Quicksorter< Value, Devices::Cuda, Index >::sort( Array& arr )
+GPUQuicksort< Value, Index >::sort( Array& arr )
 {
    this->sort( arr, std::less<>{} );
 }
 
 template< typename Value, typename Index >
 void
-Quicksorter< Value, Devices::Cuda, Index >::init(
-   Containers::ArrayView< Value, Devices::Cuda, Index > arr,
+GPUQuicksort< Value, Index >::init(
+   Containers::ArrayView< Value, Devices::GPU, Index > arr,
    int gridDim,
    int blockDim,
    int desiredElementsPerBlock,
@@ -95,30 +99,30 @@ Quicksorter< Value, Devices::Cuda, Index >::init(
    this->aux.bind( auxMem.getView() );
    this->desiredSecondPhaseElementsPerBlock = desiredElementsPerBlock;
    this->maxTasks = static_cast< int >( min( arr.getSize(), static_cast< Index >( maxTasksLimit ) ) );
-   this->cuda_tasks.setSize( maxTasks );
-   this->cuda_newTasks.setSize( maxTasks );
-   this->cuda_secondPhaseTasks.setSize( maxTasks );
-   this->cuda_newTasksAmount.setSize( 1 );
-   this->cuda_secondPhaseTasksAmount.setSize( 1 );
-   this->cuda_blockToTaskMapping.setSize( maxBlocks );
-   this->cuda_reductionTaskInitMem.setSize( maxTasks );
+   this->tasks.setSize( maxTasks );
+   this->newTasks.setSize( maxTasks );
+   this->secondPhaseTasks.setSize( maxTasks );
+   this->newTaskCount.setSize( 1 );
+   this->secondPhaseTaskCount.setSize( 1 );
+   this->blockToTask.setSize( maxBlocks );
+   this->reductionTaskInitMem.setSize( maxTasks );
 
    if( arr.getSize() > static_cast< Index >( desiredSecondPhaseElementsPerBlock ) ) {
-      cuda_tasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
+      tasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
       host_firstPhaseTasksAmount = 1;
    }
    else {
-      cuda_secondPhaseTasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
+      secondPhaseTasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
       host_secondPhaseTasksAmount = 1;
    }
 
-   cuda_secondPhaseTasksAmount = 0;
+   secondPhaseTaskCount = 0;
 }
 
 template< typename Value, typename Index >
 template< typename Compare >
 void
-Quicksorter< Value, Devices::Cuda, Index >::performSort( const Compare& compare )
+GPUQuicksort< Value, Index >::performSort( const Compare& compare )
 {
    firstPhase( compare );
 
@@ -130,7 +134,7 @@ Quicksorter< Value, Devices::Cuda, Index >::performSort( const Compare& compare 
 template< typename Value, typename Index >
 template< typename Compare >
 void
-Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
+GPUQuicksort< Value, Index >::firstPhase( const Compare& compare )
 {
    while( host_firstPhaseTasksAmount > 0 ) {
       if( host_firstPhaseTasksAmount >= maxTasks )
@@ -142,7 +146,7 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
          int tmp = host_firstPhaseTasksAmount;
          host_firstPhaseTasksAmount = 0;
          secondPhase( compare );
-         cuda_secondPhaseTasksAmount = host_secondPhaseTasksAmount = 0;
+         secondPhaseTaskCount = host_secondPhaseTasksAmount = 0;
          host_firstPhaseTasksAmount = tmp;
       }
 
@@ -155,7 +159,7 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
             int tmp = host_firstPhaseTasksAmount;
             host_firstPhaseTasksAmount = 0;
             secondPhase( compare );
-            cuda_secondPhaseTasksAmount = host_secondPhaseTasksAmount = 0;
+            secondPhaseTaskCount = host_secondPhaseTasksAmount = 0;
             host_firstPhaseTasksAmount = tmp;
          }
          else {
@@ -172,12 +176,12 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
       int blocksCnt = initTasks( elementsPerBlock, compare );
 
       // not enough or too many blocks needed, switch to second phase
-      if( blocksCnt <= 1 || blocksCnt > cuda_blockToTaskMapping.getSize() )
+      if( blocksCnt <= 1 || blocksCnt > blockToTask.getSize() )
          break;
 
       // do the partitioning
 
-      auto& task = iteration % 2 == 0 ? cuda_tasks : cuda_newTasks;
+      auto& task = iteration % 2 == 0 ? tasks : newTasks;
 
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = threadsPerBlock;
@@ -196,15 +200,13 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
        * so synchronizing after each of them would only leave the GPU idle.
        */
       if( launch_config.dynamicSharedMemorySize <= maxSharable ) {
-         constexpr auto kernel = cudaQuickSortFirstPhase< Value, Index, Compare, true >;
-         Backend::launchKernelAsync(
-            kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
+         constexpr auto kernel = GPUQuicksortKernelPartitionTasks< Value, Index, Compare, true >;
+         Backend::launchKernelAsync( kernel, launch_config, arr, aux, compare, elementsPerBlock, task, blockToTask );
       }
       else {
          launch_config.dynamicSharedMemorySize = sizeof( Value );
-         constexpr auto kernel = cudaQuickSortFirstPhase< Value, Index, Compare, false >;
-         Backend::launchKernelAsync(
-            kernel, launch_config, arr, aux, compare, elementsPerBlock, task, cuda_blockToTaskMapping );
+         constexpr auto kernel = GPUQuicksortKernelPartitionTasks< Value, Index, Compare, false >;
+         Backend::launchKernelAsync( kernel, launch_config, arr, aux, compare, elementsPerBlock, task, blockToTask );
       }
 
       /*
@@ -215,10 +217,10 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
        * bigger need more blocks to partition and are written into newTask
        * with iteration %2, rotate between the 2 tasks array to save from copying
        */
-      auto& newTask = iteration % 2 == 0 ? cuda_newTasks : cuda_tasks;
+      auto& newTask = iteration % 2 == 0 ? newTasks : tasks;
       launch_config.gridSize.x = host_firstPhaseTasksAmount;
       launch_config.dynamicSharedMemorySize = sizeof( Value );
-      constexpr auto kernel = cudaWritePivot< Value, Index >;
+      constexpr auto kernel = GPUQuicksortKernelCompleteTasks< Value, Index >;
       Backend::launchKernelAsync(
          kernel,
          launch_config,
@@ -227,9 +229,9 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
          static_cast< Index >( desiredSecondPhaseElementsPerBlock ),
          task,
          newTask,
-         cuda_newTasksAmount.getData(),
-         cuda_secondPhaseTasks,
-         cuda_secondPhaseTasksAmount.getData() );
+         newTaskCount.getData(),
+         secondPhaseTasks,
+         secondPhaseTaskCount.getData() );
 
       // reads the task counters, which also waits for the kernels launched above
       processNewTasks();
@@ -240,13 +242,13 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const Compare& compare )
 template< typename Value, typename Index >
 template< typename Compare >
 void
-Quicksorter< Value, Devices::Cuda, Index >::secondPhase( const Compare& compare )
+GPUQuicksort< Value, Index >::secondPhase( const Compare& compare )
 {
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = threadsPerBlock;
    launch_config.gridSize.x = host_firstPhaseTasksAmount + host_secondPhaseTasksAmount;
    constexpr int stackSize = 32;
-   auto& leftoverTasks = iteration % 2 == 0 ? cuda_tasks : cuda_newTasks;
+   auto& leftoverTasks = iteration % 2 == 0 ? tasks : newTasks;
 
    int elementsInShared = desiredElementsPerBlock;
    launch_config.dynamicSharedMemorySize =
@@ -258,21 +260,21 @@ Quicksorter< Value, Devices::Cuda, Index >::secondPhase( const Compare& compare 
 
    if( host_firstPhaseTasksAmount > 0 && host_secondPhaseTasksAmount > 0 ) {
       auto tasks = leftoverTasks.getView( 0, host_firstPhaseTasksAmount );
-      auto tasks2 = cuda_secondPhaseTasks.getView( 0, host_secondPhaseTasksAmount );
+      auto tasks2 = secondPhaseTasks.getView( 0, host_secondPhaseTasksAmount );
 
-      constexpr auto kernel = cudaQuickSortSecondPhase2< Value, Index, Compare, stackSize >;
+      constexpr auto kernel = GPUQuicksortKernelSortTaskLists< Value, Index, Compare, stackSize >;
       Backend::launchKernelSync(
          kernel, launch_config, arr, aux, compare, tasks, tasks2, elementsInShared, desiredSecondPhaseElementsPerBlock );
    }
    else if( host_firstPhaseTasksAmount > 0 ) {
       auto tasks = leftoverTasks.getView( 0, host_firstPhaseTasksAmount );
-      constexpr auto kernel = cudaQuickSortSecondPhase< Value, Index, Compare, stackSize >;
+      constexpr auto kernel = GPUQuicksortKernelSortTasks< Value, Index, Compare, stackSize >;
       Backend::launchKernelSync(
          kernel, launch_config, arr, aux, compare, tasks, elementsInShared, desiredSecondPhaseElementsPerBlock );
    }
    else {
-      auto tasks2 = cuda_secondPhaseTasks.getView( 0, host_secondPhaseTasksAmount );
-      constexpr auto kernel = cudaQuickSortSecondPhase< Value, Index, Compare, stackSize >;
+      auto tasks2 = secondPhaseTasks.getView( 0, host_secondPhaseTasksAmount );
+      constexpr auto kernel = GPUQuicksortKernelSortTasks< Value, Index, Compare, stackSize >;
       Backend::launchKernelSync(
          kernel, launch_config, arr, aux, compare, tasks2, elementsInShared, desiredSecondPhaseElementsPerBlock );
    }
@@ -280,7 +282,7 @@ Quicksorter< Value, Devices::Cuda, Index >::secondPhase( const Compare& compare 
 
 template< typename Value, typename Index >
 int
-Quicksorter< Value, Devices::Cuda, Index >::getElementsPerBlock() const
+GPUQuicksort< Value, Index >::getElementsPerBlock() const
 {
    return desiredElementsPerBlock;
 }
@@ -288,33 +290,33 @@ Quicksorter< Value, Devices::Cuda, Index >::getElementsPerBlock() const
 template< typename Value, typename Index >
 template< typename Compare >
 int
-Quicksorter< Value, Devices::Cuda, Index >::initTasks( int elementsPerBlock, const Compare& compare )
+GPUQuicksort< Value, Index >::initTasks( int elementsPerBlock, const Compare& compare )
 {
    auto& src = iteration % 2 == 0 ? arr : aux;
-   auto& tasks = iteration % 2 == 0 ? cuda_tasks : cuda_newTasks;
+   auto& activeTasks = iteration % 2 == 0 ? tasks : newTasks;
 
    {
-      const auto& cuda_tasks = tasks.getConstView( 0, host_firstPhaseTasksAmount );
-      auto blocksNeeded = cuda_reductionTaskInitMem.getView( 0, host_firstPhaseTasksAmount );
-      parallelFor< Devices::Cuda >(
+      const auto& taskView = activeTasks.getConstView( 0, host_firstPhaseTasksAmount );
+      auto blocksNeeded = reductionTaskInitMem.getView( 0, host_firstPhaseTasksAmount );
+      parallelFor< Devices::GPU >(
          0,
          host_firstPhaseTasksAmount,
          [ = ] __cuda_callable__( int i ) mutable
          {
-            const QuicksortTask< Index >& task = cuda_tasks[ i ];
+            const QuicksortTask< Index >& task = taskView[ i ];
             Index size = task.getSize();
             blocksNeeded[ i ] = TNL::roundUpDivision( size, static_cast< Index >( elementsPerBlock ) );
          } );
    }
-   // cuda_reductionTaskInitMem[i] == how many blocks task i needs
+   // reductionTaskInitMem[i] == how many blocks task i needs
 
-   inplaceInclusiveScan( cuda_reductionTaskInitMem );
-   // cuda_reductionTaskInitMem[i] == how many blocks task [0..i] need
+   inplaceInclusiveScan( reductionTaskInitMem );
+   // reductionTaskInitMem[i] == how many blocks task [0..i] need
 
-   int blocksNeeded = cuda_reductionTaskInitMem.getElement( host_firstPhaseTasksAmount - 1 );
+   int blocksNeeded = reductionTaskInitMem.getElement( host_firstPhaseTasksAmount - 1 );
 
    // need too many blocks, give back control
-   if( blocksNeeded > cuda_blockToTaskMapping.getSize() )
+   if( blocksNeeded > blockToTask.getSize() )
       return blocksNeeded;
 
    Backend::LaunchConfiguration launch_config;
@@ -327,26 +329,26 @@ Quicksorter< Value, Devices::Cuda, Index >::initTasks( int elementsPerBlock, con
    // asynchronous on purpose: the partitioning kernel that reads the tasks is
    // launched right after it on the same stream, so there is nothing to wait for
    Backend::launchKernelAsync(
-      cudaInitTask< Value, Index, Compare >,
+      GPUQuicksortKernelPrepareTasks< Value, Index, Compare >,
       launch_config,
-      tasks.getView( 0, host_firstPhaseTasksAmount ),                      // task to read from
-      cuda_blockToTaskMapping.getView( 0, blocksNeeded ),                  // maps block to a certain task
-      cuda_reductionTaskInitMem.getView( 0, host_firstPhaseTasksAmount ),  // has how many each task need blocks precalculated
+      activeTasks.getView( 0, host_firstPhaseTasksAmount ),           // task to read from
+      blockToTask.getView( 0, blocksNeeded ),                         // maps block to a certain task
+      reductionTaskInitMem.getView( 0, host_firstPhaseTasksAmount ),  // has how many each task need blocks precalculated
       src,
       compare,  // used to pick pivot
       nSamples,
       canBufferSamples );
 
-   cuda_newTasksAmount.setElement( 0, 0 );  // resets new element counter
+   newTaskCount.setElement( 0, 0 );  // resets new element counter
    return blocksNeeded;
 }
 
 template< typename Value, typename Index >
 void
-Quicksorter< Value, Devices::Cuda, Index >::processNewTasks()
+GPUQuicksort< Value, Index >::processNewTasks()
 {
-   host_firstPhaseTasksAmount = min( cuda_newTasksAmount.getElement( 0 ), maxTasks );
-   host_secondPhaseTasksAmount = min( cuda_secondPhaseTasksAmount.getElement( 0 ), maxTasks );
+   host_firstPhaseTasksAmount = min( newTaskCount.getElement( 0 ), maxTasks );
+   host_secondPhaseTasksAmount = min( secondPhaseTaskCount.getElement( 0 ), maxTasks );
 }
 
-}  // namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::detail

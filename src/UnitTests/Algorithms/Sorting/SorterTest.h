@@ -12,7 +12,7 @@
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
-#include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
+#include <TNL/Algorithms/Sorting/Quicksort.h>
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 
 #include "../../DeviceMemory.h"
@@ -25,7 +25,7 @@ using namespace TNL::Algorithms::Sorting;
 
 using Sorters = ::testing::Types<
    BitonicSort,
-   experimental::Quicksort
+   Quicksort
    #if defined( __CUDACC__ )
    ,
    CUBMergeSort
@@ -464,7 +464,7 @@ TEST_P( QuicksortBoundarySizes, quicksortDuplicates )
 
    TNL::Containers::Array< int, TNL::Devices::GPU > arr( vec );
    auto view = arr.getView();
-   experimental::Quicksort::sort( view );
+   Quicksort::sort( view );
    EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for size " << size;
 
    // the sorted array must be an exact permutation (multiset) of the input
@@ -987,7 +987,7 @@ blockSortSharedKernel(
    {
       const Index b = static_cast< Index >( begin );
       const Index e = static_cast< Index >( TNL::min( begin + tileSize, size ) );
-      Sorting::detail::bitonicSort_Block(
+      Sorting::detail::bitonicSortBlock(
          src.getView( b, e ), dst.getView( b, e ), reinterpret_cast< Value* >( sharedMem ), std::less<>{} );
    }
 }
@@ -1005,7 +1005,7 @@ blockSortInplaceKernel( TNL::Containers::ArrayView< Value, TNL::Devices::GPU, In
    {
       const Index b = static_cast< Index >( begin );
       const Index e = static_cast< Index >( TNL::min( begin + tileSize, size ) );
-      Sorting::detail::bitonicSort_Block( data.getView( b, e ), std::greater<>{} );
+      Sorting::detail::bitonicSortBlock( data.getView( b, e ), std::greater<>{} );
    }
 }
 

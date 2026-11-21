@@ -59,7 +59,7 @@ swapValues( Value& a, Value& b ) noexcept
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-bitonicSort_Block(
+bitonicSortBlock(
    Containers::ArrayView< Value, Devices::GPU, Index > src,
    Containers::ArrayView< Value, Devices::GPU, Index > dst,
    Value* sharedMem,
@@ -140,7 +140,7 @@ bitonicSort_Block(
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-bitonicSort_Block( Containers::ArrayView< Value, Devices::GPU, Index > src, const CMP& compare )
+bitonicSortBlock( Containers::ArrayView< Value, Devices::GPU, Index > src, const CMP& compare )
 {
    // Use at least 32-bit indices, the shifts below would overflow narrow types
    using ComputeIndex = std::common_type_t< Index, unsigned int >;

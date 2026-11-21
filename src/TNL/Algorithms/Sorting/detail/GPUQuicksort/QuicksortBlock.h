@@ -5,53 +5,71 @@
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Assert.h>
-#include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
+#include <TNL/Algorithms/Sorting/detail/BitonicSortBlock.h>
 #include <TNL/Algorithms/detail/PivotPartitionBlock.h>
+#include <TNL/Devices/GPU.h>
 
-namespace TNL::Algorithms::Sorting::experimental::detail {
+#include "../QuicksortPivot.h"
+
+namespace TNL::Algorithms::Sorting::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-template< typename Value, typename Index, typename Compare >
-__device__
-void
-externSort(
-   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
-   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
-   const Compare& compare,
-   Value* sharedMem )
-{
-   Sorting::detail::bitonicSort_Block( src, dst, sharedMem, compare );
-}
-
-template< typename Value, typename Index, typename Compare >
-__device__
-void
-externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const Compare& compare )
-{
-   Sorting::detail::bitonicSort_Block( src, compare );
-}
-
+/**
+ * \brief Block-wide stack of the sub-ranges waiting to be partitioned.
+ */
 template< int stackSize, typename Index >
-__device__
-void
-stackPush(
-   Index stackArrBegin[],
-   Index stackArrEnd[],
-   int stackDepth[],
-   int& stackTop,
-   Index begin,
-   Index pivotBegin,
-   Index pivotEnd,
-   Index end,
-   int iteration );
+struct QuicksortBlockStack
+{
+   int top;
+   Index begins[ stackSize ];
+   Index ends[ stackSize ];
+   int depths[ stackSize ];
+
+   __device__
+   void
+   init( Index size, int iteration )
+   {
+      if( threadIdx.x == 0 ) {
+         top = 0;
+         begins[ 0 ] = 0;
+         ends[ 0 ] = size;
+         depths[ 0 ] = iteration;
+         top++;
+      }
+      __syncthreads();
+   }
+
+   [[nodiscard]] __device__
+   bool
+   empty() const
+   {
+      return top <= 0;
+   }
+
+   __device__
+   void
+   pop( Index& begin, Index& end, int& iteration )
+   {
+      if( threadIdx.x == 0 ) {
+         begin = begins[ top - 1 ];
+         end = ends[ top - 1 ];
+         iteration = depths[ top - 1 ];
+         top--;
+      }
+   }
+
+   __device__
+   void
+   push( Index begin, Index pivotBegin, Index pivotEnd, Index end, int iteration );
+};
 
 template< typename Value, typename Index, typename Compare, int stackSize, bool useShared >
 __device__
 void
-singleBlockQuickSort(
-   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > arr,
-   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > aux,
+quicksortBlock(
+   Containers::ArrayView< Value, TNL::Devices::GPU, Index > arr,
+   Containers::ArrayView< Value, TNL::Devices::GPU, Index > aux,
    const Compare& compare,
    int _iteration,
    Value* sharedMem,
@@ -61,11 +79,11 @@ singleBlockQuickSort(
    if( arr.getSize() <= maxBitonicSize ) {
       auto& src = ( _iteration & 1 ) == 0 ? arr : aux;
       if( useShared && arr.getSize() <= memSize ) {
-         externSort< Value, Index, Compare >( src, arr, compare, sharedMem );
+         bitonicSortBlock( src, arr, sharedMem, compare );
       }
       else {
-         externSort< Value, Index, Compare >( src, compare );
-         // extern sort without shared memory only works in-place, need to copy into from aux
+         bitonicSortBlock( src, compare );
+         // the bitonic sort without shared memory works only in place, so copy from aux
          if( ( _iteration & 1 ) != 0 )
             for( Index i = threadIdx.x; i < arr.getSize(); i += blockDim.x )
                arr[ i ] = src[ i ];
@@ -74,10 +92,7 @@ singleBlockQuickSort(
       return;
    }
 
-   static __shared__ int stackTop;
-   static __shared__ Index stackArrBegin[ stackSize ];
-   static __shared__ Index stackArrEnd[ stackSize ];
-   static __shared__ int stackDepth[ stackSize ];
+   __shared__ QuicksortBlockStack< stackSize, Index > stack;
    static __shared__ Index begin;
    static __shared__ Index end;
    static __shared__ int iteration;
@@ -86,23 +101,11 @@ singleBlockQuickSort(
    Value* piv = sharedMem;
    sharedMem += 1;
 
-   if( threadIdx.x == 0 ) {
-      stackTop = 0;
-      stackArrBegin[ stackTop ] = 0;
-      stackArrEnd[ stackTop ] = arr.getSize();
-      stackDepth[ stackTop ] = _iteration;
-      stackTop++;
-   }
-   __syncthreads();
+   stack.init( arr.getSize(), _iteration );
 
-   while( stackTop > 0 ) {
-      // pick up partition to break up
-      if( threadIdx.x == 0 ) {
-         begin = stackArrBegin[ stackTop - 1 ];
-         end = stackArrEnd[ stackTop - 1 ];
-         iteration = stackDepth[ stackTop - 1 ];
-         stackTop--;
-      }
+   while( ! stack.empty() ) {
+      // pick up the partition to break up
+      stack.pop( begin, end, iteration );
       __syncthreads();
 
       Index size = end - begin;
@@ -111,11 +114,11 @@ singleBlockQuickSort(
       // small enough for bitonic sort
       if( size <= maxBitonicSize ) {
          if( useShared && size <= memSize ) {
-            externSort< Value, Index, Compare >( src.getView( begin, end ), arr.getView( begin, end ), compare, sharedMem );
+            bitonicSortBlock( src.getView( begin, end ), arr.getView( begin, end ), sharedMem, compare );
          }
          else {
-            externSort< Value, Index, Compare >( src.getView( begin, end ), compare );
-            // extern sort without shared memory only works in-place, need to copy into from aux
+            bitonicSortBlock( src.getView( begin, end ), compare );
+            // the bitonic sort without shared memory works only in place, so copy from aux
             if( ( iteration & 1 ) != 0 )
                for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x )
                   arr[ begin + i ] = src[ i ];
@@ -125,7 +128,7 @@ singleBlockQuickSort(
       }
 
       if( threadIdx.x == 0 )
-         *piv = pickPivot( src.getView( begin, end ), compare ).first;
+         *piv = pickMedianOfThree( src.getView( begin, end ), compare ).first;
       __syncthreads();
       Value& pivot = *piv;
 
@@ -179,27 +182,16 @@ singleBlockQuickSort(
          arr[ begin + i ] = pivot;
 
       // creates new tasks
-      if( threadIdx.x == 0 ) {
-         stackPush< stackSize, Index >(
-            stackArrBegin, stackArrEnd, stackDepth, stackTop, begin, begin + pivotBegin, begin + pivotEnd, end, iteration );
-      }
-      __syncthreads();  // sync to update stackTop
+      if( threadIdx.x == 0 )
+         stack.push( begin, begin + pivotBegin, begin + pivotEnd, end, iteration );
+      __syncthreads();  // sync to update the stack top
    }  // ends while loop
 }
 
 template< int stackSize, typename Index >
 __device__
 void
-stackPush(
-   Index stackArrBegin[],
-   Index stackArrEnd[],
-   int stackDepth[],
-   int& stackTop,
-   Index begin,
-   Index pivotBegin,
-   Index pivotEnd,
-   Index end,
-   int iteration )
+QuicksortBlockStack< stackSize, Index >::push( Index begin, Index pivotBegin, Index pivotEnd, Index end, int iteration )
 {
    Index sizeL = pivotBegin - begin;
    Index sizeR = end - pivotEnd;
@@ -209,43 +201,43 @@ stackPush(
    if( sizeL > sizeR ) {
       if( sizeL > 0 )  // left from pivot are smaller elements
       {
-         stackArrBegin[ stackTop ] = begin;
-         stackArrEnd[ stackTop ] = pivotBegin;
-         stackDepth[ stackTop ] = iteration + 1;
-         stackTop++;
+         begins[ top ] = begin;
+         ends[ top ] = pivotBegin;
+         depths[ top ] = iteration + 1;
+         top++;
       }
 
       if( sizeR > 0 )  // right from pivot until end are elements greater than pivot
       {
-         TNL_ASSERT_LT( stackTop, stackSize, "Local quicksort stack overflow." );
+         TNL_ASSERT_LT( top, stackSize, "Local quicksort stack overflow." );
 
-         stackArrBegin[ stackTop ] = pivotEnd;
-         stackArrEnd[ stackTop ] = end;
-         stackDepth[ stackTop ] = iteration + 1;
-         stackTop++;
+         begins[ top ] = pivotEnd;
+         ends[ top ] = end;
+         depths[ top ] = iteration + 1;
+         top++;
       }
    }
    else {
       if( sizeR > 0 )  // right from pivot until end are elements greater than pivot
       {
-         stackArrBegin[ stackTop ] = pivotEnd;
-         stackArrEnd[ stackTop ] = end;
-         stackDepth[ stackTop ] = iteration + 1;
-         stackTop++;
+         begins[ top ] = pivotEnd;
+         ends[ top ] = end;
+         depths[ top ] = iteration + 1;
+         top++;
       }
 
       if( sizeL > 0 )  // left from pivot are smaller elements
       {
-         TNL_ASSERT_LT( stackTop, stackSize, "Local quicksort stack overflow." );
+         TNL_ASSERT_LT( top, stackSize, "Local quicksort stack overflow." );
 
-         stackArrBegin[ stackTop ] = begin;
-         stackArrEnd[ stackTop ] = pivotBegin;
-         stackDepth[ stackTop ] = iteration + 1;
-         stackTop++;
+         begins[ top ] = begin;
+         ends[ top ] = pivotBegin;
+         depths[ top ] = iteration + 1;
+         top++;
       }
    }
 }
 
 #endif
 
-}  // namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::detail

@@ -5,7 +5,7 @@
 
 #include <TNL/Backend/Macros.h>
 
-namespace TNL::Algorithms::Sorting::experimental::detail {
+namespace TNL::Algorithms::Sorting::detail {
 
 template< typename Index >
 struct QuicksortTask
@@ -54,4 +54,4 @@ struct QuicksortTask
    QuicksortTask() = default;
 };
 
-}  // namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::detail

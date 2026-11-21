@@ -8,7 +8,7 @@
 
 #include <TNL/Backend.h>
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
+#include <TNL/Algorithms/Sorting/detail/BitonicSortBlock.h>
 #include <TNL/Algorithms/Sorting/detail/closestPow2.h>
 
 namespace TNL::Algorithms::Sorting::detail {

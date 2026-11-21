@@ -4,19 +4,18 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include "QuicksortTask.h"
+#include <TNL/Devices/GPU.h>
 
-namespace TNL::Algorithms::Sorting::experimental::detail {
+#include "GPUQuicksort/QuicksortTask.h"
 
-template< typename Value, typename Device, typename Index >
-class Quicksorter;
+namespace TNL::Algorithms::Sorting::detail {
 
 template< typename Value, typename Index >
-class Quicksorter< Value, Devices::Cuda, Index >
+class GPUQuicksort
 {
 public:
    using ValueType = Value;
-   using DeviceType = Devices::Cuda;
+   using DeviceType = Devices::GPU;
    using IndexType = Index;
 
    template< typename Array, typename Compare >
@@ -29,7 +28,7 @@ public:
 
    void
    init(
-      Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr,
+      Containers::ArrayView< ValueType, Devices::GPU, IndexType > arr,
       int gridDim,
       int blockDim,
       int desiredElementsPerBlock,
@@ -79,25 +78,25 @@ protected:
    int maxBlocks, threadsPerBlock, desiredElementsPerBlock;
    std::size_t maxSharable;
 
-   Containers::Array< ValueType, Devices::Cuda, IndexType > auxMem;
-   Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr, aux;
+   Containers::Array< ValueType, Devices::GPU, IndexType > auxMem;
+   Containers::ArrayView< ValueType, Devices::GPU, IndexType > arr, aux;
 
    int desiredSecondPhaseElementsPerBlock;
    static constexpr int maxTasksLimit = 1 << 14;
    int maxTasks;
 
-   Containers::Array< QuicksortTask< IndexType >, Devices::Cuda > cuda_tasks, cuda_newTasks,
-      cuda_secondPhaseTasks;  // one set of two rotating tasks and second phase
-   Containers::Array< int, Devices::Cuda > cuda_newTasksAmount,
-      cuda_secondPhaseTasksAmount;  // is in reality 1 integer each
+   Containers::Array< QuicksortTask< IndexType >, Devices::GPU > tasks, newTasks,
+      secondPhaseTasks;  // one set of two rotating tasks and second phase
+   Containers::Array< int, Devices::GPU > newTaskCount,
+      secondPhaseTaskCount;  // is in reality 1 integer each
 
-   Containers::Array< int, Devices::Cuda > cuda_blockToTaskMapping;
-   Containers::Array< int, Devices::Cuda > cuda_reductionTaskInitMem;
+   Containers::Array< int, Devices::GPU > blockToTask;
+   Containers::Array< int, Devices::GPU > reductionTaskInitMem;
 
    int host_firstPhaseTasksAmount = 0, host_secondPhaseTasksAmount = 0;
    int iteration = 0;
 };
 
-}  // namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::detail
 
-#include "Quicksorter.hpp"
+#include "GPUQuicksort.hpp"
