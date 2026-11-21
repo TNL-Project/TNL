@@ -224,7 +224,33 @@ INSTANTIATE_TEST_SUITE_P(
       4097,
       10000,
       100000,
-      1000000 ) );
+      1000000,
+      // Above 2048 * 8 * 150 = 2 457 600, so that the shared-memory merge
+      // kernels that handle several pairs per thread are covered together with
+      // a partial last tile on GPUs with up to 150 multiprocessors (B300 has
+      // 148); below that threshold the small tile keeps one pair per thread.
+      3000001,
+      16777215 ) );
+
+TEST( BitonicSortNonPowerOfTwo, doubleValues )
+{
+   const int size = 3000001;
+
+   std::mt19937 rng( 1234 );
+   std::vector< double > vec( size );
+   std::generate(
+      vec.begin(),
+      vec.end(),
+      [ & ]()
+      {
+         return static_cast< double >( rng() );
+      } );
+
+   TNL::Containers::Array< double, TNL::Devices::GPU > arr( vec );
+   auto view = arr.getView();
+   BitonicSort::sort( view );
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed for size " << size;
+}
 
 // =============================================================================
 // Permutation tests
