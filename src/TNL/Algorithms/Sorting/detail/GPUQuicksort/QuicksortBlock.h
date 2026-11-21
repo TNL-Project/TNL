@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <limits>
+#include <type_traits>
+
 #include <TNL/Containers/Array.h>
 #include <TNL/Assert.h>
 #include <TNL/Algorithms/Sorting/detail/BitonicSortBlock.h>
@@ -14,6 +17,82 @@
 namespace TNL::Algorithms::Sorting::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+
+/**
+ * \brief Sentinel-aware fast bitonic sort of one block-local range.
+ *
+ * Specialized for the second phase of the GPU quicksort: it uses the classic
+ * XOR-partner formulation of the bitonic network, which needs no per-element
+ * bounds checks and no bank-conflicting index arithmetic, and pads the range
+ * up to a power of two with a sentinel value that orders after every element.
+ * The sentinel exists only for arithmetic value types sorted with std::less
+ * (the sort order of the quicksort's public API); everything else falls back
+ * to the generic \ref bitonicSortBlock.
+ *
+ * \param src view of the input range (must not overlap `dst`)
+ * \param dst view of the output range, same size as `src`
+ * \param sharedMem staging buffer with capacity for at least
+ *        `closestPow2(src.getSize())` elements
+ */
+template< typename Value, typename Index, typename Compare >
+__device__
+void
+quicksortBitonicSort(
+   Containers::ArrayView< Value, TNL::Devices::GPU, Index > src,
+   Containers::ArrayView< Value, TNL::Devices::GPU, Index > dst,
+   Value* sharedMem,
+   const Compare& compare )
+{
+   constexpr bool canPad = std::is_arithmetic_v< Value >
+                        && ( std::is_same_v< std::decay_t< Compare >, std::less< void > >
+                             || std::is_same_v< std::decay_t< Compare >, std::less< Value > > );
+   const Index size = src.getSize();
+   const unsigned logPaddedSize = closestPow2Log2( size );
+   const Index paddedSize = Index( 1 ) << logPaddedSize;
+
+   if constexpr( ! canPad ) {
+      // no sentinel for the padding available, use the generic bounds-checked
+      // network (it also handles non-power-of-two sizes without padding)
+      bitonicSortBlock( src, dst, sharedMem, compare );
+   }
+   else {
+      // the sentinel must not order before any element of the input, otherwise
+      // it would move into the sorted range and evict real elements: for
+      // floating-point types, `max()` orders before `+inf`, so use `infinity()`
+      // (equal to `+inf` elements, which is harmless) and `max()` elsewhere
+      constexpr Value sentinel = std::numeric_limits< Value >::has_infinity ? std::numeric_limits< Value >::infinity()
+                                                                            : std::numeric_limits< Value >::max();
+      for( Index i = threadIdx.x; i < size; i += blockDim.x )
+         sharedMem[ i ] = src[ i ];
+      for( Index i = size + threadIdx.x; i < paddedSize; i += blockDim.x )
+         sharedMem[ i ] = sentinel;
+      __syncthreads();
+
+      for( unsigned logMonotonicSeqLen = 1; logMonotonicSeqLen <= logPaddedSize; ++logMonotonicSeqLen ) {
+         const Index bitonicLen = Index( 1 ) << logMonotonicSeqLen;
+         for( unsigned logStride = logMonotonicSeqLen; logStride-- > 0; ) {
+            const Index stride = Index( 1 ) << logStride;
+            // p enumerates the pairs: the lower element of pair p is
+            // p + (p & -stride), the partner is the same element with the
+            // stride bit set
+            const Index pairCount = paddedSize / 2;
+            for( Index p = threadIdx.x; p < pairCount; p += blockDim.x ) {
+               const Index i = p + ( p & -stride );
+               const Index partner = i | stride;
+               const bool ascending = ( i & bitonicLen ) == 0;
+               Value& lo = sharedMem[ i ];
+               Value& hi = sharedMem[ partner ];
+               if( ascending == compare( hi, lo ) )
+                  swapValues( lo, hi );
+            }
+            __syncthreads();
+         }
+      }
+
+      for( Index i = threadIdx.x; i < size; i += blockDim.x )
+         dst[ i ] = sharedMem[ i ];
+   }
+}
 
 /**
  * \brief Block-wide stack of the sub-ranges waiting to be partitioned.
@@ -79,7 +158,7 @@ quicksortBlock(
    if( arr.getSize() <= maxBitonicSize ) {
       auto& src = ( _iteration & 1 ) == 0 ? arr : aux;
       if( useShared && arr.getSize() <= memSize ) {
-         bitonicSortBlock( src, arr, sharedMem, compare );
+         quicksortBitonicSort( src, arr, sharedMem, compare );
       }
       else {
          bitonicSortBlock( src, compare );
@@ -114,7 +193,7 @@ quicksortBlock(
       // small enough for bitonic sort
       if( size <= maxBitonicSize ) {
          if( useShared && size <= memSize ) {
-            bitonicSortBlock( src.getView( begin, end ), arr.getView( begin, end ), sharedMem, compare );
+            quicksortBitonicSort( src.getView( begin, end ), arr.getView( begin, end ), sharedMem, compare );
          }
          else {
             bitonicSortBlock( src.getView( begin, end ), compare );
