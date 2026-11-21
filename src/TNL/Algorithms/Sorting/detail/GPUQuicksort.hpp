@@ -48,7 +48,10 @@ GPUQuicksort< Value, Index >::sort( Array& arr, const Compare& cmp )
    int elementsPerBlock =
       ( maxSharable - sizeof( Value ) ) / sizeof( Value );  // try to use up all of shared memory to store elements
    constexpr int maxBlocks = ( 1 << 20 );
-   constexpr int maxMultiplier = 8;
+   // the multiplier is capped by quicksortMaxElementsPerThread so that the
+   // first-phase partitioning can hold the tile fragment of one thread in
+   // registers (see partitionTaskBlock)
+   constexpr int maxMultiplier = quicksortMaxElementsPerThread;
    int multiplier = min( elementsPerBlock / blockDim, maxMultiplier );
 
    if( multiplier <= 0 )  // a block cant store 512 elements, sorting some really big data
