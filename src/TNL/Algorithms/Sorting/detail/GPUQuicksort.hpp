@@ -105,8 +105,7 @@ GPUQuicksort< Value, Index >::init(
    this->tasks.setSize( maxTasks );
    this->newTasks.setSize( maxTasks );
    this->secondPhaseTasks.setSize( maxTasks );
-   this->newTaskCount.setSize( 1 );
-   this->secondPhaseTaskCount.setSize( 1 );
+   this->taskCounters.setSize( 2 );
    this->blockToTask.setSize( maxBlocks );
    this->reductionTaskInitMem.setSize( maxTasks );
 
@@ -119,7 +118,7 @@ GPUQuicksort< Value, Index >::init(
       host_secondPhaseTasksAmount = 1;
    }
 
-   secondPhaseTaskCount = 0;
+   taskCounters.setValue( 0 );
 }
 
 template< typename Value, typename Index >
@@ -149,7 +148,8 @@ GPUQuicksort< Value, Index >::firstPhase( const Compare& compare )
          int tmp = host_firstPhaseTasksAmount;
          host_firstPhaseTasksAmount = 0;
          secondPhase( compare );
-         secondPhaseTaskCount = host_secondPhaseTasksAmount = 0;
+         taskCounters.setElement( 1, 0 );
+         host_secondPhaseTasksAmount = 0;
          host_firstPhaseTasksAmount = tmp;
       }
 
@@ -162,7 +162,8 @@ GPUQuicksort< Value, Index >::firstPhase( const Compare& compare )
             int tmp = host_firstPhaseTasksAmount;
             host_firstPhaseTasksAmount = 0;
             secondPhase( compare );
-            secondPhaseTaskCount = host_secondPhaseTasksAmount = 0;
+            taskCounters.setElement( 1, 0 );
+            host_secondPhaseTasksAmount = 0;
             host_firstPhaseTasksAmount = tmp;
          }
          else {
@@ -232,9 +233,9 @@ GPUQuicksort< Value, Index >::firstPhase( const Compare& compare )
          static_cast< Index >( desiredSecondPhaseElementsPerBlock ),
          task,
          newTask,
-         newTaskCount.getData(),
+         taskCounters.getData(),
          secondPhaseTasks,
-         secondPhaseTaskCount.getData() );
+         taskCounters.getData() + 1 );
 
       // reads the task counters, which also waits for the kernels launched above
       processNewTasks();
@@ -342,7 +343,7 @@ GPUQuicksort< Value, Index >::initTasks( int elementsPerBlock, const Compare& co
       nSamples,
       canBufferSamples );
 
-   newTaskCount.setElement( 0, 0 );  // resets new element counter
+   taskCounters.setElement( 0, 0 );  // resets the first-phase task counter
    return blocksNeeded;
 }
 
@@ -350,8 +351,12 @@ template< typename Value, typename Index >
 void
 GPUQuicksort< Value, Index >::processNewTasks()
 {
-   host_firstPhaseTasksAmount = min( newTaskCount.getElement( 0 ), maxTasks );
-   host_secondPhaseTasksAmount = min( secondPhaseTaskCount.getElement( 0 ), maxTasks );
+   // both counters are read with one synchronous transfer, which also waits
+   // for all kernels launched in this round
+   int counters[ 2 ];
+   Backend::memcpy( counters, taskCounters.getData(), 2 * sizeof( int ), Backend::MemcpyDeviceToHost );
+   host_firstPhaseTasksAmount = min( counters[ 0 ], maxTasks );
+   host_secondPhaseTasksAmount = min( counters[ 1 ], maxTasks );
 }
 
 }  // namespace TNL::Algorithms::Sorting::detail

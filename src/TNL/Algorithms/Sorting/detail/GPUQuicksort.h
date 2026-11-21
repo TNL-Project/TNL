@@ -87,8 +87,10 @@ protected:
 
    Containers::Array< QuicksortTask< IndexType >, Devices::GPU > tasks, newTasks,
       secondPhaseTasks;  // one set of two rotating tasks and second phase
-   Containers::Array< int, Devices::GPU > newTaskCount,
-      secondPhaseTaskCount;  // is in reality 1 integer each
+   // task counters, [0] = first-phase tasks of the next round, [1] = second
+   // phase tasks; kept in one array so that the host reads both with a
+   // single device-to-host transfer
+   Containers::Array< int, Devices::GPU > taskCounters;
 
    Containers::Array< int, Devices::GPU > blockToTask;
    Containers::Array< int, Devices::GPU > reductionTaskInitMem;
