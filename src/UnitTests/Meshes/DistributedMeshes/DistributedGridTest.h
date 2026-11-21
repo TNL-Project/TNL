@@ -270,6 +270,50 @@ TYPED_TEST( DistributedGridTest, overlapsOnGlobalBoundary )
       EXPECT_NO_THROW( distributedGrid.setOverlaps( 1, 1 ) );
 }
 
+// A global grid with less cells than subdomains along some axis is rejected and the distributed grid is not changed.
+TYPED_TEST( DistributedGridTest, tooSmallGlobalGrid )
+{
+   using Grid = typename TestFixture::GridType;
+   using DistributedGridType = typename TestFixture::DistributedGridType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   const int nproc = MPI::GetSize( MPI_COMM_WORLD );
+
+   Grid globalGrid;
+   globalGrid.setSizes( getGlobalSizes< Grid >() );
+   DistributedGridType distributedGrid;
+   distributedGrid.setGlobalGrid( globalGrid );
+   const auto decomposition = distributedGrid.getDomainDecomposition();
+
+   // the grid has one cell less than subdomains along the axes with more than one subdomain
+   typename Grid::CoordinatesType smallSizes = decomposition - 1;
+   for( int i = 0; i < Dimension; i++ )
+      if( decomposition[ i ] == 1 )
+         smallSizes[ i ] = 1;
+   Grid smallGrid;
+   smallGrid.setSizes( smallSizes );
+   if( nproc > 1 ) {
+      DistributedGridType small;
+      small.setDomainDecomposition( decomposition );
+      EXPECT_THROW( small.setGlobalGrid( smallGrid ), std::invalid_argument );
+      // the original distributed grid stays valid after a failed call
+      EXPECT_THROW( distributedGrid.setGlobalGrid( smallGrid ), std::invalid_argument );
+      EXPECT_EQ( distributedGrid.getGlobalGrid().getSizes(), globalGrid.getSizes() );
+      EXPECT_EQ( distributedGrid.getDomainDecomposition(), decomposition );
+   }
+   else {
+      DistributedGridType small;
+      EXPECT_NO_THROW( small.setGlobalGrid( smallGrid ) );
+   }
+
+   // the grid with exactly one cell per subdomain is accepted
+   Grid minimalGrid;
+   minimalGrid.setSizes( decomposition );
+   DistributedGridType minimal;
+   minimal.setDomainDecomposition( decomposition );
+   EXPECT_NO_THROW( minimal.setGlobalGrid( minimalGrid ) );
+   EXPECT_EQ( minimal.getLocalMesh().getSizes(), typename Grid::CoordinatesType( 1 ) );
+}
+
 // Owned entities get their values, the ghost entities get -1. After the synchronization, all entities of the local
 // grid must have their values. With one orientation, the ghost entities of the other orientations stay -1.
 template< int EntityDimension, typename DistributedGridType >

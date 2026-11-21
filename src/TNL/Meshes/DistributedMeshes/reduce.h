@@ -28,6 +28,7 @@ namespace TNL::Meshes {
  * The result is sent by MPI byte by byte,
  * so its type can be a fundamental type, \ref TNL::Containers::StaticVector
  * or a structure of such types without pointers.
+ * Types with a non-trivial destructor (owning resources) are rejected at compile time.
  * The function must be called by all ranks of the communicator of the distributed grid.
  *
  * The functions are called in the same way as in \ref reduce for grids, for example:
@@ -68,13 +69,18 @@ reduce(
    Reduction reduction,
    const Result& identity )
 {
+   // StaticVector is not trivially copyable because of its user-provided copy constructor, so at least the types
+   // owning resources (with a non-trivial destructor) are rejected
+   static_assert(
+      std::is_trivially_destructible_v< Result >,
+      "The results are sent by MPI byte by byte, so they must not own any resources." );
    const Result localResult =
       reduceLocalEntities< EntityDimension >( distributedGrid.getLocalMesh(), fetch, reduction, identity );
    if( ! distributedGrid.isDistributed() )
       return localResult;
 
    const MPI::Comm& communicator = distributedGrid.getCommunicator();
-   std::vector< Result > results( communicator.size() );
+   std::vector< Result > results( communicator.size(), identity );
    MPI::Allgather(
       reinterpret_cast< const char* >( &localResult ),
       static_cast< int >( sizeof( Result ) ),

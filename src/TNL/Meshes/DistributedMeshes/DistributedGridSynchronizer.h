@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 #include <utility>
@@ -154,6 +155,7 @@ public:
     * so the type can be a fundamental type, \ref TNL::Containers::StaticVector
     * to synchronize several values at once,
     * or a structure of such types without pointers.
+    * Types with a non-trivial destructor (owning resources) are rejected at compile time.
     *
     * \tparam EntityDimension is the dimension of the entities.
     * \param read is the function which returns the value of an entity.
@@ -267,6 +269,12 @@ protected:
       TNL_ASSERT_TRUE( this->distributedGrid, "The distributed grid is not set." );
       using GridEntityType = typename GridType::template EntityType< EntityDimension >;
       using Value = std::decay_t< decltype( read( std::declval< const GridEntityType& >() ) ) >;
+      // StaticVector is not trivially copyable because of its user-provided copy constructor, so at least the types
+      // owning resources (with a non-trivial destructor) and over-aligned types are rejected
+      static_assert(
+         std::is_trivially_destructible_v< Value >,
+         "The values are sent by MPI byte by byte, so they must not own any resources." );
+      static_assert( alignof( Value ) <= alignof( std::max_align_t ), "Over-aligned values are not supported." );
       constexpr int neighborsCount = DistributedGrid::getNeighborsCount();
       constexpr int totalOrientationsBegin = GridType::EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
 
