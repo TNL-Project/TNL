@@ -623,6 +623,8 @@ clangd-tidy:
             - .gitlab-ci.yml
             - justfile
     before_script:
+        # make sure that $PATH and other essential variables are set correctly
+        - source /etc/profile
         # hypre provides the headers needed to lint the HAVE_HYPRE code paths (see .clangd)
         - pacman -Syu --needed --noconfirm just clang clangd-tidy hypre
     script:

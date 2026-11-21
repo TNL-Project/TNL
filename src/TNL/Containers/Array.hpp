@@ -199,27 +199,20 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::resize( IndexType size )
 {
-   // remember the old size and reallocate the array
-   const IndexType old_size = this->size;
+   // reallocate constructs all elements of the new memory
    reallocate( size );
-
-   if( old_size < size )
-      if constexpr( ! std::is_fundamental_v< ValueType > )
-         // initialize the appended elements
-         detail::MemoryOperations< Device >::construct( this->data + old_size, size - old_size );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::resize( IndexType size, ValueType value )
 {
-   // remember the old size and reallocate the array
    const IndexType old_size = this->size;
    reallocate( size );
 
+   // the appended elements are constructed already, so they are assigned
    if( old_size < size )
-      // copy value into the appended elements
-      detail::MemoryOperations< Device >::construct( this->data + old_size, size - old_size, value );
+      Algorithms::fill< Device >( &this->getData()[ old_size ], value, size - old_size );
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
