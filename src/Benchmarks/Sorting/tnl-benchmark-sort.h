@@ -44,6 +44,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< std::string >( "value-type", "Value type to benchmark.", "int" );
    config.addEntryEnum( "int" );
    config.addEntryEnum( "uint" );
+   config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
    config.addEntryEnum( "all" );
 
@@ -231,6 +232,8 @@ resolveValueType( Benchmark& benchmark, const Config::ParameterContainer& parame
       run_benchmark< int >( benchmark, parameters );
    if( valueType == "all" || valueType == "uint" )
       run_benchmark< unsigned int >( benchmark, parameters );
+   if( valueType == "all" || valueType == "float" )
+      run_benchmark< float >( benchmark, parameters );
    if( valueType == "all" || valueType == "double" )
       run_benchmark< double >( benchmark, parameters );
 }
