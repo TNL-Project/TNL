@@ -85,8 +85,10 @@ protected:
    static constexpr int maxTasksLimit = 1 << 14;
    int maxTasks;
 
-   Containers::Array< QuicksortTask< IndexType >, Devices::GPU > tasks, newTasks,
-      secondPhaseTasks;  // one set of two rotating tasks and second phase
+   // one allocation for the two rotating first-phase task sets and the
+   // second-phase set; the three views below are bound into it
+   Containers::Array< QuicksortTask< IndexType >, Devices::GPU > taskStorage;
+   Containers::ArrayView< QuicksortTask< IndexType >, Devices::GPU > tasks, newTasks, secondPhaseTasks;
    // task counters, [0] = first-phase tasks of the next round, [1] = second
    // phase tasks; kept in one array so that the host reads both with a
    // single device-to-host transfer

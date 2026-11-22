@@ -102,11 +102,28 @@ GPUQuicksort< Value, Index >::init(
    this->aux.bind( auxMem.getView() );
    this->desiredSecondPhaseElementsPerBlock = desiredElementsPerBlock;
    this->maxTasks = static_cast< int >( min( arr.getSize(), static_cast< Index >( maxTasksLimit ) ) );
-   this->tasks.setSize( maxTasks );
-   this->newTasks.setSize( maxTasks );
-   this->secondPhaseTasks.setSize( maxTasks );
+   this->taskStorage.setSize( 3 * maxTasks );
+   this->tasks.bind( taskStorage.getView( 0, maxTasks ) );
+   this->newTasks.bind( taskStorage.getView( maxTasks, 2 * maxTasks ) );
+   this->secondPhaseTasks.bind( taskStorage.getView( 2 * maxTasks, 3 * maxTasks ) );
    this->taskCounters.setSize( 2 );
-   this->blockToTask.setSize( maxBlocks );
+   /*
+    * Capacity of the block-to-task map. Every first-phase task holds more than
+    * elementsPerBlock elements (smaller children go to the second phase), so
+    * there are fewer than size/elementsPerBlock of them and each contributes
+    * at most size/elementsPerBlock + 1 blocks. Hence the total block demand of
+    * any round stays below 2*ceil(size/elementsPerBlock) + 8, which keeps the
+    * premature-second-phase fallback below exactly as selective as with the
+    * historical fixed capacity of 2^20 entries, without allocating 4 MB for
+    * every sort.
+    */
+   int blockToTaskCapacity = maxBlocks;
+   if( desiredElementsPerBlock > 0 ) {
+      const auto maxTiles =
+         static_cast< std::size_t >( roundUpDivision( arr.getSize(), static_cast< Index >( desiredElementsPerBlock ) ) );
+      blockToTaskCapacity = static_cast< int >( min( static_cast< std::size_t >( maxBlocks ), 2 * maxTiles + 8 ) );
+   }
+   this->blockToTask.setSize( blockToTaskCapacity );
    this->reductionTaskInitMem.setSize( maxTasks );
 
    if( arr.getSize() > static_cast< Index >( desiredSecondPhaseElementsPerBlock ) ) {
