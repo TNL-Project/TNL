@@ -115,6 +115,9 @@ reduce(
    Reduction reduction,
    const Result& identity )
 {
+   // the grid with zero sizes has no entities, although the boxes of the vertices are not empty
+   if( grid.template getEntitiesCount< EntityDimension >() == 0 )
+      return identity;
    using GridType = Grid< Dimension, Real, Device, Index >;
    using CoordinatesType = typename GridType::CoordinatesType;
    using GridEntityType = typename GridType::template EntityType< EntityDimension >;

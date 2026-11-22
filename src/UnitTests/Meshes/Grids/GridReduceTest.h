@@ -23,29 +23,9 @@ entityValue( Index index )
    return ( index * 7 ) % 11 - 3;
 }
 
-// Accumulates the expected results of the reductions in forEntities on the host. It is a class instead of
-// a lambda function, because nvcc does not allow local types in the template arguments of the functions
-// with extended lambda functions.
-template< typename Real, typename Index >
-struct ExpectedResults
-{
-   Real* sum;
-   Real* max;
-   Index* count;
-
-   template< typename Entity >
-   __cuda_callable__
-   void
-   operator()( const Entity& entity ) const
-   {
-      const Real value = entityValue< Real >( entity.getIndex() );
-      *sum += value;
-      *max = TNL::max( *max, value );
-      ( *count )++;
-   }
-};
-
-// Checks the reductions over the region [ begin, end ) against the results of forEntities on the host.
+// Checks the reductions over the region [ begin, end ) against the results computed on the host independently of
+// the traversals: all entities are constructed from their indexes and the entities with given orientation lying in
+// the box [ begin, end + normals ) are accumulated.
 template< int EntityDimension, typename Grid >
 void
 testReduceRegion(
@@ -70,8 +50,19 @@ testReduceRegion(
    Real expectedSum = 0;
    Real expectedMax = std::numeric_limits< Real >::lowest();
    Index expectedCount = 0;
-   TNL::Meshes::forEntities< EntityDimension >(
-      hostGrid, begin, end, ExpectedResults< Real, Index >{ &expectedSum, &expectedMax, &expectedCount } );
+   for( Index index = 0; index < hostGrid.template getEntitiesCount< EntityDimension >(); index++ ) {
+      const typename HostGrid::template EntityType< EntityDimension > entity( hostGrid, index );
+      bool inside = true;
+      for( int i = 0; i < Grid::getMeshDimension(); i++ )
+         if( entity.getCoordinates()[ i ] < begin[ i ] || entity.getCoordinates()[ i ] >= end[ i ] + entity.getNormals()[ i ] )
+            inside = false;
+      if( ! inside )
+         continue;
+      const Real value = entityValue< Real >( index );
+      expectedSum += value;
+      expectedMax = TNL::max( expectedMax, value );
+      expectedCount++;
+   }
 
    TNL::Containers::Vector< Real, Device, Index > values( grid.template getEntitiesCount< EntityDimension >() );
    values.forAllElements(
