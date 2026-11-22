@@ -1,9 +1,9 @@
 #pragma once
 
 // Ellpack-specific tests, included in the generated SegmentsTest_Ellpack sources
-// (see tnl_add_format_tests in CMakeLists.txt)
+// (see tnl_add_segments_tests in CMakeLists.txt)
 
-#include "SegmentsTestFormats.h"
+#include "SegmentsTestVariants.h"
 #include "SegmentsTestSuite.hpp"
 
 // Ellpack-specific test fixture
@@ -15,7 +15,7 @@ protected:
 };
 
 using EllpackSegmentsTypes =
-   TNL::UnitTests::SegmentsTestTypes< TNL::UnitTests::EllpackFormat, TNL::UnitTests::TestDevice, int, long >;
+   TNL::UnitTests::SegmentsTestTypes< TNL::UnitTests::EllpackVariants, TNL::UnitTests::TestDevice, int, long >;
 
 TYPED_TEST_SUITE( EllpackSegmentsTest, EllpackSegmentsTypes );
 

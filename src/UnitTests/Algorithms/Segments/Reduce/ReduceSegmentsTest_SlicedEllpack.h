@@ -1,7 +1,7 @@
 #pragma once
 
 // Types of the SlicedEllpack segments for the ReduceSegmentsTest, included in the generated
-// ReduceSegmentsTest_SlicedEllpack sources (see tnl_add_format_tests in CMakeLists.txt)
+// ReduceSegmentsTest_SlicedEllpack sources (see tnl_add_segments_tests in CMakeLists.txt)
 
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 

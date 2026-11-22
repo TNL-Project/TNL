@@ -1,5 +1,5 @@
-# formats of segments for which the tests of segments are instantiated (see SegmentsTestFormats.h)
-set(SEGMENTS_TEST_FORMATS
+# segments types for which the tests of segments are instantiated (see SegmentsTestVariants.h)
+set(TESTED_SEGMENTS_TYPES
     CSR
     AdaptiveCSR
     Ellpack
@@ -14,21 +14,21 @@ set(SEGMENTS_TEST_FORMATS
     SortedBiEllpack
 )
 set(SEGMENTS_TEST_TYPES
-    "TNL::UnitTests::SegmentsTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice, int, long >"
+    "TNL::UnitTests::SegmentsTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants, TNL::UnitTests::TestDevice, int, long >"
 )
 
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
-# generates the SegmentsTest executables for all formats of segments in SEGMENTS_TEST_FORMATS
+# generates the SegmentsTest executables for all segments types in TESTED_SEGMENTS_TYPES
 # and adds the Ellpack-specific tests
-tnl_add_format_tests(
+tnl_add_segments_tests(
     SegmentsTest
     SUITE SegmentsTest
-    PREFIX <FORMAT>Segments
+    PREFIX <SEGMENTS_TYPE>Segments
     TYPES "${SEGMENTS_TEST_TYPES}"
-    HEADERS SegmentsTestFormats.h SegmentsTestSuite.hpp
-    FORMATS ${SEGMENTS_TEST_FORMATS}
+    HEADERS SegmentsTestVariants.h SegmentsTestSuite.hpp
+    SEGMENTS_TYPES ${TESTED_SEGMENTS_TYPES}
     EXTRA Ellpack:SegmentsTest_Ellpack.h
 )
 

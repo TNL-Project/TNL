@@ -167,7 +167,7 @@ TYPED_TEST_P( MatrixTest, saveAndLoad )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
-   // the file name is unique for each instantiation, because the tests of different formats may run in parallel
+   // the file name is unique for each instantiation, because the tests of different segments types may run in parallel
    std::string fileName = std::string( "test_" ) + ::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name();
    std::replace( fileName.begin(), fileName.end(), '/', '_' );
    test_SaveAndLoad< MatrixType >( fileName.c_str() );

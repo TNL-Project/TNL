@@ -1,10 +1,10 @@
-# generates the TraverseSegmentsTest executables for all formats of segments in SEGMENTS_TEST_FORMATS
+# generates the TraverseSegmentsTest executables for all segments types in TESTED_SEGMENTS_TYPES
 # (see ../CMakeLists.txt)
-tnl_add_format_tests(
+tnl_add_segments_tests(
     TraverseSegmentsTest
     SUITE TraverseSegmentsTest
-    PREFIX <FORMAT>Segments
+    PREFIX <SEGMENTS_TYPE>Segments
     TYPES "${SEGMENTS_TEST_TYPES}"
-    HEADERS ../SegmentsTestFormats.h TraverseSegmentsTestSuite.hpp
-    FORMATS ${SEGMENTS_TEST_FORMATS}
+    HEADERS ../SegmentsTestVariants.h TraverseSegmentsTestSuite.hpp
+    SEGMENTS_TYPES ${TESTED_SEGMENTS_TYPES}
 )

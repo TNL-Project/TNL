@@ -1,7 +1,7 @@
 #pragma once
 
 // AdaptiveCSR-specific tests, included in the generated ReduceSegmentsTest_AdaptiveCSR sources
-// (see tnl_add_format_tests in CMakeLists.txt)
+// (see tnl_add_segments_tests in CMakeLists.txt)
 
 #include <TNL/Algorithms/Segments/AdaptiveCSR.h>
 #include <TNL/Algorithms/Segments/reduce.h>

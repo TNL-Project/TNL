@@ -1,6 +1,6 @@
-# formats of segments for which the tests of the reduction, traversal and vector product of sparse matrices are
-# instantiated (see ../Algorithms/Segments/SegmentsTestFormats.h and SparseMatrixTestTypes.h)
-set(SPARSE_MATRIX_TEST_FORMATS
+# segments types for which the tests of the reduction, traversal and vector product of sparse matrices are
+# instantiated (see ../Algorithms/Segments/SegmentsTestVariants.h and SparseMatrixTestTypes.h)
+set(SPARSE_MATRIX_TESTED_SEGMENTS_TYPES
     CSR
     AdaptiveCSR
     Ellpack
@@ -9,13 +9,13 @@ set(SPARSE_MATRIX_TEST_FORMATS
     BiEllpack
 )
 set(SPARSE_MATRIX_TEST_TYPES
-    "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+    "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants, TNL::UnitTests::TestDevice,
     TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< long, long >,
     TNL::UnitTests::MatrixElementTypes< float, int >, TNL::UnitTests::MatrixElementTypes< double, long > >"
 )
 # covering set of the element types for the GPU builds (see ../ARCHITECTURE.md)
 set(SPARSE_MATRIX_TEST_GPU_TYPES
-    "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+    "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants, TNL::UnitTests::TestDevice,
     TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< double, long > >"
 )
 
@@ -23,25 +23,26 @@ add_subdirectory(Factorization)
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
-# generates the SparseMatrixTest executables for all formats of segments including the sorted ones,
-# with all variants of each format (e.g. row-major and column-major)
-tnl_add_format_tests(
+# generates the SparseMatrixTest executables for all segments types including the sorted ones,
+# with all variants of each segments type (e.g. row-major and column-major)
+tnl_add_segments_tests(
     SparseMatrixTest
     SUITE MatrixTest
-    PREFIX SparseMatrix<FORMAT>
+    PREFIX SparseMatrix<SEGMENTS_TYPE>
     TYPES
-        "TNL::UnitTests::SparseMatrixVariantsTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        "TNL::UnitTests::SparseMatrixVariantsTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants, TNL::UnitTests::TestDevice,
         TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< long, long >,
         TNL::UnitTests::MatrixElementTypes< float, int >, TNL::UnitTests::MatrixElementTypes< double, long >,
         TNL::UnitTests::MatrixElementTypes< TNL::Arithmetics::Complex< float >, long > >"
     GPU_TYPES
-        "TNL::UnitTests::SparseMatrixVariantsCoveringTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        "TNL::UnitTests::SparseMatrixVariantsCoveringTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants,
+        TNL::UnitTests::TestDevice,
         TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< long, long >,
         TNL::UnitTests::MatrixElementTypes< float, int >, TNL::UnitTests::MatrixElementTypes< double, long >,
         TNL::UnitTests::MatrixElementTypes< TNL::Arithmetics::Complex< float >, long > >"
     HEADERS SparseMatrixTestTypes.h SparseMatrixTest.h
-    FORMATS
-        ${SPARSE_MATRIX_TEST_FORMATS}
+    SEGMENTS_TYPES
+        ${SPARSE_MATRIX_TESTED_SEGMENTS_TYPES}
         SortedCSR
         SortedAdaptiveCSR
         SortedEllpack
@@ -51,37 +52,38 @@ tnl_add_format_tests(
     LABELS Matrices
 )
 
-# generates the SparseMatrixVectorProductTest executables for all formats of segments in
-# SPARSE_MATRIX_TEST_FORMATS, with all variants of each format (e.g. row-major and column-major)
-tnl_add_format_tests(
+# generates the SparseMatrixVectorProductTest executables for all segments types in
+# SPARSE_MATRIX_TESTED_SEGMENTS_TYPES, with all variants of each segments type (e.g. row-major and column-major)
+tnl_add_segments_tests(
     SparseMatrixVectorProductTest
     SUITE MatrixTest
-    PREFIX SparseMatrix<FORMAT>
+    PREFIX SparseMatrix<SEGMENTS_TYPE>
     TYPES
-        "TNL::UnitTests::SparseMatrixVariantsTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        "TNL::UnitTests::SparseMatrixVariantsTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants, TNL::UnitTests::TestDevice,
         TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< long, long >,
         TNL::UnitTests::MatrixElementTypes< float, int >, TNL::UnitTests::MatrixElementTypes< double, long >,
         TNL::UnitTests::MatrixElementTypes< TNL::Arithmetics::Complex< float >, long > >"
     GPU_TYPES
-        "TNL::UnitTests::SparseMatrixVariantsCoveringTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        "TNL::UnitTests::SparseMatrixVariantsCoveringTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants,
+        TNL::UnitTests::TestDevice,
         TNL::UnitTests::MatrixElementTypes< int, int >, TNL::UnitTests::MatrixElementTypes< double, long >,
         TNL::UnitTests::MatrixElementTypes< TNL::Arithmetics::Complex< float >, long > >"
     HEADERS SparseMatrixTestTypes.h SparseMatrixVectorProductTest.h
-    FORMATS ${SPARSE_MATRIX_TEST_FORMATS}
+    SEGMENTS_TYPES ${SPARSE_MATRIX_TESTED_SEGMENTS_TYPES}
     LABELS Matrices
 )
 
-# generates the BinarySparseMatrixTest executables for the formats of segments supported by
+# generates the BinarySparseMatrixTest executables for the segments types supported by
 # binary sparse matrices
-tnl_add_format_tests(
+tnl_add_segments_tests(
     BinarySparseMatrixTest
     SUITE BinaryMatrixTest
-    PREFIX BinarySparseMatrix<FORMAT>
+    PREFIX BinarySparseMatrix<SEGMENTS_TYPE>
     TYPES
-        "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<FORMAT>Format, TNL::UnitTests::TestDevice,
+        "TNL::UnitTests::SparseMatrixTestTypes< TNL::UnitTests::<SEGMENTS_TYPE>Variants, TNL::UnitTests::TestDevice,
         TNL::UnitTests::MatrixElementTypes< bool, int, int >, TNL::UnitTests::MatrixElementTypes< bool, long, int > >"
     HEADERS SparseMatrixTestTypes.h BinarySparseMatrixTestSuite.hpp
-    FORMATS CSR AdaptiveCSR Ellpack SlicedEllpack
+    SEGMENTS_TYPES CSR AdaptiveCSR Ellpack SlicedEllpack
     LABELS Matrices
 )
 

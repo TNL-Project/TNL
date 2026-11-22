@@ -3,8 +3,8 @@
 
 #pragma once
 
-// Formats of segments for which the unit tests of segments (and of the algorithms and
-// data structures based on segments) are instantiated. Each format consists of segment
+// Segments types for which the unit tests of segments (and of the algorithms and
+// data structures based on segments) are instantiated. Each of them is given by the segment
 // templates with the signature < Device, Index, IndexAllocator >, which is the same as
 // the signature of the Segments template parameter of SparseMatrix. The type lists for
 // the tests of segments are generated with SegmentsTestTypes, the type lists for the
@@ -42,59 +42,59 @@ using TestDevice = Devices::Host;
 #endif
 
 /**
- * \brief Format of segments.
+ * \brief Variants of a segments type (e.g. row-major and column-major Ellpack).
  *
  * \tparam DefaultSegments is the segments template with the default organization for the
  *         device. It is used in the tests of the data structures based on segments, such as
  *         sparse matrices.
- * \tparam Segments are all variants of the format (e.g. row-major and column-major), which
+ * \tparam Segments are all variants of the segments type (e.g. row-major and column-major), which
  *         are used in the tests of segments (see \ref SegmentsTestTypes).
  */
 template<
    template< typename Device, typename Index, typename IndexAllocator > class DefaultSegments,
    template< typename Device, typename Index, typename IndexAllocator > class... Segments >
-struct SegmentsFormat
+struct SegmentsVariants
 {};
 
 /**
- * \brief Format of sorted segments.
+ * \brief Variants of a sorted segments type.
  *
- * The template parameters are the same as for \ref SegmentsFormat. Sorted segments wrap the
- * segments of another format, which is tested on its own. Hence, the tests of sorted segments
+ * The template parameters are the same as for \ref SegmentsVariants. Sorted segments wrap the
+ * segments of another type, which is tested on its own. Hence, the tests of sorted segments
  * on GPUs are instantiated only for a covering set of the segment templates and index types
  * (see \ref SegmentsTestTypes).
  */
 template<
    template< typename Device, typename Index, typename IndexAllocator > class DefaultSegments,
    template< typename Device, typename Index, typename IndexAllocator > class... Segments >
-struct SortedSegmentsFormat
+struct SortedSegmentsVariants
 {};
 
 // clang-format off
-using CSRFormat = SegmentsFormat< Algorithms::Segments::CSR,
-                                  Algorithms::Segments::CSR >;
-using AdaptiveCSRFormat = SegmentsFormat< Algorithms::Segments::AdaptiveCSR,
-                                          Algorithms::Segments::AdaptiveCSR >;
-using EllpackFormat = SegmentsFormat< Algorithms::Segments::Ellpack,
-                                      Algorithms::Segments::RowMajorEllpack, Algorithms::Segments::ColumnMajorEllpack >;
-using SlicedEllpackFormat = SegmentsFormat< Algorithms::Segments::SlicedEllpack,
-                                            Algorithms::Segments::RowMajorSlicedEllpack, Algorithms::Segments::ColumnMajorSlicedEllpack >;
-using ChunkedEllpackFormat = SegmentsFormat< Algorithms::Segments::ChunkedEllpack,
-                                             Algorithms::Segments::RowMajorChunkedEllpack, Algorithms::Segments::ColumnMajorChunkedEllpack >;
-using BiEllpackFormat = SegmentsFormat< Algorithms::Segments::BiEllpack,
-                                        Algorithms::Segments::RowMajorBiEllpack, Algorithms::Segments::ColumnMajorBiEllpack >;
-using SortedCSRFormat = SortedSegmentsFormat< Algorithms::Segments::SortedCSR,
-                                              Algorithms::Segments::SortedCSR >;
-using SortedAdaptiveCSRFormat = SortedSegmentsFormat< Algorithms::Segments::SortedAdaptiveCSR,
-                                                      Algorithms::Segments::SortedAdaptiveCSR >;
-using SortedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedEllpack,
-                                                  Algorithms::Segments::SortedRowMajorEllpack, Algorithms::Segments::SortedColumnMajorEllpack >;
-using SortedSlicedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedSlicedEllpack,
-                                                        Algorithms::Segments::SortedRowMajorSlicedEllpack, Algorithms::Segments::SortedColumnMajorSlicedEllpack >;
-using SortedChunkedEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedChunkedEllpack,
-                                                         Algorithms::Segments::SortedRowMajorChunkedEllpack, Algorithms::Segments::SortedColumnMajorChunkedEllpack >;
-using SortedBiEllpackFormat = SortedSegmentsFormat< Algorithms::Segments::SortedBiEllpack,
-                                                    Algorithms::Segments::SortedRowMajorBiEllpack, Algorithms::Segments::SortedColumnMajorBiEllpack >;
+using CSRVariants = SegmentsVariants< Algorithms::Segments::CSR,
+                                    Algorithms::Segments::CSR >;
+using AdaptiveCSRVariants = SegmentsVariants< Algorithms::Segments::AdaptiveCSR,
+                                            Algorithms::Segments::AdaptiveCSR >;
+using EllpackVariants = SegmentsVariants< Algorithms::Segments::Ellpack,
+                                        Algorithms::Segments::RowMajorEllpack, Algorithms::Segments::ColumnMajorEllpack >;
+using SlicedEllpackVariants = SegmentsVariants< Algorithms::Segments::SlicedEllpack,
+                                              Algorithms::Segments::RowMajorSlicedEllpack, Algorithms::Segments::ColumnMajorSlicedEllpack >;
+using ChunkedEllpackVariants = SegmentsVariants< Algorithms::Segments::ChunkedEllpack,
+                                               Algorithms::Segments::RowMajorChunkedEllpack, Algorithms::Segments::ColumnMajorChunkedEllpack >;
+using BiEllpackVariants = SegmentsVariants< Algorithms::Segments::BiEllpack,
+                                          Algorithms::Segments::RowMajorBiEllpack, Algorithms::Segments::ColumnMajorBiEllpack >;
+using SortedCSRVariants = SortedSegmentsVariants< Algorithms::Segments::SortedCSR,
+                                                Algorithms::Segments::SortedCSR >;
+using SortedAdaptiveCSRVariants = SortedSegmentsVariants< Algorithms::Segments::SortedAdaptiveCSR,
+                                                        Algorithms::Segments::SortedAdaptiveCSR >;
+using SortedEllpackVariants = SortedSegmentsVariants< Algorithms::Segments::SortedEllpack,
+                                                    Algorithms::Segments::SortedRowMajorEllpack, Algorithms::Segments::SortedColumnMajorEllpack >;
+using SortedSlicedEllpackVariants = SortedSegmentsVariants< Algorithms::Segments::SortedSlicedEllpack,
+                                                          Algorithms::Segments::SortedRowMajorSlicedEllpack, Algorithms::Segments::SortedColumnMajorSlicedEllpack >;
+using SortedChunkedEllpackVariants = SortedSegmentsVariants< Algorithms::Segments::SortedChunkedEllpack,
+                                                           Algorithms::Segments::SortedRowMajorChunkedEllpack, Algorithms::Segments::SortedColumnMajorChunkedEllpack >;
+using SortedBiEllpackVariants = SortedSegmentsVariants< Algorithms::Segments::SortedBiEllpack,
+                                                      Algorithms::Segments::SortedRowMajorBiEllpack, Algorithms::Segments::SortedColumnMajorBiEllpack >;
 // clang-format on
 
 namespace detail {
@@ -181,7 +181,7 @@ template< typename Device, typename Indices, template< typename, typename, typen
 using SegmentsCoveringTypes =
    SegmentsCoveringTypesImpl< Device, Indices, std::make_index_sequence< sizeof...( Segments ) >, Segments... >;
 
-template< typename Format, typename Device, typename... Indices >
+template< typename Variants, typename Device, typename... Indices >
 struct SegmentsTestTypes;
 
 template<
@@ -189,7 +189,7 @@ template<
    template< typename, typename, typename > class... Segments,
    typename Device,
    typename... Indices >
-struct SegmentsTestTypes< SegmentsFormat< DefaultSegments, Segments... >, Device, Indices... >
+struct SegmentsTestTypes< SegmentsVariants< DefaultSegments, Segments... >, Device, Indices... >
 {
    using type = typename SegmentsProductTypes< Device, std::tuple< Indices... >, Segments... >::type;
 };
@@ -199,7 +199,7 @@ template<
    template< typename, typename, typename > class... Segments,
    typename Device,
    typename... Indices >
-struct SegmentsTestTypes< SortedSegmentsFormat< DefaultSegments, Segments... >, Device, Indices... >
+struct SegmentsTestTypes< SortedSegmentsVariants< DefaultSegments, Segments... >, Device, Indices... >
 {
    using type = typename std::conditional_t<
       std::is_same_v< Device, Devices::Host >,
@@ -210,19 +210,19 @@ struct SegmentsTestTypes< SortedSegmentsFormat< DefaultSegments, Segments... >, 
 }  // namespace detail
 
 /**
- * \brief Type list with the segments of the given format for the given device and index types.
+ * \brief Type list with the given variants of segments for the given device and index types.
  *
- * The types are ordered by the segment templates of the format and then by the index types,
- * e.g. `SegmentsTestTypes< EllpackFormat, Devices::Host, int, long >` gives
+ * The types are ordered by the segment templates of the variants and then by the index types,
+ * e.g. `SegmentsTestTypes< EllpackVariants, Devices::Host, int, long >` gives
  * `::testing::Types< RowMajorEllpack< Host, int >, RowMajorEllpack< Host, long >,
  * ColumnMajorEllpack< Host, int >, ColumnMajorEllpack< Host, long > >`.
  *
- * For a \ref SortedSegmentsFormat and a device other than \ref Devices::Host, the list is
+ * For a \ref SortedSegmentsVariants and a device other than \ref Devices::Host, the list is
  * reduced to a covering set, where each segment template and each index type appear at least
- * once, e.g. `SegmentsTestTypes< SortedEllpackFormat, Devices::GPU, int, long >` gives
+ * once, e.g. `SegmentsTestTypes< SortedEllpackVariants, Devices::GPU, int, long >` gives
  * `::testing::Types< SortedRowMajorEllpack< GPU, int >, SortedColumnMajorEllpack< GPU, long > >`.
  */
-template< typename Format, typename Device, typename... Indices >
-using SegmentsTestTypes = typename detail::SegmentsTestTypes< Format, Device, Indices... >::type;
+template< typename Variants, typename Device, typename... Indices >
+using SegmentsTestTypes = typename detail::SegmentsTestTypes< Variants, Device, Indices... >::type;
 
 }  // namespace TNL::UnitTests
