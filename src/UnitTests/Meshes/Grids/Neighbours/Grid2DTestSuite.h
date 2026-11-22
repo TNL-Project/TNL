@@ -9,10 +9,14 @@
 using Implementations = ::testing::Types<
    TNL::Meshes::Grid< 2, double, TNL::Devices::Sequential, int >,
    TNL::Meshes::Grid< 2, float, TNL::Devices::Sequential, int >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    ,
    TNL::Meshes::Grid< 2, double, TNL::Devices::Cuda, int >,
    TNL::Meshes::Grid< 2, float, TNL::Devices::Cuda, int >
+#elif defined( __HIP__ )
+   ,
+   TNL::Meshes::Grid< 2, double, TNL::Devices::Hip, int >,
+   TNL::Meshes::Grid< 2, float, TNL::Devices::Hip, int >
 #endif
    >;
 
@@ -31,9 +35,10 @@ void
 testNeighbourEntityIndexes( Grid& grid, const typename Grid::CoordinatesType& dimension, const int scale = 1 )
 {
    if constexpr( TNL::Devices::isSequential< typename Grid::DeviceType >() )
-      for( int i = -1 * scale; i < 1 * scale; i++ )
-         testNeighbourEntityIndexes< Grid, EntityDimension, NeighbourEntityDimension >(
-            grid, dimension, typename Grid::CoordinatesType( i ) );
+      for( int i = -scale; i <= scale; i++ )
+         for( int j = -scale; j <= scale; j++ )
+            testNeighbourEntityIndexes< Grid, EntityDimension, NeighbourEntityDimension >(
+               grid, dimension, typename Grid::CoordinatesType( i, j ) );
 }
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
@@ -43,8 +48,8 @@ testDynamicNeighbourEntityGetterForAllStencils(
    const typename Grid::CoordinatesType& dimension,
    const int scale = 1 )
 {
-   for( int i = -1 * scale; i < 1 * scale; i++ )
-      for( int j = -1 * scale; j < 1 * scale; j++ )
+   for( int i = -scale; i <= scale; i++ )
+      for( int j = -scale; j <= scale; j++ )
          testDynamicNeighbourEntityGetter< Grid, EntityDimension, NeighbourEntityDimension >(
             grid, dimension, typename Grid::CoordinatesType( i, j ) );
 }
@@ -56,8 +61,8 @@ testDynamicNeighbourEntityGetterForAllStencils(
    const typename Grid::CoordinatesType& dimension,
    const int scale = 1 )
 {
-   for( int i = -1 * scale; i < 1 * scale; i++ )
-      for( int j = -1 * scale; j < 1 * scale; j++ )
+   for( int i = -scale; i <= scale; i++ )
+      for( int j = -scale; j <= scale; j++ )
          testDynamicNeighbourEntityGetter< Grid, EntityDimension, NeighbourEntityDimension, NeighbourEntityOrientation >(
             grid, dimension, typename Grid::CoordinatesType( i, j ) );
 }

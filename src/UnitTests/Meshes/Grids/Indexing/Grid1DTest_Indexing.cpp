@@ -23,7 +23,8 @@ TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_0D_Entity )
 
    GridType grid;
 
-   testGetEntityFromIndex< GridType, 0 >( grid, { 10 } );
+   for( const auto& sizes : std::vector< typename GridType::CoordinatesType >{ 10, 1 } )
+      testGetEntityFromIndex< GridType, 0 >( grid, sizes );
 }
 
 TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_1D_Entity )
@@ -32,7 +33,8 @@ TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_1D_Entity )
 
    GridType grid;
 
-   testGetEntityFromIndex< GridType, 1 >( grid, { 10 } );
+   for( const auto& sizes : std::vector< typename GridType::CoordinatesType >{ 10, 1 } )
+      testGetEntityFromIndex< GridType, 1 >( grid, sizes );
 }
 
 #include "../../../main.h"

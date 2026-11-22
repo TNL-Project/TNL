@@ -2,6 +2,7 @@
 
 #include "../EntityDataStore.h"
 #include "../CoordinateIterator.h"
+#include "../ReferenceEntityIndex.h"
 #include <gtest/gtest.h>
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
@@ -29,7 +30,7 @@ public:
          /////
          // First test neighbour entities with the same dimension and orientation
          if( EntityDimension == NeighbourEntityDimension )  // TODO: add constexpr when nvcc accepts it
-            if( TNL::all( TNL::greater( entity.getCoordinates() + offset, 0 ) )
+            if( TNL::all( TNL::greaterEqual( entity.getCoordinates() + offset, 0 ) )
                 && TNL::all(
                    TNL::less( entity.getCoordinates() + offset, entity.getGrid().getSizes() + entity.getNormals() ) ) )
             {
@@ -46,13 +47,19 @@ public:
                   << " Neighbour entity coordinates: " << neighbourEntity.getCoordinates() << std::endl
                   << " Neighbour entity index: " << neighbourEntity.getIndex() << std::endl
                   << " Neighbour entity orientation normals: " << neighbourEntity.getNormals() << std::endl;
+               EXPECT_EQ( neighbourEntity.getCoordinates(), entity.getCoordinates() + offset );
+               EXPECT_EQ( neighbourEntity.getNormals(), entity.getNormals() );
+               EXPECT_EQ(
+                  neighbourEntityIndex, getReferenceEntityIndex( grid, entity.getCoordinates() + offset, entity.getNormals() ) )
+                  << "Entity coordinates: " << entity.getCoordinates() << ", normals: " << entity.getNormals()
+                  << ", offset: " << offset;
             }
 
          /////
          // Next check neighbour entities with different orientation
          for( Index orientationIdx = 0; orientationIdx < neighbourEntitiesOrientationsCount; orientationIdx++ ) {
             auto normals = grid.template getNormals< NeighbourEntityDimension >( orientationIdx );
-            if( TNL::all( TNL::greater( entity.getCoordinates() + offset, 0 ) )
+            if( TNL::all( TNL::greaterEqual( entity.getCoordinates() + offset, 0 ) )
                 && TNL::all( TNL::less( entity.getCoordinates() + offset, entity.getGrid().getSizes() + normals ) ) )
             {
                auto neighbourEntity = entity.template getEntity< NeighbourEntityDimension >( offset, normals );
@@ -70,6 +77,11 @@ public:
                   << " Neighbour entity coordinates: " << neighbourEntity.getCoordinates() << std::endl
                   << " Neighbour entity index: " << neighbourEntity.getIndex() << std::endl
                   << " Neighbour entity orientation normals: " << neighbourEntity.getNormals() << std::endl;
+               EXPECT_EQ( neighbourEntity.getCoordinates(), entity.getCoordinates() + offset );
+               EXPECT_EQ( neighbourEntity.getNormals(), normals );
+               EXPECT_EQ( neighbourEntityIndex, getReferenceEntityIndex( grid, entity.getCoordinates() + offset, normals ) )
+                  << "Entity coordinates: " << entity.getCoordinates() << ", normals: " << entity.getNormals()
+                  << ", offset: " << offset << ", neighbour normals: " << normals;
             }
          }
       };
@@ -180,6 +192,10 @@ public:
                << "Expect, that the normals is updated";
             EXPECT_EQ( expectCall ? neighbourEntityOrientation : 0, neighbourEntity.orientation )
                << "Expect, that the parent entity was called";
+            if( expectCall )
+               EXPECT_EQ( neighbourEntity.index, getReferenceEntityIndex( grid, alignedCoordinate, neighbourEntityNormals ) )
+                  << "Expect, that the index of the neighbour entity is correct, coordinates: " << alignedCoordinate
+                  << ", normals: " << neighbourEntityNormals;
          } while( ! iterator.next() );
       };
 

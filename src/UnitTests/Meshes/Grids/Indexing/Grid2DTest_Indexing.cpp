@@ -4,8 +4,6 @@
 
 #include "support.h"
 
-const int size = 7;
-
 using Implementations = ::testing::Types<
    TNL::Meshes::Grid< 2, double, TNL::Devices::Sequential, int >,
    TNL::Meshes::Grid< 2, float, TNL::Devices::Sequential, int > >;
@@ -25,7 +23,9 @@ TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_0D_Entity )
 
    GridType grid;
 
-   testGetEntityFromIndex< GridType, 0 >( grid, { size, size } );
+   for( const auto& sizes :
+        std::vector< typename GridType::CoordinatesType >{ { 7, 7 }, { 3, 5 }, { 5, 3 }, { 1, 4 }, { 4, 1 } } )
+      testGetEntityFromIndex< GridType, 0 >( grid, sizes );
 }
 
 TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_1D_Entity )
@@ -34,7 +34,9 @@ TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_1D_Entity )
 
    GridType grid;
 
-   testGetEntityFromIndex< GridType, 1 >( grid, { size, size } );
+   for( const auto& sizes :
+        std::vector< typename GridType::CoordinatesType >{ { 7, 7 }, { 3, 5 }, { 5, 3 }, { 1, 4 }, { 4, 1 } } )
+      testGetEntityFromIndex< GridType, 1 >( grid, sizes );
 }
 
 TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_2D_Entity )
@@ -43,7 +45,9 @@ TYPED_TEST( GridTestSuite, TestGetEntityFromIndex_2D_Entity )
 
    GridType grid;
 
-   testGetEntityFromIndex< GridType, 2 >( grid, { size, size } );
+   for( const auto& sizes :
+        std::vector< typename GridType::CoordinatesType >{ { 7, 7 }, { 3, 5 }, { 5, 3 }, { 1, 4 }, { 4, 1 } } )
+      testGetEntityFromIndex< GridType, 2 >( grid, sizes );
 }
 
 #include "../../../main.h"

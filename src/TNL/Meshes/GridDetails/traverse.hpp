@@ -266,6 +266,9 @@ forEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
+   // the grid with zero sizes has no entities, although the boxes of the vertices are not empty
+   if( grid.template getEntitiesCount< EntityDimension >() == 0 )
+      return;
    using GridType = Grid< Dimension, Real, Device, Index >;
    using CoordinatesType = typename GridType::CoordinatesType;
    using GridEntityType = typename GridType::template EntityType< EntityDimension >;
@@ -297,6 +300,9 @@ forInteriorEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
+   // the grid with zero sizes has no entities, although the boxes of the vertices are not empty
+   if( grid.template getEntitiesCount< EntityDimension >() == 0 )
+      return;
    // The interior entities are the local entities (see forLocalEntities) without the entities on the global
    // boundary. Along an axis, the first layer is excluded if the lower side is on the global boundary and it is
    // a boundary axis of the entity (all axes for cells, axes with nonzero normals for the other entities). The
@@ -332,6 +338,9 @@ forBoundaryEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
+   // the grid with zero sizes has no entities, although the boxes of the vertices are not empty
+   if( grid.template getEntitiesCount< EntityDimension >() == 0 )
+      return;
    // The boundary entities are the local entities (see forLocalEntities) on the sides on the global boundary.
    detail::forBoundaryEntitiesOfRegion< EntityDimension >(
       grid,
@@ -352,6 +361,9 @@ forBoundaryEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
+   // the grid with zero sizes has no entities, although the boxes of the vertices are not empty
+   if( grid.template getEntitiesCount< EntityDimension >() == 0 )
+      return;
    using BoundarySidesType = typename Grid< Dimension, Real, Device, Index >::BoundarySidesType;
    detail::forBoundaryEntitiesOfRegion< EntityDimension >(
       grid, begin, end, BoundarySidesType( true ), BoundarySidesType( true ), func, launchConfiguration );
@@ -364,6 +376,9 @@ forLocalEntities(
    Func func,
    typename Device::LaunchConfiguration launchConfiguration )
 {
+   // the grid with zero sizes has no entities, although the boxes of the vertices are not empty
+   if( grid.template getEntitiesCount< EntityDimension >() == 0 )
+      return;
    // The entities with coordinates c are owned by the subdomain which owns the cell c. The entities with nonzero
    // normals at localEnd have no cell in the subdomain, they are owned by this subdomain only on the global boundary.
    using CoordinatesType = typename Grid< Dimension, Real, Device, Index >::CoordinatesType;
