@@ -1,7 +1,9 @@
 #pragma once
 
+#include <iostream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -316,10 +318,12 @@ TYPED_TEST( DistributedGridTest, tooSmallGlobalGrid )
 
 // Owned entities get their values, the ghost entities get -1. After the synchronization, all entities of the local
 // grid must have their values. With one orientation, the ghost entities of the other orientations stay -1.
-template< int EntityDimension, typename DistributedGridType >
+// All orientations are synchronized if Orientation is negative.
+template< int EntityDimension, int Orientation, typename DistributedGridType >
 void
-testSynchronizer( const DistributedGridType& distributedGrid, int orientation )
+testSynchronizer( const DistributedGridType& distributedGrid )
 {
+   constexpr int orientation = Orientation;
    using Grid = typename DistributedGridType::GridType;
    using Device = typename Grid::DeviceType;
    using Index = typename Grid::IndexType;
@@ -341,21 +345,59 @@ testSynchronizer( const DistributedGridType& distributedGrid, int orientation )
    DistributedGridSynchronizer< DistributedGridType > synchronizer( distributedGrid );
    const ReadValue< ViewType > read{ values.getView() };
    const WriteValue< ViewType > write{ values.getView() };
-   if( orientation < 0 )
+   if constexpr( Orientation < 0 )
       synchronizer.template synchronize< EntityDimension >( read, write );
-   else if( orientation == 0 )
-      synchronizer.template synchronize< EntityDimension, 0 >( read, write );
-   else if constexpr( Grid::EntitiesOrientations::template getOrientationsCount< EntityDimension >() > 1 )
-      synchronizer.template synchronize< EntityDimension, 1 >( read, write );
+   else
+      synchronizer.template synchronize< EntityDimension, Orientation >( read, write );
 
    EXPECT_EQ( values, expected );
+}
+
+// Tests the synchronization of the entities of all dimensions, all orientations at once and each orientation alone.
+template< typename DistributedGridType >
+void
+testSynchronizerForAllEntities( const DistributedGridType& distributedGrid )
+{
+   using Grid = typename DistributedGridType::GridType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   Algorithms::staticFor< int, 0, Dimension + 1 >(
+      [ & ]( auto entityDimension )
+      {
+         constexpr int EntityDimension = decltype( entityDimension )::value;
+         constexpr int orientationsCount = Grid::EntitiesOrientations::template getOrientationsCount< EntityDimension >();
+         testSynchronizer< EntityDimension, -1 >( distributedGrid );
+         Algorithms::staticFor< int, 0, orientationsCount >(
+            [ & ]( auto orientation )
+            {
+               testSynchronizer< EntityDimension, decltype( orientation )::value >( distributedGrid );
+            } );
+      } );
+}
+
+// Compares the sum over the distributed grid with the sum over the global grid for all entity dimensions.
+template< typename DistributedGridType >
+void
+testSum( const DistributedGridType& distributedGrid )
+{
+   using Grid = typename DistributedGridType::GridType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   const EntityValue< Grid > localValue{ distributedGrid.getGlobalBegin() - distributedGrid.getLowerOverlap() };
+   const EntityValue< Grid > globalValue{ typename Grid::CoordinatesType( 0 ) };
+   Algorithms::staticFor< int, 0, Dimension + 1 >(
+      [ & ]( auto entityDimension )
+      {
+         constexpr int EntityDimension = decltype( entityDimension )::value;
+         SCOPED_TRACE( "Entity dimension: " + std::to_string( EntityDimension ) );
+         EXPECT_EQ(
+            Meshes::reduce< EntityDimension >( distributedGrid, localValue ),
+            Meshes::reduce< EntityDimension >( distributedGrid.getGlobalGrid(), globalValue ) );
+      } );
 }
 
 TYPED_TEST( DistributedGridTest, synchronizer )
 {
    using Grid = typename TestFixture::GridType;
    using DistributedGridType = typename TestFixture::DistributedGridType;
-   constexpr int Dimension = Grid::getMeshDimension();
 
    for( int levels = 0; levels <= 2; levels++ ) {
       SCOPED_TRACE( "Ghost levels: " + std::to_string( levels ) );
@@ -371,16 +413,241 @@ TYPED_TEST( DistributedGridTest, synchronizer )
          // so all ranks skip the test
          continue;
       }
+      testSynchronizerForAllEntities( distributedGrid );
+   }
+}
 
-      Algorithms::staticFor< int, 0, Dimension + 1 >(
-         [ & ]( auto entityDimension )
-         {
-            constexpr int EntityDimension = decltype( entityDimension )::value;
-            testSynchronizer< EntityDimension >( distributedGrid, -1 );
-            testSynchronizer< EntityDimension >( distributedGrid, 0 );
-            if constexpr( Grid::EntitiesOrientations::template getOrientationsCount< EntityDimension >() > 1 )
-               testSynchronizer< EntityDimension >( distributedGrid, 1 );
-         } );
+// Returns all decompositions of the given number of ranks into Dimension factors.
+template< int Dimension >
+std::vector< Containers::StaticVector< Dimension, int > >
+getDecompositions( int ranks )
+{
+   std::vector< Containers::StaticVector< Dimension, int > > result;
+   if constexpr( Dimension == 1 )
+      result.push_back( Containers::StaticVector< 1, int >( ranks ) );
+   else
+      for( int first = 1; first <= ranks; first++ )
+         if( ranks % first == 0 )
+            for( const auto& rest : getDecompositions< Dimension - 1 >( ranks / first ) ) {
+               Containers::StaticVector< Dimension, int > decomposition;
+               decomposition[ 0 ] = first;
+               for( int i = 1; i < Dimension; i++ )
+                  decomposition[ i ] = rest[ i - 1 ];
+               result.push_back( decomposition );
+            }
+   return result;
+}
+
+// Tests all decompositions of the ranks given by setDomainDecomposition, including the decompositions along the
+// z-axis, which MPI_Dims_create does not produce for small numbers of ranks. Checks that the subdomains are mapped
+// to distinct ranks, the synchronization and the reduction.
+TYPED_TEST( DistributedGridTest, explicitDecompositions )
+{
+   using Grid = typename TestFixture::GridType;
+   using DistributedGridType = typename TestFixture::DistributedGridType;
+   using CoordinatesType = typename Grid::CoordinatesType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   const int nproc = MPI::GetSize( MPI_COMM_WORLD );
+   const int rank = MPI::GetRank( MPI_COMM_WORLD );
+
+   Grid globalGrid;
+   globalGrid.setSizes( getGlobalSizes< Grid >() );
+   for( const auto& decomposition : getDecompositions< Dimension >( nproc ) ) {
+      SCOPED_TRACE( "Decomposition: " + std::string( convertToString( decomposition ).getString() ) );
+      DistributedGridType distributedGrid;
+      distributedGrid.setDomainDecomposition( CoordinatesType( decomposition ) );
+      distributedGrid.setGlobalGrid( globalGrid );
+      EXPECT_EQ( distributedGrid.getDomainDecomposition(), CoordinatesType( decomposition ) );
+
+      // each rank owns a different subdomain and getRankOfProcCoord is the inverse mapping
+      std::vector< int > coordinates( Dimension * nproc );
+      std::vector< int > localCoordinates( Dimension );
+      for( int i = 0; i < Dimension; i++ )
+         localCoordinates[ i ] = distributedGrid.getSubdomainCoordinates()[ i ];
+      MPI::Allgather( localCoordinates.data(), Dimension, coordinates.data(), Dimension, MPI_COMM_WORLD );
+      for( int r = 0; r < nproc; r++ ) {
+         CoordinatesType subdomain;
+         for( int i = 0; i < Dimension; i++ )
+            subdomain[ i ] = coordinates[ r * Dimension + i ];
+         EXPECT_EQ( distributedGrid.getRankOfProcCoord( subdomain ), r ) << "Subdomain: " << subdomain;
+      }
+
+      // the ghost levels are rejected on all ranks if some subdomain is too small
+      try {
+         distributedGrid.setGhostLevels( 1 );
+      }
+      catch( const std::invalid_argument& ) {
+         if( rank == 0 )
+            std::cout << "Skipping the decomposition " << decomposition << " with too small subdomains.\n";
+         continue;
+      }
+      EXPECT_EQ( distributedGrid.getGhostLevels(), nproc > 1 ? 1 : 0 );
+      testSynchronizerForAllEntities( distributedGrid );
+      testSum( distributedGrid );
+   }
+}
+
+// The overlaps of the interfaces between the subdomains differ, the interface between the subdomains k and k + 1
+// along the axis i has the width 1 + ( k + i ) % 2 on both sides.
+TYPED_TEST( DistributedGridTest, differentOverlaps )
+{
+   using Grid = typename TestFixture::GridType;
+   using DistributedGridType = typename TestFixture::DistributedGridType;
+   using OverlapsType = typename DistributedGridType::SubdomainOverlapsType;
+   constexpr int Dimension = Grid::getMeshDimension();
+
+   Grid globalGrid;
+   globalGrid.setSizes( getGlobalSizes< Grid >() );
+   DistributedGridType distributedGrid;
+   distributedGrid.setGlobalGrid( globalGrid );
+   const auto& decomposition = distributedGrid.getDomainDecomposition();
+   const auto& subdomain = distributedGrid.getSubdomainCoordinates();
+   OverlapsType lower = 0;
+   OverlapsType upper = 0;
+   for( int i = 0; i < Dimension; i++ ) {
+      // the decision depends only on the global data, so all ranks skip the test together
+      if( decomposition[ i ] > 1 && globalGrid.getSizes()[ i ] / decomposition[ i ] <= 2 )
+         GTEST_SKIP() << "The subdomains are too small for the overlaps of width 2.";
+      if( subdomain[ i ] > 0 )
+         lower[ i ] = 1 + ( subdomain[ i ] - 1 + i ) % 2;
+      if( subdomain[ i ] < decomposition[ i ] - 1 )
+         upper[ i ] = 1 + ( subdomain[ i ] + i ) % 2;
+   }
+   distributedGrid.setOverlaps( lower, upper );
+   EXPECT_EQ( distributedGrid.getLowerOverlap(), lower );
+   EXPECT_EQ( distributedGrid.getUpperOverlap(), upper );
+   testSynchronizerForAllEntities( distributedGrid );
+   testSum( distributedGrid );
+}
+
+// Invalid overlaps are rejected and the distributed grid is not changed.
+TYPED_TEST( DistributedGridTest, overlapsValidation )
+{
+   using Grid = typename TestFixture::GridType;
+   using DistributedGridType = typename TestFixture::DistributedGridType;
+   using OverlapsType = typename DistributedGridType::SubdomainOverlapsType;
+   using CoordinatesType = typename Grid::CoordinatesType;
+   constexpr int Dimension = Grid::getMeshDimension();
+
+   DistributedGridType distributedGrid;
+   EXPECT_THROW( distributedGrid.setOverlaps( 0, 0 ), std::logic_error );
+   EXPECT_THROW( distributedGrid.setGhostLevels( 1 ), std::logic_error );
+
+   Grid globalGrid;
+   globalGrid.setSizes( getGlobalSizes< Grid >() );
+   distributedGrid.setGlobalGrid( globalGrid );
+   EXPECT_THROW( distributedGrid.setOverlaps( -1, -1 ), std::invalid_argument );
+
+   // overlaps equal to the minimal size of the subdomains on the sides with neighbors
+   OverlapsType lower = 0;
+   OverlapsType upper = 0;
+   bool hasNeighbor = false;
+   for( int i = 0; i < Dimension; i++ ) {
+      const int minimalSize = globalGrid.getSizes()[ i ] / distributedGrid.getDomainDecomposition()[ i ];
+      CoordinatesType direction = 0;
+      direction[ i ] = -1;
+      if( distributedGrid.isThereNeighbor( direction ) ) {
+         lower[ i ] = minimalSize;
+         hasNeighbor = true;
+      }
+      direction[ i ] = 1;
+      if( distributedGrid.isThereNeighbor( direction ) ) {
+         upper[ i ] = minimalSize;
+         hasNeighbor = true;
+      }
+   }
+   if( hasNeighbor )
+      EXPECT_THROW( distributedGrid.setOverlaps( lower, upper ), std::invalid_argument );
+
+   // the failed calls did not change the local grid
+   EXPECT_EQ( distributedGrid.getLowerOverlap(), OverlapsType( 0 ) );
+   EXPECT_EQ( distributedGrid.getUpperOverlap(), OverlapsType( 0 ) );
+   EXPECT_EQ( distributedGrid.getLocalMesh().getSizes(), distributedGrid.getLocalSize() );
+}
+
+// The distributed grid works on a communicator which is a part of MPI_COMM_WORLD.
+TYPED_TEST( DistributedGridTest, subcommunicator )
+{
+   using Grid = typename TestFixture::GridType;
+   using DistributedGridType = typename TestFixture::DistributedGridType;
+   const int nproc = MPI::GetSize( MPI_COMM_WORLD );
+   const int rank = MPI::GetRank( MPI_COMM_WORLD );
+
+   // two groups of ranks, the larger one has the upper half of the ranks
+   const int color = rank < nproc / 2 ? 0 : 1;
+   const MPI::Comm communicator = MPI::Comm::split( MPI_COMM_WORLD, color, rank );
+   Grid globalGrid;
+   globalGrid.setSizes( getGlobalSizes< Grid >() );
+   DistributedGridType distributedGrid;
+   distributedGrid.setCommunicator( communicator );
+   distributedGrid.setGlobalGrid( globalGrid );
+   EXPECT_EQ( distributedGrid.isDistributed(), communicator.size() > 1 );
+   distributedGrid.setGhostLevels( 1 );
+   testSynchronizerForAllEntities( distributedGrid );
+   testSum( distributedGrid );
+}
+
+// The results of the ranks are combined in the order of the ranks: the reduction returning its first valid
+// argument, which is associative but not commutative, gives the value of the first rank.
+struct RankValue
+{
+   int rank;
+
+   template< typename Entity >
+   __cuda_callable__
+   int
+   operator()( const Entity& entity ) const
+   {
+      return rank;
+   }
+};
+
+struct FirstValid
+{
+   __cuda_callable__
+   int
+   operator()( int a, int b ) const
+   {
+      return a >= 0 ? a : b;
+   }
+};
+
+struct LastValid
+{
+   __cuda_callable__
+   int
+   operator()( int a, int b ) const
+   {
+      return b >= 0 ? b : a;
+   }
+};
+
+TYPED_TEST( DistributedGridTest, nonCommutativeReduce )
+{
+   using Grid = typename TestFixture::GridType;
+   using DistributedGridType = typename TestFixture::DistributedGridType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   const int nproc = MPI::GetSize( MPI_COMM_WORLD );
+   const int rank = MPI::GetRank( MPI_COMM_WORLD );
+
+   Grid globalGrid;
+   globalGrid.setSizes( getGlobalSizes< Grid >() );
+   DistributedGridType distributedGrid;
+   distributedGrid.setGlobalGrid( globalGrid );
+   EXPECT_EQ( Meshes::reduce< Dimension >( distributedGrid, RankValue{ rank }, FirstValid{}, -1 ), 0 );
+   EXPECT_EQ( Meshes::reduce< Dimension >( distributedGrid, RankValue{ rank }, LastValid{}, -1 ), nproc - 1 );
+}
+
+TYPED_TEST( DistributedGridTest, directionIndex )
+{
+   using Grid = typename TestFixture::GridType;
+   using DistributedGridType = typename TestFixture::DistributedGridType;
+   using CoordinatesType = typename Grid::CoordinatesType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   for( int i = 0; i < DistributedGridType::getNeighborsCount(); i++ ) {
+      const CoordinatesType direction( Directions::template getXYZ< Dimension >( i ) );
+      EXPECT_EQ( DistributedGridSynchronizer< DistributedGridType >::getDirectionIndex( direction ), i )
+         << "Direction: " << direction;
    }
 }
 

@@ -47,7 +47,12 @@ if(TNL_BUILD_MPI)
         endforeach()
     endif()
 
-    foreach(nproc IN ITEMS 1 2 4 9)
+    # 8 ranks give the decomposition 2x2x2 in 3D with all diagonal neighbors
+    foreach(
+        nproc
+        IN
+        ITEMS 1 2 4 8 9
+    )
         if(TNL_BUILD_HIP)
             tnl_add_hip_mpi_test(
                 NAME DistributedGridTest_${nproc}

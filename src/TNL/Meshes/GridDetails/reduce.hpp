@@ -211,6 +211,9 @@ reduceLocalEntities(
    Reduction reduction,
    const Result& identity )
 {
+   // the grid with zero sizes has no entities, although the boxes of the vertices are not empty
+   if( grid.template getEntitiesCount< EntityDimension >() == 0 )
+      return identity;
    // The local entities with the normal vector `normals` lie in the box [ localBegin, localEnd + normals * upper ),
    // where upper are the flags of the upper sides on the global boundary, see forLocalEntities.
    using GridType = Grid< Dimension, Real, Device, Index >;
