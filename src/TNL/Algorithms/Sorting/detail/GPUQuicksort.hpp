@@ -314,7 +314,9 @@ GPUQuicksort< Value, Index >::initTasks( int elementsPerBlock, const Compare& co
    }
    // reductionTaskInitMem[i] == how many blocks task i needs
 
-   inplaceInclusiveScan( reductionTaskInitMem );
+   // only the active prefix is scanned (and read afterwards): scanning the
+   // whole array paid 3.3 us per round even with two active tasks at 1e6
+   inplaceInclusiveScan( reductionTaskInitMem, 0, host_firstPhaseTasksAmount );
    // reductionTaskInitMem[i] == how many blocks task [0..i] need
 
    int blocksNeeded = reductionTaskInitMem.getElement( host_firstPhaseTasksAmount - 1 );
