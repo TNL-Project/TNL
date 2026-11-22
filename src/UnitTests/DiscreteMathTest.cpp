@@ -95,6 +95,13 @@ TEST( DiscreteMathTest, CombinationsTest )
    testCombinations( 2, 4, 6 );
    testCombinations( 3, 4, 4 );
    testCombinations( 4, 4, 1 );
+
+   // there are no combinations with a negative number of elements or more elements than the set has
+   testCombinations( -1, 0, 0 );
+   testCombinations( -1, 3, 0 );
+   testCombinations( 1, 0, 0 );
+   testCombinations( 4, 3, 0 );
+   testCombinations( 6, 3, 0 );
 }
 
 void
@@ -103,8 +110,13 @@ testCumulativeCombinations( const int k, const int n, const int expectation )
    EXPECT_EQ( TNL::cumulativeCombinationsCount( k, n ), expectation ) << " k = " << k << " n =  " << n;
 }
 
-TEST( TemplatesTestSuite, cumulativeCombinationsTest )
+TEST( DiscreteMathTest, CumulativeCombinationsTest )
 {
+   // the empty sum, which is used for the offsets of the orientations of the vertices
+   testCumulativeCombinations( -1, 0, 0 );
+   testCumulativeCombinations( -1, 3, 0 );
+
+   testCumulativeCombinations( 0, 0, 1 );
    testCumulativeCombinations( 0, 1, 1 );
    testCumulativeCombinations( 1, 1, 2 );
 
@@ -122,6 +134,11 @@ TEST( TemplatesTestSuite, cumulativeCombinationsTest )
    testCumulativeCombinations( 2, 4, 11 );
    testCumulativeCombinations( 3, 4, 15 );
    testCumulativeCombinations( 4, 4, 16 );
+
+   // all subsets for k > n
+   testCumulativeCombinations( 2, 1, 2 );
+   testCumulativeCombinations( 5, 4, 16 );
+   testCumulativeCombinations( 7, 4, 16 );
 }
 
 TEST( DiscreteMathTest, detectMultiplicationOverflowTest )

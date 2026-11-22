@@ -112,13 +112,13 @@ discreteProduct( Index first, Index last )
  * \tparam Index is an integral type used for the evaluation of the number of combinations.
  * \param k denotes the number of elements in one combination.
  * \param n denotes the number of all elements in the set.
- * \return Number of all k-combinations in set of n elements.
+ * \return Number of all k-combinations in set of n elements, zero for k < 0 or k > n.
  */
 template< typename Index >
 constexpr Index
 combinationsCount( Index k, Index n )
 {
-   if( k < 0 )
+   if( k < 0 || k > n )
       return 0;
    return discreteProduct< Index >( k + 1, n ) / discreteProduct< Index >( 1, n - k );
 }

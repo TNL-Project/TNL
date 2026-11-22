@@ -637,7 +637,7 @@ Grid< Dimension, Real, Device, Index >::getAdjacentFacesIndexes(
    CoordinatesType& closer,
    CoordinatesType& remoter ) const
 {
-   constexpr IndexType begin = EntitiesOrientations::template getTotalOrientationIndex< Dimension - 1, 0 >();
+   constexpr IndexType begin = EntitiesOrientations::template getTotalOrientationIndex< Dimension - 1 >( 0 );
    constexpr IndexType end = begin + Dimension;
    Algorithms::staticFor< int, begin, end >(
       [ & ]( IndexType totalOrientationIndex ) mutable
