@@ -87,18 +87,6 @@ public:
    }
 };
 
-template< typename... Parameters >
-std::string
-makeString( Parameters... parameters )
-{
-   std::ostringstream s;
-
-   for( const auto x : { parameters... } )
-      s << x << ", ";
-
-   return s.str();
-}
-
 template< typename Grid, typename... T >
 void
 testDimensionSetByCoordinate( Grid& grid, const typename Grid::CoordinatesType& dimensions )
@@ -148,43 +136,100 @@ testOriginSetByCoordinate( Grid& grid, const typename Grid::PointType& coordinat
    support.template verifyOriginGetter< Grid >( grid, coordinates );
 }
 
+// Checks the space steps and proportions set by setDomain and setSpaceSteps, and that setSizes keeps
+// the proportions of the domain and recomputes the space steps.
 template< typename Grid >
 void
-testSpaceStepsSetByCoordinate( Grid& grid, const int spaceStepsSize, const typename Grid::PointType& spaceSteps )
+testDomain( Grid& grid )
 {
-   EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps ) ) << "Verify, that the set of " << spaceSteps << " doesn't cause assert";
+   using Coordinates = typename Grid::CoordinatesType;
+   using Point = typename Grid::PointType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   Coordinates sizes;
+   Point origin;
+   Point proportions;
+   for( int i = 0; i < Dimension; i++ ) {
+      sizes[ i ] = 2 + i;
+      origin[ i ] = -1 - i;
+      proportions[ i ] = 0.5 * ( i + 1 );
+   }
+   grid.setSizes( sizes );
+   grid.setDomain( origin, proportions );
+   EXPECT_EQ( grid.getOrigin(), origin );
+   EXPECT_EQ( grid.getProportions(), proportions );
+   for( int i = 0; i < Dimension; i++ )
+      EXPECT_NEAR( grid.getSpaceSteps()[ i ], proportions[ i ] / sizes[ i ], 1e-6 ) << "Axis: " << i;
 
-   SCOPED_TRACE( "Test space steps set by coordinate" );
-   SCOPED_TRACE( "Space steps: " + TNL::convertToString( spaceSteps ) );
-   SCOPED_TRACE( "Grid space steps: " + TNL::convertToString( grid.getSpaceSteps() ) );
+   // the proportions are kept when the sizes change
+   grid.setSizes( 2 * sizes );
+   EXPECT_EQ( grid.getOrigin(), origin );
+   for( int i = 0; i < Dimension; i++ ) {
+      EXPECT_NEAR( grid.getProportions()[ i ], proportions[ i ], 1e-6 ) << "Axis: " << i;
+      EXPECT_NEAR( grid.getSpaceSteps()[ i ], proportions[ i ] / ( 2 * sizes[ i ] ), 1e-6 ) << "Axis: " << i;
+   }
 
-   GridAccessorsTestCase< typename Grid::DeviceType > support;
-
-   support.template verifySpaceStepsGetter< Grid >( grid, spaceSteps );
-   support.template verifySpaceStepsValues< Grid >( grid, spaceStepsSize, spaceSteps );
+   // the space steps determine the proportions
+   Point spaceSteps;
+   for( int i = 0; i < Dimension; i++ )
+      spaceSteps[ i ] = 0.25 * ( i + 1 );
+   grid.setSpaceSteps( spaceSteps );
+   EXPECT_EQ( grid.getSpaceSteps(), spaceSteps );
+   for( int i = 0; i < Dimension; i++ )
+      EXPECT_NEAR( grid.getProportions()[ i ], spaceSteps[ i ] * 2 * sizes[ i ], 1e-6 ) << "Axis: " << i;
 }
 
-template<
-   typename Grid,
-   typename... T,
-   std::enable_if_t< TNL::Meshes::Templates::conjunction_v< std::is_convertible< typename Grid::RealType, T >... >, bool > =
-      true >
+// Checks that setSizes resets the local subdomain to the whole grid and all sides to the global boundary.
+template< typename Grid >
 void
-testSpaceStepsSetByIndex( Grid& grid, const int spaceStepsSize, T... spaceSteps )
+testSetSizesResetsSubdomain( Grid& grid )
 {
-   typename Grid::PointType spaceStepsContainer( spaceSteps... );
+   using Coordinates = typename Grid::CoordinatesType;
+   constexpr int Dimension = Grid::getMeshDimension();
+   Coordinates sizes;
+   for( int i = 0; i < Dimension; i++ )
+      sizes[ i ] = 4 + i;
+   grid.setSizes( sizes );
+   EXPECT_EQ( grid.getLocalBegin(), Coordinates( 0 ) );
+   EXPECT_EQ( grid.getLocalEnd(), sizes );
+   EXPECT_EQ( grid.getLowerGlobalBoundarySides(), typename Grid::BoundarySidesType( true ) );
+   EXPECT_EQ( grid.getUpperGlobalBoundarySides(), typename Grid::BoundarySidesType( true ) );
 
-   EXPECT_NO_THROW( grid.setSpaceSteps( spaceSteps... ) )
-      << "Verify, that the set of " << spaceStepsContainer << " doesn't cause assert";
+   grid.setLocalSubdomain( Coordinates( 1 ), sizes - 1 );
+   grid.setGlobalBoundarySides( typename Grid::BoundarySidesType( false ), typename Grid::BoundarySidesType( false ) );
+   EXPECT_EQ( grid.getLocalBegin(), Coordinates( 1 ) );
+   EXPECT_EQ( grid.getLocalEnd(), sizes - 1 );
 
-   SCOPED_TRACE( "Test space steps set by index" );
-   SCOPED_TRACE( "Space steps: " + TNL::convertToString( spaceStepsContainer ) );
-   SCOPED_TRACE( "Grid space steps: " + TNL::convertToString( grid.getSpaceSteps() ) );
+   grid.setSizes( sizes + 1 );
+   EXPECT_EQ( grid.getLocalBegin(), Coordinates( 0 ) );
+   EXPECT_EQ( grid.getLocalEnd(), sizes + 1 );
+   EXPECT_EQ( grid.getLowerGlobalBoundarySides(), typename Grid::BoundarySidesType( true ) );
+   EXPECT_EQ( grid.getUpperGlobalBoundarySides(), typename Grid::BoundarySidesType( true ) );
+}
 
-   GridAccessorsTestCase< typename Grid::DeviceType > support;
-
-   support.template verifySpaceStepsGetter< Grid >( grid, spaceStepsContainer );
-   support.template verifySpaceStepsValues< Grid >( grid, spaceStepsSize, spaceStepsContainer );
+// Checks that a grid with zero sizes has no entities and the traversals do not visit any entity.
+template< typename Grid >
+void
+testEmptyGrid( Grid& grid )
+{
+   constexpr int Dimension = Grid::getMeshDimension();
+   grid.setSizes( typename Grid::CoordinatesType( 0 ) );
+   TNL::Algorithms::staticFor< int, 0, Dimension + 1 >(
+      [ & ]( auto entityDimension )
+      {
+         constexpr int EntityDimension = decltype( entityDimension )::value;
+         using Entity = typename Grid::template EntityType< EntityDimension >;
+         EXPECT_EQ( grid.template getEntitiesCount< EntityDimension >(), 0 ) << "Entity dimension: " << EntityDimension;
+         int visits = 0;
+         auto count = [ & ]( const Entity& )
+         {
+            visits++;
+         };
+         TNL::Meshes::forAllEntities< EntityDimension >( grid, count );
+         TNL::Meshes::forInteriorEntities< EntityDimension >( grid, count );
+         TNL::Meshes::forBoundaryEntities< EntityDimension >( grid, count );
+         TNL::Meshes::forLocalEntities< EntityDimension >( grid, count );
+         EXPECT_EQ( visits, 0 ) << "Entity dimension: " << EntityDimension;
+      } );
 }
 
 // Checks that a grid entity created without explicit orientation gets the first orientation of its dimension.

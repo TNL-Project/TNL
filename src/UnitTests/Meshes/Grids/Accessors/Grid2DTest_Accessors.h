@@ -68,4 +68,19 @@ TYPED_TEST( GridTestSuite, TestBasis )
    testBasis< TypeParam >( this->grid );
 }
 
+TYPED_TEST( GridTestSuite, TestDomain )
+{
+   testDomain< TypeParam >( this->grid );
+}
+
+TYPED_TEST( GridTestSuite, TestSetSizesResetsSubdomain )
+{
+   testSetSizesResetsSubdomain< TypeParam >( this->grid );
+}
+
+TYPED_TEST( GridTestSuite, TestEmptyGrid )
+{
+   testEmptyGrid< TypeParam >( this->grid );
+}
+
 #include "../../../main.h"
