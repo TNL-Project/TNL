@@ -178,12 +178,21 @@ struct ParallelFor3D< Devices::Cuda >
       launch_config.blockSize.z =
          TNL::min( TNL::min( launch_config.blockSize.z, Backend::getMaxBlockZSize() ), remainingThreads );
 
-      launch_config.gridSize.x =
-         TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
       launch_config.gridSize.y =
          TNL::min( Backend::getMaxGridYSize(), Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
       launch_config.gridSize.z =
          TNL::min( Backend::getMaxGridZSize(), Backend::getNumberOfBlocks( sizeZ, launch_config.blockSize.z ) );
+
+      // grid.x is also bounded by the threads-per-grid limit, which AMD GPUs impose and HIP does not check,
+      // so the y-z slice has to fit that limit first: no grid.x can make the launch legal otherwise
+      const auto threadsPerBlock =
+         static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y * launch_config.blockSize.z;
+      const auto threadsPerYSlice = threadsPerBlock * launch_config.gridSize.y;
+      launch_config.gridSize.z =
+         TNL::min( static_cast< std::size_t >( launch_config.gridSize.z ), Backend::getMaxThreadsPerGrid() / threadsPerYSlice );
+      const auto threadsPerXSlice = threadsPerYSlice * launch_config.gridSize.z;
+      launch_config.gridSize.x = TNL::min(
+         Backend::getMaxGridXSize( threadsPerXSlice ), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
 
       const auto totalThreads = static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y
                               * launch_config.blockSize.z * static_cast< std::size_t >( launch_config.gridSize.x )

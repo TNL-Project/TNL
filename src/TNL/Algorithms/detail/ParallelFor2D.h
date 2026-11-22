@@ -138,11 +138,15 @@ struct ParallelFor2D< Devices::Cuda >
          TNL::min( launch_config.blockSize.y, Backend::getMaxThreadsPerBlock() / launch_config.blockSize.x );
       launch_config.blockSize.z = 1;
 
-      launch_config.gridSize.x =
-         TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
       launch_config.gridSize.y =
          TNL::min( Backend::getMaxGridYSize(), Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
       launch_config.gridSize.z = 1;
+
+      // grid.x is also bounded by the threads-per-grid limit (AMD GPUs impose it and HIP does not check it)
+      const auto threadsPerXSlice =
+         static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y * launch_config.gridSize.y;
+      launch_config.gridSize.x = TNL::min(
+         Backend::getMaxGridXSize( threadsPerXSlice ), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
 
       const auto totalThreads = static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.blockSize.y
                               * static_cast< std::size_t >( launch_config.gridSize.x ) * launch_config.gridSize.y;
