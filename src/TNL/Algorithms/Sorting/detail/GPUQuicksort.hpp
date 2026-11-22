@@ -127,11 +127,11 @@ GPUQuicksort< Value, Index >::init(
    this->reductionTaskInitMem.setSize( maxTasks );
 
    if( arr.getSize() > static_cast< Index >( desiredSecondPhaseElementsPerBlock ) ) {
-      tasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
+      tasks.setElement( 0, QuicksortTask< Index >::make( 0, arr.getSize(), 0 ) );
       host_firstPhaseTasksAmount = 1;
    }
    else {
-      secondPhaseTasks.setElement( 0, QuicksortTask< Index >( 0, arr.getSize(), 0 ) );
+      secondPhaseTasks.setElement( 0, QuicksortTask< Index >::make( 0, arr.getSize(), 0 ) );
       host_secondPhaseTasksAmount = 1;
    }
 
