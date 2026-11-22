@@ -13,24 +13,22 @@
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 namespace {
 
+/**
+ * \brief Add `val` to `*address` atomically and return the value before the
+ * addition.
+ *
+ * CUDA and HIP provide the native 64-bit fetch-and-add only for
+ * `unsigned long long int`, so the operands are reinterpreted - addition
+ * modulo 2^64 produces the same bit pattern for the signed and the unsigned
+ * interpretation (two's complement), which makes the compare-and-swap loop
+ * unnecessary. `long int` is 64-bit on the supported LP64 platforms.
+ */
 [[maybe_unused]] __device__
 long int
 atomicAdd( long int* address, long int val )
 {
-   auto* address_as_unsigned = reinterpret_cast< unsigned long long int* >( address );
-   long int old = *address;
-   long int assumed;
-
-   do {
-      assumed = old;
-      long int sum = val + assumed;
-      old = atomicCAS(
-         address_as_unsigned,
-         *reinterpret_cast< unsigned long long int* >( &assumed ),
-         *reinterpret_cast< unsigned long long int* >( &sum ) );
-   } while( assumed != old );
-
-   return old;
+   return static_cast< long int >(
+      ::atomicAdd( reinterpret_cast< unsigned long long int* >( address ), static_cast< unsigned long long int >( val ) ) );
 }
 
    #ifndef __HIP__  // HIP has its own atomicMax and atomicMin functions for float and double
