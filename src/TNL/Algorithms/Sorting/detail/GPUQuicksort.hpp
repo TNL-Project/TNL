@@ -343,9 +343,9 @@ GPUQuicksort< Value, Index >::initTasks( int elementsPerBlock, const Compare& co
       src,
       compare,  // used to pick pivot
       nSamples,
-      canBufferSamples );
+      canBufferSamples,
+      taskCounters.getData() );
 
-   taskCounters.setElement( 0, 0 );  // resets the first-phase task counter
    return blocksNeeded;
 }
 

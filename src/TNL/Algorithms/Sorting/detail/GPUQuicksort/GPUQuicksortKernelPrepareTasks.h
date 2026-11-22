@@ -102,9 +102,16 @@ GPUQuicksortKernelPrepareTasks(
    Containers::ArrayView< Value, Devices::GPU, Index > src,
    Compare compare,
    int nSamples,
-   bool canBufferSamples )
+   bool canBufferSamples,
+   int* firstPhaseTaskCount )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+   // reset the first-phase task counter for the completion kernel of this
+   // round (stream-ordered before it), saving a host-to-device transfer and
+   // its synchronization per round
+   if( blockIdx.x == 0 && threadIdx.x == 0 )
+      *firstPhaseTaskCount = 0;
+
    if( blockIdx.x >= tasks.getSize() )
       return;
 
