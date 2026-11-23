@@ -330,6 +330,14 @@ public:
 
       if( ! gapInput ) {
          auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
+         // A symmetric input (e.g. a symmetric .mtx file) has no directed variant different from the undirected one.
+         if( runDirected && runUndirected
+             && symmetrizedAdjacencyMatrix.getNonzeroElementsCount()
+                   == digraph.getAdjacencyMatrix().getNonzeroElementsCount() )
+         {
+            std::cout << "The graph " << inputFile << " is symmetric, only its undirected variant is benchmarked.\n";
+            runDirected = false;
+         }
          graph = HostGraph( symmetrizedAdjacencyMatrix );
          if( ! runDirected )
             digraph = HostDigraph();
