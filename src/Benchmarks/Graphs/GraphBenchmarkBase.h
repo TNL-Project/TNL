@@ -524,7 +524,9 @@ protected:
    /**
     * \brief Picks the GAP source vertices of a graph and counts the edges traversed from them.
     *
-    * The traversed edges are counted from the distances of a parallel host BFS, which are verified before they are used.
+    * The traversed edges are counted from the distances of a sequential queue-based BFS, which are verified before they
+    * are used. Its work does not depend on the diameter of the graph, unlike the default top-down compact BFS of TNL,
+    * whose every level costs O(n) and which took days on road networks with tens of thousands of levels.
     */
    template< typename HostGraphType >
    void
@@ -544,10 +546,26 @@ protected:
             return offsets[ v + 1 ] - offsets[ v ];
          } );
       traversedEdges.clear();
-      HostIndexVector distances;
+      const auto& columnIndexes = matrix.getColumnIndexes();
+      const Index n = hostGraph.getVertexCount();
+      std::vector< Index > distances;
+      std::vector< Index > queue;
       for( const Index source : sources ) {
-         TNL::Graphs::Algorithms::breadthFirstSearch( hostGraph, source, distances );
-         const auto verification = verifyBFS( matrix, source, distances.getData() );
+         distances.assign( n, -1 );
+         queue.clear();
+         distances[ source ] = 0;
+         queue.push_back( source );
+         for( std::size_t head = 0; head < queue.size(); head++ ) {
+            const Index v = queue[ head ];
+            for( Index k = offsets[ v ]; k < offsets[ v + 1 ]; k++ ) {
+               const Index w = columnIndexes[ k ];
+               if( w >= 0 && w < n && distances[ w ] == -1 ) {
+                  distances[ w ] = distances[ v ] + 1;
+                  queue.push_back( w );
+               }
+            }
+         }
+         const auto verification = verifyBFS( matrix, source, distances.data() );
          if( verification.violations != 0 )
             throw std::runtime_error( "The BFS used for counting the traversed edges failed: " + verification.message );
          traversedEdges.push_back( verification.traversedEdges );
