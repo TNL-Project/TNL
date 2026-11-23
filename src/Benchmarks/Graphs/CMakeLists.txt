@@ -52,7 +52,8 @@ if(GAPBS_SOURCE_DIR AND OpenMP_CXX_FOUND)
     target_compile_features(tnl-benchmark-graphs-gapbs PRIVATE cxx_std_17)
     # the gapbs sources are not ours, do not report their warnings
     target_compile_options(tnl-benchmark-graphs-gapbs PRIVATE -w)
-    target_link_libraries(tnl-benchmark-graphs-gapbs PUBLIC OpenMP::OpenMP_CXX)
+    # only the linking is propagated, the OpenMP compile flags would break the CUDA targets
+    target_link_libraries(tnl-benchmark-graphs-gapbs PRIVATE OpenMP::OpenMP_CXX INTERFACE $<LINK_ONLY:OpenMP::OpenMP_CXX>)
     set(GAPBS_FOUND TRUE)
 else()
     message(STATUS "gapbs not found (set GAPBS_ROOT). Benchmarks with gapbs will be omitted.")

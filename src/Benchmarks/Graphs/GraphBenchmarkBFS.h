@@ -395,7 +395,9 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       {
          benchmark.setMetadataElement( { "launch cfg.", tag } );
          for( const TNLMode& mode : getTNLModes( directed ) ) {
-            benchmark.setMetadataElement( { "mode", mode.tag } );
+            // nvcc 12.4 mistranslates the member access in the braced list into a statement expression
+            const char* modeTag = mode.tag;
+            benchmark.setMetadataElement( { "mode", modeTag } );
             auto reset = [ & ]()
             {
                // the BFS allocates the outputs, so the allocation is measured
