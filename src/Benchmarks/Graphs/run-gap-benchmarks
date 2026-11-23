@@ -130,12 +130,12 @@ for graph in $GRAPHS; do
         # shellcheck disable=SC2206
         extra=($EXTRA_ARGS)
         if [[ "$algorithm" == "cc" ]]; then
-            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" "${extra[@]}"
+            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" ${extra[@]+"${extra[@]}"}
         elif [[ "$(is_directed "$input")" == "1" ]]; then
-            run "$binary" --input-file "$input" --orientation directed "${args[@]}" "${extra[@]}"
-            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" "${extra[@]}"
+            run "$binary" --input-file "$input" --orientation directed "${args[@]}" ${extra[@]+"${extra[@]}"}
+            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" ${extra[@]+"${extra[@]}"}
         else
-            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" "${extra[@]}"
+            run "$binary" --input-file "$input" --orientation undirected "${args[@]}" ${extra[@]+"${extra[@]}"}
         fi
     done
 done
