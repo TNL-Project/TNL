@@ -13,7 +13,8 @@
  *
  * The kernels are compiled in a separate translation unit (GapbsKernels.cpp) with the host compiler and OpenMP,
  * so this header does not expose any gapbs types and can be included in CUDA and HIP sources. The graphs are
- * loaded by gapbs itself from its serialized `.sg` and `.wsg` files.
+ * loaded by gapbs itself from its serialized `.sg` and `.wsg` files, the graph of BFS can be also built from
+ * a graph in memory.
  *
  * The `run` methods call the kernels exactly as the gapbs benchmark drivers do. The kernels allocate their outputs,
  * so the allocation is included in the measured time as required by GAP. The outputs are kept inside the wrappers
@@ -26,6 +27,21 @@ class BFS
 {
 public:
    explicit BFS( const std::string& sgFile );
+
+   /**
+    * \brief Builds the graph from its adjacency matrix in the CSR format.
+    *
+    * The graph is built as by the gapbs builder: the neighbors of every vertex are sorted and the duplicate edges and
+    * self-loops are removed, a directed graph gets also the incoming edges needed by the bottom-up steps. The adjacency
+    * matrix of an undirected graph must contain both directions of every edge. Column indexes outside the range
+    * of vertices (padding) are skipped.
+    */
+   BFS(
+      std::int64_t vertexCount,
+      const std::vector< std::int64_t >& offsets,
+      const std::vector< std::int32_t >& columns,
+      bool directed );
+
    ~BFS();
 
    [[nodiscard]] std::int64_t

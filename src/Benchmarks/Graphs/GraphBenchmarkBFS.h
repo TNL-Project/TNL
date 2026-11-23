@@ -140,15 +140,23 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
    runGapbsBFS( const std::string& file, const HostGraphType& hostGraph, bool directed, TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_GAPBS
-      if( ! this->gapInput ) {
-         std::cout << "Skipping gapbs, it needs an .sg input file of the GAP benchmark.\n";
-         return;
-      }
       try {
-         Gapbs::BFS gapbs( file );
+         const auto& matrix = hostGraph.getAdjacencyMatrix();
+         // gapbs reads the .sg files of the GAP benchmark itself, the other inputs are passed to it from memory
+         auto makeGapbs = [ & ]()
+         {
+            if( this->gapInput )
+               return Gapbs::BFS( file );
+            const auto& offsets = matrix.getSegments().getOffsets();
+            const auto& columnIndexes = matrix.getColumnIndexes();
+            const std::vector< std::int64_t > csrOffsets( offsets.getData(), offsets.getData() + offsets.getSize() );
+            const std::vector< std::int32_t > csrColumns(
+               columnIndexes.getData(), columnIndexes.getData() + columnIndexes.getSize() );
+            return Gapbs::BFS( hostGraph.getVertexCount(), csrOffsets, csrColumns, directed );
+         };
+         Gapbs::BFS gapbs = makeGapbs();
          setOtherSolverMetadata( benchmark, hostGraph, directed, "gapbs", "direction-optimizing" );
          std::vector< std::int32_t > parents;
-         const auto& matrix = hostGraph.getAdjacencyMatrix();
          auto reset = [ & ]()
          {
             gapbs.release();
