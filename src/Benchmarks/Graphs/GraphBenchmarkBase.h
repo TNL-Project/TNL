@@ -506,6 +506,11 @@ protected:
          std::cerr << "Skipping the benchmarks on " << TNL::Benchmarks::getDeviceName< Device >() << " with " << segments
                    << " segments, the graph does not fit in the memory: " << e.what() << '\n';
       }
+      catch( const std::overflow_error& e ) {
+         // e.g. Ellpack padding all rows to the largest degree needs more elements than the index type can address
+         std::cerr << "Skipping the benchmarks on " << TNL::Benchmarks::getDeviceName< Device >() << " with " << segments
+                   << " segments, the graph does not fit in the index type: " << e.what() << '\n';
+      }
    }
 
    /**
