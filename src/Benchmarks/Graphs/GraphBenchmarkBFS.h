@@ -55,6 +55,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          "bitmap-threshold", "Frontier fraction below which top-down bitmap mode is used (0 = disabled).", 0.0 );
       config.addEntry< double >(
          "bottomup-threshold", "Frontier fraction above which bottom-up mode is used (0 = disabled, undirected only).", 0.0 );
+      config.addEntry< bool >( "with-compact", "Benchmark the top-down compact mode.", true );
       config.addEntry< bool >( "with-expand-contract", "Benchmark the top-down expand-contract mode.", true );
       config.addEntry< bool >(
          "with-predecessors", "Benchmark BFS with predecessor tracking, which is the BFS kernel of the GAP benchmark.", true );
@@ -71,6 +72,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       withSemirings = this->parameters.template getParameter< bool >( "with-semirings" );
       bitmapThreshold = this->parameters.template getParameter< double >( "bitmap-threshold" );
       bottomUpThreshold = this->parameters.template getParameter< double >( "bottomup-threshold" );
+      withCompact = this->parameters.template getParameter< bool >( "with-compact" );
       withExpandContract = this->parameters.template getParameter< bool >( "with-expand-contract" );
       withPredecessors = this->parameters.template getParameter< bool >( "with-predecessors" );
       withVisitor = this->parameters.template getParameter< bool >( "with-visitor" );
@@ -365,7 +367,9 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
    getTNLModes( bool directed ) const
    {
       using TNL::Graphs::Algorithms::BFSTopDownMode;
-      std::vector< TNLMode > modes{ { "top-down compact", 0.0, 0.0, BFSTopDownMode::Compact } };
+      std::vector< TNLMode > modes;
+      if( withCompact )
+         modes.push_back( { "top-down compact", 0.0, 0.0, BFSTopDownMode::Compact } );
       if( withExpandContract )
          modes.push_back( { "top-down expand-contract", 0.0, 0.0, BFSTopDownMode::ExpandContract } );
       if( bitmapThreshold > 0.0 )
@@ -540,6 +544,7 @@ protected:
    bool withSemirings;
    double bitmapThreshold;
    double bottomUpThreshold;
+   bool withCompact;
    bool withExpandContract;
    bool withPredecessors;
    bool withVisitor;
