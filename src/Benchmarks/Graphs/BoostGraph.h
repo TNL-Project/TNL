@@ -64,6 +64,10 @@ struct BoostGraph
    {
       static_assert( std::is_same_v< typename TNLGraph::GraphOrientation, GraphType >, "Graph types must match." );
 
+      // add_edge creates only the vertices up to the largest endpoint, the trailing vertices without edges must be
+      // created explicitly so that the outputs have one element per vertex
+      this->graph = AdjacencyList( graph.getVertexCount() );
+
       for( Index rowIdx = 0; rowIdx < graph.getVertexCount(); rowIdx++ ) {
          const auto row = graph.getAdjacencyMatrix().getRow( rowIdx );
          for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
