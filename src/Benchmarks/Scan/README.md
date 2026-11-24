@@ -82,7 +82,7 @@ The benchmark-specific options are:
 
 The values of `--values-per-thread` and `--block-sizes` must be among the compiled values listed
 above. In addition,
-the common benchmark settings (e.g. `--loops`, `--log-file`, `--verbose`) and the device settings
+the [common benchmark options](../README.md#common-command-line-options) (e.g. `--loops`, `--log-file`, `--verbose`) and the device settings
 (`--openmp-enabled`, `--openmp-max-threads` and `--cuda-device` or `--hip-device`) are
 available. The number of threads of the host scan is set by `--openmp-max-threads`.
 

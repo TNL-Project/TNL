@@ -59,25 +59,14 @@ is used by the post-processing script below.
 
 ## Command-line options
 
-All four benchmarks share the following options. Only `tnl-benchmark-ndarray-reduction` accepts
-additional options (see below); the array sizes of the other three benchmarks are fixed at compile
-time:
+All four benchmarks accept the common benchmark options (output, number of iterations and device
+settings), which are described in the [benchmarks README](../README.md#common-command-line-options),
+and the following option. Only `tnl-benchmark-ndarray-reduction` accepts additional options (see
+below); the array sizes of the other three benchmarks are fixed at compile time:
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--device <device>` | Device to run the benchmarks on (`sequential`, `host`, `cuda`, `hip`, `all`) | `all` |
-| `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
-| `--output-mode <mode>` | Mode for opening the log file (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Minimal number of iterations for every computation | `10` |
-| `--min-time <t>` | Minimal real time in seconds for every computation | `0.0` |
-| `--warmup-loops <n>` | Number of warmup iterations before timing (0 to disable) | `1` |
-| `--warmup-min-time <t>` | Minimal real time in seconds for warmup (0 to disable) | `0.0` |
-| `--force-warmup-loop <bool>` | Discard the warmup iterations even if they take at least `--min-time` (if `false`, such an iteration is used as a sample) | `true` |
-| `--verbose <n>` | Verbosity of the terminal output | `1` |
-| `--catch-exceptions <bool>` | Catch exceptions during timing | `true` |
-| `--openmp-enabled <bool>` | Enable OpenMP support (host device) | `true` |
-| `--openmp-max-threads <n>` | Maximum number of OpenMP threads (host device) | `omp_get_max_threads()` |
-| `--cuda-device <n>` / `--hip-device <n>` | Device to run the computation on (GPU builds) | `0` |
 
 The `tnl-benchmark-ndarray-reduction` benchmark additionally accepts options controlling the array
 sizes (size lists are comma-separated lists of positive integers):

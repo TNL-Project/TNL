@@ -84,24 +84,18 @@ You can execute the benchmark directly with custom parameters:
 ./build/bin/tnl-benchmark-segments-cuda --device cuda --segments-setup constant --max-segments-count 16384 --max-segment-size 32
 ```
 
-All executables support the following options:
+All executables accept the common benchmark options (output, number of iterations and device settings),
+which are described in the [benchmarks README](../README.md#common-command-line-options),
+and the following options:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
-| `--output-mode <mode>` | Mode for opening the log file (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Minimal number of iterations for every computation | `10` |
-| `--warmup-loops <n>` | Number of warmup iterations before timing (0 to disable) | `1` |
-| `--verbose <n>` | Verbosity of the terminal output, the higher the more verbose | `1` |
 | `--segments-setup <setup>` | Segments setup (`all`, `constant`, `linear`, `quadratic`) | `all` |
 | `--min-segment-size <n>` | Minimum segment size | `1` |
 | `--max-segment-size <n>` | Maximum segment size | `128` |
 | `--min-segments-count <n>` | Minimum number of segments | `256` |
 | `--max-segments-count <n>` | Maximum number of segments | `1048576` |
 | `--device <device>` | Device the computation will run on (`host`, `sequential`, `cuda`, `hip`, `all`) | `all` |
-
-Options for OpenMP (`--openmp-enabled`, `--openmp-max-threads`) and for GPU device selection (`--cuda-device`,
-`--hip-device`) are available as well, see the `--help` output for details.
 
 ### Visualizing results
 

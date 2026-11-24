@@ -4,7 +4,9 @@
 
 Each benchmark subdirectory contains:
 
-- **README.md** file providing documentation for the benchmark.
+- **README.md** file providing documentation for the benchmark. It describes only the options
+  specific to the benchmark and refers to [README.md](README.md#common-command-line-options)
+  for the common options of `TNL::Benchmarks::Benchmark` and the device settings.
 - **Entry point header** (`tnl-benchmark-<name>.h`) — defines `configSetup()`, `main()`, and
   optionally precision/device resolution functions. This file is compiled for all device
   targets: `tnl_add_backend_executables` (see `cmake/target_helpers.cmake`) generates the `.cpp`,

@@ -54,25 +54,7 @@ Run with a specific matrix size, in double precision, on the GPU:
 | `--precision <type>` | Precision of the arithmetics (`float`, `double`, `all`) | `double` |
 | `--device <device>` | Device to run benchmarks on (`host`, `cuda`, `hip`, `all`) | `all` |
 
-### General benchmark settings
+### Common settings
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
-| `--output-mode <mode>` | Mode for opening the log file (`overwrite`, `append`) | `overwrite` |
-| `--loops <n>` | Minimal number of iterations for every computation | `10` |
-| `--min-time <t>` | Minimal real time in seconds for every computation | `0.0` |
-| `--warmup-loops <n>` | Number of warmup iterations before timing (0 to disable) | `1` |
-| `--warmup-min-time <t>` | Minimal real time in seconds for warmup (0 to disable) | `0.0` |
-| `--force-warmup-loop <bool>` | Discard the warmup iterations even if they take at least `--min-time` (if `false`, such an iteration is used as a sample) | `true` |
-| `--verbose <n>` | Verbose mode for terminal output, the higher number the more verbosity | `1` |
-| `--catch-exceptions <bool>` | Catch exceptions during timing | `true` |
-
-### Device settings
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--openmp-enabled <bool>` | Enable support of OpenMP (host builds) | `true` |
-| `--openmp-max-threads <n>` | Set maximum number of OpenMP threads (host builds) | `omp_get_max_threads()` |
-| `--cuda-device <n>` | Choose CUDA device to run the computation (CUDA builds) | `0` |
-| `--hip-device <n>` | Choose HIP device to run the computation (HIP builds) | `0` |
+The common benchmark options (output, number of iterations and device settings)
+are described in the [benchmarks README](../README.md#common-command-line-options).

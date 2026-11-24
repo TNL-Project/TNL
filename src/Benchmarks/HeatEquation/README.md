@@ -90,7 +90,7 @@ Options specific to the heat equation benchmark are:
 Note that the step factors must be greater than 1. The values `cuda` and `hip` of `--device` are effective only in
 binaries built with CUDA or HIP support; the device options `host` and `sequential` are always available.
 
-In addition, the benchmark accepts the common options of the `TNL::Benchmarks::Benchmark` framework (such as
+In addition, the benchmark accepts the [common benchmark options](../README.md#common-command-line-options) (such as
 `--loops`, `--log-file`, or `--verbose`) and the device setup options of `TNL::Devices::Host` and `TNL::Devices::GPU`.
 See the `--help` output for the full list.
 
