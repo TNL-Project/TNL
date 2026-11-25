@@ -14,12 +14,28 @@
 namespace TNL::Algorithms::Sorting::detail {
 
 /**
- * \brief This kernel simulates 1 exchange.
+ * \brief Performs one compare-and-swap step of the bitonic merge in the global memory.
  *
- * It splits input arr that is bitonic into 2 bitonic sequences.
+ * Each thread compares and swaps one pair of elements
+ * which are `2^( logBitonicLen - 1 )` positions apart,
+ * so each bitonic sequence of length `2^logBitonicLen`
+ * is split into two halves,
+ * where all elements of the first half precede all elements of the second half.
+ * Pairs whose second element lies beyond the end of the array
+ * belong to the virtual padding up to the next power of two
+ * and are skipped.
  *
- * \param logMonotonicSeqLen Base-2 logarithm of the length of the monotonic sequences.
- * \param logBitonicLen Base-2 logarithm of the length of the bitonic sequences.
+ * \tparam Value Type of the array elements.
+ * \tparam ArrayIndex Index type of the array.
+ * \tparam CMP Type of the comparison function.
+ * \tparam Index Type used for the index computations, at least 32 bits wide.
+ *
+ * \param arr The array being sorted.
+ * \param compare Strict weak ordering of the elements.
+ * \param logMonotonicSeqLen Base-2 logarithm of the length of the monotonic sequences
+ *                           produced by the current merge phase.
+ * \param logBitonicLen Base-2 logarithm of the length of the bitonic sequences
+ *                      processed by this step.
  */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
 __global__
@@ -61,10 +77,14 @@ bitonicMergeGlobal(
 }
 
 /**
- * \brief Simulates many layers of merge.
+ * \brief Performs the remaining steps of a bitonic merge phase in the shared memory.
  *
- * Turns input that is a bitonic sequence into 1 monotonic sequence.
- * This version uses shared memory to do the operations.
+ * Each block loads a tile of `tileLen` elements into the shared memory
+ * and performs all steps of the merge phase
+ * with bitonic lengths from `2^logBitonicLen` down to 2,
+ * which turns each bitonic sequence of the tile into a monotonic one.
+ * This replaces `logBitonicLen` launches of \ref bitonicMergeGlobal
+ * by one kernel which reads and writes the global memory only once.
  *
  * \tparam uniformDirection Whether the whole tile belongs to a single monotonic
  *                          sequence, i.e. `tileLen` does not exceed the monotonic
@@ -72,6 +92,13 @@ bitonicMergeGlobal(
  *                          direction just once per block.
  * \tparam singlePairPerThread Whether the tile has at most one compared pair per
  *                             thread, which avoids the loop over the pairs.
+ * \tparam Value Type of the array elements.
+ * \tparam ArrayIndex Index type of the array.
+ * \tparam CMP Type of the comparison function.
+ * \tparam Index Type used for the index computations, at least 32 bits wide.
+ *
+ * \param arr The array being sorted.
+ * \param compare Strict weak ordering of the elements.
  * \param tileLen Number of elements processed by one block. It can span multiple
  *                monotonic sequences, but it must be a power of two that is not
  *                smaller than the bitonic length of the first merge phase.
@@ -164,12 +191,21 @@ bitonicMergeSharedMemory(
 }
 
 /**
- * \brief Entrypoint for bitonicSort_Block.
+ * \brief Sorts tiles of `2 * blockDim.x` elements in the shared memory.
  *
- * Sorts `arr` in alternating order to create bitonic sequences.
- * `sharedMem` has to be able to store at least `blockDim.x * 2` elements.
+ * Each block sorts one tile by the complete bitonic sorting network.
+ * Neighboring tiles are sorted in opposite directions,
+ * so each pair of tiles forms a bitonic sequence
+ * for the following merge phases.
+ * The dynamic shared memory must hold `2 * blockDim.x` elements.
  *
- * \param arr The array to sort in alternating order.
+ * \tparam Value Type of the array elements.
+ * \tparam ArrayIndex Index type of the array.
+ * \tparam CMP Type of the comparison function.
+ * \tparam Index Type used for the index computations, at least 32 bits wide.
+ *
+ * \param arr The array whose tiles are sorted in alternating directions.
+ * \param compare Strict weak ordering of the elements.
  */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
 __global__
@@ -236,6 +272,19 @@ bitonicSortFirstStepSharedMemory( Containers::ArrayView< Value, Devices::GPU, Ar
  * then process the longest bitonic lengths that still fit into the shared memory
  * of one block. Only the phases with larger bitonic lengths have to go through
  * global memory, which makes them the dominant part of the running time.
+ *
+ * \tparam Value Type of the array elements.
+ * \tparam ArrayIndex Index type of the array.
+ * \tparam CMP Type of the comparison function.
+ * \tparam Index Type used for the index computations, at least 32 bits wide.
+ *
+ * \param view The array to be sorted.
+ * \param compare Strict weak ordering of the elements.
+ * \param blockDim Number of threads per block.
+ * \param firstStepTileLen Number of elements sorted by one block in the first step,
+ *                         it must be `2 * blockDim`.
+ * \param mergeTileLen Number of elements processed by one block of the shared memory
+ *                     merge kernel, a power of two not smaller than `firstStepTileLen`.
  */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
 void
@@ -305,6 +354,16 @@ bitonicSortWithShared(
  * \brief Bitonic sort using only global memory (no shared memory optimization).
  *
  * Used when shared memory is too small for the element type.
+ *
+ * \tparam Value Type of the array elements.
+ * \tparam ArrayIndex Index type of the array.
+ * \tparam CMP Type of the comparison function.
+ * \tparam Index Type used for the index computations, at least 32 bits wide.
+ *
+ * \param view The array to be sorted.
+ * \param compare Strict weak ordering of the elements.
+ * \param gridDim Number of blocks, enough for one thread per pair of elements.
+ * \param blockDim Number of threads per block.
  */
 template< typename Value, typename ArrayIndex, typename CMP, typename Index >
 void
@@ -327,10 +386,21 @@ bitonicSort( Containers::ArrayView< Value, Devices::GPU, ArrayIndex > view, cons
 }
 
 /**
- * \brief Main entry point for bitonic sort on CUDA arrays.
+ * \brief Main entry point for bitonic sort on GPU arrays.
  *
  * Automatically selects between shared memory and global memory implementations
  * based on available shared memory and element size.
+ * It is the implementation of \ref TNL::Algorithms::Sorting::BitonicSort::sort.
+ *
+ * \tparam Value Type of the array elements.
+ * \tparam ArrayIndex Index type of the array.
+ * \tparam CMP Type of the comparison function.
+ *
+ * \param view The array to be sorted.
+ * \param compare Strict weak ordering of the elements.
+ *
+ * \throws std::length_error if the array size rounded up to a power of two
+ *         cannot be represented by the index type.
  */
 template< typename Value, typename ArrayIndex, typename CMP >
 void
@@ -389,7 +459,19 @@ bitonicSort( Containers::ArrayView< Value, Devices::GPU, ArrayIndex > view, cons
  * \brief Bitonic merge kernel for fetch-and-swap interface.
  *
  * Used when elements are accessed via custom fetch/swap functions rather than
- * direct array access.
+ * direct array access. It is the counterpart of \ref bitonicMergeGlobal.
+ *
+ * \tparam Index Type of the indices, at least 32 bits wide.
+ * \tparam CMP Type of the comparison function.
+ * \tparam SWAP Type of the swap function.
+ *
+ * \param size Number of elements to be sorted.
+ * \param compare Function comparing the elements with the given indices.
+ * \param Swap Function swapping the elements with the given indices.
+ * \param logMonotonicSeqLen Base-2 logarithm of the length of the monotonic sequences
+ *                           produced by the current merge phase.
+ * \param logBitonicLen Base-2 logarithm of the length of the bitonic sequences
+ *                      processed by this step.
  */
 template< typename Index, typename CMP, typename SWAP >
 __global__
@@ -429,6 +511,19 @@ bitonicMergeGlobalWithSwap( Index size, CMP compare, SWAP Swap, unsigned int log
  *
  * Useful for sorting indirect arrays or when additional logic is needed
  * during comparison or swapping.
+ * It is the implementation of \ref TNL::Algorithms::Sorting::BitonicSort::inplaceSort.
+ *
+ * \tparam Index Type of the indices.
+ * \tparam CMP Type of the comparison function.
+ * \tparam SWAP Type of the swap function.
+ *
+ * \param begin The first index of the range to be sorted.
+ * \param end The index after the last index of the range to be sorted.
+ * \param compare Function comparing the elements with the given indices.
+ * \param Swap Function swapping the elements with the given indices.
+ *
+ * \throws std::length_error if the range size rounded up to a power of two
+ *         cannot be represented by the index type used in the kernels.
  */
 template< typename Index, typename CMP, typename SWAP >
 void
