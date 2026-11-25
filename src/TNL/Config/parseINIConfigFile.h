@@ -75,7 +75,7 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
       }
       else if( entryType == "list of integer" ) {
          const auto list = value.AsArray().ToVector< Integer >();
-         const auto& entry = dynamic_cast< const ConfigEntry< Integer >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntryList< Integer >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< Integer >( name, list );
       }
@@ -83,19 +83,19 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
          std::vector< UnsignedInteger > list;
          for( const auto& item : value.AsArray().ToVector< std::string >() )
             list.push_back( convertStringValue< UnsignedInteger >( item, name ) );
-         const auto& entry = dynamic_cast< const ConfigEntry< UnsignedInteger >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntryList< UnsignedInteger >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< UnsignedInteger >( name, list );
       }
       else if( entryType == "list of real" ) {
          const auto list = value.AsArray().ToVector< double >();
-         const auto& entry = dynamic_cast< const ConfigEntry< double >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntryList< double >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< double >( name, list );
       }
       else if( entryType == "list of string" ) {
          const auto list = value.AsArray().ToVector< std::string >();
-         const auto& entry = dynamic_cast< const ConfigEntry< std::string >& >( *entryBase );
+         const auto& entry = dynamic_cast< const ConfigEntryList< std::string >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< std::string >( name, list );
       }

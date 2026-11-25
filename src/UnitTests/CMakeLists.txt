@@ -11,6 +11,7 @@ add_subdirectory(Solvers)
 set(HOST_TESTS
     base64Test
     BenchmarksTest
+    ConfigTest
     CustomScalarTest
     DiscreteMathTest
     MathTest
