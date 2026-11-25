@@ -909,6 +909,162 @@ TEST( BitonicSortLargeValue, value576B )
    sortLargeValues< 576 >( 4096, rng );
 }
 
+// =============================================================================
+// Block bitonic sort tests
+// =============================================================================
+
+namespace {
+
+// Number of blocks for the block sort tests. It is smaller than the number of
+// tiles, so each block sorts several tiles and reuses its shared memory.
+constexpr int blockSortGridSize = 2;
+
+// Each block sorts tiles of `src` and writes them to the same tiles of `dst`.
+template< typename Value, typename Index >
+__global__
+void
+blockSortSharedKernel(
+   TNL::Containers::ArrayView< Value, TNL::Devices::GPU, Index > src,
+   TNL::Containers::ArrayView< Value, TNL::Devices::GPU, Index > dst,
+   Index tileSize )
+{
+   extern __shared__ int sharedMem[];
+   // 64-bit tile bounds avoid overflow of narrow index types
+   const std::int64_t size = src.getSize();
+   for( std::int64_t begin = blockIdx.x * std::int64_t( tileSize ); begin < size;
+        begin += gridDim.x * std::int64_t( tileSize ) )
+   {
+      const Index b = static_cast< Index >( begin );
+      const Index e = static_cast< Index >( TNL::min( begin + tileSize, size ) );
+      Sorting::detail::bitonicSort_Block(
+         src.getView( b, e ), dst.getView( b, e ), reinterpret_cast< Value* >( sharedMem ), std::less<>{} );
+   }
+}
+
+// Each block sorts tiles of `data` in place.
+template< typename Value, typename Index >
+__global__
+void
+blockSortInplaceKernel( TNL::Containers::ArrayView< Value, TNL::Devices::GPU, Index > data, Index tileSize )
+{
+   // 64-bit tile bounds avoid overflow of narrow index types
+   const std::int64_t size = data.getSize();
+   for( std::int64_t begin = blockIdx.x * std::int64_t( tileSize ); begin < size;
+        begin += gridDim.x * std::int64_t( tileSize ) )
+   {
+      const Index b = static_cast< Index >( begin );
+      const Index e = static_cast< Index >( TNL::min( begin + tileSize, size ) );
+      Sorting::detail::bitonicSort_Block( data.getView( b, e ), std::greater<>{} );
+   }
+}
+
+// Sorts the tiles on the host to get the expected result.
+template< typename Value, typename Compare >
+std::vector< Value >
+sortTilesOnHost( std::vector< Value > vec, int tileSize, const Compare& compare )
+{
+   for( std::size_t begin = 0; begin < vec.size(); begin += tileSize ) {
+      const std::size_t end = std::min( begin + tileSize, vec.size() );
+      std::sort( vec.begin() + begin, vec.begin() + end, compare );
+   }
+   return vec;
+}
+
+}  // namespace
+
+TEST( BitonicSortBlock, sharedMemory )
+{
+   std::mt19937 rng( 4 );
+   for( int blockSize : { 32, 128, 256 } )
+      for( int tileSize : { 1, 2, 7, 64, 300, 1024, 2047 } ) {
+         const int size = 5 * tileSize + tileSize / 3;
+         std::vector< int > vec( size );
+         for( auto& x : vec )
+            x = rng() % 1000 - 500;
+
+         TNL::Containers::Array< int, TNL::Devices::GPU > src( vec );
+         TNL::Containers::Array< int, TNL::Devices::GPU > dst( size );
+         TNL::Backend::LaunchConfiguration config;
+         config.blockSize.x = blockSize;
+         config.gridSize.x = blockSortGridSize;
+         config.dynamicSharedMemorySize = tileSize * sizeof( int );
+         constexpr auto kernel = blockSortSharedKernel< int, int >;
+         TNL::Backend::launchKernelSync( kernel, config, src.getView(), dst.getView(), tileSize );
+
+         const TNL::Containers::Array< int, TNL::Devices::GPU > expected( sortTilesOnHost( vec, tileSize, std::less<>{} ) );
+         EXPECT_EQ( dst, expected ) << "blockSize = " << blockSize << ", tileSize = " << tileSize;
+         // the source array must not be modified
+         const TNL::Containers::Array< int, TNL::Devices::GPU > original( vec );
+         EXPECT_EQ( src, original );
+      }
+}
+
+TEST( BitonicSortBlock, sharedMemoryInplace )
+{
+   std::mt19937 rng( 5 );
+   const int blockSize = 128;
+   const int tileSize = 1000;
+   const int size = 3 * tileSize + 17;
+   std::vector< double > vec( size );
+   for( auto& x : vec )
+      x = static_cast< double >( rng() % 10000 ) / 7.0;
+
+   TNL::Containers::Array< double, TNL::Devices::GPU > arr( vec );
+   TNL::Backend::LaunchConfiguration config;
+   config.blockSize.x = blockSize;
+   config.gridSize.x = blockSortGridSize;
+   config.dynamicSharedMemorySize = tileSize * sizeof( double );
+   constexpr auto kernel = blockSortSharedKernel< double, int >;
+   TNL::Backend::launchKernelSync( kernel, config, arr.getView(), arr.getView(), tileSize );
+
+   TNL::Containers::Array< double, TNL::Devices::GPU > expected( sortTilesOnHost( vec, tileSize, std::less<>{} ) );
+   EXPECT_EQ( arr, expected );
+}
+
+TEST( BitonicSortBlock, globalMemory )
+{
+   std::mt19937 rng( 6 );
+   for( int blockSize : { 32, 128, 256 } )
+      for( int tileSize : { 1, 2, 7, 64, 300, 1024, 5000 } ) {
+         const int size = 4 * tileSize + tileSize / 2;
+         std::vector< std::int64_t > vec( size );
+         for( auto& x : vec )
+            x = static_cast< std::int64_t >( rng() % 1000 ) - 500;
+
+         TNL::Containers::Array< std::int64_t, TNL::Devices::GPU, long > arr( vec );
+         TNL::Backend::LaunchConfiguration config;
+         config.blockSize.x = blockSize;
+         config.gridSize.x = blockSortGridSize;
+         constexpr auto kernel = blockSortInplaceKernel< std::int64_t, long >;
+         TNL::Backend::launchKernelSync( kernel, config, arr.getView(), long( tileSize ) );
+
+         TNL::Containers::Array< std::int64_t, TNL::Devices::GPU, long > expected(
+            sortTilesOnHost( vec, tileSize, std::greater<>{} ) );
+         EXPECT_EQ( arr, expected ) << "blockSize = " << blockSize << ", tileSize = " << tileSize;
+      }
+}
+
+// The padded tile size 2^15 does not fit into the 16-bit index type.
+TEST( BitonicSortBlock, narrowIndex )
+{
+   std::mt19937 rng( 7 );
+   const short tileSize = 20000;
+   const short size = 30000;
+   std::vector< int > vec( size );
+   for( auto& x : vec )
+      x = static_cast< int >( rng() % 100000 );
+
+   TNL::Containers::Array< int, TNL::Devices::GPU, short > arr( vec );
+   TNL::Backend::LaunchConfiguration config;
+   config.blockSize.x = 256;
+   config.gridSize.x = blockSortGridSize;
+   constexpr auto kernel = blockSortInplaceKernel< int, short >;
+   TNL::Backend::launchKernelSync( kernel, config, arr.getView(), tileSize );
+
+   const TNL::Containers::Array< int, TNL::Devices::GPU, short > expected( sortTilesOnHost( vec, tileSize, std::greater<>{} ) );
+   EXPECT_EQ( arr, expected );
+}
+
 #endif
 
 #include "../../main.h"
