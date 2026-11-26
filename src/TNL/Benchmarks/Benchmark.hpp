@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <exception>
+#include <string>
 
 #include <TNL/MPI/Comm.h>
 
@@ -24,14 +25,16 @@ Benchmark::configSetup( Config::ConfigDescription& config )
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Minimal number of iterations for every computation.", 10 );
-   config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
-   config.addEntry< int >( "warmup-loops", "Number of warmup iterations before timing (0 to disable).", 1 );
-   config.addEntry< double >( "warmup-min-time", "Minimal real time in seconds for warmup (0 to disable).", 0.0 );
+   config.addEntry< std::size_t >( "loops", "Maximal number of iterations for every computation.", 10 );
+   config.addEntry< double >(
+      "max-time",
+      "Real time in seconds after which no further iteration of the computation is started (0 for no limit).",
+      0.0 );
+   config.addEntry< std::size_t >( "warmup-loops", "Maximal number of warmup iterations before timing (0 to disable).", 1 );
+   config.addEntry< double >(
+      "warmup-max-time", "Real time in seconds after which no further warmup iteration is started (0 for no limit).", 0.0 );
    config.addEntry< bool >(
-      "force-warmup-loop",
-      "Discard the warmup iterations even if they take at least min-time (if false, such an iteration is used as a sample).",
-      true );
+      "reuse-long-warmup", "Use a warmup iteration taking at least max-time as the only timing sample.", false );
    config.addEntry< int >( "verbose", "Verbose mode for terminal output, the higher number the more verbosity.", 1 );
    config.addEntry< bool >( "catch-exceptions", "Catch exceptions during timing.", true );
 }
@@ -39,11 +42,11 @@ Benchmark::configSetup( Config::ConfigDescription& config )
 inline void
 Benchmark::setup( const Config::ParameterContainer& parameters, const std::string& programName )
 {
-   this->loops = parameters.getParameter< int >( "loops" );
-   this->minTime = parameters.getParameter< double >( "min-time" );
-   this->warmupLoops = parameters.getParameter< int >( "warmup-loops" );
-   this->warmupMinTime = parameters.getParameter< double >( "warmup-min-time" );
-   this->forceWarmupLoop = parameters.getParameter< bool >( "force-warmup-loop" );
+   this->loops = parameters.getParameter< std::size_t >( "loops" );
+   this->maxTime = parameters.getParameter< double >( "max-time" );
+   this->warmupLoops = parameters.getParameter< std::size_t >( "warmup-loops" );
+   this->warmupMaxTime = parameters.getParameter< double >( "warmup-max-time" );
+   this->reuseLongWarmup = parameters.getParameter< bool >( "reuse-long-warmup" );
    const int verbose = parameters.getParameter< int >( "verbose" );
    this->catchExceptions = parameters.getParameter< bool >( "catch-exceptions" );
 
@@ -80,9 +83,9 @@ Benchmark::setLoops( std::size_t loops )
 }
 
 inline void
-Benchmark::setMinTime( double minTime )
+Benchmark::setMaxTime( double maxTime )
 {
-   this->minTime = minTime;
+   this->maxTime = maxTime;
 }
 
 inline void
@@ -92,15 +95,15 @@ Benchmark::setWarmupLoops( std::size_t warmupLoops )
 }
 
 inline void
-Benchmark::setWarmupMinTime( double warmupMinTime )
+Benchmark::setWarmupMaxTime( double warmupMaxTime )
 {
-   this->warmupMinTime = warmupMinTime;
+   this->warmupMaxTime = warmupMaxTime;
 }
 
 inline void
-Benchmark::setForceWarmupLoop( bool forceWarmupLoop )
+Benchmark::setReuseLongWarmup( bool reuseLongWarmup )
 {
-   this->forceWarmupLoop = forceWarmupLoop;
+   this->reuseLongWarmup = reuseLongWarmup;
 }
 
 inline void
@@ -152,7 +155,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
    std::string errorMessage;
    if( catchExceptions ) {
       try {
-         timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, forceWarmupLoop, monitor, result );
+         timeFunction< Device >( compute, reset, loops, maxTime, warmupLoops, warmupMaxTime, reuseLongWarmup, monitor, result );
       }
       catch( const std::exception& e ) {
          errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
@@ -160,7 +163,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
       }
    }
    else {
-      timeFunction< Device >( compute, reset, loops, minTime, warmupLoops, warmupMinTime, forceWarmupLoop, monitor, result );
+      timeFunction< Device >( compute, reset, loops, maxTime, warmupLoops, warmupMaxTime, reuseLongWarmup, monitor, result );
    }
 
    result.setDerivedResults( datasetSize, operations_per_loop );
