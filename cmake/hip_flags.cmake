@@ -5,7 +5,11 @@ set(CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -Wall")
 #       which do not work with -O0 (leads to Memory access fault), hence -O1
 set(CMAKE_HIP_FLAGS_DEBUG "-O1 -g -DHIP_ENABLE_PRINTF")
 set(CMAKE_HIP_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_HIP_FLAGS_RELWITHDEBINFO "${CMAKE_HIP_FLAGS_RELEASE} ${CMAKE_HIP_FLAGS_DEBUG}")
+# NOTE: the Debug configuration cannot be concatenated into RelWithDebInfo:
+#       its "-O1" would be appended after the Release "-O3" and the last option would win.
+#       HIP_ENABLE_PRINTF is only needed when assertions are enabled (i.e. without NDEBUG),
+#       so only the debug information is added here.
+set(CMAKE_HIP_FLAGS_RELWITHDEBINFO "${CMAKE_HIP_FLAGS_RELEASE} -g")
 
 if(TNL_USE_CI_FLAGS)
     # enforce (more or less) warning-free builds
