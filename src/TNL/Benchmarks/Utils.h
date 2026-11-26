@@ -27,18 +27,29 @@ namespace TNL::Benchmarks {
  * \brief Times a compute function over multiple iterations.
  *
  * Executes the compute function repeatedly, collecting timing samples until
- * either maxLoops iterations complete or `minTime` seconds have elapsed.
+ * either `loops` iterations complete or the measured time reaches `maxTime`
+ * seconds. At least one iteration is always measured.
  * Computes mean, median, and standard deviation of the measurements.
  *
  * Before the timed loop begins, **warmup iterations** (controlled by the
- * `warmupLoops` and `warmupMinTime` parameters) are performed (calling
- * `reset()` followed by `compute()`). The warmup continues until both
- * conditions are satisfied: at least `warmupLoops` iterations have been
- * executed AND at least `warmupMinTime` seconds have elapsed. This serves
- * to stabilize thermal and frequency states and amortize one-time costs
- * such as CUDA JIT compilation. For CUDA devices, device synchronization
- * is performed after each warmup iteration to ensure the kernel has
- * completed before timing starts.
+ * `warmupLoops` and `warmupMaxTime` parameters) are performed (calling
+ * `reset()` followed by `compute()`). The warmup ends when either
+ * `warmupLoops` iterations have been executed or `warmupMaxTime` seconds
+ * have elapsed. This serves to stabilize thermal and frequency states and
+ * amortize one-time costs such as CUDA JIT compilation. For CUDA devices,
+ * device synchronization is performed after each warmup iteration to ensure
+ * the kernel has completed before timing starts.
+ *
+ * The time limits `maxTime` and `warmupMaxTime` do not interrupt a running
+ * computation. They are checked after each iteration and only prevent starting
+ * the next one, so the total time of a phase may exceed its limit by up to one
+ * iteration.
+ *
+ * If `reuseLongWarmup` is `true` and `maxTime` is positive, a warmup iteration
+ * whose computation takes at least `maxTime` seconds ends the warmup and is
+ * used as the only timing sample. Such a computation exhausts the time budget
+ * by itself and it is long enough that the effects compensated by the warmup
+ * are negligible, so it is not executed once more only to be discarded.
  *
  * For CUDA devices, explicit synchronization is performed before and after
  * each timed computation to ensure accurate timing.
@@ -53,10 +64,13 @@ namespace TNL::Benchmarks {
  *
  * \param compute Function to benchmark
  * \param reset Function called before each compute iteration
- * \param maxLoops Maximum number of iterations
- * \param minTime Minimum total runtime in seconds
- * \param warmupLoops Number of untimed warmup iterations (0 to disable, unless warmupMinTime > 0)
- * \param warmupMinTime Minimum total warmup runtime in seconds (0 to disable)
+ * \param loops Maximum number of iterations
+ * \param maxTime Total runtime in seconds after which no further iteration is started (0 for no limit)
+ * \param warmupLoops Maximum number of warmup iterations (0 to disable)
+ * \param warmupMaxTime Total warmup runtime in seconds after which no further warmup iteration is started
+ *        (0 for no limit)
+ * \param reuseLongWarmup Whether a warmup iteration taking at least `maxTime` seconds
+ *        is used as the timing sample
  * \param monitor Solver monitor instance (must not be null)
  * \param result Output object to receive timing data via `setTimeResults()`
  *
@@ -75,13 +89,16 @@ void
 timeFunction(
    ComputeFunction compute,
    ResetFunction reset,
-   std::size_t maxLoops,
-   double minTime,
+   std::size_t loops,
+   double maxTime,
    std::size_t warmupLoops,
-   double warmupMinTime,
+   double warmupMaxTime,
+   bool reuseLongWarmup,
    Monitor& monitor,
    ResultType& result )
 {
+   constexpr bool countCycles = std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host >;
+
    // the timer is constructed zero-initialized and stopped
    Timer timer;
 
@@ -90,24 +107,9 @@ timeFunction(
 
    PerformanceCounters performanceCounters;
 
-   // warm up: untimed iterations to stabilize thermal/frequency states and amortize JIT overhead
-   Timer warmupTimer;
-   warmupTimer.start();
-   for( std::size_t i = 0; i < warmupLoops || warmupTimer.getRealTime() < warmupMinTime; i++ ) {
-      reset();
-      compute();
-      if constexpr( std::is_same_v< Device, Devices::GPU > )
-         Backend::deviceSynchronize();
-   }
-   warmupTimer.stop();
-
-   Containers::Vector< double > results_time( maxLoops, 0.0 );
-   Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0 );
-
-   std::size_t loops;
-   for( loops = 0; loops < maxLoops || sum( results_time ) < minTime; loops++ ) {
-      // abuse the monitor's "time" for loops
-      monitor.setTime( loops + 1 );
+   // executes one iteration, only the computation is measured by the timer and the performance counters
+   auto measureIteration = [ & ]()
+   {
       reset();
 
       // Explicit synchronization of the GPU device
@@ -124,37 +126,75 @@ timeFunction(
          Backend::deviceSynchronize();
       timer.stop();
       performanceCounters.stop();
+   };
 
-      results_time[ loops ] = timer.getRealTime();
-      if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > )
-         results_cpu_cycles[ loops ] = performanceCounters.getCPUCycles();
+   // at least one iteration is always measured
+   const std::size_t maxSamples = loops > 0 ? loops : 1;
+   Containers::Vector< double > results_time( maxSamples, 0.0 );
+   Containers::Vector< long long int > results_cpu_cycles( maxSamples, 0 );
+   std::size_t samples = 0;
+   double results_total_time = 0.0;
+
+   // records the last measured iteration as a timing sample
+   auto addSample = [ & ]()
+   {
+      results_time[ samples ] = timer.getRealTime();
+      if constexpr( countCycles )
+         results_cpu_cycles[ samples ] = performanceCounters.getCPUCycles();
+      results_total_time += timer.getRealTime();
+      samples++;
+   };
+
+   // warm up: iterations to stabilize thermal/frequency states and amortize JIT overhead,
+   // their times are discarded unless a long iteration is reused as the sample
+   Timer warmupTimer;
+   warmupTimer.start();
+   for( std::size_t i = 0; i < warmupLoops && ( warmupMaxTime <= 0 || warmupTimer.getRealTime() < warmupMaxTime ); i++ ) {
+      measureIteration();
+      if( reuseLongWarmup && maxTime > 0 && timer.getRealTime() >= maxTime ) {
+         // the computation exhausts the time budget by itself and the warmup effects are negligible, use it as the sample
+         addSample();
+         break;
+      }
    }
+   warmupTimer.stop();
+
+   while( samples < maxSamples && ( maxTime <= 0 || results_total_time < maxTime ) ) {
+      // abuse the monitor's "time" for loops
+      monitor.setTime( samples + 1 );
+      measureIteration();
+      addSample();
+   }
+
+   // only the measured samples are used for the statistics
+   auto times = results_time.getView( 0, samples );
+   auto cpu_cycles = results_cpu_cycles.getView( 0, samples );
 
    // sort for median computation (also improves summation accuracy)
-   double* time_begin = results_time.getData();
-   double* time_end = time_begin + loops;
+   double* time_begin = times.getData();
+   double* time_end = time_begin + samples;
    std::sort( time_begin, time_end );
    const double median_time =
-      ( loops % 2 == 1 ) ? time_begin[ loops / 2 ] : ( time_begin[ loops / 2 - 1 ] + time_begin[ loops / 2 ] ) / 2.0;
+      ( samples % 2 == 1 ) ? time_begin[ samples / 2 ] : ( time_begin[ samples / 2 - 1 ] + time_begin[ samples / 2 ] ) / 2.0;
 
    double median_cpu_cycles = 0.0;
-   if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > ) {
-      long long int* cycles_begin = results_cpu_cycles.getData();
-      long long int* cycles_end = cycles_begin + loops;
+   if constexpr( countCycles ) {
+      long long int* cycles_begin = cpu_cycles.getData();
+      long long int* cycles_end = cycles_begin + samples;
       std::sort( cycles_begin, cycles_end );
-      median_cpu_cycles = ( loops % 2 == 1 )
-                           ? static_cast< double >( cycles_begin[ loops / 2 ] )
-                           : static_cast< double >( cycles_begin[ loops / 2 - 1 ] + cycles_begin[ loops / 2 ] ) / 2.0;
+      median_cpu_cycles = ( samples % 2 == 1 )
+                           ? static_cast< double >( cycles_begin[ samples / 2 ] )
+                           : static_cast< double >( cycles_begin[ samples / 2 - 1 ] + cycles_begin[ samples / 2 ] ) / 2.0;
    }
 
-   const double mean_time = sum( results_time ) / static_cast< double >( loops );
-   const double mean_cpu_cycles = sum( results_cpu_cycles ) / static_cast< double >( loops );
+   const double mean_time = sum( times ) / static_cast< double >( samples );
+   const double mean_cpu_cycles = sum( cpu_cycles ) / static_cast< double >( samples );
 
    double stddev_time;
    double stddev_cpu_cycles;
-   if( loops > 1 ) {
-      stddev_time = 1.0 / std::sqrt( loops - 1 ) * l2Norm( results_time - mean_time );
-      stddev_cpu_cycles = 1.0 / std::sqrt( loops - 1 ) * l2Norm( results_cpu_cycles - mean_cpu_cycles );
+   if( samples > 1 ) {
+      stddev_time = 1.0 / std::sqrt( samples - 1 ) * l2Norm( times - mean_time );
+      stddev_cpu_cycles = 1.0 / std::sqrt( samples - 1 ) * l2Norm( cpu_cycles - mean_cpu_cycles );
    }
    else {
       stddev_time = std::numeric_limits< double >::quiet_NaN();
@@ -165,7 +205,7 @@ timeFunction(
    // so we must unset it to avoid returning a dangling reference to the caller
    monitor.unsetTimer();
 
-   result.setTimeResults( loops, mean_time, median_time, stddev_time, mean_cpu_cycles, median_cpu_cycles, stddev_cpu_cycles );
+   result.setTimeResults( samples, mean_time, median_time, stddev_time, mean_cpu_cycles, median_cpu_cycles, stddev_cpu_cycles );
 }
 
 inline std::map< std::string, std::string >

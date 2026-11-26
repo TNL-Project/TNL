@@ -76,18 +76,12 @@ just build tnl-benchmark-eigen-pi-cuda
 
 ## Options
 
-All three benchmarks share the following options:
+All three benchmarks accept the common benchmark options (output, number of iterations and device settings),
+which are described in the [benchmarks README](../README.md#common-command-line-options),
+and share the following options:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
-| `--output-mode <mode>` | Log file mode (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Number of iterations for every computation | `10` |
-| `--min-time <t>` | Minimal real time in seconds for every computation | `0` |
-| `--warmup-loops <n>` | Number of warmup iterations before timing | `1` |
-| `--warmup-min-time <t>` | Minimal real time in seconds for warmup | `0` |
-| `--verbose <n>` | Verbosity of the terminal output | `1` |
-| `--catch-exceptions <bool>` | Catch exceptions during timing | `true` |
 | `--precision <type>` | Precision of the arithmetics (`float`, `double`, `all`) | see below |
 | `--device <device>` | Device to run benchmarks on (`host`, `cuda`, `hip`, `all`) | `all` |
 

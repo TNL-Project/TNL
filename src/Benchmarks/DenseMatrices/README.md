@@ -100,19 +100,8 @@ just build tnl-benchmark-dense-matrix-vector-product-hip
 
 ### Options
 
-All three executables accept the general benchmark options listed below, together with the device settings
-(`--openmp-enabled`, `--openmp-max-threads` and `--cuda-device` or `--hip-device`).
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--log-file <file>` | Log file name for JSONL output | `<program>.log` |
-| `--output-mode <mode>` | Mode for opening the log file (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Number of iterations for every computation | `10` |
-| `--min-time <t>` | Minimal real time in seconds for every computation | `0.0` |
-| `--warmup-loops <n>` | Number of warmup iterations before timing (0 to disable) | `1` |
-| `--warmup-min-time <t>` | Minimal real time in seconds for warmup (0 to disable) | `0.0` |
-| `--verbose <n>` | Verbose mode for terminal output, higher is more verbose | `1` |
-| `--catch-exceptions <bool>` | Catch exceptions during timing | `true` |
+All three executables accept the common benchmark options (output, number of iterations and device settings),
+which are described in the [benchmarks README](../README.md#common-command-line-options).
 
 The multiplication and transposition benchmarks share the following options (only the defaults of `--max-rows` and
 `--max-columns` differ between them):

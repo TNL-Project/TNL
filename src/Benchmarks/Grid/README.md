@@ -52,7 +52,7 @@ Options specific to this benchmark:
 | `--precision <type>` | Precision of the arithmetics (`float`, `double`, or `all`) | `double` |
 | `--device <device>` | Device the computation will run on (`host`, `sequential`, `cuda`, `hip`, or `all`) | `all` |
 
-In addition, the general benchmark options (`--loops`, `--min-time`, `--warmup-loops`, `--log-file`, etc.) and the
+In addition, the [common benchmark options](../README.md#common-command-line-options) (`--loops`, `--max-time`, `--warmup-loops`, `--log-file`, etc.) and the
 device setup options (`--openmp-max-threads`, `--cuda-device`, `--hip-device`, etc.) are available. A complete list
 can be obtained with the `--help` command line argument.
 

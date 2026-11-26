@@ -79,14 +79,12 @@ You can execute the benchmark directly with custom parameters:
 ./build/bin/tnl-benchmark-sort-cuda --device all --value-type all
 ```
 
-Both CPU-only and CUDA executables support the following options:
+Both CPU-only and CUDA executables accept the common benchmark options (output, number of iterations and device
+settings), which are described in the [benchmarks README](../README.md#common-command-line-options),
+and the following options:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--log-file <file>` | Log file name | `tnl-benchmark-sort.log` |
-| `--output-mode <mode>` | File mode (`overwrite` or `append`) | `overwrite` |
-| `--loops <n>` | Number of benchmark repetitions | `10` |
-| `--verbose <n>` | Verbose mode (0-1) | `1` |
 | `--size <n>` | Array size | `1048576` (2^20) |
 | `--device <device>` | Device to use (`host`, `cuda`, `all`) | `host` |
 | `--value-type <type>` | Value type (`int`, `uint`, `double`, `all`) | `int` |

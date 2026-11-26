@@ -82,7 +82,7 @@ For each precision, the benchmarks are run for one device after another: first t
 ones, then the host ones, and finally the GPU ones. The array operations and the triad have no
 sequential variants.
 
-In addition, the common benchmark settings (e.g. `--loops`, `--log-file`, `--verbose`) and the
+In addition, the [common benchmark options](../README.md#common-command-line-options) (e.g. `--loops`, `--log-file`, `--verbose`) and the
 device settings (`--openmp-enabled`, `--openmp-max-threads` and `--cuda-device` or
 `--hip-device`) are available. A complete list can be obtained with:
 

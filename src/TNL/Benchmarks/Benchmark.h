@@ -23,12 +23,27 @@ namespace TNL::Benchmarks {
  * of computational kernels across different devices (CPU, GPU). It supports:
  *
  * - Multiple iterations with automatic loop count determination
- * - Minimum runtime specification for statistical significance
+ * - Maximum runtime specification, so that long computations are not repeated
  * - Automatic warmup iteration before timing begins
+ * - Long computations used as their own warmup, so that they are not executed twice
  * - Configurable output logging
  * - Metadata tracking (device, operation, performer, etc.)
  * - Bandwidth calculations
  * - CPU cycle counting (host devices only)
+ *
+ * \par Number of iterations
+ * The computation is repeated until either the given number of iterations
+ * was measured (\ref setLoops) or the measured time reached the maximum runtime
+ * (\ref setMaxTime).
+ * The maximum runtime does not interrupt a running computation,
+ * it only prevents starting the next iteration.
+ * Hence, short computations are measured the given number of times
+ * and long computations are measured only once.
+ * The measurement is preceded by warmup iterations, which are normally discarded
+ * and which are limited in the same way (\ref setWarmupLoops, \ref setWarmupMaxTime).
+ * When \ref setReuseLongWarmup is set to `true` and the maximum runtime is positive,
+ * a warmup iteration taking at least the maximum runtime is used as the only sample instead,
+ * so that long computations are not executed once more only to be discarded.
  *
  * Example usage:
  * \code
@@ -76,10 +91,12 @@ public:
     *
     * - `log-file`: Path to JSONL output file (default: `<program>.log`)
     * - `output-mode`: "append" or "overwrite"
-    * - `loops`: Number of iterations (default: 10)
-    * - `min-time`: Minimum runtime in seconds (default: 0.0)
-    * - `warmup-loops`: Number of warmup iterations (default: 1)
-    * - `warmup-min-time`: Minimum warmup runtime in seconds (default: 0.0)
+    * - `loops`: Maximum number of iterations (default: 10)
+    * - `max-time`: Runtime in seconds after which no further iteration is started, 0 for no limit (default: 0.0)
+    * - `warmup-loops`: Maximum number of warmup iterations (default: 1)
+    * - `warmup-max-time`: Warmup runtime in seconds after which no further warmup iteration is started,
+    *   0 for no limit (default: 0.0)
+    * - `reuse-long-warmup`: Use a warmup iteration taking at least `max-time` as the only sample (default: false)
     * - `verbose`: Verbosity level (default: 1)
     * - `catch-exceptions`: Catch exceptions during timing (default: true)
     *
@@ -105,46 +122,70 @@ public:
    setup( const Config::ParameterContainer& parameters, const std::string& programName = "" );
 
    /**
-    * \brief Sets the number of iterations for each measurement.
+    * \brief Sets the maximum number of iterations for each measurement.
     *
-    * \param loops Number of loops to execute
+    * Fewer iterations are executed if the maximum runtime is reached,
+    * see \ref setMaxTime. At least one iteration is always measured.
+    *
+    * \param loops Maximum number of loops to execute
     */
    void
    setLoops( std::size_t loops );
 
    /**
-    * \brief Sets the minimum runtime for measurements.
+    * \brief Sets the maximum runtime for measurements.
     *
-    * If specified, the benchmark will continue iterating until at least this
-    * much real time has elapsed, regardless of the loop count.
+    * If positive, the benchmark stops iterating as soon as the measured time
+    * reaches this value, even if fewer iterations than the loop count were executed.
+    * The limit does not interrupt a running computation: it is checked after each iteration
+    * and only prevents starting the next one.
+    * Hence, the measured time may exceed the limit by up to one iteration
+    * and an iteration longer than the limit always runs to its end.
     *
-    * \param minTime Minimum time in seconds
+    * \param maxTime Maximum time in seconds (0 for no limit)
     */
    void
-   setMinTime( double minTime );
+   setMaxTime( double maxTime );
 
    /**
-    * \brief Sets the number of warmup iterations.
+    * \brief Sets the maximum number of warmup iterations.
     *
     * Warmup iterations are executed before timing begins to stabilize
     * thermal and frequency states and amortize one-time costs such as
     * CUDA JIT compilation.
     *
-    * \param warmupLoops Number of warmup loops (0 to disable)
+    * \param warmupLoops Maximum number of warmup loops (0 to disable)
     */
    void
    setWarmupLoops( std::size_t warmupLoops );
 
    /**
-    * \brief Sets the minimum warmup runtime.
+    * \brief Sets the maximum warmup runtime.
     *
-    * If specified, warmup will continue until at least this much real time
-    * has elapsed, regardless of the warmup loop count.
+    * If positive, the warmup stops as soon as this much real time has elapsed,
+    * even if fewer iterations than the warmup loop count were executed.
+    * Like \ref setMaxTime, the limit does not interrupt a running computation,
+    * it only prevents starting the next warmup iteration.
     *
-    * \param warmupMinTime Minimum warmup time in seconds
+    * \param warmupMaxTime Maximum warmup time in seconds (0 for no limit)
     */
    void
-   setWarmupMinTime( double warmupMinTime );
+   setWarmupMaxTime( double warmupMaxTime );
+
+   /**
+    * \brief Sets whether a long warmup iteration is used as the timing sample.
+    *
+    * If set to `true` and the maximum runtime (\ref setMaxTime) is positive,
+    * a warmup iteration taking at least the maximum runtime ends the warmup
+    * and is used as the only timing sample.
+    * Such a computation exhausts the time budget by itself and it is long enough
+    * that the effects compensated by the warmup are negligible,
+    * so it is not executed once more only to be discarded.
+    *
+    * \param reuseLongWarmup Whether a long warmup iteration is used as the sample (default: `false`)
+    */
+   void
+   setReuseLongWarmup( bool reuseLongWarmup );
 
    /**
     * \brief Sets metadata columns for all subsequent result rows.
@@ -200,9 +241,12 @@ public:
     * Executes the compute function multiple times, calling `reset()` before each
     * iteration. Results are logged through configured loggers.
     *
-    * One untimed warmup iteration (reset + compute) is performed automatically
+    * Warmup iterations (reset + compute) are performed automatically
     * before the timed loop begins, to stabilize thermal and frequency states
-    * and amortize one-time costs such as CUDA JIT compilation.
+    * and amortize one-time costs such as CUDA JIT compilation
+    * (see \ref setWarmupLoops).
+    * Their times are discarded, unless a long warmup iteration is used as the sample
+    * (see \ref setReuseLongWarmup).
     *
     * \tparam Device Device type (e.g., \ref TNL::Devices::Host, \ref TNL::Devices::Cuda)
     * \tparam ResetFunction Callable that resets state before each iteration
@@ -328,11 +372,13 @@ protected:
 
    std::size_t warmupLoops = 1;
 
-   double warmupMinTime = 0.0;
+   double warmupMaxTime = 0.0;
+
+   bool reuseLongWarmup = false;
 
    std::size_t operations_per_loop = 0;
 
-   double minTime = 0.0;
+   double maxTime = 0.0;
 
    std::size_t datasetSize = 0;
 
