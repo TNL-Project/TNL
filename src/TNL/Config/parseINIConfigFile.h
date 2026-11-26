@@ -4,10 +4,11 @@
 #pragma once
 
 #include <set>
+#include <vector>
 
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
-#include <TNL/Config/parseCommandLine.h>  // for addDefaultValues and checkEnumValues
+#include <TNL/Config/parseCommandLine.h>  // for addDefaultValues, checkEnumValues and convertStringValue
 
 #include <TNL/3rdparty/Leksys/iniparser.hpp>
 
@@ -50,7 +51,7 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
          parameters.addParameter< Integer >( name, v );
       }
       else if( entryType == "unsigned integer" ) {
-         const auto v = value.AsT< UnsignedInteger >();
+         const auto v = convertStringValue< UnsignedInteger >( value.AsString(), name );
          const auto& entry = dynamic_cast< const ConfigEntry< UnsignedInteger >& >( *entryBase );
          checkEnumValues( entry, name, v );
          parameters.addParameter< UnsignedInteger >( name, v );
@@ -79,7 +80,9 @@ parseINIConfigFile( const std::string& configPath, const ConfigDescription& desc
          parameters.addList< Integer >( name, list );
       }
       else if( entryType == "list of unsigned integer" ) {
-         const auto list = value.AsArray().ToVector< UnsignedInteger >();
+         std::vector< UnsignedInteger > list;
+         for( const auto& item : value.AsArray().ToVector< std::string >() )
+            list.push_back( convertStringValue< UnsignedInteger >( item, name ) );
          const auto& entry = dynamic_cast< const ConfigEntry< UnsignedInteger >& >( *entryBase );
          checkEnumValues( entry, name, list );
          parameters.addList< UnsignedInteger >( name, list );

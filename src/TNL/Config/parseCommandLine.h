@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <type_traits>
 
 #include <TNL/String.h>
 #include <TNL/Config/ConfigDescription.h>
@@ -193,6 +194,13 @@ template< typename T >
 [[nodiscard]] T
 convertStringValue( const std::string& value, const std::string& param )
 {
+   // stream extraction into an unsigned type accepts a leading '-' and wraps the value around
+   if constexpr( std::is_integral_v< T > && std::is_unsigned_v< T > ) {
+      const auto first = value.find_first_not_of( " \t\n\v\f\r" );
+      if( first != std::string::npos && value[ first ] == '-' )
+         throw Exceptions::ConfigError(
+            "Value '" + value + "' is negative, but the parameter " + param + " requires an unsigned integer." );
+   }
    T v;
    std::stringstream str;
    str << value;
