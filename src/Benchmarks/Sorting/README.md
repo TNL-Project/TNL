@@ -9,6 +9,7 @@ and a benchmark of the three-way `pivotPartition` operation (see
 ### Host
 
 - **STL sort** – C++ standard library `std::sort`
+- **HostQuicksort** – TNL parallel quicksort (three-way, OpenMP tasks)
 
 ### CUDA (GPU)
 

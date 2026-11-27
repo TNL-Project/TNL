@@ -16,6 +16,7 @@
 #include <TNL/Algorithms/Sorting/CUBRadixSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
 #include <TNL/Algorithms/Sorting/Quicksort.h>
+#include <TNL/Algorithms/Sorting/HostQuicksort.h>
 #include "generators.h"
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -77,6 +78,16 @@ run_benchmark_host( Benchmark& benchmark, const char* distribution, const std::v
 
    BenchmarkResult result;
    benchmark.time< Devices::Host >( reset, "STL sort", sort, result );
+
+   auto sortQuicksort = [ &arr ]()
+   {
+      HostQuicksort::sort( arr );
+   };
+
+   benchmark.time< Devices::Host >( reset, "quicksort", sortQuicksort, result );
+
+   if( ! Algorithms::isAscending( arr ) )
+      throw std::runtime_error( "quicksort result is not sorted" );
 }
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
