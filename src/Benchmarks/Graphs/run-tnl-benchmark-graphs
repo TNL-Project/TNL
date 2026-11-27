@@ -22,6 +22,7 @@ MPI_ENABLED="no"
 MPI_PROCESSES=1
 MPI_EXTRA_ARGS=""
 MAX_CONSECUTIVE_FAILURES=3
+BENCHMARK_ARGS=()
 
 # Loop through all the positional arguments
 while [[ "$#" -gt 0 ]]; do
@@ -86,8 +87,13 @@ while [[ "$#" -gt 0 ]]; do
             MAX_CONSECUTIVE_FAILURES="$2"
             shift
             ;;
+        --)  # The remaining arguments are passed to the benchmark binary
+            shift
+            BENCHMARK_ARGS=("$@")
+            break
+            ;;
         -h|--help)  # Display help
-            echo "Usage: $0 [options]"
+            echo "Usage: $0 [options] [-- BENCHMARK_ARGS...]"
             echo "Options:"
             echo "  -b, --benchmark BINARY        Binary to benchmark"
             echo "  -i, --input-dir DIR           Input directory. Default: ./"
@@ -107,6 +113,7 @@ while [[ "$#" -gt 0 ]]; do
             echo "                                Give up on (and skip) a graph after this many consecutive"
             echo "                                crashes with no progress recorded for it. Default: 3"
             echo "  -h, --help                    Display help"
+            echo "Arguments after -- are passed to the benchmark binary, e.g. -- --device cuda --trials 8."
             exit 0
             ;;
         *)  # Handle unknown options
@@ -182,6 +189,7 @@ if [[ "$MPI_ENABLED" == "yes" ]]; then
 fi
 COMMAND+=("$BENCHMARK" --precision "$PRECISION" --log-file "$log_file" --output-mode append --verbose 1)
 COMMAND+=(--graph-list "$input_files" --graph-list-base-path "$graphs_base_path" --progress-dir "$progress_dir")
+COMMAND+=("${BENCHMARK_ARGS[@]}")
 
 if [[ "$OMP_ENABLED" == "yes" ]]; then
     COMMAND+=(--openmp-enabled yes)
