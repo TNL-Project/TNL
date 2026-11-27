@@ -16,14 +16,10 @@ and a benchmark of the three-way `pivotPartition` operation (see
 - **Quicksort** – experimental TNL quicksort implementation
 - **CUBMergeSort** – `cub::DeviceMergeSort::SortKeys`
 - **CUBRadixSort** – `cub::DeviceRadixSort::SortKeys`
-- **CedermanQuicksort** – Quicksort implementation based on Cederman & Tsigas
 - **MancaQuicksort** – Quicksort by Manca et al.
 - **NvidiaBitonicSort** – Bitonic sort NVIDIA CUDA samples
 
 #### Algorithm references
-
-- **CedermanQuicksort**: D. Cederman, P. Tsigas. "GPU-Quicksort: A practical quicksort algorithm for graphics processors." *Journal of Experimental Algorithmics (JEA)*, 2010.
-  DOI: [10.1145/1498698.1564500](https://doi.org/10.1145/1498698.1564500)
 
 - **MancaQuicksort**: E. Manca, A. Manconi, A. Orro, G. Armano, L. Milanesi. "CUDA-quicksort: an improved GPU-based implementation of quicksort." *Concurrency and Computation: Practice and Experience*, 2015.
   DOI: [10.1002/cpe.3611](https://doi.org/10.1002/cpe.3611), [SourceForge](https://sourceforge.net/p/cuda-quicksort/)

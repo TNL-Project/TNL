@@ -19,7 +19,6 @@
 #include "generators.h"
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   #include "ReferenceAlgorithms/CedermanQuicksort.h"
    #include "ReferenceAlgorithms/MancaQuicksort.h"
    #ifdef HAVE_CUDA_SAMPLES
       #include "ReferenceAlgorithms/NvidiaBitonicSort.h"
@@ -119,16 +118,6 @@ run_benchmark_gpu( Benchmark& benchmark, const char* distribution, const std::ve
 
    if( ! Algorithms::isAscending( arr ) )
       throw std::runtime_error( "quicksort result is not sorted" );
-
-   auto sortCederman = [ &arr ]()
-   {
-      CedermanQuicksort::sort( arr );
-   };
-
-   benchmark.time< Devices::GPU >( reset, "CedermanQuicksort", sortCederman, result );
-
-   if( ! Algorithms::isAscending( arr ) )
-      throw std::runtime_error( "CedermanQuicksort result is not sorted" );
 
    auto sortMancaQuicksort = [ &arr ]()
    {
