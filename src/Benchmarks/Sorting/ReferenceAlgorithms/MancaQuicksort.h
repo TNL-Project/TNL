@@ -498,13 +498,10 @@ manca_qsort( Type* ddata, uint size )
    TNL::Backend::funcSetCacheConfig( quick< blockSize, Type >, TNL::Backend::FuncCachePreferShared );
    TNL::Backend::funcSetCacheConfig( globalBitonicSort< Type >, TNL::Backend::FuncCachePreferShared );
 
-   TNL::Backend::deviceSynchronize();
-
    // Initialize the bucket array: initial attributes for each bucket
    // clang-format off
    init<Type><<<(nblock + 255) / 256, 256>>>(ddata, dbucket.getData(), npartitions1.getData(), size, partition_max);
    // clang-format on
-   TNL::Backend::deviceSynchronize();
 
    uint nbucket = 1;
    uint numIterations = 0;
@@ -546,7 +543,6 @@ manca_qsort( Type* ddata, uint size )
       // clang-format off
       partitionAssign<Type><<<nbucket, 1024>>>(dbucket.getData(), npartitions2.getData(), partition.getData());
       // clang-format on
-      TNL::Backend::deviceSynchronize();
 
       /*
        *  ---------------------    step 2a    ---------------------
@@ -565,19 +561,16 @@ manca_qsort( Type* ddata, uint size )
          quick<blockSize, Type><<<cudaBlocks, blockSize>>>(dbuffer.getData(), ddata, partition.getData(), dbucket.getData());
          // clang-format on
       }
-      TNL::Backend::deviceSynchronize();
 
       //step 2b: this function enters the pivot value in the central bucket's items
       // clang-format off
       insertPivot<Type><<<nbucket, 512>>>(ddata, dbucket.getData(), nbucket);
       // clang-format on
-      TNL::Backend::deviceSynchronize();
 
       //step 3: parameters are assigned, linked to the two new buckets created in step 2
       // clang-format off
       bucketAssign<Type><<<(nbucket + 255) / 256, 256>>>(dbucket.getData(), npartitions1.getData(), nbucket, inputSelect);
       // clang-format on
-      TNL::Backend::deviceSynchronize();
 
       nbucket *= 2;
 
