@@ -364,14 +364,24 @@ __global__
 void
 insertPivot( Type* data, Block< Type >* bucket, int nbucket )
 {
-   Type pivot = bucket[ blockIdx.x ].pivot;
-   uint start = bucket[ blockIdx.x ].nextbegin;
-   uint end = bucket[ blockIdx.x ].nextend;
-   bool is_altered = bucket[ blockIdx.x ].done;
+   const uint bucketId = blockIdx.x;
+   const uint chunk = blockIdx.y;
 
-   if( is_altered && blockIdx.x < nbucket )
-      for( uint j = start + threadIdx.x; j < end; j += blockDim.x )
-         data[ j ] = pivot;
+   if( bucketId >= static_cast< uint >( nbucket ) )
+      return;
+
+   const Type pivot = bucket[ bucketId ].pivot;
+   const uint start = bucket[ bucketId ].nextbegin;
+   const uint end = bucket[ bucketId ].nextend;
+
+   if( ! bucket[ bucketId ].done )
+      return;
+
+   // grid-stride within the bucket range, so a large bucket is filled by more
+   // iterations of this loop rather than by more blocks
+   const uint stride = gridDim.y * blockDim.x;
+   for( uint j = start + chunk * blockDim.x + threadIdx.x; j < end; j += stride )
+      data[ j ] = pivot;
 }
 
 //this function assigns the new attributes of each bucket
@@ -564,7 +574,18 @@ manca_qsort( Type* ddata, uint size )
 
       //step 2b: this function enters the pivot value in the central bucket's items
       // clang-format off
-      insertPivot<Type><<<nbucket, 512>>>(ddata, dbucket.getData(), nbucket);
+      // the first iteration fills almost the whole array with the initial pivot, so it
+      // needs many blocks; later iterations fill only tiny ranges and are faster
+      // with the original one-block-per-bucket launch
+      if( nbucket == 1 ) {
+         // cap the grid so that the launch stays valid for large arrays; the
+         // grid-stride loop covers the remaining elements
+         const uint fillBlocks = TNL::min( 32768U, ( size + 1024 - 1 ) / 1024 );
+         insertPivot<Type><<<dim3( 1, fillBlocks ), 256>>>(ddata, dbucket.getData(), nbucket);
+      }
+      else {
+         insertPivot<Type><<<nbucket, 512>>>(ddata, dbucket.getData(), nbucket);
+      }
       // clang-format on
 
       //step 3: parameters are assigned, linked to the two new buckets created in step 2
